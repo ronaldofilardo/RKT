@@ -71,7 +71,29 @@ body {
 
 /* Improve touch targets on mobile */
 @media (max-width: 640px) {
-  button {
-    min-height: 36px;
+  button, a, [role="button"] {
+    min-height: 44px;
   }
+}
+
+/* Hide scrollbar for set badges on mobile */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Prevent text overflow on very small screens */
+@media (max-width: 374px) {
+  .text-4xl {
+    font-size: 1.75rem;
+    line-height: 2rem;
+  }
+}
+
+/* Safe bottom for modern phones with gesture bar */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0.5rem);
 }

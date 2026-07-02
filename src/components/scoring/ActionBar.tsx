@@ -22,6 +22,27 @@ interface ActionBarProps {
   onStats?: () => void;
 }
 
+function ActionButton({ onClick, disabled, children, variant = 'default', className = '' }: {
+  onClick: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+  variant?: 'default' | 'danger' | 'secondary' | 'outline';
+  className?: string;
+}) {
+  const base = 'flex items-center justify-center gap-1 px-2 sm:px-3 py-3 sm:py-3.5 text-xs sm:text-sm font-semibold rounded-xl transition-all select-none min-h-[44px] sm:min-h-[48px] active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed';
+  const variants = {
+    default: 'bg-gray-100 hover:bg-gray-200 text-gray-800',
+    danger: 'bg-red-50 hover:bg-red-100 text-red-600',
+    secondary: 'bg-gray-50 hover:bg-gray-100 text-gray-600',
+    outline: 'border border-gray-200 bg-white hover:bg-gray-50 text-gray-700',
+  };
+  return (
+    <button onClick={onClick} disabled={disabled} className={`${base} ${variants[variant]} ${className}`}>
+      {children}
+    </button>
+  );
+}
+
 export function ActionBar({
   secondServe, serveStep, canUndo, canEdit, ballExchangeCount, fontScale, isFinished,
   onAce, onOut, onNet, onLet, onCancelSecondServe, onServeCancel,
@@ -31,71 +52,75 @@ export function ActionBar({
   const showSecondBadge = serveStep === 'second' || secondServe;
 
   return (
-    <div className="bg-white border-t border-gray-200 p-4 space-y-3 safe-bottom">
-      <div className="flex items-center gap-2 justify-center flex-wrap">
-        <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${showSecondBadge ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
-          {showSecondBadge ? '2º Saque' : '1º Saque'}
-        </span>
-
-        <button onClick={onAce} disabled={serveDisabled}
-          className="px-3 py-2.5 text-sm font-semibold rounded-lg bg-gray-100 hover:bg-gray-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-transform">
-          Ace
-        </button>
-        <button onClick={() => onOut(serveStep === 'second' ? 'second' : 'first')} disabled={serveDisabled}
-          className="px-3 py-2.5 text-sm font-semibold rounded-lg bg-gray-100 hover:bg-gray-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-transform">
-          Out
-        </button>
-        <button onClick={() => onNet(serveStep === 'second' ? 'second' : 'first')} disabled={serveDisabled}
-          className="px-3 py-2.5 text-sm font-semibold rounded-lg bg-gray-100 hover:bg-gray-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-transform">
-          Net
-        </button>
-
-        {showSecondBadge ? (
-          <button onClick={onServeCancel}
-            className="px-3 py-2.5 text-sm font-semibold rounded-lg bg-red-50 text-red-600 hover:bg-red-100 active:scale-95 transition-transform">
-            ✕
-          </button>
-        ) : (
-          <button onClick={onLet} disabled={isFinished}
-            className="px-3 py-2.5 text-sm font-semibold rounded-lg bg-gray-100 hover:bg-gray-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-transform">
-            Let
-          </button>
-        )}
-      </div>
-
-      <div className="flex items-center justify-center gap-3 flex-wrap">
-        <button onClick={onUndo} disabled={!canUndo || isFinished}
-          className="flex items-center gap-1 px-3 py-2.5 text-sm font-semibold rounded-lg bg-gray-100 hover:bg-gray-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-transform">
-          ↩ Correção
-        </button>
-
-        <button onClick={onFontSmaller} className="px-3 py-2.5 text-xs font-bold rounded-lg bg-gray-100 hover:bg-gray-200 active:scale-95 transition-transform">
-          A−
-        </button>
-        <span className="text-xs text-gray-500 w-8 text-center tabular-nums">{Math.round(fontScale * 100)}%</span>
-        <button onClick={onFontBigger} className="px-3 py-2.5 text-xs font-bold rounded-lg bg-gray-100 hover:bg-gray-200 active:scale-95 transition-transform">
-          A+
-        </button>
-
-        {canEdit && (
-          <button onClick={onEditScore} className="px-3 py-2.5 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 active:scale-95 transition-transform">
-            ✏️
-          </button>
-        )}
-
-        {onStats && (
-          <button onClick={onStats} className="px-3 py-2.5 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 active:scale-95 transition-transform">
-            📊
-          </button>
-        )}
-
-        <div className="flex items-center gap-2">
-          {ballExchangeCount > 0 && (
-            <span className="text-xs font-semibold text-gray-700">BOLAS: {ballExchangeCount}</span>
+    <div className="bg-white border-t border-gray-200 px-3 sm:px-4 py-3 sm:py-4 safe-bottom">
+      <div className="max-w-lg mx-auto space-y-3">
+        <div className="flex items-center justify-center gap-1.5">
+          <span className={`text-[10px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full ${
+            showSecondBadge ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+          }`}>
+            {showSecondBadge ? '2º SAQUE' : '1º SAQUE'}
+          </span>
+          {showSecondBadge && (
+            <button onClick={onServeCancel}
+              className="px-2.5 py-1 text-xs font-semibold rounded-full bg-red-50 text-red-600 hover:bg-red-100 active:scale-95 transition-transform min-h-[32px]">
+              Cancelar 2º
+            </button>
           )}
-          <button onClick={onBallExchange} className="px-3 py-2.5 text-xs font-bold rounded-lg bg-gray-100 hover:bg-gray-200 active:scale-95 transition-transform">
-            +ball
+        </div>
+
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+          <ActionButton onClick={onAce} disabled={serveDisabled}>
+            Ace
+          </ActionButton>
+          <ActionButton onClick={() => onOut(serveStep === 'second' ? 'second' : 'first')} disabled={serveDisabled}>
+            Out
+          </ActionButton>
+          <ActionButton onClick={() => onNet(serveStep === 'second' ? 'second' : 'first')} disabled={serveDisabled}>
+            Net
+          </ActionButton>
+          <ActionButton onClick={showSecondBadge ? onServeCancel : onLet} disabled={isFinished || serveDisabled} variant={showSecondBadge ? 'danger' : 'default'}>
+            {showSecondBadge ? '✕' : 'Let'}
+          </ActionButton>
+          <ActionButton onClick={onBallExchange} variant="secondary">
+            <span className="flex items-center gap-1">
+              <span className="text-base leading-none">+</span> bola
+            </span>
+          </ActionButton>
+        </div>
+
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <button onClick={onUndo} disabled={!canUndo || isFinished}
+            className="flex items-center gap-1 px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition-all min-h-[44px] disabled:opacity-40 disabled:cursor-not-allowed">
+            ↩ Corrigir
           </button>
+
+          <div className="flex items-center gap-1.5">
+            <button onClick={onFontSmaller} className="px-3 py-2 text-xs font-bold rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition-all min-h-[36px]">
+              A−
+            </button>
+            <span className="text-[10px] sm:text-xs text-gray-500 w-8 text-center tabular-nums font-medium">{Math.round(fontScale * 100)}%</span>
+            <button onClick={onFontBigger} className="px-3 py-2 text-xs font-bold rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition-all min-h-[36px]">
+              A+
+            </button>
+          </div>
+
+          {canEdit && (
+            <button onClick={onEditScore} className="px-3 sm:px-4 py-3 text-xs sm:text-sm rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition-all min-h-[44px]">
+              ✏️
+            </button>
+          )}
+
+          {onStats && (
+            <button onClick={onStats} className="px-3 sm:px-4 py-3 text-xs sm:text-sm rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition-all min-h-[44px]">
+              📊
+            </button>
+          )}
+
+          {ballExchangeCount > 0 && (
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-600 px-2 py-1 bg-gray-50 rounded-lg">
+              BOLAS: {ballExchangeCount}
+            </span>
+          )}
         </div>
       </div>
     </div>

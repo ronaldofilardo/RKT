@@ -43,11 +43,13 @@ export function ContextBadges({ isMatchPoint, isSetPoint, isBreakPoint, isTiebre
 
   if (badges.length === 0) return null;
 
+  const hasMatchPoint = badges.some(b => b.text === 'Match Point!');
+
   return (
-    <div className="flex flex-wrap gap-2 justify-center my-2" aria-live="polite">
+    <div className={`flex flex-wrap gap-1 sm:gap-2 justify-center ${hasMatchPoint ? 'my-1 sm:my-2' : 'my-1 sm:my-2'}`} aria-live="polite">
       {badges.map((b, i) => (
-        <span key={i} className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full border ${b.color}`}>
-          {b.icon} {b.text}
+        <span key={i} className={`inline-flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full border ${b.color}`}>
+          <span className="text-[10px] sm:text-xs">{b.icon}</span> {b.text}
         </span>
       ))}
     </div>

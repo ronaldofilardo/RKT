@@ -328,8 +328,7 @@ export default function ScoringPage() {
       />
 
 
-      <div className="flex-1 flex flex-col px-3 py-2 relative">
-        {/* Court Background */}
+      <div className="flex-1 flex flex-col gap-0 sm:gap-1 px-2 sm:px-3 py-1 sm:py-2 relative overflow-hidden">
         <div className="absolute inset-0 opacity-20 pointer-events-none">
           <CourtBackground courtType={match.courtType} />
         </div>
@@ -344,8 +343,8 @@ export default function ScoringPage() {
           elapsedSeconds={elapsed}
         />
 
-        <div className="flex items-center gap-2 flex-1 relative z-10">
-          <div className="flex-1">
+        <div className="flex items-center gap-1 sm:gap-2 flex-1 relative z-10 min-h-0">
+          <div className="flex-1 min-w-0">
             <PlayerCard
               player={match.player1}
               side="player1"
@@ -361,11 +360,11 @@ export default function ScoringPage() {
             />
           </div>
 
-          <div className="w-14 flex-shrink-0">
+          <div className="w-10 sm:w-14 flex-shrink-0">
             <VSIndicator scoreState={scoreState} />
           </div>
 
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <PlayerCard
               player={match.player2}
               side="player2"
@@ -383,22 +382,22 @@ export default function ScoringPage() {
         </div>
 
         {isFinished && showFinishedBanner && (
-          <div className="mt-3 bg-yellow-500/20 border-2 border-yellow-400 rounded-2xl p-5 text-center relative z-10">
-            <span className="text-4xl">🏆</span>
-            <h2 className="text-xl font-black text-white mt-2">
+          <div className="mt-2 sm:mt-3 bg-yellow-500/20 border-2 border-yellow-400 rounded-2xl p-3 sm:p-5 text-center relative z-10 mx-0">
+            <span className="text-2xl sm:text-4xl">🏆</span>
+            <h2 className="text-base sm:text-xl font-black text-white mt-1 sm:mt-2">
               PARTIDA FINALIZADA!
             </h2>
-            <p className="text-lg font-bold text-yellow-300 mt-1">
+            <p className="text-sm sm:text-lg font-bold text-yellow-300 mt-0.5 sm:mt-1">
               VENCEDOR:{" "}
               {winner === "player1" ? match.player1.name : match.player2.name}
             </p>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-[11px] sm:text-sm text-gray-400 mt-0.5 sm:mt-1">
               {scoreState?.setsWon.player1} x {scoreState?.setsWon.player2} sets
             </p>
-             <div className="flex gap-3 mt-4 justify-center">
+             <div className="flex gap-2 sm:gap-3 mt-2 sm:mt-4 justify-center">
                <button
                  onClick={() => router.push(`/match/${matchId}/report`)}
-                 className="px-5 py-2 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold rounded-xl text-sm"
+                 className="flex-1 sm:flex-none px-3 sm:px-5 py-2.5 sm:py-2 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold rounded-xl text-[11px] sm:text-sm min-h-[44px]"
                >
                  📊 Relatório
                </button>
@@ -409,9 +408,9 @@ export default function ScoringPage() {
                    }
                    router.push("/dashboard");
                  }}
-                 className="px-5 py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-sm border border-white/20"
+                 className="flex-1 sm:flex-none px-3 sm:px-5 py-2.5 sm:py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-[11px] sm:text-sm border border-white/20 min-h-[44px]"
                >
-                 ✅ Registrar Partida
+                 ✅ Registrar
                </button>
 
              </div>

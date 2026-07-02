@@ -24,7 +24,7 @@ interface VSIndicatorProps {
 }
 
 export function VSIndicator({ scoreState }: VSIndicatorProps) {
-  if (!scoreState) return <div className="text-gray-400 font-bold text-lg">VS</div>;
+  if (!scoreState) return <div className="text-gray-400 font-bold text-sm sm:text-lg leading-none text-center">VS</div>;
 
   const set = scoreState.sets[scoreState.sets.length - 1];
   const game = scoreState.currentGame;
@@ -34,22 +34,18 @@ export function VSIndicator({ scoreState }: VSIndicatorProps) {
     const nextChange = total <= 6 ? 6 - total : (8 - (total % 2 === 0 ? 2 : 1));
     return (
       <div className="flex flex-col items-center">
-        <span className="text-lg">🎾</span>
-        <span className="font-bold text-sm text-amber-600">TIE-BREAK</span>
+        <span className="text-base sm:text-lg leading-none">🎾</span>
+        <span className="font-bold text-[10px] sm:text-sm text-amber-600 leading-tight text-center">TIE-<br className="sm:hidden"/>BREAK</span>
         {nextChange <= 2 && nextChange > 0 && (
-          <span className="text-[10px] text-gray-500">Troca em {nextChange}pt</span>
+          <span className="text-[8px] sm:text-[10px] text-gray-500 leading-tight text-center">Troca {nextChange}pt</span>
         )}
       </div>
     );
   }
 
   if (game.isDeuce) {
-    return <span className="text-2xl">⚡</span>;
+    return <span className="text-xl sm:text-2xl leading-none text-center block">⚡</span>;
   }
 
-  if (set && Math.max(set.player1, set.player2) >= 5) {
-    return <div className="text-gray-400 font-bold text-lg">VS</div>;
-  }
-
-  return <div className="text-gray-400 font-bold text-lg">VS</div>;
+  return <div className="text-gray-400 font-bold text-sm sm:text-lg leading-none text-center">VS</div>;
 }
