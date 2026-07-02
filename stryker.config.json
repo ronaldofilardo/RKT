@@ -1,0 +1,31 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "mutate": [
+    "src/core/scoring/engine.ts",
+    "src/core/scoring/scoring-logic.ts",
+    "src/core/scoring/types.ts",
+    "src/lib/auth.ts",
+    "src/schemas/contracts.ts",
+    "src/app/api/**/route.ts",
+    "src/components/scoring/timeline-utils.ts"
+  ],
+  "testRunner": "jest",
+  "jest": {
+    "configFile": "jest.config.js"
+  },
+  "reporters": [
+    "html",
+    "clear-text",
+    "progress"
+  ],
+  "coverageAnalysis": "perTest",
+  "thresholds": {
+    "high": 70,
+    "low": 50,
+    "break": 40
+  },
+  "plugins": ["@stryker-mutator/jest-runner"],
+  "concurrency": 2,
+  "timeoutMS": 60000,
+  "incremental": true
+}

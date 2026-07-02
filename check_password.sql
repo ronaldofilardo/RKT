@@ -1,0 +1,1 @@
+SELECT "passwordHash" FROM "Player" WHERE email = 'play@email.com';

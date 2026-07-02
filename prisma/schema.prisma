@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      Role     @default(ATHLETE)
+  club      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  gender    String?
+  age       Int?
+  dominance String?
+  backhand  String?
+  ranking   Int?
+
+  matchesAsPlayer1 Match[] @relation("Player1")
+  matchesAsPlayer2 Match[] @relation("Player2")
+  passwordHash     String
+  annotationSessions MatchAnnotationSession[] @relation("AnnotationSessions")
+  endorsements AnnotationEndorsement[] @relation("Endorsements")
+}
+
+model Match {
+  id          String      @id @default(cuid())
+  sportType   String      @default("TENNIS")
+  courtType   String?
+  format      MatchFormat
+  state       MatchState  @default(SCHEDULED)
+  player1Id   String
+  player1     Player      @relation("Player1", fields: [player1Id], references: [id])
+  player2Id   String
+  player2     Player      @relation("Player2", fields: [player2Id], references: [id])
+  scoreState  Json?
+  initialServerId String?
+  nickname    String?
+  version     Int         @default(0)
+  visibility  String      @default("PUBLIC")
+  isResuming  Boolean     @default(false)
+  openForAnnotation Boolean @default(false)
+  tournamentName String?
+  round       String?
+  bracketType String?
+  temperature Float?
+  humidity    Float?
+  scheduledAt DateTime?
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  pointLog           PointLog[]
+  annotationSessions MatchAnnotationSession[]
+
+  @@index([state])
+}
+
+model PointLog {
+  id          String    @id @default(cuid())
+  matchId     String
+  match       Match     @relation(fields: [matchId], references: [id])
+  winnerId    String
+  type        PointType
+  serverId    String
+  annotations Json?
+  timestamp   DateTime  @default(now())
+
+  @@index([matchId])
+}
+
+enum Role {
+  ADMIN
+  GESTOR
+  COACH
+  ATHLETE
+  SPECTATOR
+}
+
+enum MatchState {
+  SCHEDULED
+  IN_PROGRESS
+  FINISHED
+  CANCELLED
+}
+
+enum MatchFormat {
+  BEST_OF_3
+  BEST_OF_3_MATCH_TB
+  BEST_OF_3_NO_AD
+  BEST_OF_5
+  SHORT_SET_2V2_NO_AD
+  MATCH_TB_10
+  PRO_SET_8
+}
+
+enum PointType {
+  ACE
+  WINNER
+  FORCED_ERROR
+  UNFORCED_ERROR
+  DOUBLE_FAULT
+  FAULT_SECOND
+}
+
+enum AnnotationSessionStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+model MatchAnnotationSession {
+  id                 String                  @id @default(cuid())
+  matchId            String
+  annotatorUserId    String
+  startedAt          DateTime                @default(now())
+  endedAt            DateTime?
+  matchStateSnapshot String?
+  finalStateSnapshot String?
+  isActive           Boolean                 @default(true)
+  status             AnnotationSessionStatus @default(IN_PROGRESS)
+  createdAt          DateTime                @default(now())
+
+  match     Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  annotator Player @relation("AnnotationSessions", fields: [annotatorUserId], references: [id], onDelete: Cascade)
+
+  endorsements AnnotationEndorsement[]
+
+  @@index([matchId])
+  @@index([annotatorUserId])
+  @@index([isActive])
+  @@map("match_annotation_sessions")
+}
+
+model AnnotationEndorsement {
+  id               String   @id @default(cuid())
+  sessionId        String
+  endorsedByUserId String
+  endorsedAt       DateTime @default(now())
+
+  session    MatchAnnotationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  endorsedBy Player                @relation("Endorsements", fields: [endorsedByUserId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, endorsedByUserId])
+  @@map("annotation_endorsements")
+}

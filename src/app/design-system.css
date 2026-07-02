@@ -1,0 +1,462 @@
+/**
+ * Airtable Design System Tokens
+ * 56 tokens organizados em 10 grupos funcionais
+ * @see https://airtable.com/design
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* ============================================
+   * 2.1 Superfície e Fundo
+   * ============================================ */
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-warm: var(--surface);
+
+  /* ============================================
+   * 2.2 Texto
+   * ============================================ */
+  --fg: #181d26;
+  --fg-2: #333333;
+  --muted: rgba(4, 14, 32, 0.69);
+  --meta: var(--muted);
+
+  /* ============================================
+   * 2.3 Borda
+   * ============================================ */
+  --border: #e0e2e6;
+  --border-soft: #eef0f3;
+
+  /* ============================================
+   * 2.4 Acento / Interativo
+   * ============================================ */
+  --accent: #1b61c9;
+  --accent-on: #ffffff;
+  --accent-hover: #254fad;
+  --accent-active: color-mix(in srgb, var(--accent) 86%, black);
+
+  /* ============================================
+   * 2.5 Semântico
+   * ============================================ */
+  --success: #006400;
+  --warn: #eab308;
+  --danger: #dc2626;
+
+  /* ============================================
+   * 2.6 Tipografia
+   * ============================================ */
+  --font-display: 'Haas Groot Disp', Haas, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: Haas, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'Segoe UI Mono', 'Roboto Mono', monospace;
+
+  /* ============================================
+   * 2.7 Escala Tipográfica
+   * ============================================ */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-3xl: 40px;
+  --text-4xl: 48px;
+  --leading-body: 1.35;
+  --leading-tight: 1.2;
+  --tracking-display: 0;
+
+  /* ============================================
+   * 2.8 Espaçamento
+   * ============================================ */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --section-y-desktop: 96px;
+  --section-y-tablet: 64px;
+  --section-y-phone: 48px;
+
+  /* ============================================
+   * 2.9 Raio e Elevação
+   * ============================================ */
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 9999px;
+  --elev-flat: none;
+  --elev-ring: 0 0 0 1px var(--border);
+  --elev-raised: 0 0 1px rgba(0, 0, 0, 0.32), 0 2px 4px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.08);
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+
+  /* ============================================
+   * 2.10 Movimento e Layout
+   * ============================================ */
+  --motion-fast: 150ms;
+  --motion-base: 200ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --container-max: 1200px;
+  --container-gutter-desktop: 24px;
+  --container-gutter-tablet: 16px;
+  --container-gutter-phone: 12px;
+}
+
+/* ============================================
+ * 5. Boas Práticas e Restrições
+ * ============================================ */
+
+/**
+ * O que FAZER:
+ * - Usar Airtable Blue (#1b61c9) exclusivamente para CTAs e elementos interativos primários
+ * - Aplicar a família Haas com tracking positivo em todo o corpo do texto
+ * - Manter botões com raio 12px (--radius-sm) e cards com raio 16px (--radius-md)
+ * - Usar a sombra multicamada com tom azul (--elev-raised) para profundidade
+ * - Aplicar --focus-ring em todos os elementos interativos para acessibilidade
+ * - Respeitar os gutters responsivos: 24px desktop / 16px tablet / 12px phone
+ * - Usar espaçamento baseado na escala de 4px (--space-1 a --space-12)
+ *
+ * O que NÃO FAZER:
+ * - Omitir o tracking positivo no corpo do texto — prejudica a identidade瑞士 da marca
+ * - Usar sombras pesadas ou com tons cinza — o sistema usa sombra com tom azul
+ * - Aplicar o acento (#1b61c9) em elementos decorativos não-interativos
+ * - Misturar raios de borda fora da escala definida (12/16/24/9999px)
+ * - Usar fontes substitutas sem o fallback correto da stack Haas
+ */
+
+/* ============================================
+ * Base Styles - Airtable Design System
+ * ============================================ */
+
+body {
+  font-family: var(--font-body);
+  color: var(--fg);
+  background-color: var(--bg);
+  line-height: var(--leading-body);
+  letter-spacing: 0.08px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Display / Hero Typography */
+.text-display {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+  font-weight: 400;
+}
+
+.text-display-bold {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  line-height: 1.5;
+  letter-spacing: var(--tracking-display);
+  font-weight: 900;
+}
+
+.text-section-title {
+  font-family: var(--font-body);
+  font-size: var(--text-3xl);
+  line-height: 1.25;
+  font-weight: 400;
+}
+
+.text-subtitle {
+  font-family: var(--font-body);
+  font-size: var(--text-2xl);
+  line-height: 1.15;
+  font-weight: 400;
+}
+
+.text-card-title {
+  font-family: var(--font-body);
+  font-size: var(--text-xl);
+  line-height: 1.25;
+  letter-spacing: 0.12px;
+  font-weight: 400;
+}
+
+.text-highlight {
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  line-height: 1.35;
+  letter-spacing: 0.1px;
+  font-weight: 400;
+}
+
+/* ============================================
+ * Component Specifications
+ * ============================================ */
+
+/**
+ * Botão primário
+ * Spec: #1b61c9, texto branco, padding 16px 24px, raio 12px, fonte Haas 16px peso 500
+ */
+.btn-primary {
+  background-color: var(--accent);
+  color: var(--accent-on);
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: 0.08px;
+  transition: background-color var(--motion-fast) var(--ease-standard);
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-hover);
+}
+
+.btn-primary:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.btn-primary:active {
+  background-color: var(--accent-active);
+}
+
+/**
+ * Botão branco
+ * Spec: Fundo branco, texto #181d26, borda branca 1px, raio 12px
+ */
+.btn-white {
+  background-color: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--bg);
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 500;
+  transition: all var(--motion-fast) var(--ease-standard);
+}
+
+.btn-white:hover {
+  background-color: var(--surface-warm);
+  border-color: var(--border-soft);
+}
+
+.btn-white:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/**
+ * Card
+ * Spec: Borda 1px solid #e0e2e6, raio 16px–24px, sombra multicamada com tom azul
+ */
+.card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elev-raised);
+}
+
+.card-lg {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elev-raised);
+}
+
+/**
+ * Input
+ * Spec: Estilo Haas padrão, foco com --focus-ring (azul 30% transparente)
+ */
+.input {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+.input::placeholder {
+  color: var(--muted);
+}
+
+/**
+ * Badge / Tag
+ * Spec: Raio 9999px (pill), fundo semântico conforme contexto
+ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0.28px;
+}
+
+.badge-success {
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success);
+}
+
+.badge-warn {
+  background-color: color-mix(in srgb, var(--warn) 15%, transparent);
+  color: #854d0e;
+}
+
+.badge-danger {
+  background-color: color-mix(in srgb, var(--danger) 15%, transparent);
+  color: var(--danger);
+}
+
+.badge-accent {
+  background-color: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+}
+
+/**
+ * Divider
+ * Spec: Borda 1px solid #e0e2e6, sem margem excedente
+ */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0;
+}
+
+/* ============================================
+ * Utility Classes
+ * ============================================ */
+
+/* Responsive spacing utilities */
+.gutter-desktop {
+  padding-inline: var(--container-gutter-desktop);
+}
+
+.gutter-tablet {
+  padding-inline: var(--container-gutter-tablet);
+}
+
+.gutter-phone {
+  padding-inline: var(--container-gutter-phone);
+}
+
+/* Section padding */
+.section-y-desktop {
+  padding-block: var(--section-y-desktop);
+}
+
+.section-y-tablet {
+  padding-block: var(--section-y-tablet);
+}
+
+.section-y-phone {
+  padding-block: var(--section-y-phone);
+}
+
+/* Container */
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+}
+
+/* Text utilities */
+.text-muted {
+  color: var(--muted);
+}
+
+.text-meta {
+  color: var(--meta);
+}
+
+.text-fg-2 {
+  color: var(--fg-2);
+}
+
+/* Focus ring utility */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Elevation utilities */
+.elev-flat {
+  box-shadow: var(--elev-flat);
+}
+
+.elev-ring {
+  box-shadow: var(--elev-ring);
+}
+
+.elev-raised {
+  box-shadow: var(--elev-raised);
+}
+
+/* ============================================
+ * Animation Utilities
+ * ============================================ */
+.transition-base {
+  transition: all var(--motion-base) var(--ease-standard);
+}
+
+.transition-fast {
+  transition: all var(--motion-fast) var(--ease-standard);
+}
+
+/* ============================================
+ * Safe area support for notched devices
+ * ============================================ */
+@supports (padding: max(0px)) {
+  .safe-bottom {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+  .safe-top {
+    padding-top: max(0px, env(safe-area-inset-top));
+  }
+}
+
+/* ============================================
+ * Custom animations
+ * ============================================ */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.3s ease-out;
+}
