@@ -233,6 +233,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
       suspendedSession,
       persistState,
       abandonCurrentSession,
+      ctx,
     ],
   );
 

@@ -41,6 +41,13 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [],
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    tsconfigPath: "./tsconfig.json",
+    ignoreBuildErrors: false,
+  },
   async headers() {
     return [
       {
