@@ -8,6 +8,7 @@ import { MatchHeader } from "@/components/scoring/MatchHeader";
 import { PlayerCard } from "@/components/scoring/PlayerCard";
 import { VSIndicator } from "@/components/scoring/VSIndicator";
 import { ContextBadges } from "@/components/scoring/ContextBadges";
+import { ScoreboardCard } from "@/components/scoring/ScoreboardCard";
 import { ActionBar } from "@/components/scoring/ActionBar";
 import { SetupModal } from "@/components/scoring/SetupModal";
 import { UndoConfirmModal } from "@/components/scoring/UndoConfirmModal";
@@ -217,17 +218,22 @@ export default function ScoringPage() {
     );
   }
 
-  const p1IsServing = scoreState?.server === "player1";
-  const p2IsServing = scoreState?.server === "player2";
-  const isMatchPoint = scoreState ? checkMatchPoint(scoreState) : false;
-  const isSetPoint = scoreState && !checkMatchPoint(scoreState) ? checkSetPoint(scoreState) : false;
-  const isBreakPoint = scoreState && !checkMatchPoint(scoreState) && !isSetPoint ? checkBreakPoint(scoreState) : false;
-  const isTiebreak = scoreState
-    ? (scoreState.sets[scoreState.sets.length - 1]?.isTiebreak ?? false)
+  const effectiveScoreState = pendingEditScore?.scoreState
+    ?? session.pendingEditScore?.scoreState
+    ?? suspendedSession?.bankScoreState
+    ?? scoreState;
+
+  const p1IsServing = effectiveScoreState?.server === "player1";
+  const p2IsServing = effectiveScoreState?.server === "player2";
+  const isMatchPoint = effectiveScoreState ? checkMatchPoint(effectiveScoreState) : false;
+  const isSetPoint = effectiveScoreState && !checkMatchPoint(effectiveScoreState) ? checkSetPoint(effectiveScoreState) : false;
+  const isBreakPoint = effectiveScoreState && !checkMatchPoint(effectiveScoreState) && !isSetPoint ? checkBreakPoint(effectiveScoreState) : false;
+  const isTiebreak = effectiveScoreState
+    ? (effectiveScoreState.sets[effectiveScoreState.sets.length - 1]?.isTiebreak ?? false)
     : false;
   const isSuperTiebreak = match.format === "MATCH_TB_10";
-  const isFinished = scoreState?.isFinished ?? false;
-  const winner = scoreState?.winner;
+  const isFinished = effectiveScoreState?.isFinished ?? false;
+  const winner = effectiveScoreState?.winner;
   const canUndo = engineRef.current
     ? engineRef.current.getHistoryLength() > 0
     : false;
@@ -241,11 +247,6 @@ export default function ScoringPage() {
     if (p === 4) return "AD";
     return String(p);
   };
-
-  const effectiveScoreState = pendingEditScore?.scoreState
-    ?? session.pendingEditScore?.scoreState
-    ?? suspendedSession?.bankScoreState
-    ?? scoreState;
 
   const timelinePoints = engineRef.current && match
     ? enrichPointsFromHistory(
@@ -327,6 +328,14 @@ export default function ScoringPage() {
         isFinished={isFinished}
       />
 
+      <div className="px-2 sm:px-4 py-2">
+        <ScoreboardCard
+          player1={match.player1}
+          player2={match.player2}
+          scoreState={effectiveScoreState ?? { sets: [], currentGame: { player1: 0, player2: 0 } }}
+        />
+      </div>
+
 
       <div className="flex-1 flex flex-col gap-0 sm:gap-1 px-2 sm:px-3 py-1 sm:py-2 relative overflow-hidden">
         <div className="absolute inset-0 opacity-20 pointer-events-none">
@@ -348,9 +357,8 @@ export default function ScoringPage() {
             <PlayerCard
               player={match.player1}
               side="player1"
-              scoreState={scoreState}
+              scoreState={effectiveScoreState}
               isServing={p1IsServing}
-              isMatchPoint={isMatchPoint}
               isSetPoint={isSetPoint}
               isBreakPoint={isBreakPoint}
               isWinner={winner === "player1"}
@@ -361,16 +369,15 @@ export default function ScoringPage() {
           </div>
 
           <div className="w-10 sm:w-14 flex-shrink-0">
-            <VSIndicator scoreState={scoreState} />
+            <VSIndicator scoreState={effectiveScoreState} />
           </div>
 
           <div className="flex-1 min-w-0">
             <PlayerCard
               player={match.player2}
               side="player2"
-              scoreState={scoreState}
+              scoreState={effectiveScoreState}
               isServing={p2IsServing}
-              isMatchPoint={isMatchPoint}
               isSetPoint={isSetPoint}
               isBreakPoint={isBreakPoint}
               isWinner={winner === "player2"}

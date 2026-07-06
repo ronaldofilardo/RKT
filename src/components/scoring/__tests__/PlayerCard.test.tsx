@@ -17,14 +17,13 @@ const baseState = {
 };
 
 describe('PlayerCard', () => {
-  it('deve exibir o placar do set atual no formato player1-player2', () => {
+  it('deve exibir os pontos do game atual', () => {
     render(
       <PlayerCard
         player={basePlayer}
         side="player1"
         scoreState={baseState}
         isServing={false}
-        isMatchPoint={false}
         isSetPoint={false}
         isBreakPoint={false}
         isWinner={false}
@@ -33,17 +32,21 @@ describe('PlayerCard', () => {
       />
     );
 
-    expect(screen.getByText('3')).toBeTruthy();
+    expect(screen.getByText('0')).toBeTruthy();
   });
 
-  it('deve exibir o placar do player2 no set atual', () => {
+  it('deve exibir ADV quando tiver vantagem', () => {
+    const stateWithAdvantage = {
+      ...baseState,
+      currentGame: { player1: 0, player2: 0, isDeuce: true, advantage: 'player1' as const },
+    };
+    
     render(
       <PlayerCard
-        player={{ id: 'p2', name: 'Jogador B' }}
-        side="player2"
-        scoreState={baseState}
+        player={basePlayer}
+        side="player1"
+        scoreState={stateWithAdvantage}
         isServing={false}
-        isMatchPoint={false}
         isSetPoint={false}
         isBreakPoint={false}
         isWinner={false}
@@ -52,7 +55,7 @@ describe('PlayerCard', () => {
       />
     );
 
-    expect(screen.getByText('2')).toBeTruthy();
+    expect(screen.getByText('ADV')).toBeTruthy();
   });
 
   it('não deve duplicar ponto quando houver touch seguido de click sintetizado', () => {
@@ -63,7 +66,6 @@ describe('PlayerCard', () => {
         side="player1"
         scoreState={baseState}
         isServing={false}
-        isMatchPoint={false}
         isSetPoint={false}
         isBreakPoint={false}
         isWinner={false}

@@ -19,9 +19,7 @@ export function ContextBadges({ isMatchPoint, isSetPoint, isBreakPoint, isTiebre
     badges.push({ icon: '🎾', text: 'Tie-Break!', color: 'bg-amber-100 text-amber-700 border-amber-200' });
   }
 
-  if (isMatchPoint) {
-    badges.push({ icon: '🏆', text: 'Match Point!', color: 'bg-red-100 text-red-700 border-red-200' });
-  } else if (isSetPoint) {
+  if (isSetPoint) {
     badges.push({ icon: '🎯', text: 'Set Point!', color: 'bg-amber-100 text-amber-700 border-amber-200' });
   } else if (isBreakPoint) {
     badges.push({ icon: '⚡', text: 'Break Point!', color: 'bg-blue-100 text-blue-700 border-blue-200' });
@@ -43,10 +41,10 @@ export function ContextBadges({ isMatchPoint, isSetPoint, isBreakPoint, isTiebre
 
   if (badges.length === 0) return null;
 
-  const hasMatchPoint = badges.some(b => b.text === 'Match Point!');
+  const hasSetPoint = badges.some(b => b.text === 'Set Point!');
 
   return (
-    <div className={`flex flex-wrap gap-1 sm:gap-2 justify-center ${hasMatchPoint ? 'my-1 sm:my-2' : 'my-1 sm:my-2'}`} aria-live="polite">
+    <div className={`flex flex-wrap gap-1 sm:gap-2 justify-center ${hasSetPoint ? 'my-1 sm:my-2' : 'my-1 sm:my-2'}`} aria-live="polite">
       {badges.map((b, i) => (
         <span key={i} className={`inline-flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full border ${b.color}`}>
           <span className="text-[10px] sm:text-xs">{b.icon}</span> {b.text}
