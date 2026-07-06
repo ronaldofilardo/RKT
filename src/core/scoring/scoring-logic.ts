@@ -75,7 +75,8 @@ export function enrichPointsFromHistory(
     const sb = isSetBall(stateBefore, setNumber);
 
     const isServeFinish = pt.type === 'ACE' || pt.type === 'DOUBLE_FAULT';
-    const rallyLength = pt.rallyLength ?? (isServeFinish ? 1 : 0);
+    const isDevolucao = pt.rallyDetails?.situacao === 'devolucao';
+    const rallyLength = pt.rallyLength ?? (isServeFinish ? 1 : isDevolucao ? 2 : 0);
     const isTiebreak = currentSet?.isTiebreak ?? false;
 
     const firstFault = pt.type === 'DOUBLE_FAULT' && pt.firstFaultDetail

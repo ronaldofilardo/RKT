@@ -123,6 +123,7 @@ export function PointDetailsModal({
 
   const handleConfirm = useCallback(() => {
     if (!form.situacao || !form.tipo || !form.golpe) return;
+    const isDevolucao = form.situacao === 'devolucao';
     onConfirm({
       vencedor,
       situacao: form.situacao,
@@ -133,7 +134,7 @@ export function PointDetailsModal({
       efeito: form.efeito ?? undefined,
       direcao: form.direcao ?? undefined,
       golpe_esp: form.golpeEsp ?? undefined,
-      previewBalls: 1,
+      previewBalls: isDevolucao ? 2 : 1,
     });
   }, [form, onConfirm, vencedor]);
 
