@@ -1,6 +1,5 @@
 import {
   formReducer,
-  calculateFinalBallExchanges,
   initialForm,
   getTipoOptions,
   getGolpeOptions,
@@ -24,17 +23,9 @@ import type { PointDetailsForm, Action, Vencedor } from '../point-details-logic'
 describe('point-details-logic', () => {
   describe('formReducer', () => {
     it('deve retornar initialForm no RESET', () => {
-      const dirty: PointDetailsForm = { ...initialForm, ballClicks: 5, situacao: 'fundo' };
+      const dirty: PointDetailsForm = { ...initialForm, situacao: 'fundo' };
       const next = formReducer(dirty, { type: 'RESET' });
       expect(next).toEqual(initialForm);
-    });
-
-    it('deve preservar ballClicks ao mudar situacao', () => {
-      const state: PointDetailsForm = { ...initialForm, ballClicks: 4 };
-      const next = formReducer(state, { type: 'SET_SITUACAO', value: 'rede' });
-      expect(next.ballClicks).toBe(4);
-      expect(next.situacao).toBe('rede');
-      expect(next.tipo).toBeNull();
     });
 
     it('deve limpar cascata ao mudar tipo', () => {
@@ -57,30 +48,6 @@ describe('point-details-logic', () => {
       expect(next.efeito).toBeNull();
       expect(next.direcao).toBeNull();
       expect(next.golpeEsp).toBeNull();
-    });
-
-    it('deve atualizar ballClicks corretamente', () => {
-      const next = formReducer(initialForm, { type: 'SET_BALL_CLICKS', value: 7 });
-      expect(next.ballClicks).toBe(7);
-    });
-
-    it('deve retornar estado atual para action desconhecida', () => {
-      const state: PointDetailsForm = { ...initialForm, ballClicks: 3 };
-      const next = formReducer(state, { type: 'UNKNOWN' } as any);
-      expect(next).toBe(state);
-    });
-  });
-
-  describe('calculateFinalBallExchanges', () => {
-    it('deve retornar Math.max(1, clicks) para sacador', () => {
-      expect(calculateFinalBallExchanges(0, false)).toBe(1);
-      expect(calculateFinalBallExchanges(3, false)).toBe(3);
-      expect(calculateFinalBallExchanges(8, false)).toBe(8);
-    });
-
-    it('deve somar +1 quando devolvedor vence', () => {
-      expect(calculateFinalBallExchanges(1, true)).toBe(2);
-      expect(calculateFinalBallExchanges(5, true)).toBe(6);
     });
   });
 
@@ -202,10 +169,9 @@ describe('point-details-logic', () => {
       expect(getGolpeEspOptions('fh', 'topspin', 'devolvedor', 'fundo', 'erro_forcado', null, null)).toEqual([]);
     });
 
-    it('sacador fundo topspin tem 3 opcoes', () => {
+    it('sacador fundo topspin tem 2 opcoes', () => {
       expect(getGolpeEspOptions('fh', 'topspin', 'sacador', 'fundo', 'erro_forcado', null, null)).toEqual([
         'lob',
-        'drop_shot',
         'bate_pronto',
       ]);
     });

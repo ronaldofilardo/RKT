@@ -15,7 +15,6 @@ import type {
 } from '@/core/scoring/types';
 import {
   formReducer,
-  calculateFinalBallExchanges,
   initialForm,
   getTipoOptions,
   getGolpeOptions,
@@ -35,13 +34,13 @@ import {
   GOLPE_ESP_LABELS,
 } from './point-details-logic';
 import type { PointDetailsForm, Action, Vencedor } from './point-details-logic';
+import type { RallyDetails } from '@/core/scoring/types';
 
 interface PointDetailsModalProps {
   winnerPlayerSide: 'player1' | 'player2';
   currentServer: 'player1' | 'player2';
   player1Name: string;
   player2Name: string;
-  ballExchangeCount: number;
   fontScale: number;
   onConfirm: (details: RallyDetails) => void;
   onCancel: () => void;
@@ -83,7 +82,6 @@ export function PointDetailsModal({
   currentServer,
   player1Name,
   player2Name,
-  ballExchangeCount,
   fontScale,
   onConfirm,
   onCancel,
@@ -95,8 +93,7 @@ export function PointDetailsModal({
   useEffect(() => {
     setMounted(true);
     dispatch({ type: 'RESET' });
-    dispatch({ type: 'SET_BALL_CLICKS', value: Math.max(1, ballExchangeCount) });
-  }, [ballExchangeCount]);
+  }, []);
 
   useEffect(() => {
     if (!mounted) return;
@@ -123,7 +120,6 @@ export function PointDetailsModal({
   const golpeEspOptions = form.golpe ? getGolpeEspOptions(form.golpe, form.efeito, vencedor, form.situacao ?? 'fundo', form.tipo ?? 'winner', form.subtipo2, form.direcao) : [];
 
   const canConfirm = form.golpe != null;
-  const previewBalls = calculateFinalBallExchanges(form.ballClicks, vencedor === 'devolvedor');
 
   const handleConfirm = useCallback(() => {
     if (!form.situacao || !form.tipo || !form.golpe) return;
@@ -137,9 +133,9 @@ export function PointDetailsModal({
       efeito: form.efeito ?? undefined,
       direcao: form.direcao ?? undefined,
       golpe_esp: form.golpeEsp ?? undefined,
-      previewBalls,
+      previewBalls: 1,
     });
-  }, [form, onConfirm, vencedor, previewBalls]);
+  }, [form, onConfirm, vencedor]);
 
   const handleCancel = useCallback(() => {
     setShowCloseDialog(true);
@@ -289,29 +285,7 @@ export function PointDetailsModal({
             </Section>
           )}
 
-          {/* Ball Clicks */}
-          <div className="border-t border-white/10 pt-4">
-            <Section num="" label="Cliques de Bola">
-              <input
-                type="number"
-                min={0}
-                step={1}
-                value={form.ballClicks}
-                onChange={e => dispatch({ type: 'SET_BALL_CLICKS', value: Math.max(0, parseInt(e.target.value) || 0) })}
-                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                style={{ MozAppearance: 'textfield' }}
-              />
-              <div className="mt-1.5 text-sm" aria-live="polite">
-                <span className="text-gray-400 dark:text-gray-500 font-semibold">{form.ballClicks}X</span>
-                <span className="text-gray-500 dark:text-gray-400 mx-1">→</span>
-                <span className="text-blue-400 dark:text-blue-300 font-bold" style={{ fontSize: '15px' }}>{previewBalls} bola(s)</span>
-                {vencedor === 'devolvedor' && (
-                  <span className="text-yellow-400/80 dark:text-yellow-500/80 text-xs ml-1">(+1 devolvedor)</span>
-                )}
-              </div>
-            </Section>
           </div>
-        </div>
 
         {/* Footer */}
         <div className="px-5 py-4 border-t border-white/10 flex flex-col gap-2" style={{ backgroundColor: 'rgba(0,0,0,0.15)' }}>

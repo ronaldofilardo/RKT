@@ -43,7 +43,6 @@ export interface ScoringHandlersContext {
   >;
   pointSequenceRef: MutableRefObject<number>;
 
-  ballExchangeCount: number;
   serveErrorState: ScoreboardUIState;
 
   setMatch: Dispatch<SetStateAction<MatchData | null>>;
@@ -82,7 +81,6 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     modalParamsRef,
     openRef,
     pointSequenceRef,
-    ballExchangeCount,
     serveErrorState,
     setMatch,
     setScoreState,
@@ -651,8 +649,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
             serveErrorState.firstServeError !== null,
           timestamp: Date.now(),
           rallyDetails: details,
-          rallyLength:
-            ballExchangeCount > 0 ? ballExchangeCount : details.previewBalls,
+          rallyLength: details.previewBalls,
         });
       }, 50);
     },
@@ -661,7 +658,6 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       processPoint,
       getServerId,
       serveErrorState,
-      ballExchangeCount,
       closeAll,
       modalParamsRef,
     ],

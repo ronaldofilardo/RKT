@@ -40,7 +40,6 @@ export interface SessionManagerContext {
   setFloorCurrentSets: Dispatch<
     SetStateAction<{ player1: number; player2: number } | null>
   >;
-  setBallExchangeCount: Dispatch<SetStateAction<number>>;
   setPendingEditScore: Dispatch<
     SetStateAction<{
       scoreState: ScoringState;
@@ -66,7 +65,6 @@ export function useSessionManager(ctx: SessionManagerContext) {
     setSuspendedSession,
     suspendedSession,
     setFloorCurrentSets,
-    setBallExchangeCount,
     setPendingEditScore,
   } = ctx;
 
@@ -371,7 +369,6 @@ export function useSessionManager(ctx: SessionManagerContext) {
             );
             setScoreState(engineRef.current.getState() as ScoringState);
           }
-          setBallExchangeCount(0);
         }
 
         if (!ignored) {
@@ -417,7 +414,6 @@ export function useSessionManager(ctx: SessionManagerContext) {
     setSessionActive,
     setSuspendedSession,
     setFloorCurrentSets,
-    setBallExchangeCount,
     setPendingEditScore,
   ]);
 

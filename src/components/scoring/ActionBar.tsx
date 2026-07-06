@@ -5,7 +5,6 @@ interface ActionBarProps {
   serveStep: 'none' | 'second';
   canUndo: boolean;
   canEdit: boolean;
-  ballExchangeCount: number;
   fontScale: number;
   isFinished: boolean;
   isProcessing?: boolean;
@@ -19,7 +18,6 @@ interface ActionBarProps {
   onFontSmaller: () => void;
   onFontBigger: () => void;
   onEditScore: () => void;
-  onBallExchange: () => void;
   onStats?: () => void;
 }
 
@@ -45,11 +43,11 @@ function ActionButton({ onClick, disabled, children, variant = 'default', classN
 }
 
 export function ActionBar({
-  secondServe, serveStep, canUndo, canEdit, ballExchangeCount, fontScale, isFinished, isProcessing,
+  secondServe, serveStep, canUndo, canEdit, fontScale, isFinished, isProcessing,
   onAce, onOut, onNet, onLet, onCancelSecondServe, onServeCancel,
-  onUndo, onFontSmaller, onFontBigger, onEditScore, onBallExchange, onStats,
+  onUndo, onFontSmaller, onFontBigger, onEditScore, onStats,
 }: ActionBarProps) {
-  const serveDisabled = isFinished || ballExchangeCount > 0 || isProcessing;
+  const serveDisabled = isFinished || isProcessing;
   const showSecondBadge = serveStep === 'second' || secondServe;
 
   return (
@@ -69,7 +67,7 @@ export function ActionBar({
           )}
         </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           <ActionButton onClick={onAce} disabled={serveDisabled}>
             {isProcessing ? '⏳' : 'Ace'}
           </ActionButton>
@@ -81,11 +79,6 @@ export function ActionBar({
           </ActionButton>
           <ActionButton onClick={showSecondBadge ? onServeCancel : onLet} disabled={isFinished || serveDisabled} variant={showSecondBadge ? 'danger' : 'default'}>
             {showSecondBadge ? '✕' : 'Let'}
-          </ActionButton>
-          <ActionButton onClick={onBallExchange} variant="secondary">
-            <span className="flex items-center gap-1">
-              <span className="text-base leading-none">+</span> bola
-            </span>
           </ActionButton>
         </div>
 
@@ -115,12 +108,6 @@ export function ActionBar({
             <button onClick={onStats} className="px-3 sm:px-4 py-3 text-xs sm:text-sm rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition-all min-h-[44px] dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200">
               📊
             </button>
-          )}
-
-          {ballExchangeCount > 0 && (
-            <span className="text-[10px] sm:text-xs font-semibold text-gray-600 dark:text-gray-400 px-2 py-1 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              BOLAS: {ballExchangeCount}
-            </span>
           )}
         </div>
       </div>

@@ -20,7 +20,6 @@ export interface PointDetailsForm {
   efeito: RallyEfeito | null;
   direcao: RallyDirecao | null;
   golpeEsp: RallyGolpeEsp | null;
-  ballClicks: number;
 }
 
 export type Action =
@@ -32,7 +31,6 @@ export type Action =
   | { type: 'SET_EFEITO'; value: RallyEfeito }
   | { type: 'SET_DIRECAO'; value: RallyDirecao }
   | { type: 'SET_GOLPE_ESP'; value: RallyGolpeEsp }
-  | { type: 'SET_BALL_CLICKS'; value: number }
   | { type: 'RESET' };
 
 export const initialForm: PointDetailsForm = {
@@ -44,13 +42,12 @@ export const initialForm: PointDetailsForm = {
   efeito: null,
   direcao: null,
   golpeEsp: null,
-  ballClicks: 1,
 };
 
 export function formReducer(state: PointDetailsForm, action: Action): PointDetailsForm {
   switch (action.type) {
     case 'SET_SITUACAO':
-      return { ...initialForm, ballClicks: state.ballClicks, situacao: action.value };
+      return { ...initialForm, situacao: action.value };
     case 'SET_TIPO':
       return { ...state, tipo: action.value, golpe: null, subtipo1: null, subtipo2: null, efeito: null, direcao: null, golpeEsp: null };
     case 'SET_GOLPE':
@@ -65,18 +62,11 @@ export function formReducer(state: PointDetailsForm, action: Action): PointDetai
       return { ...state, direcao: action.value, golpeEsp: null };
     case 'SET_GOLPE_ESP':
       return { ...state, golpeEsp: action.value };
-    case 'SET_BALL_CLICKS':
-      return { ...state, ballClicks: action.value };
     case 'RESET':
       return initialForm;
     default:
       return state;
   }
-}
-
-export function calculateFinalBallExchanges(clicks: number, devolvedorVenceu: boolean): number {
-  const balls = Math.max(1, clicks);
-  return devolvedorVenceu ? balls + 1 : balls;
 }
 
 export const SITUACAO_OPTIONS: { value: RallySituacao; label: string }[] = [
@@ -202,7 +192,7 @@ export function getGolpeEspOptions(
     if (vencedor === 'devolvedor' && situacao === 'fundo') return [];
     if (tipo === 'winner') return ['lob'];
     if (vencedor === 'sacador' && situacao === 'rede') return ['lob'];
-    if (vencedor === 'sacador' && situacao === 'fundo') return ['lob', 'drop_shot', 'bate_pronto'];
+    if (vencedor === 'sacador' && situacao === 'fundo') return ['lob', 'bate_pronto'];
     return [];
   }
   return [];

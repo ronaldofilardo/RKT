@@ -49,7 +49,6 @@ export default function ScoringPage() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [setupLoading, setSetupLoading] = useState(false);
-  const [ballExchangeCount, setBallExchangeCount] = useState(0);
   const [fontScale, setFontScale] = useState(1);
   const [pointsHistory, setPointsHistory] = useState<string[]>([]);
   const [showFinishedBanner, setShowFinishedBanner] = useState(false);
@@ -125,7 +124,6 @@ const {
     modalParamsRef,
     openRef,
     pointSequenceRef,
-    ballExchangeCount,
     serveErrorState,
     setMatch,
     setScoreState,
@@ -162,7 +160,6 @@ const {
       setSessionActive,
       setSuspendedSession,
       setFloorCurrentSets,
-      setBallExchangeCount,
       setPendingEditScore,
       clearPendingEdit,
       updateScoreContext: updateScore,
@@ -429,7 +426,6 @@ const {
         serveStep={serveErrorState.serveStep}
         canUndo={canUndo}
         canEdit={false}
-        ballExchangeCount={ballExchangeCount}
         fontScale={fontScale}
         isFinished={isFinished}
         isProcessing={isProcessingPoint}
@@ -459,7 +455,6 @@ const {
         onFontSmaller={() => setFontScale((f) => Math.max(0.6, f - 0.1))}
         onFontBigger={() => setFontScale((f) => Math.min(2, f + 0.1))}
         onEditScore={() => open("edit-score")}
-        onBallExchange={() => setBallExchangeCount((c) => c + 1)}
       />
 
       {sessionIdRef.current && (
@@ -569,7 +564,6 @@ const {
           currentServer={scoreState?.server ?? "player1"}
           player1Name={match.player1.name}
           player2Name={match.player2.name}
-          ballExchangeCount={ballExchangeCount}
           fontScale={fontScale}
           onConfirm={handlePointDetailsConfirm}
           onCancel={close}

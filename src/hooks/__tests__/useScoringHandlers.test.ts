@@ -55,7 +55,6 @@ function createMockContext(overrides: Partial<Parameters<typeof useScoringHandle
     modalParamsRef: { current: {} },
     openRef: { current: jest.fn() },
     pointSequenceRef: { current: 0 },
-    ballExchangeCount: 0,
     serveErrorState: defaultServeErrorState,
     setMatch: jest.fn(),
     setScoreState: jest.fn(),
