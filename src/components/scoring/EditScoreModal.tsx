@@ -73,7 +73,7 @@ export function EditScoreModal({
   }, [bothFilled, p1Val, p2Val, matchFormat]);
 
   const hasWinner = setValidation?.winner !== undefined;
-  const completed = hasWinner;
+  const completed = hasWinner && !setValidation?.isPartial;
   const setValidationError = completed ? undefined : setValidation?.error;
   const hasTiebreak = setValidation?.hasTiebreak ?? false;
   const totalEditedSets = completedSets.length + newSets.length;

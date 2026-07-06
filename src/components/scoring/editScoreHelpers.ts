@@ -103,16 +103,21 @@ function validateStandardSet(
     winner = 'player1';
   } else if (p2Games >= gamesNeeded && p2Games - p1Games >= 2) {
     winner = 'player2';
-  } else if (hasTiebreak && p1Games === gamesNeeded + 1 && p2Games === gamesNeeded) {
-    winner = 'player1';
-  } else if (hasTiebreak && p2Games === gamesNeeded + 1 && p1Games === gamesNeeded) {
-    winner = 'player2';
   } else if (hasTiebreak && p1Games === tiebreakAt && p2Games === tiebreakAt) {
     return {
       isValid: false,
       error: `Result ${p1Games}x${p2Games} requires tiebreak (enter tiebreak score)`,
       tiebreakRequired: true,
     };
+  }
+
+  // Tiebreak win: 7-6 only valid if tiebreak was played and completed
+  if (hasTiebreak && p1Games === gamesNeeded + 1 && p2Games === gamesNeeded) {
+    // 7-6 win - valid only with tiebreak
+    return { isValid: true, winner: 'player1', hasTiebreak: true };
+  } else if (hasTiebreak && p2Games === gamesNeeded + 1 && p1Games === gamesNeeded) {
+    // 6-7 win - valid only with tiebreak
+    return { isValid: true, winner: 'player2', hasTiebreak: true };
   }
 
   if (!winner) {
@@ -122,14 +127,13 @@ function validateStandardSet(
     const marginOk = Math.abs(p1Games - p2Games) >= 2;
     const reachedTooClose = anyReached && !marginOk;
 
-    if (!reachedTooClose) {
+    // Se um jogador atingiu games_needed mas não tem diferença de 2,
+    // o set continua (ex: 6x5, 5x4, etc.) - permite edição
+    if (reachedTooClose) {
       return { isValid: true, isPartial: true };
     }
 
-    return {
-      isValid: false,
-      error: `Result ${p1Games}x${p2Games} is not valid. A player must win by 2 games`,
-    };
+    return { isValid: true, isPartial: true };
   }
 
   return {
