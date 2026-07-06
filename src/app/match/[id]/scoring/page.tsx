@@ -268,7 +268,6 @@ const {
         style={{ fontSize: `${fontScale * 100}%` }}
       >
           <MatchHeader
-            sportType={match.sportType}
             elapsedSeconds={elapsed}
             onClose={async () => {
               await abandonCurrentSession();
@@ -319,7 +318,6 @@ const {
       )}
 
       <MatchHeader
-        sportType={match.sportType}
         elapsedSeconds={elapsed}
         onClose={async () => {
           await abandonCurrentSession();
