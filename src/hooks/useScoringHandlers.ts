@@ -67,6 +67,8 @@ export interface ScoringHandlersContext {
   close: () => void;
   closeAll: () => void;
   onUndoComplete?: () => void;
+  isProcessingRef: MutableRefObject<boolean>;
+  debounceTimerRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
 }
 
 export function useScoringHandlers(ctx: ScoringHandlersContext) {
@@ -97,6 +99,8 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     close,
     closeAll,
     onUndoComplete,
+    isProcessingRef,
+    debounceTimerRef,
   } = ctx;
 
   // ─── State persistence ────────────────────────────────────────────────────
@@ -146,134 +150,6 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     [match, engineRef],
   );
 
-  // ─── Core point processing ─────────────────────────────────────────────────
-
-  const processPoint = useCallback(
-    async (flow: PointFlow) => {
-      if (!engineRef.current || !match) return;
-      const state = engineRef.current.getState();
-      if (state.isFinished) return;
-      try {
-        engineRef.current.applyPoint(flow);
-        const newState = engineRef.current.getState() as ScoringState;
-        setScoreState(newState);
-        setPointsHistory((prev) => [...prev.slice(-19), flow.winnerId]);
-        const seq = ++pointSequenceRef.current;
-
-        if (isOnline) {
-          const annotationsPayload =
-            flow.rallyDetails || flow.rallyLength
-              ? {
-                  rallyDetails: flow.rallyDetails ?? undefined,
-                  rallyLength: flow.rallyLength ?? undefined,
-                  isFirstServe: flow.isFirstServe ?? undefined,
-                  isSecondServe: flow.isSecondServe ?? undefined,
-                  firstFaultDetail: flow.firstFaultDetail ?? undefined,
-                }
-              : undefined;
-
-          const payload = {
-            winnerId: flow.winnerId,
-            type: flow.type,
-            serverId: flow.serverId,
-            timestamp: flow.timestamp ?? Date.now(),
-            sequenceNumber: seq,
-            ...(annotationsPayload ? { annotations: annotationsPayload } : {}),
-          };
-          console.debug("[POINT REQUEST]", JSON.stringify(payload, null, 2));
-
-          const res = await fetch(`/api/matches/${matchId}/point`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              authorization: `Bearer ${tokenRef.current}`,
-            },
-            body: JSON.stringify(payload),
-          }).catch(() => null);
-
-          if (res && res.ok) {
-            try {
-              const data = await res.json();
-              if (data.scoreState) {
-                const currentHistory = engineRef.current.getPointHistory();
-                setScoreState(data.scoreState);
-                engineRef.current = ScoringEngine.fromSerialized(
-                  {
-                    format: match.format as any,
-                    player1Id: match.player1.id,
-                    player2Id: match.player2.id,
-                    initialServerId: match.initialServerId || match.player1.id,
-                  },
-                  JSON.stringify(data.scoreState),
-                );
-                engineRef.current.restorePointHistory(currentHistory);
-              }
-            } catch (err) {
-              console.error("[processPoint:sync-response]", err);
-            }
-          } else if (res) {
-            const isConflict = res.status === 409;
-            if (isConflict) {
-              try {
-                const errData = await res.json();
-                if (
-                  errData.error === "SEQUENCE_CONFLICT" &&
-                  errData.expectedSequence
-                ) {
-                  pointSequenceRef.current = errData.expectedSequence - 1;
-                }
-              } catch {}
-              setError("Conflito de sequência — sincronizando...");
-            } else {
-              let errorMsg = `Erro ao registrar ponto (${res.status})`;
-              try {
-                const errData = await res.json();
-                console.error(
-                  "[POINT RESPONSE ERROR]",
-                  res.status,
-                  JSON.stringify(errData, null, 2),
-                );
-                if (errData.error) {
-                  errorMsg = `Erro: ${errData.error} — ${errData.message || "sincronizando..."}`;
-                }
-              } catch (e) {
-                const text = await res.text();
-                console.error("[POINT RESPONSE ERROR]", res.status, text);
-              }
-              setError(errorMsg);
-            }
-            await fetchMatch(true);
-          }
-        } else {
-          await enqueue({
-            matchId,
-            type: "POINT",
-            payload: flow as any,
-            timestamp: Date.now(),
-          });
-        }
-
-        if (newState.isFinished) setShowFinishedBanner(true);
-      } catch (err) {
-        console.error("[processPoint]", err);
-        setError("Erro ao registrar ponto");
-      }
-    },
-    [
-      matchId,
-      match,
-      isOnline,
-      enqueue,
-      engineRef,
-      tokenRef,
-      pointSequenceRef,
-      setScoreState,
-      setPointsHistory,
-      setShowFinishedBanner,
-      setError,
-    ],
-  );
-
   // ─── Match data fetch ──────────────────────────────────────────────────────
 
   const fetchMatch = useCallback(
@@ -298,14 +174,6 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
             initialServerId: data.initialServerId || data.player1.id,
           };
 
-          // FIX Bug 2: do NOT read bankScoreState from sessionStorage here.
-          // useSessionManager.tryReadFromSessionStorage is the single owner of
-          // that key. If fetchMatch also consumed it and opened the edit modal
-          // via a setTimeout, two edit-score modals would open (one from
-          // useSessionManager, one from here) and the second would receive
-          // stale currentSets from the pre-edit React state — causing the
-          // visible divergence between "Editar Placar" and the /scoring card.
-          // fetchMatch now simply loads whatever scoreState the server returns.
           let scoreStateToUse: any = data.scoreState;
 
           if (scoreStateToUse) {
@@ -348,6 +216,161 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       setScoreState,
       setIsLoading,
       setError,
+    ],
+  );
+
+  // ─── Core point processing ─────────────────────────────────────────────────
+
+  const processPoint = useCallback(
+    async (flow: PointFlow) => {
+      if (!engineRef.current || !match || isProcessingRef.current) return;
+      
+      isProcessingRef.current = true;
+      
+      try {
+        const state = engineRef.current.getState();
+        if (state.isFinished) {
+          isProcessingRef.current = false;
+          return;
+        }
+        
+        engineRef.current.applyPoint(flow);
+        const newState = engineRef.current.getState() as ScoringState;
+        setScoreState(newState);
+        setPointsHistory((prev) => [...prev.slice(-19), flow.winnerId]);
+        const seq = ++pointSequenceRef.current;
+
+        if (isOnline) {
+          const annotationsPayload =
+            flow.rallyDetails || flow.rallyLength
+              ? {
+                  rallyDetails: flow.rallyDetails ?? undefined,
+                  rallyLength: flow.rallyLength ?? undefined,
+                  isFirstServe: flow.isFirstServe ?? undefined,
+                  isSecondServe: flow.isSecondServe ?? undefined,
+                  firstFaultDetail: flow.firstFaultDetail ?? undefined,
+                }
+              : undefined;
+
+          const payload = {
+            winnerId: flow.winnerId,
+            type: flow.type,
+            serverId: flow.serverId,
+            timestamp: flow.timestamp ?? Date.now(),
+            sequenceNumber: seq,
+            ...(annotationsPayload ? { annotations: annotationsPayload } : {}),
+          };
+          console.debug("[POINT REQUEST]", JSON.stringify(payload, null, 2));
+
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+          try {
+            const res = await fetch(`/api/matches/${matchId}/point`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                authorization: `Bearer ${tokenRef.current}`,
+              },
+              body: JSON.stringify(payload),
+              signal: controller.signal,
+            }).catch(() => null);
+
+            clearTimeout(timeoutId);
+
+            if (res && res.ok) {
+              try {
+                const data = await res.json();
+                if (data.scoreState) {
+                  const currentHistory = engineRef.current.getPointHistory();
+                  setScoreState(data.scoreState);
+                  engineRef.current = ScoringEngine.fromSerialized(
+                    {
+                      format: match.format as any,
+                      player1Id: match.player1.id,
+                      player2Id: match.player2.id,
+                      initialServerId: match.initialServerId || match.player1.id,
+                    },
+                    JSON.stringify(data.scoreState),
+                  );
+                  engineRef.current.restorePointHistory(currentHistory);
+                }
+              } catch (err) {
+                console.error("[processPoint:sync-response]", err);
+              }
+            } else if (res) {
+              const isConflict = res.status === 409;
+              if (isConflict) {
+                try {
+                  const errData = await res.json();
+                  if (
+                    errData.error === "SEQUENCE_CONFLICT" &&
+                    errData.expectedSequence
+                  ) {
+                    pointSequenceRef.current = errData.expectedSequence - 1;
+                  }
+                } catch {}
+                setError("Conflito de sequência — sincronizando...");
+              } else {
+                let errorMsg = `Erro ao registrar ponto (${res.status})`;
+                try {
+                  const errData = await res.json();
+                  console.error(
+                    "[POINT RESPONSE ERROR]",
+                    res.status,
+                    JSON.stringify(errData, null, 2),
+                  );
+                  if (errData.error) {
+                    errorMsg = `Erro: ${errData.error} — ${errData.message || "sincronizando..."}`;
+                  }
+                } catch (e) {
+                  const text = await res.text();
+                  console.error("[POINT RESPONSE ERROR]", res.status, text);
+                }
+                setError(errorMsg);
+              }
+              await fetchMatch(true);
+            }
+          } catch (err) {
+            if (err instanceof Error && err.name === 'AbortError') {
+              console.error("[processPoint] Request timeout");
+              setError("Tempo esgotado ao registrar ponto — verifique sua conexão");
+            } else {
+              console.error("[processPoint] Request error", err);
+              setError("Erro de conexão ao registrar ponto");
+            }
+            await fetchMatch(true);
+          }
+        } else {
+          await enqueue({
+            matchId,
+            type: "POINT",
+            payload: flow as any,
+            timestamp: Date.now(),
+          });
+        }
+
+        if (newState.isFinished) setShowFinishedBanner(true);
+      } catch (err) {
+        console.error("[processPoint]", err);
+        setError("Erro ao registrar ponto");
+      } finally {
+        isProcessingRef.current = false;
+      }
+    },
+    [
+      matchId,
+      match,
+      isOnline,
+      enqueue,
+      engineRef,
+      tokenRef,
+      pointSequenceRef,
+      setScoreState,
+      setPointsHistory,
+      setShowFinishedBanner,
+      setError,
+      fetchMatch,
     ],
   );
 
@@ -425,7 +448,12 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
 
   const handleServerEffectConfirm = useCallback(
     (effect?: string, direction?: string) => {
-      if (!match) return;
+      if (!match || isProcessingRef.current) return;
+      
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      
       closeAll();
       const isSecond =
         serveErrorState.serveStep === "second" ||
@@ -448,7 +476,8 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         direcao: direcao,
         previewBalls: 1,
       };
-      setTimeout(() => {
+      
+      debounceTimerRef.current = setTimeout(() => {
         processPoint({
           winnerId: getWinnerId(true),
           type: "ACE",
@@ -466,7 +495,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         );
         handleFirstServeErrorClear();
         setServeStep("none");
-      }, 0);
+      }, 50);
     },
     [
       match,
@@ -482,7 +511,11 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
 
   const handleServeErrorConfirm = useCallback(
     (effect?: string, direction?: string) => {
-      if (!match || !serveErrorState.pendingServeError) return;
+      if (!match || !serveErrorState.pendingServeError || isProcessingRef.current) return;
+
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
 
       if (serveErrorState.pendingServeError.serveStep === "first") {
         if (!engineRef.current) return;
@@ -518,7 +551,8 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
           previewBalls: 1,
         };
         closeAll();
-        setTimeout(() => {
+        
+        debounceTimerRef.current = setTimeout(() => {
           processPoint({
             winnerId: getWinnerId(false),
             type: "DOUBLE_FAULT",
@@ -532,7 +566,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
           handleFirstServeErrorClear();
           handleServeErrorClose();
           setServeStep("none");
-        }, 0);
+        }, 50);
       }
     },
     [
@@ -589,7 +623,12 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
   const handlePointDetailsConfirm = useCallback(
     (details: RallyDetails) => {
       const winnerSide = modalParamsRef.current.winner as "player1" | "player2";
-      if (!match || !winnerSide) return;
+      if (!match || !winnerSide || isProcessingRef.current) return;
+      
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      
       const flowType =
         details.tipo === "winner"
           ? "WINNER"
@@ -598,7 +637,8 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
             : "UNFORCED_ERROR";
       const id = winnerSide === "player1" ? match.player1.id : match.player2.id;
       closeAll();
-      setTimeout(() => {
+      
+      debounceTimerRef.current = setTimeout(() => {
         processPoint({
           winnerId: id,
           type: flowType,
@@ -614,7 +654,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
           rallyLength:
             ballExchangeCount > 0 ? ballExchangeCount : details.previewBalls,
         });
-      }, 0);
+      }, 50);
     },
     [
       match,
@@ -648,5 +688,6 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     handleServeCancel,
     handleServeErrorCancel,
     handlePointDetailsConfirm,
+    isProcessing: isProcessingRef.current,
   };
 }

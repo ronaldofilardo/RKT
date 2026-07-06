@@ -8,6 +8,7 @@ interface ActionBarProps {
   ballExchangeCount: number;
   fontScale: number;
   isFinished: boolean;
+  isProcessing?: boolean;
   onAce: () => void;
   onOut: (step: 'first' | 'second') => void;
   onNet: (step: 'first' | 'second') => void;
@@ -44,11 +45,11 @@ function ActionButton({ onClick, disabled, children, variant = 'default', classN
 }
 
 export function ActionBar({
-  secondServe, serveStep, canUndo, canEdit, ballExchangeCount, fontScale, isFinished,
+  secondServe, serveStep, canUndo, canEdit, ballExchangeCount, fontScale, isFinished, isProcessing,
   onAce, onOut, onNet, onLet, onCancelSecondServe, onServeCancel,
   onUndo, onFontSmaller, onFontBigger, onEditScore, onBallExchange, onStats,
 }: ActionBarProps) {
-  const serveDisabled = isFinished || ballExchangeCount > 0;
+  const serveDisabled = isFinished || ballExchangeCount > 0 || isProcessing;
   const showSecondBadge = serveStep === 'second' || secondServe;
 
   return (
@@ -70,13 +71,13 @@ export function ActionBar({
 
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           <ActionButton onClick={onAce} disabled={serveDisabled}>
-            Ace
+            {isProcessing ? '⏳' : 'Ace'}
           </ActionButton>
           <ActionButton onClick={() => onOut(serveStep === 'second' ? 'second' : 'first')} disabled={serveDisabled}>
-            Out
+            {isProcessing ? '⏳' : 'Out'}
           </ActionButton>
           <ActionButton onClick={() => onNet(serveStep === 'second' ? 'second' : 'first')} disabled={serveDisabled}>
-            Net
+            {isProcessing ? '⏳' : 'Net'}
           </ActionButton>
           <ActionButton onClick={showSecondBadge ? onServeCancel : onLet} disabled={isFinished || serveDisabled} variant={showSecondBadge ? 'danger' : 'default'}>
             {showSecondBadge ? '✕' : 'Let'}
@@ -89,9 +90,9 @@ export function ActionBar({
         </div>
 
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <button onClick={onUndo} disabled={!canUndo || isFinished}
+          <button onClick={onUndo} disabled={!canUndo || isFinished || isProcessing}
             className="flex items-center gap-1 px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition-all min-h-[44px] disabled:opacity-40 disabled:cursor-not-allowed dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200">
-            ↩ Corrigir
+            {isProcessing ? '⏳' : '↩'} Corrigir
           </button>
 
           <div className="flex items-center gap-1.5">

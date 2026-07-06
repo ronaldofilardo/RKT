@@ -71,6 +71,8 @@ function createMockContext(overrides: Partial<Parameters<typeof useScoringHandle
     open: jest.fn(),
     close: jest.fn(),
     closeAll: jest.fn(),
+    isProcessingRef: { current: false },
+    debounceTimerRef: { current: null },
     ...overrides,
   };
 

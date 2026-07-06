@@ -76,6 +76,8 @@ export default function ScoringPage() {
   } | null>(null);
   const [viewMode, setViewMode] = useState<"scoring" | "timeline">("scoring");
   const [undoTimestamp, setUndoTimestamp] = useState<number | null>(null);
+  const isProcessingRef = useRef(false);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const tokenRef = useRef<string | null>(null);
   const [sessionActive, setSessionActive] = useState(false);
@@ -95,7 +97,7 @@ export default function ScoringPage() {
     tokenRef.current = sessionStorage.getItem("access_token");
   }, []);
 
-  const {
+const {
     persistState,
     getServerId,
     getWinnerId,
@@ -112,6 +114,7 @@ export default function ScoringPage() {
     handleServeCancel,
     handleServeErrorCancel,
     handlePointDetailsConfirm,
+    isProcessing,
   } = useScoringHandlers({
     matchId,
     match,
@@ -139,6 +142,8 @@ export default function ScoringPage() {
     close,
     closeAll,
     onUndoComplete: () => setUndoTimestamp(Date.now()),
+    isProcessingRef,
+    debounceTimerRef,
   });
 
   const { abandonCurrentSession, handleEditScore } =
@@ -239,6 +244,7 @@ export default function ScoringPage() {
     ? engineRef.current.getHistoryLength() > 0
     : false;
   const isSetupNeeded = activeModal === "setup" && !match.initialServerId;
+  const isProcessingPoint = isProcessing === true;
 
   const gamePointToDisplay = (p: number): string => {
     if (p === 0) return "0";
@@ -426,8 +432,10 @@ export default function ScoringPage() {
         ballExchangeCount={ballExchangeCount}
         fontScale={fontScale}
         isFinished={isFinished}
+        isProcessing={isProcessingPoint}
         onAce={openAceModal}
         onOut={(step) => {
+          if (isProcessingPoint) return;
           handleServeErrorOpen("out", step);
           open("serve-effect", {
             context: "error",
@@ -436,6 +444,7 @@ export default function ScoringPage() {
           });
         }}
         onNet={(step) => {
+          if (isProcessingPoint) return;
           handleServeErrorOpen("net", step);
           open("serve-effect", {
             context: "error",
