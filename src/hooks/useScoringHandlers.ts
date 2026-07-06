@@ -66,6 +66,7 @@ export interface ScoringHandlersContext {
   open: (modal: string, params?: Record<string, string>) => void;
   close: () => void;
   closeAll: () => void;
+  onUndoComplete?: () => void;
 }
 
 export function useScoringHandlers(ctx: ScoringHandlersContext) {
@@ -95,6 +96,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     open,
     close,
     closeAll,
+    onUndoComplete,
   } = ctx;
 
   // ─── State persistence ────────────────────────────────────────────────────
@@ -388,10 +390,11 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     if (!undone) return;
     const newState = engineRef.current.getState() as ScoringState;
     setScoreState(newState);
-    close();
     setPointsHistory((prev) => prev.slice(0, -1));
     persistState(newState, "undo");
-  }, [persistState, close, engineRef, setScoreState, setPointsHistory]);
+    closeAll();
+    onUndoComplete?.();
+  }, [persistState, closeAll, engineRef, setScoreState, setPointsHistory, onUndoComplete]);
 
   const handleLet = useCallback(() => {
     if (!engineRef.current) return;

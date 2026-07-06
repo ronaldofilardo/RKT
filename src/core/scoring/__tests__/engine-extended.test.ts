@@ -282,3 +282,83 @@ describe('ScoringEngine - isFinished', () => {
     expect(engine.isFinished()).toBe(true);
   });
 });
+
+describe('ScoringEngine - undoLastPoint advanced scenarios', () => {
+  let engine: ScoringEngine;
+
+  beforeEach(() => {
+    engine = createEngine();
+  });
+
+  it('deve restaurar estado de deuce após undo', () => {
+    // 40x30
+    makePoint(engine, 'player-1-id');
+    makePoint(engine, 'player-1-id');
+    makePoint(engine, 'player-1-id');
+    makePoint(engine, 'player-2-id');
+    makePoint(engine, 'player-2-id');
+    makePoint(engine, 'player-2-id');
+
+    // Agora está 40x40 (deuce)
+    const beforeDeuce = engine.getState();
+    expect(beforeDeuce.currentGame.isDeuce).toBe(true);
+
+    // Undo do último ponto (volta para 40x30)
+    engine.undoLastPoint();
+    const afterUndo = engine.getState();
+    expect(afterUndo.currentGame.isDeuce).toBe(false);
+    expect(afterUndo.currentGame.player1).toBe(3);
+    expect(afterUndo.currentGame.player2).toBe(2);
+  });
+
+  it('deve restaurar vantagem após undo', () => {
+    // Chegar no deuce
+    for (let i = 0; i < 3; i++) makePoint(engine, 'player-1-id');
+    for (let i = 0; i < 3; i++) makePoint(engine, 'player-2-id');
+
+    // Player 1 ganha vantagem
+    makePoint(engine, 'player-1-id');
+    let state = engine.getState();
+    expect(state.currentGame.advantage).toBe('player1');
+
+    // Undo volta para deuce
+    engine.undoLastPoint();
+    state = engine.getState();
+    expect(state.currentGame.isDeuce).toBe(true);
+    expect(state.currentGame.advantage).toBeNull();
+  });
+
+  it('deve permitir múltiplos undos sequenciais', () => {
+    makePoint(engine, 'player-1-id'); // 15x0
+    makePoint(engine, 'player-1-id'); // 30x0
+    makePoint(engine, 'player-1-id'); // 40x0
+
+    let state = engine.getState();
+    expect(state.currentGame.player1).toBe(3);
+
+    engine.undoLastPoint(); // volta para 30x0
+    state = engine.getState();
+    expect(state.currentGame.player1).toBe(2);
+
+    engine.undoLastPoint(); // volta para 15x0
+    state = engine.getState();
+    expect(state.currentGame.player1).toBe(1);
+
+    engine.undoLastPoint(); // volta para 0x0
+    state = engine.getState();
+    expect(state.currentGame.player1).toBe(0);
+  });
+
+  it('deve retornar null ao tentar undo em estado inicial', () => {
+    const result = engine.undoLastPoint();
+    expect(result).toBeNull();
+  });
+
+  it('deve retornar detalhes do ponto desfeito', () => {
+    makePoint(engine, 'player-1-id', 'WINNER');
+    const undone = engine.undoLastPoint();
+    expect(undone).not.toBeNull();
+    expect(undone?.type).toBe('WINNER');
+    expect(undone?.winnerId).toBe('player-1-id');
+  });
+});

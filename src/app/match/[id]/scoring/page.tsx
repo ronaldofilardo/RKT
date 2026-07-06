@@ -75,6 +75,7 @@ export default function ScoringPage() {
     player2: number;
   } | null>(null);
   const [viewMode, setViewMode] = useState<"scoring" | "timeline">("scoring");
+  const [undoTimestamp, setUndoTimestamp] = useState<number | null>(null);
 
   const tokenRef = useRef<string | null>(null);
   const [sessionActive, setSessionActive] = useState(false);
@@ -137,6 +138,7 @@ export default function ScoringPage() {
     open,
     close,
     closeAll,
+    onUndoComplete: () => setUndoTimestamp(Date.now()),
   });
 
   const { abandonCurrentSession, handleEditScore } =
@@ -219,7 +221,7 @@ export default function ScoringPage() {
 
   const effectiveScoreState = pendingEditScore?.scoreState
     ?? session.pendingEditScore?.scoreState
-    ?? suspendedSession?.bankScoreState
+    ?? (undoTimestamp && scoreState ? scoreState : suspendedSession?.bankScoreState)
     ?? scoreState;
 
   const p1IsServing = effectiveScoreState?.server === "player1";
