@@ -35,7 +35,30 @@ describe('matchService', () => {
       expect(mockPrisma.match.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           take: 20,
-          include: { player1: true, player2: true },
+          select: {
+            id: true,
+            state: true,
+            format: true,
+            sportType: true,
+            courtType: true,
+            scheduledAt: true,
+            startedAt: true,
+            finishedAt: true,
+            nickname: true,
+            visibility: true,
+            isResuming: true,
+            openForAnnotation: true,
+            tournamentName: true,
+            round: true,
+            bracketType: true,
+            temperature: true,
+            humidity: true,
+            version: true,
+            scoreState: true,
+            initialServerId: true,
+            player1: { select: { id: true, name: true } },
+            player2: { select: { id: true, name: true } },
+          },
           orderBy: { createdAt: 'desc' },
         }),
       );
@@ -270,7 +293,30 @@ describe('matchService', () => {
 
       expect(mockPrisma.match.findFirst).toHaveBeenCalledWith({
         where: { id: 'm1' },
-        include: { player1: true, player2: true },
+        select: {
+          id: true,
+          state: true,
+          format: true,
+          sportType: true,
+          courtType: true,
+          scheduledAt: true,
+          startedAt: true,
+          finishedAt: true,
+          nickname: true,
+          visibility: true,
+          isResuming: true,
+          openForAnnotation: true,
+          tournamentName: true,
+          round: true,
+          bracketType: true,
+          temperature: true,
+          humidity: true,
+          version: true,
+          scoreState: true,
+          initialServerId: true,
+          player1: { select: { id: true, name: true } },
+          player2: { select: { id: true, name: true } },
+        },
       });
       expect(result?.player1.name).toBe('Player 1');
     });
