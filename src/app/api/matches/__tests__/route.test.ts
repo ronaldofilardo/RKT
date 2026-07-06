@@ -90,7 +90,32 @@ describe('GET /api/matches', () => {
     expect(data.matches).toHaveLength(2);
     expect(mockPrisma.match.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        include: { player1: true, player2: true },
+        select: {
+          id: true,
+          state: true,
+          format: true,
+          sportType: true,
+          courtType: true,
+          scheduledAt: true,
+          startedAt: true,
+          finishedAt: true,
+          nickname: true,
+          visibility: true,
+          isResuming: true,
+          openForAnnotation: true,
+          tournamentName: true,
+          category: true,
+          includeLet: true,
+          round: true,
+          bracketType: true,
+          temperature: true,
+          humidity: true,
+          version: true,
+          scoreState: true,
+          initialServerId: true,
+          player1: { select: { id: true, name: true } },
+          player2: { select: { id: true, name: true } },
+        },
         orderBy: { createdAt: 'desc' },
       })
     );
@@ -191,10 +216,120 @@ describe('POST /api/matches', () => {
     expect(mockPrisma.match.create).toHaveBeenCalled();
   });
 
-  it('deve retornar 400 para payload inválido', async () => {
+  it('deve criar partida com category e includeLet', async () => {
+    const createdMatch = {
+      id: 'new-match',
+      format: 'BEST_OF_3',
+      sportType: 'TENNIS',
+      state: 'SCHEDULED',
+      player1Id: 'player-1',
+      player2Id: 'player-2',
+      category: 'JUVENIL',
+      includeLet: true,
+    };
+
+    mockPrisma.match.create.mockResolvedValue(createdMatch as any);
+
     const req = new NextRequest('http://localhost:3000/api/matches', {
       method: 'POST',
-      body: JSON.stringify({ player1Id: 'player-1' }),
+      body: JSON.stringify({
+        player1Id: 'player-1',
+        player2Id: 'player-2',
+        format: 'BEST_OF_3',
+        sportType: 'TENNIS',
+        category: 'JUVENIL',
+        includeLet: true,
+      }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    const mod = await import('@/app/api/matches/route');
+    const POST = mod.POST;
+
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(201);
+    expect(data.category).toBe('JUVENIL');
+    expect(data.includeLet).toBe(true);
+    expect(mockPrisma.match.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          category: 'JUVENIL',
+          includeLet: true,
+        }),
+      })
+    );
+  });
+
+  it('deve criar partida com category ADULTO sem includeLet', async () => {
+    const createdMatch = {
+      id: 'new-match',
+      format: 'BEST_OF_3',
+      sportType: 'TENNIS',
+      state: 'SCHEDULED',
+      player1Id: 'player-1',
+      player2Id: 'player-2',
+      category: 'ADULTO',
+      includeLet: null,
+    };
+
+    mockPrisma.match.create.mockResolvedValue(createdMatch as any);
+
+    const req = new NextRequest('http://localhost:3000/api/matches', {
+      method: 'POST',
+      body: JSON.stringify({
+        player1Id: 'player-1',
+        player2Id: 'player-2',
+        format: 'BEST_OF_3',
+        sportType: 'TENNIS',
+        category: 'ADULTO',
+      }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    const mod = await import('@/app/api/matches/route');
+    const POST = mod.POST;
+
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(201);
+    expect(data.category).toBe('ADULTO');
+    expect(mockPrisma.match.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          category: 'ADULTO',
+          includeLet: null,
+        }),
+      })
+    );
+  });
+
+  it('deve validar schema com category e includeLet', async () => {
+    const createdMatch = {
+      id: 'new-match',
+      format: 'BEST_OF_3',
+      sportType: 'TENNIS',
+      state: 'SCHEDULED',
+      player1Id: 'player-1',
+      player2Id: 'player-2',
+      category: 'INFANTIL',
+      includeLet: null,
+    };
+
+    mockPrisma.match.create.mockResolvedValue(createdMatch as any);
+
+    const req = new NextRequest('http://localhost:3000/api/matches', {
+      method: 'POST',
+      body: JSON.stringify({
+        player1Id: 'player-1',
+        player2Id: 'player-2',
+        format: 'BEST_OF_3',
+        sportType: 'TENNIS',
+        category: 'INFANTIL',
+        includeLet: null,
+      }),
       headers: { 'Content-Type': 'application/json' },
     });
 
@@ -203,7 +338,7 @@ describe('POST /api/matches', () => {
 
     const res = await POST(req);
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(201);
   });
 
   it('deve retornar 409 se findDuplicateMatch encontrar duplicata sem force', async () => {

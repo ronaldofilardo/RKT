@@ -46,13 +46,13 @@ export async function GET(request: NextRequest) {
         sportType: true,
         scheduledAt: true,
         scoreState: true,
+        category: true,
+        includeLet: true,
         player1: { select: { id: true, name: true } },
         player2: { select: { id: true, name: true } },
       },
     });
     
-    console.log('[suspended-sessions API] allMatches found:', allMatches.length, allMatches.map(m => ({ id: m.id, scoreState: m.scoreState ? 'exists' : 'null' })));
-
     const matchesFromSessions = suspended
       .map((session) => {
         const m = session.match;

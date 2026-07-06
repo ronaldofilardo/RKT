@@ -216,6 +216,8 @@ export const CreateMatchInputSchema = z.object({
   scheduledAt: z.coerce.date().nullish(),
   initialServerId: z.string().min(1).nullish(),
   tournamentName: z.string().nullish(),
+  category: z.string().nullish(),
+  includeLet: z.boolean().nullish(),
   round: z.string().nullish(),
   roundName: z.string().nullish(),
   bracketType: z.string().nullish(),

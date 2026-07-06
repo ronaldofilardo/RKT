@@ -46,8 +46,10 @@ model Match {
   isResuming  Boolean     @default(false)
   openForAnnotation Boolean @default(false)
   tournamentName String?
-  round       String?
-  bracketType String?
+  category       String?
+  includeLet     Boolean?
+  round          String?
+  bracketType    String?
   temperature Float?
   humidity    Float?
   scheduledAt DateTime?

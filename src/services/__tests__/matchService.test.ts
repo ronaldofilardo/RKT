@@ -49,6 +49,8 @@ describe('matchService', () => {
             isResuming: true,
             openForAnnotation: true,
             tournamentName: true,
+            category: true,
+            includeLet: true,
             round: true,
             bracketType: true,
             temperature: true,
@@ -98,6 +100,8 @@ describe('matchService', () => {
         expect.objectContaining({
           data: expect.objectContaining({
             state: 'SCHEDULED',
+            category: null,
+            includeLet: null,
             format: 'BEST_OF_3',
             sportType: 'TENNIS',
           }),
@@ -307,6 +311,8 @@ describe('matchService', () => {
           isResuming: true,
           openForAnnotation: true,
           tournamentName: true,
+          category: true,
+          includeLet: true,
           round: true,
           bracketType: true,
           temperature: true,
@@ -412,7 +418,7 @@ describe('matchService', () => {
       expect(call.data.openForAnnotation).toBe(true);
     });
 
-    it('deve criar partida com scheduledAt', async () => {
+it('deve criar partida com scheduledAt', async () => {
       const { createMatch } = await import('@/services/matchService');
 
       mockPrisma.match.create.mockImplementation((args: any) => Promise.resolve({ id: 'new', ...args.data }));
@@ -426,8 +432,61 @@ describe('matchService', () => {
       } as any);
 
       const call = mockPrisma.match.create.mock.calls[0][0];
-      expect(call.data.scheduledAt).toBeTruthy();
+      expect(call.data.scheduledAt).toBe(scheduledDate);
     });
+
+    it('deve criar partida com category JUVENIL e includeLet=true', async () => {
+      const { createMatch } = await import('@/services/matchService');
+
+      mockPrisma.match.create.mockImplementation((args: any) => Promise.resolve({ id: 'new', ...args.data }));
+
+      await createMatch({
+        player1Id: 'p1',
+        player2Id: 'p2',
+        format: 'BEST_OF_3',
+        category: 'JUVENIL',
+        includeLet: true,
+      } as any);
+
+      const call = mockPrisma.match.create.mock.calls[0][0];
+      expect(call.data.category).toBe('JUVENIL');
+      expect(call.data.includeLet).toBe(true);
+    });
+
+    it('deve criar partida com category INFANTIL sem includeLet', async () => {
+      const { createMatch } = await import('@/services/matchService');
+
+      mockPrisma.match.create.mockImplementation((args: any) => Promise.resolve({ id: 'new', ...args.data }));
+
+      await createMatch({
+        player1Id: 'p1',
+        player2Id: 'p2',
+        format: 'BEST_OF_3',
+        category: 'INFANTIL',
+      } as any);
+
+      const call = mockPrisma.match.create.mock.calls[0][0];
+      expect(call.data.category).toBe('INFANTIL');
+      expect(call.data.includeLet).toBeNull();
+    });
+
+    it('deve criar partida com category VETERANO sem includeLet', async () => {
+      const { createMatch } = await import('@/services/matchService');
+
+      mockPrisma.match.create.mockImplementation((args: any) => Promise.resolve({ id: 'new', ...args.data }));
+
+      await createMatch({
+        player1Id: 'p1',
+        player2Id: 'p2',
+        format: 'BEST_OF_3',
+        category: 'VETERANO',
+      } as any);
+
+      const call = mockPrisma.match.create.mock.calls[0][0];
+      expect(call.data.category).toBe('VETERANO');
+      expect(call.data.includeLet).toBeNull();
+    });
+  });
   });
 
   describe('transitionMatchState - CANNOT_FINISH validation', () => {
@@ -552,7 +611,10 @@ describe('matchService', () => {
 
       const result = await transitionMatchState('m1', 'IN_PROGRESS', undefined, newScoreState);
 
-      expect(result).not.toEqual(expect.objectContaining({ error: expect.stringContaining('SCORE_REGRESSION') }));
+      expect(result).not.toEqual(
+        expect.objectContaining({
+          error: expect.stringContaining('SCORE_REGRESSION'),
+        })
+      );
     });
   });
-});

@@ -85,6 +85,8 @@ export default function NewMatchPage() {
   const [visibility, setVisibility] = useState('PLAYERS_ONLY');
   const [apontadorEmail, setApontadorEmail] = useState('');
   const [tournamentName, setTournamentName] = useState('');
+  const [category, setCategory] = useState<'INFANTIL' | 'JUVENIL' | 'ADULTO' | 'VETERANO' | ''>('');
+  const [includeLet, setIncludeLet] = useState(true);
   const [roundName, setRoundName] = useState('');
   const [bracketType, setBracketType] = useState<'ELIMINATION' | 'GROUPS' | 'SWISS' | ''>('');
   const [venueId, setVenueId] = useState('');
@@ -211,6 +213,8 @@ export default function NewMatchPage() {
       venueId: venueId || null,
       publicMatchCode: publicMatchCode || null,
       tournamentName: tournamentName || null,
+      category: category || null,
+      includeLet: category === 'JUVENIL' ? includeLet : null,
       roundName: roundName || null,
       bracketType: bracketType || null,
       temperature: temperature ? parseFloat(temperature) : null,
@@ -221,7 +225,7 @@ export default function NewMatchPage() {
     [
       sportType, format, courtType, selectedP1, selectedP2, nickname, visibility,
       openForAnnotation, apontadorEmail, date, time, venueId, publicMatchCode,
-      tournamentName, roundName, bracketType, temperature, humidity, tags,
+      tournamentName, category, includeLet, roundName, bracketType, temperature, humidity, tags,
     ],
   );
 
@@ -399,6 +403,38 @@ export default function NewMatchPage() {
                       </li>
                     ))}
                   </ul>
+                )}
+              </div>
+            </div>
+
+            {/* Categoria */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
+              <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">Categoria</h2>
+              <div className="flex-1 relative">
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as 'INFANTIL' | 'JUVENIL' | 'ADULTO' | 'VETERANO' | '')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-base bg-white text-gray-900"
+                >
+                  <option value="" className="text-gray-900">Selecione</option>
+                  <option value="INFANTIL" className="text-gray-900">Infantil</option>
+                  <option value="JUVENIL" className="text-gray-900">Juvenil</option>
+                  <option value="ADULTO" className="text-gray-900">Adulto</option>
+                  <option value="VETERANO" className="text-gray-900">Veterano</option>
+                </select>
+                {category === 'JUVENIL' && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <input
+                      type="checkbox"
+                      id="let-checkbox"
+                      checked={includeLet}
+                      onChange={(e) => setIncludeLet(e.target.checked)}
+                      className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+                    />
+                    <label htmlFor="let-checkbox" className="text-sm text-gray-700">
+                      Let
+                    </label>
+                  </div>
                 )}
               </div>
             </div>
