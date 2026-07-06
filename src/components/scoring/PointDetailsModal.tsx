@@ -48,8 +48,8 @@ interface PointDetailsModalProps {
 }
 
 const btnBase = 'px-3 py-2 text-sm rounded-xl border-2 transition-all select-none';
-const btnNormal = 'bg-gray-100 border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-700';
-const btnActive = 'bg-blue-50 border-blue-500 text-blue-700 shadow-[0_0_8px_rgba(59,130,246,0.3)]';
+const btnNormal = 'bg-gray-100 border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:border-gray-500 dark:hover:text-gray-300';
+const btnActive = 'bg-blue-50 border-blue-500 text-blue-700 shadow-[0_0_8px_rgba(59,130,246,0.3)] dark:bg-blue-900/30 dark:border-blue-600 dark:text-blue-400';
 
 
 function Pills<T extends string>({
@@ -202,7 +202,7 @@ export function PointDetailsModal({
                 onChange={v => dispatch({ type: 'SET_TIPO', value: v })}
                 labelMap={TIPO_LABELS}
               />
-              <p className="text-[11px] text-gray-500 mt-1.5 leading-relaxed">
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed">
                 {form.tipo ? TIPO_DESCRIPTIONS[form.tipo] : 'Selecione como o ponto terminou'}
               </p>
             </Section>
@@ -302,11 +302,11 @@ export function PointDetailsModal({
                 style={{ MozAppearance: 'textfield' }}
               />
               <div className="mt-1.5 text-sm" aria-live="polite">
-                <span className="text-gray-400 font-semibold">{form.ballClicks}X</span>
-                <span className="text-gray-500 mx-1">→</span>
-                <span className="text-blue-400 font-bold" style={{ fontSize: '15px' }}>{previewBalls} bola(s)</span>
+                <span className="text-gray-400 dark:text-gray-500 font-semibold">{form.ballClicks}X</span>
+                <span className="text-gray-500 dark:text-gray-400 mx-1">→</span>
+                <span className="text-blue-400 dark:text-blue-300 font-bold" style={{ fontSize: '15px' }}>{previewBalls} bola(s)</span>
                 {vencedor === 'devolvedor' && (
-                  <span className="text-yellow-400/80 text-xs ml-1">(+1 devolvedor)</span>
+                  <span className="text-yellow-400/80 dark:text-yellow-500/80 text-xs ml-1">(+1 devolvedor)</span>
                 )}
               </div>
             </Section>
@@ -347,7 +347,7 @@ export function PointDetailsModal({
             onClick={e => e.stopPropagation()}
           >
             <p className="text-white font-bold text-center text-lg mb-1">Descartar detalhes?</p>
-            <p className="text-gray-400 text-center text-sm mb-5">Os dados deste ponto serão perdidos</p>
+            <p className="text-gray-400 dark:text-gray-500 text-center text-sm mb-5">Os dados deste ponto serão perdidos</p>
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => { setShowCloseDialog(false); onCancel(); }}
@@ -375,7 +375,7 @@ export function PointDetailsModal({
 function Section({ num, label, children }: { num?: string; label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-2">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">
         {num ? `${num}. ` : ''}{label}
       </p>
       {children}

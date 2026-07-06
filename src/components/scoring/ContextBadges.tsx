@@ -28,15 +28,18 @@ export function ContextBadges({ isMatchPoint, isSetPoint, isBreakPoint, isTiebre
   if (pointsHistory.length >= 3) {
     const last3 = pointsHistory.slice(-3);
     if (last3.every(p => p === last3[0]) && last3[0]) {
-      badges.push({ icon: '📊', text: `3 pontos seguidos`, color: 'bg-gray-100 text-gray-700 border-gray-200' });
+      badges.push({ icon: '📊', text: `3 pontos seguidos`, color: 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700' });
     }
   }
 
   if (elapsedSeconds >= 60) {
     const mins = Math.floor(elapsedSeconds / 60);
+    const secs = elapsedSeconds % 60;
     const hours = Math.floor(mins / 60);
-    const display = hours > 0 ? `${hours}h ${mins % 60}min` : `${mins}min`;
-    badges.push({ icon: '⏱', text: display, color: 'bg-gray-100 text-gray-500 border-gray-200' });
+    const display = hours > 0 
+      ? `${hours}h ${mins % 60}:${String(secs).padStart(2, '0')}min` 
+      : `${mins}:${String(secs).padStart(2, '0')}min`;
+    badges.push({ icon: '⏱', text: display, color: 'bg-gray-100 text-gray-500 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700' });
   }
 
   if (badges.length === 0) return null;

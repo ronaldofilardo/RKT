@@ -24,7 +24,7 @@ interface VSIndicatorProps {
 }
 
 export function VSIndicator({ scoreState }: VSIndicatorProps) {
-  if (!scoreState) return <div className="text-gray-400 font-bold text-sm sm:text-lg leading-none text-center">VS</div>;
+  if (!scoreState) return <div className="text-gray-400 dark:text-gray-500 font-bold text-sm sm:text-lg leading-none text-center">VS</div>;
 
   const set = scoreState.sets[scoreState.sets.length - 1];
   const game = scoreState.currentGame;
@@ -35,9 +35,9 @@ export function VSIndicator({ scoreState }: VSIndicatorProps) {
     return (
       <div className="flex flex-col items-center">
         <span className="text-base sm:text-lg leading-none">🎾</span>
-        <span className="font-bold text-[10px] sm:text-sm text-amber-600 leading-tight text-center">TIE-<br className="sm:hidden"/>BREAK</span>
+        <span className="font-bold text-[10px] sm:text-sm text-amber-600 dark:text-amber-500 leading-tight text-center">TIE-<br className="sm:hidden"/>BREAK</span>
         {nextChange <= 2 && nextChange > 0 && (
-          <span className="text-[8px] sm:text-[10px] text-gray-500 leading-tight text-center">Troca {nextChange}pt</span>
+          <span className="text-[8px] sm:text-[10px] text-gray-500 dark:text-gray-400 leading-tight text-center">Troca {nextChange}pt</span>
         )}
       </div>
     );
@@ -47,5 +47,5 @@ export function VSIndicator({ scoreState }: VSIndicatorProps) {
     return <span className="text-xl sm:text-2xl leading-none text-center block">⚡</span>;
   }
 
-  return <div className="text-gray-400 font-bold text-sm sm:text-lg leading-none text-center">VS</div>;
+  return <div className="text-gray-400 dark:text-gray-500 font-bold text-sm sm:text-lg leading-none text-center">VS</div>;
 }

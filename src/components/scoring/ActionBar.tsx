@@ -31,10 +31,10 @@ function ActionButton({ onClick, disabled, children, variant = 'default', classN
 }) {
   const base = 'flex items-center justify-center gap-1 px-2 sm:px-3 py-3 sm:py-3.5 text-xs sm:text-sm font-semibold rounded-xl transition-all select-none min-h-[44px] sm:min-h-[48px] active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed';
   const variants = {
-    default: 'bg-gray-100 hover:bg-gray-200 text-gray-800',
-    danger: 'bg-red-50 hover:bg-red-100 text-red-600',
-    secondary: 'bg-gray-50 hover:bg-gray-100 text-gray-600',
-    outline: 'border border-gray-200 bg-white hover:bg-gray-50 text-gray-700',
+    default: 'bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200',
+    danger: 'bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-400',
+    secondary: 'bg-gray-50 hover:bg-gray-100 text-gray-600 dark:bg-gray-800/50 dark:hover:bg-gray-800 dark:text-gray-400',
+    outline: 'border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300',
   };
   return (
     <button onClick={onClick} disabled={disabled} className={`${base} ${variants[variant]} ${className}`}>
@@ -52,11 +52,11 @@ export function ActionBar({
   const showSecondBadge = serveStep === 'second' || secondServe;
 
   return (
-    <div className="bg-white border-t border-gray-200 px-3 sm:px-4 py-3 sm:py-4 safe-bottom">
+    <div className="bg-white border-t border-gray-200 px-3 sm:px-4 py-3 sm:py-4 safe-bottom dark:bg-slate-900 dark:border-slate-700">
       <div className="max-w-lg mx-auto space-y-3">
         <div className="flex items-center justify-center gap-1.5">
           <span className={`text-[10px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full ${
-            showSecondBadge ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+            showSecondBadge ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
           }`}>
             {showSecondBadge ? '2º SAQUE' : '1º SAQUE'}
           </span>
@@ -90,34 +90,34 @@ export function ActionBar({
 
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <button onClick={onUndo} disabled={!canUndo || isFinished}
-            className="flex items-center gap-1 px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition-all min-h-[44px] disabled:opacity-40 disabled:cursor-not-allowed">
+            className="flex items-center gap-1 px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition-all min-h-[44px] disabled:opacity-40 disabled:cursor-not-allowed dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200">
             ↩ Corrigir
           </button>
 
           <div className="flex items-center gap-1.5">
-            <button onClick={onFontSmaller} className="px-3 py-2 text-xs font-bold rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition-all min-h-[36px]">
+            <button onClick={onFontSmaller} className="px-3 py-2 text-xs font-bold rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition-all min-h-[36px] dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200">
               A−
             </button>
-            <span className="text-[10px] sm:text-xs text-gray-500 w-8 text-center tabular-nums font-medium">{Math.round(fontScale * 100)}%</span>
-            <button onClick={onFontBigger} className="px-3 py-2 text-xs font-bold rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition-all min-h-[36px]">
+            <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 w-8 text-center tabular-nums font-medium">{Math.round(fontScale * 100)}%</span>
+            <button onClick={onFontBigger} className="px-3 py-2 text-xs font-bold rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition-all min-h-[36px] dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200">
               A+
             </button>
           </div>
 
           {canEdit && (
-            <button onClick={onEditScore} className="px-3 sm:px-4 py-3 text-xs sm:text-sm rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition-all min-h-[44px]">
+            <button onClick={onEditScore} className="px-3 sm:px-4 py-3 text-xs sm:text-sm rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition-all min-h-[44px] dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200">
               ✏️
             </button>
           )}
 
           {onStats && (
-            <button onClick={onStats} className="px-3 sm:px-4 py-3 text-xs sm:text-sm rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition-all min-h-[44px]">
+            <button onClick={onStats} className="px-3 sm:px-4 py-3 text-xs sm:text-sm rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition-all min-h-[44px] dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200">
               📊
             </button>
           )}
 
           {ballExchangeCount > 0 && (
-            <span className="text-[10px] sm:text-xs font-semibold text-gray-600 px-2 py-1 bg-gray-50 rounded-lg">
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-600 dark:text-gray-400 px-2 py-1 bg-gray-50 dark:bg-gray-800 rounded-lg">
               BOLAS: {ballExchangeCount}
             </span>
           )}

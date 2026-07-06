@@ -8,7 +8,6 @@ import { MatchHeader } from "@/components/scoring/MatchHeader";
 import { PlayerCard } from "@/components/scoring/PlayerCard";
 import { VSIndicator } from "@/components/scoring/VSIndicator";
 import { ContextBadges } from "@/components/scoring/ContextBadges";
-import { ScoreboardCard } from "@/components/scoring/ScoreboardCard";
 import { ActionBar } from "@/components/scoring/ActionBar";
 import { SetupModal } from "@/components/scoring/SetupModal";
 import { UndoConfirmModal } from "@/components/scoring/UndoConfirmModal";
@@ -327,15 +326,6 @@ export default function ScoringPage() {
         onTimeline={() => setViewMode("timeline")}
         isFinished={isFinished}
       />
-
-      <div className="px-2 sm:px-4 py-2">
-        <ScoreboardCard
-          player1={match.player1}
-          player2={match.player2}
-          scoreState={effectiveScoreState ?? { sets: [], currentGame: { player1: 0, player2: 0 } }}
-        />
-      </div>
-
 
       <div className="flex-1 flex flex-col gap-0 sm:gap-1 px-2 sm:px-3 py-1 sm:py-2 relative overflow-hidden">
         <div className="absolute inset-0 opacity-20 pointer-events-none">
