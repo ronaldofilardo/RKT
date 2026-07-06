@@ -11,7 +11,6 @@ import type {
   RallyEfeito,
   RallyDirecao,
   RallyGolpeEsp,
-  RallyDetails,
 } from '@/core/scoring/types';
 import {
   formReducer,

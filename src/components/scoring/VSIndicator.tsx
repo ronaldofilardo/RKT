@@ -29,16 +29,15 @@ export function VSIndicator({ scoreState }: VSIndicatorProps) {
   const set = scoreState.sets[scoreState.sets.length - 1];
   const game = scoreState.currentGame;
 
-  if (set?.isTiebreak && set.tiebreakScore) {
+  const isInTiebreak = set?.isTiebreak && set.tiebreakScore;
+
+if (isInTiebreak && set.tiebreakScore) {
     const total = set.tiebreakScore.player1 + set.tiebreakScore.player2;
-    const nextChange = total <= 6 ? 6 - total : (8 - (total % 2 === 0 ? 2 : 1));
     return (
       <div className="flex flex-col items-center">
         <span className="text-base sm:text-lg leading-none">🎾</span>
         <span className="font-bold text-[10px] sm:text-sm text-amber-600 dark:text-amber-500 leading-tight text-center">TIE-<br className="sm:hidden"/>BREAK</span>
-        {nextChange <= 2 && nextChange > 0 && (
-          <span className="text-[8px] sm:text-[10px] text-gray-500 dark:text-gray-400 leading-tight text-center">Troca {nextChange}pt</span>
-        )}
+        <span className="text-[8px] sm:text-[10px] text-gray-500 dark:text-gray-400 leading-tight text-center">Troca em 1pt</span>
       </div>
     );
   }

@@ -78,6 +78,51 @@ describe('ScoringEngine - MATCH_TB_10', () => {
     makePoint(engine, 'player-1-id');
     expect(engine.getState().server).toBe('player2');
   });
+
+  it('deve trocar sacador na soma ímpar dos pontos no tiebreak (0-1, 1-2, 2-3...)', () => {
+    const engine = new ScoringEngine(makeConfig('MATCH_TB_10'));
+
+    // Ponto 1: soma = 1 (ímpar) → deve trocar para player2
+    makePoint(engine, 'player-1-id');
+    expect(engine.getState().server).toBe('player2');
+
+    // Ponto 2: soma = 2 (par) → mantém player2
+    makePoint(engine, 'player-1-id');
+    expect(engine.getState().server).toBe('player2');
+
+    // Ponto 3: soma = 3 (ímpar) → deve trocar para player1
+    makePoint(engine, 'player-2-id');
+    expect(engine.getState().server).toBe('player1');
+
+    // Ponto 4: soma = 4 (par) → mantém player1
+    makePoint(engine, 'player-2-id');
+    expect(engine.getState().server).toBe('player1');
+
+    // Ponto 5: soma = 5 (ímpar) → deve trocar para player2
+    makePoint(engine, 'player-1-id');
+    expect(engine.getState().server).toBe('player2');
+  });
+
+  it('deve trocar sacador corretamente em sequência de pontos no tiebreak', () => {
+    const engine = new ScoringEngine(makeConfig('MATCH_TB_10'));
+
+    const expectedServers = [
+      { total: 0, server: 'player1' }, // inicial
+      { total: 1, server: 'player2' }, // após ponto 1
+      { total: 2, server: 'player2' }, // após ponto 2
+      { total: 3, server: 'player1' }, // após ponto 3
+      { total: 4, server: 'player1' }, // após ponto 4
+      { total: 5, server: 'player2' }, // após ponto 5
+      { total: 6, server: 'player2' }, // após ponto 6
+    ];
+
+    expect(engine.getState().server).toBe(expectedServers[0].server);
+
+    for (let i = 1; i < expectedServers.length; i++) {
+      makePoint(engine, i % 2 === 1 ? 'player-1-id' : 'player-2-id');
+      expect(engine.getState().server).toBe(expectedServers[i].server);
+    }
+  });
 });
 
 describe('ScoringEngine - PRO_SET_8', () => {
@@ -396,5 +441,31 @@ describe('ScoringEngine - tiebreak advanced (BEST_OF_3)', () => {
     makePoint(engine, 'player-2-id');
     expect(engine.getState().sets[0].isTiebreak).toBe(false);
     expect(engine.getState().sets[0].player2).toBe(7);
+  });
+
+  it('deve trocar sacador na soma ímpar dos pontos no tiebreak regular', () => {
+    const engine = new ScoringEngine(makeConfig('BEST_OF_3'));
+
+    for (let g = 0; g < 5; g++) winGame(engine, 'player-1-id');
+    for (let g = 0; g < 5; g++) winGame(engine, 'player-2-id');
+    winGame(engine, 'player-1-id');
+    winGame(engine, 'player-2-id');
+
+    expect(engine.getState().sets[0].isTiebreak).toBe(true);
+
+    const serverBeforeTB = engine.getState().server;
+    
+    // Ponto 1: soma = 1 (ímpar) → deve trocar
+    makePoint(engine, 'player-1-id');
+    expect(engine.getState().server).not.toBe(serverBeforeTB);
+
+    // Ponto 2: soma = 2 (par) → mantém
+    makePoint(engine, 'player-1-id');
+    const serverAfter2 = engine.getState().server;
+    expect(engine.getState().server).toBe(serverAfter2);
+
+    // Ponto 3: soma = 3 (ímpar) → deve trocar
+    makePoint(engine, 'player-2-id');
+    expect(engine.getState().server).not.toBe(serverAfter2);
   });
 });

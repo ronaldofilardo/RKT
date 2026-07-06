@@ -159,7 +159,7 @@ export class ScoringEngine {
     else newTb.player2++;
 
     const total = newTb.player1 + newTb.player2;
-    const newServer = total % 2 !== 0
+    const newServer = total % 2 === 0
       ? this.state.server
       : (this.state.server === 'player1' ? 'player2' : 'player1');
 
@@ -338,7 +338,7 @@ export class ScoringEngine {
     else newTb.player2++;
 
     const total = newTb.player1 + newTb.player2;
-    const newServer = total % 2 !== 0
+    const newServer = total % 2 === 0
       ? this.state.server
       : (this.state.server === 'player1' ? 'player2' : 'player1');
 
