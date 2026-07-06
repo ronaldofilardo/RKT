@@ -8,6 +8,7 @@ import { MatchHeader } from "@/components/scoring/MatchHeader";
 import { PlayerCard } from "@/components/scoring/PlayerCard";
 import { VSIndicator } from "@/components/scoring/VSIndicator";
 import { ContextBadges } from "@/components/scoring/ContextBadges";
+import { ScoreboardCard } from "@/components/scoring/ScoreboardCard";
 import { ActionBar } from "@/components/scoring/ActionBar";
 import { SetupModal } from "@/components/scoring/SetupModal";
 import { UndoConfirmModal } from "@/components/scoring/UndoConfirmModal";
@@ -269,9 +270,6 @@ const {
           <MatchHeader
             sportType={match.sportType}
             elapsedSeconds={elapsed}
-            completedSets={
-              scoreState?.sets.filter((s) => isSetCompleted(s)) ?? []
-            }
             onClose={async () => {
               await abandonCurrentSession();
               router.push("/dashboard");
@@ -323,7 +321,6 @@ const {
       <MatchHeader
         sportType={match.sportType}
         elapsedSeconds={elapsed}
-        completedSets={scoreState?.sets.filter((s) => isSetCompleted(s)) ?? []}
         onClose={async () => {
           await abandonCurrentSession();
           router.push("/dashboard");
@@ -344,8 +341,16 @@ const {
           isTiebreak={isTiebreak}
           isSuperTiebreak={isSuperTiebreak}
           pointsHistory={pointsHistory}
-          elapsedSeconds={elapsed}
         />
+
+        <div className="my-2 sm:my-3">
+          <ScoreboardCard
+            player1={match.player1}
+            player2={match.player2}
+            scoreState={effectiveScoreState}
+            isSuspended={!!suspendedSession}
+          />
+        </div>
 
         <div className="flex items-center gap-1 sm:gap-2 flex-1 relative z-10 min-h-0">
           <div className="flex-1 min-w-0">

@@ -1,16 +1,7 @@
 'use client';
 
-interface SetScore {
-  player1: number;
-  player2: number;
-  isTiebreak: boolean;
-  tiebreakScore: { player1: number; player2: number } | null;
-}
-
 interface MatchHeaderProps {
-  sportType?: string;
   elapsedSeconds: number;
-  completedSets: SetScore[];
   onClose: () => void;
   onEditMatch?: () => void;
   onStats?: () => void;
@@ -19,17 +10,17 @@ interface MatchHeaderProps {
   isFinished?: boolean;
 }
 
-function formatSetBadge(set: SetScore, index: number): string {
-  if (set.isTiebreak && set.tiebreakScore) {
-    const winnerGames = Math.max(set.player1, set.player2);
-    const loserGames = Math.min(set.player1, set.player2);
-    const loserTb = Math.min(set.tiebreakScore.player1, set.tiebreakScore.player2);
-    return `${winnerGames}x${loserGames}(${loserTb})`;
+function formatTime(elapsedSeconds: number): string {
+  const mins = Math.floor(elapsedSeconds / 60);
+  const secs = elapsedSeconds % 60;
+  const hours = Math.floor(mins / 60);
+  if (hours > 0) {
+    return `${hours}h ${mins % 60}:${String(secs).padStart(2, '0')}`;
   }
-  return `${set.player1}x${set.player2}`;
+  return `${mins}:${String(secs).padStart(2, '0')}`;
 }
 
-export function MatchHeader({ sportType, elapsedSeconds, completedSets, onClose, onEditMatch, onStats, onTimeline, canEdit, isFinished }: MatchHeaderProps) {
+export function MatchHeader({ elapsedSeconds, onClose, onEditMatch, onStats, onTimeline, canEdit, isFinished }: MatchHeaderProps) {
   return (
     <div className="bg-white border-b border-gray-200 px-2 sm:px-4 py-2 sm:py-3 dark:bg-slate-900 dark:border-slate-700">
       <div className="flex items-center justify-between gap-1 sm:gap-2">
@@ -42,25 +33,9 @@ export function MatchHeader({ sportType, elapsedSeconds, completedSets, onClose,
         )}
 
         <div className="flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0">
-          {completedSets.length > 0 && (
-            <div className="flex gap-1 overflow-x-auto max-w-[40vw] sm:max-w-none scrollbar-hide">
-              {completedSets.map((set, i) => {
-                const isP1Winner = set.player1 > set.player2;
-                return (
-                  <span
-                    key={i}
-                    className={`text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded whitespace-nowrap ${
-                      isP1Winner ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                    }`}
-                  >
-                    {formatSetBadge(set, i)}
-                  </span>
-                );
-              })}
-            </div>
-          )}
-
-          <span className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase whitespace-nowrap">{sportType || 'TÊNIS'}</span>
+          <span className="text-[10px] sm:text-xs font-mono font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">
+            {formatTime(elapsedSeconds)}
+          </span>
         </div>
 
         <div className="flex items-center gap-1 flex-shrink-0">

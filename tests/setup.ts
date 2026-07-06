@@ -1,3 +1,5 @@
+import '@testing-library/jest-dom';
+
 if (typeof document === 'undefined') {
   global.window = {
     addEventListener: jest.fn(),
