@@ -266,11 +266,12 @@ export default function DashboardPage() {
             <div className="flex items-center gap-3 min-w-0">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-2 hover:bg-gray-100 rounded-lg flex-shrink-0"
+                className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg flex-shrink-0 border border-gray-200"
                 aria-label="Menu"
+                data-testid="hamburger-menu-button"
               >
                 <svg
-                  className="w-6 h-6"
+                  className="w-6 h-6 text-gray-700"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -320,66 +321,86 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* Hamburger Menu */}
+      {/* Hamburger Menu Overlay */}
       {isMenuOpen && (
-        <div
-          className="fixed inset-0 z-20 bg-black/50 safe-top safe-bottom"
-          onClick={() => setIsMenuOpen(false)}
-        >
+        <>
           <div
-            className="absolute left-0 top-0 h-full w-64 max-w-[85vw] bg-white shadow-lg safe-top safe-bottom"
-            onClick={(e) => e.stopPropagation()}
+            data-testid="menu-overlay"
+            className="fixed inset-0 z-50 bg-black/60"
+            onClick={() => setIsMenuOpen(false)}
+          />
+          <div
+            className="fixed left-0 top-0 h-full w-72 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out"
+            style={{ transform: isMenuOpen ? 'translateX(0)' : 'translateX(-100%)' }}
           >
             <div className="p-4 border-b flex items-center justify-between">
-              <h2 className="font-semibold text-gray-900">Menu</h2>
+              <h2 className="font-bold text-lg text-gray-900">Menu</h2>
               <button
                 onClick={() => setIsMenuOpen(false)}
-                className="p-2 text-gray-500 hover:text-gray-700"
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
                 aria-label="Fechar menu"
               >
-                ✕
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
-            <nav className="p-2 space-y-1">
+            <nav className="p-3 space-y-2">
               <button
                 onClick={() => handleNavigate("dashboard")}
-                className={`w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 ${activeView === "dashboard" ? "bg-sky-50 text-sky-600" : ""}`}
+                className={`w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors ${activeView === "dashboard" ? "bg-sky-50 text-sky-600 font-semibold" : "text-gray-700"}`}
               >
-                🏠 Início
+                <span className="text-xl mr-3">🏠</span>Início
               </button>
               <button
                 onClick={() => handleNavigate("history")}
-                className={`w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 ${activeView === "history" ? "bg-sky-50 text-sky-600" : ""}`}
+                className={`w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors ${activeView === "history" ? "bg-sky-50 text-sky-600 font-semibold" : "text-gray-700"}`}
               >
-                📜 Histórico
+                <span className="text-xl mr-3">📜</span>Histórico
               </button>
               <button
                 onClick={() => handleNavigate("annotated")}
-                className={`w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 ${activeView === "annotated" ? "bg-sky-50 text-sky-600" : ""}`}
+                className={`w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors ${activeView === "annotated" ? "bg-sky-50 text-sky-600 font-semibold" : "text-gray-700"}`}
               >
-                📝 Partidas Anotadas
+                <span className="text-xl mr-3">📝</span>Partidas Anotadas
               </button>
               <button
                 onClick={() => handleNavigate("live")}
-                className={`w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 ${activeView === "live" ? "bg-sky-50 text-sky-600" : ""}`}
+                className={`w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors ${activeView === "live" ? "bg-sky-50 text-sky-600 font-semibold" : "text-gray-700"}`}
               >
-                🔴 Ao Vivo {liveCount > 0 && `(${liveCount})`}
+                <span className="text-xl mr-3">🔴</span>Ao Vivo {liveCount > 0 && <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-xs font-bold">{liveCount}</span>}
               </button>
               <button
                 onClick={() => handleNavigate("pending")}
-                className={`w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 ${activeView === "pending" ? "bg-sky-50 text-sky-600" : ""}`}
+                className={`w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors ${activeView === "pending" ? "bg-sky-50 text-sky-600 font-semibold" : "text-gray-700"}`}
               >
-                ⏳ Aguardando {pendingCount > 0 && `(${pendingCount})`}
+                <span className="text-xl mr-3">⏳</span>Aguardando {pendingCount > 0 && <span className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-600 rounded-full text-xs font-bold">{pendingCount}</span>}
               </button>
               <button
                 onClick={() => handleNavigate("profile")}
-                className={`w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 ${activeView === "profile" ? "bg-sky-50 text-sky-600" : ""}`}
+                className={`w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors ${activeView === "profile" ? "bg-sky-50 text-sky-600 font-semibold" : "text-gray-700"}`}
               >
-                👤 Dados Pessoais
+                <span className="text-xl mr-3">👤</span>Dados Pessoais
               </button>
+              {user?.role === "ADMIN" && (
+                <button
+                  onClick={() => { setIsMenuOpen(false); router.push("/admin"); }}
+                  className="w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors text-red-600 font-semibold"
+                >
+                  <span className="text-xl mr-3">⚙️</span>Admin
+                </button>
+              )}
+              <div className="pt-2 border-t mt-2">
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-3 rounded-lg hover:bg-red-50 transition-colors text-red-600 font-medium"
+                >
+                  <span className="text-xl mr-3">🚪</span>Sair
+                </button>
+              </div>
             </nav>
           </div>
-        </div>
+        </>
       )}
 
       {/* Main Content */}

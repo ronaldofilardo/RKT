@@ -31,10 +31,10 @@ export function PointsSelector({
               onP1Change(e.target.value);
               onError();
             }}
-            className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-base bg-white"
+            className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-base bg-white text-gray-900"
           >
             {GAME_POINTS.map((pt) => (
-              <option key={pt} value={pt}>{pt}</option>
+              <option key={pt} value={pt} className="text-gray-900">{pt}</option>
             ))}
           </select>
         </div>
@@ -46,10 +46,10 @@ export function PointsSelector({
               onP2Change(e.target.value);
               onError();
             }}
-            className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-base bg-white"
+            className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-base bg-white text-gray-900"
           >
             {GAME_POINTS.map((pt) => (
-              <option key={pt} value={pt}>{pt}</option>
+              <option key={pt} value={pt} className="text-gray-900">{pt}</option>
             ))}
           </select>
         </div>

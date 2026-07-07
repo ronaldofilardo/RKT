@@ -18,7 +18,7 @@ export function DateTimeSection({ date, time, onDateChange, onTimeChange }: Date
             type="date"
             value={date}
             onChange={(e) => onDateChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900"
           />
         </div>
         <div>
@@ -27,7 +27,7 @@ export function DateTimeSection({ date, time, onDateChange, onTimeChange }: Date
             type="time"
             value={time}
             onChange={(e) => onTimeChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900"
           />
         </div>
       </div>

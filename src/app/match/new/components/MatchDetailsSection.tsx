@@ -49,10 +49,10 @@ export function MatchDetailsSection({
             <select
               value={visibility}
               onChange={(e) => onVisibilityChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900"
             >
               {VISIBILITY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
+                <option key={option.value} value={option.value} className="text-gray-900">
                   {option.label}
                 </option>
               ))}
@@ -70,7 +70,7 @@ export function MatchDetailsSection({
             value={apontadorEmail}
             onChange={(e) => onApontadorChange(e.target.value)}
             placeholder="Ex: apontador@exemplo.com ou 12345678901"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900 placeholder-gray-500"
           />
         </div>
       </section>
@@ -83,12 +83,12 @@ export function MatchDetailsSection({
             <select
               value={bracketType}
               onChange={(e) => onBracketChange(e.target.value as 'ELIMINATION' | 'GROUPS' | 'SWISS' | '')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900"
             >
-              <option value="">Selecione</option>
-              <option value="ELIMINATION">Eliminação Direta</option>
-              <option value="GROUPS">Grupos</option>
-              <option value="SWISS">Suíço</option>
+              <option value="" className="text-gray-900">Selecione</option>
+              <option value="ELIMINATION" className="text-gray-900">Eliminação Direta</option>
+              <option value="GROUPS" className="text-gray-900">Grupos</option>
+              <option value="SWISS" className="text-gray-900">Suíço</option>
             </select>
           </div>
         </div>
@@ -103,7 +103,7 @@ export function MatchDetailsSection({
             value={venueId}
             onChange={(e) => onVenueChange(e.target.value)}
             placeholder="ID do local"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900 placeholder-gray-500"
           />
         </div>
       </section>
@@ -117,7 +117,7 @@ export function MatchDetailsSection({
             value={publicMatchCode}
             onChange={(e) => onPublicCodeChange(e.target.value)}
             placeholder="Código único para localizar partida"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900 placeholder-gray-500"
           />
         </div>
       </section>
@@ -134,7 +134,7 @@ export function MatchDetailsSection({
                 value={temperature}
                 onChange={(e) => onTemperatureChange(e.target.value)}
                 placeholder="Ex: 25"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900 placeholder-gray-500"
               />
             </div>
             <div>
@@ -144,7 +144,7 @@ export function MatchDetailsSection({
                 value={humidity}
                 onChange={(e) => onHumidityChange(e.target.value)}
                 placeholder="Ex: 60"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900 placeholder-gray-500"
               />
             </div>
           </div>
@@ -160,7 +160,7 @@ export function MatchDetailsSection({
             value={tags}
             onChange={(e) => onTagsChange(e.target.value)}
             placeholder="Ex: juvenil, treino, amistoso"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900 placeholder-gray-500"
           />
         </div>
       </section>

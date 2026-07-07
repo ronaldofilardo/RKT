@@ -107,7 +107,7 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
               disabled={submitting}
               autoFocus
               placeholder="Ex: João Silva"
-              className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+              className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-500"
             />
           </div>
 
@@ -118,11 +118,11 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
                 value={form.gender}
                 onChange={(e) => handleChange('gender', e.target.value)}
                 disabled={submitting}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white"
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900"
               >
-                <option value="">Selecione...</option>
-                <option value="MALE">Masculino</option>
-                <option value="FEMALE">Feminino</option>
+                <option value="" className="text-gray-900">Selecione...</option>
+                <option value="MALE" className="text-gray-900">Masculino</option>
+                <option value="FEMALE" className="text-gray-900">Feminino</option>
               </select>
             </div>
 
@@ -136,7 +136,7 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
                 onChange={(e) => handleChange('age', e.target.value)}
                 disabled={submitting}
                 placeholder="Ex: 25"
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-500"
               />
             </div>
           </div>
@@ -148,11 +148,11 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
                 value={form.dominance}
                 onChange={(e) => handleChange('dominance', e.target.value)}
                 disabled={submitting}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white"
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900"
               >
-                <option value="">Selecione...</option>
-                <option value="RIGHT">Destro</option>
-                <option value="LEFT">Canhoto</option>
+                <option value="" className="text-gray-900">Selecione...</option>
+                <option value="RIGHT" className="text-gray-900">Destro</option>
+                <option value="LEFT" className="text-gray-900">Canhoto</option>
               </select>
             </div>
 
@@ -162,26 +162,26 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
                 value={form.backhand}
                 onChange={(e) => handleChange('backhand', e.target.value)}
                 disabled={submitting}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white"
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900"
               >
-                <option value="">Selecione...</option>
-                <option value="ONE_HANDED">Uma mão</option>
-                <option value="TWO_HANDED">Duas mãos</option>
+                <option value="" className="text-gray-900">Selecione...</option>
+                <option value="ONE_HANDED" className="text-gray-900">Uma mão</option>
+                <option value="TWO_HANDED" className="text-gray-900">Duas mãos</option>
               </select>
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Ranking</label>
-            <input
-              type="number"
-              min="1"
-              value={form.ranking}
-              onChange={(e) => handleChange('ranking', e.target.value)}
-              disabled={submitting}
-              placeholder="Ex: 150"
-              className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-            />
+<input
+                type="number"
+                min="1"
+                value={form.ranking}
+                onChange={(e) => handleChange('ranking', e.target.value)}
+                disabled={submitting}
+                placeholder="Ex: 150"
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-500"
+              />
           </div>
 
           <div className="flex gap-3 pt-4">

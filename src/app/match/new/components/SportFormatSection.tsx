@@ -30,13 +30,13 @@ export function SportFormatSection({
           <select
             value={sportType}
             onChange={(e) => onSportChange(e.target.value)}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900"
           >
-            <option value="" disabled>
+            <option value="" disabled className="text-gray-900">
               Selecione o esporte
             </option>
             {SPORT_TYPES.map((sport) => (
-              <option key={sport.value} value={sport.value}>
+              <option key={sport.value} value={sport.value} className="text-gray-900">
                 {sport.label}
               </option>
             ))}
@@ -52,13 +52,13 @@ export function SportFormatSection({
             <select
               value={format}
               onChange={(e) => onFormatChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900"
             >
-              <option value="" disabled>
+              <option value="" disabled className="text-gray-900">
                 Selecione
               </option>
               {TENNIS_FORMATS.map((f) => (
-                <option key={f.value} value={f.value}>
+                <option key={f.value} value={f.value} className="text-gray-900">
                   {f.label}
                 </option>
               ))}

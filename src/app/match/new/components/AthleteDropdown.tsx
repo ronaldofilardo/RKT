@@ -44,9 +44,9 @@ export function AthleteDropdown({
       <button
         type="button"
         onClick={onToggle}
-        className={`w-full px-3 py-3 border border-gray-300 rounded-lg text-left flex items-center justify-between bg-white hover:border-${color}-400`}
+        className={`w-full px-3 py-3 border border-gray-300 rounded-lg text-left flex items-center justify-between bg-white hover:border-${color}-400 text-gray-900`}
       >
-        <span className={selectedAthlete ? 'text-gray-900 font-medium' : 'text-gray-400'}>
+        <span className={selectedAthlete ? 'text-gray-900 font-medium' : 'text-gray-500'}>
           {selectedAthlete?.name || 'Selecione...'}
         </span>
         <span className="text-gray-400 text-sm">▼</span>

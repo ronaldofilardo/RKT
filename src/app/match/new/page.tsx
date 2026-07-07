@@ -387,7 +387,7 @@ export default function NewMatchPage() {
                   }}
                   onFocus={() => setShowTournamentDropdown(true)}
                   placeholder="Nome do torneio"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-base"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-base bg-white text-gray-900 placeholder-gray-500"
                 />
                 {showTournamentDropdown && tournamentSuggestions.length > 0 && (
                   <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 shadow-lg max-h-48 overflow-auto">
@@ -452,7 +452,7 @@ export default function NewMatchPage() {
                   }}
                   onFocus={() => setShowRoundDropdown(true)}
                   placeholder="Nome da rodada (opcional)"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-base"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-base bg-white text-gray-900 placeholder-gray-500"
                 />
                 {showRoundDropdown && roundSuggestions.length > 0 && (
                   <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 shadow-lg max-h-48 overflow-auto">

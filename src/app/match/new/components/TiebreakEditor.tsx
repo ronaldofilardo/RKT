@@ -57,7 +57,7 @@ export function TiebreakEditor({
               }
             }}
             placeholder="0"
-            className={`w-full px-3 py-2 border-2 ${inputBorderColor} rounded-lg focus:outline-none focus:ring-2 ${inputFocusRing} text-base`}
+            className={`w-full px-3 py-2 border-2 ${inputBorderColor} rounded-lg focus:outline-none focus:ring-2 ${inputFocusRing} text-base bg-white text-gray-900`}
           />
         </div>
         <div>
@@ -80,7 +80,7 @@ export function TiebreakEditor({
               }
             }}
             placeholder="0"
-            className={`w-full px-3 py-2 border-2 ${inputBorderColor} rounded-lg focus:outline-none focus:ring-2 ${inputFocusRing} text-base`}
+            className={`w-full px-3 py-2 border-2 ${inputBorderColor} rounded-lg focus:outline-none focus:ring-2 ${inputFocusRing} text-base bg-white text-gray-900`}
           />
         </div>
       </div>
