@@ -451,7 +451,6 @@ const {
             errorType: "net",
           });
         }}
-        onLet={handleLet}
         onCancelSecondServe={handleCancelSecondServe}
         onServeCancel={handleServeCancel}
         onUndo={() => open("undo")}
@@ -556,6 +555,8 @@ const {
               : handleServeErrorConfirm
           }
           onCancel={handleServeErrorCancel}
+          onLet={handleLet}
+          showLetOption={modalParams.context === "winner" && match.includeLet === true}
         />
       )}
 

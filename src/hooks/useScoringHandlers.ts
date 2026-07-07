@@ -22,6 +22,7 @@ export interface MatchData {
   sportType?: string;
   courtType?: string;
   version?: number;
+  includeLet?: boolean;
 }
 
 export interface ScoringHandlersContext {

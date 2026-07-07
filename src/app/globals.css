@@ -105,3 +105,33 @@ body {
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0.5rem);
 }
+
+/* Fix for select dropdowns - ensure high contrast and readability */
+select,
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="email"],
+input[type="password"] {
+  background-color: #ffffff;
+  color: #181d26;
+}
+
+select option,
+input option {
+  color: #181d26;
+  background-color: #ffffff;
+}
+
+select::placeholder,
+input::placeholder {
+  color: #6b7280;
+}
+
+/* Ensure focused inputs have proper contrast */
+select:focus,
+input:focus {
+  background-color: #ffffff;
+  color: #181d26;
+}

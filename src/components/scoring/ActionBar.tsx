@@ -11,7 +11,6 @@ interface ActionBarProps {
   onAce: () => void;
   onOut: (step: 'first' | 'second') => void;
   onNet: (step: 'first' | 'second') => void;
-  onLet: () => void;
   onCancelSecondServe: () => void;
   onServeCancel: () => void;
   onUndo: () => void;
@@ -44,7 +43,7 @@ function ActionButton({ onClick, disabled, children, variant = 'default', classN
 
 export function ActionBar({
   secondServe, serveStep, canUndo, canEdit, fontScale, isFinished, isProcessing,
-  onAce, onOut, onNet, onLet, onCancelSecondServe, onServeCancel,
+  onAce, onOut, onNet, onCancelSecondServe, onServeCancel,
   onUndo, onFontSmaller, onFontBigger, onEditScore, onStats,
 }: ActionBarProps) {
   const serveDisabled = isFinished || isProcessing;
@@ -67,7 +66,7 @@ export function ActionBar({
           )}
         </div>
 
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <ActionButton onClick={onAce} disabled={serveDisabled}>
             {isProcessing ? '⏳' : 'Ace'}
           </ActionButton>
@@ -76,9 +75,6 @@ export function ActionBar({
           </ActionButton>
           <ActionButton onClick={() => onNet(serveStep === 'second' ? 'second' : 'first')} disabled={serveDisabled}>
             {isProcessing ? '⏳' : 'Net'}
-          </ActionButton>
-          <ActionButton onClick={showSecondBadge ? onServeCancel : onLet} disabled={isFinished || serveDisabled} variant={showSecondBadge ? 'danger' : 'default'}>
-            {showSecondBadge ? '✕' : 'Let'}
           </ActionButton>
         </div>
 
