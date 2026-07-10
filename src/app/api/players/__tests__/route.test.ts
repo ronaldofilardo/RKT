@@ -52,7 +52,7 @@ describe('GET /api/players', () => {
 
     mockListPlayers.mockResolvedValue(mockPlayers as any);
 
-    const req = new NextRequest('http://localhost:3000/api/players');
+    const req = new NextRequest('http://localhost:3000/api/players?userId=user-123');
     const mod = await import('@/app/api/players/route');
     const GET = mod.GET;
 
@@ -327,7 +327,7 @@ describe('POST /api/players', () => {
   it('deve retornar 500 se ocorrer erro interno no GET', async () => {
     mockListPlayers.mockRejectedValue(new Error('DB Error'));
 
-    const req = new NextRequest('http://localhost:3000/api/players');
+    const req = new NextRequest('http://localhost:3000/api/players?userId=user-123');
     const mod = await import('@/app/api/players/route');
     const GET = mod.GET;
 
