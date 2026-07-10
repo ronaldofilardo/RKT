@@ -20,6 +20,12 @@ jest.mock('@/components/dashboard/MatchCard', () => ({
   ),
 }));
 
+jest.mock('@/components/Toast', () => ({
+  useToast: () => ({
+    toast: jest.fn(),
+  }),
+}));
+
 // Mock do useSession
 jest.mock('@/contexts/SessionContext', () => ({
   useSession: () => ({

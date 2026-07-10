@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { MatchCard } from "@/components/dashboard/MatchCard";
+import { NewAthleteModal } from "@/app/match/new/components/NewAthleteModal";
+import { useToast } from "@/components/Toast";
 import {
   getMatchFormatRules,
   validateSetScore,
@@ -35,6 +37,16 @@ interface Match {
   scheduledAt?: string;
 }
 
+interface Athlete {
+  id: string;
+  name: string;
+  gender?: string;
+  age?: number;
+  dominance?: string;
+  backhand?: string;
+  ranking?: number;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -43,7 +55,9 @@ export default function DashboardPage() {
   const [suspendedFromApi, setSuspendedFromApi] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showNewAthleteModal, setShowNewAthleteModal] = useState(false);
   const { setSession, setPendingEdit, writeToSessionStorage } = useSession();
+  const { toast } = useToast();
 
   const activeView: DashboardView = (() => {
     switch (pathname) {
@@ -232,6 +246,11 @@ export default function DashboardPage() {
     [router],
   );
 
+  const handleAthleteCreated = (athlete: Athlete) => {
+    toast({ type: 'success', message: 'Atleta cadastrado com sucesso!' });
+    setShowNewAthleteModal(false);
+  };
+
   const openMatches = matches.filter((m) => m.state === "SCHEDULED");
   const suspendedMatchIds = new Set(suspendedFromApi.map((s: any) => s.id));
   
@@ -369,6 +388,12 @@ export default function DashboardPage() {
                 className={`w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors ${activeView === "live" ? "bg-sky-50 text-sky-600 font-semibold" : "text-gray-700"}`}
               >
                 <span className="text-xl mr-3">🔴</span>Ao Vivo {liveCount > 0 && <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-xs font-bold">{liveCount}</span>}
+              </button>
+              <button
+                onClick={() => { setIsMenuOpen(false); setShowNewAthleteModal(true); }}
+                className="w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors text-gray-700"
+              >
+                <span className="text-xl mr-3">🎾</span>Cadastrar Atleta
               </button>
               <button
                 onClick={() => handleNavigate("pending")}
@@ -546,6 +571,12 @@ export default function DashboardPage() {
           </button>
         </div>
       </nav>
+
+      <NewAthleteModal
+        isOpen={showNewAthleteModal}
+        onClose={() => setShowNewAthleteModal(false)}
+        onCreated={handleAthleteCreated}
+      />
     </div>
   );
 }
