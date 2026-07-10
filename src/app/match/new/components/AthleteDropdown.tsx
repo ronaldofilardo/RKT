@@ -80,9 +80,9 @@ export function AthleteDropdown({
                   selectedAthlete?.id === a.id ? colorClasses.bgSelected : ''
                 }`}
               >
-                <span className="font-medium">{a.name}</span>
+                <span className="font-medium text-gray-900">{a.name}</span>
                 {a.ranking && (
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                  <span className="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded-full">
                     #{a.ranking}
                   </span>
                 )}
