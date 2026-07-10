@@ -20,6 +20,7 @@ model Player {
   dominance String?
   backhand  String?
   ranking   Int?
+  rankings  Json?
 
   matchesAsPlayer1 Match[] @relation("Player1")
   matchesAsPlayer2 Match[] @relation("Player2")

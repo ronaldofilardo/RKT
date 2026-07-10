@@ -22,6 +22,7 @@ export interface Athlete {
   dominance?: string;
   backhand?: string;
   ranking?: number;
+  rankings?: Record<string, number>;
 }
 
 interface DuplicateInfo {

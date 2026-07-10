@@ -209,7 +209,55 @@ describe('POST /api/players', () => {
     expect(data.error).toBe('VALIDATION_ERROR');
   });
 
-  it('deve criar jogador com dados completos', async () => {
+  it('deve retornar 400 se rankings não é um objeto', async () => {
+    const req = new NextRequest('http://localhost:3000/api/players', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Test', rankings: ['ESTADUAL'] }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const mod = await import('@/app/api/players/route');
+    const POST = mod.POST;
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe('VALIDATION_ERROR');
+    expect(data.message).toContain('Rankings must be an object');
+  });
+
+  it('deve retornar 400 se rankings tem tipo inválido', async () => {
+    const req = new NextRequest('http://localhost:3000/api/players', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Test', rankings: { INVALID: 1 } }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const mod = await import('@/app/api/players/route');
+    const POST = mod.POST;
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe('VALIDATION_ERROR');
+    expect(data.message).toContain('Invalid ranking type');
+  });
+
+  it('deve retornar 400 se ranking position não é número positivo', async () => {
+    const req = new NextRequest('http://localhost:3000/api/players', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Test', rankings: { ESTADUAL: 0 } }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const mod = await import('@/app/api/players/route');
+    const POST = mod.POST;
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe('VALIDATION_ERROR');
+    expect(data.message).toContain('must be a positive number');
+  });
+
+  it('deve criar jogador com rankings', async () => {
     mockCreatePlayer.mockResolvedValue({
       id: 'p1',
       name: 'Novo Jogador',
@@ -218,6 +266,7 @@ describe('POST /api/players', () => {
       dominance: 'RIGHT',
       backhand: 'ONE_HANDED',
       ranking: 10,
+      rankings: { ESTADUAL: 5, BRASILEIRO: 20 },
     });
 
     const req = new NextRequest('http://localhost:3000/api/players', {
@@ -229,6 +278,7 @@ describe('POST /api/players', () => {
         dominance: 'RIGHT',
         backhand: 'ONE_HANDED',
         ranking: 10,
+        rankings: { ESTADUAL: 5, BRASILEIRO: 20 },
       }),
       headers: { 'Content-Type': 'application/json' },
     });
@@ -239,7 +289,7 @@ describe('POST /api/players', () => {
     expect(res.status).toBe(201);
     const data = await res.json();
     expect(data.name).toBe('Novo Jogador');
-    expect(data.ranking).toBe(10);
+    expect(data.rankings).toEqual({ ESTADUAL: 5, BRASILEIRO: 20 });
   });
 
   it('deve retornar 403 se usuário não tem role ATHLETE', async () => {

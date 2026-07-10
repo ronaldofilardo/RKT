@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { name, gender, age, dominance, backhand, ranking } = body;
+    const { name, gender, age, dominance, backhand, ranking, rankings } = body;
 
     if (!name || typeof name !== 'string' || name.trim().length < 2) {
       return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Nome é obrigatório (mín 2 chars)' }, { status: 400 });
@@ -54,6 +54,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Ranking must be a positive number' }, { status: 400 });
     }
 
+    if (rankings !== undefined && rankings !== null) {
+      if (typeof rankings !== 'object' || Array.isArray(rankings)) {
+        return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Rankings must be an object' }, { status: 400 });
+      }
+      const validRankingTypes = ['ESTADUAL', 'BRASILEIRO', 'COSAT', 'ITS', 'WTA_ATP'];
+      for (const [key, value] of Object.entries(rankings)) {
+        if (!validRankingTypes.includes(key)) {
+          return NextResponse.json({ error: 'VALIDATION_ERROR', message: `Invalid ranking type: ${key}` }, { status: 400 });
+        }
+        if (typeof value !== 'number' || value < 1) {
+          return NextResponse.json({ error: 'VALIDATION_ERROR', message: `Ranking ${key} must be a positive number` }, { status: 400 });
+        }
+      }
+    }
+
     const player = await createPlayer({
       name: name.trim(),
       gender,
@@ -61,6 +76,7 @@ export async function POST(request: NextRequest) {
       dominance,
       backhand,
       ranking,
+      rankings,
     });
     return NextResponse.json(player, { status: 201 });
   } catch (error) {

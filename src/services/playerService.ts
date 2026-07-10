@@ -4,7 +4,7 @@ export async function listPlayers(cursor?: string | null, limit = 20) {
   return prisma.player.findMany({
     take: limit,
     ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
-    select: { id: true, name: true, gender: true, age: true, dominance: true, backhand: true, ranking: true },
+    select: { id: true, name: true, gender: true, age: true, dominance: true, backhand: true, ranking: true, rankings: true },
     orderBy: { name: 'asc' },
   });
 }
@@ -25,6 +25,7 @@ export async function createPlayer(data: {
   dominance?: string;
   backhand?: string;
   ranking?: number;
+  rankings?: Record<string, number>;
 }) {
   return prisma.player.create({
     data: {
@@ -36,7 +37,8 @@ export async function createPlayer(data: {
       dominance: data.dominance,
       backhand: data.backhand,
       ranking: data.ranking,
+      rankings: data.rankings,
     },
-    select: { id: true, name: true, gender: true, age: true, dominance: true, backhand: true, ranking: true },
+    select: { id: true, name: true, gender: true, age: true, dominance: true, backhand: true, ranking: true, rankings: true },
   });
 }

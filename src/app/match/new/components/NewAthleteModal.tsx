@@ -18,13 +18,26 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
     age: '',
     dominance: '',
     backhand: '',
-    ranking: '',
+    rankingEstadual: false,
+    rankingEstadualPosition: '',
+    rankingBrasileiro: false,
+    rankingBrasileiroPosition: '',
+    rankingCosat: false,
+    rankingCosatPosition: '',
+    rankingIts: false,
+    rankingItsPosition: '',
+    rankingWtaAtp: false,
+    rankingWtaAtpPosition: '',
   });
 
   if (!isOpen) return null;
 
   const handleChange = (field: string, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCheckboxChange = (field: string, checked: boolean) => {
+    setForm(prev => ({ ...prev, [field]: checked }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,6 +48,24 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
     setError(null);
     try {
       const token = sessionStorage.getItem('access_token');
+      
+      const rankings: Record<string, number> = {};
+      if (form.rankingEstadual && form.rankingEstadualPosition) {
+        rankings['ESTADUAL'] = parseInt(form.rankingEstadualPosition);
+      }
+      if (form.rankingBrasileiro && form.rankingBrasileiroPosition) {
+        rankings['BRASILEIRO'] = parseInt(form.rankingBrasileiroPosition);
+      }
+      if (form.rankingCosat && form.rankingCosatPosition) {
+        rankings['COSAT'] = parseInt(form.rankingCosatPosition);
+      }
+      if (form.rankingIts && form.rankingItsPosition) {
+        rankings['ITS'] = parseInt(form.rankingItsPosition);
+      }
+      if (form.rankingWtaAtp && form.rankingWtaAtpPosition) {
+        rankings['WTA_ATP'] = parseInt(form.rankingWtaAtpPosition);
+      }
+
       const res = await fetch('/api/players', {
         method: 'POST',
         headers: {
@@ -47,7 +78,7 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
           age: form.age ? parseInt(form.age) : undefined,
           dominance: form.dominance || undefined,
           backhand: form.backhand || undefined,
-          ranking: form.ranking ? parseInt(form.ranking) : undefined,
+          rankings: Object.keys(rankings).length > 0 ? rankings : undefined,
         }),
       });
 
@@ -67,7 +98,23 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
         backhand: player.backhand,
         ranking: player.ranking,
       });
-      setForm({ name: '', gender: '', age: '', dominance: '', backhand: '', ranking: '' });
+      setForm({
+        name: '',
+        gender: '',
+        age: '',
+        dominance: '',
+        backhand: '',
+        rankingEstadual: false,
+        rankingEstadualPosition: '',
+        rankingBrasileiro: false,
+        rankingBrasileiroPosition: '',
+        rankingCosat: false,
+        rankingCosatPosition: '',
+        rankingIts: false,
+        rankingItsPosition: '',
+        rankingWtaAtp: false,
+        rankingWtaAtpPosition: '',
+      });
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar atleta. Tente novamente.');
@@ -172,16 +219,138 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Ranking</label>
-<input
-                type="number"
-                min="1"
-                value={form.ranking}
-                onChange={(e) => handleChange('ranking', e.target.value)}
-                disabled={submitting}
-                placeholder="Ex: 150"
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-500"
-              />
+            <label className="block text-sm font-medium text-gray-700 mb-2">Ranking</label>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="estadual"
+                  checked={form.rankingEstadual}
+                  onChange={(e) => handleCheckboxChange('rankingEstadual', e.target.checked)}
+                  disabled={submitting}
+                  className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+                />
+                <label htmlFor="estadual" className="text-sm text-gray-700 min-w-[80px]">
+                  Estadual
+                </label>
+                {form.rankingEstadual && (
+                  <input
+                    type="number"
+                    min="1"
+                    value={form.rankingEstadualPosition}
+                    onChange={(e) => handleChange('rankingEstadualPosition', e.target.value)}
+                    disabled={submitting}
+                    placeholder="Posição"
+                    className="flex-1 px-3 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-500 text-sm"
+                    autoFocus
+                  />
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="brasileiro"
+                  checked={form.rankingBrasileiro}
+                  onChange={(e) => handleCheckboxChange('rankingBrasileiro', e.target.checked)}
+                  disabled={submitting}
+                  className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+                />
+                <label htmlFor="brasileiro" className="text-sm text-gray-700 min-w-[80px]">
+                  Brasileiro
+                </label>
+                {form.rankingBrasileiro && (
+                  <input
+                    type="number"
+                    min="1"
+                    value={form.rankingBrasileiroPosition}
+                    onChange={(e) => handleChange('rankingBrasileiroPosition', e.target.value)}
+                    disabled={submitting}
+                    placeholder="Posição"
+                    className="flex-1 px-3 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-500 text-sm"
+                    autoFocus
+                  />
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="cosat"
+                  checked={form.rankingCosat}
+                  onChange={(e) => handleCheckboxChange('rankingCosat', e.target.checked)}
+                  disabled={submitting}
+                  className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+                />
+                <label htmlFor="cosat" className="text-sm text-gray-700 min-w-[80px]">
+                  COSAT
+                </label>
+                {form.rankingCosat && (
+                  <input
+                    type="number"
+                    min="1"
+                    value={form.rankingCosatPosition}
+                    onChange={(e) => handleChange('rankingCosatPosition', e.target.value)}
+                    disabled={submitting}
+                    placeholder="Posição"
+                    className="flex-1 px-3 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-500 text-sm"
+                    autoFocus
+                  />
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="its"
+                  checked={form.rankingIts}
+                  onChange={(e) => handleCheckboxChange('rankingIts', e.target.checked)}
+                  disabled={submitting}
+                  className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+                />
+                <label htmlFor="its" className="text-sm text-gray-700 min-w-[80px]">
+                  ITS
+                </label>
+                {form.rankingIts && (
+                  <input
+                    type="number"
+                    min="1"
+                    value={form.rankingItsPosition}
+                    onChange={(e) => handleChange('rankingItsPosition', e.target.value)}
+                    disabled={submitting}
+                    placeholder="Posição"
+                    className="flex-1 px-3 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-500 text-sm"
+                    autoFocus
+                  />
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="wta-atp"
+                  checked={form.rankingWtaAtp}
+                  onChange={(e) => handleCheckboxChange('rankingWtaAtp', e.target.checked)}
+                  disabled={submitting}
+                  className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+                />
+                <label htmlFor="wta-atp" className="text-sm text-gray-700 min-w-[80px]">
+                  WTA/ATP
+                </label>
+                {form.rankingWtaAtp && (
+                  <input
+                    type="number"
+                    min="1"
+                    value={form.rankingWtaAtpPosition}
+                    onChange={(e) => handleChange('rankingWtaAtpPosition', e.target.value)}
+                    disabled={submitting}
+                    placeholder="Posição"
+                    className="flex-1 px-3 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-500 text-sm"
+                    autoFocus
+                  />
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="flex gap-3 pt-4">
