@@ -12,6 +12,7 @@ import {
   NewAthleteModal,
   ServerSelectionModal,
   DuplicateMatchModal,
+  RoundSelector,
 } from './components';
 
 export interface Athlete {
@@ -90,10 +91,11 @@ export default function NewMatchPage() {
   const [visibility, setVisibility] = useState('PLAYERS_ONLY');
   const [apontadorEmail, setApontadorEmail] = useState('');
   const [tournamentName, setTournamentName] = useState('');
+  const [clubName, setClubName] = useState('');
   const [category, setCategory] = useState<'INFANTIL' | 'JUVENIL' | 'ADULTO' | 'VETERANO' | ''>('');
   const [includeLet, setIncludeLet] = useState(true);
   const [roundName, setRoundName] = useState('');
-  const [bracketType, setBracketType] = useState<'ELIMINATION' | 'GROUPS' | 'SWISS' | ''>('');
+  const [bracketType, setBracketType] = useState<'GRUPO' | 'CHAVE' | 'GRUPO_CHAVE' | ''>('');
   const [venueId, setVenueId] = useState('');
   const [publicMatchCode, setPublicMatchCode] = useState('');
   const [temperature, setTemperature] = useState('');
@@ -103,9 +105,7 @@ export default function NewMatchPage() {
 
   // Tournament suggestions
   const [tournamentSuggestions, setTournamentSuggestions] = useState<string[]>([]);
-  const [roundSuggestions, setRoundSuggestions] = useState<string[]>([]);
   const [showTournamentDropdown, setShowTournamentDropdown] = useState(false);
-  const [showRoundDropdown, setShowRoundDropdown] = useState(false);
 
   // Server selection modal
   const [showServerModal, setShowServerModal] = useState(false);
@@ -143,7 +143,6 @@ export default function NewMatchPage() {
         if (res.ok && !cancelled) {
           const data = await res.json();
           setTournamentSuggestions(data.tournaments ?? []);
-          setRoundSuggestions(data.rounds ?? []);
         }
       } catch {}
     }, 300);
@@ -156,11 +155,6 @@ export default function NewMatchPage() {
   const handleSelectTournament = (name: string) => {
     setTournamentName(name);
     setShowTournamentDropdown(false);
-  };
-
-  const handleSelectRound = (name: string) => {
-    setRoundName(name);
-    setShowRoundDropdown(false);
   };
 
   const handleOpenNewAthleteModal = (player: 'p1' | 'p2') => {
@@ -218,19 +212,19 @@ export default function NewMatchPage() {
       venueId: venueId || null,
       publicMatchCode: publicMatchCode || null,
       tournamentName: tournamentName || null,
+      clubName: clubName || null,
       category: category || null,
       includeLet: category === 'JUVENIL' ? includeLet : null,
       roundName: roundName || null,
       bracketType: bracketType || null,
       temperature: temperature ? parseFloat(temperature) : null,
       humidity: humidity ? parseFloat(humidity) : null,
-      tags: tags ? tags.split(',').map((tag) => tag.trim()).filter(Boolean) : null,
       ...overrides,
     }),
     [
       sportType, format, courtType, selectedP1, selectedP2, nickname, visibility,
       openForAnnotation, apontadorEmail, date, time, venueId, publicMatchCode,
-      tournamentName, category, includeLet, roundName, bracketType, temperature, humidity, tags,
+      tournamentName, clubName, category, includeLet, roundName, bracketType, temperature, humidity,
     ],
   );
 
@@ -381,7 +375,9 @@ export default function NewMatchPage() {
           {/* Torneio com auto-complete */}
           <section className="bg-white rounded-xl shadow-sm border p-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">Torneio</h2>
+              <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
+                Torneio <span className="text-gray-400 font-normal">(opcional)</span>
+              </h2>
               <div className="flex-1 relative">
                 <input
                   type="text"
@@ -412,9 +408,25 @@ export default function NewMatchPage() {
               </div>
             </div>
 
+            {/* Clube */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
+              <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
+                Clube <span className="text-gray-400 font-normal">(opcional)</span>
+              </h2>
+              <input
+                type="text"
+                value={clubName}
+                onChange={(e) => setClubName(e.target.value)}
+                placeholder="Nome do clube"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-base bg-white text-gray-900 placeholder-gray-500"
+              />
+            </div>
+
             {/* Categoria */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
-              <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">Categoria</h2>
+              <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
+                Categoria <span className="text-gray-400 font-normal">(opcional)</span>
+              </h2>
               <div className="flex-1 relative">
                 <select
                   value={category}
@@ -444,36 +456,17 @@ export default function NewMatchPage() {
               </div>
             </div>
 
-            {/* Rodada com auto-complete */}
+            {/* Rodada */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
-              <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">Rodada</h2>
-              <div className="flex-1 relative">
-                <input
-                  type="text"
+              <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
+                Rodada <span className="text-gray-400 font-normal">(opcional)</span>
+              </h2>
+              <div className="flex-1">
+                <RoundSelector
                   value={roundName}
-                  onChange={(e) => {
-                    setRoundName(e.target.value);
-                    setShowRoundDropdown(true);
-                  }}
-                  onFocus={() => setShowRoundDropdown(true)}
-                  placeholder="Nome da rodada (opcional)"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-base bg-white text-gray-900 placeholder-gray-500"
+                  onChange={setRoundName}
+                  placeholder="Digite o nome da rodada"
                 />
-                {showRoundDropdown && roundSuggestions.length > 0 && (
-                  <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 shadow-lg max-h-48 overflow-auto">
-                    {roundSuggestions.map((r) => (
-                      <li key={r}>
-                        <button
-                          type="button"
-                          onClick={() => handleSelectRound(r)}
-                          className="w-full text-left px-3 py-3 hover:bg-sky-50 text-sm"
-                        >
-                          {r}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
               </div>
             </div>
           </section>

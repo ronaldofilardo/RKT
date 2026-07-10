@@ -5,7 +5,7 @@ import { VISIBILITY_OPTIONS } from '../matchConstants';
 interface MatchDetailsSectionProps {
   visibility: string;
   apontadorEmail: string;
-  bracketType: 'ELIMINATION' | 'GROUPS' | 'SWISS' | '';
+  bracketType: 'GRUPO' | 'CHAVE' | 'GRUPO_CHAVE' | '';
   venueId: string;
   publicMatchCode: string;
   temperature: string;
@@ -13,7 +13,7 @@ interface MatchDetailsSectionProps {
   tags: string;
   onVisibilityChange: (value: string) => void;
   onApontadorChange: (value: string) => void;
-  onBracketChange: (value: 'ELIMINATION' | 'GROUPS' | 'SWISS' | '') => void;
+  onBracketChange: (value: 'GRUPO' | 'CHAVE' | 'GRUPO_CHAVE' | '') => void;
   onVenueChange: (value: string) => void;
   onPublicCodeChange: (value: string) => void;
   onTemperatureChange: (value: string) => void;
@@ -64,7 +64,9 @@ export function MatchDetailsSection({
       {/* APONTADOR */}
       <section className="bg-white rounded-xl shadow-sm border p-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">Apontador (Email ou CPF)</h2>
+          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
+            Apontador (Email ou CPF) <span className="text-gray-400 font-normal">(opcional)</span>
+          </h2>
           <input
             type="text"
             value={apontadorEmail}
@@ -78,17 +80,19 @@ export function MatchDetailsSection({
       {/* TIPO DE CHAVE */}
       <section className="bg-white rounded-xl shadow-sm border p-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">Tipo de Chave</h2>
+          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
+            Tipo de Chave <span className="text-gray-400 font-normal">(opcional)</span>
+          </h2>
           <div className="flex-1">
             <select
               value={bracketType}
-              onChange={(e) => onBracketChange(e.target.value as 'ELIMINATION' | 'GROUPS' | 'SWISS' | '')}
+              onChange={(e) => onBracketChange(e.target.value as 'GRUPO' | 'CHAVE' | 'GRUPO_CHAVE' | '')}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900"
             >
               <option value="" className="text-gray-900">Selecione</option>
-              <option value="ELIMINATION" className="text-gray-900">Eliminação Direta</option>
-              <option value="GROUPS" className="text-gray-900">Grupos</option>
-              <option value="SWISS" className="text-gray-900">Suíço</option>
+              <option value="GRUPO" className="text-gray-900">Grupo</option>
+              <option value="CHAVE" className="text-gray-900">Chave</option>
+              <option value="GRUPO_CHAVE" className="text-gray-900">Grupo + Chave</option>
             </select>
           </div>
         </div>
@@ -97,7 +101,9 @@ export function MatchDetailsSection({
       {/* LOCAL */}
       <section className="bg-white rounded-xl shadow-sm border p-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">Local (ID)</h2>
+          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
+            Local (ID) <span className="text-gray-400 font-normal">(opcional)</span>
+          </h2>
           <input
             type="text"
             value={venueId}
@@ -111,7 +117,9 @@ export function MatchDetailsSection({
       {/* CÓDIGO PÚBLICO */}
       <section className="bg-white rounded-xl shadow-sm border p-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">Código Público</h2>
+          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
+            Código Público <span className="text-gray-400 font-normal">(opcional)</span>
+          </h2>
           <input
             type="text"
             value={publicMatchCode}
@@ -125,7 +133,9 @@ export function MatchDetailsSection({
       {/* CONDIÇÕES CLIMÁTICAS */}
       <section className="bg-white rounded-xl shadow-sm border p-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">Condições Climáticas</h2>
+          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
+            Condições Climáticas <span className="text-gray-400 font-normal">(opcional)</span>
+          </h2>
           <div className="grid grid-cols-2 gap-3 flex-1">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Temperatura (°C)</label>
@@ -154,7 +164,9 @@ export function MatchDetailsSection({
       {/* TAGS */}
       <section className="bg-white rounded-xl shadow-sm border p-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">Tags (separadas por vírgula)</h2>
+          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
+            Tags (separadas por vírgula) <span className="text-gray-400 font-normal">(opcional)</span>
+          </h2>
           <input
             type="text"
             value={tags}
