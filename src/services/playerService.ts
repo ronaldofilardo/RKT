@@ -1,9 +1,10 @@
 import { prisma } from '@/lib/prisma';
 
-export async function listPlayers(cursor?: string | null, limit = 20) {
+export async function listPlayers(cursor?: string | null, limit = 20, userId?: string | null) {
   return prisma.player.findMany({
     take: limit,
     ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+    where: userId ? { id: userId } : {},
     select: { id: true, name: true, gender: true, age: true, dominance: true, backhand: true, ranking: true, rankings: true },
     orderBy: { name: 'asc' },
   });

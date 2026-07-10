@@ -9,11 +9,13 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = request.nextUrl;
+    const userId = searchParams.get('userId');
     const pagination = PaginationSchema.parse({
       cursor: searchParams.get('cursor') ?? undefined,
       limit: searchParams.get('limit') ?? undefined,
     });
-    const players = await listPlayers(pagination.cursor, pagination.limit);
+    
+    const players = await listPlayers(pagination.cursor, pagination.limit, userId);
     const nextCursor = players.length === pagination.limit ? players[players.length - 1].id : null;
     return NextResponse.json({ players, nextCursor });
   } catch (error) {
