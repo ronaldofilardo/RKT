@@ -21,6 +21,7 @@ model Player {
   backhand  String?
   ranking   Int?
   rankings  Json?
+  createdByUserId String?
 
   matchesAsPlayer1 Match[] @relation("Player1")
   matchesAsPlayer2 Match[] @relation("Player2")

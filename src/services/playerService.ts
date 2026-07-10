@@ -4,7 +4,7 @@ export async function listPlayers(cursor?: string | null, limit = 20, userId?: s
   return prisma.player.findMany({
     take: limit,
     ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
-    where: userId ? { id: userId } : {},
+    where: userId ? { createdByUserId: userId } : {},
     select: { id: true, name: true, gender: true, age: true, dominance: true, backhand: true, ranking: true, rankings: true },
     orderBy: { name: 'asc' },
   });
@@ -27,6 +27,7 @@ export async function createPlayer(data: {
   backhand?: string;
   ranking?: number;
   rankings?: Record<string, number>;
+  createdByUserId?: string;
 }) {
   return prisma.player.create({
     data: {
@@ -39,6 +40,7 @@ export async function createPlayer(data: {
       backhand: data.backhand,
       ranking: data.ranking,
       rankings: data.rankings,
+      createdByUserId: data.createdByUserId,
     },
     select: { id: true, name: true, gender: true, age: true, dominance: true, backhand: true, ranking: true, rankings: true },
   });

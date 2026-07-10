@@ -10,6 +10,11 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
     const userId = searchParams.get('userId');
+    
+    if (!userId) {
+      return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'userId é obrigatório' }, { status: 400 });
+    }
+    
     const pagination = PaginationSchema.parse({
       cursor: searchParams.get('cursor') ?? undefined,
       limit: searchParams.get('limit') ?? undefined,
@@ -31,6 +36,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { name, gender, age, dominance, backhand, ranking, rankings } = body;
+    
+    const userId = request.headers.get('x-user-id');
 
     if (!name || typeof name !== 'string' || name.trim().length < 2) {
       return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Nome é obrigatório (mín 2 chars)' }, { status: 400 });
@@ -79,6 +86,7 @@ export async function POST(request: NextRequest) {
       backhand,
       ranking,
       rankings,
+      createdByUserId: userId || undefined,
     });
     return NextResponse.json(player, { status: 201 });
   } catch (error) {

@@ -48,6 +48,7 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
     setError(null);
     try {
       const token = sessionStorage.getItem('access_token');
+      const userId = sessionStorage.getItem('user_id');
       
       const rankings: Record<string, number> = {};
       if (form.rankingEstadual && form.rankingEstadualPosition) {
@@ -71,6 +72,7 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
         headers: {
           'Content-Type': 'application/json',
           authorization: `Bearer ${token}`,
+          'x-user-id': userId || '',
         },
         body: JSON.stringify({
           name: form.name.trim(),

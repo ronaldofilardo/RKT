@@ -53,7 +53,10 @@ export default function NewMatchPage() {
   useEffect(() => {
     const token = sessionStorage.getItem('access_token');
     const userId = sessionStorage.getItem('user_id');
-    fetch(`/api/players?userId=${userId || ''}`, {
+    
+    if (!userId) return;
+    
+    fetch(`/api/players?userId=${userId}`, {
       headers: { authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
