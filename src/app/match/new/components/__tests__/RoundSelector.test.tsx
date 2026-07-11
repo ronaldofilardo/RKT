@@ -102,14 +102,17 @@ describe('RoundSelector', () => {
     expect(input).toBeInTheDocument();
   });
 
-  it('deve manter o foco no campo de texto quando selecionado "Outras"', () => {
+  it('deve mostrar o campo de texto quando "Outras" for selecionado (sem foco automático)', () => {
     render(<RoundSelector value="" onChange={mockOnChange} />);
     
     const select = screen.getByRole('combobox');
     fireEvent.change(select, { target: { value: 'outras' } });
     
+    expect(mockOnChange).toHaveBeenCalledWith('');
+    
     const input = screen.getByPlaceholderText('Digite o nome da rodada');
-    expect(document.activeElement).toBe(input);
+    expect(input).toBeInTheDocument();
+    expect(document.activeElement).not.toBe(input);
   });
 
   it('deve limpar o input interno ao mudar de "Outras" para opção padrão', () => {

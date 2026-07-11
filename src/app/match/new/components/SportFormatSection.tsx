@@ -32,12 +32,16 @@ export function SportFormatSection({
       {/* ESPORTE */}
       <section className="bg-white rounded-xl shadow-sm border p-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">ESPORTE *</h2>
+          <label htmlFor="sport-select" className="text-base font-semibold text-gray-900 w-40 shrink-0">
+            ESPORTE *
+          </label>
           <select
+            id="sport-select"
             ref={sportSelectRef}
             value={sportType}
             onChange={(e) => onSportChange(e.target.value)}
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900"
+            required
           >
             <option value="" disabled className="text-gray-900">
               Selecione o esporte
@@ -54,12 +58,16 @@ export function SportFormatSection({
       {/* FORMATO */}
       <section className="bg-white rounded-xl shadow-sm border p-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">FORMATO DO JOGO *</h2>
+          <label htmlFor="format-select" className="text-base font-semibold text-gray-900 w-40 shrink-0">
+            FORMATO DO JOGO *
+          </label>
           <div className="flex-1">
             <select
+              id="format-select"
               value={format}
               onChange={(e) => onFormatChange(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900"
+              required
             >
               <option value="" disabled className="text-gray-900">
                 Selecione
@@ -85,7 +93,9 @@ export function SportFormatSection({
       {/* QUADRA */}
       {showCourtType && (
         <section className="bg-white rounded-xl shadow-sm border p-4">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">TIPO DE QUADRA *</h2>
+          <label htmlFor="courtType" className="text-lg font-semibold text-gray-900 mb-3 block">
+            TIPO DE QUADRA *
+          </label>
           <div className="grid grid-cols-3 gap-3">
             {COURT_TYPES.map((court) => (
               <button
