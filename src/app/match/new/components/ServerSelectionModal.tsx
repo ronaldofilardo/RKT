@@ -25,7 +25,7 @@ export function ServerSelectionModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 text-center">
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Quem sacks primeiro?</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Quem saca primeiro?</h2>
         <p className="text-sm text-gray-500 mb-6">Selecione o jogador que fará o primeiro saque</p>
         <div className="flex flex-col gap-3">
           <button
