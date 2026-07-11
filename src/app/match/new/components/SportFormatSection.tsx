@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { SPORT_TYPES, TENNIS_FORMATS, COURT_TYPES } from '../matchConstants';
 
 interface SportFormatSectionProps {
@@ -20,6 +21,11 @@ export function SportFormatSection({
   onCourtChange,
 }: SportFormatSectionProps) {
   const showCourtType = sportType === 'TENNIS';
+  const sportSelectRef = useRef<HTMLSelectElement>(null);
+
+  useEffect(() => {
+    sportSelectRef.current?.focus();
+  }, []);
 
   return (
     <>
@@ -28,6 +34,7 @@ export function SportFormatSection({
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">ESPORTE *</h2>
           <select
+            ref={sportSelectRef}
             value={sportType}
             onChange={(e) => onSportChange(e.target.value)}
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900"
