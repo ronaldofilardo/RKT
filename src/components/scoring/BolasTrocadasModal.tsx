@@ -81,29 +81,29 @@ export function BolasTrocadasModal({ fontScale, onConfirm, onCancel }: BolasTroc
       role="presentation"
     >
       <div
-        className="animate-[fadeInSlideUp_0.2s_ease-out] w-[clamp(200px,75vw,280px)] mx-4 rounded-[16px] shadow-[0_20px_60px_rgba(0,0,0,0.5),0_0_30px_rgba(59,130,246,0.15)] flex flex-col"
+        className="animate-[fadeInSlideUp_0.2s_ease-out] w-[clamp(160px,65vw,210px)] mx-4 rounded-[14px] shadow-[0_20px_60px_rgba(0,0,0,0.5),0_0_30px_rgba(59,130,246,0.15)] flex flex-col"
         style={{
           backgroundColor: 'var(--court-surface)',
           border: '1px solid rgba(255,255,255,0.1)',
           borderTop: '3px solid #3b82f6',
           fontFamily: 'var(--font-main)',
-          fontSize: `calc(var(--sb-scale) * 0.85em)`,
+          fontSize: `calc(var(--sb-scale) * 0.75em)`,
         }}
         onClick={e => e.stopPropagation()}
       >
-        <div className="px-3 py-3 border-b border-white/10" style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
-          <h2 className="text-center font-bold text-white" style={{ fontSize: '0.95rem' }}>
+        <div className="px-2.5 py-2.5 border-b border-white/10" style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
+          <h2 className="text-center font-bold text-white" style={{ fontSize: '0.85rem' }}>
             Bolas Trocadas
           </h2>
-          <p className="text-center text-gray-400 dark:text-gray-500 text-xs mt-0.5">
+          <p className="text-center text-gray-400 dark:text-gray-500 text-[10px] mt-0.5">
             Quantas bolas foram trocadas?
           </p>
         </div>
 
-        <div className="px-3 py-4 flex flex-col items-center gap-3">
+        <div className="px-2.5 py-3 flex flex-col items-center gap-2.5">
           <div
-            className="w-full max-w-[140px] h-12 rounded-lg border-2 border-blue-500/50 bg-gray-800/50 flex items-center justify-center"
-            style={{ fontSize: `calc(${fontScale} * 1.8rem)` }}
+            className="w-full max-w-[105px] h-10 rounded-lg border-2 border-blue-500/50 bg-gray-800/50 flex items-center justify-center"
+            style={{ fontSize: `calc(${fontScale} * 1.5rem)` }}
           >
             <span className="text-white font-bold tabular-nums">
               {bolas === '' ? '0' : bolas}
@@ -111,38 +111,38 @@ export function BolasTrocadasModal({ fontScale, onConfirm, onCancel }: BolasTroc
           </div>
           
           {bolas === '' && (
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 text-center">
-              Toque em 0 ou ignore para nenhuma bola
+            <p className="text-[9px] text-gray-500 dark:text-gray-400 text-center">
+              Toque em 0 ou ignore
             </p>
           )}
         </div>
 
-        <div className="px-3 pb-3">
-          <div className="grid grid-cols-3 gap-2">
+        <div className="px-2.5 pb-2.5">
+          <div className="grid grid-cols-3 gap-1.5">
             {KEYPAD.map(key => (
               <button
                 key={key.value}
                 onClick={() => handleKeyPress(key.value)}
                 className="relative aspect-square rounded-full border-2 border-[#b4c34e]/30 bg-[#b4c34e]/10 hover:bg-[#b4c34e]/20 active:bg-[#b4c34e]/30 transition-all flex flex-col items-center justify-center select-none"
                 style={{
-                  boxShadow: 'inset 0 0 15px rgba(180,195,78,0.1), 0 3px 6px rgba(0,0,0,0.2)',
+                  boxShadow: 'inset 0 0 12px rgba(180,195,78,0.1), 0 2px 4px rgba(0,0,0,0.2)',
                 }}
               >
-                <span className="text-lg font-bold text-[#b4c34e]">{key.label}</span>
+                <span className="text-base font-bold text-[#b4c34e]">{key.label}</span>
                 {key.sub && (
-                  <span className="text-[6px] text-[#b4c34e]/60 uppercase tracking-wider mt-0.5">{key.sub}</span>
+                  <span className="text-[5px] text-[#b4c34e]/60 uppercase tracking-wider mt-0.5">{key.sub}</span>
                 )}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="px-3 py-3 border-t border-white/10 flex flex-col gap-2" style={{ backgroundColor: 'rgba(0,0,0,0.15)' }}>
-          <div className="flex gap-2">
+        <div className="px-2.5 py-2.5 border-t border-white/10 flex flex-col gap-1.5" style={{ backgroundColor: 'rgba(0,0,0,0.15)' }}>
+          <div className="flex gap-1.5">
             <button
               onClick={handleBackspace}
               disabled={bolas === ''}
-              className={`flex-1 py-2 rounded-lg font-bold transition-all text-xs ${
+              className={`flex-1 py-1.5 rounded-lg font-bold transition-all text-[10px] ${
                 bolas === ''
                   ? 'bg-gray-700/50 text-gray-500 cursor-not-allowed'
                   : 'bg-gray-700 hover:bg-gray-600 text-white'
@@ -152,14 +152,14 @@ export function BolasTrocadasModal({ fontScale, onConfirm, onCancel }: BolasTroc
             </button>
             <button
               onClick={handleCancel}
-              className="flex-1 py-2 rounded-lg font-bold text-xs bg-transparent text-red-400 border-2 border-red-400/60 hover:bg-red-500/10 hover:border-red-400 transition-all"
+              className="flex-1 py-1.5 rounded-lg font-bold text-[10px] bg-transparent text-red-400 border-2 border-red-400/60 hover:bg-red-500/10 hover:border-red-400 transition-all"
             >
               Ignorar
             </button>
           </div>
           <button
             onClick={handleConfirm}
-            className="w-full py-2.5 rounded-lg font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 transition-all"
+            className="w-full py-2 rounded-lg font-bold text-[10px] bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 transition-all"
           >
             Confirmar
           </button>

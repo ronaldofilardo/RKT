@@ -641,11 +641,11 @@ const {
         />
       )}
 
-      {pendingBolasTrocadas && (
+{pendingBolasTrocadas && (
         <BolasTrocadasModal
           fontScale={fontScale}
           onConfirm={handleBolasTrocadasConfirm}
-          onCancel={() => setPendingBolasTrocadas(null)}
+          onCancel={() => setPendingBolasTrocadasLocal(null)}
         />
       )}
     </div>

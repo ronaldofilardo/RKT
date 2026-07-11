@@ -240,26 +240,19 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         const seq = ++pointSequenceRef.current;
 
         if (isOnline) {
-          const annotationsPayload =
-            flow.rallyDetails || flow.rallyLength
-              ? {
-                  rallyDetails: flow.rallyDetails ?? undefined,
-                  rallyLength: flow.rallyLength ?? undefined,
-                  isFirstServe: flow.isFirstServe ?? undefined,
-                  isSecondServe: flow.isSecondServe ?? undefined,
-                  firstFaultDetail: flow.firstFaultDetail ?? undefined,
-                }
-              : undefined;
-
           const payload = {
             winnerId: flow.winnerId,
             type: flow.type,
             serverId: flow.serverId,
             timestamp: flow.timestamp ?? Date.now(),
             sequenceNumber: seq,
-            ...(annotationsPayload ? { annotations: annotationsPayload } : {}),
+            rallyDetails: flow.rallyDetails ?? undefined,
+            rallyLength: flow.rallyLength ?? undefined,
+            isFirstServe: flow.isFirstServe ?? undefined,
+            isSecondServe: flow.isSecondServe ?? undefined,
+            firstFaultDetail: flow.firstFaultDetail ?? undefined,
           };
-          console.debug("[POINT REQUEST]", JSON.stringify(payload, null, 2));
+          console.log("[POINT REQUEST] Full payload:", JSON.stringify(payload, null, 2));
 
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 15000);
@@ -625,9 +618,9 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       const rallyLengthFromModal = modalParamsRef.current.rallyLength;
       if (!match || !winnerSide || isProcessingRef.current) return;
       
-      if (rallyLengthFromModal) {
-        details.rallyLength = parseInt(rallyLengthFromModal, 10) || details.previewBalls;
-      }
+      const rallyLengthToUse = rallyLengthFromModal
+        ? parseInt(rallyLengthFromModal, 10) || details.previewBalls
+        : details.previewBalls;
       
       const flowType =
         details.tipo === "winner"
@@ -639,26 +632,20 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       
       closeAll();
       
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-      
-      debounceTimerRef.current = setTimeout(() => {
-        processPoint({
-          winnerId: id,
-          type: flowType,
-          serverId: getServerId(),
-          isFirstServe:
-            serveErrorState.serveStep !== "second" &&
-            !serveErrorState.firstServeError,
-          isSecondServe:
-            serveErrorState.serveStep === "second" ||
-            serveErrorState.firstServeError !== null,
-          timestamp: Date.now(),
-          rallyDetails: details,
-          rallyLength: details.rallyLength,
-        });
-      }, 50);
+      processPoint({
+        winnerId: id,
+        type: flowType,
+        serverId: getServerId(),
+        isFirstServe:
+          serveErrorState.serveStep !== "second" &&
+          !serveErrorState.firstServeError,
+        isSecondServe:
+          serveErrorState.serveStep === "second" ||
+          serveErrorState.firstServeError !== null,
+        timestamp: Date.now(),
+        rallyDetails: details,
+        rallyLength: rallyLengthToUse,
+      });
     },
     [
       match,
@@ -667,7 +654,6 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       serveErrorState,
       closeAll,
       modalParamsRef,
-      debounceTimerRef,
     ],
   );
 

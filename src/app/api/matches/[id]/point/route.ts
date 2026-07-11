@@ -16,7 +16,27 @@ export async function POST(
 
   try {
     const { id } = await params;
-    const body = await request.json();
+    
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      console.error('[POINT] Failed to parse request body:', e);
+      return NextResponse.json(
+        { error: 'INVALID_BODY', message: 'Request body must be valid JSON' },
+        { status: 400 }
+      );
+    }
+    
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json(
+        { error: 'INVALID_BODY', message: 'Request body is required' },
+        { status: 400 }
+      );
+    }
+    
+    console.log('[POINT REQUEST] Received payload:', JSON.stringify(body, null, 2));
+    
     const parsed = PointFlowInputSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -38,20 +58,27 @@ export async function POST(
       });
 
       if (!match) {
+        console.error('[POINT] Match not found:', id);
         throw new TransactionError('Partida não encontrada', 404, 'MATCH_NOT_FOUND');
       }
 
       if (match.state !== 'IN_PROGRESS') {
+        console.error('[POINT] Match not in progress:', match.state);
         throw new TransactionError('Partida não está em andamento', 422, 'MATCH_NOT_IN_PROGRESS');
       }
 
       if (!match.initialServerId) {
+        console.error('[POINT] No initial server set');
         throw new TransactionError('Defina o primeiro sacador antes de pontuar', 422, 'MATCH_NOT_STARTED');
       }
 
       if (parsed.data.sequenceNumber) {
         const pointLogCount = await tx.pointLog.count({ where: { matchId: id } });
         if (parsed.data.sequenceNumber !== pointLogCount + 1) {
+          console.error('[POINT] Sequence conflict:', {
+            expected: pointLogCount + 1,
+            received: parsed.data.sequenceNumber,
+          });
           throw new TransactionError(
             `Conflito de sequência: esperado ${pointLogCount + 1}, recebido ${parsed.data.sequenceNumber}`,
             409,
@@ -61,6 +88,7 @@ export async function POST(
         }
       }
 
+      console.log('[POINT] Creating engine from match state');
       const engine = match.scoreState
         ? ScoringEngine.fromSerialized(
             {
@@ -78,10 +106,15 @@ export async function POST(
             initialServerId: match.initialServerId,
           });
 
+      console.log('[POINT] Applying point:', parsed.data);
       const newState = engine.applyPoint(parsed.data);
 
       const isMatchFinished = newState.isFinished;
 
+      console.log('[POINT] Updating match:', {
+        version: match.version,
+        isFinished: isMatchFinished,
+      });
       await tx.match.update({
         where: { id, version: match.version },
         data: {
@@ -103,6 +136,11 @@ export async function POST(
             }
           : undefined);
 
+      console.log('[POINT] Creating point log:', {
+        winnerId: parsed.data.winnerId,
+        type: parsed.data.type,
+        rallyLength: parsed.data.rallyLength,
+      });
       await tx.pointLog.create({
         data: {
           matchId: match.id,
@@ -113,7 +151,10 @@ export async function POST(
         },
       });
 
+      console.log('[POINT] Transaction completed successfully');
       return newState;
+    }, {
+      timeout: 30000,
     });
 
     if (result) {
