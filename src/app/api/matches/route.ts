@@ -49,9 +49,13 @@ export async function POST(request: NextRequest) {
         const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
         const { payload } = await jwtVerify(accessToken, JWT_SECRET);
         currentUserId = payload.sub as string;
-      } catch {
+        console.log('[MATCH CREATE] Token válido, userId:', currentUserId);
+      } catch (err) {
+        console.error('[MATCH CREATE] Token inválido:', err);
         // Ignore se token inválido
       }
+    } else {
+      console.warn('[MATCH CREATE] Sem token no header');
     }
 
     if (!force) {
