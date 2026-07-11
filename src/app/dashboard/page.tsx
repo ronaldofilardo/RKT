@@ -12,6 +12,7 @@ import {
 } from "@/lib/matchConfig";
 import type { TennisFormat } from "@/lib/matchConfig";
 import { useSession } from "@/contexts/SessionContext";
+import { isSetCompleted } from "@/app/match/[id]/scoring/scoringHelpers";
 
 type DashboardView =
   | "dashboard"
@@ -164,7 +165,11 @@ export default function DashboardPage() {
     }
 
     const floorSets = scoreState?.sets?.length
-      ? { player1: scoreState.sets[scoreState.sets.length - 1].player1, player2: scoreState.sets[scoreState.sets.length - 1].player2 }
+      ? (() => {
+          const lastSet = scoreState.sets[scoreState.sets.length - 1];
+          const lastSetIsCompleted = isSetCompleted(lastSet, match.format as TennisFormat);
+          return lastSetIsCompleted ? null : { player1: lastSet.player1, player2: lastSet.player2 };
+        })()
       : null;
 
     setSession({

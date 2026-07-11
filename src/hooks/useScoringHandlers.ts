@@ -622,10 +622,11 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
   const handlePointDetailsConfirm = useCallback(
     (details: RallyDetails) => {
       const winnerSide = modalParamsRef.current.winner as "player1" | "player2";
+      const rallyLengthFromModal = modalParamsRef.current.rallyLength;
       if (!match || !winnerSide || isProcessingRef.current) return;
       
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
+      if (rallyLengthFromModal) {
+        details.rallyLength = parseInt(rallyLengthFromModal, 10) || details.previewBalls;
       }
       
       const flowType =
@@ -635,7 +636,12 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
             ? "FORCED_ERROR"
             : "UNFORCED_ERROR";
       const id = winnerSide === "player1" ? match.player1.id : match.player2.id;
+      
       closeAll();
+      
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
       
       debounceTimerRef.current = setTimeout(() => {
         processPoint({
@@ -650,7 +656,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
             serveErrorState.firstServeError !== null,
           timestamp: Date.now(),
           rallyDetails: details,
-          rallyLength: details.previewBalls,
+          rallyLength: details.rallyLength,
         });
       }, 50);
     },
@@ -661,6 +667,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       serveErrorState,
       closeAll,
       modalParamsRef,
+      debounceTimerRef,
     ],
   );
 

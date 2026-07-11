@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ScoringEngine } from "@/core/scoring/engine";
 import type { ScoringState } from "@/core/scoring/types";
+import type { SetEditData } from "@/components/scoring/editScoreHelpers";
 import { MatchHeader } from "@/components/scoring/MatchHeader";
 import { PlayerCard } from "@/components/scoring/PlayerCard";
 import { VSIndicator } from "@/components/scoring/VSIndicator";
@@ -16,9 +17,11 @@ import { PointDetailsModal } from "@/components/scoring/PointDetailsModal";
 import { ServerEffectModal } from "@/components/scoring/ServerEffectModal";
 import { EditScoreModal } from "@/components/scoring/EditScoreModal";
 import { MatchTimelineView } from "@/components/scoring/MatchTimelineView";
+import { BolasTrocadasModal } from "@/components/scoring/BolasTrocadasModal";
 import CourtBackground from "@/components/scoring/CourtBackground";
 import { enrichPointsFromHistory } from "@/components/scoring/timeline-utils";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
+import { useOfflineMatchSync } from "@/hooks/useOfflineMatchSync";
 import { AnnotationSessionPanel } from "@/components/scoring/AnnotationSessionPanel";
 import { useScoreboardUIState } from "@/hooks/useScoreboardUIState";
 import { useModalStack } from "@/hooks/useModalStack";
@@ -39,6 +42,14 @@ export default function ScoringPage() {
   const router = useRouter();
   const matchId = params.id as string;
   const { enqueue, isOnline } = useOfflineSync();
+  const { syncPendingMatches } = useOfflineMatchSync();
+
+  // Tentar sincronizar partidas pendentes quando estiver online
+  useEffect(() => {
+    if (isOnline) {
+      syncPendingMatches();
+    }
+  }, [isOnline, syncPendingMatches]);
 
   const [match, setMatch] = useState<MatchData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,6 +87,10 @@ export default function ScoringPage() {
   } | null>(null);
   const [viewMode, setViewMode] = useState<"scoring" | "timeline">("scoring");
   const [undoTimestamp, setUndoTimestamp] = useState<number | null>(null);
+  const [pendingBolasTrocadas, setPendingBolasTrocadasLocal] = useState<{
+    winnerSide: "player1" | "player2";
+    details: any;
+  } | null>(null);
   const isProcessingRef = useRef(false);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -145,7 +160,7 @@ const {
     debounceTimerRef,
   });
 
-  const { abandonCurrentSession, handleEditScore } =
+  const { abandonCurrentSession, handleEditScore: originalHandleEditScore } =
     useSessionManager({
       matchId,
       match,
@@ -166,6 +181,42 @@ const {
       updateScoreContext: updateScore,
       close,
     });
+
+  // Wrapper para handleEditScore com redirecionamento de partida encerrada
+  const handleEditScore = useCallback(
+    async (setResults: SetEditData[], server: "player1" | "player2") => {
+      await originalHandleEditScore(setResults, server, (winner) => {
+        // Callback chamado quando partida é encerrada
+        // Redirecionar para página do match após pequeno delay para UX
+        setTimeout(() => {
+          router.push(`/match/${matchId}` as any);
+        }, 500);
+      });
+    },
+    [originalHandleEditScore, matchId, router]
+  );
+
+  const handleBolasTrocadasConfirm = useCallback(
+    (numBolas: number) => {
+      if (!pendingBolasTrocadas || !match) {
+        setPendingBolasTrocadasLocal(null);
+        return;
+      }
+
+      const { winnerSide } = pendingBolasTrocadas;
+      
+      open("point-details", { winner: winnerSide, rallyLength: String(numBolas >= 0 ? numBolas : 1) });
+      setPendingBolasTrocadasLocal(null);
+    },
+    [pendingBolasTrocadas, match, open],
+  );
+
+  const handlePointFromCard = useCallback(
+    (winnerSide: "player1" | "player2") => {
+      setPendingBolasTrocadasLocal({ winnerSide, details: null });
+    },
+    [],
+  );
 
   useEffect(() => {
     fetchMatch();
@@ -195,6 +246,14 @@ const {
       open("edit-score");
     }
   }, [pendingEditScore, open]);
+
+  // Bloqueio de segurança: Redirecionar se partida já estiver encerrada
+  useEffect(() => {
+    if (scoreState?.isFinished && scoreState?.winner) {
+      // Partida já está encerrada - redirecionar imediatamente
+      router.replace(`/match/${matchId}` as any);
+    }
+  }, [scoreState?.isFinished, scoreState?.winner, matchId, router]);
 
   if (isLoading) {
     return (
@@ -360,7 +419,7 @@ const {
               isSetPoint={isSetPoint}
               isBreakPoint={isBreakPoint}
               isWinner={winner === "player1"}
-              onPoint={() => openPointDetails("player1")}
+              onPoint={() => handlePointFromCard("player1")}
               onSwipeDown={() => open("undo")}
               disabled={isFinished}
             />
@@ -379,7 +438,7 @@ const {
               isSetPoint={isSetPoint}
               isBreakPoint={isBreakPoint}
               isWinner={winner === "player2"}
-              onPoint={() => openPointDetails("player2")}
+              onPoint={() => handlePointFromCard("player2")}
               onSwipeDown={() => open("undo")}
               disabled={isFinished}
             />
@@ -496,10 +555,12 @@ const {
           isOpen={true}
           matchFormat={match.format as any}
           playerNames={{ p1: match.player1.name, p2: match.player2.name }}
-          currentSets={{
-            player1: effectiveScoreState.sets[effectiveScoreState.sets.length - 1]?.player1 ?? 0,
-            player2: effectiveScoreState.sets[effectiveScoreState.sets.length - 1]?.player2 ?? 0,
-          }}
+          currentSets={(() => {
+            const lastSet = effectiveScoreState.sets[effectiveScoreState.sets.length - 1];
+            if (!lastSet) return { player1: 0, player2: 0 };
+            const lastSetIsCompleted = isSetCompleted(lastSet, match.format as any);
+            return lastSetIsCompleted ? { player1: 0, player2: 0 } : { player1: lastSet.player1, player2: lastSet.player2 };
+          })()}
           currentServer={effectiveScoreState.server}
           completedSets={effectiveScoreState.sets
             .filter((s) => isSetCompleted(s))
@@ -526,6 +587,12 @@ const {
             setPendingEditScore(null);
             clearPendingEdit();
             close();
+          }}
+          onMatchFinished={(winner) => {
+            // Callback chamado quando partida é encerrada pelo modal
+            setTimeout(() => {
+              router.push(`/match/${matchId}` as any);
+            }, 500);
           }}
         />
       )}
@@ -571,6 +638,14 @@ const {
           fontScale={fontScale}
           onConfirm={handlePointDetailsConfirm}
           onCancel={close}
+        />
+      )}
+
+      {pendingBolasTrocadas && (
+        <BolasTrocadasModal
+          fontScale={fontScale}
+          onConfirm={handleBolasTrocadasConfirm}
+          onCancel={() => setPendingBolasTrocadas(null)}
         />
       )}
     </div>

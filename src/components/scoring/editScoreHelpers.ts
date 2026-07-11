@@ -83,6 +83,34 @@ export function validateSetResult(
   return validateStandardSet(p1Games, p2Games, gamesNeeded, true, hasTiebreak, tiebreakAt);
 }
 
+export function validateMatchTiebreakInput(
+  result: { p1Points: number; p2Points: number },
+): SetValidation {
+  const { p1Points, p2Points } = result;
+
+  if (p1Points < 0 || p2Points < 0) {
+    return { isValid: false, error: 'Points cannot be negative' };
+  }
+
+  if (p1Points === 0 && p2Points === 0) {
+    return { isValid: false, error: 'Enter the tiebreak result' };
+  }
+
+  if (p1Points >= 10 && p1Points - p2Points >= 2) {
+    return { isValid: true, winner: 'player1' };
+  }
+  if (p2Points >= 10 && p2Points - p1Points >= 2) {
+    return { isValid: true, winner: 'player2' };
+  }
+  if (p1Points > 20 || p2Points > 20) {
+    return { isValid: false, error: 'Maximum ~20 points in tiebreak' };
+  }
+  return {
+    isValid: true,
+    isPartial: true,
+  };
+}
+
 function validateStandardSet(
   p1Games: number,
   p2Games: number,
@@ -183,8 +211,9 @@ export function getNextServerAfterSet(params: {
   p2Games: number;
   format: TennisFormat;
   tiebreakPoints?: { player1: number; player2: number } | null;
+  completedSets?: Array<{ player1: number; player2: number }>;
 }): 'player1' | 'player2' {
-  const { currentServer, p1Games, p2Games, format, tiebreakPoints } = params;
+  const { currentServer, p1Games, p2Games, format, tiebreakPoints, completedSets = [] } = params;
 
   const winnerGames = Math.max(p1Games, p2Games);
   const loserGames = Math.min(p1Games, p2Games);
@@ -203,6 +232,15 @@ export function getNextServerAfterSet(params: {
   }
 
   if (isTiebreakWin) {
+    return currentServer;
+  }
+
+  const totalGamesInMatch = completedSets.reduce(
+    (sum, set) => sum + set.player1 + set.player2,
+    p1Games + p2Games
+  );
+
+  if (totalGamesInMatch % 2 === 0) {
     return currentServer;
   }
 

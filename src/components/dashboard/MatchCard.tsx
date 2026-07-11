@@ -56,15 +56,6 @@ function normalizeScoreState(rawScoreState: any) {
 export function MatchCard({ match, onClick, onReport }: MatchCardProps) {
   const isSuspendedAnnotation = Boolean(match.suspendedSessionId);
 
-  console.log('[MatchCard DEBUG]', {
-    id: match.id,
-    state: match.state,
-    isSuspendedAnnotation,
-    scoreState: match.scoreState,
-    matchStateSnapshot: match.matchStateSnapshot,
-    hasScoreState: !!(match.scoreState && match.scoreState.sets?.length),
-  });
-
   const formatLabel: Record<string, string> = {
     BEST_OF_3: "Melhor de 3 Sets",
     BEST_OF_3_MATCH_TB: "Melhor de 3 - TB 3º",
@@ -129,44 +120,7 @@ export function MatchCard({ match, onClick, onReport }: MatchCardProps) {
       return null;
     }
   }, [match.matchStateSnapshot]);
-  const suspendedAnnotationDetail = useMemo(() => {
-    if (!isSuspendedAnnotation || !match.matchStateSnapshot) return null;
-    try {
-      const raw = JSON.parse(match.matchStateSnapshot);
-      const snap = raw?.state && Array.isArray(raw?.history) ? raw.state : raw;
-      const sets: any[] = snap.sets ?? [];
-      const currentGame = snap.currentGame || {
-        player1: 0,
-        player2: 0,
-        isDeuce: false,
-        advantage: null,
-      };
-      const currentSet = sets[sets.length - 1] ?? null;
-      if (!currentSet) return null;
-      const g1 = currentSet.player1 ?? 0;
-      const g2 = currentSet.player2 ?? 0;
-      const pts1 = currentGame.player1 ?? 0;
-      const pts2 = currentGame.player2 ?? 0;
-      const GAME_POINTS = ["0", "15", "30", "40"] as const;
-      const p1 =
-        currentGame.advantage === "player1"
-          ? "AD"
-          : (GAME_POINTS[Math.min(pts1, 3)] ?? String(pts1));
-      const p2 =
-        currentGame.advantage === "player2"
-          ? "AD"
-          : (GAME_POINTS[Math.min(pts2, 3)] ?? String(pts2));
-      let currentStr = `${g1}-${g2}`;
-      if (!currentSet.isTiebreak) {
-        currentStr += ` (${p1}-${p2})`;
-      } else if (currentSet.tiebreakScore) {
-        currentStr += ` TB ${currentSet.tiebreakScore.player1}-${currentSet.tiebreakScore.player2}`;
-      }
-      return currentStr;
-    } catch {
-      return null;
-    }
-  }, [isSuspendedAnnotation, match.matchStateSnapshot]);
+  
 
   const handleClick = useCallback(() => {
     if (onClick) onClick(match);
@@ -215,38 +169,80 @@ export function MatchCard({ match, onClick, onReport }: MatchCardProps) {
               </p>
             </div>
             <div className="text-right text-sm font-mono">
-              <div className="grid grid-cols-[1.5rem_2rem_2rem_2.5rem] gap-x-1 text-[10px] text-gray-500">
-                <span></span>
-                <span>Set</span>
-                <span>Game</span>
-                <span>Pontos</span>
-              </div>
-              <div className={["grid grid-cols-[1.5rem_2rem_2rem_2.5rem] gap-x-1 h-8 items-center", isSuspendedAnnotation ? "text-amber-700" : "text-gray-900"].join(" ")}>
-                <span className="text-[10px] text-gray-400">p1</span>
-                <span>{scoreState?.setsWon?.player1 ?? scoreState?.sets?.filter((s: any) => s.player1 > s.player2).length ?? 0}</span>
-                <span>{scoreState?.sets?.[scoreState.sets.length - 1]?.player1 ?? 0}</span>
-                <span>
-                  {(() => {
-                    const pts = scoreState?.currentGame?.player1 ?? 0;
-                    if (scoreState?.currentGame?.advantage === "player1") return "AD";
-                    const GP = ["0", "15", "30", "40"];
-                    return GP[Math.min(pts, 3)];
-                  })()}
-                </span>
-              </div>
-              <div className={["grid grid-cols-[1.5rem_2rem_2rem_2.5rem] gap-x-1 h-8 items-center", isSuspendedAnnotation ? "text-amber-700" : "text-gray-900"].join(" ")}>
-                <span className="text-[10px] text-gray-400">p2</span>
-                <span>{scoreState?.setsWon?.player2 ?? scoreState?.sets?.filter((s: any) => s.player2 > s.player1).length ?? 0}</span>
-                <span>{scoreState?.sets?.[scoreState.sets.length - 1]?.player2 ?? 0}</span>
-                <span>
-                  {(() => {
-                    const pts = scoreState?.currentGame?.player2 ?? 0;
-                    if (scoreState?.currentGame?.advantage === "player2") return "AD";
-                    const GP = ["0", "15", "30", "40"];
-                    return GP[Math.min(pts, 3)];
-                  })()}
-                </span>
-              </div>
+              {scoreState?.sets && scoreState.sets.length > 0 ? (
+                <>
+                  {/* Header: Set 1, Set 2, Set 3..., Pontos */}
+                  <div className="grid gap-x-1 text-[10px] text-gray-500" style={{
+                    gridTemplateColumns: `repeat(${scoreState.sets.length}, 1.5rem) 2.5rem`
+                  }}>
+                    {scoreState.sets.map((_: any, idx: number) => (
+                      <span key={idx}>{idx + 1}</span>
+                    ))}
+                    <span>Pontos</span>
+                  </div>
+                  {/* Player 1 */}
+                  <div className={["grid gap-x-1 h-8 items-center", isSuspendedAnnotation ? "text-amber-700" : "text-gray-900"].join(" ")} style={{
+                    gridTemplateColumns: `repeat(${scoreState.sets.length}, 1.5rem) 2.5rem`
+                  }}>
+                    {scoreState.sets.map((s: any, idx: number) => (
+                      <span key={idx}>{s.player1 ?? 0}</span>
+                    ))}
+                    <span>
+                      {(() => {
+                        const pts = scoreState?.currentGame?.player1 ?? 0;
+                        if (scoreState?.currentGame?.advantage === "player1") return "AD";
+                        const GP = ["0", "15", "30", "40"];
+                        return GP[Math.min(pts, 3)];
+                      })()}
+                    </span>
+                  </div>
+                  {/* Player 2 */}
+                  <div className={["grid gap-x-1 h-8 items-center", isSuspendedAnnotation ? "text-amber-700" : "text-gray-900"].join(" ")} style={{
+                    gridTemplateColumns: `repeat(${scoreState.sets.length}, 1.5rem) 2.5rem`
+                  }}>
+                    {scoreState.sets.map((s: any, idx: number) => (
+                      <span key={idx}>{s.player2 ?? 0}</span>
+                    ))}
+                    <span>
+                      {(() => {
+                        const pts = scoreState?.currentGame?.player2 ?? 0;
+                        if (scoreState?.currentGame?.advantage === "player2") return "AD";
+                        const GP = ["0", "15", "30", "40"];
+                        return GP[Math.min(pts, 3)];
+                      })()}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="grid grid-cols-[1.5rem_2.5rem] gap-x-1 text-[10px] text-gray-500">
+                    <span></span>
+                    <span>Pontos</span>
+                  </div>
+                  <div className={["grid grid-cols-[1.5rem_2.5rem] gap-x-1 h-8 items-center", isSuspendedAnnotation ? "text-amber-700" : "text-gray-900"].join(" ")}>
+                    <span className="text-[10px] text-gray-400">p1</span>
+                    <span>
+                      {(() => {
+                        const pts = scoreState?.currentGame?.player1 ?? 0;
+                        if (scoreState?.currentGame?.advantage === "player1") return "AD";
+                        const GP = ["0", "15", "30", "40"];
+                        return GP[Math.min(pts, 3)];
+                      })()}
+                    </span>
+                  </div>
+                  <div className={["grid grid-cols-[1.5rem_2.5rem] gap-x-1 h-8 items-center", isSuspendedAnnotation ? "text-amber-700" : "text-gray-900"].join(" ")}>
+                    <span className="text-[10px] text-gray-400">p2</span>
+                    <span>
+                      {(() => {
+                        const pts = scoreState?.currentGame?.player2 ?? 0;
+                        if (scoreState?.currentGame?.advantage === "player2") return "AD";
+                        const GP = ["0", "15", "30", "40"];
+                        return GP[Math.min(pts, 3)];
+                      })()}
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           </>
         ) : (
@@ -257,16 +253,7 @@ export function MatchCard({ match, onClick, onReport }: MatchCardProps) {
         )}
       </div>
 
-      {isSuspendedAnnotation && suspendedAnnotationDetail && (
-        <div className="mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-          <p className="text-xs font-semibold text-amber-700 mb-1">
-            📝 Anotação em Progresso
-          </p>
-          <p className="text-xs text-amber-600 font-mono">
-            {suspendedAnnotationDetail}
-          </p>
-        </div>
-      )}
+      
 
       {match.scheduledAt && (
         <p className="mt-3 text-xs text-gray-500">

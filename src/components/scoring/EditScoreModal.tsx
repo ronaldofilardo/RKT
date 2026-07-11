@@ -32,6 +32,7 @@ interface EditScoreModalProps {
   floorCurrentSets?: { player1: number; player2: number } | null;
   onConfirm: (setResults: SetEditData[], server: Player) => void;
   onCancel: () => void;
+  onMatchFinished?: (winner: "player1" | "player2") => void;
 }
 
 export function EditScoreModal({
@@ -45,6 +46,7 @@ export function EditScoreModal({
   floorCurrentSets = null,
   onConfirm,
   onCancel,
+  onMatchFinished,
 }: EditScoreModalProps) {
   const [newSets, setNewSets] = useState<SetEditData[]>([]);
   const [p1Input, setP1Input] = useState("");
@@ -58,6 +60,7 @@ export function EditScoreModal({
   const [floorValidationError, setFloorValidationError] = useState<
     string | null
   >(null);
+  const [isFinishingMatch, setIsFinishingMatch] = useState(false);
 
   const initializedRef = useRef(false);
   const initialGameRef = useRef<{ player1: string; player2: string } | null>(null);
@@ -253,6 +256,10 @@ export function EditScoreModal({
     if (matchAlreadyOver) return;
     if (isMatchTiebreakSet) return;
     
+    // Only auto-add if the user actually changed the score from the initial value
+    const scoreWasChanged = p1Val !== currentSets.player1 || p2Val !== currentSets.player2;
+    if (!scoreWasChanged) return;
+    
     const data: SetEditData = {
       p1Games: p1Val,
       p2Games: p2Val,
@@ -302,6 +309,8 @@ export function EditScoreModal({
     maxSets,
     matchAlreadyOver,
     setsToWin,
+    currentSets.player1,
+    currentSets.player2,
   ]);
 
   useEffect(() => {
@@ -454,7 +463,25 @@ export function EditScoreModal({
       }
       finalSets.push(setData);
     }
+    
+    // Verificar se este placar encerra a partida
+    const matchWinner = totalP1SetsWon >= setsToWin ? "player1" : totalP2SetsWon >= setsToWin ? "player2" : null;
+    
+    // Se partida está sendo encerrada, mostrar loading
+    if (matchWinner) {
+      setIsFinishingMatch(true);
+    }
+    
     onConfirm(finalSets, nextServer);
+    
+    // Chamar callback de partida encerrada se aplicável
+    if (matchWinner && onMatchFinished) {
+      onMatchFinished(matchWinner);
+      // Reset loading state após delay
+      setTimeout(() => {
+        setIsFinishingMatch(false);
+      }, 1000);
+    }
   };
 
   const totalP1SetsWon = p1SetsWon;
@@ -708,6 +735,20 @@ export function EditScoreModal({
                 </p>
               )}
 
+              {completed && matchWouldEnd && (
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-3 mt-2">
+                  <p className="text-sm font-semibold text-green-300 flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Partida encerrada — confirmar para finalizar
+                  </p>
+                  <p className="text-xs text-green-400 mt-1">
+                    {p1Val > p2Val ? playerNames.p1 : playerNames.p2} venceu por {totalP1SetsWon}-{totalP2SetsWon} sets
+                  </p>
+                </div>
+              )}
+
               {partial && floorCurrentSets && (
                 <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2 mb-2">
                   <p className="text-xs text-amber-300">
@@ -825,10 +866,20 @@ export function EditScoreModal({
             </button>
             <button
               onClick={handleConfirm}
-              disabled={!canConfirm}
-              className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 transition-all"
+              disabled={!canConfirm || isFinishingMatch}
+              className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
-              Confirmar Placar
+              {isFinishingMatch ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Finalizando...
+                </>
+              ) : (
+                "Confirmar Placar"
+              )}
             </button>
           </div>
         </div>

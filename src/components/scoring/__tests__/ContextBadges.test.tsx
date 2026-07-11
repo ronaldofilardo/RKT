@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { render, screen } from '@testing-library/react';
 import { ContextBadges } from '../ContextBadges';
 
@@ -99,25 +102,25 @@ describe('ContextBadges', () => {
 
   it('has correct styling for Super Tie-Break badge', () => {
     render(<ContextBadges {...defaultMockProps} isSuperTiebreak />);
-    const badge = screen.getByText(/Super Tie-Break!/i).parentElement;
+    const badge = screen.getByText(/Super Tie-Break!/i);
     expect(badge).toHaveClass('bg-red-100', 'text-red-700', 'border-red-200');
   });
 
   it('has correct styling for Tie-Break badge', () => {
     render(<ContextBadges {...defaultMockProps} isTiebreak />);
-    const badge = screen.getByText(/Tie-Break!/i).parentElement;
+    const badge = screen.getByText(/Tie-Break!/i);
     expect(badge).toHaveClass('bg-amber-100', 'text-amber-700', 'border-amber-200');
   });
 
   it('has correct styling for Set Point badge', () => {
     render(<ContextBadges {...defaultMockProps} isSetPoint />);
-    const badge = screen.getByText(/Set Point!/i).parentElement;
+    const badge = screen.getByText(/Set Point!/i);
     expect(badge).toHaveClass('bg-amber-100', 'text-amber-700', 'border-amber-200');
   });
 
   it('has correct styling for Break Point badge', () => {
     render(<ContextBadges {...defaultMockProps} isBreakPoint />);
-    const badge = screen.getByText(/Break Point!/i).parentElement;
+    const badge = screen.getByText(/Break Point!/i);
     expect(badge).toHaveClass('bg-blue-100', 'text-blue-700', 'border-blue-200');
   });
 });

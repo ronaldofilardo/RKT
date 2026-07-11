@@ -128,7 +128,11 @@ export function useSessionManager(ctx: SessionManagerContext) {
   );
 
   const handleEditScore = useCallback(
-    async (setResults: SetEditData[], server: "player1" | "player2") => {
+    async (
+      setResults: SetEditData[],
+      server: "player1" | "player2",
+      onMatchFinished?: (winner: "player1" | "player2") => void
+    ) => {
       const parseP = (v: number | string): number => {
         if (typeof v === "string") {
           if (v === "AD") return 4;
@@ -212,6 +216,70 @@ export function useSessionManager(ctx: SessionManagerContext) {
       }
       await persistState(newState, "edit-score");
 
+      // Se partida foi encerrada, atualizar winner no banco e chamar callback
+      if (isFinished && winner) {
+        // Atualizar winner no banco de dados
+        const winnerPlayerId = winner === "player1" ? match?.player1.id : match?.player2.id;
+        if (winnerPlayerId && matchId) {
+          try {
+            const token = tokenRef.current ?? sessionStorage.getItem("access_token");
+            const response = await fetch(`/api/matches/${matchId}/finish`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              },
+              body: JSON.stringify({
+                winnerId: winnerPlayerId,
+                finishedAt: new Date().toISOString(),
+              }),
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              throw new Error(errorData.error || 'Failed to update match winner');
+            }
+
+            const result = await response.json();
+            console.log('Match finished successfully:', result.match);
+          } catch (err) {
+            console.error('Failed to update match winner:', err);
+            
+            // Se estiver offline, salvar para sincronização posterior
+            const isOffline = !navigator.onLine;
+            if (isOffline || err instanceof TypeError && err.message === 'Failed to fetch') {
+              // Salvar no localStorage para sync quando voltar online
+              const pendingSync = {
+                matchId,
+                winnerId: winnerPlayerId,
+                finishedAt: new Date().toISOString(),
+                timestamp: Date.now(),
+                type: 'MATCH_FINISH' as const,
+              };
+              
+              const pendingSyncs = JSON.parse(
+                localStorage.getItem('pendingMatchSyncs') || '[]'
+              ) as Array<typeof pendingSync>;
+              
+              pendingSyncs.push(pendingSync);
+              localStorage.setItem('pendingMatchSyncs', JSON.stringify(pendingSyncs));
+              
+              console.log('Match finish saved for offline sync:', pendingSync);
+            }
+            
+            // Mostrar mensagem de erro ao usuário
+            const errorMessage = err instanceof Error ? err.message : 'Erro ao finalizar partida';
+            alert(`⚠️ ${errorMessage}\n\nA partida foi encerrada localmente, mas não foi possível sincronizar com o servidor. Verifique sua conexão e tente novamente.`);
+          }
+        }
+        
+        // Chamar callback de partida encerrada
+        if (onMatchFinished) {
+          onMatchFinished(winner);
+          return;
+        }
+      }
+
       // Force session reset to resolve SEQUENCE_CONFLICT
       // By abandoning the current session and clearing the active state,
       // the next point will start a fresh session with the correct sequence
@@ -224,6 +292,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
     },
     [
       match,
+      matchId,
       engineRef,
       setScoreState,
       setSessionActive,
@@ -232,6 +301,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
       persistState,
       abandonCurrentSession,
       ctx,
+      tokenRef,
     ],
   );
 

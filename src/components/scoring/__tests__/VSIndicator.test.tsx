@@ -1,4 +1,8 @@
+/**
+ * @jest-environment jsdom
+ */
 import { describe, it, expect } from '@jest/globals';
+import { render } from '@testing-library/react';
 import { VSIndicator } from '../VSIndicator';
 import type { ScoreState } from '@/core/scoring/types';
 
