@@ -101,6 +101,14 @@ export function PointDetailsModal({
     dispatch({ type: 'RESET' });
   }, []);
 
+  const vencedor: Vencedor = winnerPlayerSide === currentServer ? 'sacador' : 'devolvedor';
+  const winnerName = winnerPlayerSide === 'player1' ? player1Name : player2Name;
+
+  const needsSubtipo1 = form.situacao && form.tipo && shouldShowSubtipo1(vencedor, form.situacao, form.tipo);
+  const needsSubtipo2 = form.situacao && form.tipo && form.golpe && shouldShowSubtipo2(form.situacao, form.tipo, form.golpe);
+  const needsEfeito = form.golpe != null && shouldShowEfeito(vencedor, form.situacao!, form.tipo!, !!form.subtipo1, !!form.subtipo2);
+  const isDirecaoBlocked = form.efeito == null && needsEfeito;
+
   useEffect(() => {
     if (!mounted || !bodyRef.current) return;
     
@@ -132,14 +140,6 @@ export function PointDetailsModal({
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, [mounted]);
-
-  const vencedor: Vencedor = winnerPlayerSide === currentServer ? 'sacador' : 'devolvedor';
-  const winnerName = winnerPlayerSide === 'player1' ? player1Name : player2Name;
-
-  const needsSubtipo1 = form.situacao && form.tipo && shouldShowSubtipo1(vencedor, form.situacao, form.tipo);
-  const needsSubtipo2 = form.situacao && form.tipo && form.golpe && shouldShowSubtipo2(form.situacao, form.tipo, form.golpe);
-  const needsEfeito = form.golpe != null && shouldShowEfeito(vencedor, form.situacao!, form.tipo!, !!form.subtipo1, !!form.subtipo2);
-  const isDirecaoBlocked = form.efeito == null && needsEfeito;
 
 
   const direcaoOptions = form.efeito || form.situacao ? getDirecaoOptions(form.efeito, form.situacao ?? 'fundo', form.tipo ?? 'winner') : [];
