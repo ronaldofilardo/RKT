@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useReducer, useCallback, useMemo } from 'react';
+import { useState, useEffect, useReducer, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type {
   RallySituacao,
@@ -88,11 +88,38 @@ export function PointDetailsModal({
   const [mounted, setMounted] = useState(false);
   const [showCloseDialog, setShowCloseDialog] = useState(false);
   const [form, dispatch] = useReducer(formReducer, initialForm);
+  
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const tipoRef = useRef<HTMLDivElement>(null);
+  const golpeRef = useRef<HTMLDivElement>(null);
+  const subtipo1Ref = useRef<HTMLDivElement>(null);
+  const subtipo2Ref = useRef<HTMLDivElement>(null);
+  const efeitoRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
     dispatch({ type: 'RESET' });
   }, []);
+
+  useEffect(() => {
+    if (!mounted || !bodyRef.current) return;
+    
+    const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
+      ref.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+
+    if (form.tipo && tipoRef.current) {
+      scrollToSection(tipoRef);
+    } else if (form.golpe && golpeRef.current) {
+      scrollToSection(golpeRef);
+    } else if (needsSubtipo1 && form.subtipo1 && subtipo1Ref.current) {
+      scrollToSection(subtipo1Ref);
+    } else if (needsSubtipo2 && form.subtipo2 && subtipo2Ref.current) {
+      scrollToSection(subtipo2Ref);
+    } else if (needsEfeito && form.efeito && efeitoRef.current) {
+      scrollToSection(efeitoRef);
+    }
+  }, [form.tipo, form.golpe, form.subtipo1, form.subtipo2, form.efeito, mounted, needsSubtipo1, needsSubtipo2, needsEfeito]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -191,7 +218,7 @@ export function PointDetailsModal({
 
           {/* Step 2: Resultado */}
           {form.situacao && (
-            <Section num="2" label="Resultado do Ponto">
+            <Section num="2" label="Resultado do Ponto" ref={tipoRef}>
               <Pills
                 options={getTipoOptions(vencedor, form.situacao)}
                 selected={form.tipo}
@@ -206,7 +233,7 @@ export function PointDetailsModal({
 
           {/* Step 3: Golpe */}
           {form.situacao && form.tipo && (
-            <Section num="3" label="Golpe">
+            <Section num="3" label="Golpe" ref={golpeRef}>
               <Pills
                 options={getGolpeOptions(vencedor, form.situacao, form.tipo)}
                 selected={form.golpe}
@@ -218,7 +245,7 @@ export function PointDetailsModal({
 
           {/* Step 4: Subtipo1 */}
           {needsSubtipo1 && form.golpe && (
-            <Section num="4" label="Tipo de Erro (Rede)">
+            <Section num="4" label="Tipo de Erro (Rede)" ref={subtipo1Ref}>
               <Pills
                 options={SUBTIPO1_OPTIONS.map(o => o.value)}
                 selected={form.subtipo1}
@@ -232,7 +259,7 @@ export function PointDetailsModal({
           {needsSubtipo2 && form.tipo && (() => {
             const sectionNum = needsSubtipo1 ? 5 : 4;
             return (
-              <Section num={String(sectionNum)} label="Onde Errou?">
+              <Section num={String(sectionNum)} label="Onde Errou?" ref={subtipo2Ref}>
                 <Pills
                   options={SUBTIPO2_OPTIONS.map(o => o.value)}
                   selected={form.subtipo2}
@@ -250,7 +277,7 @@ export function PointDetailsModal({
             else if (needsSubtipo1 || needsSubtipo2) sectionLabel = '5';
             else sectionLabel = '4';
             return (
-              <Section num={sectionLabel} label="Efeito">
+              <Section num={sectionLabel} label="Efeito" ref={efeitoRef}>
                 <Pills
                   options={EFEITO_OPTIONS.map(o => o.value)}
                   selected={form.efeito}
@@ -346,9 +373,9 @@ export function PointDetailsModal({
   return createPortal(modal, document.body);
 }
 
-function Section({ num, label, children }: { num?: string; label: string; children: React.ReactNode }) {
+function Section({ num, label, children, ref }: { num?: string; label: string; children: React.ReactNode; ref?: React.RefObject<HTMLDivElement> }) {
   return (
-    <div>
+    <div ref={ref}>
       <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">
         {num ? `${num}. ` : ''}{label}
       </p>
