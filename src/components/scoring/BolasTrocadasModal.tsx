@@ -10,19 +10,19 @@ interface BolasTrocadasModalProps {
 }
 
 const KEYPAD = [
-  { value: '1', label: '1', sub: '' },
-  { value: '2', label: '2', sub: 'ABC' },
-  { value: '3', label: '3', sub: 'DEF' },
-  { value: '4', label: '4', sub: 'GHI' },
-  { value: '5', label: '5', sub: 'JKL' },
-  { value: '6', label: '6', sub: 'MNO' },
-  { value: '7', label: '7', sub: 'PQRS' },
-  { value: '8', label: '8', sub: 'TUV' },
-  { value: '9', label: '9', sub: 'WXYZ' },
-  { value: '*', label: '*', sub: '' },
-  { value: '0', label: '0', sub: '+' },
-  { value: '#', label: '#', sub: '' },
+  { value: '1', label: '1', disabled: false },
+  { value: '2', label: '2', disabled: false },
+  { value: '3', label: '3', disabled: false },
+  { value: '4', label: '4', disabled: false },
+  { value: '5', label: '5', disabled: false },
+  { value: '6', label: '6', disabled: false },
+  { value: '7', label: '7', disabled: false },
+  { value: '8', label: '8', disabled: false },
+  { value: '9', label: '9', disabled: false },
+  { value: '0', label: '0', disabled: false },
 ];
+
+const KEYPAD_ORDER = ['0', '7', '8', '9', '4', '5', '6', '1', '2', '3'];
 
 export function BolasTrocadasModal({ fontScale, onConfirm, onCancel }: BolasTrocadasModalProps) {
   const [mounted, setMounted] = useState(false);
@@ -109,31 +109,81 @@ export function BolasTrocadasModal({ fontScale, onConfirm, onCancel }: BolasTroc
               {bolas === '' ? '0' : bolas}
             </span>
           </div>
-          
-          {bolas === '' && (
-            <p className="text-[9px] text-gray-500 dark:text-gray-400 text-center">
-              Toque em 0 ou ignore
-            </p>
-          )}
         </div>
 
-        <div className="px-2.5 pb-2.5">
-          <div className="grid grid-cols-3 gap-1.5">
-            {KEYPAD.map(key => (
-              <button
-                key={key.value}
-                onClick={() => handleKeyPress(key.value)}
-                className="relative aspect-square rounded-full border-2 border-[#b4c34e]/30 bg-[#b4c34e]/10 hover:bg-[#b4c34e]/20 active:bg-[#b4c34e]/30 transition-all flex flex-col items-center justify-center select-none"
-                style={{
-                  boxShadow: 'inset 0 0 12px rgba(180,195,78,0.1), 0 2px 4px rgba(0,0,0,0.2)',
-                }}
+        <div className="px-2.5 pb-3">
+          <div className="flex flex-col items-center gap-2">
+            <button
+              onClick={() => handleKeyPress('0')}
+              className="relative w-16 h-16 rounded-full flex items-center justify-center select-none cursor-pointer"
+              style={{
+                background: 'radial-gradient(circle at 30% 30%, #e8f55c 0%, #d4e835 40%, #b8cf28 100%)',
+                border: '3px solid #1a1a1a',
+                boxShadow: '0 4px 8px rgba(0,0,0,0.3), inset 0 -4px 8px rgba(0,0,0,0.1)',
+              }}
+            >
+              <svg
+                viewBox="0 0 100 100"
+                className="absolute inset-0 w-full h-full pointer-events-none"
+                style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))' }}
               >
-                <span className="text-base font-bold text-[#b4c34e]">{key.label}</span>
-                {key.sub && (
-                  <span className="text-[5px] text-[#b4c34e]/60 uppercase tracking-wider mt-0.5">{key.sub}</span>
-                )}
-              </button>
-            ))}
+                <path
+                  d="M28,15 C35,25 40,40 38,55 C36,70 30,82 25,90"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M72,15 C65,25 60,40 62,55 C64,70 70,82 75,90"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span className="relative z-10 text-2xl font-bold text-black">0</span>
+            </button>
+            <div className="grid grid-cols-3 gap-2 justify-items-center">
+              {['7', '8', '9', '4', '5', '6', '1', '2', '3'].map(value => {
+                const key = KEYPAD.find(k => k.value === value)!;
+                return (
+                  <button
+                    key={key.value}
+                    onClick={() => !key.disabled && handleKeyPress(key.value)}
+                    className="relative w-16 h-16 rounded-full flex items-center justify-center select-none cursor-pointer"
+                    style={{
+                      background: 'radial-gradient(circle at 30% 30%, #e8f55c 0%, #d4e835 40%, #b8cf28 100%)',
+                      border: '3px solid #1a1a1a',
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.3), inset 0 -4px 8px rgba(0,0,0,0.1)',
+                    }}
+                    disabled={key.disabled}
+                  >
+                    <svg
+                      viewBox="0 0 100 100"
+                      className="absolute inset-0 w-full h-full pointer-events-none"
+                      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))' }}
+                    >
+                      <path
+                        d="M28,15 C35,25 40,40 38,55 C36,70 30,82 25,90"
+                        fill="none"
+                        stroke="white"
+                        strokeWidth="6"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M72,15 C65,25 60,40 62,55 C64,70 70,82 75,90"
+                        fill="none"
+                        stroke="white"
+                        strokeWidth="6"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <span className="relative z-10 text-2xl font-bold text-black">{key.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -159,7 +209,12 @@ export function BolasTrocadasModal({ fontScale, onConfirm, onCancel }: BolasTroc
           </div>
           <button
             onClick={handleConfirm}
-            className="w-full py-2 rounded-lg font-bold text-[10px] bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 transition-all"
+            disabled={bolas === '1' || bolas === '2'}
+            className={`w-full py-2 rounded-lg font-bold text-[10px] shadow-lg transition-all ${
+              bolas === '1' || bolas === '2'
+                ? 'bg-gray-600 text-gray-400 cursor-not-allowed shadow-none'
+                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20'
+            }`}
           >
             Confirmar
           </button>

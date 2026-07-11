@@ -87,27 +87,33 @@ describe('BolasTrocadasModal - Lógica', () => {
 
   describe('Keypad', () => {
     const KEYPAD = [
-      { value: '1', label: '1', sub: '' },
-      { value: '2', label: '2', sub: 'ABC' },
-      { value: '3', label: '3', sub: 'DEF' },
-      { value: '4', label: '4', sub: 'GHI' },
-      { value: '5', label: '5', sub: 'JKL' },
-      { value: '6', label: '6', sub: 'MNO' },
-      { value: '7', label: '7', sub: 'PQRS' },
-      { value: '8', label: '8', sub: 'TUV' },
-      { value: '9', label: '9', sub: 'WXYZ' },
-      { value: '*', label: '*', sub: '' },
-      { value: '0', label: '0', sub: '+' },
-      { value: '#', label: '#', sub: '' },
+      { value: '1', label: '1', disabled: false },
+      { value: '2', label: '2', disabled: false },
+      { value: '3', label: '3', disabled: false },
+      { value: '4', label: '4', disabled: false },
+      { value: '5', label: '5', disabled: false },
+      { value: '6', label: '6', disabled: false },
+      { value: '7', label: '7', disabled: false },
+      { value: '8', label: '8', disabled: false },
+      { value: '9', label: '9', disabled: false },
+      { value: '0', label: '0', disabled: false },
     ];
 
-    it('deve ter 12 teclas no keypad', () => {
-      expect(KEYPAD).toHaveLength(12);
+    const KEYPAD_ORDER = ['0', '7', '8', '9', '4', '5', '6', '1', '2', '3'];
+
+    it('deve ter 10 teclas no keypad (apenas numéricas)', () => {
+      expect(KEYPAD).toHaveLength(10);
     });
 
-    it('deve ter layout 3x4 (4 linhas de 3 teclas)', () => {
-      const linhas = Math.ceil(KEYPAD.length / 3);
-      expect(linhas).toBe(4);
+    it('não deve ter teclas * e #', () => {
+      const specialKeys = KEYPAD.filter(k => k.value === '*' || k.value === '#');
+      expect(specialKeys).toHaveLength(0);
+    });
+
+    it('deve ter layout com 0 no topo e 3x3 abaixo', () => {
+      const teclasAbaixoDoZero = KEYPAD_ORDER.slice(1);
+      expect(teclasAbaixoDoZero).toHaveLength(9);
+      expect(Math.ceil(teclasAbaixoDoZero.length / 3)).toBe(3);
     });
 
     it('todas as teclas devem ter valor e label', () => {
@@ -127,6 +133,61 @@ describe('BolasTrocadasModal - Lógica', () => {
       ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].forEach(d => {
         expect(values).toContain(d);
       });
+    });
+
+    it('deve ordenar teclas com 0 no topo, seguido de 7-8-9, 4-5-6, 1-2-3', () => {
+      expect(KEYPAD_ORDER[0]).toBe('0');
+      expect(KEYPAD_ORDER.slice(1, 4)).toEqual(['7', '8', '9']);
+      expect(KEYPAD_ORDER.slice(4, 7)).toEqual(['4', '5', '6']);
+      expect(KEYPAD_ORDER.slice(7, 10)).toEqual(['1', '2', '3']);
+    });
+  });
+
+  describe('Validação de confirmação', () => {
+    it('deve desabilitar confirmação para valor 1', () => {
+      const bolas = '1';
+      const confirmDisabled = bolas === '1' || bolas === '2';
+      expect(confirmDisabled).toBe(true);
+    });
+
+    it('deve desabilitar confirmação para valor 2', () => {
+      const bolas = '2';
+      const confirmDisabled = bolas === '1' || bolas === '2';
+      expect(confirmDisabled).toBe(true);
+    });
+
+    it('deve habilitar confirmação para valor 0', () => {
+      const bolas = '0';
+      const confirmDisabled = bolas === '1' || bolas === '2';
+      expect(confirmDisabled).toBe(false);
+    });
+
+    it('deve habilitar confirmação para valor >= 3', () => {
+      ['3', '4', '5', '10', '15', '99'].forEach(valor => {
+        const confirmDisabled = valor === '1' || valor === '2';
+        expect(confirmDisabled).toBe(false);
+      });
+    });
+
+    it('teclas 1 e 2 devem estar habilitadas para entrada de valores >= 10', () => {
+      const KEYPAD_LOCAL = [
+        { value: '1', label: '1', disabled: false },
+        { value: '2', label: '2', disabled: false },
+        { value: '3', label: '3', disabled: false },
+        { value: '4', label: '4', disabled: false },
+        { value: '5', label: '5', disabled: false },
+        { value: '6', label: '6', disabled: false },
+        { value: '7', label: '7', disabled: false },
+        { value: '8', label: '8', disabled: false },
+        { value: '9', label: '9', disabled: false },
+        { value: '0', label: '0', disabled: false },
+      ];
+      
+      const tecla1 = KEYPAD_LOCAL.find(k => k.value === '1');
+      const tecla2 = KEYPAD_LOCAL.find(k => k.value === '2');
+      
+      expect(tecla1?.disabled).toBe(false);
+      expect(tecla2?.disabled).toBe(false);
     });
   });
 
