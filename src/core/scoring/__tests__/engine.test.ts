@@ -195,7 +195,7 @@ describe('ScoringEngine', () => {
   it('deve encerrar game no deuce em no-ad e o ponto do deuce define o vencedor', () => {
     const noAdConfig = {
       ...config,
-      format: 'BEST_OF_3_NO_AD' as const,
+      format: 'SHORT_SET_2V2_NO_AD' as const,
     };
     const noAdEngine = new ScoringEngine(noAdConfig);
 

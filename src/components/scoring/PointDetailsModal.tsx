@@ -162,7 +162,7 @@ export function PointDetailsModal({
         {/* Header */}
         <div className="pd-header px-5 py-4 border-b border-white/10" style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
           <h2 className="text-center font-bold text-white" style={{ fontSize: '1.15rem' }}>
-            Detalhes do Ponto
+            Vencedor do Ponto
           </h2>
           <div className="flex justify-center mt-2">
             <span

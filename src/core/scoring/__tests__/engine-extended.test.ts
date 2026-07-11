@@ -8,7 +8,7 @@ const config = {
   initialServerId: 'player-1-id',
 };
 
-function createEngine(format: 'BEST_OF_3' | 'BEST_OF_3_NO_AD' = 'BEST_OF_3') {
+function createEngine(format: 'BEST_OF_3' | 'SHORT_SET_2V2_NO_AD' = 'BEST_OF_3') {
   return new ScoringEngine({
     format,
     player1Id: 'player-1-id',
@@ -136,10 +136,10 @@ describe('ScoringEngine - Basic Game Win', () => {
   });
 });
 
-describe('ScoringEngine - Format BEST_OF_3_NO_AD', () => {
+describe('ScoringEngine - Format SHORT_SET_2V2_NO_AD', () => {
   it('deve criar engine com formato NO_AD', () => {
     const engine = new ScoringEngine({
-      format: 'BEST_OF_3_NO_AD',
+      format: 'SHORT_SET_2V2_NO_AD',
       player1Id: 'player-1-id',
       player2Id: 'player-2-id',
       initialServerId: 'player-1-id',

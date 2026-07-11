@@ -2,7 +2,6 @@ export type TennisFormat =
   | "BEST_OF_3"
   | "BEST_OF_5"
   | "BEST_OF_3_MATCH_TB"
-  | "BEST_OF_3_NO_AD"
   | "SHORT_SET_2V2_NO_AD"
   | "PRO_SET_8"
   | "MATCH_TB_10";
@@ -55,16 +54,6 @@ const FORMAT_DEFINITIONS: Record<
     tiebreakPoints: 7,
     matchTiebreakPoints: 10,
     useNoAd: false,
-  },
-  BEST_OF_3_NO_AD: {
-    setsToWin: 2,
-    gamesPerSet: 6,
-    useAdvantage: false,
-    useTiebreak: true,
-    tiebreakAt: 6,
-    tiebreakPoints: 7,
-    matchTiebreakPoints: 10,
-    useNoAd: true,
   },
   BEST_OF_5: {
     setsToWin: 3,
@@ -131,7 +120,6 @@ export function isMatchTiebreakActive(
 ): boolean {
   const matchTbFormats: TennisFormat[] = [
     "BEST_OF_3_MATCH_TB",
-    "BEST_OF_3_NO_AD",
     "SHORT_SET_2V2_NO_AD",
   ];
   const isSet3MatchTb =

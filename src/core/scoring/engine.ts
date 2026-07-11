@@ -383,7 +383,7 @@ export class ScoringEngine {
   }
 
   private usesNoAd(): boolean {
-    return this.config.format === 'BEST_OF_3_NO_AD' || this.config.format === 'SHORT_SET_2V2_NO_AD';
+    return this.config.format === 'SHORT_SET_2V2_NO_AD';
   }
 
   private isFinalSet(): boolean {
@@ -584,7 +584,6 @@ export class ScoringEngine {
       case 'BEST_OF_5': return 3;
       case 'BEST_OF_3':
       case 'BEST_OF_3_MATCH_TB':
-      case 'BEST_OF_3_NO_AD':
       case 'SHORT_SET_2V2_NO_AD':
         return 2;
       case 'MATCH_TB_10':

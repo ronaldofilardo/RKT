@@ -143,7 +143,6 @@ enum MatchFinishReason {
 enum MatchFormat {
   BEST_OF_3
   BEST_OF_3_MATCH_TB
-  BEST_OF_3_NO_AD
   BEST_OF_5
   SHORT_SET_2V2_NO_AD
   MATCH_TB_10

@@ -376,7 +376,6 @@ describe("MatchCard", () => {
     const formats: { value: string; label: string }[] = [
       { value: "BEST_OF_3", label: "Melhor de 3 Sets" },
       { value: "BEST_OF_3_MATCH_TB", label: "Melhor de 3 - TB 3º" },
-      { value: "BEST_OF_3_NO_AD", label: "Melhor de 3 - No-Ad" },
       { value: "BEST_OF_5", label: "Melhor de 5 Sets" },
       { value: "SHORT_SET_2V2_NO_AD", label: "Sets Curtos 2/2" },
       { value: "MATCH_TB_10", label: "Match Tie-break" },

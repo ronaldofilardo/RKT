@@ -1,7 +1,6 @@
 export const TENNIS_FORMATS = [
   { value: 'BEST_OF_3', label: 'Melhor de 3 Sets - Com vantagem', hint: '3º set inteiro | Padrão ITF/ATP/WTA' },
   { value: 'BEST_OF_3_MATCH_TB', label: 'Melhor de 3 sets - Tie-break no 3º', hint: 'Match TB no 3º set | Juvenil e classes' },
-  { value: 'BEST_OF_3_NO_AD', label: 'Melhor de 3 sets - No-Ad', hint: 'Sem vantagem | Duplas ATP/Classes' },
   { value: 'BEST_OF_5', label: 'Melhor de 5 Sets (Grand Slam)', hint: '5º set inteiro + TB 10pts | Grand Slams' },
   { value: 'SHORT_SET_2V2_NO_AD', label: 'Sets curtos 2/2 - No-Ad', hint: 'Kids Bola Laranja/verde | 8-10 anos' },
   { value: 'MATCH_TB_10', label: 'Match Tie-break', hint: 'Game único | Kids Bola Vermelha U8' },

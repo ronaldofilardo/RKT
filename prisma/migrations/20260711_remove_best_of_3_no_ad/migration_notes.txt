@@ -1,0 +1,2 @@
+-- Migration generated at 2026-07-11 12:56:33 UTC
+-- Remove BEST_OF_3_NO_AD format from system

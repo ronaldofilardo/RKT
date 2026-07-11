@@ -91,7 +91,6 @@ export type MatchFinishReason = z.infer<typeof MatchFinishReasonSchema>;
 export const MatchFormatSchema = z.enum([
   "BEST_OF_3",
   "BEST_OF_3_MATCH_TB",
-  "BEST_OF_3_NO_AD",
   "BEST_OF_5",
   "SHORT_SET_2V2_NO_AD",
   "MATCH_TB_10",
