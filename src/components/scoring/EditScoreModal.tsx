@@ -334,7 +334,7 @@ export function EditScoreModal({
   const canConfirm =
     !floorValidationError &&
     (newSets.length > 0 ||
-      (bothFilled && (isMatchTiebreakSet ? completed : (!hasTiebreak || tiebreakComplete))) ||
+      (bothFilled && (isMatchTiebreakSet ? (!setValidationError || completed) : (!hasTiebreak || tiebreakComplete))) ||
       completedSets.length > 0);
 
   const handlePointsSelectChange = (

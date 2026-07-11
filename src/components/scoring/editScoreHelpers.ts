@@ -119,7 +119,7 @@ function validateStandardSet(
   hasTiebreak: boolean,
   tiebreakAt: number,
 ): SetValidation {
-  const maxGames = gamesNeeded + 5;
+  const maxGames = gamesNeeded + 1;
 
   if (p1Games > maxGames || p2Games > maxGames) {
     return { isValid: false, error: `Maximum ${maxGames} games per set` };

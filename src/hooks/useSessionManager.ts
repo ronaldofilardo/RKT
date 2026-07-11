@@ -214,7 +214,15 @@ export function useSessionManager(ctx: SessionManagerContext) {
         engineRef.current.loadState(newState);
         setScoreState(newState);
       }
-      await persistState(newState, "edit-score");
+      
+      // Persistir estado ANTES de finalizar partida para garantir sincronização
+      try {
+        await persistState(newState, "edit-score");
+        console.log("[handleEditScore] State persisted successfully");
+      } catch (err) {
+        console.error("[handleEditScore] Failed to persist state:", err);
+        // Não bloqueia o fluxo, mas registra o erro
+      }
 
       // Se partida foi encerrada, atualizar winner no banco e chamar callback
       if (isFinished && winner) {
