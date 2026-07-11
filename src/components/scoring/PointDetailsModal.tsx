@@ -94,6 +94,8 @@ export function PointDetailsModal({
   const subtipo1Ref = useRef<HTMLDivElement>(null);
   const subtipo2Ref = useRef<HTMLDivElement>(null);
   const efeitoRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const prevFormRef = useRef<typeof form>(form);
 
   useEffect(() => {
     setMounted(true);
@@ -111,28 +113,48 @@ export function PointDetailsModal({
   useEffect(() => {
     if (!mounted) return;
     
-    const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
-      setTimeout(() => {
-        ref.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 100);
+    // Detectar qual campo novo foi preenchido e fazer scroll até ele
+    const container = containerRef.current;
+    if (!container) return;
+
+    const getTargetRef = () => {
+      // Verifica mudanças no form para determinar para onde scrollar
+      const prev = prevFormRef.current;
+      
+      if (form.tipo && !prev.tipo && tipoRef.current) {
+        return tipoRef.current;
+      }
+      if (form.golpe && !prev.golpe && golpeRef.current) {
+        return golpeRef.current;
+      }
+      if (form.subtipo1 && !prev.subtipo1 && subtipo1Ref.current) {
+        return subtipo1Ref.current;
+      }
+      if (form.subtipo2 && !prev.subtipo2 && subtipo2Ref.current) {
+        return subtipo2Ref.current;
+      }
+      if (form.efeito && !prev.efeito && efeitoRef.current) {
+        return efeitoRef.current;
+      }
+      
+      return null;
     };
 
-    if (form.tipo && tipoRef.current) {
-      scrollToSection(tipoRef);
+    const targetRef = getTargetRef();
+    if (targetRef) {
+      // Pequeno delay para garantir que o DOM foi atualizado
+      setTimeout(() => {
+        targetRef.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center',
+          inline: 'nearest'
+        });
+      }, 50);
     }
-    if (form.golpe && golpeRef.current) {
-      scrollToSection(golpeRef);
-    }
-    if (needsSubtipo1 && form.subtipo1 && subtipo1Ref.current) {
-      scrollToSection(subtipo1Ref);
-    }
-    if (needsSubtipo2 && form.subtipo2 && subtipo2Ref.current) {
-      scrollToSection(subtipo2Ref);
-    }
-    if (needsEfeito && form.efeito && efeitoRef.current) {
-      scrollToSection(efeitoRef);
-    }
-  }, [form.tipo, form.golpe, form.subtipo1, form.subtipo2, form.efeito, mounted, needsSubtipo1, needsSubtipo2, needsEfeito]);
+    
+    // Atualiza o ref do form anterior
+    prevFormRef.current = form;
+  }, [form.tipo, form.golpe, form.subtipo1, form.subtipo2, form.efeito, mounted]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -210,7 +232,7 @@ export function PointDetailsModal({
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-[18px]">
+        <div ref={containerRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-[18px]">
           {/* Step 1: Situação */}
           <Section num="1" label="Situação do Ponto">
             <Pills
