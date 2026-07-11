@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { MatchCard } from "@/components/dashboard/MatchCard";
+import { DeleteMatchModal } from "@/components/dashboard/DeleteMatchModal";
+import { FinishMatchModal } from "@/components/dashboard/FinishMatchModal";
 import { NewAthleteModal } from "@/app/match/new/components/NewAthleteModal";
 import { useToast } from "@/components/Toast";
 import {
@@ -13,6 +15,7 @@ import {
 import type { TennisFormat } from "@/lib/matchConfig";
 import { useSession } from "@/contexts/SessionContext";
 import { isSetCompleted } from "@/app/match/[id]/scoring/scoringHelpers";
+import { MatchFinishReason } from "@/schemas/contracts";
 
 type DashboardView =
   | "dashboard"
@@ -57,6 +60,10 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showNewAthleteModal, setShowNewAthleteModal] = useState(false);
+  const [matchToDelete, setMatchToDelete] = useState<any | null>(null);
+  const [matchToFinish, setMatchToFinish] = useState<any | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [finishLoading, setFinishLoading] = useState(false);
   const { setSession, setPendingEdit, writeToSessionStorage } = useSession();
   const { toast } = useToast();
 
@@ -224,6 +231,96 @@ export default function DashboardPage() {
     },
     [router],
   );
+
+  const handleDeleteMatch = useCallback((match: any) => {
+    setMatchToDelete(match);
+  }, []);
+
+  const handleFinishMatch = useCallback((match: any) => {
+    setMatchToFinish(match);
+  }, []);
+
+  const confirmDeleteMatch = useCallback(async (type: 'soft' | 'hard', reason?: string) => {
+    if (!matchToDelete) return;
+    setDeleteLoading(true);
+
+    try {
+      const accessToken = sessionStorage.getItem('access_token');
+      const params = new URLSearchParams({ type });
+      if (reason) params.append('reason', reason);
+
+      const res = await fetch(`/api/matches/${matchToDelete.id}?${params}`, {
+        method: 'DELETE',
+        headers: { authorization: `Bearer ${accessToken}` },
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.error || 'Erro ao excluir partida');
+      }
+
+      toast({
+        type: 'success',
+        message: type === 'soft' 
+          ? 'Partida marcada como cancelada' 
+          : 'Partida excluída permanentemente',
+      });
+
+      setMatchToDelete(null);
+      fetchDashboardData();
+    } catch (error: any) {
+      toast({
+        type: 'error',
+        message: error.message || 'Erro ao excluir partida',
+      });
+    } finally {
+      setDeleteLoading(false);
+    }
+  }, [matchToDelete, fetchDashboardData, toast]);
+
+  const confirmFinishMatch = useCallback(async (reason: MatchFinishReason, note?: string) => {
+    if (!matchToFinish) return;
+    setFinishLoading(true);
+
+    try {
+      const accessToken = sessionStorage.getItem('access_token');
+      
+      const res = await fetch(`/api/matches/${matchToFinish.id}/finish`, {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reason,
+          note,
+          scoreState: matchToFinish.scoreState,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.error || 'Erro ao encerrar partida');
+      }
+
+      toast({
+        type: 'success',
+        message: 'Partida finalizada com sucesso!',
+      });
+
+      setMatchToFinish(null);
+      fetchDashboardData();
+    } catch (error: any) {
+      toast({
+        type: 'error',
+        message: error.message || 'Erro ao encerrar partida',
+      });
+    } finally {
+      setFinishLoading(false);
+    }
+  }, [matchToFinish, fetchDashboardData, toast]);
 
   const handleNavigate = useCallback(
     (view: DashboardView) => {
@@ -453,6 +550,8 @@ export default function DashboardPage() {
                   match={rawMatch}
                   onClick={handleResumeSuspended}
                   onReport={handleViewReport}
+                  onFinish={handleFinishMatch}
+                  onDelete={handleDeleteMatch}
                 />
               ))}
             </div>
@@ -472,6 +571,8 @@ export default function DashboardPage() {
                       key={match.id}
                       match={match}
                       onReport={handleViewReport}
+                      onFinish={handleFinishMatch}
+                      onDelete={handleDeleteMatch}
                     />
                   ))}
                 </div>
@@ -582,6 +683,32 @@ export default function DashboardPage() {
         onClose={() => setShowNewAthleteModal(false)}
         onCreated={handleAthleteCreated}
       />
+
+      {matchToDelete && (
+        <DeleteMatchModal
+          matchId={matchToDelete.id}
+          matchState={matchToDelete.state}
+          matchNickname={matchToDelete.nickname}
+          player1Name={matchToDelete.player1?.name || 'Jogador 1'}
+          player2Name={matchToDelete.player2?.name || 'Jogador 2'}
+          onConfirm={confirmDeleteMatch}
+          onCancel={() => setMatchToDelete(null)}
+          loading={deleteLoading}
+        />
+      )}
+
+      {matchToFinish && (
+        <FinishMatchModal
+          matchId={matchToFinish.id}
+          matchState={matchToFinish.state}
+          matchNickname={matchToFinish.nickname}
+          player1Name={matchToFinish.player1?.name || 'Jogador 1'}
+          player2Name={matchToFinish.player2?.name || 'Jogador 2'}
+          onConfirm={confirmFinishMatch}
+          onCancel={() => setMatchToFinish(null)}
+          loading={finishLoading}
+        />
+      )}
     </div>
   );
 }

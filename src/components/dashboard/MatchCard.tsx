@@ -16,6 +16,8 @@ interface MatchCardProps {
   };
   onClick?: (match: any) => void;
   onReport?: (match: any) => void;
+  onFinish?: (match: any) => void;
+  onDelete?: (match: any) => void;
 }
 
 function normalizeScoreState(rawScoreState: any) {
@@ -53,7 +55,7 @@ function normalizeScoreState(rawScoreState: any) {
   return null;
 }
 
-export function MatchCard({ match, onClick, onReport }: MatchCardProps) {
+export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: MatchCardProps) {
   const isSuspendedAnnotation = Boolean(match.suspendedSessionId);
 
   const formatLabel: Record<string, string> = {
@@ -150,6 +152,30 @@ export function MatchCard({ match, onClick, onReport }: MatchCardProps) {
               title="Ver relatório"
             >
               📊
+            </button>
+          )}
+          {match.state === 'IN_PROGRESS' && onFinish && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onFinish(match);
+              }}
+              className="text-xs text-green-600 hover:text-green-700 transition-colors"
+              title="Encerrar partida"
+            >
+              ✓
+            </button>
+          )}
+          {(match.state === 'SCHEDULED' || match.state === 'IN_PROGRESS') && onDelete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(match);
+              }}
+              className="text-xs text-red-600 hover:text-red-700 transition-colors"
+              title="Excluir partida"
+            >
+              🗑
             </button>
           )}
           <span className="text-xs text-gray-500">{formatLabel[match.format] || match.format}</span>

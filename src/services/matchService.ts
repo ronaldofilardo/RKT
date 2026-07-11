@@ -3,6 +3,7 @@ import type {
   MatchFormat,
   MatchState,
   CreateMatchInput,
+  MatchFinishReason,
 } from "@/schemas/contracts";
 import { ScoringEngine } from "@/core/scoring/engine";
 
@@ -156,12 +157,150 @@ export async function updateMatch(id: string, data: Record<string, unknown>) {
   });
 }
 
-export async function deleteMatch(id: string) {
-  const match = await prisma.match.findFirst({ where: { id } });
-  if (!match) return false;
+export async function deleteMatch(
+  id: string,
+  options: {
+    type: 'soft' | 'hard';
+    reason?: string;
+    deletedBy?: string;
+  }
+) {
+  const match = await prisma.match.findFirst({
+    where: { id },
+    include: {
+      pointLog: { select: { id: true } },
+      annotationSessions: { select: { id: true } },
+    },
+  });
 
-  await prisma.match.delete({ where: { id } });
-  return true;
+  if (!match) return { error: 'MATCH_NOT_FOUND' } as const;
+
+  const hasPoints = match.pointLog.length > 0;
+  const hasAnnotationSessions = match.annotationSessions.length > 0;
+
+  if (match.state === 'FINISHED') {
+    return {
+      error: 'CANNOT_DELETE_FINISHED: Partidas finalizadas não podem ser excluídas permanentemente',
+    } as const;
+  }
+
+  if (options.type === 'hard') {
+    if (hasPoints) {
+      return {
+        error: 'CANNOT_HARD_DELETE_WITH_POINTS: Não é possível excluir permanentemente partida com pontos registrados. Use soft delete.',
+        stats: {
+          points: match.pointLog.length,
+          annotationSessions: match.annotationSessions.length,
+        },
+      } as const;
+    }
+
+    await prisma.match.delete({ where: { id } });
+    return { success: true, type: 'hard' } as const;
+  }
+
+  const updateData: Record<string, unknown> = {
+    state: 'CANCELLED',
+    deletedAt: new Date(),
+  };
+  if (options.deletedBy) {
+    updateData.deletedBy = options.deletedBy;
+  }
+  if (options.reason) {
+    updateData.finishNote = options.reason;
+  }
+
+  await prisma.match.update({
+    where: { id },
+    data: updateData,
+  });
+
+  return {
+    success: true,
+    type: 'soft',
+    stats: {
+      points: match.pointLog.length,
+      annotationSessions: match.annotationSessions.length,
+    },
+  } as const;
+}
+
+export async function finishMatch(
+  id: string,
+  scoreState: unknown,
+  options?: {
+    reason?: MatchFinishReason;
+    note?: string;
+    winnerId?: string;
+  }
+) {
+  const match = await prisma.match.findFirst({
+    where: { id },
+    include: { player1: true, player2: true },
+  });
+
+  if (!match) return { error: 'MATCH_NOT_FOUND' } as const;
+
+  if (match.state === 'FINISHED') {
+    return { error: 'ALREADY_FINISHED: Partida já está finalizada' } as const;
+  }
+
+  if (match.state === 'CANCELLED') {
+    return { error: 'CANNOT_FINISH_CANCELLED: Partida cancelada não pode ser finalizada' } as const;
+  }
+
+  const reason = options?.reason || 'COMPLETED';
+
+  if (reason === 'COMPLETED') {
+    if (!scoreState) {
+      return {
+        error: 'CANNOT_FINISH: Partida sem pontuação registrada',
+      } as const;
+    }
+
+    if (!match.initialServerId) {
+      return {
+        error: 'MATCH_NOT_STARTED: Partida sem primeiro sacador definido',
+      } as const;
+    }
+
+    const engine = ScoringEngine.fromSerialized(
+      {
+        format: match.format,
+        player1Id: match.player1Id,
+        player2Id: match.player2Id,
+        initialServerId: match.initialServerId,
+      },
+      JSON.stringify(scoreState),
+    );
+
+    if (!engine.isFinished()) {
+      return {
+        error: 'CANNOT_FINISH: Motor de pontuação indica partida em andamento',
+      } as const;
+    }
+  }
+
+  const updateData: Record<string, unknown> = {
+    state: 'FINISHED',
+    finishedAt: new Date(),
+    finishReason: reason,
+    scoreState: scoreState || match.scoreState,
+  };
+
+  if (options?.note) {
+    updateData.finishNote = options.note;
+  }
+
+  if (options?.winnerId) {
+    updateData.winnerId = options.winnerId;
+  }
+
+  return prisma.match.update({
+    where: { id },
+    data: updateData,
+    include: { player1: true, player2: true },
+  });
 }
 
 export async function transitionMatchState(

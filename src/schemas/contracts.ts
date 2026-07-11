@@ -79,6 +79,15 @@ export const MatchStateSchema = z.enum([
 ]);
 export type MatchState = z.infer<typeof MatchStateSchema>;
 
+export const MatchFinishReasonSchema = z.enum([
+  "COMPLETED",
+  "ABANDONED",
+  "WALKOVER",
+  "INJURY",
+  "OUTRO",
+]);
+export type MatchFinishReason = z.infer<typeof MatchFinishReasonSchema>;
+
 export const MatchFormatSchema = z.enum([
   "BEST_OF_3",
   "BEST_OF_3_MATCH_TB",
@@ -226,6 +235,19 @@ export const CreateMatchInputSchema = z.object({
   humidity: z.number().nullish(),
 });
 export type CreateMatchInput = z.infer<typeof CreateMatchInputSchema>;
+
+export const DeleteMatchInputSchema = z.object({
+  type: z.enum(['soft', 'hard']),
+  reason: z.string().max(500).optional(),
+});
+export type DeleteMatchInput = z.infer<typeof DeleteMatchInputSchema>;
+
+export const FinishMatchInputSchema = z.object({
+  reason: MatchFinishReasonSchema,
+  note: z.string().max(500).optional(),
+  scoreState: z.any().optional(),
+});
+export type FinishMatchInput = z.infer<typeof FinishMatchInputSchema>;
 
 export const MatchStateInputSchema = z
   .object({

@@ -42,6 +42,7 @@ model Match {
   player2     Player      @relation("Player2", fields: [player2Id], references: [id])
   scoreState  Json?
   initialServerId String?
+  winnerId    String?
   nickname    String?
   version     Int         @default(0)
   visibility  String      @default("PUBLIC")
@@ -57,6 +58,10 @@ model Match {
   scheduledAt DateTime?
   startedAt   DateTime?
   finishedAt  DateTime?
+  deletedAt   DateTime?
+  deletedBy   String?
+  finishReason MatchFinishReason?
+  finishNote  String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
@@ -64,6 +69,7 @@ model Match {
   annotationSessions MatchAnnotationSession[]
 
   @@index([state])
+  @@index([deletedAt])
 }
 
 model PointLog {
@@ -92,6 +98,14 @@ enum MatchState {
   IN_PROGRESS
   FINISHED
   CANCELLED
+}
+
+enum MatchFinishReason {
+  COMPLETED
+  ABANDONED
+  WALKOVER
+  INJURY
+  OUTRO
 }
 
 enum MatchFormat {
