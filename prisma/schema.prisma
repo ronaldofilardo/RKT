@@ -7,118 +7,137 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Match {
-  id                             String                      @id
-  sportType                      String                      @default("TENNIS")
-  courtType                      String?
-  format                         MatchFormat
-  state                          MatchState                  @default(SCHEDULED)
-  player1Id                      String
-  player2Id                      String
-  scoreState                     Json?
-  initialServerId                String?
-  nickname                       String?
-  version                        Int                         @default(0)
-  visibility                     String                      @default("PUBLIC")
-  isResuming                     Boolean                     @default(false)
-  openForAnnotation              Boolean                     @default(false)
-  tournamentName                 String?
-  round                          String?
-  bracketType                    String?
-  temperature                    Float?
-  humidity                       Float?
-  scheduledAt                    DateTime?
-  startedAt                      DateTime?
-  finishedAt                     DateTime?
-  createdAt                      DateTime                    @default(now())
-  updatedAt                      DateTime
-  category                       String?
-  includeLet                     Boolean?
-  createdByUserId                String?
-  deletedAt                      DateTime?
-  deletedBy                      String?
-  finishNote                     String?
-  winnerId                       String?
-  finishReason                   String?
-  Player_Match_player1IdToPlayer Player                      @relation("Match_player1IdToPlayer", fields: [player1Id], references: [id])
-  Player_Match_player2IdToPlayer Player                      @relation("Match_player2IdToPlayer", fields: [player2Id], references: [id])
-  PointLog                       PointLog[]
-  match_annotation_sessions      match_annotation_sessions[]
-
-  @@index([deletedAt])
-  @@index([state])
+model Player {
+  id                 String                   @id @default(cuid())
+  name               String
+  email              String                   @unique
+  role               Role                     @default(ATHLETE)
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+  passwordHash       String
+  club               String?
+  age                Int?
+  backhand           String?
+  dominance          String?
+  gender             String?
+  ranking            Int?
+  rankings           Json?
+  createdByUserId    String?
+  matchesAsPlayer1   Match[]                  @relation("Player1")
+  matchesAsPlayer2   Match[]                  @relation("Player2")
+  endorsements       AnnotationEndorsement[]  @relation("Endorsements")
+  annotationSessions MatchAnnotationSession[] @relation("AnnotationSessions")
 }
 
-model Player {
-  id                            String                      @id
-  name                          String
-  email                         String                      @unique
-  role                          Role                        @default(ATHLETE)
-  club                          String?
-  createdAt                     DateTime                    @default(now())
-  updatedAt                     DateTime
-  gender                        String?
-  age                           Int?
-  dominance                     String?
-  backhand                      String?
-  ranking                       Int?
-  passwordHash                  String
-  createdByUserId               String?
-  rankings                      Json?
-  Match_Match_player1IdToPlayer Match[]                     @relation("Match_player1IdToPlayer")
-  Match_Match_player2IdToPlayer Match[]                     @relation("Match_player2IdToPlayer")
-  annotation_endorsements       annotation_endorsements[]
-  match_annotation_sessions     match_annotation_sessions[]
+model Match {
+  id                 String                   @id @default(cuid())
+  format             MatchFormat
+  state              MatchState               @default(SCHEDULED)
+  player1Id          String
+  player2Id          String
+  scoreState         Json?
+  initialServerId    String?
+  scheduledAt        DateTime?
+  startedAt          DateTime?
+  finishedAt         DateTime?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+  sportType          String                   @default("TENNIS")
+  courtType          String?
+  nickname           String?
+  visibility         String                   @default("PUBLIC")
+  isResuming         Boolean                  @default(false)
+  openForAnnotation  Boolean                  @default(false)
+  tournamentName     String?
+  round              String?
+  bracketType        String?
+  temperature        Float?
+  humidity           Float?
+  version            Int                      @default(0)
+  category           String?
+  includeLet         Boolean?
+  winnerId           String?
+  deletedAt          DateTime?
+  deletedBy          String?
+  finishNote         String?
+  finishReason       MatchFinishReason?
+  createdByUserId    String?
+  player1            Player                   @relation("Player1", fields: [player1Id], references: [id])
+  player2            Player                   @relation("Player2", fields: [player2Id], references: [id])
+  pointLog           PointLog[]
+  annotationSessions MatchAnnotationSession[]
+
+  @@index([state])
+  @@index([deletedAt])
 }
 
 model PointLog {
-  id          String    @id
+  id          String    @id @default(cuid())
   matchId     String
   winnerId    String
   type        PointType
   serverId    String
   annotations Json?
   timestamp   DateTime  @default(now())
-  Match       Match     @relation(fields: [matchId], references: [id])
+  match       Match     @relation(fields: [matchId], references: [id])
 
   @@index([matchId])
 }
 
-model annotation_endorsements {
-  id                        String                    @id
-  sessionId                 String
-  endorsedByUserId          String
-  endorsedAt                DateTime                  @default(now())
-  Player                    Player                    @relation(fields: [endorsedByUserId], references: [id], onDelete: Cascade)
-  match_annotation_sessions match_annotation_sessions @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+model MatchAnnotationSession {
+  id                 String                  @id @default(cuid())
+  matchId            String
+  annotatorUserId    String
+  startedAt          DateTime                @default(now())
+  endedAt            DateTime?
+  matchStateSnapshot String?
+  finalStateSnapshot String?
+  isActive           Boolean                 @default(true)
+  status             AnnotationSessionStatus @default(IN_PROGRESS)
+  createdAt          DateTime                @default(now())
+  endorsements       AnnotationEndorsement[]
+  annotator          Player                  @relation("AnnotationSessions", fields: [annotatorUserId], references: [id], onDelete: Cascade)
+  match              Match                   @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
-  @@unique([sessionId, endorsedByUserId])
-}
-
-model match_annotation_sessions {
-  id                      String                    @id
-  matchId                 String
-  annotatorUserId         String
-  startedAt               DateTime                  @default(now())
-  endedAt                 DateTime?
-  matchStateSnapshot      String?
-  finalStateSnapshot      String?
-  isActive                Boolean                   @default(true)
-  status                  AnnotationSessionStatus   @default(IN_PROGRESS)
-  createdAt               DateTime                  @default(now())
-  annotation_endorsements annotation_endorsements[]
-  Player                  Player                    @relation(fields: [annotatorUserId], references: [id], onDelete: Cascade)
-  Match                   Match                     @relation(fields: [matchId], references: [id], onDelete: Cascade)
-
+  @@index([matchId])
   @@index([annotatorUserId])
   @@index([isActive])
-  @@index([matchId])
+  @@map("match_annotation_sessions")
 }
 
-enum AnnotationSessionStatus {
+model AnnotationEndorsement {
+  id               String                 @id @default(cuid())
+  sessionId        String
+  endorsedByUserId String
+  endorsedAt       DateTime               @default(now())
+  endorsedBy       Player                 @relation("Endorsements", fields: [endorsedByUserId], references: [id], onDelete: Cascade)
+  session          MatchAnnotationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, endorsedByUserId])
+  @@map("annotation_endorsements")
+}
+
+enum Role {
+  ADMIN
+  GESTOR
+  COACH
+  ATHLETE
+  SPECTATOR
+}
+
+enum MatchState {
+  SCHEDULED
   IN_PROGRESS
+  FINISHED
+  CANCELLED
+}
+
+enum MatchFinishReason {
   COMPLETED
   ABANDONED
+  WALKOVER
+  INJURY
+  OUTRO
 }
 
 enum MatchFormat {
@@ -131,13 +150,6 @@ enum MatchFormat {
   PRO_SET_8
 }
 
-enum MatchState {
-  SCHEDULED
-  IN_PROGRESS
-  FINISHED
-  CANCELLED
-}
-
 enum PointType {
   ACE
   WINNER
@@ -147,10 +159,8 @@ enum PointType {
   FAULT_SECOND
 }
 
-enum Role {
-  ADMIN
-  GESTOR
-  COACH
-  ATHLETE
-  SPECTATOR
+enum AnnotationSessionStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
 }
