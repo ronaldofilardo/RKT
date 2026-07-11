@@ -89,7 +89,6 @@ export function PointDetailsModal({
   const [showCloseDialog, setShowCloseDialog] = useState(false);
   const [form, dispatch] = useReducer(formReducer, initialForm);
   
-  const bodyRef = useRef<HTMLDivElement>(null);
   const tipoRef = useRef<HTMLDivElement>(null);
   const golpeRef = useRef<HTMLDivElement>(null);
   const subtipo1Ref = useRef<HTMLDivElement>(null);
@@ -110,21 +109,27 @@ export function PointDetailsModal({
   const isDirecaoBlocked = form.efeito == null && needsEfeito;
 
   useEffect(() => {
-    if (!mounted || !bodyRef.current) return;
+    if (!mounted) return;
     
     const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
-      ref.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      setTimeout(() => {
+        ref.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
     };
 
     if (form.tipo && tipoRef.current) {
       scrollToSection(tipoRef);
-    } else if (form.golpe && golpeRef.current) {
+    }
+    if (form.golpe && golpeRef.current) {
       scrollToSection(golpeRef);
-    } else if (needsSubtipo1 && form.subtipo1 && subtipo1Ref.current) {
+    }
+    if (needsSubtipo1 && form.subtipo1 && subtipo1Ref.current) {
       scrollToSection(subtipo1Ref);
-    } else if (needsSubtipo2 && form.subtipo2 && subtipo2Ref.current) {
+    }
+    if (needsSubtipo2 && form.subtipo2 && subtipo2Ref.current) {
       scrollToSection(subtipo2Ref);
-    } else if (needsEfeito && form.efeito && efeitoRef.current) {
+    }
+    if (needsEfeito && form.efeito && efeitoRef.current) {
       scrollToSection(efeitoRef);
     }
   }, [form.tipo, form.golpe, form.subtipo1, form.subtipo2, form.efeito, mounted, needsSubtipo1, needsSubtipo2, needsEfeito]);
