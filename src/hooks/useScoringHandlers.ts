@@ -157,7 +157,10 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         const res = await fetch(`/api/matches/${matchId}`, {
           headers: { authorization: `Bearer ${tokenRef.current}` },
         });
-        if (!res.ok) throw new Error();
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.error || `Erro ao buscar partida: ${res.status}`);
+        }
         const data: MatchData = await res.json();
         setMatch(data);
 

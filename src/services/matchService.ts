@@ -80,7 +80,7 @@ export async function getMatch(id: string) {
   });
 }
 
-export async function createMatch(data: CreateMatchInput) {
+export async function createMatch(data: CreateMatchInput, createdByUserId?: string) {
   const {
     player1Id,
     player2Id,
@@ -122,6 +122,7 @@ export async function createMatch(data: CreateMatchInput) {
       player2Id,
       ...(initialServerId ? { initialServerId } : {}),
       scheduledAt: scheduledAt || null,
+      ...(createdByUserId ? { createdByUserId } : {}),
     },
     include: { player1: true, player2: true },
   });

@@ -41,6 +41,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const accessToken = request.headers.get('authorization')?.replace('Bearer ', '');
+    let currentUserId: string | undefined;
+    if (accessToken) {
+      try {
+        const { jwtVerify } = await import('jose');
+        const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
+        const { payload } = await jwtVerify(accessToken, JWT_SECRET);
+        currentUserId = payload.sub as string;
+      } catch {
+        // Ignore se token inválido
+      }
+    }
+
     if (!force) {
       const duplicate = await findDuplicateMatch(
         parsed.data.player1Id,
@@ -64,7 +77,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const match = await createMatch(parsed.data);
+    const match = await createMatch(parsed.data, currentUserId);
     return NextResponse.json(match, { status: 201 });
   } catch (error) {
     console.error('[MATCHES POST]', error);
