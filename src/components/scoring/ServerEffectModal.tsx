@@ -168,17 +168,6 @@ export function ServerEffectModal({
 
         {/* Footer */}
         <div className="px-5 py-4 border-t border-white/10 flex flex-col gap-2" style={{ backgroundColor: 'rgba(0,0,0,0.15)' }}>
-          {context === 'winner' && showLetOption && onLet && (
-            <button
-              onClick={() => {
-                onLet();
-                onCancel();
-              }}
-              className="w-full py-2.5 rounded-xl font-bold text-sm bg-amber-500/20 text-amber-400 border-2 border-amber-400/60 hover:bg-amber-500/30 hover:border-amber-400 transition-all"
-            >
-              ⚠️ Let (Repetir Saque)
-            </button>
-          )}
           <button
             onClick={handleConfirm}
             className="w-full py-2.5 rounded-xl font-bold transition-all text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20"
