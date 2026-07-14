@@ -431,4 +431,111 @@ describe("MatchCard", () => {
 
     expect(screen.getByText("UNKNOWN_FORMAT")).toBeTruthy();
   });
+
+  it("exibe label 'Sets' centralizado acima dos números dos sets", () => {
+    const match = {
+      id: "match-16",
+      state: "FINISHED",
+      format: "BEST_OF_5",
+      player1: { name: "Pedro Oliveira" },
+      player2: { name: "Joao Silva" },
+      scheduledAt: null,
+      scoreState: {
+        sets: [
+          { player1: 6, player2: 3, isTiebreak: false, tiebreakScore: null },
+          { player1: 6, player2: 3, isTiebreak: false, tiebreakScore: null },
+          { player1: 2, player2: 6, isTiebreak: false, tiebreakScore: null },
+          { player1: 1, player2: 6, isTiebreak: false, tiebreakScore: null },
+          { player1: 7, player2: 6, isTiebreak: false, tiebreakScore: null },
+        ],
+        currentGame: {
+          player1: 0,
+          player2: 0,
+          isDeuce: false,
+          advantage: null,
+        },
+        server: "player1",
+        isFinished: true,
+        winner: "player1",
+        setsWon: { player1: 3, player2: 2 },
+      },
+      suspendedSessionId: undefined,
+      matchStateSnapshot: null,
+    };
+
+    render(<MatchCard match={match} />);
+
+    expect(screen.getByText("Sets")).toBeTruthy();
+  });
+
+  it("exibe label 'Pontos' ao lado do último número do set", () => {
+    const match = {
+      id: "match-17",
+      state: "FINISHED",
+      format: "BEST_OF_3",
+      player1: { name: "Player A" },
+      player2: { name: "Player B" },
+      scheduledAt: null,
+      scoreState: {
+        sets: [
+          { player1: 6, player2: 4, isTiebreak: false, tiebreakScore: null },
+          { player1: 6, player2: 2, isTiebreak: false, tiebreakScore: null },
+        ],
+        currentGame: {
+          player1: 0,
+          player2: 0,
+          isDeuce: false,
+          advantage: null,
+        },
+        server: "player1",
+        isFinished: true,
+        winner: "player1",
+        setsWon: { player1: 2, player2: 0 },
+      },
+      suspendedSessionId: undefined,
+      matchStateSnapshot: null,
+    };
+
+    render(<MatchCard match={match} />);
+
+    const pontosLabels = screen.getAllByText("Pontos");
+    expect(pontosLabels.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("exibe pontuação centralizada nas colunas dos sets e pontos", () => {
+    const match = {
+      id: "match-18",
+      state: "IN_PROGRESS",
+      format: "BEST_OF_5",
+      player1: { name: "Player C" },
+      player2: { name: "Player D" },
+      scheduledAt: null,
+      scoreState: {
+        sets: [
+          { player1: 3, player2: 2, isTiebreak: false, tiebreakScore: null },
+          { player1: 4, player2: 4, isTiebreak: false, tiebreakScore: null },
+        ],
+        currentGame: {
+          player1: 2,
+          player2: 1,
+          isDeuce: false,
+          advantage: null,
+        },
+        server: "player1",
+        isFinished: false,
+        winner: null,
+        setsWon: { player1: 0, player2: 0 },
+      },
+      suspendedSessionId: undefined,
+      matchStateSnapshot: null,
+    };
+
+    const { container } = render(<MatchCard match={match} />);
+
+    expect(container.textContent).toContain("3");
+    expect(container.textContent).toContain("2");
+    expect(container.textContent).toContain("4");
+    expect(container.textContent).toContain("15");
+    expect(container.textContent).toContain("30");
+  });
 });

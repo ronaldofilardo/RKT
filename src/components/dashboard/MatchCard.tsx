@@ -196,23 +196,31 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
             <div className="text-right text-sm font-mono">
               {scoreState?.sets && scoreState.sets.length > 0 ? (
                 <>
-                  {/* Header: Set 1, Set 2, Set 3..., Pontos */}
-                  <div className="grid gap-x-1 text-[10px] text-gray-500" style={{
-                    gridTemplateColumns: `repeat(${scoreState.sets.length}, 1.5rem) 2.5rem`
+                  {/* Grid container com 4 linhas: Labels, Números, Player1, Player2 */}
+                  <div className="grid" style={{
+                    gridTemplateColumns: `repeat(${scoreState.sets.length}, 1.5rem) 2.5rem`,
+                    gridTemplateRows: 'auto auto 2rem 2rem',
+                    rowGap: '0.125rem'
                   }}>
+                    {/* Linha 1: "Sets" (span nos sets) */}
+                    <span className="text-[10px] text-gray-500 text-center" style={{
+                      gridColumn: `1 / ${scoreState.sets.length + 1}`
+                    }}>Sets</span>
+                    <span></span>
+                    
+                    {/* Linha 2: números 1, 2, 3... + "Pontos" ao lado do último set */}
                     {scoreState.sets.map((_: any, idx: number) => (
-                      <span key={idx}>{idx + 1}</span>
+                      <span key={idx} className="text-[10px] text-gray-500 text-center">{idx + 1}</span>
                     ))}
-                    <span>Pontos</span>
-                  </div>
-                  {/* Player 1 */}
-                  <div className={["grid gap-x-1 h-8 items-center", isSuspendedAnnotation ? "text-amber-700" : "text-gray-900"].join(" ")} style={{
-                    gridTemplateColumns: `repeat(${scoreState.sets.length}, 1.5rem) 2.5rem`
-                  }}>
+                    <span className="text-[10px] text-gray-500 text-center">Pontos</span>
+                    
+                    {/* Linha 3: Player 1 scores */}
                     {scoreState.sets.map((s: any, idx: number) => (
-                      <span key={idx}>{s.player1 ?? 0}</span>
+                      <span key={idx} className={["text-sm flex items-center justify-center", isSuspendedAnnotation ? "text-amber-700" : "text-gray-900"].join(" ")}>
+                        {s.player1 ?? 0}
+                      </span>
                     ))}
-                    <span>
+                    <span className={["text-sm flex items-center justify-center", isSuspendedAnnotation ? "text-amber-700" : "text-gray-900"].join(" ")}>
                       {(() => {
                         const pts = scoreState?.currentGame?.player1 ?? 0;
                         if (scoreState?.currentGame?.advantage === "player1") return "AD";
@@ -220,15 +228,14 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
                         return GP[Math.min(pts, 3)];
                       })()}
                     </span>
-                  </div>
-                  {/* Player 2 */}
-                  <div className={["grid gap-x-1 h-8 items-center", isSuspendedAnnotation ? "text-amber-700" : "text-gray-900"].join(" ")} style={{
-                    gridTemplateColumns: `repeat(${scoreState.sets.length}, 1.5rem) 2.5rem`
-                  }}>
+                    
+                    {/* Linha 4: Player 2 scores */}
                     {scoreState.sets.map((s: any, idx: number) => (
-                      <span key={idx}>{s.player2 ?? 0}</span>
+                      <span key={idx} className={["text-sm flex items-center justify-center", isSuspendedAnnotation ? "text-amber-700" : "text-gray-900"].join(" ")}>
+                        {s.player2 ?? 0}
+                      </span>
                     ))}
-                    <span>
+                    <span className={["text-sm flex items-center justify-center", isSuspendedAnnotation ? "text-amber-700" : "text-gray-900"].join(" ")}>
                       {(() => {
                         const pts = scoreState?.currentGame?.player2 ?? 0;
                         if (scoreState?.currentGame?.advantage === "player2") return "AD";
@@ -242,11 +249,11 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
                 <>
                   <div className="grid grid-cols-[1.5rem_2.5rem] gap-x-1 text-[10px] text-gray-500">
                     <span></span>
-                    <span>Pontos</span>
+                    <span className="text-center">Pontos</span>
                   </div>
                   <div className={["grid grid-cols-[1.5rem_2.5rem] gap-x-1 h-8 items-center", isSuspendedAnnotation ? "text-amber-700" : "text-gray-900"].join(" ")}>
                     <span className="text-[10px] text-gray-400">p1</span>
-                    <span>
+                    <span className="text-center">
                       {(() => {
                         const pts = scoreState?.currentGame?.player1 ?? 0;
                         if (scoreState?.currentGame?.advantage === "player1") return "AD";
@@ -257,7 +264,7 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
                   </div>
                   <div className={["grid grid-cols-[1.5rem_2.5rem] gap-x-1 h-8 items-center", isSuspendedAnnotation ? "text-amber-700" : "text-gray-900"].join(" ")}>
                     <span className="text-[10px] text-gray-400">p2</span>
-                    <span>
+                    <span className="text-center">
                       {(() => {
                         const pts = scoreState?.currentGame?.player2 ?? 0;
                         if (scoreState?.currentGame?.advantage === "player2") return "AD";
