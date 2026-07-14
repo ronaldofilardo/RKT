@@ -17,7 +17,6 @@ import { PointDetailsModal } from "@/components/scoring/PointDetailsModal";
 import { ServerEffectModal } from "@/components/scoring/ServerEffectModal";
 import { EditScoreModal } from "@/components/scoring/EditScoreModal";
 import { MatchTimelineView } from "@/components/scoring/MatchTimelineView";
-import { BolasTrocadasModal } from "@/components/scoring/BolasTrocadasModal";
 import CourtBackground from "@/components/scoring/CourtBackground";
 import { enrichPointsFromHistory } from "@/components/scoring/timeline-utils";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
@@ -87,10 +86,6 @@ export default function ScoringPage() {
   } | null>(null);
   const [viewMode, setViewMode] = useState<"scoring" | "timeline">("scoring");
   const [undoTimestamp, setUndoTimestamp] = useState<number | null>(null);
-  const [pendingBolasTrocadas, setPendingBolasTrocadasLocal] = useState<{
-    winnerSide: "player1" | "player2";
-    details: any;
-  } | null>(null);
   const isProcessingRef = useRef(false);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -196,26 +191,13 @@ const {
     [originalHandleEditScore, matchId, router]
   );
 
-  const handleBolasTrocadasConfirm = useCallback(
-    (numBolas: number) => {
-      if (!pendingBolasTrocadas || !match) {
-        setPendingBolasTrocadasLocal(null);
-        return;
-      }
-
-      const { winnerSide } = pendingBolasTrocadas;
-      
-      open("point-details", { winner: winnerSide, rallyLength: String(numBolas >= 0 ? numBolas : 1) });
-      setPendingBolasTrocadasLocal(null);
-    },
-    [pendingBolasTrocadas, match, open],
-  );
+  
 
   const handlePointFromCard = useCallback(
     (winnerSide: "player1" | "player2") => {
-      setPendingBolasTrocadasLocal({ winnerSide, details: null });
+      open("point-details", { winner: winnerSide });
     },
-    [],
+    [open],
   );
 
   useEffect(() => {
@@ -638,14 +620,6 @@ const {
           fontScale={fontScale}
           onConfirm={handlePointDetailsConfirm}
           onCancel={close}
-        />
-      )}
-
-{pendingBolasTrocadas && (
-        <BolasTrocadasModal
-          fontScale={fontScale}
-          onConfirm={handleBolasTrocadasConfirm}
-          onCancel={() => setPendingBolasTrocadasLocal(null)}
         />
       )}
     </div>
