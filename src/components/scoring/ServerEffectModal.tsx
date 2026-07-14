@@ -139,12 +139,14 @@ export function ServerEffectModal({
               {serveStep === 'first' ? '1º Saque' : '2º Saque'}
             </span>
           </p>
-          <p className="text-center text-sm text-gray-300 mt-0.5">
-            Ponto para:{' '}
-            <span className={context === 'winner' ? 'text-blue-400 font-semibold' : 'text-amber-400 font-semibold'}>
-              {winnerName}
-            </span>
-          </p>
+          {isDoubleFault || context === 'winner' ? (
+            <p className="text-center text-sm text-gray-300 mt-0.5">
+              Ponto para:{' '}
+              <span className={context === 'winner' ? 'text-blue-400 font-semibold' : 'text-amber-400 font-semibold'}>
+                {winnerName}
+              </span>
+            </p>
+          ) : null}
         </div>
 
         {/* Body */}
