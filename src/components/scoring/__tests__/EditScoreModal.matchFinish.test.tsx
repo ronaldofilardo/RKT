@@ -229,6 +229,107 @@ describe("EditScoreModal - Detecção de Partida Encerrada", () => {
     });
   });
 
+  describe("Teste 5: Bug 6-5 no 3º set - NÃO deve encerrar partida", () => {
+    it("não deve mostrar 'Partida Encerrada' com placar 6-5 no 3º set (sets 1x1)", async () => {
+      const completedSets = [
+        {
+          games: { player1: 6, player2: 3 },
+          winner: "player1" as const,
+        },
+        {
+          games: { player1: 2, player2: 6 },
+          winner: "player2" as const,
+        },
+      ];
+
+      render(
+        <EditScoreModal
+          {...defaultProps}
+          matchFormat="BEST_OF_3"
+          completedSets={completedSets}
+          currentSets={{ player1: 0, player2: 0 }}
+        />
+      );
+
+      // Digita placar 6-5 no 3º set
+      const inputs = screen.getAllByRole("spinbutton");
+      fireEvent.change(inputs[0], { target: { value: "6" } });
+      fireEvent.change(inputs[1], { target: { value: "5" } });
+
+      // Verifica que NÃO mostra banner de partida encerrada
+      await waitFor(() => {
+        expect(screen.queryByText(/Partida encerrada — confirmar para finalizar/i)).not.toBeInTheDocument();
+      });
+
+      // Verifica que mostra mensagem de set em andamento
+      expect(screen.getByText(/Set 3 em andamento — informe os games/i)).toBeInTheDocument();
+    });
+
+    it("deve mostrar 'Partida Encerrada' apenas com placar 7-5 no 3º set (sets 1x1)", async () => {
+      const completedSets = [
+        {
+          games: { player1: 6, player2: 3 },
+          winner: "player1" as const,
+        },
+        {
+          games: { player1: 2, player2: 6 },
+          winner: "player2" as const,
+        },
+      ];
+
+      render(
+        <EditScoreModal
+          {...defaultProps}
+          matchFormat="BEST_OF_3"
+          completedSets={completedSets}
+          currentSets={{ player1: 0, player2: 0 }}
+        />
+      );
+
+      // Digita placar 7-5 no 3º set
+      const inputs = screen.getAllByRole("spinbutton");
+      fireEvent.change(inputs[0], { target: { value: "7" } });
+      fireEvent.change(inputs[1], { target: { value: "5" } });
+
+      // Verifica que mostra banner de partida encerrada
+      await waitFor(() => {
+        expect(screen.getByText(/Partida encerrada — confirmar para finalizar/i)).toBeInTheDocument();
+      });
+    });
+
+    it("deve mostrar 'Partida Encerrada' com placar 7-6 após tie-break no 3º set", async () => {
+      const completedSets = [
+        {
+          games: { player1: 6, player2: 3 },
+          winner: "player1" as const,
+        },
+        {
+          games: { player1: 2, player2: 6 },
+          winner: "player2" as const,
+        },
+      ];
+
+      render(
+        <EditScoreModal
+          {...defaultProps}
+          matchFormat="BEST_OF_3"
+          completedSets={completedSets}
+          currentSets={{ player1: 0, player2: 0 }}
+        />
+      );
+
+      // Digita placar 7-6 no 3º set
+      const inputs = screen.getAllByRole("spinbutton");
+      fireEvent.change(inputs[0], { target: { value: "7" } });
+      fireEvent.change(inputs[1], { target: { value: "6" } });
+
+      // Verifica que mostra banner de partida encerrada
+      await waitFor(() => {
+        expect(screen.getByText(/Partida encerrada — confirmar para finalizar/i)).toBeInTheDocument();
+      });
+    });
+  });
+
   describe("Teste 4: Fluxo completo com redirecionamento", () => {
     it("deve executar fluxo completo: editar -> confirmar -> chamar callback", async () => {
       const onMatchFinishedMock = jest.fn();
