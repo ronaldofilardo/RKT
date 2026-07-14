@@ -86,4 +86,72 @@ describe("EditScoreModal - Pontos do Game Atual", () => {
     fireEvent.change(p1Select, { target: { value: "40" } });
     expect(p1Select.value).toBe("40");
   });
+
+  it("deve desabilitar pontos no game atual em formato MATCH_TB_10", () => {
+    render(
+      <EditScoreModal
+        {...defaultProps}
+        matchFormat="MATCH_TB_10"
+        currentSets={{ player1: 5, player2: 3 }}
+      />
+    );
+
+    const selects = screen.getAllByRole("combobox");
+    const p1Select = selects[0] as HTMLSelectElement;
+    const p2Select = selects[1] as HTMLSelectElement;
+
+    expect(p1Select).toBeDisabled();
+    expect(p2Select).toBeDisabled();
+  });
+
+  it("deve desabilitar pontos no game atual em BEST_OF_3_MATCH_TB no set 3", () => {
+    render(
+      <EditScoreModal
+        {...defaultProps}
+        matchFormat="BEST_OF_3_MATCH_TB"
+        completedSets={[
+          { games: { player1: 6, player2: 4 }, winner: "player1" },
+          { games: { player1: 3, player2: 6 }, winner: "player2" },
+        ]}
+        currentSets={{ player1: 5, player2: 3 }}
+      />
+    );
+
+    const selects = screen.getAllByRole("combobox");
+    const p1Select = selects[0] as HTMLSelectElement;
+    const p2Select = selects[1] as HTMLSelectElement;
+
+    expect(p1Select).toBeDisabled();
+    expect(p2Select).toBeDisabled();
+  });
+
+  it("deve habilitar pontos no game atual em BEST_OF_3_MATCH_TB no set 1", () => {
+    render(
+      <EditScoreModal
+        {...defaultProps}
+        matchFormat="BEST_OF_3_MATCH_TB"
+        currentSets={{ player1: 3, player2: 2 }}
+      />
+    );
+
+    const selects = screen.getAllByRole("combobox");
+    const p1Select = selects[0] as HTMLSelectElement;
+    const p2Select = selects[1] as HTMLSelectElement;
+
+    expect(p1Select).not.toBeDisabled();
+    expect(p2Select).not.toBeDisabled();
+  });
+
+  it("deve mostrar mensagem de match tiebreak desativado", () => {
+    render(
+      <EditScoreModal
+        {...defaultProps}
+        matchFormat="MATCH_TB_10"
+        currentSets={{ player1: 5, player2: 3 }}
+      />
+    );
+
+    const mensagens = screen.getAllByText(/Match Tie-Break usa pontos corridos/i);
+    expect(mensagens.length).toBeGreaterThanOrEqual(1);
+  });
 });
