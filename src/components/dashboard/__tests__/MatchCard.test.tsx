@@ -538,4 +538,103 @@ describe("MatchCard", () => {
     expect(container.textContent).toContain("15");
     expect(container.textContent).toContain("30");
   });
+
+  it("exibe apenas pontos com label 'Pontos' quando sets está vazio", () => {
+    const match = {
+      id: "match-19",
+      state: "IN_PROGRESS",
+      format: "BEST_OF_3",
+      player1: { name: "Segundo Jogador" },
+      player2: { name: "Pedro Oliveira" },
+      scheduledAt: "2026-07-14T11:11:00.000Z",
+      scoreState: {
+        sets: [],
+        currentGame: {
+          player1: 2,
+          player2: 1,
+          isDeuce: false,
+          advantage: null,
+          secondServe: false,
+        },
+        server: "player1",
+        isFinished: false,
+        winner: null,
+        setsWon: { player1: 0, player2: 0 },
+        startedAt: null,
+        secondServe: false,
+      },
+      suspendedSessionId: null,
+      matchStateSnapshot: null,
+    };
+
+    const { container } = render(<MatchCard match={match} />);
+
+    expect(screen.getByText("Pontos")).toBeTruthy();
+    expect(screen.getByText("30")).toBeTruthy();
+    expect(screen.getByText("15")).toBeTruthy();
+    expect(screen.getByText("Segundo Jogador")).toBeTruthy();
+    expect(screen.getByText("Pedro Oliveira")).toBeTruthy();
+  });
+
+  it("exibe layout consistente entre partidas Em Andamento e Finalizadas", () => {
+    const matchInProgress = {
+      id: "match-20",
+      state: "IN_PROGRESS",
+      format: "BEST_OF_3",
+      player1: { name: "Joao Silva" },
+      player2: { name: "Play1" },
+      scheduledAt: null,
+      scoreState: {
+        sets: [
+          { player1: 7, player2: 10, isTiebreak: true, tiebreakScore: { player1: 7, player2: 10 } },
+        ],
+        currentGame: {
+          player1: 0,
+          player2: 0,
+          isDeuce: false,
+          advantage: null,
+        },
+        server: "player1",
+        isFinished: false,
+        winner: null,
+        setsWon: { player1: 0, player2: 0 },
+      },
+      suspendedSessionId: undefined,
+      matchStateSnapshot: null,
+    };
+
+    const matchFinished = {
+      id: "match-21",
+      state: "FINISHED",
+      format: "MATCH_TB_10",
+      player1: { name: "Joao Silva" },
+      player2: { name: "Play1" },
+      scheduledAt: null,
+      scoreState: {
+        sets: [
+          { player1: 0, player2: 0, isTiebreak: true, tiebreakScore: { player1: 7, player2: 10 } },
+        ],
+        currentGame: {
+          player1: 0,
+          player2: 0,
+          isDeuce: false,
+          advantage: null,
+        },
+        server: "player1",
+        isFinished: true,
+        winner: "player2",
+        setsWon: { player1: 0, player2: 1 },
+      },
+      suspendedSessionId: undefined,
+      matchStateSnapshot: null,
+    };
+
+    const { container: container1 } = render(<MatchCard match={matchInProgress} />);
+    const { container: container2 } = render(<MatchCard match={matchFinished} />);
+
+    expect(container1.textContent).toContain("Sets");
+    expect(container2.textContent).toContain("Sets");
+    expect(container1.textContent).toContain("Pontos");
+    expect(container2.textContent).toContain("Pontos");
+  });
 });

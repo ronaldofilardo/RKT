@@ -6,6 +6,7 @@
 
 import { ScoringEngine } from "@/core/scoring/engine";
 import type { ScoringState, SetScore } from "@/core/scoring/types";
+import { pointToProgress } from "@/core/scoring/point-utils";
 
 describe("Score Adjustment Integration Test", () => {
   it("should reconstruct state with completedSets + partial set correctly", () => {
@@ -90,25 +91,8 @@ describe("Score Adjustment Integration Test", () => {
   it("should correctly map 0-40 game points and apply points", () => {
     // BUG B FIX: game points 0-40 should map to engine state {player1:0, player2:3}
 
-    // parseP conversion (in handleEditScore)
-    const parseP = (v: number | string): number => {
-      if (typeof v === "string") {
-        if (v === "AD") return 4;
-        if (v === "DEUCE") return 3;
-        const n = parseInt(v, 10);
-        if (n === 40) return 3;
-        if (n === 30) return 2;
-        if (n === 15) return 1;
-        return 0;
-      }
-      if (v === 40) return 3;
-      if (v === 30) return 2;
-      if (v === 15) return 1;
-      return v;
-    };
-
-    const p1p = parseP(0);
-    const p2p = parseP(40);
+    const p1p = pointToProgress(0);
+    const p2p = pointToProgress(40);
 
     const gameState = {
       player1: Math.min(p1p, 4),

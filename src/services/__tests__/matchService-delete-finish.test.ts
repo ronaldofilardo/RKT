@@ -5,6 +5,13 @@ jest.mock('@/lib/prisma', () => ({
       update: jest.fn(),
       delete: jest.fn(),
     },
+    pointLog: {
+      deleteMany: jest.fn(),
+    },
+    matchAnnotationSession: {
+      deleteMany: jest.fn(),
+    },
+    $transaction: jest.fn((ops) => Promise.all(ops)),
   },
 }));
 
@@ -44,7 +51,7 @@ describe('deleteMatch', () => {
     });
   });
 
-  it('deve bloquear hard delete de partida com pontos', async () => {
+  it('deve permitir hard delete de partida com pontos', async () => {
     const { deleteMatch } = await import('@/services/matchService');
 
     mockPrisma.match.findFirst.mockResolvedValue({
@@ -54,15 +61,12 @@ describe('deleteMatch', () => {
       annotationSessions: [],
     });
 
+    mockPrisma.match.delete.mockResolvedValue({ id: 'm1' });
+
     const result = await deleteMatch('m1', { type: 'hard' });
 
-    expect(result).toEqual({
-      error: 'CANNOT_HARD_DELETE_WITH_POINTS: Não é possível excluir permanentemente partida com pontos registrados. Use soft delete.',
-      stats: {
-        points: 2,
-        annotationSessions: 0,
-      },
-    });
+    expect(result).toEqual({ success: true, type: 'hard' });
+    expect(mockPrisma.match.delete).toHaveBeenCalledWith({ where: { id: 'm1' } });
   });
 
   it('deve realizar hard delete com sucesso', async () => {

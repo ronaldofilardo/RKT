@@ -158,8 +158,9 @@ describe('ScoreboardCard', () => {
         scoreState={tiebreakScoreState}
       />
     );
+    // Tie-break: deve mostrar os pontos do tiebreak (7x5), não os games (7x6)
     expect(screen.getByText('7')).toBeInTheDocument();
-    expect(screen.getByText('6')).toBeInTheDocument();
+    expect(screen.getByText('5')).toBeInTheDocument();
   });
 
   it('renders multiple completed sets with numbered headers', () => {
