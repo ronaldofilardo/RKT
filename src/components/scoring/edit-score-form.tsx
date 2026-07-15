@@ -96,7 +96,7 @@ export function SetInputForm({
 
   return (
     <div className="space-y-3 rounded-lg bg-gray-750 border border-white/5 p-3">
-      {matchFormat === 'BEST_OF_3_MATCH_TB' && totalEditedSets === 2 ? (
+      {isMatchTiebreakSet ? (
         <>
           <p className="text-xs font-semibold text-purple-400 uppercase tracking-wide">
             Set {totalEditedSets + 1} — Match Tiebreak
@@ -314,7 +314,7 @@ export function SetInputForm({
         </div>
       )}
 
-      {matchFormat !== 'BEST_OF_3_MATCH_TB' || totalEditedSets !== 2 ? (
+      {isMatchTiebreakSet ? null : (
         <button
           onClick={onAddSet}
           className="mt-2 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-sm transition-all"
@@ -322,7 +322,7 @@ export function SetInputForm({
         >
           Adicionar Set {totalEditedSets + 2}
         </button>
-      ) : null}
+      )}
     </div>
   );
 }

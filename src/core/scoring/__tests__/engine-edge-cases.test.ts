@@ -215,7 +215,7 @@ describe('ScoringEngine - BEST_OF_3_MATCH_TB', () => {
     expect(engine.getState().winner).toBe('player1');
   });
 
-  it('deve não iniciar tiebreak no set decisivo (1-1) em 6-6', () => {
+  it('deve iniciar match tiebreak no set decisivo (1-1)', () => {
     const engine = new ScoringEngine(makeConfig('BEST_OF_3_MATCH_TB'));
 
     for (let g = 0; g < 6; g++) winGame(engine, 'player-1-id');
@@ -224,11 +224,12 @@ describe('ScoringEngine - BEST_OF_3_MATCH_TB', () => {
     expect(engine.getState().setsWon.player1).toBe(1);
     expect(engine.getState().setsWon.player2).toBe(1);
 
-    for (let g = 0; g < 6; g++) winGame(engine, 'player-1-id');
-    for (let g = 0; g < 6; g++) winGame(engine, 'player-2-id');
-
-    expect(engine.getState().isFinished).toBe(false);
-    expect(engine.getState().sets[2]?.isTiebreak).toBeFalsy();
+    // Após 1-1 em sets, o próximo game inicia o match tiebreak
+    // O 3º set já começa como tiebreak (não é set regular)
+    const state = engine.getState();
+    expect(state.sets.length).toBe(3);
+    expect(state.sets[2].isTiebreak).toBe(true);
+    expect(state.sets[2].tiebreakScore).toEqual({ player1: 0, player2: 0 });
   });
 });
 

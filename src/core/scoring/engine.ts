@@ -1,4 +1,10 @@
 import type { ScoringEngineConfig, ScoringState, PointFlow, PointDetails, GameScore, SetScore, HistoryEntry } from './types';
+import {
+  processStandardPoint,
+  processDeucePoint,
+  processTiebreakPoint,
+  processMatchTiebreak,
+} from './point-handlers';
 
 export class ScoringEngine {
   private state: ScoringState;
@@ -134,7 +140,22 @@ export class ScoringEngine {
     this.state.secondServe = false;
     this.state.currentGame.secondServe = false;
 
-    const isMatchTiebreak = this.config.format === 'MATCH_TB_10';
+    // Match Tie-Break detection
+    const isMatchTiebreak = 
+      this.config.format === 'MATCH_TB_10' ||
+      (this.config.format === 'BEST_OF_3_MATCH_TB' && 
+       this.state.sets.length === 3 && 
+       this.state.sets[2]?.isTiebreak && 
+       this.state.sets[2]?.tiebreakScore !== null) ||
+      (this.config.format === 'BEST_OF_5' && 
+       this.state.sets.length === 5 && 
+       this.state.sets[4]?.isTiebreak && 
+       this.state.sets[4]?.tiebreakScore !== null) ||
+      (this.config.format === 'SHORT_SET_2V2_NO_AD' && 
+       this.state.sets.length === 3 && 
+       this.state.sets[2]?.isTiebreak && 
+       this.state.sets[2]?.tiebreakScore !== null);
+    
     if (isMatchTiebreak) {
       return this.processMatchTiebreak(winner);
     }
@@ -287,6 +308,25 @@ export class ScoringEngine {
 
     const newServer = this.state.server === 'player1' ? 'player2' : 'player1';
 
+    // Detectar se deve iniciar Match Tiebreak ao invés de set regular
+    const shouldStartMatchTiebreak = this.shouldStartMatchTiebreak();
+    if (shouldStartMatchTiebreak) {
+      // Inicia match tiebreak como um set único
+      const matchTbSet: SetScore = {
+        player1: 0,
+        player2: 0,
+        isTiebreak: true,
+        tiebreakScore: { player1: 0, player2: 0 },
+      };
+      newSets.push(matchTbSet);
+      return {
+        ...this.state,
+        sets: newSets,
+        currentGame: this.createEmptyGame(),
+        server: newServer,
+      };
+    }
+
     if (this.shouldStartTiebreak(newSet)) {
       newSet.isTiebreak = true;
       newSet.tiebreakScore = { player1: 0, player2: 0 };
@@ -342,7 +382,12 @@ export class ScoringEngine {
       ? this.state.server
       : (this.state.server === 'player1' ? 'player2' : 'player1');
 
-    const tbMin = this.config.format === 'MATCH_TB_10' ? 10 : 7;
+    // Match tiebreak (10 pts) vs Set tiebreak (7 pts)
+    const isMatchTb = this.config.format === 'MATCH_TB_10' ||
+      (this.config.format === 'BEST_OF_5' && this.state.sets.length === 5) ||
+      (this.config.format === 'BEST_OF_3_MATCH_TB' && this.state.sets.length === 3) ||
+      (this.config.format === 'SHORT_SET_2V2_NO_AD' && this.state.sets.length === 3);
+    const tbMin = isMatchTb ? 10 : 7;
 
     if (newTb.player1 >= tbMin && newTb.player1 - newTb.player2 >= 2) {
       return this.completeSetWithTiebreak('player1', newTb, newServer);
@@ -363,23 +408,125 @@ export class ScoringEngine {
     };
   }
 
+  private isSetComplete(set: SetScore, setsWon: { player1: number; player2: number }): boolean {
+    const diff = Math.abs(set.player1 - set.player2);
+    const maxGames = Math.max(set.player1, set.player2);
+
+    // Tiebreak de set regular (7 pts)
+    if (set.isTiebreak && set.tiebreakScore) {
+      const tb = set.tiebreakScore;
+      const tbMax = Math.max(tb.player1, tb.player2);
+      const tbDiff = Math.abs(tb.player1 - tb.player2);
+      // Match tiebreak (10 pts) vs Set tiebreak (7 pts)
+      const isMatchTb = this.config.format === 'MATCH_TB_10' ||
+        (this.config.format === 'BEST_OF_5' && this.state.sets.length === 5) ||
+        (this.config.format === 'BEST_OF_3_MATCH_TB' && this.state.sets.length === 3) ||
+        (this.config.format === 'SHORT_SET_2V2_NO_AD' && this.state.sets.length === 3);
+      const tbMin = isMatchTb ? 10 : 7;
+      return tbMax >= tbMin && tbDiff >= 2;
+    }
+
+    if (this.usesNoAd()) {
+      const needed = this.config.format === 'SHORT_SET_2V2_NO_AD' ? 4 : 6;
+      return maxGames >= needed && diff >= 2;
+    }
+
+    if (this.isFinalSet()) {
+      const needed = this.getGamesToTiebreak();
+      // PRO_SET_8: completa em 8 games com diff 2, ou TB em 8/8
+      if (this.config.format === 'PRO_SET_8') {
+        return maxGames >= 8 && diff >= 2;
+      }
+      return maxGames >= needed && diff >= 2;
+    }
+
+    if (this.config.format === 'BEST_OF_5') {
+      // 5º set não completa como set regular (tem MT)
+      if (this.state.sets.length >= 4 && setsWon.player1 === 2 && setsWon.player2 === 2) {
+        return false;
+      }
+    }
+
+    if (this.config.format === 'BEST_OF_3') {
+      // 3º set completa normal (sem TB)
+      if (maxGames === 6 && diff >= 2) return true;
+      if (maxGames > 6 && diff >= 2) return true;
+      return false;
+    }
+
+    if (maxGames === 6 && diff >= 2) return true;
+    if (maxGames > 6 && diff >= 2) return true;
+    return false;
+  }
+
   private shouldStartTiebreak(set: SetScore): boolean {
     const noAd = this.usesNoAd();
     const isFinalSet_ = this.isFinalSet();
 
     if (noAd) return set.player1 === 4 && set.player2 === 4;
+    
     if (isFinalSet_) {
       const games = this.getGamesToTiebreak();
+      // PRO_SET_8: TB em 8/8
       return set.player1 === games && set.player2 === games;
     }
-    if (this.config.format === 'BEST_OF_3_MATCH_TB') {
+    
+    // BEST_OF_5: 5º set tem MT em 6/6
+    if (this.config.format === 'BEST_OF_5') {
       const setsWon = this.state.setsWon;
-      const totalSets = this.state.sets.length;
-      if (totalSets >= 2 && (setsWon.player1 === 1 && setsWon.player2 === 1)) {
+      if (this.state.sets.length >= 4 && setsWon.player1 === 2 && setsWon.player2 === 2) {
+        return set.player1 === 6 && set.player2 === 6; // MT no 5º set
+      }
+      return set.player1 === 6 && set.player2 === 6; // TB regular sets 1-4
+    }
+    
+    // BEST_OF_3: 3º set NÃO tem tiebreak
+    if (this.config.format === 'BEST_OF_3') {
+      const setsWon = this.state.setsWon;
+      if (this.state.sets.length >= 2 && setsWon.player1 === 1 && setsWon.player2 === 1) {
         return false;
       }
+      return set.player1 === 6 && set.player2 === 6;
     }
+    
+    if (this.config.format === 'BEST_OF_3_MATCH_TB') {
+      const setsWon = this.state.setsWon;
+      // 3º set (1-1) NÃO inicia TB regular - será MT
+      if (this.state.sets.length >= 2 && setsWon.player1 === 1 && setsWon.player2 === 1) {
+        return false;
+      }
+      return set.player1 === 6 && set.player2 === 6;
+    }
+    
     return set.player1 === 6 && set.player2 === 6;
+  }
+
+  private shouldStartMatchTiebreak(): boolean {
+    // BEST_OF_3_MATCH_TB: 3º set (1-1 em sets)
+    if (this.config.format === 'BEST_OF_3_MATCH_TB') {
+      const setsWon = this.state.setsWon;
+      if (setsWon.player1 === 1 && setsWon.player2 === 1 && this.state.sets.length === 2) {
+        return true;
+      }
+    }
+    
+    // SHORT_SET_2V2_NO_AD: 3º set (1-1 em sets)
+    if (this.config.format === 'SHORT_SET_2V2_NO_AD') {
+      const setsWon = this.state.setsWon;
+      if (setsWon.player1 === 1 && setsWon.player2 === 1 && this.state.sets.length === 2) {
+        return true;
+      }
+    }
+    
+    // BEST_OF_5: 5º set (2-2 em sets) em 6/6
+    if (this.config.format === 'BEST_OF_5') {
+      const setsWon = this.state.setsWon;
+      if (setsWon.player1 === 2 && setsWon.player2 === 2 && this.state.sets.length === 4) {
+        return true;
+      }
+    }
+    
+    return false;
   }
 
   private usesNoAd(): boolean {
@@ -404,11 +551,18 @@ export class ScoringEngine {
     const diff = Math.abs(set.player1 - set.player2);
     const maxGames = Math.max(set.player1, set.player2);
 
+    // Tiebreak de set regular (7 pts)
     if (set.isTiebreak && set.tiebreakScore) {
       const tb = set.tiebreakScore;
       const tbMax = Math.max(tb.player1, tb.player2);
       const tbDiff = Math.abs(tb.player1 - tb.player2);
-      return tbMax >= 7 && tbDiff >= 2;
+      // Match tiebreak (10 pts) vs Set tiebreak (7 pts)
+      const isMatchTb = this.config.format === 'MATCH_TB_10' ||
+        (this.config.format === 'BEST_OF_5' && this.state.sets.length === 5) ||
+        (this.config.format === 'BEST_OF_3_MATCH_TB' && this.state.sets.length === 3) ||
+        (this.config.format === 'SHORT_SET_2V2_NO_AD' && this.state.sets.length === 3);
+      const tbMin = isMatchTb ? 10 : 7;
+      return tbMax >= tbMin && tbDiff >= 2;
     }
 
     if (this.usesNoAd()) {
@@ -418,17 +572,25 @@ export class ScoringEngine {
 
     if (this.isFinalSet()) {
       const needed = this.getGamesToTiebreak();
+      // PRO_SET_8: completa em 8 games com diff 2, ou TB em 8/8
+      if (this.config.format === 'PRO_SET_8') {
+        return maxGames >= 8 && diff >= 2;
+      }
       return maxGames >= needed && diff >= 2;
     }
 
-    if (this.config.format === 'BEST_OF_3_MATCH_TB') {
-      // In a BEST_OF_3_MATCH_TB the 3rd set is a match tiebreak, not a regular
-      // set. isSetComplete should never approve a regular set when both players
-      // already have 1 set each (that would be the 3rd set slot).
-      const totalSets = this.state.sets.length;
-      if (totalSets >= 2 && setsWon.player1 === 1 && setsWon.player2 === 1) {
+    if (this.config.format === 'BEST_OF_5') {
+      // 5º set não completa como set regular (tem MT)
+      if (this.state.sets.length >= 4 && setsWon.player1 === 2 && setsWon.player2 === 2) {
         return false;
       }
+    }
+
+    if (this.config.format === 'BEST_OF_3') {
+      // 3º set completa normal (sem TB)
+      if (maxGames === 6 && diff >= 2) return true;
+      if (maxGames > 6 && diff >= 2) return true;
+      return false;
     }
 
     if (maxGames === 6 && diff >= 2) return true;
@@ -461,6 +623,14 @@ export class ScoringEngine {
         return this.getState();
       }
       if (setsWon.player1 === 1 && setsWon.player2 === 1) {
+        // Inicia match tiebreak como 3º set
+        const matchTbSet: SetScore = {
+          player1: 0,
+          player2: 0,
+          isTiebreak: true,
+          tiebreakScore: { player1: 0, player2: 0 },
+        };
+        newSets.push(matchTbSet);
         return {
           ...this.state,
           sets: newSets,

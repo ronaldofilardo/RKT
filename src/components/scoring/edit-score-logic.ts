@@ -85,11 +85,12 @@ export function calculateValidation(
   const p2Val = p2Input === '' ? NaN : parseInt(p2Input, 10);
   const bothFilled = !isNaN(p1Val) && !isNaN(p2Val) && p1Val >= 0 && p2Val >= 0;
 
-  // Match Tie-Break: formato BEST_OF_3_MATCH_TB E é o 3º set (totalEditedSets === 2)
-  // OU formato MATCH_TB_10 (partida inteira é um match tiebreak)
+  // Match Tie-Break detection para TODOS os formatos
   const isMatchTiebreakSet = 
-    (matchFormat === 'BEST_OF_3_MATCH_TB' && totalEditedSets === 2) ||
-    matchFormat === 'MATCH_TB_10';
+    (matchFormat === 'BEST_OF_3_MATCH_TB' && totalEditedSets === 2) ||  // 3º set
+    (matchFormat === 'SHORT_SET_2V2_NO_AD' && totalEditedSets === 2) ||  // 3º set
+    (matchFormat === 'BEST_OF_5' && totalEditedSets === 4) ||  // 5º set
+    matchFormat === 'MATCH_TB_10';  // Único set
 
   const setValidation = bothFilled
     ? isMatchTiebreakSet
@@ -135,11 +136,13 @@ export function calculateMatchState(
   const maxSets = totalSetsForFormat(matchFormat);
   const setsToWin = setsToWinForFormat(matchFormat);
   const totalEditedSets = completedSets.length + newSets.length;
-  // Match Tie-Break: formato BEST_OF_3_MATCH_TB E é o 3º set (totalEditedSets === 2)
-  // OU formato MATCH_TB_10 (partida inteira é um match tiebreak)
+  
+  // Match Tie-Break detection para TODOS os formatos
   const isMatchTiebreakSet = 
-    (matchFormat === 'BEST_OF_3_MATCH_TB' && totalEditedSets === 2) ||
-    matchFormat === 'MATCH_TB_10';
+    (matchFormat === 'BEST_OF_3_MATCH_TB' && totalEditedSets === 2) ||  // 3º set
+    (matchFormat === 'SHORT_SET_2V2_NO_AD' && totalEditedSets === 2) ||  // 3º set
+    (matchFormat === 'BEST_OF_5' && totalEditedSets === 4) ||  // 5º set
+    matchFormat === 'MATCH_TB_10';  // Único set
 
   const p1SetsWonFromProp = completedSets.filter((s) => s.winner === 'player1').length;
   const p2SetsWonFromProp = completedSets.filter((s) => s.winner === 'player2').length;

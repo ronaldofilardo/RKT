@@ -1,10 +1,10 @@
 export const TENNIS_FORMATS = [
-  { value: 'BEST_OF_3', label: 'Melhor de 3 Sets - Com vantagem', hint: '2 sets para vencer | 6 games com tie-break em 6/6 | 3º set inteiro com vantagem | Padrão ITF/ATP/WTA' },
-  { value: 'BEST_OF_3_MATCH_TB', label: 'Melhor de 3 sets - Tie-break no 3º', hint: '2 sets para vencer | 6 games com tie-break em 6/6 | 3º set é Match Tie-Break de 10 pontos | Juvenil e classes' },
-  { value: 'BEST_OF_5', label: 'Melhor de 5 Sets (Grand Slam)', hint: '3 sets para vencer | 6 games com tie-break em 6/6 | 5º set inteiro com tie-break de 10 pontos | Grand Slams' },
-  { value: 'SHORT_SET_2V2_NO_AD', label: 'Sets curtos 2/2 - No-Ad', hint: '2 sets para vencer | 4 games com tie-break em 4/4 | Sem vantagem | 3º set é Match Tie-Break de 10 pontos | Kids Bola Laranja/Verde (8-10 anos)' },
-  { value: 'MATCH_TB_10', label: 'Match Tie-break', hint: 'Game único de 10 pontos (primeiro a 10, diferença de 2) | Kids Bola Vermelha U8' },
-  { value: 'PRO_SET_8', label: 'Set profissional até 8', hint: '1 set para vencer | 8 games com tie-break em 7/7 (vai a 9) | Organizadores' },
+  { value: 'BEST_OF_3', label: 'Melhor de 3 sets com vantagem', hint: 'Set tie break em todos os sets (7 pts em 6/6). 3º set jogado normal (sem tie break, com vantagem).' },
+  { value: 'BEST_OF_3_MATCH_TB', label: 'Melhor de 3 sets com vantagem e Match Tie break (MT)', hint: 'Set tie break nos 2 primeiros sets (7 pts em 6/6). Match Tie break (10 pts) no lugar do 3º set.' },
+  { value: 'BEST_OF_5', label: 'Melhor de 5 sets (Grand Slam)', hint: 'Set tie break nos 4 primeiros sets (7 pts em 6/6). 5º set com Match tie break em 6/6 (10 pts).' },
+  { value: 'SHORT_SET_2V2_NO_AD', label: 'Melhor de 3 sets "no ad" e placar inicia em 2/2 e MT', hint: 'Set tie break nos 2 primeiros sets (7 pts em 4/4). Match Tie break (10 pts) no lugar do 3º set. Sem vantagem.' },
+  { value: 'MATCH_TB_10', label: 'Match Tie break', hint: 'Match tie break único. Vence quem chegar em 10 pontos primeiro (com 2 pts de vantagem em 9/9, 10/10...).' },
+  { value: 'PRO_SET_8', label: 'Set profissional até 8 games com vantagem', hint: 'Set único até 8 games. Em 7/7 vai a 9. Set tie break em 8/8 (7 pts, com vantagem em 6/6).' },
 ];
 
 export const COURT_TYPES = [

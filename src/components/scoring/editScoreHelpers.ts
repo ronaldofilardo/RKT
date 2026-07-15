@@ -94,15 +94,18 @@ export function validateMatchTiebreakInput(
     return { isValid: false, error: 'Enter the tiebreak result' };
   }
 
+  // Match tiebreak: first to 10 with 2-point lead
   if (p1Points >= 10 && p1Points - p2Points >= 2) {
     return { isValid: true, winner: 'player1' };
   }
   if (p2Points >= 10 && p2Points - p1Points >= 2) {
     return { isValid: true, winner: 'player2' };
   }
+  // Allow partial scores up to ~20 points
   if (p1Points > 20 || p2Points > 20) {
     return { isValid: false, error: 'Maximum ~20 points in tiebreak' };
   }
+  // Partial score (in progress)
   return {
     isValid: true,
     isPartial: true,

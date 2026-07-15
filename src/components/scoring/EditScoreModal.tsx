@@ -1,25 +1,21 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { TennisFormat } from "@/core/scoring/types";
 import type { SetEditData } from "./editScoreHelpers";
+import type { CompletedSet } from "./edit-score-logic";
 import {
-  validateSetResult,
-  validateMatchTiebreakInput,
-  isBelowFloor,
-  setsToWinForFormat,
-  totalSetsForFormat,
-  getNextServerAfterSet,
-} from "./editScoreHelpers";
+  createInitialEditScoreState,
+  createSetEditData,
+  shouldAutoAddSet,
+  calculateNextServer,
+} from "./edit-score-logic";
+import { parsePointValue, toDisplayPoint, pointProgressToIndex, pointToProgress } from "@/core/scoring/point-utils"; // CORREÇÃO #3: Funções unificadas
+import { useEditScoreCalculator } from "./use-edit-score-calculator";
+import { SetsSummary, MatchSummary } from "./edit-score-summary";
+import { SetInputForm } from "./edit-score-form";
 
 type Player = "player1" | "player2";
-
-const GAME_POINTS = ["0", "15", "30", "40", "AD"] as const;
-
-interface CompletedSet {
-  games: Record<Player, number>;
-  winner: Player;
-}
 
 interface EditScoreModalProps {
   isOpen: boolean;
@@ -33,6 +29,17 @@ interface EditScoreModalProps {
   onConfirm: (setResults: SetEditData[], server: Player) => void;
   onCancel: () => void;
   onMatchFinished?: (winner: "player1" | "player2") => void;
+  suspendedSession?: {
+    bankScoreState?: {
+      sets?: Array<{
+        player1: number;
+        player2: number;
+        isTiebreak: boolean;
+        tiebreakScore?: { player1: number; player2: number } | null;
+      }>;
+    } | null;
+  } | null;
+  onRefreshFloor?: () => Promise<{ player1: number; player2: number } | null>; // CORREÇÃO #2: Refetch floor
 }
 
 export function EditScoreModal({
@@ -47,93 +54,34 @@ export function EditScoreModal({
   onConfirm,
   onCancel,
   onMatchFinished,
+  suspendedSession = null,
+  onRefreshFloor, // CORREÇÃO #2: Refetch floor
 }: EditScoreModalProps) {
-  const [newSets, setNewSets] = useState<SetEditData[]>([]);
-  const [p1Input, setP1Input] = useState("");
-  const [p2Input, setP2Input] = useState("");
-  const [p1Points, setP1Points] = useState<string>("0");
-  const [p2Points, setP2Points] = useState<string>("0");
-  const [nextServer, setNextServer] = useState<Player>(currentServer);
-  const [tiebreakP1, setTiebreakP1] = useState<string>("");
-  const [tiebreakP2, setTiebreakP2] = useState<string>("");
+  const [state, setState] = useState(() => createInitialEditScoreState(currentServer));
   const [confirmError, setConfirmError] = useState<string | null>(null);
-  const [floorValidationError, setFloorValidationError] = useState<
-    string | null
-  >(null);
+  const [floorValidationError, setFloorValidationError] = useState<string | null>(null);
   const [isFinishingMatch, setIsFinishingMatch] = useState(false);
 
   const initializedRef = useRef(false);
   const initialGameRef = useRef<{ player1: string; player2: string } | null>(null);
 
-  const maxSets = totalSetsForFormat(matchFormat);
-  const setsToWin = setsToWinForFormat(matchFormat);
-  const p1Val = p1Input === "" ? NaN : parseInt(p1Input, 10);
-  const p2Val = p2Input === "" ? NaN : parseInt(p2Input, 10);
-  const bothFilled = !isNaN(p1Val) && !isNaN(p2Val) && p1Val >= 0 && p2Val >= 0;
+  const calculations = useEditScoreCalculator({
+    matchFormat,
+    completedSets: completedSets as CompletedSet[],
+    currentServer,
+    state,
+    tiebreakP1: state.tiebreakP1,
+    tiebreakP2: state.tiebreakP2,
+  });
 
-  const totalEditedSets = completedSets.length + newSets.length;
-  const isMatchTiebreakSet = matchFormat === 'BEST_OF_3_MATCH_TB' && totalEditedSets === 2;
-
-  const setValidation = useMemo(() => {
-    if (!bothFilled) return null;
-    if (isMatchTiebreakSet) {
-      return validateMatchTiebreakInput({ p1Points: p1Val, p2Points: p2Val });
-    }
-    return validateSetResult({ p1Games: p1Val, p2Games: p2Val }, matchFormat);
-  }, [bothFilled, p1Val, p2Val, matchFormat, isMatchTiebreakSet, totalEditedSets]);
-
-  const hasWinner = setValidation?.winner !== undefined;
-  const completed = hasWinner && !setValidation?.isPartial;
-  const isSetTrulyCompleted = completed && !setValidation?.tiebreakRequired;
-  const setValidationError = isSetTrulyCompleted ? undefined : setValidation?.error;
-  const hasTiebreak = setValidation?.hasTiebreak ?? false;
-  const p1SetsWonFromProp = completedSets.filter(
-    (s) => s.winner === "player1",
-  ).length;
-  const p2SetsWonFromProp = completedSets.filter(
-    (s) => s.winner === "player2",
-  ).length;
-
-  const newP1SetsWon = newSets.filter((s) => s.p1Games > s.p2Games).length;
-  const newP2SetsWon = newSets.filter((s) => s.p2Games > s.p1Games).length;
-  const p1SetsWon =
-    p1SetsWonFromProp +
-    newP1SetsWon +
-    (isSetTrulyCompleted && setValidation?.winner === "player1" ? 1 : 0);
-  const p2SetsWon =
-    p2SetsWonFromProp +
-    newP2SetsWon +
-    (isSetTrulyCompleted && setValidation?.winner === "player2" ? 1 : 0);
-  const matchAlreadyOver =
-    p1SetsWonFromProp >= setsToWin || p2SetsWonFromProp >= setsToWin;
-  const matchWouldEnd = p1SetsWon >= setsToWin || p2SetsWon >= setsToWin;
-
-  const tiebreakP1Num = parseInt(tiebreakP1, 10);
-  const tiebreakP2Num = parseInt(tiebreakP2, 10);
-  const hasValidTiebreak =
-    !isNaN(tiebreakP1Num) &&
-    !isNaN(tiebreakP2Num) &&
-    tiebreakP1Num >= 0 &&
-    tiebreakP2Num >= 0;
-  const tiebreakComplete =
-    hasTiebreak &&
-    hasValidTiebreak &&
-    Math.abs(tiebreakP1Num - tiebreakP2Num) >= 2;
-
-  const canAddNextSet =
-    isSetTrulyCompleted &&
-    totalEditedSets < maxSets - 1 &&
-    !matchAlreadyOver &&
-    !matchWouldEnd &&
-    !isMatchTiebreakSet &&
-    (!hasTiebreak || tiebreakComplete);
+  const { validation, tiebreakValidation, matchState, canAddNextSet, canConfirm, partial } = calculations;
+  const { tiebreakComplete, tiebreakP1Num, tiebreakP2Num } = tiebreakValidation;
+  const { p1Val, p2Val, bothFilled, isSetTrulyCompleted, hasTiebreak, isMatchTiebreakSet } = validation;
+  const { matchAlreadyOver, matchWouldEnd, totalEditedSets, maxSets, setsToWin, p1SetsWon, p2SetsWon } = matchState;
 
   useEffect(() => {
     if (isOpen) {
-      setNewSets([]);
-      setNextServer(currentServer);
-      setTiebreakP1("");
-      setTiebreakP2("");
+      setState(createInitialEditScoreState(currentServer));
       setConfirmError(null);
       setFloorValidationError(null);
       initializedRef.current = false;
@@ -144,70 +92,67 @@ export function EditScoreModal({
 
   useEffect(() => {
     if (isOpen && !initializedRef.current) {
-      setP1Input(currentSets.player1.toString());
-      setP2Input(currentSets.player2.toString());
-      const toDisplay = (v: number | string | undefined): string => {
-        if (v == null) return "0";
-        if (v === "AD" || v === "DEUCE" || v === "15" || v === "30" || v === "40") return v;
-        const n = typeof v === "number" ? v : parseInt(String(v), 10);
-        if (n === 0) return "0";
-        if (n === 1) return "15";
-        if (n === 2) return "30";
-        if (n === 3) return "40";
-        if (n === 4) return "AD";
-        return "0";
-      };
-      setP1Points(toDisplay(currentGamePoints?.player1));
-      setP2Points(toDisplay(currentGamePoints?.player2));
+      setState(prev => ({
+        ...prev,
+        p1Input: currentSets.player1.toString(),
+        p2Input: currentSets.player2.toString(),
+        p1Points: toDisplayPoint(currentGamePoints?.player1),
+        p2Points: toDisplayPoint(currentGamePoints?.player2),
+      }));
       initialGameRef.current = {
-        player1: toDisplay(currentGamePoints?.player1),
-        player2: toDisplay(currentGamePoints?.player2),
+        player1: toDisplayPoint(currentGamePoints?.player1),
+        player2: toDisplayPoint(currentGamePoints?.player2),
       };
       initializedRef.current = true;
     }
-  }, [
-    isOpen,
-    completedSets.length,
-    currentSets.player1,
-    currentSets.player2,
-    currentGamePoints,
-  ]);
-
-  useEffect(() => {
-    return () => {
-      initializedRef.current = false;
-    };
-  }, []);
+  }, [isOpen, completedSets.length, currentSets.player1, currentSets.player2, currentGamePoints]);
 
   useEffect(() => {
     if (!bothFilled) return;
     const gamesChanged = p1Val !== currentSets.player1 || p2Val !== currentSets.player2;
-    const hasGamePoints = p1Points !== "0" || p2Points !== "0";
-    if (gamesChanged && hasGamePoints) {
-      setP1Points("0");
-      setP2Points("0");
-      initialGameRef.current = { player1: "0", player2: "0" };
-    }
+    const hasGamePoints = state.p1Points !== "0" || state.p2Points !== "0";
+    
     if (gamesChanged) {
-      setP1Points("0");
-      setP2Points("0");
+      setState(prev => ({ ...prev, p1Points: "0", p2Points: "0" }));
       initialGameRef.current = { player1: "0", player2: "0" };
+      
+      // CORREÇÃO #4: Setar aviso quando pontos forem descartados
+      if (hasGamePoints && !isSetTrulyCompleted) {
+        setConfirmError("⚠️ Pontos do game atual foram zerados devido à mudança no placar de games");
+      }
     }
-  }, [bothFilled, p1Val, p2Val, currentSets, isSetTrulyCompleted, p1Points, p2Points]);
+  }, [bothFilled, p1Val, p2Val, currentSets, state.p1Points, state.p2Points, isSetTrulyCompleted]);
 
   useEffect(() => {
     if (!hasTiebreak) {
-      setTiebreakP1("");
-      setTiebreakP2("");
+      setState(prev => ({ ...prev, tiebreakP1: "", tiebreakP2: "" }));
     }
-  }, [hasTiebreak, p1Val, p2Val]);
+  }, [hasTiebreak]);
 
   useEffect(() => {
     if (bothFilled && floorCurrentSets && !isSetTrulyCompleted) {
-      if (
-        p1Val < floorCurrentSets.player1 ||
-        p2Val < floorCurrentSets.player2
-      ) {
+      const hasIncompleteTiebreak = suspendedSession?.bankScoreState?.sets?.some(
+        (set) => set.isTiebreak && set.tiebreakScore && 
+        Math.abs(set.tiebreakScore.player1 - set.tiebreakScore.player2) < 2 &&
+        (set.tiebreakScore.player1 >= 7 || set.tiebreakScore.player2 >= 7)
+      );
+      
+      if (hasIncompleteTiebreak && suspendedSession?.bankScoreState?.sets) {
+        const tbSet = suspendedSession.bankScoreState.sets.find(
+          (s) => s.isTiebreak && s.tiebreakScore
+        );
+        
+        if (tbSet && tbSet.tiebreakScore) {
+          if (p1Val < tbSet.tiebreakScore.player1 || p2Val < tbSet.tiebreakScore.player2) {
+            setFloorValidationError(
+              `Tie-break em andamento: ${tbSet.tiebreakScore.player1}x${tbSet.tiebreakScore.player2} — placar não pode regredir`,
+            );
+            return;
+          }
+        }
+      }
+      
+      if (p1Val < floorCurrentSets.player1 || p2Val < floorCurrentSets.player2) {
         setFloorValidationError(
           `Placar não pode ser inferior ao ponto de parada (${floorCurrentSets.player1}x${floorCurrentSets.player2}). Use com cautela.`,
         );
@@ -217,157 +162,114 @@ export function EditScoreModal({
     } else {
       setFloorValidationError(null);
     }
-  }, [bothFilled, p1Val, p2Val, floorCurrentSets, isSetTrulyCompleted]);
+  }, [bothFilled, p1Val, p2Val, floorCurrentSets, isSetTrulyCompleted, suspendedSession]);
 
-  const handleGameInputChange = (
-    value: string,
-    setter: (v: string) => void,
-  ): void => {
+  const handleGameInputChange = useCallback((value: string, setter: (v: string) => void): void => {
     setConfirmError(null);
     setFloorValidationError(null);
     if (value === "") {
       setter("");
-      setTiebreakP1("");
-      setTiebreakP2("");
+      setState(prev => ({ ...prev, tiebreakP1: "", tiebreakP2: "", p1Points: "0", p2Points: "0" }));
       return;
     }
     if (!/^\d+$/.test(value)) return;
     const num = parseInt(value, 10);
     setter(num > 50 ? "50" : value.replace(/^0+(?=[1-9]|$)/, ""));
-    setTiebreakP1("");
-    setTiebreakP2("");
-    setP1Points("0");
-    setP2Points("0");
-  };
+    setState(prev => ({ ...prev, tiebreakP1: "", tiebreakP2: "", p1Points: "0", p2Points: "0" }));
+  }, []);
 
-  const prevCanAddNextSetRef = useRef(false);
-  const handleAddSetAuto = useCallback((): void => {
+  const handleAddSet = useCallback(() => {
     if (!isSetTrulyCompleted) return;
-    
-    // Check if this set would end the match
-    const winner: Player = p1Val > p2Val ? "player1" : "player2";
-    const wouldBeP1Sets = p1SetsWonFromProp + newP1SetsWon + (winner === "player1" ? 1 : 0);
-    const wouldBeP2Sets = p2SetsWonFromProp + newP2SetsWon + (winner === "player2" ? 1 : 0);
-    const matchWouldEndWithThisSet = wouldBeP1Sets >= setsToWin || wouldBeP2Sets >= setsToWin;
-    
-    // Don't auto-add next set if this set ends the match
-    if (matchWouldEndWithThisSet) return;
-    
+    if (matchWouldEnd) return;
     if (totalEditedSets >= maxSets - 1) return;
     if (matchAlreadyOver) return;
     if (isMatchTiebreakSet) return;
-    
-    // Only auto-add if the user actually changed the score from the initial value
+
     const scoreWasChanged = p1Val !== currentSets.player1 || p2Val !== currentSets.player2;
     if (!scoreWasChanged) return;
-    
-    const data: SetEditData = {
-      p1Games: p1Val,
-      p2Games: p2Val,
-      isPartial: false,
-    };
-    if (isMatchTiebreakSet) {
-      // Match tiebreak não precisa de tratamento especial aqui
-    } else if (hasTiebreak && hasValidTiebreak) {
-      data.tiebreakScore = { player1: tiebreakP1Num, player2: tiebreakP2Num };
-    } else if (hasTiebreak) {
-      return;
-    }
-    const newList = [...newSets, data];
-    setNewSets(newList);
-    setP1Input("");
-    setP2Input("");
-    setTiebreakP1("");
-    setTiebreakP2("");
-    const completedSetsGames = completedSets.map(cs => ({ player1: cs.games.player1, player2: cs.games.player2 }));
-    const next = getNextServerAfterSet({
+
+    const setData = createSetEditData(
+      p1Val, p2Val, isSetTrulyCompleted, hasTiebreak,
+      tiebreakP1Num, tiebreakP2Num, isMatchTiebreakSet,
+      state.p1Points, state.p2Points, currentSets
+    );
+
+    const newList = [...state.newSets, setData];
+    setState(prev => ({
+      ...prev,
+      newSets: newList,
+      p1Input: "",
+      p2Input: "",
+      tiebreakP1: "",
+      tiebreakP2: "",
+    }));
+
+    const next = calculateNextServer(
       currentServer,
-      p1Games: p1Val,
-      p2Games: p2Val,
-      format: matchFormat,
-      tiebreakPoints: data.tiebreakScore ?? null,
-      completedSets: completedSetsGames,
-    });
-    setNextServer(next);
+      p1Val,
+      p2Val,
+      matchFormat,
+      setData.tiebreakScore ?? null,
+      completedSets as CompletedSet[],
+    );
+    setState(prev => ({ ...prev, nextServer: next }));
   }, [
-    isSetTrulyCompleted,
-    p1Val,
-    p2Val,
-    hasTiebreak,
-    hasValidTiebreak,
-    tiebreakP1Num,
-    tiebreakP2Num,
-    newSets,
-    currentServer,
-    matchFormat,
-    completedSets,
-    isMatchTiebreakSet,
-    p1SetsWonFromProp,
-    p2SetsWonFromProp,
-    newP1SetsWon,
-    newP2SetsWon,
-    totalEditedSets,
-    maxSets,
-    matchAlreadyOver,
-    setsToWin,
-    currentSets.player1,
-    currentSets.player2,
+    isSetTrulyCompleted, matchWouldEnd, totalEditedSets, maxSets, matchAlreadyOver,
+    isMatchTiebreakSet, p1Val, p2Val, currentSets, hasTiebreak, tiebreakP1Num,
+    tiebreakP2Num, state.p1Points, state.p2Points, state.newSets, currentServer,
+    matchFormat, completedSets,
   ]);
 
+  const prevCanAddNextSetRef = useRef(false);
   useEffect(() => {
     if (!isOpen) {
       prevCanAddNextSetRef.current = false;
       return;
     }
-    if (
-      canAddNextSet &&
-      !prevCanAddNextSetRef.current &&
-      initializedRef.current
-    ) {
-      handleAddSetAuto();
+    if (canAddNextSet && !prevCanAddNextSetRef.current && initializedRef.current) {
+      handleAddSet();
     }
     prevCanAddNextSetRef.current = canAddNextSet;
-  }, [isOpen, canAddNextSet, handleAddSetAuto]);
+  }, [isOpen, canAddNextSet, handleAddSet]);
 
-  if (!isOpen) return null;
-
-  const partial = bothFilled && !isSetTrulyCompleted;
-  const canConfirm =
-    !floorValidationError &&
-    (newSets.length > 0 ||
-      (bothFilled && (isMatchTiebreakSet ? (!setValidationError || isSetTrulyCompleted) : (!hasTiebreak || tiebreakComplete))) ||
-      completedSets.length > 0);
-
-  const handlePointsSelectChange = (
-    value: string,
-    setter: (v: string) => void,
-  ): void => {
-    setter(value);
+  const handleConfirm = useCallback(async () => {
     setConfirmError(null);
-  };
-
-  const handleConfirm = (): void => {
-    setConfirmError(null);
+    
+    // CORREÇÃO #2: Refetch do floor antes de confirmar para evitar race condition
+    if (onRefreshFloor && floorCurrentSets && !isSetTrulyCompleted) {
+      try {
+        const freshFloor = await onRefreshFloor();
+        if (freshFloor) {
+          // Validar com floor atualizado
+          if (p1Val < freshFloor.player1 || p2Val < freshFloor.player2) {
+            setConfirmError(
+              `Placar atualizado: ${freshFloor.player1}x${freshFloor.player2}. Seu placar (${p1Val}x${p2Val}) é inferior.`
+            );
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('[handleConfirm] Failed to refresh floor:', err);
+        // Continuar com validação local se refetch falhar
+      }
+    }
+    
     if (floorValidationError) return;
-    if (setValidationError && !partial) return;
-    if (setValidation?.tiebreakRequired) return;
+    if (validation.setValidationError && !partial) return;
+    if (validation.setValidation?.tiebreakRequired) return;
 
     if (bothFilled && hasTiebreak && isSetTrulyCompleted && tiebreakComplete) {
       const setWinner = p1Val > p2Val ? "player1" : "player2";
-      const tiebreakWinner =
-        tiebreakP1Num > tiebreakP2Num ? "player1" : "player2";
+      const tiebreakWinner = tiebreakP1Num > tiebreakP2Num ? "player1" : "player2";
       if (setWinner !== tiebreakWinner) {
-        setConfirmError(
-          "Vencedor do tiebreak não corresponde ao vencedor do set.",
-        );
+        setConfirmError("Vencedor do tiebreak não corresponde ao vencedor do set.");
         return;
       }
     }
 
-    // Prevent confirming extra sets when match is already over
     if (isSetTrulyCompleted && matchWouldEnd) {
-      const wouldBeP1Sets = p1SetsWonFromProp + newP1SetsWon + (setValidation?.winner === "player1" ? 1 : 0);
-      const wouldBeP2Sets = p2SetsWonFromProp + newP2SetsWon + (setValidation?.winner === "player2" ? 1 : 0);
+      const wouldBeP1Sets = matchState.p1SetsWonFromProp + matchState.newP1SetsWon + (validation.setValidation?.winner === "player1" ? 1 : 0);
+      const wouldBeP2Sets = matchState.p2SetsWonFromProp + matchState.newP2SetsWon + (validation.setValidation?.winner === "player2" ? 1 : 0);
       if (wouldBeP1Sets > setsToWin || wouldBeP2Sets > setsToWin) {
         setConfirmError(
           `Partida já encerrou com ${setsToWin} sets para ${wouldBeP1Sets > setsToWin ? playerNames.p1 : playerNames.p2}.`,
@@ -376,21 +278,8 @@ export function EditScoreModal({
       }
     }
 
-    if (matchWouldEnd && !isSetTrulyCompleted) {
-      // Remove the error and allow confirmation for the final set
-    } else if (matchWouldEnd && isSetTrulyCompleted) {
-      // If it's the final set and it's marked as completed, it's valid
-    } else if (matchWouldEnd && !isSetTrulyCompleted) {
-       // This block is intentionally left for cases where a partial set would end the match
-       // but for now, we allow the user to confirm a match-ending score.
-    }
-
-
     if (bothFilled && floorCurrentSets && !isSetTrulyCompleted) {
-      if (
-        p1Val < floorCurrentSets.player1 ||
-        p2Val < floorCurrentSets.player2
-      ) {
+      if (p1Val < floorCurrentSets.player1 || p2Val < floorCurrentSets.player2) {
         setConfirmError(
           `Placar não pode ser inferior ao ponto de parada (${floorCurrentSets.player1}x${floorCurrentSets.player2}).`,
         );
@@ -403,28 +292,14 @@ export function EditScoreModal({
     }
 
     if (!isSetTrulyCompleted && initialGameRef.current) {
-      const sameSetScore =
-        p1Val === currentSets.player1 && p2Val === currentSets.player2;
+      const sameSetScore = p1Val === currentSets.player1 && p2Val === currentSets.player2;
 
       if (sameSetScore) {
-        const parsePointVal = (v: string): number | string => {
-          if (v === "DEUCE" || v === "AD") return v;
-          return parseInt(v || "0", 10);
-        };
-        const toProgress = (v: number | string): number => {
-          if (v === "AD") return 4;
-          if (v === "DEUCE") return 3;
-          const n = typeof v === "number" ? v : parseInt(String(v), 10);
-          if (n === 40) return 3;
-          if (n === 30) return 2;
-          if (n === 15) return 1;
-          return 0;
-        };
         const initial = initialGameRef.current;
-        const oldP1 = toProgress(parsePointVal(initial.player1));
-        const oldP2 = toProgress(parsePointVal(initial.player2));
-        const newP1 = toProgress(parsePointVal(p1Points));
-        const newP2 = toProgress(parsePointVal(p2Points));
+        const oldP1 = pointToProgress(parsePointValue(initial.player1));
+        const oldP2 = pointToProgress(parsePointValue(initial.player2));
+        const newP1 = pointToProgress(parsePointValue(state.p1Points));
+        const newP2 = pointToProgress(parsePointValue(state.p2Points));
 
         if ((newP1 < oldP1 && newP2 <= oldP2) || (newP2 < oldP2 && newP1 <= oldP1)) {
           setConfirmError("Placar não pode ser inferior ao estado atual");
@@ -438,55 +313,60 @@ export function EditScoreModal({
       p2Games: cs.games.player2,
       isPartial: false,
     }));
-    const finalSets = [...existingCompleted, ...newSets];
+    const finalSets = [...existingCompleted, ...state.newSets];
+    
     if (bothFilled) {
-      const setData: SetEditData = {
-        p1Games: p1Val,
-        p2Games: p2Val,
-        isPartial: !isSetTrulyCompleted,
-      };
-      if (hasTiebreak && isSetTrulyCompleted && tiebreakComplete) {
-        setData.tiebreakScore = {
-          player1: tiebreakP1Num,
-          player2: tiebreakP2Num,
-        };
-      } else if (!isSetTrulyCompleted) {
-        const parsePointVal = (v: string): number | string => {
-          if (v === "DEUCE" || v === "AD") return v;
-          return parseInt(v || "0", 10);
-        };
-        const gamesChanged =
-          p1Val !== currentSets.player1 || p2Val !== currentSets.player2;
-        setData.currentGamePoints = {
-          player1: gamesChanged ? 0 : parsePointVal(p1Points),
-          player2: gamesChanged ? 0 : parsePointVal(p2Points),
-        };
-      }
+      const setData = createSetEditData(
+        p1Val, p2Val, isSetTrulyCompleted, hasTiebreak,
+        tiebreakP1Num, tiebreakP2Num, isMatchTiebreakSet,
+        state.p1Points, state.p2Points, currentSets
+      );
       finalSets.push(setData);
     }
     
-    // Verificar se este placar encerra a partida
-    const matchWinner = totalP1SetsWon >= setsToWin ? "player1" : totalP2SetsWon >= setsToWin ? "player2" : null;
+    const matchWinner = p1SetsWon >= setsToWin ? "player1" : p2SetsWon >= setsToWin ? "player2" : null;
     
-    // Se partida está sendo encerrada, mostrar loading
+    // CORREÇÃO #6: isFinishingMatch atômico - setar antes de chamar onConfirm
     if (matchWinner) {
       setIsFinishingMatch(true);
     }
     
-    onConfirm(finalSets, nextServer);
-    
-    // Chamar callback de partida encerrada se aplicável
-    if (matchWinner && onMatchFinished) {
-      onMatchFinished(matchWinner);
-      // Reset loading state após delay
-      setTimeout(() => {
-        setIsFinishingMatch(false);
-      }, 1000);
+    try {
+      onConfirm(finalSets, state.nextServer);
+      
+      if (matchWinner && onMatchFinished) {
+        onMatchFinished(matchWinner);
+      }
+      
+      // Reset após 1s apenas se sucesso
+      setTimeout(() => setIsFinishingMatch(false), 1000);
+    } catch (err) {
+      console.error('[handleConfirm] Error:', err);
+      setConfirmError('Erro ao confirmar placar. Tente novamente.');
+      setIsFinishingMatch(false); // Reset imediato em caso de erro
     }
-  };
+  }, [
+    floorValidationError, validation, partial, hasTiebreak, isSetTrulyCompleted,
+    tiebreakComplete, p1Val, p2Val, tiebreakP1Num, tiebreakP2Num, matchWouldEnd,
+    matchState, setsToWin, playerNames, floorCurrentSets, canAddNextSet, maxSets,
+    currentSets, state.p1Points, state.p2Points, state.newSets, state.nextServer,
+    completedSets, isMatchTiebreakSet, bothFilled, p1SetsWon, p2SetsWon,
+    onConfirm, onMatchFinished, confirmError, onRefreshFloor,
+  ]);
 
-  const totalP1SetsWon = p1SetsWon;
-  const totalP2SetsWon = p2SetsWon;
+  if (!isOpen) return null;
+
+  const convertedCompletedSets = completedSets.map(cs => ({
+    p1Games: cs.games.player1,
+    p2Games: cs.games.player2,
+    winner: cs.winner,
+  }));
+
+  const newSetsAsCompleted = state.newSets.map(set => ({
+    p1Games: set.p1Games,
+    p2Games: set.p2Games,
+    winner: set.p1Games > set.p2Games ? "player1" as Player : "player2" as Player,
+  }));
 
   return (
     <div
@@ -515,338 +395,72 @@ export function EditScoreModal({
           </p>
 
           {completedSets.length > 0 && (
-            <div className="space-y-1">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                Sets Finalizados
-              </p>
-              {completedSets.map((set, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-3 text-sm text-gray-200"
-                >
-                  <span className="text-gray-500 w-14">Set {idx + 1}</span>
-                  <span className="font-mono font-semibold">
-                    {set.games.player1}x{set.games.player2}
-                  </span>
-                  <span
-                    className={`text-xs font-semibold ${set.winner === "player1" ? "text-blue-400" : "text-emerald-400"}`}
-                  >
-                    {set.winner === "player1" ? playerNames.p1 : playerNames.p2}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <SetsSummary
+              title="Sets Finalizados"
+              sets={convertedCompletedSets}
+              playerNames={playerNames}
+              startIndex={0}
+            />
           )}
 
-          {newSets.length > 0 && (
-            <div className="space-y-1">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                Sets Adicionados
-              </p>
-              {newSets.map((set, idx) => {
-                const setIdx = completedSets.length + idx;
-                return (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-3 text-sm text-gray-200"
-                  >
-                    <span className="text-gray-500 w-14">Set {setIdx + 1}</span>
-                    <span className="font-mono font-semibold">
-                      {set.p1Games}x{set.p2Games}
-                    </span>
-                    <span
-                      className={`text-xs font-semibold ${set.p1Games > set.p2Games ? "text-blue-400" : "text-emerald-400"}`}
-                    >
-                      {set.p1Games > set.p2Games
-                        ? playerNames.p1
-                        : playerNames.p2}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+          {state.newSets.length > 0 && (
+            <SetsSummary
+              title="Sets Adicionados"
+              sets={newSetsAsCompleted}
+              playerNames={playerNames}
+              startIndex={completedSets.length}
+            />
           )}
 
           {matchAlreadyOver && (
             <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-3 py-2 text-xs text-yellow-300">
-              O placar atual já encerrou a partida — não é possível adicionar
-              mais sets.
+              O placar atual já encerrou a partida — não é possível adicionar mais sets.
             </div>
           )}
 
           {totalEditedSets < maxSets && !matchAlreadyOver && (
-            <div className="space-y-3 rounded-lg bg-gray-750 border border-white/5 p-3">
-              {matchFormat === 'BEST_OF_3_MATCH_TB' && totalEditedSets === 2 ? (
-                <>
-                  <p className="text-xs font-semibold text-purple-400 uppercase tracking-wide">
-                    Set {totalEditedSets + 1} — Match Tiebreak
-                  </p>
-                  <p className="text-xs text-gray-400 -mt-2 mb-1">
-                    Primeiro a 10 pontos com diferença de 2
-                  </p>
-                </>
-              ) : (
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                  Set {totalEditedSets + 1}
-                </p>
-              )}
-
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400 w-16 truncate">
-                  {playerNames.p1}
-                </span>
-                <input
-                  type="number"
-                  className={`w-16 text-center bg-gray-700 border rounded-lg px-2 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    bothFilled && p1Val > p2Val
-                      ? "border-green-500/50"
-                      : "border-white/10"
-                  }`}
-                  value={p1Input}
-                  onChange={(e) =>
-                    handleGameInputChange(e.target.value, setP1Input)
-                  }
-                  placeholder="0"
-                  autoFocus
-                  min={floorCurrentSets?.player1 ?? 0}
-                  max={isMatchTiebreakSet ? 20 : 50}
-                />
-                <span className="text-gray-500 text-xs">×</span>
-                <input
-                  type="number"
-                  className={`w-16 text-center bg-gray-700 border rounded-lg px-2 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    bothFilled && p2Val > p1Val
-                      ? "border-green-500/50"
-                      : "border-white/10"
-                  }`}
-                  value={p2Input}
-                  onChange={(e) =>
-                    handleGameInputChange(e.target.value, setP2Input)
-                  }
-                  placeholder="0"
-                  min={floorCurrentSets?.player2 ?? 0}
-                  max={isMatchTiebreakSet ? 20 : 50}
-                />
-                <span className="text-xs text-gray-400 w-16 truncate text-right">
-                  {playerNames.p2}
-                </span>
-              </div>
-
-              {isMatchTiebreakSet ? (
-                <p className="text-xs text-gray-500 mt-1">
-                  {bothFilled && (p1Val >= 10 || p2Val >= 10) && Math.abs(p1Val - p2Val) >= 2
-                    ? p1Val > p2Val
-                      ? `${playerNames.p1} venceu o match tiebreak — partida encerrada`
-                      : `${playerNames.p2} venceu o match tiebreak — partida encerrada`
-                    : 'Primeiro a 10 pontos com diferença de 2'}
-                </p>
-              ) : null}
-
-              {floorValidationError && (
-                <p className="text-xs text-red-400">{floorValidationError}</p>
-              )}
-
-              {!isMatchTiebreakSet && hasTiebreak && bothFilled && ((p1Val === 6 && p2Val === 6) || (matchFormat === 'SHORT_SET_2V2_NO_AD' && p1Val === 4 && p2Val === 4)) && (
-                <div className="space-y-1 pt-1">
-                  <p className="text-xs font-semibold text-gray-400">
-                    Tie-Break
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-400 w-16 truncate">
-                      {playerNames.p1}
-                    </span>
-                    <input
-                      type="number"
-                      className="w-16 text-center bg-gray-700 border border-white/10 rounded-lg px-2 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={tiebreakP1}
-                      onChange={(e) => {
-                        const v = parseInt(e.target.value, 10);
-                        if (!isNaN(v) && v >= 0) setTiebreakP1(String(v));
-                        else if (e.target.value === "") setTiebreakP1("");
-                      }}
-                      min={0}
-                      max={20}
-                      placeholder="0"
-                    />
-                    <span className="text-gray-500 text-xs">×</span>
-                    <input
-                      type="number"
-                      className="w-16 text-center bg-gray-700 border border-white/10 rounded-lg px-2 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={tiebreakP2}
-                      onChange={(e) => {
-                        const v = parseInt(e.target.value, 10);
-                        if (!isNaN(v) && v >= 0) setTiebreakP2(String(v));
-                        else if (e.target.value === "") setTiebreakP2("");
-                      }}
-                      min={0}
-                      max={20}
-                      placeholder="0"
-                    />
-                    <span className="text-xs text-gray-400 w-16 truncate text-right">
-                      {playerNames.p2}
-                    </span>
-                  </div>
-                  {!tiebreakComplete && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Informe o placar do tiebreak (ex.: 7x5).
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {hasTiebreak && bothFilled && isSetTrulyCompleted && !tiebreakComplete && (
-                <p className="text-xs text-amber-400">
-                  Tiebreak necessário - informe os pontos para completar o set
-                </p>
-              )}
-
-              {bothFilled && (
-                <p
-                  className={`text-xs ${isSetTrulyCompleted ? "text-green-400" : "text-amber-400"}`}
-                >
-                  {isMatchTiebreakSet ? (
-                    isSetTrulyCompleted ? (
-                      <>
-                        {p1Val > p2Val ? playerNames.p1 : playerNames.p2} venceu
-                        o match tiebreak — partida encerrada
-                      </>
-                    ) : (
-                      <>Match tiebreak em andamento — primeiro a 10 com diferença de 2</>
-                    )
-                  ) : isSetTrulyCompleted ? (
-                    matchWouldEnd ? (
-                      <>
-                        {p1Val > p2Val ? playerNames.p1 : playerNames.p2} venceu
-                        o set — partida encerrada
-                      </>
-                    ) : canAddNextSet ? (
-                      <>
-                        {p1Val > p2Val ? playerNames.p1 : playerNames.p2} venceu
-                        o set — avançando para Set {totalEditedSets + 2}
-                      </>
-                    ) : (
-                      <>
-                        {p1Val > p2Val ? playerNames.p1 : playerNames.p2} venceu
-                        o set
-                      </>
-                    )
-                  ) : (
-                    <>Set {totalEditedSets + 1} em andamento — informe os games</>
-                  )}
-                </p>
-              )}
-
-              {isSetTrulyCompleted && matchWouldEnd && (
-                <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-3 mt-2">
-                  <p className="text-sm font-semibold text-green-300 flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    Partida encerrada — confirmar para finalizar
-                  </p>
-                  <p className="text-xs text-green-400 mt-1">
-                    {p1Val > p2Val ? playerNames.p1 : playerNames.p2} venceu por {totalP1SetsWon}-{totalP2SetsWon} sets
-                  </p>
-                </div>
-              )}
-
-              {partial && floorCurrentSets && (
-                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2 mb-2">
-                  <p className="text-xs text-amber-300">
-                    Ponto de parada: {floorCurrentSets.player1}x
-                    {floorCurrentSets.player2} — placar não pode ser inferior a
-                    este valor.
-                  </p>
-                </div>
-              )}
-
-              {partial && (
-                <div className="space-y-1 pt-1">
-                  <p className="text-xs font-semibold text-gray-400">
-                    Pontos no Game Atual
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-400 w-16 truncate">
-                      {playerNames.p1}
-                    </span>
-                    <select
-                      className="w-20 text-center bg-gray-700 border border-white/10 rounded-lg px-1 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={p1Points}
-                      onChange={(e) =>
-                        handlePointsSelectChange(e.target.value, setP1Points)
-                      }
-                    >
-                      {GAME_POINTS.map((pt) => (
-                        <option key={pt} value={pt}>
-                          {pt}
-                        </option>
-                      ))}
-                      {p2Points === "40" && (
-                        <>
-                          <option value="DEUCE">Deuce</option>
-                          <option value="AD">Adv.</option>
-                        </>
-                      )}
-                    </select>
-                    <span className="text-gray-500 text-xs">×</span>
-                    <select
-                      className="w-20 text-center bg-gray-700 border border-white/10 rounded-lg px-1 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={p2Points}
-                      onChange={(e) =>
-                        handlePointsSelectChange(e.target.value, setP2Points)
-                      }
-                    >
-                      {GAME_POINTS.map((pt) => (
-                        <option key={pt} value={pt}>
-                          {pt}
-                        </option>
-                      ))}
-                      {p1Points === "40" && (
-                        <>
-                          <option value="DEUCE">Deuce</option>
-                          <option value="AD">Adv.</option>
-                        </>
-                      )}
-                    </select>
-                    <span className="text-xs text-gray-400 w-16 truncate text-right">
-                      {playerNames.p2}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {matchFormat !== 'BEST_OF_3_MATCH_TB' || totalEditedSets !== 2 ? (
-                <button
-                  onClick={handleAddSetAuto}
-                  className="mt-2 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-sm transition-all"
-                  disabled={!isSetTrulyCompleted || totalEditedSets >= maxSets - 1 || matchAlreadyOver || isMatchTiebreakSet}
-                >
-                  Adicionar Set {totalEditedSets + 2}
-                </button>
-              ) : null}
-            </div>
+            <SetInputForm
+              matchFormat={matchFormat}
+              totalEditedSets={totalEditedSets}
+              playerNames={playerNames}
+              p1Input={state.p1Input}
+              p2Input={state.p2Input}
+              p1Points={state.p1Points}
+              p2Points={state.p2Points}
+              tiebreakP1={state.tiebreakP1}
+              tiebreakP2={state.tiebreakP2}
+              floorCurrentSets={floorCurrentSets}
+              floorValidationError={floorValidationError}
+              isMatchTiebreakSet={isMatchTiebreakSet}
+              hasTiebreak={hasTiebreak}
+              isSetTrulyCompleted={isSetTrulyCompleted}
+              tiebreakComplete={tiebreakComplete}
+              partial={partial}
+              p1Val={p1Val}
+              p2Val={p2Val}
+              validationError={validation.setValidationError}
+              onP1InputChange={(v) => handleGameInputChange(v, (val) => setState(prev => ({ ...prev, p1Input: val })))}
+              onP2InputChange={(v) => handleGameInputChange(v, (val) => setState(prev => ({ ...prev, p2Input: val })))}
+              onP1PointsChange={(v) => setState(prev => ({ ...prev, p1Points: v }))}
+              onP2PointsChange={(v) => setState(prev => ({ ...prev, p2Points: v }))}
+              onTiebreakP1Change={(v) => setState(prev => ({ ...prev, tiebreakP1: v }))}
+              onTiebreakP2Change={(v) => setState(prev => ({ ...prev, tiebreakP2: v }))}
+              onAddSet={handleAddSet}
+              canAddNextSet={canAddNextSet}
+              matchAlreadyOver={matchAlreadyOver}
+              matchWouldEnd={matchWouldEnd}
+              p1SetsWon={p1SetsWon}
+              p2SetsWon={p2SetsWon}
+              maxSets={maxSets}
+            />
           )}
 
-          {(totalP1SetsWon > 0 || totalP2SetsWon > 0) && (
-            <div className="space-y-2 pt-1">
-              <div className="flex items-center justify-center gap-4 text-sm font-semibold text-gray-200">
-                <span>{playerNames.p1}</span>
-                <span className="text-lg font-mono">
-                  {totalP1SetsWon} — {totalP2SetsWon}
-                </span>
-                <span>{playerNames.p2}</span>
-              </div>
-              {totalP1SetsWon >= setsToWin || totalP2SetsWon >= setsToWin ? (
-                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-3 py-2 text-xs text-yellow-300 text-center">
-                  {totalP1SetsWon >= setsToWin ? playerNames.p1 : playerNames.p2} venceu a partida
-                </div>
-              ) : (
-                <div className="bg-gray-750 border border-white/10 rounded-lg px-3 py-2 text-xs text-gray-400 text-center">
-                  Faltam {setsToWin - totalP1SetsWon} sets para {playerNames.p1} | Faltam {setsToWin - totalP2SetsWon} sets para {playerNames.p2}
-                </div>
-              )}
-            </div>
-          )}
+          <MatchSummary
+            playerNames={playerNames}
+            p1SetsWon={p1SetsWon}
+            p2SetsWon={p2SetsWon}
+            setsToWin={setsToWin}
+          />
         </div>
 
         <div className="px-5 py-4 border-t border-white/10 space-y-2">
@@ -867,7 +481,7 @@ export function EditScoreModal({
             </button>
             <button
               onClick={handleConfirm}
-              disabled={!canConfirm || isFinishingMatch}
+              disabled={!canConfirm || !!floorValidationError || isFinishingMatch}
               className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               {isFinishingMatch ? (

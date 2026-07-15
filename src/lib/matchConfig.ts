@@ -118,16 +118,20 @@ export function isMatchTiebreakActive(
   p1Sets: number,
   p2Sets: number,
 ): boolean {
-  const matchTbFormats: TennisFormat[] = [
-    "BEST_OF_3_MATCH_TB",
-    "SHORT_SET_2V2_NO_AD",
-  ];
-  const isSet3MatchTb =
-    matchTbFormats.includes(format) &&
-    currentSetNum === 3 &&
-    p1Sets === 1 &&
-    p2Sets === 1;
-  return format === "MATCH_TB_10" || isSet3MatchTb;
+  if (format === 'MATCH_TB_10') return true;
+  
+  // Grand Slam: 5º set em 6/6
+  if (format === 'BEST_OF_5' && currentSetNum === 5 && p1Sets === 2 && p2Sets === 2) {
+    return true;
+  }
+  
+  // Melhor de 3 com MT: 3º set
+  if ((format === 'BEST_OF_3_MATCH_TB' || format === 'SHORT_SET_2V2_NO_AD') && 
+      currentSetNum === 3 && p1Sets === 1 && p2Sets === 1) {
+    return true;
+  }
+  
+  return false;
 }
 
 export function validateSetScore(
