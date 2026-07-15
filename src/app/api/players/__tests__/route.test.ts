@@ -128,7 +128,7 @@ describe('POST /api/players', () => {
     expect(res.status).toBe(400);
     const data = await res.json();
     expect(data.error).toBe('VALIDATION_ERROR');
-    expect(data.message).toContain('Age must be between 1 and 120');
+    expect(data.message).toContain('Idade deve ser entre 1 e 120');
   });
 
   it('deve retornar 400 se age é maior que 120', async () => {
@@ -333,5 +333,173 @@ describe('POST /api/players', () => {
 
     const res = await GET(req);
     expect(res.status).toBe(500);
+  });
+});
+
+describe('POST /api/players - birthDate validation', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockRequireRole.mockResolvedValue(null);
+    mockCreatePlayer.mockResolvedValue({
+      id: 'p1',
+      name: 'Test',
+      gender: 'MALE',
+      age: 25,
+      dominance: 'RIGHT',
+      backhand: 'ONE_HANDED',
+      ranking: 10,
+      rankings: {},
+      birthDate: new Date('1999-01-01'),
+    });
+  });
+
+  it('deve retornar 400 se birthDate é inválido', async () => {
+    const req = new NextRequest('http://localhost:3000/api/players', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Test', birthDate: 'invalid-date' }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const mod = await import('@/app/api/players/route');
+    const POST = mod.POST;
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe('VALIDATION_ERROR');
+    expect(data.message).toContain('Data de nascimento inválida');
+  });
+
+  it('deve calcular idade a partir do birthDate se age não fornecido', async () => {
+    mockCreatePlayer.mockResolvedValue({
+      id: 'p1',
+      name: 'Test',
+      gender: 'MALE',
+      age: 25,
+      dominance: 'RIGHT',
+      backhand: 'ONE_HANDED',
+      ranking: 10,
+      rankings: {},
+      birthDate: new Date('1999-01-01'),
+    });
+
+    const req = new NextRequest('http://localhost:3000/api/players', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Test', birthDate: '1999-01-01' }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const mod = await import('@/app/api/players/route');
+    const POST = mod.POST;
+
+    const res = await POST(req);
+    expect(res.status).toBe(201);
+    expect(mockCreatePlayer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Test',
+        age: expect.any(Number),
+        birthDate: expect.any(Date),
+      })
+    );
+  });
+
+  it('deve retornar 400 se idade calculada for menor que 1', async () => {
+    const futureDate = new Date();
+    futureDate.setFullYear(futureDate.getFullYear() + 1);
+    const futureDateStr = futureDate.toISOString().split('T')[0];
+
+    const req = new NextRequest('http://localhost:3000/api/players', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Test', birthDate: futureDateStr }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const mod = await import('@/app/api/players/route');
+    const POST = mod.POST;
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe('VALIDATION_ERROR');
+    expect(data.message).toContain('Idade deve ser entre 1 e 120');
+  });
+
+  it('deve retornar 400 se idade calculada for maior que 120', async () => {
+    const oldDate = new Date();
+    oldDate.setFullYear(oldDate.getFullYear() - 121);
+    const oldDateStr = oldDate.toISOString().split('T')[0];
+
+    const req = new NextRequest('http://localhost:3000/api/players', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Test', birthDate: oldDateStr }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const mod = await import('@/app/api/players/route');
+    const POST = mod.POST;
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe('VALIDATION_ERROR');
+    expect(data.message).toContain('Idade deve ser entre 1 e 120');
+  });
+
+  it('deve usar age fornecido mesmo se birthDate estiver presente', async () => {
+    mockCreatePlayer.mockResolvedValue({
+      id: 'p1',
+      name: 'Test',
+      gender: 'MALE',
+      age: 30,
+      dominance: 'RIGHT',
+      backhand: 'ONE_HANDED',
+      ranking: 10,
+      rankings: {},
+      birthDate: new Date('1999-01-01'),
+    });
+
+    const req = new NextRequest('http://localhost:3000/api/players', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Test', age: 30, birthDate: '1999-01-01' }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const mod = await import('@/app/api/players/route');
+    const POST = mod.POST;
+
+    const res = await POST(req);
+    expect(res.status).toBe(201);
+    expect(mockCreatePlayer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        age: 30,
+      })
+    );
+  });
+
+  it('deve passar birthDate para createPlayer', async () => {
+    mockCreatePlayer.mockResolvedValue({
+      id: 'p1',
+      name: 'Test',
+      gender: 'MALE',
+      age: 25,
+      dominance: 'RIGHT',
+      backhand: 'ONE_HANDED',
+      ranking: 10,
+      rankings: {},
+      birthDate: new Date('1999-03-15'),
+    });
+
+    const req = new NextRequest('http://localhost:3000/api/players', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Test', birthDate: '1999-03-15' }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const mod = await import('@/app/api/players/route');
+    const POST = mod.POST;
+
+    const res = await POST(req);
+    expect(res.status).toBe(201);
+    expect(mockCreatePlayer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        birthDate: expect.any(Date),
+      })
+    );
+    const callArgs = mockCreatePlayer.mock.calls[0][0];
+    expect(callArgs.birthDate).toEqual(new Date('1999-03-15'));
   });
 });

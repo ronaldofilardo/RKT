@@ -5,7 +5,7 @@ export async function listPlayers(cursor?: string | null, limit = 20, userId?: s
     take: limit,
     ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     where: userId ? { createdByUserId: userId } : {},
-    select: { id: true, name: true, gender: true, age: true, dominance: true, backhand: true, ranking: true, rankings: true },
+    select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true },
     orderBy: { name: 'asc' },
   });
 }
@@ -23,6 +23,7 @@ export async function createPlayer(data: {
   passwordHash?: string;
   gender?: string;
   age?: number;
+  birthDate?: Date;
   dominance?: string;
   backhand?: string;
   ranking?: number;
@@ -36,12 +37,13 @@ export async function createPlayer(data: {
       passwordHash: data.passwordHash ?? 'PLACEHOLDER',
       gender: data.gender,
       age: data.age,
+      birthDate: data.birthDate,
       dominance: data.dominance,
       backhand: data.backhand,
       ranking: data.ranking,
       rankings: data.rankings,
       createdByUserId: data.createdByUserId,
     },
-    select: { id: true, name: true, gender: true, age: true, dominance: true, backhand: true, ranking: true, rankings: true },
+    select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true },
   });
 }

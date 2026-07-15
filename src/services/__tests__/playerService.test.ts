@@ -22,16 +22,17 @@ describe('playerService', () => {
       const { listPlayers } = await import('@/services/playerService');
 
       mockPrisma.player.findMany.mockResolvedValue([
-        { id: 'p1', name: 'Ana', gender: null, age: null, dominance: null, backhand: null, ranking: null },
-        { id: 'p2', name: 'Bruno', gender: null, age: null, dominance: null, backhand: null, ranking: null },
+        { id: 'p1', name: 'Ana', gender: null, age: null, birthDate: null, dominance: null, backhand: null, ranking: null, rankings: null },
+        { id: 'p2', name: 'Bruno', gender: null, age: null, birthDate: null, dominance: null, backhand: null, ranking: null, rankings: null },
       ]);
 
       const result = await listPlayers(null, 20);
 
       expect(mockPrisma.player.findMany).toHaveBeenCalledWith({
         take: 20,
-        select: { id: true, name: true, gender: true, age: true, dominance: true, backhand: true, ranking: true },
+        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true },
         orderBy: { name: 'asc' },
+        where: {},
       });
       expect(result).toHaveLength(2);
     });
@@ -50,6 +51,90 @@ describe('playerService', () => {
           cursor: { id: 'cursor-abc' },
         }),
       );
+    });
+
+    it('deve filtrar por userId quando fornecido', async () => {
+      const { listPlayers } = await import('@/services/playerService');
+
+      mockPrisma.player.findMany.mockResolvedValue([]);
+
+      await listPlayers(null, 20, 'user-123');
+
+      expect(mockPrisma.player.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { createdByUserId: 'user-123' },
+        }),
+      );
+    });
+  });
+
+  describe('createPlayer - birthDate', () => {
+    it('deve criar jogador com birthDate', async () => {
+      const { createPlayer } = await import('@/services/playerService');
+
+      const mockBirthDate = new Date('1999-03-15');
+      mockPrisma.player.create.mockResolvedValue({
+        id: 'p1',
+        name: 'Novo',
+        gender: 'MALE',
+        age: 25,
+        birthDate: mockBirthDate,
+        dominance: 'RIGHT',
+        backhand: 'ONE_HANDED',
+        ranking: 10,
+        rankings: { ESTADUAL: 5 },
+      });
+
+      const result = await createPlayer({
+        name: 'Novo',
+        email: 'novo@test.com',
+        passwordHash: 'hash123',
+        gender: 'MALE',
+        age: 25,
+        birthDate: mockBirthDate,
+        dominance: 'RIGHT',
+        backhand: 'ONE_HANDED',
+        ranking: 10,
+        rankings: { ESTADUAL: 5 },
+      });
+
+      expect(mockPrisma.player.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          name: 'Novo',
+          email: 'novo@test.com',
+          passwordHash: 'hash123',
+          gender: 'MALE',
+          age: 25,
+          birthDate: mockBirthDate,
+          dominance: 'RIGHT',
+          backhand: 'ONE_HANDED',
+          ranking: 10,
+          rankings: { ESTADUAL: 5 },
+        }),
+        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true },
+      });
+      expect(result.birthDate).toEqual(mockBirthDate);
+    });
+
+    it('deve criar jogador sem birthDate quando não fornecido', async () => {
+      const { createPlayer } = await import('@/services/playerService');
+
+      mockPrisma.player.create.mockResolvedValue({
+        id: 'p1',
+        name: 'Sem Data',
+        gender: null,
+        age: null,
+        birthDate: null,
+        dominance: null,
+        backhand: null,
+        ranking: null,
+        rankings: null,
+      });
+
+      await createPlayer({ name: 'Sem Data' });
+
+      const callArgs = mockPrisma.player.create.mock.calls[0][0];
+      expect(callArgs.data.birthDate).toBeUndefined();
     });
   });
 
@@ -94,9 +179,11 @@ describe('playerService', () => {
         name: 'Novo',
         gender: null,
         age: null,
+        birthDate: null,
         dominance: null,
         backhand: null,
         ranking: null,
+        rankings: null,
       });
 
       const result = await createPlayer({ name: 'Novo', email: 'novo@test.com', passwordHash: 'hash123' });
@@ -108,11 +195,14 @@ describe('playerService', () => {
           passwordHash: 'hash123',
           gender: undefined,
           age: undefined,
+          birthDate: undefined,
           dominance: undefined,
           backhand: undefined,
           ranking: undefined,
+          rankings: undefined,
+          createdByUserId: undefined,
         },
-        select: { id: true, name: true, gender: true, age: true, dominance: true, backhand: true, ranking: true },
+        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true },
       });
     });
 

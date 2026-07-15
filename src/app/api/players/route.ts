@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { name, gender, age, dominance, backhand, ranking, rankings } = body;
+    const { name, gender, age, birthDate, dominance, backhand, ranking, rankings } = body;
     
     const userId = request.headers.get('x-user-id');
 
@@ -47,8 +47,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Gender must be MALE or FEMALE' }, { status: 400 });
     }
 
-    if (age !== undefined && age !== null && (typeof age !== 'number' || age < 1 || age > 120)) {
-      return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Age must be between 1 and 120' }, { status: 400 });
+    let calculatedAge = age;
+    let parsedBirthDate: Date | undefined;
+
+    if (birthDate) {
+      parsedBirthDate = new Date(birthDate);
+      if (isNaN(parsedBirthDate.getTime())) {
+        return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Data de nascimento inválida' }, { status: 400 });
+      }
+      
+      // Only calculate age from birthDate if age was not explicitly provided
+      if (age === undefined || age === null) {
+        const today = new Date();
+        let ageCalc = today.getFullYear() - parsedBirthDate.getFullYear();
+        const monthDiff = today.getMonth() - parsedBirthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < parsedBirthDate.getDate())) {
+          ageCalc--;
+        }
+        calculatedAge = ageCalc;
+      }
+    }
+
+    if (calculatedAge !== undefined && calculatedAge !== null && (typeof calculatedAge !== 'number' || calculatedAge < 1 || calculatedAge > 120)) {
+      return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Idade deve ser entre 1 e 120' }, { status: 400 });
     }
 
     if (dominance && !['LEFT', 'RIGHT'].includes(dominance)) {
@@ -81,7 +102,8 @@ export async function POST(request: NextRequest) {
     const player = await createPlayer({
       name: name.trim(),
       gender,
-      age,
+      age: calculatedAge,
+      birthDate: parsedBirthDate,
       dominance,
       backhand,
       ranking,

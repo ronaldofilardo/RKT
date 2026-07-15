@@ -17,6 +17,7 @@ model Player {
   passwordHash       String
   club               String?
   age                Int?
+  birthDate          DateTime?
   backhand           String?
   dominance          String?
   gender             String?
