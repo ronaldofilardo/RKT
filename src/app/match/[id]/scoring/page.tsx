@@ -180,15 +180,10 @@ const {
   // Wrapper para handleEditScore com redirecionamento de partida encerrada
   const handleEditScore = useCallback(
     async (setResults: SetEditData[], server: "player1" | "player2") => {
-      await originalHandleEditScore(setResults, server, (winner) => {
-        // Callback chamado quando partida é encerrada
-        // Redirecionar para página do match após pequeno delay para UX
-        setTimeout(() => {
-          router.push(`/match/${matchId}` as any);
-        }, 500);
-      });
+      await originalHandleEditScore(setResults, server);
+      // Não redirecionar automaticamente - usuário vê o banner e decide quando navegar
     },
-    [originalHandleEditScore, matchId, router]
+    [originalHandleEditScore, matchId]
   );
 
   
@@ -230,12 +225,8 @@ const {
   }, [pendingEditScore, open]);
 
   // Bloqueio de segurança: Redirecionar se partida já estiver encerrada
-  useEffect(() => {
-    if (scoreState?.isFinished && scoreState?.winner) {
-      // Partida já está encerrada - redirecionar imediatamente
-      router.replace(`/match/${matchId}` as any);
-    }
-  }, [scoreState?.isFinished, scoreState?.winner, matchId, router]);
+  // Removido redirecionamento automático para permitir que usuário veja o banner
+  // Usuário pode clicar em "Relatório" ou "Registrar" no banner para navegar
 
   if (isLoading) {
     return (
@@ -427,7 +418,7 @@ const {
           </div>
         </div>
 
-        {isFinished && showFinishedBanner && (
+{isFinished && (
           <div className="mt-2 sm:mt-3 bg-yellow-500/20 border-2 border-yellow-400 rounded-2xl p-3 sm:p-5 text-center relative z-10 mx-0">
             <span className="text-2xl sm:text-4xl">🏆</span>
             <h2 className="text-base sm:text-xl font-black text-white mt-1 sm:mt-2">
@@ -461,8 +452,8 @@ const {
 
              </div>
 
-          </div>
-        )}
+           </div>
+         )}
       </div>
 
       <ActionBar
@@ -541,6 +532,17 @@ const {
             const lastSet = effectiveScoreState.sets[effectiveScoreState.sets.length - 1];
             if (!lastSet) return { player1: 0, player2: 0 };
             const lastSetIsCompleted = isSetCompleted(lastSet, match.format as any);
+            
+            // Para Match Tie-Break, usar os pontos do tiebreakScore em vez de player1/player2
+            if (lastSet.isTiebreak && lastSet.tiebreakScore) {
+              const tiebreakSets = {
+                player1: lastSet.tiebreakScore.player1,
+                player2: lastSet.tiebreakScore.player2,
+              };
+              console.log("[EditScoreModal] currentSets for Match Tie-Break:", tiebreakSets);
+              return tiebreakSets;
+            }
+            
             return lastSetIsCompleted ? { player1: 0, player2: 0 } : { player1: lastSet.player1, player2: lastSet.player2 };
           })()}
           currentServer={effectiveScoreState.server}
@@ -564,6 +566,7 @@ const {
             ),
           }}
           floorCurrentSets={floorCurrentSets}
+          suspendedSession={suspendedSession}
           onConfirm={handleEditScore}
           onCancel={() => {
             setPendingEditScore(null);
@@ -571,10 +574,15 @@ const {
             close();
           }}
           onMatchFinished={(winner) => {
-            // Callback chamado quando partida é encerrada pelo modal
-            setTimeout(() => {
-              router.push(`/match/${matchId}` as any);
-            }, 500);
+            // Não redirecionar automaticamente - usuário vê o banner e decide quando navegar
+          }}
+          onRefreshFloor={async () => {
+            // CORREÇÃO #2: Buscar floor atualizado do banco antes de confirmar
+            if (!engineRef.current || !match) return null;
+            const state = engineRef.current.getState();
+            const lastSet = state.sets[state.sets.length - 1];
+            if (!lastSet) return null;
+            return { player1: lastSet.player1, player2: lastSet.player2 };
           }}
         />
       )}

@@ -3,9 +3,17 @@ import { validateSetScore, getMatchFormatRules } from "@/lib/matchConfig";
 import type { TennisFormat } from "@/lib/matchConfig";
 
 export function isSetCompleted(
-  set: { player1: number; player2: number; isTiebreak: boolean },
+  set: { player1: number; player2: number; isTiebreak: boolean; tiebreakScore?: { player1: number; player2: number } | null },
   format?: TennisFormat,
 ): boolean {
+  // Match Tie-Break: verificar se o tiebreak foi completado (10 pontos com diferença de 2)
+  if (format === 'BEST_OF_3_MATCH_TB' && set.tiebreakScore) {
+    const tb = set.tiebreakScore;
+    const p1Won = tb.player1 >= 10 && tb.player1 - tb.player2 >= 2;
+    const p2Won = tb.player2 >= 10 && tb.player2 - tb.player1 >= 2;
+    return p1Won || p2Won;
+  }
+  
   if (format) {
     try {
       const rules = getMatchFormatRules(format);
@@ -15,6 +23,12 @@ export function isSetCompleted(
   // Fallback: standard 6-game rules (engine already guarantees sets in state are valid)
   const diff = Math.abs(set.player1 - set.player2);
   const max = Math.max(set.player1, set.player2);
+  if (set.isTiebreak && set.tiebreakScore) {
+    // Tie-break normal (7 pontos com diferença de 2)
+    const tb = set.tiebreakScore;
+    return tb.player1 >= 7 && tb.player1 - tb.player2 >= 2 ||
+           tb.player2 >= 7 && tb.player2 - tb.player1 >= 2;
+  }
   if (set.isTiebreak) return false;
   if (max >= 6 && diff >= 2) return true;
   if (max > 6 && diff >= 2) return true;

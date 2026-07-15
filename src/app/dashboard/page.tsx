@@ -7,65 +7,79 @@ import { DeleteMatchModal } from "@/components/dashboard/DeleteMatchModal";
 import { FinishMatchModal } from "@/components/dashboard/FinishMatchModal";
 import { NewAthleteModal } from "@/app/match/new/components/NewAthleteModal";
 import { useToast } from "@/components/Toast";
-import {
-  getMatchFormatRules,
-  validateSetScore,
-  isMatchTiebreakActive,
-} from "@/lib/matchConfig";
-import type { TennisFormat } from "@/lib/matchConfig";
 import { useSession } from "@/contexts/SessionContext";
-import { isSetCompleted } from "@/app/match/[id]/scoring/scoringHelpers";
 import { MatchFinishReason } from "@/schemas/contracts";
-
-type DashboardView =
-  | "dashboard"
-  | "history"
-  | "annotated"
-  | "live"
-  | "pending"
-  | "profile";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-}
-
-interface Match {
-  id: string;
-  player1: { name: string };
-  player2: { name: string };
-  state: "SCHEDULED" | "IN_PROGRESS" | "FINISHED" | "CANCELLED";
-  format: string;
-  scheduledAt?: string;
-}
-
-interface Athlete {
-  id: string;
-  name: string;
-  gender?: string;
-  age?: number;
-  dominance?: string;
-  backhand?: string;
-  ranking?: number;
-}
+import type { DashboardView, Match, Athlete } from "./dashboard.types";
+import {
+  useDashboardData,
+  useModalState,
+  useUserAuth,
+  useWindowFocus,
+  useVisibilityChange,
+  useDashboardNavigation,
+} from "./dashboard.hooks";
+import { useDeleteMatch, useFinishMatch } from "./dashboard.actions";
+import { useResumeSession } from "./dashboard.resume";
 
 export default function DashboardPage() {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<User | null>(null);
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [suspendedFromApi, setSuspendedFromApi] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { matches, setMatches, suspendedFromApi, setSuspendedFromApi, loading, fetchDashboardData } = useDashboardData();
+  const { showNewAthleteModal, setShowNewAthleteModal, matchToDelete, setMatchToDelete, matchToFinish, setMatchToFinish } = useModalState();
+  const { user } = useUserAuth(router);
+  const { toast } = useToast();
+  const { setSession, setPendingEdit, writeToSessionStorage } = useSession();
+  const { handleNavigate } = useDashboardNavigation(router);
+  const { confirmDeleteMatch } = useDeleteMatch({ matchToDelete, fetchDashboardData, toast });
+  const { confirmFinishMatch } = useFinishMatch({ matchToFinish, fetchDashboardData, toast });
+  const { handleResumeSuspended } = useResumeSession({ router, setSession, setPendingEdit });
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showNewAthleteModal, setShowNewAthleteModal] = useState(false);
-  const [matchToDelete, setMatchToDelete] = useState<any | null>(null);
-  const [matchToFinish, setMatchToFinish] = useState<any | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [finishLoading, setFinishLoading] = useState(false);
-  const { setSession, setPendingEdit, writeToSessionStorage } = useSession();
-  const { toast } = useToast();
+
+  useWindowFocus(fetchDashboardData);
+  useVisibilityChange(fetchDashboardData);
+
+  const handleLogout = () => {
+    if (!confirm("Tem certeza que deseja sair?")) return;
+    sessionStorage.clear();
+    router.push("/login");
+  };
+
+  const handleViewReport = useCallback(
+    (match: any) => {
+      router.push(`/match/${match.id}/report`);
+    },
+    [router]
+  );
+
+  const handleDeleteMatch = useCallback((match: any) => {
+    setMatchToDelete(match);
+  }, []);
+
+  const handleFinishMatch = useCallback((match: any) => {
+    setMatchToFinish(match);
+  }, []);
+
+  const confirmDeleteMatchHandler = useCallback(async (type: 'soft' | 'hard', reason?: string) => {
+    setDeleteLoading(true);
+    const success = await confirmDeleteMatch(type, reason);
+    setDeleteLoading(false);
+    if (success) setMatchToDelete(null);
+  }, [confirmDeleteMatch]);
+
+  const confirmFinishMatchHandler = useCallback(async (reason: MatchFinishReason, note?: string) => {
+    setFinishLoading(true);
+    const success = await confirmFinishMatch(reason, note);
+    setFinishLoading(false);
+    if (success) setMatchToFinish(null);
+  }, [confirmFinishMatch]);
+
+  const handleAthleteCreated = (athlete: Athlete) => {
+    toast({ type: 'success', message: 'Atleta cadastrado com sucesso!' });
+    setShowNewAthleteModal(false);
+  };
 
   const activeView: DashboardView = (() => {
     switch (pathname) {
@@ -83,275 +97,6 @@ export default function DashboardPage() {
         return "dashboard";
     }
   })();
-
-  const fetchDashboardData = useCallback(() => {
-    const accessToken = sessionStorage.getItem("access_token");
-    Promise.all([
-      fetch("/api/matches", {
-        headers: { authorization: `Bearer ${accessToken}` },
-      }).then((r) => (r.ok ? r.json() : { matches: [] })),
-      fetch("/api/matches/suspended-sessions", {
-        headers: { authorization: `Bearer ${accessToken}` },
-      }).then((r) => (r.ok ? r.json() : { matches: [] })),
-    ])
-      .then(([matchData, suspendedData]) => {
-        setMatches(matchData.matches || []);
-        setSuspendedFromApi(suspendedData.matches || []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
-  }, []);
-
-  useEffect(() => {
-    const userId = sessionStorage.getItem("user_id");
-    const userRole = sessionStorage.getItem("user_role");
-
-    if (!userId || !userRole) {
-      router.push("/login");
-      return;
-    }
-
-    setUser({
-      id: userId,
-      name: "Usuário",
-      email: "",
-      role: userRole,
-    });
-
-    fetchDashboardData();
-  }, [router, fetchDashboardData]);
-
-  useEffect(() => {
-    const handleFocus = () => {
-      fetchDashboardData();
-    };
-    window.addEventListener("focus", handleFocus);
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-    };
-  }, [fetchDashboardData]);
-
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        const lastAbandon = sessionStorage.getItem("last_abandon_timestamp");
-        if (lastAbandon) {
-          const lastTime = parseInt(lastAbandon, 10);
-          const now = Date.now();
-          if (now - lastTime < 60000) {
-            fetchDashboardData();
-          }
-        }
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [fetchDashboardData]);
-
-  const handleLogout = () => {
-    if (!confirm("Tem certeza que deseja sair?")) return;
-    sessionStorage.clear();
-    router.push("/login");
-  };
-
-  const handleResumeSuspended = useCallback((match: any) => {
-    const isRealSuspendedSession = Boolean(match.matchStateSnapshot && match.suspendedSessionId);
-
-    const rawScoreState = match.scoreState;
-    let scoreState: any = null;
-    if (rawScoreState) {
-      if (rawScoreState.sets && rawScoreState.currentGame) {
-        scoreState = rawScoreState;
-      } else if (rawScoreState.state && Array.isArray(rawScoreState.history)) {
-        scoreState = rawScoreState.state;
-      }
-    }
-
-    const floorSets = scoreState?.sets?.length
-      ? (() => {
-          const lastSet = scoreState.sets[scoreState.sets.length - 1];
-          const lastSetIsCompleted = isSetCompleted(lastSet, match.format as TennisFormat);
-          return lastSetIsCompleted ? null : { player1: lastSet.player1, player2: lastSet.player2 };
-        })()
-      : null;
-
-    setSession({
-      matchId: match.id,
-      sessionId: match.suspendedSessionId ?? null,
-      bankScoreState: scoreState,
-      matchStateSnapshot: match.matchStateSnapshot,
-      snapshotStatus: match.snapshotStatus ?? 'IN_SYNC',
-      snapshotPointCount: match.snapshotPointCount ?? 0,
-      bankPointCount: match.bankPointCount ?? 0,
-      suspendedSessionId: match.suspendedSessionId ?? null,
-    });
-
-    if (scoreState) {
-      setPendingEdit(scoreState, floorSets);
-    }
-
-    const sessionStorageData: Record<string, any> = {
-      bankScoreState: scoreState,
-      matchStateSnapshot: match.matchStateSnapshot,
-      snapshotStatus: match.snapshotStatus ?? 'IN_SYNC',
-      snapshotPointCount: match.snapshotPointCount ?? 0,
-      bankPointCount: match.bankPointCount ?? 0,
-      suspendedSessionId: match.suspendedSessionId ?? null,
-    };
-
-    if (!isRealSuspendedSession) {
-      const stored = sessionStorage.getItem(`suspended_session_${match.id}`);
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (parsed.matchStateSnapshot) {
-            sessionStorageData.matchStateSnapshot = parsed.matchStateSnapshot;
-            sessionStorageData.snapshotStatus = parsed.snapshotStatus ?? 'IN_SYNC';
-            sessionStorageData.snapshotPointCount = parsed.snapshotPointCount ?? 0;
-            sessionStorageData.bankPointCount = parsed.bankPointCount ?? 0;
-          }
-        } catch {}
-      }
-    }
-
-    sessionStorage.setItem(
-      `suspended_session_${match.id}`,
-      JSON.stringify(sessionStorageData),
-    );
-    router.push(`/match/${match.id}/scoring`);
-  }, [router, setSession, setPendingEdit]);
-
-  const handleViewReport = useCallback(
-    (match: any) => {
-      router.push(`/match/${match.id}/report`);
-    },
-    [router],
-  );
-
-  const handleDeleteMatch = useCallback((match: any) => {
-    setMatchToDelete(match);
-  }, []);
-
-  const handleFinishMatch = useCallback((match: any) => {
-    setMatchToFinish(match);
-  }, []);
-
-  const confirmDeleteMatch = useCallback(async (type: 'soft' | 'hard', reason?: string) => {
-    if (!matchToDelete) return;
-    setDeleteLoading(true);
-
-    try {
-      const accessToken = sessionStorage.getItem('access_token');
-      const params = new URLSearchParams({ type });
-      if (reason) params.append('reason', reason);
-
-      const res = await fetch(`/api/matches/${matchToDelete.id}?${params}`, {
-        method: 'DELETE',
-        headers: { authorization: `Bearer ${accessToken}` },
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        throw new Error(result.error || 'Erro ao excluir partida');
-      }
-
-      toast({
-        type: 'success',
-        message: type === 'soft' 
-          ? 'Partida marcada como cancelada' 
-          : 'Partida excluída permanentemente',
-      });
-
-      setMatchToDelete(null);
-      fetchDashboardData();
-    } catch (error: any) {
-      toast({
-        type: 'error',
-        message: error.message || 'Erro ao excluir partida',
-      });
-    } finally {
-      setDeleteLoading(false);
-    }
-  }, [matchToDelete, fetchDashboardData, toast]);
-
-  const confirmFinishMatch = useCallback(async (reason: MatchFinishReason, note?: string) => {
-    if (!matchToFinish) return;
-    setFinishLoading(true);
-
-    try {
-      const accessToken = sessionStorage.getItem('access_token');
-      
-      const res = await fetch(`/api/matches/${matchToFinish.id}/finish`, {
-        method: 'POST',
-        headers: {
-          authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          reason,
-          note,
-          scoreState: matchToFinish.scoreState,
-        }),
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        throw new Error(result.error || 'Erro ao encerrar partida');
-      }
-
-      toast({
-        type: 'success',
-        message: 'Partida finalizada com sucesso!',
-      });
-
-      setMatchToFinish(null);
-      fetchDashboardData();
-    } catch (error: any) {
-      toast({
-        type: 'error',
-        message: error.message || 'Erro ao encerrar partida',
-      });
-    } finally {
-      setFinishLoading(false);
-    }
-  }, [matchToFinish, fetchDashboardData, toast]);
-
-  const handleNavigate = useCallback(
-    (view: DashboardView) => {
-      setIsMenuOpen(false);
-      switch (view) {
-        case "history":
-          router.push("/historico");
-          break;
-        case "annotated":
-          router.push("/partidasanotadas");
-          break;
-        case "live":
-          router.push("/partidasaovivo");
-          break;
-        case "pending":
-          router.push("/aguardandoanotador");
-          break;
-        case "profile":
-          router.push("/dados-pessoais");
-          break;
-        default:
-          router.push("/dashboard");
-      }
-    },
-    [router],
-  );
-
-  const handleAthleteCreated = (athlete: Athlete) => {
-    toast({ type: 'success', message: 'Atleta cadastrado com sucesso!' });
-    setShowNewAthleteModal(false);
-  };
 
   const openMatches = matches.filter((m) => m.state === "SCHEDULED");
   const suspendedMatchIds = new Set(suspendedFromApi.map((s: any) => s.id));
