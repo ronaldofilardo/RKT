@@ -7,8 +7,10 @@ import type {
   RallyEfeito,
   RallyDirecao,
   RallyGolpeEsp,
+  RallyDuration,
 } from '@/core/scoring/types';
 
+export type { RallyDuration };
 export type Vencedor = 'sacador' | 'devolvedor';
 
 export interface PointDetailsForm {
@@ -18,6 +20,7 @@ export interface PointDetailsForm {
   subtipo1: RallySubtipo1 | null;
   subtipo2: RallySubtipo2 | null;
   efeito: RallyEfeito | null;
+  duracao: RallyDuration | null;
   direcao: RallyDirecao | null;
   golpeEsp: RallyGolpeEsp | null;
 }
@@ -26,6 +29,7 @@ export type Action =
   | { type: 'SET_SITUACAO'; value: RallySituacao }
   | { type: 'SET_TIPO'; value: RallyTipo }
   | { type: 'SET_GOLPE'; value: RallyGolpe }
+  | { type: 'SET_DURACAO'; value: RallyDuration }
   | { type: 'SET_SUBTIPO1'; value: RallySubtipo1 }
   | { type: 'SET_SUBTIPO2'; value: RallySubtipo2 }
   | { type: 'SET_EFEITO'; value: RallyEfeito }
@@ -40,6 +44,7 @@ export const initialForm: PointDetailsForm = {
   subtipo1: null,
   subtipo2: null,
   efeito: null,
+  duracao: null,
   direcao: null,
   golpeEsp: null,
 };
@@ -49,9 +54,11 @@ export function formReducer(state: PointDetailsForm, action: Action): PointDetai
     case 'SET_SITUACAO':
       return { ...initialForm, situacao: action.value };
     case 'SET_TIPO':
-      return { ...state, tipo: action.value, golpe: null, subtipo1: null, subtipo2: null, efeito: null, direcao: null, golpeEsp: null };
+      return { ...state, tipo: action.value, golpe: null, subtipo1: null, subtipo2: null, efeito: null, duracao: null, direcao: null, golpeEsp: null };
     case 'SET_GOLPE':
-      return { ...state, golpe: action.value, subtipo1: null, subtipo2: null, efeito: null, direcao: null, golpeEsp: null };
+      return { ...state, golpe: action.value, subtipo1: null, subtipo2: null, efeito: null, duracao: null, direcao: null, golpeEsp: null };
+    case 'SET_DURACAO':
+      return { ...state, duracao: action.value, subtipo1: null, subtipo2: null, efeito: null, direcao: null, golpeEsp: null };
     case 'SET_SUBTIPO1':
       return { ...state, subtipo1: action.value, subtipo2: null, efeito: null, direcao: null, golpeEsp: null };
     case 'SET_SUBTIPO2':
@@ -128,6 +135,16 @@ export const SUBTIPO1_OPTIONS: { value: RallySubtipo1; label: string }[] = [
 export function shouldShowSubtipo2(situacao: RallySituacao, tipo: RallyTipo, golpe: RallyGolpe): boolean {
   return situacao === 'passada' && tipo !== 'winner' && (golpe === 'vbh' || golpe === 'vfh' || golpe === 'smash');
 }
+
+export function shouldShowDuracao(golpe: RallyGolpe | null): boolean {
+  return golpe != null;
+}
+
+export const DURACAO_OPTIONS: { value: RallyDuration; label: string }[] = [
+  { value: 'opcao_1', label: '3 a 6 bolas' },
+  { value: 'opcao_2', label: '7 a 10 bolas' },
+  { value: 'opcao_3', label: 'Mais de 11 bolas' },
+];
 
 export const SUBTIPO2_OPTIONS: { value: RallySubtipo2; label: string }[] = [
   { value: 'out', label: 'Fora (Out)' },

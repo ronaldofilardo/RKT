@@ -9,6 +9,7 @@ import type {
   RallyEfeito as ContractRallyEfeito,
   RallyDirecao as ContractRallyDirecao,
   RallyGolpeEsp as ContractRallyGolpeEsp,
+  RallyDuration as ContractRallyDuration,
   MatchFormat as ContractMatchFormat,
 } from '@/schemas/contracts';
 
@@ -22,6 +23,7 @@ export type RallySubtipo2 = ContractRallySubtipo2;
 export type RallyEfeito = ContractRallyEfeito;
 export type RallyDirecao = ContractRallyDirecao;
 export type RallyGolpeEsp = ContractRallyGolpeEsp;
+export type RallyDuration = ContractRallyDuration;
 
 export type RallyDetails = ContractRallyDetails;
 

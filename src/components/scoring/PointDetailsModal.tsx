@@ -1,17 +1,8 @@
 'use client';
 
-import { useState, useEffect, useReducer, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useReducer, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import type {
-  RallySituacao,
-  RallyTipo,
-  RallyGolpe,
-  RallySubtipo1,
-  RallySubtipo2,
-  RallyEfeito,
-  RallyDirecao,
-  RallyGolpeEsp,
-} from '@/core/scoring/types';
+import type { RallyDetails } from '@/core/scoring/types';
 import {
   formReducer,
   initialForm,
@@ -20,6 +11,7 @@ import {
   shouldShowSubtipo1,
   shouldShowSubtipo2,
   shouldShowEfeito,
+  shouldShowDuracao,
   getDirecaoOptions,
   getGolpeEspOptions,
   SITUACAO_OPTIONS,
@@ -29,11 +21,13 @@ import {
   SUBTIPO1_OPTIONS,
   SUBTIPO2_OPTIONS,
   EFEITO_OPTIONS,
+  DURACAO_OPTIONS,
   DIRECAO_LABELS,
   GOLPE_ESP_LABELS,
+  type Vencedor,
 } from './point-details-logic';
-import type { PointDetailsForm, Action, Vencedor } from './point-details-logic';
-import type { RallyDetails } from '@/core/scoring/types';
+import { Section } from './point-details-section';
+import { Pills } from './pills-component';
 
 interface PointDetailsModalProps {
   winnerPlayerSide: 'player1' | 'player2';
@@ -43,37 +37,6 @@ interface PointDetailsModalProps {
   fontScale: number;
   onConfirm: (details: RallyDetails) => void;
   onCancel: () => void;
-}
-
-const btnBase = 'px-3 py-2 text-sm rounded-xl border-2 transition-all select-none';
-const btnNormal = 'bg-gray-100 border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:border-gray-500 dark:hover:text-gray-300';
-const btnActive = 'bg-blue-50 border-blue-500 text-blue-700 shadow-[0_0_8px_rgba(59,130,246,0.3)] dark:bg-blue-900/30 dark:border-blue-600 dark:text-blue-400';
-
-
-function Pills<T extends string>({
-  options,
-  selected,
-  onChange,
-  labelMap,
-}: {
-  options: T[];
-  selected: T | null;
-  onChange: (v: T) => void;
-  labelMap: Record<T, string>;
-}) {
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {options.map(opt => (
-        <button
-          key={opt}
-          onClick={() => onChange(opt)}
-          className={`${btnBase} ${selected === opt ? btnActive : btnNormal}`}
-        >
-          {labelMap[opt]}
-        </button>
-      ))}
-    </div>
-  );
 }
 
 export function PointDetailsModal({
@@ -91,6 +54,7 @@ export function PointDetailsModal({
   
   const tipoRef = useRef<HTMLDivElement>(null);
   const golpeRef = useRef<HTMLDivElement>(null);
+  const duracaoRef = useRef<HTMLDivElement>(null);
   const subtipo1Ref = useRef<HTMLDivElement>(null);
   const subtipo2Ref = useRef<HTMLDivElement>(null);
   const efeitoRef = useRef<HTMLDivElement>(null);
@@ -113,36 +77,24 @@ export function PointDetailsModal({
   useEffect(() => {
     if (!mounted) return;
     
-    // Detectar qual campo novo foi preenchido e fazer scroll até ele
     const container = containerRef.current;
     if (!container) return;
 
     const getTargetRef = () => {
-      // Verifica mudanças no form para determinar para onde scrollar
       const prev = prevFormRef.current;
       
-      if (form.tipo && !prev.tipo && tipoRef.current) {
-        return tipoRef.current;
-      }
-      if (form.golpe && !prev.golpe && golpeRef.current) {
-        return golpeRef.current;
-      }
-      if (form.subtipo1 && !prev.subtipo1 && subtipo1Ref.current) {
-        return subtipo1Ref.current;
-      }
-      if (form.subtipo2 && !prev.subtipo2 && subtipo2Ref.current) {
-        return subtipo2Ref.current;
-      }
-      if (form.efeito && !prev.efeito && efeitoRef.current) {
-        return efeitoRef.current;
-      }
+      if (form.tipo && !prev.tipo && tipoRef.current) return tipoRef.current;
+      if (form.golpe && !prev.golpe && golpeRef.current) return golpeRef.current;
+      if (form.duracao && !prev.duracao && duracaoRef.current) return duracaoRef.current;
+      if (form.subtipo1 && !prev.subtipo1 && subtipo1Ref.current) return subtipo1Ref.current;
+      if (form.subtipo2 && !prev.subtipo2 && subtipo2Ref.current) return subtipo2Ref.current;
+      if (form.efeito && !prev.efeito && efeitoRef.current) return efeitoRef.current;
       
       return null;
     };
 
     const targetRef = getTargetRef();
     if (targetRef) {
-      // Pequeno delay para garantir que o DOM foi atualizado
       setTimeout(() => {
         targetRef.scrollIntoView({ 
           behavior: 'smooth', 
@@ -152,7 +104,6 @@ export function PointDetailsModal({
       }, 50);
     }
     
-    // Atualiza o ref do form anterior
     prevFormRef.current = form;
   }, [form.tipo, form.golpe, form.subtipo1, form.subtipo2, form.efeito, mounted]);
 
@@ -167,7 +118,6 @@ export function PointDetailsModal({
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, [mounted]);
-
 
   const direcaoOptions = form.efeito || form.situacao ? getDirecaoOptions(form.efeito, form.situacao ?? 'fundo', form.tipo ?? 'winner') : [];
   const golpeEspOptions = form.golpe ? getGolpeEspOptions(form.golpe, form.efeito, vencedor, form.situacao ?? 'fundo', form.tipo ?? 'winner', form.subtipo2, form.direcao) : [];
@@ -184,6 +134,7 @@ export function PointDetailsModal({
       golpe: form.golpe,
       subtipo1: form.subtipo1 ?? undefined,
       subtipo2: form.subtipo2 ?? undefined,
+      duracao: form.duracao ?? undefined,
       efeito: form.efeito ?? undefined,
       direcao: form.direcao ?? undefined,
       golpe_esp: form.golpeEsp ?? undefined,
@@ -195,7 +146,9 @@ export function PointDetailsModal({
     setShowCloseDialog(true);
   }, []);
 
-  const modal = (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       className="fixed inset-0 z-[2000] flex items-center justify-center"
       style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: '-webkit-backdrop-filter blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
@@ -213,7 +166,6 @@ export function PointDetailsModal({
         }}
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="pd-header px-5 py-4 border-b border-white/10" style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
           <h2 className="text-center font-bold text-white" style={{ fontSize: '1.15rem' }}>
             Vencedor do Ponto
@@ -231,19 +183,16 @@ export function PointDetailsModal({
           </div>
         </div>
 
-        {/* Body */}
         <div ref={containerRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-[18px]">
-          {/* Step 1: Situação */}
           <Section num="1" label="Situação do Ponto">
             <Pills
               options={SITUACAO_OPTIONS.map(o => o.value)}
               selected={form.situacao}
               onChange={v => dispatch({ type: 'SET_SITUACAO', value: v })}
-              labelMap={Object.fromEntries(SITUACAO_OPTIONS.map(o => [o.value, o.label])) as Record<RallySituacao, string>}
+              labelMap={Object.fromEntries(SITUACAO_OPTIONS.map(o => [o.value, o.label])) as any}
             />
           </Section>
 
-          {/* Step 2: Resultado */}
           {form.situacao && (
             <Section num="2" label="Resultado do Ponto" ref={tipoRef}>
               <Pills
@@ -258,7 +207,6 @@ export function PointDetailsModal({
             </Section>
           )}
 
-          {/* Step 3: Golpe */}
           {form.situacao && form.tipo && (
             <Section num="3" label="Golpe" ref={golpeRef}>
               <Pills
@@ -270,52 +218,55 @@ export function PointDetailsModal({
             </Section>
           )}
 
-          {/* Step 4: Subtipo1 */}
-          {needsSubtipo1 && form.golpe && (
-            <Section num="4" label="Tipo de Erro (Rede)" ref={subtipo1Ref}>
+          {shouldShowDuracao(form.golpe) && (
+            <Section num="4" label="Duração do Rallye" ref={duracaoRef}>
               <Pills
-                options={SUBTIPO1_OPTIONS.map(o => o.value)}
-                selected={form.subtipo1}
-                onChange={v => dispatch({ type: 'SET_SUBTIPO1', value: v })}
-                labelMap={Object.fromEntries(SUBTIPO1_OPTIONS.map(o => [o.value, o.label])) as Record<RallySubtipo1, string>}
+                options={DURACAO_OPTIONS.map(o => o.value)}
+                selected={form.duracao}
+                onChange={v => dispatch({ type: 'SET_DURACAO', value: v })}
+                labelMap={Object.fromEntries(DURACAO_OPTIONS.map(o => [o.value, o.label])) as any}
               />
             </Section>
           )}
 
-          {/* Step 4/5: Subtipo2 */}
-          {needsSubtipo2 && form.tipo && (() => {
-            const sectionNum = needsSubtipo1 ? 5 : 4;
-            return (
-              <Section num={String(sectionNum)} label="Onde Errou?" ref={subtipo2Ref}>
-                <Pills
-                  options={SUBTIPO2_OPTIONS.map(o => o.value)}
-                  selected={form.subtipo2}
-                  onChange={v => dispatch({ type: 'SET_SUBTIPO2', value: v })}
-                  labelMap={Object.fromEntries(SUBTIPO2_OPTIONS.map(o => [o.value, o.label])) as Record<RallySubtipo2, string>}
-                />
-              </Section>
-            );
-          })()}
+          {needsSubtipo1 && form.golpe && (
+            <Section num={shouldShowDuracao(form.golpe) ? '5' : '4'} label="Tipo de Erro (Rede)" ref={subtipo1Ref}>
+              <Pills
+                options={SUBTIPO1_OPTIONS.map(o => o.value)}
+                selected={form.subtipo1}
+                onChange={v => dispatch({ type: 'SET_SUBTIPO1', value: v })}
+                labelMap={Object.fromEntries(SUBTIPO1_OPTIONS.map(o => [o.value, o.label])) as any}
+              />
+            </Section>
+          )}
 
-          {/* Efeito */}
-          {needsEfeito && form.golpe && (() => {
-            let sectionLabel = '';
-            if (needsSubtipo1 && needsSubtipo2) sectionLabel = '6';
-            else if (needsSubtipo1 || needsSubtipo2) sectionLabel = '5';
-            else sectionLabel = '4';
-            return (
-              <Section num={sectionLabel} label="Efeito" ref={efeitoRef}>
-                <Pills
-                  options={EFEITO_OPTIONS.map(o => o.value)}
-                  selected={form.efeito}
-                  onChange={v => dispatch({ type: 'SET_EFEITO', value: v })}
-                  labelMap={Object.fromEntries(EFEITO_OPTIONS.map(o => [o.value, o.label])) as Record<RallyEfeito, string>}
-                />
-              </Section>
-            );
-          })()}
+          {needsSubtipo2 && form.tipo && (
+            <Section num={shouldShowDuracao(form.golpe) ? (needsSubtipo1 ? '6' : '5') : (needsSubtipo1 ? '5' : '4')} label="Onde Errou?" ref={subtipo2Ref}>
+              <Pills
+                options={SUBTIPO2_OPTIONS.map(o => o.value)}
+                selected={form.subtipo2}
+                onChange={v => dispatch({ type: 'SET_SUBTIPO2', value: v })}
+                labelMap={Object.fromEntries(SUBTIPO2_OPTIONS.map(o => [o.value, o.label])) as any}
+              />
+            </Section>
+          )}
 
-          {/* Direção */}
+          {needsEfeito && form.golpe && (
+            <Section num={
+              (shouldShowDuracao(form.golpe) && needsSubtipo1 && needsSubtipo2) ? '7' :
+              (shouldShowDuracao(form.golpe) && (needsSubtipo1 || needsSubtipo2)) ? '6' :
+              (!shouldShowDuracao(form.golpe) && needsSubtipo1 && needsSubtipo2) ? '6' :
+              (shouldShowDuracao(form.golpe) || needsSubtipo1 || needsSubtipo2) ? '5' : '4'
+            } label="Efeito" ref={efeitoRef}>
+              <Pills
+                options={EFEITO_OPTIONS.map(o => o.value)}
+                selected={form.efeito}
+                onChange={v => dispatch({ type: 'SET_EFEITO', value: v })}
+                labelMap={Object.fromEntries(EFEITO_OPTIONS.map(o => [o.value, o.label])) as any}
+              />
+            </Section>
+          )}
+
           {form.golpe && (
             <Section num="" label="Direção">
               <Pills
@@ -327,7 +278,6 @@ export function PointDetailsModal({
             </Section>
           )}
 
-          {/* Golpe Especial */}
           {golpeEspOptions.length > 0 && (
             <Section num="" label="Golpe Especial">
               <Pills
@@ -338,10 +288,8 @@ export function PointDetailsModal({
               />
             </Section>
           )}
+        </div>
 
-          </div>
-
-        {/* Footer */}
         <div className="px-5 py-4 border-t border-white/10 flex flex-col gap-2" style={{ backgroundColor: 'rgba(0,0,0,0.15)' }}>
           <button
             onClick={handleConfirm}
@@ -363,7 +311,6 @@ export function PointDetailsModal({
         </div>
       </div>
 
-      {/* Confirm Close Dialog */}
       {showCloseDialog && (
         <div
           className="fixed inset-0 z-[2100] flex items-center justify-center"
@@ -393,22 +340,7 @@ export function PointDetailsModal({
           </div>
         </div>
       )}
-    </div>
-  );
-
-  if (!mounted) return null;
-  return createPortal(modal, document.body);
-}
-
-function Section({ num, label, children, ref }: { num?: string; label: string; children: React.ReactNode; ref?: React.RefObject<HTMLDivElement> }) {
-  return (
-    <div ref={ref}>
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">
-        {num ? `${num}. ` : ''}{label}
-      </p>
-      {children}
-    </div>
+    </div>,
+    document.body
   );
 }
-
-

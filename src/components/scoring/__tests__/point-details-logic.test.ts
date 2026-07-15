@@ -6,6 +6,7 @@ import {
   shouldShowSubtipo1,
   shouldShowSubtipo2,
   shouldShowEfeito,
+  shouldShowDuracao,
   getDirecaoOptions,
   getGolpeEspOptions,
   SITUACAO_OPTIONS,
@@ -15,10 +16,11 @@ import {
   SUBTIPO1_OPTIONS,
   SUBTIPO2_OPTIONS,
   EFEITO_OPTIONS,
+  DURACAO_OPTIONS,
   DIRECAO_LABELS,
   GOLPE_ESP_LABELS,
 } from '../point-details-logic';
-import type { PointDetailsForm, Action, Vencedor } from '../point-details-logic';
+import type { PointDetailsForm, Action, Vencedor, RallyDuration } from '../point-details-logic';
 
 describe('point-details-logic', () => {
   describe('formReducer', () => {
@@ -37,12 +39,36 @@ describe('point-details-logic', () => {
         subtipo1: 'passing_shot',
         subtipo2: 'out',
         efeito: 'topspin',
+        duracao: 'opcao_1',
         direcao: 'cruzada',
         golpeEsp: 'lob',
       };
       const next = formReducer(state, { type: 'SET_TIPO', value: 'erro_forcado' });
       expect(next.tipo).toBe('erro_forcado');
       expect(next.golpe).toBeNull();
+      expect(next.subtipo1).toBeNull();
+      expect(next.subtipo2).toBeNull();
+      expect(next.efeito).toBeNull();
+      expect(next.duracao).toBeNull();
+      expect(next.direcao).toBeNull();
+      expect(next.golpeEsp).toBeNull();
+    });
+
+    it('deve limpar subtipos e efeito ao SET_DURACAO', () => {
+      const state: PointDetailsForm = {
+        ...initialForm,
+        situacao: 'fundo',
+        tipo: 'winner',
+        golpe: 'fh',
+        subtipo1: 'passing_shot',
+        subtipo2: 'out',
+        efeito: 'topspin',
+        duracao: null,
+        direcao: 'cruzada',
+        golpeEsp: 'lob',
+      };
+      const next = formReducer(state, { type: 'SET_DURACAO', value: 'opcao_2' });
+      expect(next.duracao).toBe('opcao_2');
       expect(next.subtipo1).toBeNull();
       expect(next.subtipo2).toBeNull();
       expect(next.efeito).toBeNull();
@@ -115,6 +141,33 @@ describe('point-details-logic', () => {
       expect(shouldShowEfeito('sacador', 'passada', 'erro_forcado', false, false)).toBe(false);
       expect(shouldShowEfeito('devolvedor', 'rede', 'winner', false, false)).toBe(false);
       expect(shouldShowEfeito('sacador', 'fundo', 'winner', false, false)).toBe(true);
+    });
+  });
+
+  describe('shouldShowDuracao', () => {
+    it('retorna true quando golpe esta selecionado', () => {
+      expect(shouldShowDuracao('fh')).toBe(true);
+      expect(shouldShowDuracao('bh')).toBe(true);
+      expect(shouldShowDuracao('vfh')).toBe(true);
+      expect(shouldShowDuracao('vbh')).toBe(true);
+      expect(shouldShowDuracao('smash')).toBe(true);
+    });
+
+    it('retorna false quando golpe e null', () => {
+      expect(shouldShowDuracao(null)).toBe(false);
+    });
+  });
+
+  describe('DURACAO_OPTIONS', () => {
+    it('deve ter 3 opcoes de duracao', () => {
+      expect(DURACAO_OPTIONS).toHaveLength(3);
+      expect(DURACAO_OPTIONS.map(o => o.value)).toEqual(['opcao_1', 'opcao_2', 'opcao_3']);
+    });
+
+    it('deve ter labels corretos', () => {
+      expect(DURACAO_OPTIONS[0].label).toBe('3 a 6 bolas');
+      expect(DURACAO_OPTIONS[1].label).toBe('7 a 10 bolas');
+      expect(DURACAO_OPTIONS[2].label).toBe('Mais de 11 bolas');
     });
   });
 

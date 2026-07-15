@@ -47,6 +47,9 @@ export const RallyGolpeEspSchema = z.enum([
 ]);
 export type RallyGolpeEsp = z.infer<typeof RallyGolpeEspSchema>;
 
+export const RallyDurationSchema = z.enum(["opcao_1", "opcao_2", "opcao_3"]);
+export type RallyDuration = z.infer<typeof RallyDurationSchema>;
+
 export const RallyDetailsSchema = z.object({
   vencedor: VencedorSchema,
   situacao: RallySituacaoSchema,
@@ -57,6 +60,7 @@ export const RallyDetailsSchema = z.object({
   golpe_esp: RallyGolpeEspSchema.optional(),
   subtipo1: RallySubtipo1Schema.optional(),
   subtipo2: RallySubtipo2Schema.optional(),
+  duracao: RallyDurationSchema.optional(),
   previewBalls: z.number().int().min(0),
   rallyLength: z.number().int().min(0).optional(),
 });
