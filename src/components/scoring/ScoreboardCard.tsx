@@ -81,7 +81,15 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended }: Sc
                   key={i}
                   className={`text-center px-1 py-2 text-sm font-mono rounded-sm ${style}`}
                 >
-                  {set ? set.player1 : '-'}
+                  {set ? (
+                    set.isTiebreak && set.tiebreakScore ? (
+                      // Match Tie-Break ou tie-break normal: mostrar pontos do tiebreak
+                      set.tiebreakScore.player1
+                    ) : (
+                      // Set normal: mostrar games
+                      set.player1
+                    )
+                  ) : '-'}
                 </td>
               );
             })}
@@ -103,7 +111,15 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended }: Sc
                   key={i}
                   className={`text-center px-1 py-2 text-sm font-mono rounded-sm ${style}`}
                 >
-                  {set ? set.player2 : '-'}
+                  {set ? (
+                    set.isTiebreak && set.tiebreakScore ? (
+                      // Match Tie-Break ou tie-break normal: mostrar pontos do tiebreak
+                      set.tiebreakScore.player2
+                    ) : (
+                      // Set normal: mostrar games
+                      set.player2
+                    )
+                  ) : '-'}
                 </td>
               );
             })}
