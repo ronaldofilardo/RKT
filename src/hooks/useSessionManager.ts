@@ -7,9 +7,13 @@ import type { ScoringState, SetScore, GameScore } from "@/core/scoring/types";
 import type { SetEditData } from "@/components/scoring/editScoreHelpers";
 import { setsToWinForFormat } from "@/components/scoring/editScoreHelpers";
 import type { TennisFormat } from "@/core/scoring/types";
-const BEST_OF_3 = "BEST_OF_3";
 import { startSession } from "@/services/annotationSessionService";
 import type { MatchData } from "@/hooks/useScoringHandlers";
+import {
+  normalizeMatchTiebreakState,
+  validateMatchTiebreakComplete,
+} from "./useSessionManager.utils";
+import { buildNewScoringState } from "./useSessionManager.state-builder";
 
 export interface SuspendedSessionState {
   matchStateSnapshot: string | null;
@@ -133,30 +137,20 @@ export function useSessionManager(ctx: SessionManagerContext) {
       server: "player1" | "player2",
       onMatchFinished?: (winner: "player1" | "player2") => void
     ) => {
-      const parseP = (v: number | string): number => {
-        if (typeof v === "string") {
-          if (v === "AD") return 4;
-          if (v === "DEUCE") return 3;
-          const n = parseInt(v, 10);
-          if (n === 40) return 3;
-          if (n === 30) return 2;
-          if (n === 15) return 1;
-          return 0;
-        }
-        if (v === 40) return 3;
-        if (v === 30) return 2;
-        if (v === 15) return 1;
-        return v;
-      };
-
-      const completedSetsProcessed = setResults.filter((set) => !set.isPartial);
-      const p1Sets = completedSetsProcessed.filter(
-        (set) => set.p1Games > set.p2Games,
-      ).length;
-      const p2Sets = completedSetsProcessed.filter(
-        (set) => set.p2Games > set.p1Games,
-      ).length;
-      const setsWon = { player1: p1Sets, player2: p2Sets };
+      const partialSet = setResults.find((set) => set.isPartial);
+      
+      const tbValidation = validateMatchTiebreakComplete(setResults, match?.format || '');
+      if (!tbValidation.valid) {
+        alert(tbValidation.error);
+        return;
+      }
+      
+      const newState = buildNewScoringState({
+        setResults,
+        server,
+        format: (match?.format as TennisFormat) || "BEST_OF_3",
+        partialSet,
+      });
 
       if (suspendedSession) {
         const bankSetsWon = suspendedSession.bankScoreState?.setsWon ?? {
@@ -164,82 +158,70 @@ export function useSessionManager(ctx: SessionManagerContext) {
           player2: 0,
         };
         if (
-          setsWon.player1 < bankSetsWon.player1 ||
-          setsWon.player2 < bankSetsWon.player2
+          newState.setsWon.player1 < bankSetsWon.player1 ||
+          newState.setsWon.player2 < bankSetsWon.player2
         ) {
           alert("Cannot reduce the number of sets already won.");
           return;
         }
       }
 
-      const partialSet = setResults.find((set) => set.isPartial);
-      const setsToWin = setsToWinForFormat(
-        (match?.format as TennisFormat) || "BEST_OF_3",
-      );
-      const winner =
-        setsWon.player1 >= setsToWin
-          ? "player1"
-          : setsWon.player2 >= setsToWin
-            ? "player2"
-            : null;
-      const isFinished = winner !== null;
-
-      const newState: ScoringState = {
-        sets: setResults.map((set) => ({
-          player1: set.p1Games,
-          player2: set.p2Games,
-          isTiebreak: set.p1Games === 6 && set.p2Games === 6,
-          tiebreakScore: set.tiebreakScore ?? null,
-        })),
-        currentGame: {
-          player1: partialSet
-            ? parseP(partialSet.currentGamePoints?.player1 ?? 0)
-            : 0,
-          player2: partialSet
-            ? parseP(partialSet.currentGamePoints?.player2 ?? 0)
-            : 0,
-          isDeuce: false,
-          advantage: null,
-          secondServe: false,
-        },
-        server,
-        setsWon,
-        isFinished,
-        winner,
-        startedAt: Date.now(),
-        secondServe: false,
-      };
+      const isFinished = newState.isFinished;
+      const winner = newState.winner;
 
       if (engineRef.current) {
         engineRef.current.loadState(newState);
         setScoreState(newState);
+        console.log("[handleEditScore] Engine loaded with state:", JSON.stringify(newState, null, 2));
+        console.log("[handleEditScore] setScoreState called, new sets:", JSON.stringify(newState.sets));
+        console.log("[handleEditScore] isMatchTiebreak check:", {
+          format: match?.format,
+          setResultsLength: setResults.length,
+          firstSet: setResults[0],
+          lastSet: setResults[setResults.length - 1],
+          hasCompletedSetsBefore: setResults.slice(0, -1).some(s => !s.isPartial),
+        });
       }
       
-      // Persistir estado ANTES de finalizar partida para garantir sincronização
-      try {
-        await persistState(newState, "edit-score");
-        console.log("[handleEditScore] State persisted successfully");
-      } catch (err) {
-        console.error("[handleEditScore] Failed to persist state:", err);
-        // Não bloqueia o fluxo, mas registra o erro
+      // PROTEÇÃO #3: Deduplicação de Persistência
+      // Se partida está sendo encerrada, persistir apenas uma vez via /finish
+      // Se não estiver encerrando, persistir via /state
+      if (isFinished && winner) {
+        // Finalização já persiste o estado - não chamar persistState separadamente
+        console.log("[handleEditScore] Match finished - will persist via /finish endpoint");
+      } else {
+        // Apenas persiste se não estiver finalizando
+        const result = await persistState(newState, "edit-score");
+        if (result.success) {
+          console.log("[handleEditScore] State persisted successfully");
+        } else if (result.needsResync) {
+          // CORREÇÃO #2: Se houve conflito persistente, forçar re-sincronização
+          console.warn("[handleEditScore] Needs resync due to version conflict");
+          await fetchMatch(true);
+          return;
+        } else {
+          console.error("[handleEditScore] Failed to persist state");
+          // Não bloqueia o fluxo, mas registra o erro
+        }
       }
 
-      // Se partida foi encerrada, atualizar winner no banco e chamar callback
+      // Se partida foi encerrada, atualizar winner no banco
       if (isFinished && winner) {
-        // Atualizar winner no banco de dados
+        // PROTEÇÃO #3: Persistir estado junto com finalização para evitar duplicidade
         const winnerPlayerId = winner === "player1" ? match?.player1.id : match?.player2.id;
         if (winnerPlayerId && matchId) {
           try {
             const token = tokenRef.current ?? sessionStorage.getItem("access_token");
             const response = await fetch(`/api/matches/${matchId}/finish`, {
-              method: 'PATCH',
+              method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
               },
               body: JSON.stringify({
                 winnerId: winnerPlayerId,
-                finishedAt: new Date().toISOString(),
+                scoreState: newState, // ✅ Incluir scoreState para persistir em uma única chamada
+                reason: 'COMPLETED',
               }),
             });
 
@@ -281,11 +263,13 @@ export function useSessionManager(ctx: SessionManagerContext) {
           }
         }
         
-        // Chamar callback de partida encerrada
+        // Chamar callback de partida encerrada se fornecido
         if (onMatchFinished) {
           onMatchFinished(winner);
-          return;
         }
+        
+        // Não retornar aqui - continuar com o fluxo normal
+        // O banner será mostrado na página de scoring
       }
 
       // Force session reset to resolve SEQUENCE_CONFLICT
@@ -422,7 +406,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
           if (suspendedSession.matchStateSnapshot) {
             engineRef.current = ScoringEngine.fromSerialized(
               config,
-              suspendedSession.matchStateSnapshot,
+              JSON.stringify(normalizeMatchTiebreakState(JSON.parse(suspendedSession.matchStateSnapshot), match.format)),
             );
 
             const canonicalState =
@@ -441,9 +425,10 @@ export function useSessionManager(ctx: SessionManagerContext) {
           } else if (suspendedSession.bankScoreState) {
             // FIX Bug 2 (secondary path): when only bankScoreState is present
             // (no snapshot), load it directly so engine and UI are in sync.
+            const normalizedBankState = normalizeMatchTiebreakState(suspendedSession.bankScoreState, match.format);
             engineRef.current = ScoringEngine.fromSerialized(
               config,
-              JSON.stringify(suspendedSession.bankScoreState),
+              JSON.stringify(normalizedBankState),
             );
             setScoreState(engineRef.current.getState() as ScoringState);
           }
@@ -453,7 +438,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
           const engineState =
             engineRef.current?.getState() as ScoringState | null;
           const lastSet = engineState?.sets?.[engineState.sets.length - 1];
-          const currentFloorSets = lastSet
+          let currentFloorSets = lastSet
             ? { player1: lastSet.player1, player2: lastSet.player2 }
             : suspendedSession.bankScoreState?.sets?.[
                   suspendedSession.bankScoreState.sets.length - 1
@@ -469,6 +454,27 @@ export function useSessionManager(ctx: SessionManagerContext) {
                     ].player2,
                 }
               : null;
+          
+          // CORREÇÃO #5: Se floorCurrentSets for null, buscar do banco como fallback
+          if (!currentFloorSets && match?.scoreState) {
+            try {
+              const bankState = typeof match.scoreState === 'string'
+                ? JSON.parse(match.scoreState)
+                : match.scoreState;
+              
+              const bankLastSet = bankState?.sets?.[bankState.sets.length - 1];
+              if (bankLastSet) {
+                currentFloorSets = {
+                  player1: bankLastSet.player1,
+                  player2: bankLastSet.player2,
+                };
+                console.log('[useSessionManager] Floor fallback from bank:', currentFloorSets);
+              }
+            } catch (err) {
+              console.error('[useSessionManager] Failed to parse bank scoreState:', err);
+            }
+          }
+          
           setFloorCurrentSets(currentFloorSets);
           setSuspendedSession(null);
         }

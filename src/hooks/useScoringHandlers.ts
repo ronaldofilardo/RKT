@@ -10,66 +10,14 @@ import type {
 } from "@/core/scoring/types";
 import type { RallyDirecao } from "@/schemas/contracts";
 import type { ScoreboardUIState } from "@/hooks/useScoreboardUIState";
-
-export interface MatchData {
-  id: string;
-  format: string;
-  player1: { id: string; name: string };
-  player2: { id: string; name: string };
-  initialServerId: string | null;
-  scoreState: ScoringState | null;
-  state: string;
-  sportType?: string;
-  courtType?: string;
-  version?: number;
-  includeLet?: boolean;
-}
-
-export interface ScoringHandlersContext {
-  matchId: string;
-  match: MatchData | null;
-  isOnline: boolean;
-  enqueue: (action: {
-    matchId: string;
-    type: "POINT";
-    payload: any;
-    timestamp: number;
-  }) => Promise<any>;
-
-  engineRef: MutableRefObject<ScoringEngine | null>;
-  tokenRef: MutableRefObject<string | null>;
-  modalParamsRef: MutableRefObject<Record<string, string>>;
-  openRef: MutableRefObject<
-    (modal: string, params?: Record<string, string>) => void
-  >;
-  pointSequenceRef: MutableRefObject<number>;
-
-  serveErrorState: ScoreboardUIState;
-
-  setMatch: Dispatch<SetStateAction<MatchData | null>>;
-  setScoreState: Dispatch<SetStateAction<ScoringState | null>>;
-  setIsLoading: Dispatch<SetStateAction<boolean>>;
-  setError: Dispatch<SetStateAction<string | null>>;
-  setSetupLoading: Dispatch<SetStateAction<boolean>>;
-  setPointsHistory: Dispatch<SetStateAction<string[]>>;
-  setShowFinishedBanner: Dispatch<SetStateAction<boolean>>;
-
-  handleServeErrorClose: () => void;
-  handleFirstServeErrorSet: (err: {
-    errorType: "out" | "net";
-    serveEffect?: string;
-    direction?: string;
-  }) => void;
-  handleFirstServeErrorClear: () => void;
-  setServeStep: (step: "none" | "second") => void;
-
-  open: (modal: string, params?: Record<string, string>) => void;
-  close: () => void;
-  closeAll: () => void;
-  onUndoComplete?: () => void;
-  isProcessingRef: MutableRefObject<boolean>;
-  debounceTimerRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
-}
+import type {
+  MatchData,
+  ScoringHandlersContext,
+  ScoringHandlersReturn,
+} from "./useScoringHandlers.types";
+import { persistStateWithRetry } from "./useScoringHandlers.persistence";
+import { createServerHelpers } from "./useScoringHandlers.server-helpers";
+import { createModalHandlers } from "./useScoringHandlers.modals";
 
 export function useScoringHandlers(ctx: ScoringHandlersContext) {
   const {
@@ -107,47 +55,20 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
   // (o POST /point já persiste com validação de versão + PointLog); usar
   // apenas em undo/let/edit onde não há endpoint dedicado.
 
-  const persistState = useCallback(
-    async (state: ScoringState, label: string) => {
-      if (!match) return;
-      try {
-        await fetch(`/api/matches/${matchId}/state`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            authorization: `Bearer ${tokenRef.current}`,
-          },
-          body: JSON.stringify({
-            state: state.isFinished ? "FINISHED" : "IN_PROGRESS",
-            scoreState: state,
-          }),
-        });
-      } catch (err) {
-        console.error(`[persistState:${label}]`, err);
-        setError(`Erro ao sincronizar placar (${label})`);
-      }
+const persistState = useCallback(
+    async (state: ScoringState, label: string): Promise<{ success: boolean; needsResync?: boolean }> => {
+      return persistStateWithRetry(state, label, {
+        matchId,
+        match,
+        tokenRef,
+        setError,
+      });
     },
     [matchId, match, tokenRef, setError],
   );
 
-  // ─── Server/winner identity helpers ────────────────────────────────────────
-
-  const getServerId = useCallback(() => {
-    if (!engineRef.current || !match) return "";
-    const s = engineRef.current.getState().server;
-    return s === "player1" ? match.player1.id : match.player2.id;
-  }, [match, engineRef]);
-
-  const getWinnerId = useCallback(
-    (isServer: boolean) => {
-      if (!engineRef.current || !match) return "";
-      const s = engineRef.current.getState().server;
-      if (isServer)
-        return s === "player1" ? match.player1.id : match.player2.id;
-      return s === "player1" ? match.player2.id : match.player1.id;
-    },
-    [match, engineRef],
-  );
+  const { getServerId: getServerIdHelper, getWinnerId: getWinnerIdHelper } = createServerHelpers({ engineRef, match });
+  const modalHandlers = createModalHandlers({ serveErrorState, open });
 
   // ─── Match data fetch ──────────────────────────────────────────────────────
 
@@ -428,15 +349,14 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
   // ─── Modal openers ─────────────────────────────────────────────────────────
 
   const openAceModal = useCallback(() => {
-    const step = serveErrorState.firstServeError ? "second" : "first";
-    open("serve-effect", { context: "winner", serveStep: step });
-  }, [serveErrorState.firstServeError, open]);
+    modalHandlers.openAceModal();
+  }, [modalHandlers]);
 
   const openPointDetails = useCallback(
     (side: "player1" | "player2") => {
-      open("point-details", { winner: side });
+      modalHandlers.openPointDetails(side);
     },
-    [open],
+    [modalHandlers]
   );
 
   // ─── Serve effect / error confirmation handlers ────────────────────────────
@@ -444,39 +364,23 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
   const handleServerEffectConfirm = useCallback(
     (effect?: string, direction?: string) => {
       if (!match || isProcessingRef.current) return;
-      
+
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
-      
+
       closeAll();
       const isSecond =
         serveErrorState.serveStep === "second" ||
         serveErrorState.firstServeError !== null;
-      const direcaoMap = {
-        aberto: "cruzada",
-        centro: "centro",
-        fechado: "paralela",
-      } as const;
-      const direcao =
-        direction && direction in direcaoMap
-          ? direcaoMap[direction as keyof typeof direcaoMap]
-          : undefined;
-      const rallyDetails: RallyDetails = {
-        vencedor: "sacador",
-        situacao: "devolucao",
-        tipo: "winner",
-        golpe: "fh",
-        efeito: effect as any,
-        direcao: direcao,
-        previewBalls: 1,
-      };
-      
+
+      const rallyDetails = modalHandlers.createAceRallyDetails(effect, direction);
+
       debounceTimerRef.current = setTimeout(() => {
         processPoint({
-          winnerId: getWinnerId(true),
+          winnerId: getWinnerIdHelper(true),
           type: "ACE",
-          serverId: getServerId(),
+          serverId: getServerIdHelper(),
           isFirstServe: !isSecond,
           isSecondServe: isSecond,
           timestamp: Date.now(),
@@ -485,8 +389,8 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         }).catch((err) =>
           console.error(
             "[handleServerEffectConfirm] Error processing ACE:",
-            err,
-          ),
+            err
+          )
         );
         handleFirstServeErrorClear();
         setServeStep("none");
@@ -495,13 +399,14 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     [
       match,
       serveErrorState,
-      getWinnerId,
-      getServerId,
+      getWinnerIdHelper,
+      getServerIdHelper,
       processPoint,
       handleFirstServeErrorClear,
       setServeStep,
       closeAll,
-    ],
+      modalHandlers,
+    ]
   );
 
   const handleServeErrorConfirm = useCallback(
@@ -523,35 +428,18 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         setServeStep("second");
         closeAll();
       } else {
-        const direcaoMap = {
-          aberto: "cruzada",
-          centro: "centro",
-          fechado: "paralela",
-        } as const;
-        const direcao =
-          direction && direction in direcaoMap
-            ? (direcaoMap[direction as keyof typeof direcaoMap] as RallyDirecao)
-            : undefined;
-        const rallyDetails: RallyDetails = {
-          vencedor: "devolvedor",
-          situacao: "devolucao",
-          tipo: "erro_forcado",
-          golpe: "fh",
-          subtipo2:
-            serveErrorState.pendingServeError.errorType === "net"
-              ? "net"
-              : "out",
-          efeito: effect as any,
-          direcao: direcao,
-          previewBalls: 1,
-        };
+        const rallyDetails = modalHandlers.createDoubleFaultRallyDetails(
+          serveErrorState.pendingServeError.errorType,
+          effect,
+          direction
+        );
         closeAll();
-        
+
         debounceTimerRef.current = setTimeout(() => {
           processPoint({
-            winnerId: getWinnerId(false),
+            winnerId: getWinnerIdHelper(false),
             type: "DOUBLE_FAULT",
-            serverId: getServerId(),
+            serverId: getServerIdHelper(),
             timestamp: Date.now(),
             rallyDetails,
             rallyLength: 1,
@@ -567,8 +455,8 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     [
       match,
       serveErrorState,
-      getWinnerId,
-      getServerId,
+      getWinnerIdHelper,
+      getServerIdHelper,
       processPoint,
       handleFirstServeErrorSet,
       handleFirstServeErrorClear,
@@ -576,7 +464,8 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       setServeStep,
       closeAll,
       engineRef,
-    ],
+      modalHandlers,
+    ]
   );
 
   const handleServeCancel = useCallback(() => {
@@ -638,7 +527,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       processPoint({
         winnerId: id,
         type: flowType,
-        serverId: getServerId(),
+        serverId: getServerIdHelper(),
         isFirstServe:
           serveErrorState.serveStep !== "second" &&
           !serveErrorState.firstServeError,
@@ -653,7 +542,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     [
       match,
       processPoint,
-      getServerId,
+      getServerIdHelper,
       serveErrorState,
       closeAll,
       modalParamsRef,
@@ -666,8 +555,8 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
 
   return {
     persistState,
-    getServerId,
-    getWinnerId,
+    getServerId: getServerIdHelper,
+    getWinnerId: getWinnerIdHelper,
     processPoint,
     fetchMatch,
     handleSetupConfirm,
@@ -684,3 +573,5 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     isProcessing: isProcessingRef.current,
   };
 }
+
+export type { MatchData, ScoringHandlersContext, ScoringHandlersReturn };
