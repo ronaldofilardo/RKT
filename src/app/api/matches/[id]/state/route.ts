@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { MatchStateInputSchema } from '@/schemas/contracts';
 import { requireRole } from '@/lib/auth';
 import { transitionMatchState } from '@/services/matchService';
+import { prisma } from '@/lib/prisma';
 
 export async function PATCH(
   request: NextRequest,
@@ -22,6 +23,24 @@ export async function PATCH(
       );
     }
 
+    // CORREÇÃO #1: Optimistic Locking - verificar versão antes de atualizar
+    const expectedVersion = parsed.data.version;
+    if (expectedVersion !== undefined && parsed.data.scoreState) {
+      const match = await prisma.match.findUnique({
+        where: { id },
+        select: { version: true },
+      });
+
+      if (match && match.version !== expectedVersion) {
+        return NextResponse.json({
+          error: 'VERSION_CONFLICT',
+          message: 'Estado desatualizado. Outra atualização ocorreu simultaneamente.',
+          currentVersion: match.version,
+          expectedVersion,
+        }, { status: 409 });
+      }
+    }
+
     const result = await transitionMatchState(
       id,
       parsed.data.state,
@@ -37,7 +56,10 @@ export async function PATCH(
       return NextResponse.json({ error: result.error }, { status: 422 });
     }
 
-    return NextResponse.json(result);
+    return NextResponse.json({
+      ...result,
+      version: result.version, // Retornar versão atualizada
+    });
   } catch (error) {
     console.error('[MATCH STATE]', error);
     return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });

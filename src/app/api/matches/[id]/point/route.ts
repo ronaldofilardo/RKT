@@ -89,7 +89,29 @@ export async function POST(
       }
 
       console.log('[POINT] Creating engine from match state');
-      const engine = match.scoreState
+      
+      // Normalizar estado mal persistido de Match Tie-Break antes de criar engine
+      let scoreStateToUse = match.scoreState;
+      if (scoreStateToUse && typeof scoreStateToUse === 'object') {
+        const isMatchTiebreakFormat = match.format === 'MATCH_TB_10' || match.format === 'BEST_OF_3_MATCH_TB';
+        if (isMatchTiebreakFormat && (scoreStateToUse as any).sets?.length >= 1) {
+          const setIndex = match.format === 'MATCH_TB_10' ? 0 : (scoreStateToUse as any).sets.length - 1;
+          const set = (scoreStateToUse as any).sets[setIndex];
+          
+          if (set && (set.player1 > 0 || set.player2 > 0) && !set.isTiebreak && !set.tiebreakScore) {
+            console.log('[POINT] Normalizing malformed match tiebreak state');
+            (scoreStateToUse as any).sets[setIndex] = {
+              ...set,
+              tiebreakScore: { player1: set.player1, player2: set.player2 },
+              player1: 0,
+              player2: 0,
+              isTiebreak: true,
+            };
+          }
+        }
+      }
+      
+      const engine = scoreStateToUse
         ? ScoringEngine.fromSerialized(
             {
               format: match.format,
@@ -97,7 +119,7 @@ export async function POST(
               player2Id: match.player2Id,
               initialServerId: match.initialServerId,
             },
-            JSON.stringify(match.scoreState)
+            JSON.stringify(scoreStateToUse)
           )
         : new ScoringEngine({
             format: match.format,
@@ -152,6 +174,7 @@ export async function POST(
       });
 
       console.log('[POINT] Transaction completed successfully');
+      console.log('[POINT] New state sets:', JSON.stringify(newState.sets));
       return newState;
     }, {
       timeout: 30000,

@@ -186,17 +186,11 @@ export async function deleteMatch(
   }
 
   if (options.type === 'hard') {
-    if (hasPoints) {
-      return {
-        error: 'CANNOT_HARD_DELETE_WITH_POINTS: Não é possível excluir permanentemente partida com pontos registrados. Use soft delete.',
-        stats: {
-          points: match.pointLog.length,
-          annotationSessions: match.annotationSessions.length,
-        },
-      } as const;
-    }
-
-    await prisma.match.delete({ where: { id } });
+    await prisma.$transaction([
+      prisma.pointLog.deleteMany({ where: { matchId: id } }),
+      prisma.matchAnnotationSession.deleteMany({ where: { matchId: id } }),
+      prisma.match.delete({ where: { id } }),
+    ]);
     return { success: true, type: 'hard' } as const;
   }
 
@@ -382,6 +376,16 @@ export async function transitionMatchState(
         } as const;
       }
     }
+    
+    // PROTEÇÃO #2 (Enhanced): Validação de regressão em tie-break
+    const oldLastSet = oldState?.sets?.[(oldState.sets.length || 1) - 1];
+    const newLastSet = newState_?.sets?.[(newState_.sets.length || 1) - 1];
+    
+    if (oldLastSet && newLastSet && isTiebreakRegressing(oldLastSet, newLastSet)) {
+      return {
+        error: "SCORE_REGRESSION: Tie-break não pode regredir",
+      } as const;
+    }
   }
 
   return prisma.match.update({
@@ -415,10 +419,44 @@ function isCurrentGameRegressing(oldCG: any, newCG: any): boolean {
   const newP1 = getGameProgress(newCG, 'player1');
   const newP2 = getGameProgress(newCG, 'player2');
 
+  // PROTEÇÃO #2: Validação de regressão do game atual
+  // Detecta regressão quando um jogador perde progresso sem que o outro avance
   return (
     (newP1 < oldP1 && newP2 <= oldP2) ||
     (newP2 < oldP2 && newP1 <= oldP1)
   );
+}
+
+/**
+ * PROTEÇÃO #2 (Enhanced): Validação de regressão em tie-break
+ * Verifica se há regressão nos pontos do tie-break quando aplicável
+ */
+function isTiebreakRegressing(oldSet: any, newSet: any): boolean {
+  if (!oldSet || !newSet) return false;
+  
+  // Verificar tie-break regular
+  if (oldSet.isTiebreak && oldSet.tiebreakScore && newSet.tiebreakScore) {
+    const oldTb = oldSet.tiebreakScore;
+    const newTb = newSet.tiebreakScore;
+    
+    return (
+      (newTb.player1 < oldTb.player1 && newTb.player2 <= oldTb.player2) ||
+      (newTb.player2 < oldTb.player2 && newTb.player1 <= oldTb.player1)
+    );
+  }
+  
+  // Verificar match tie-break (onde games são na verdade pontos)
+  if (!oldSet.isTiebreak && !newSet.isTiebreak && oldSet.tiebreakScore) {
+    // Caso especial: match tie-break mal persistido
+    if (oldSet.player1 > 0 || oldSet.player2 > 0) {
+      return (
+        (newSet.player1 < oldSet.player1 && newSet.player2 <= oldSet.player2) ||
+        (newSet.player2 < oldSet.player2 && newSet.player1 <= oldSet.player1)
+      );
+    }
+  }
+  
+  return false;
 }
 
 export async function findAbandonedSessionSnapshot(matchId: string) {
