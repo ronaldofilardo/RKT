@@ -9,7 +9,7 @@ interface RoundSelectorProps {
 }
 
 const ROUND_OPTIONS = [
-  { value: 'abertura', label: 'Abertura' },
+  { value: '1a rodada', label: '1a Rodada' },
   { value: 'oitavas', label: 'Oitavas' },
   { value: 'quartas', label: 'Quartas' },
   { value: 'semifinal', label: 'Semifinal' },

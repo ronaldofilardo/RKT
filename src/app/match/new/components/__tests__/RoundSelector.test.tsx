@@ -18,7 +18,7 @@ describe('RoundSelector', () => {
     expect(select).toBeInTheDocument();
     
     expect(screen.getByText('Selecione a rodada')).toBeInTheDocument();
-    expect(screen.getByText('Abertura')).toBeInTheDocument();
+    expect(screen.getByText('1a Rodada')).toBeInTheDocument();
     expect(screen.getByText('Oitavas')).toBeInTheDocument();
     expect(screen.getByText('Quartas')).toBeInTheDocument();
     expect(screen.getByText('Semifinal')).toBeInTheDocument();
@@ -30,9 +30,9 @@ describe('RoundSelector', () => {
     render(<RoundSelector value="" onChange={mockOnChange} />);
     
     const select = screen.getByRole('combobox');
-    fireEvent.change(select, { target: { value: 'abertura' } });
+    fireEvent.change(select, { target: { value: '1a rodada' } });
     
-    expect(mockOnChange).toHaveBeenCalledWith('abertura');
+    expect(mockOnChange).toHaveBeenCalledWith('1a rodada');
     expect(mockOnChange).toHaveBeenCalledTimes(1);
   });
 
