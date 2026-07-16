@@ -7,6 +7,7 @@ import {
   totalSetsForFormat,
   getNextServerAfterSet,
 } from './editScoreHelpers';
+import { parsePointValue } from '@/core/scoring/point-utils';
 
 type Player = 'player1' | 'player2';
 
@@ -227,15 +228,11 @@ export function createSetEditData(
       player2: tiebreakP2Num,
     };
   } else if (!isSetTrulyCompleted) {
-    const parsePointVal = (v: string): number | string => {
-      if (v === 'DEUCE' || v === 'AD') return v;
-      return parseInt(v || '0', 10);
-    };
-    const gamesChanged =
-      p1Val !== currentSets.player1 || p2Val !== currentSets.player2;
+    // Use the unified parsePointValue to correctly convert tennis scores
+    // "15"->1, "30"->2, "40"->3, "AD"->4, "DEUCE"->3
     setData.currentGamePoints = {
-      player1: gamesChanged ? 0 : parsePointVal(p1Points),
-      player2: gamesChanged ? 0 : parsePointVal(p2Points),
+      player1: parsePointValue(p1Points),
+      player2: parsePointValue(p2Points),
     };
   }
 

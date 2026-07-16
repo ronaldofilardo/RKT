@@ -125,8 +125,8 @@ describe('edit-score-logic - isMatchTiebreakSet', () => {
 
       expect(result.tiebreakScore).toBeUndefined();
       expect(result.currentGamePoints).toEqual({
-        player1: 30,
-        player2: 15,
+        player1: 2,  // "30" -> index 2
+        player2: 1,  // "15" -> index 1
       });
     });
   });
