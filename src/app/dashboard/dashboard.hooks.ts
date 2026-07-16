@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import type { DashboardView } from "./dashboard.types";
+import type { DashboardView, Match } from "./dashboard.types";
 
 export function useDashboardNavigation(router: any) {
   const handleNavigate = useCallback(
@@ -31,8 +31,8 @@ export function useDashboardNavigation(router: any) {
 }
 
 export function useDashboardData() {
-  const [matches, setMatches] = useState([]);
-  const [suspendedFromApi, setSuspendedFromApi] = useState([]);
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [suspendedFromApi, setSuspendedFromApi] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = useCallback(() => {

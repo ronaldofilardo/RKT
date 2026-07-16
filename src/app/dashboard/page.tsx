@@ -64,16 +64,16 @@ export default function DashboardPage() {
 
   const confirmDeleteMatchHandler = useCallback(async (type: 'soft' | 'hard', reason?: string) => {
     setDeleteLoading(true);
-    const success = await confirmDeleteMatch(type, reason);
+    await confirmDeleteMatch(type, reason);
     setDeleteLoading(false);
-    if (success) setMatchToDelete(null);
+    setMatchToDelete(null);
   }, [confirmDeleteMatch]);
 
   const confirmFinishMatchHandler = useCallback(async (reason: MatchFinishReason, note?: string) => {
     setFinishLoading(true);
-    const success = await confirmFinishMatch(reason, note);
+    await confirmFinishMatch(reason, note);
     setFinishLoading(false);
-    if (success) setMatchToFinish(null);
+    setMatchToFinish(null);
   }, [confirmFinishMatch]);
 
   const handleAthleteCreated = (athlete: Athlete) => {

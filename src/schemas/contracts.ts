@@ -257,6 +257,7 @@ export const MatchStateInputSchema = z
     state: MatchStateSchema,
     initialServerId: z.string().min(1).optional(),
     scoreState: z.any().optional(),
+    version: z.number().int().optional(),
   })
   .refine((data) => data.state !== "SCHEDULED", {
     message: "Não é possível voltar para SCHEDULED via API",

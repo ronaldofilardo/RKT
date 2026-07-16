@@ -1,9 +1,10 @@
 import type { MatchFinishReason } from "@/schemas/contracts";
+import type { ToastType } from "@/components/Toast";
 
 interface DeleteMatchOptions {
   matchToDelete: any;
   fetchDashboardData: () => void;
-  toast: (opts: { type: string; message: string }) => void;
+  toast: (opts: { type: ToastType; message: string }) => void;
 }
 
 export function useDeleteMatch(options: DeleteMatchOptions) {
@@ -40,13 +41,11 @@ export function useDeleteMatch(options: DeleteMatchOptions) {
       });
 
       fetchDashboardData();
-      return true;
     } catch (error: any) {
       toast({
         type: "error",
         message: error.message || "Erro ao excluir partida",
       });
-      return false;
     }
   };
 
@@ -56,7 +55,7 @@ export function useDeleteMatch(options: DeleteMatchOptions) {
 interface FinishMatchOptions {
   matchToFinish: any;
   fetchDashboardData: () => void;
-  toast: (opts: { type: string; message: string }) => void;
+  toast: (opts: { type: ToastType; message: string }) => void;
 }
 
 export function useFinishMatch(options: FinishMatchOptions) {
@@ -96,13 +95,11 @@ export function useFinishMatch(options: FinishMatchOptions) {
       });
 
       fetchDashboardData();
-      return true;
     } catch (error: any) {
       toast({
         type: "error",
         message: error.message || "Erro ao encerrar partida",
       });
-      return false;
     }
   };
 

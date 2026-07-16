@@ -96,12 +96,12 @@ export function EditScoreModal({
         ...prev,
         p1Input: currentSets.player1.toString(),
         p2Input: currentSets.player2.toString(),
-        p1Points: toDisplayPoint(currentGamePoints?.player1),
-        p2Points: toDisplayPoint(currentGamePoints?.player2),
+        p1Points: toDisplayPoint(currentGamePoints?.player1 ?? 0),
+        p2Points: toDisplayPoint(currentGamePoints?.player2 ?? 0),
       }));
       initialGameRef.current = {
-        player1: toDisplayPoint(currentGamePoints?.player1),
-        player2: toDisplayPoint(currentGamePoints?.player2),
+        player1: toDisplayPoint(currentGamePoints?.player1 ?? 0),
+        player2: toDisplayPoint(currentGamePoints?.player2 ?? 0),
       };
       initializedRef.current = true;
     }

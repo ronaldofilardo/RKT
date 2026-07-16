@@ -36,7 +36,7 @@ export interface SessionManagerContext {
 
   suspendedSession: SuspendedSessionState | null;
   fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
-  persistState: (state: ScoringState, label: string) => Promise<void>;
+  persistState: (state: ScoringState, label: string) => Promise<{ success: boolean; needsResync?: boolean }>;
 
   setScoreState: Dispatch<SetStateAction<ScoringState | null>>;
   setSessionActive: Dispatch<SetStateAction<boolean>>;
