@@ -230,18 +230,6 @@ export function EditScoreModal({
     matchFormat, completedSets,
   ]);
 
-  const prevCanAddNextSetRef = useRef(false);
-  useEffect(() => {
-    if (!isOpen) {
-      prevCanAddNextSetRef.current = false;
-      return;
-    }
-    if (canAddNextSet && !prevCanAddNextSetRef.current && initializedRef.current) {
-      handleAddSet();
-    }
-    prevCanAddNextSetRef.current = canAddNextSet;
-  }, [isOpen, canAddNextSet, handleAddSet]);
-
   const handleConfirm = useCallback(async () => {
     setConfirmError(null);
     
