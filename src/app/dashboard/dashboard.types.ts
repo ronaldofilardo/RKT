@@ -22,6 +22,12 @@ export interface Match {
   scheduledAt?: string;
 }
 
+export interface RankingEntry {
+  category?: string;
+  class?: string;
+  position: number;
+}
+
 export interface Athlete {
   id: string;
   name: string;
@@ -30,6 +36,7 @@ export interface Athlete {
   dominance?: string;
   backhand?: string;
   ranking?: number;
+  rankings?: Record<string, RankingEntry>;
 }
 
 export interface SuspendedMatch extends Match {

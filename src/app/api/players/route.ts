@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { name, gender, age, birthDate, dominance, backhand, ranking, rankings } = body;
+    const { name, gender, age, birthDate, dominance, backhand, rankings } = body;
     
     const userId = request.headers.get('x-user-id');
 
@@ -59,12 +59,7 @@ export async function POST(request: NextRequest) {
       // Only calculate age from birthDate if age was not explicitly provided
       if (age === undefined || age === null) {
         const today = new Date();
-        let ageCalc = today.getFullYear() - parsedBirthDate.getFullYear();
-        const monthDiff = today.getMonth() - parsedBirthDate.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < parsedBirthDate.getDate())) {
-          ageCalc--;
-        }
-        calculatedAge = ageCalc;
+        calculatedAge = today.getFullYear() - parsedBirthDate.getFullYear();
       }
     }
 
@@ -80,21 +75,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Backhand must be ONE_HANDED or TWO_HANDED' }, { status: 400 });
     }
 
-    if (ranking !== undefined && ranking !== null && (typeof ranking !== 'number' || ranking < 1)) {
-      return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Ranking must be a positive number' }, { status: 400 });
-    }
-
     if (rankings !== undefined && rankings !== null) {
       if (typeof rankings !== 'object' || Array.isArray(rankings)) {
         return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Rankings must be an object' }, { status: 400 });
       }
-      const validRankingTypes = ['ESTADUAL', 'BRASILEIRO', 'COSAT', 'ITS', 'WTA_ATP'];
+      const validRankingTypes = ['ESTADUAL', 'CBT', 'COSAT', 'ITF', 'ATP', 'WTA'];
       for (const [key, value] of Object.entries(rankings)) {
         if (!validRankingTypes.includes(key)) {
           return NextResponse.json({ error: 'VALIDATION_ERROR', message: `Invalid ranking type: ${key}` }, { status: 400 });
         }
-        if (typeof value !== 'number' || value < 1) {
-          return NextResponse.json({ error: 'VALIDATION_ERROR', message: `Ranking ${key} must be a positive number` }, { status: 400 });
+        if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+          return NextResponse.json({ error: 'VALIDATION_ERROR', message: `Ranking ${key} must be an object with position` }, { status: 400 });
+        }
+        const entry = value as Record<string, unknown>;
+        if (typeof entry.position !== 'number' || entry.position < 1) {
+          return NextResponse.json({ error: 'VALIDATION_ERROR', message: `Ranking ${key} position must be a positive number` }, { status: 400 });
+        }
+        if (entry.category !== undefined && typeof entry.category !== 'string') {
+          return NextResponse.json({ error: 'VALIDATION_ERROR', message: `Ranking ${key} category must be a string` }, { status: 400 });
+        }
+        if (entry.class !== undefined && typeof entry.class !== 'string') {
+          return NextResponse.json({ error: 'VALIDATION_ERROR', message: `Ranking ${key} class must be a string` }, { status: 400 });
         }
       }
     }
@@ -106,7 +107,6 @@ export async function POST(request: NextRequest) {
       birthDate: parsedBirthDate,
       dominance,
       backhand,
-      ranking,
       rankings,
       createdByUserId: userId || undefined,
     });

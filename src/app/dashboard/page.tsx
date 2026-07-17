@@ -25,7 +25,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const pathname = usePathname();
   const { matches, setMatches, suspendedFromApi, setSuspendedFromApi, loading, fetchDashboardData } = useDashboardData();
-  const { showNewAthleteModal, setShowNewAthleteModal, matchToDelete, setMatchToDelete, matchToFinish, setMatchToFinish } = useModalState();
+  const { matchToDelete, setMatchToDelete, matchToFinish, setMatchToFinish } = useModalState();
   const { user } = useUserAuth(router);
   const { toast } = useToast();
   const { setSession, setPendingEdit, writeToSessionStorage } = useSession();
@@ -75,11 +75,6 @@ export default function DashboardPage() {
     setFinishLoading(false);
     setMatchToFinish(null);
   }, [confirmFinishMatch]);
-
-  const handleAthleteCreated = (athlete: Athlete) => {
-    toast({ type: 'success', message: 'Atleta cadastrado com sucesso!' });
-    setShowNewAthleteModal(false);
-  };
 
   const activeView: DashboardView = (() => {
     switch (pathname) {
@@ -237,10 +232,10 @@ export default function DashboardPage() {
                 <span className="text-xl mr-3">🔴</span>Ao Vivo {liveCount > 0 && <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-xs font-bold">{liveCount}</span>}
               </button>
               <button
-                onClick={() => { setIsMenuOpen(false); setShowNewAthleteModal(true); }}
+                onClick={() => { setIsMenuOpen(false); router.push("/atletas" as any); }}
                 className="w-full text-left px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors text-gray-700"
               >
-                <span className="text-xl mr-3">🎾</span>Cadastrar Atleta
+                <span className="text-xl mr-3">📋</span>Atletas
               </button>
               <button
                 onClick={() => handleNavigate("pending")}
@@ -422,12 +417,6 @@ export default function DashboardPage() {
           </button>
         </div>
       </nav>
-
-      <NewAthleteModal
-        isOpen={showNewAthleteModal}
-        onClose={() => setShowNewAthleteModal(false)}
-        onCreated={handleAthleteCreated}
-      />
 
       {matchToDelete && (
         <DeleteMatchModal

@@ -350,6 +350,19 @@ export type MarkSessionAbandonedInput = z.infer<
   typeof MarkSessionAbandonedInputSchema
 >;
 
+export const RankingEntrySchema = z.object({
+  category: z.string().optional(),
+  class: z.string().optional(),
+  position: z.number().int().min(1),
+});
+export type RankingEntry = z.infer<typeof RankingEntrySchema>;
+
+export const RankingsSchema = z.record(
+  z.enum(['ESTADUAL', 'CBT', 'COSAT', 'ITF', 'ATP', 'WTA']),
+  RankingEntrySchema,
+);
+export type Rankings = z.infer<typeof RankingsSchema>;
+
 export const PaginationSchema = z.object({
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(20),

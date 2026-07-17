@@ -1,7 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Athlete } from '../page';
+import {
+  RANKING_TYPES,
+  RANKING_TYPE_LABELS,
+  RankingType,
+  calculateAgeFromYear,
+  hasCategories,
+  hasClasses,
+  getCategoriesForAge,
+  getClassesForSelection,
+} from '../rankingConstants';
 
 interface NewAthleteModalProps {
   isOpen: boolean;
@@ -9,21 +19,21 @@ interface NewAthleteModalProps {
   onCreated: (athlete: Athlete) => void;
 }
 
+interface RankingState {
+  enabled: boolean;
+  category: string;
+  class: string;
+  position: string;
+}
+
+function createEmptyRankingState(): RankingState {
+  return { enabled: false, category: '', class: '', position: '' };
+}
+
 export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const calculateAge = (birthDate?: string): number | undefined => {
-    if (!birthDate) return undefined;
-    const birth = new Date(birthDate);
-    const today = new Date();
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    return age;
-  };
   const [form, setForm] = useState({
     name: '',
     gender: '',
@@ -32,26 +42,57 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
     birthYear: '',
     dominance: '',
     backhand: '',
-    rankingEstadual: false,
-    rankingEstadualPosition: '',
-    rankingBrasileiro: false,
-    rankingBrasileiroPosition: '',
-    rankingCosat: false,
-    rankingCosatPosition: '',
-    rankingIts: false,
-    rankingItsPosition: '',
-    rankingWtaAtp: false,
-    rankingWtaAtpPosition: '',
   });
+
+  const [rankings, setRankings] = useState<Record<RankingType, RankingState>>({
+    ESTADUAL: createEmptyRankingState(),
+    CBT: createEmptyRankingState(),
+    COSAT: createEmptyRankingState(),
+    ITF: createEmptyRankingState(),
+    ATP: createEmptyRankingState(),
+    WTA: createEmptyRankingState(),
+  });
+
+  const age = useMemo(() => {
+    const y = parseInt(form.birthYear);
+    return isNaN(y) ? null : calculateAgeFromYear(y);
+  }, [form.birthYear]);
+
+  const availableTypes = useMemo(() => {
+    if (age === null) return RANKING_TYPES;
+    return RANKING_TYPES.filter((type) => {
+      if (!hasCategories(type)) return true;
+      return getCategoriesForAge(type, age).length > 0;
+    });
+  }, [age]);
 
   if (!isOpen) return null;
 
   const handleChange = (field: string, value: string) => {
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleCheckboxChange = (field: string, checked: boolean) => {
-    setForm(prev => ({ ...prev, [field]: checked }));
+  const handleRankingToggle = (type: RankingType) => {
+    setRankings((prev) => ({
+      ...prev,
+      [type]: {
+        ...prev[type],
+        enabled: !prev[type].enabled,
+        category: '',
+        class: '',
+        position: '',
+      },
+    }));
+  };
+
+  const handleRankingFieldChange = (type: RankingType, field: keyof RankingState, value: string) => {
+    setRankings((prev) => {
+      const updated = { ...prev[type], [field]: value };
+      if (field === 'category') {
+        updated.class = '';
+      }
+      return { ...prev, [type]: updated };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,22 +104,17 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
     try {
       const token = sessionStorage.getItem('access_token');
       const userId = sessionStorage.getItem('user_id');
-      
-      const rankings: Record<string, number> = {};
-      if (form.rankingEstadual && form.rankingEstadualPosition) {
-        rankings['ESTADUAL'] = parseInt(form.rankingEstadualPosition);
-      }
-      if (form.rankingBrasileiro && form.rankingBrasileiroPosition) {
-        rankings['BRASILEIRO'] = parseInt(form.rankingBrasileiroPosition);
-      }
-      if (form.rankingCosat && form.rankingCosatPosition) {
-        rankings['COSAT'] = parseInt(form.rankingCosatPosition);
-      }
-      if (form.rankingIts && form.rankingItsPosition) {
-        rankings['ITS'] = parseInt(form.rankingItsPosition);
-      }
-      if (form.rankingWtaAtp && form.rankingWtaAtpPosition) {
-        rankings['WTA_ATP'] = parseInt(form.rankingWtaAtpPosition);
+
+      const rankingsPayload: Record<string, { category?: string; class?: string; position: number }> = {};
+      for (const [type, state] of Object.entries(rankings) as [RankingType, RankingState][]) {
+        if (state.enabled && state.position) {
+          const entry: { category?: string; class?: string; position: number } = {
+            position: parseInt(state.position),
+          };
+          if (state.category) entry.category = state.category;
+          if (state.class) entry.class = state.class;
+          rankingsPayload[type] = entry;
+        }
       }
 
       const res = await fetch('/api/players', {
@@ -91,12 +127,13 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
         body: JSON.stringify({
           name: form.name.trim(),
           gender: form.gender || undefined,
-          birthDate: form.birthYear && form.birthMonth && form.birthDay 
-            ? `${form.birthYear}-${form.birthMonth.padStart(2, '0')}-${form.birthDay.padStart(2, '0')}`
-            : undefined,
+          birthDate:
+            form.birthYear && form.birthMonth && form.birthDay
+              ? `${form.birthYear}-${form.birthMonth.padStart(2, '0')}-${form.birthDay.padStart(2, '0')}`
+              : undefined,
           dominance: form.dominance || undefined,
           backhand: form.backhand || undefined,
-          rankings: Object.keys(rankings).length > 0 ? rankings : undefined,
+          rankings: Object.keys(rankingsPayload).length > 0 ? rankingsPayload : undefined,
         }),
       });
 
@@ -111,11 +148,12 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
         id: player.id,
         name: player.name,
         gender: player.gender,
-        age: player.age || calculateAge(player.birthDate),
+        age: player.age,
         dominance: player.dominance,
         backhand: player.backhand,
         ranking: player.ranking,
       });
+
       setForm({
         name: '',
         gender: '',
@@ -124,16 +162,14 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
         birthYear: '',
         dominance: '',
         backhand: '',
-        rankingEstadual: false,
-        rankingEstadualPosition: '',
-        rankingBrasileiro: false,
-        rankingBrasileiroPosition: '',
-        rankingCosat: false,
-        rankingCosatPosition: '',
-        rankingIts: false,
-        rankingItsPosition: '',
-        rankingWtaAtp: false,
-        rankingWtaAtpPosition: '',
+      });
+      setRankings({
+        ESTADUAL: createEmptyRankingState(),
+        CBT: createEmptyRankingState(),
+        COSAT: createEmptyRankingState(),
+        ITF: createEmptyRankingState(),
+        ATP: createEmptyRankingState(),
+        WTA: createEmptyRankingState(),
       });
       onClose();
     } catch (err) {
@@ -141,6 +177,92 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const renderRankingRow = (type: RankingType) => {
+    const state = rankings[type];
+    const showCategory = hasCategories(type) && age !== null;
+    const showClass = hasClasses(type) && state.category !== '' && form.gender !== '';
+    const showPosition = state.enabled;
+
+    const categories = age !== null ? getCategoriesForAge(type, age) : [];
+    const classes =
+      state.category && form.gender && age !== null
+        ? getClassesForSelection(state.category, form.gender, age)
+        : [];
+
+    return (
+      <div key={type} className="border border-gray-200 rounded-lg p-3">
+        <div className="flex items-center gap-2 mb-2">
+          <input
+            type="checkbox"
+            id={`ranking-${type}`}
+            checked={state.enabled}
+            onChange={() => handleRankingToggle(type)}
+            disabled={submitting}
+            className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+          />
+          <label htmlFor={`ranking-${type}`} className="text-sm font-medium text-gray-700">
+            {RANKING_TYPE_LABELS[type]}
+          </label>
+        </div>
+
+        {state.enabled && (
+          <div className="ml-6 space-y-2">
+            {showCategory && (
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Categoria</label>
+                <select
+                  value={state.category}
+                  onChange={(e) => handleRankingFieldChange(type, 'category', e.target.value)}
+                  disabled={submitting}
+                  className="w-full px-3 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 text-sm"
+                >
+                  <option value="">Selecione...</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat} className="text-gray-900">
+                      {cat} anos
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {showClass && (
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Classe</label>
+                <select
+                  value={state.class}
+                  onChange={(e) => handleRankingFieldChange(type, 'class', e.target.value)}
+                  disabled={submitting}
+                  className="w-full px-3 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 text-sm"
+                >
+                  <option value="">Selecione...</option>
+                  {classes.map((cls) => (
+                    <option key={cls} value={cls} className="text-gray-900">
+                      {cls}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Posição</label>
+              <input
+                type="number"
+                min="1"
+                value={state.position}
+                onChange={(e) => handleRankingFieldChange(type, 'position', e.target.value)}
+                disabled={submitting}
+                placeholder="Posição"
+                className="w-full px-3 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-500 text-sm"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -158,9 +280,7 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
-              {error}
-            </div>
+            <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{error}</div>
           )}
 
           <div>
@@ -187,9 +307,15 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
                 disabled={submitting}
                 className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900"
               >
-                <option value="" className="text-gray-900">Selecione...</option>
-                <option value="MALE" className="text-gray-900">Masculino</option>
-                <option value="FEMALE" className="text-gray-900">Feminino</option>
+                <option value="" className="text-gray-900">
+                  Selecione...
+                </option>
+                <option value="MALE" className="text-gray-900">
+                  Masculino
+                </option>
+                <option value="FEMALE" className="text-gray-900">
+                  Feminino
+                </option>
               </select>
             </div>
 
@@ -254,9 +380,15 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
                 disabled={submitting}
                 className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900"
               >
-                <option value="" className="text-gray-900">Selecione...</option>
-                <option value="RIGHT" className="text-gray-900">Destro</option>
-                <option value="LEFT" className="text-gray-900">Canhoto</option>
+                <option value="" className="text-gray-900">
+                  Selecione...
+                </option>
+                <option value="RIGHT" className="text-gray-900">
+                  Destro
+                </option>
+                <option value="LEFT" className="text-gray-900">
+                  Canhoto
+                </option>
               </select>
             </div>
 
@@ -268,145 +400,26 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
                 disabled={submitting}
                 className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900"
               >
-                <option value="" className="text-gray-900">Selecione...</option>
-                <option value="ONE_HANDED" className="text-gray-900">Uma mão</option>
-                <option value="TWO_HANDED" className="text-gray-900">Duas mãos</option>
+                <option value="" className="text-gray-900">
+                  Selecione...
+                </option>
+                <option value="ONE_HANDED" className="text-gray-900">
+                  Uma mão
+                </option>
+                <option value="TWO_HANDED" className="text-gray-900">
+                  Duas mãos
+                </option>
               </select>
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Ranking</label>
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="estadual"
-                  checked={form.rankingEstadual}
-                  onChange={(e) => handleCheckboxChange('rankingEstadual', e.target.checked)}
-                  disabled={submitting}
-                  className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
-                />
-                <label htmlFor="estadual" className="text-sm text-gray-700 min-w-[80px]">
-                  Estadual
-                </label>
-                {form.rankingEstadual && (
-                  <input
-                    type="number"
-                    min="1"
-                    value={form.rankingEstadualPosition}
-                    onChange={(e) => handleChange('rankingEstadualPosition', e.target.value)}
-                    disabled={submitting}
-                    placeholder="Posição"
-                    className="flex-1 px-3 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-500 text-sm"
-                    autoFocus
-                  />
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="brasileiro"
-                  checked={form.rankingBrasileiro}
-                  onChange={(e) => handleCheckboxChange('rankingBrasileiro', e.target.checked)}
-                  disabled={submitting}
-                  className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
-                />
-                <label htmlFor="brasileiro" className="text-sm text-gray-700 min-w-[80px]">
-                  Brasileiro
-                </label>
-                {form.rankingBrasileiro && (
-                  <input
-                    type="number"
-                    min="1"
-                    value={form.rankingBrasileiroPosition}
-                    onChange={(e) => handleChange('rankingBrasileiroPosition', e.target.value)}
-                    disabled={submitting}
-                    placeholder="Posição"
-                    className="flex-1 px-3 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-500 text-sm"
-                    autoFocus
-                  />
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="cosat"
-                  checked={form.rankingCosat}
-                  onChange={(e) => handleCheckboxChange('rankingCosat', e.target.checked)}
-                  disabled={submitting}
-                  className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
-                />
-                <label htmlFor="cosat" className="text-sm text-gray-700 min-w-[80px]">
-                  COSAT
-                </label>
-                {form.rankingCosat && (
-                  <input
-                    type="number"
-                    min="1"
-                    value={form.rankingCosatPosition}
-                    onChange={(e) => handleChange('rankingCosatPosition', e.target.value)}
-                    disabled={submitting}
-                    placeholder="Posição"
-                    className="flex-1 px-3 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-500 text-sm"
-                    autoFocus
-                  />
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="its"
-                  checked={form.rankingIts}
-                  onChange={(e) => handleCheckboxChange('rankingIts', e.target.checked)}
-                  disabled={submitting}
-                  className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
-                />
-                <label htmlFor="its" className="text-sm text-gray-700 min-w-[80px]">
-                  ITS
-                </label>
-                {form.rankingIts && (
-                  <input
-                    type="number"
-                    min="1"
-                    value={form.rankingItsPosition}
-                    onChange={(e) => handleChange('rankingItsPosition', e.target.value)}
-                    disabled={submitting}
-                    placeholder="Posição"
-                    className="flex-1 px-3 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-500 text-sm"
-                    autoFocus
-                  />
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="wta-atp"
-                  checked={form.rankingWtaAtp}
-                  onChange={(e) => handleCheckboxChange('rankingWtaAtp', e.target.checked)}
-                  disabled={submitting}
-                  className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
-                />
-                <label htmlFor="wta-atp" className="text-sm text-gray-700 min-w-[80px]">
-                  WTA/ATP
-                </label>
-                {form.rankingWtaAtp && (
-                  <input
-                    type="number"
-                    min="1"
-                    value={form.rankingWtaAtpPosition}
-                    onChange={(e) => handleChange('rankingWtaAtpPosition', e.target.value)}
-                    disabled={submitting}
-                    placeholder="Posição"
-                    className="flex-1 px-3 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-500 text-sm"
-                    autoFocus
-                  />
-                )}
-              </div>
+            {age !== null && (
+              <p className="text-xs text-gray-500 mb-2">Idade: {age} anos</p>
+            )}
+            <div className="space-y-2">
+              {availableTypes.map((type) => renderRankingRow(type))}
             </div>
           </div>
 

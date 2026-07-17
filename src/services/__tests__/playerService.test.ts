@@ -82,7 +82,7 @@ describe('playerService', () => {
         dominance: 'RIGHT',
         backhand: 'ONE_HANDED',
         ranking: 10,
-        rankings: { ESTADUAL: 5 },
+        rankings: { ESTADUAL: { category: '15-16', class: '4ªMA', position: 5 } },
       });
 
       const result = await createPlayer({
@@ -95,7 +95,7 @@ describe('playerService', () => {
         dominance: 'RIGHT',
         backhand: 'ONE_HANDED',
         ranking: 10,
-        rankings: { ESTADUAL: 5 },
+        rankings: { ESTADUAL: { category: '15-16', class: '4ªMA', position: 5 } },
       });
 
       expect(mockPrisma.player.create).toHaveBeenCalledWith({
@@ -109,7 +109,7 @@ describe('playerService', () => {
           dominance: 'RIGHT',
           backhand: 'ONE_HANDED',
           ranking: 10,
-          rankings: { ESTADUAL: 5 },
+          rankings: { ESTADUAL: { category: '15-16', class: '4ªMA', position: 5 } },
         }),
         select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true },
       });

@@ -15,6 +15,12 @@ import {
   RoundSelector,
 } from './components';
 
+export interface RankingEntry {
+  category?: string;
+  class?: string;
+  position: number;
+}
+
 export interface Athlete {
   id: string;
   name: string;
@@ -23,7 +29,7 @@ export interface Athlete {
   dominance?: string;
   backhand?: string;
   ranking?: number;
-  rankings?: Record<string, number>;
+  rankings?: Record<string, RankingEntry>;
 }
 
 interface DuplicateInfo {
