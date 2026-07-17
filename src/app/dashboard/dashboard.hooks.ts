@@ -35,24 +35,33 @@ export function useDashboardData() {
   const [suspendedFromApi, setSuspendedFromApi] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchDashboardData = useCallback(() => {
+  const fetchDashboardData = useCallback(async () => {
     const accessToken = sessionStorage.getItem("access_token");
-    Promise.all([
-      fetch("/api/matches", {
-        headers: { authorization: `Bearer ${accessToken}` },
-      }).then((r) => (r.ok ? r.json() : { matches: [] })),
-      fetch("/api/matches/suspended-sessions", {
-        headers: { authorization: `Bearer ${accessToken}` },
-      }).then((r) => (r.ok ? r.json() : { matches: [] })),
-    ])
-      .then(([matchData, suspendedData]) => {
-        setMatches(matchData.matches || []);
-        setSuspendedFromApi(suspendedData.matches || []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
+    if (!accessToken) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const [matchRes, suspendedRes] = await Promise.all([
+        fetch("/api/matches", {
+          headers: { authorization: `Bearer ${accessToken}` },
+        }),
+        fetch("/api/matches/suspended-sessions", {
+          headers: { authorization: `Bearer ${accessToken}` },
+        }),
+      ]);
+
+      const matchData = matchRes.ok ? await matchRes.json() : { matches: [] };
+      const suspendedData = suspendedRes.ok ? await suspendedRes.json() : { matches: [] };
+
+      setMatches(matchData.matches || []);
+      setSuspendedFromApi(suspendedData.matches || []);
+    } catch (error) {
+      console.error("[fetchDashboardData] Error:", error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   return { matches, setMatches, suspendedFromApi, setSuspendedFromApi, loading, fetchDashboardData };
