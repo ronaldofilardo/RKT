@@ -64,6 +64,7 @@ export function EditScoreModal({
 
   const initializedRef = useRef(false);
   const initialGameRef = useRef<{ player1: string; player2: string } | null>(null);
+  const lastGamesRef = useRef<{ p1: number; p2: number } | null>(null);
 
   const calculations = useEditScoreCalculator({
     matchFormat,
@@ -96,32 +97,41 @@ export function EditScoreModal({
         ...prev,
         p1Input: currentSets.player1.toString(),
         p2Input: currentSets.player2.toString(),
-        p1Points: toDisplayPoint(currentGamePoints?.player1 ?? 0),
-        p2Points: toDisplayPoint(currentGamePoints?.player2 ?? 0),
+        p1Points: toDisplayPoint(parsePointValue(currentGamePoints?.player1 ?? 0)),
+        p2Points: toDisplayPoint(parsePointValue(currentGamePoints?.player2 ?? 0)),
       }));
       initialGameRef.current = {
-        player1: toDisplayPoint(currentGamePoints?.player1 ?? 0),
-        player2: toDisplayPoint(currentGamePoints?.player2 ?? 0),
+        player1: toDisplayPoint(parsePointValue(currentGamePoints?.player1 ?? 0)),
+        player2: toDisplayPoint(parsePointValue(currentGamePoints?.player2 ?? 0)),
       };
       initializedRef.current = true;
     }
   }, [isOpen, completedSets.length, currentSets.player1, currentSets.player2, currentGamePoints]);
 
   useEffect(() => {
-    if (!bothFilled) return;
+    if (!bothFilled) {
+      lastGamesRef.current = null;
+      return;
+    }
     const gamesChanged = p1Val !== currentSets.player1 || p2Val !== currentSets.player2;
     const hasGamePoints = state.p1Points !== "0" || state.p2Points !== "0";
     
-    if (gamesChanged) {
+    // Only reset if games changed AND we haven't reset yet for this game configuration
+    const gamesChangedFromLastReset = !lastGamesRef.current || 
+      lastGamesRef.current.p1 !== p1Val || 
+      lastGamesRef.current.p2 !== p2Val;
+    
+    if (gamesChanged && gamesChangedFromLastReset) {
       setState(prev => ({ ...prev, p1Points: "0", p2Points: "0" }));
       initialGameRef.current = { player1: "0", player2: "0" };
+      lastGamesRef.current = { p1: p1Val, p2: p2Val };
       
       // CORREÇÃO #4: Setar aviso quando pontos forem descartados
       if (hasGamePoints && !isSetTrulyCompleted) {
         setConfirmError("⚠️ Pontos do game atual foram zerados devido à mudança no placar de games");
       }
     }
-  }, [bothFilled, p1Val, p2Val, currentSets, state.p1Points, state.p2Points, isSetTrulyCompleted]);
+  }, [bothFilled, p1Val, p2Val, currentSets, isSetTrulyCompleted]);
 
   useEffect(() => {
     if (!hasTiebreak) {

@@ -408,57 +408,6 @@ export class ScoringEngine {
     };
   }
 
-  private isSetComplete(set: SetScore, setsWon: { player1: number; player2: number }): boolean {
-    const diff = Math.abs(set.player1 - set.player2);
-    const maxGames = Math.max(set.player1, set.player2);
-
-    // Tiebreak de set regular (7 pts)
-    if (set.isTiebreak && set.tiebreakScore) {
-      const tb = set.tiebreakScore;
-      const tbMax = Math.max(tb.player1, tb.player2);
-      const tbDiff = Math.abs(tb.player1 - tb.player2);
-      // Match tiebreak (10 pts) vs Set tiebreak (7 pts)
-      const isMatchTb = this.config.format === 'MATCH_TB_10' ||
-        (this.config.format === 'BEST_OF_5' && this.state.sets.length === 5) ||
-        (this.config.format === 'BEST_OF_3_MATCH_TB' && this.state.sets.length === 3) ||
-        (this.config.format === 'SHORT_SET_2V2_NO_AD' && this.state.sets.length === 3);
-      const tbMin = isMatchTb ? 10 : 7;
-      return tbMax >= tbMin && tbDiff >= 2;
-    }
-
-    if (this.usesNoAd()) {
-      const needed = this.config.format === 'SHORT_SET_2V2_NO_AD' ? 4 : 6;
-      return maxGames >= needed && diff >= 2;
-    }
-
-    if (this.isFinalSet()) {
-      const needed = this.getGamesToTiebreak();
-      // PRO_SET_8: completa em 8 games com diff 2, ou TB em 8/8
-      if (this.config.format === 'PRO_SET_8') {
-        return maxGames >= 8 && diff >= 2;
-      }
-      return maxGames >= needed && diff >= 2;
-    }
-
-    if (this.config.format === 'BEST_OF_5') {
-      // 5º set não completa como set regular (tem MT)
-      if (this.state.sets.length >= 4 && setsWon.player1 === 2 && setsWon.player2 === 2) {
-        return false;
-      }
-    }
-
-    if (this.config.format === 'BEST_OF_3') {
-      // 3º set completa normal (sem TB)
-      if (maxGames === 6 && diff >= 2) return true;
-      if (maxGames > 6 && diff >= 2) return true;
-      return false;
-    }
-
-    if (maxGames === 6 && diff >= 2) return true;
-    if (maxGames > 6 && diff >= 2) return true;
-    return false;
-  }
-
   private shouldStartTiebreak(set: SetScore): boolean {
     const noAd = this.usesNoAd();
     const isFinalSet_ = this.isFinalSet();

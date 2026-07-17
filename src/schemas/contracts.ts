@@ -180,17 +180,19 @@ export type PointFlowInput = z.infer<typeof PointFlowInputSchema>;
 export const GameScoreSchema = z.object({
   player1: z.number().int().min(0),
   player2: z.number().int().min(0),
-  isDeuce: z.boolean(),
-  advantage: z.enum(["player1", "player2"]).nullable(),
+  isDeuce: z.boolean().optional(),
+  advantage: z.enum(["player1", "player2"]).nullable().optional(),
+  secondServe: z.boolean().optional(),
 });
 
 export const SetScoreSchema = z.object({
   player1: z.number().int().min(0),
   player2: z.number().int().min(0),
-  isTiebreak: z.boolean(),
+  isTiebreak: z.boolean().optional(),
   tiebreakScore: z
-    .object({ player1: z.number(), player2: z.number() })
-    .nullable(),
+    .object({ player1: z.number().int().min(0), player2: z.number().int().min(0) })
+    .nullable()
+    .optional(),
 });
 
 export const MatchScoreStateSchema = z.object({
@@ -199,6 +201,14 @@ export const MatchScoreStateSchema = z.object({
   server: z.enum(["player1", "player2"]),
   isFinished: z.boolean(),
   winner: z.enum(["player1", "player2"]).nullable(),
+  setsWon: z
+    .object({
+      player1: z.number().int().min(0),
+      player2: z.number().int().min(0),
+    })
+    .optional(),
+  startedAt: z.number().nullable().optional(),
+  secondServe: z.boolean().optional(),
 });
 export type MatchScoreState = z.infer<typeof MatchScoreStateSchema>;
 
@@ -248,7 +258,7 @@ export type DeleteMatchInput = z.infer<typeof DeleteMatchInputSchema>;
 export const FinishMatchInputSchema = z.object({
   reason: MatchFinishReasonSchema,
   note: z.string().max(500).optional(),
-  scoreState: z.any().optional(),
+  scoreState: MatchScoreStateSchema.optional(),
 });
 export type FinishMatchInput = z.infer<typeof FinishMatchInputSchema>;
 
@@ -256,7 +266,7 @@ export const MatchStateInputSchema = z
   .object({
     state: MatchStateSchema,
     initialServerId: z.string().min(1).optional(),
-    scoreState: z.any().optional(),
+    scoreState: MatchScoreStateSchema.optional(),
     version: z.number().int().optional(),
   })
   .refine((data) => data.state !== "SCHEDULED", {

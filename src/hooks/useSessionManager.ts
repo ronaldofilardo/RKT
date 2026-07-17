@@ -85,9 +85,6 @@ export function useSessionManager(ctx: SessionManagerContext) {
 
       try {
         if (isFinished) {
-          // If the match is finished, we MUST end the session as COMPLETED
-          // and also mark the match as FINISHED so it's removed from suspended
-          // sessions and becomes immutable.
           await Promise.all([
             fetch(`/api/matches/${mid}/sessions/${sid}`, {
               method: "PATCH",
@@ -113,7 +110,6 @@ export function useSessionManager(ctx: SessionManagerContext) {
             }),
           ]);
         } else {
-          // Otherwise, just mark as abandoned (standard flow)
           await fetch(`/api/matches/${mid}/sessions/${sid}/abandon`, {
             method: "POST",
             keepalive: true,
@@ -152,6 +148,9 @@ export function useSessionManager(ctx: SessionManagerContext) {
         partialSet,
       });
 
+      console.log("[handleEditScore] newState.currentGame:", newState.currentGame);
+      console.log("[handleEditScore] partialSet:", partialSet);
+
       if (suspendedSession) {
         const bankSetsWon = suspendedSession.bankScoreState?.setsWon ?? {
           player1: 0,
@@ -173,7 +172,8 @@ export function useSessionManager(ctx: SessionManagerContext) {
         engineRef.current.loadState(newState);
         setScoreState(newState);
         console.log("[handleEditScore] Engine loaded with state:", JSON.stringify(newState, null, 2));
-        console.log("[handleEditScore] setScoreState called, new sets:", JSON.stringify(newState.sets));
+        console.log("[handleEditScore] setScoreState called - currentGame:", newState.currentGame);
+        console.log("[handleEditScore] setScoreState called - sets:", JSON.stringify(newState.sets));
         console.log("[handleEditScore] isMatchTiebreak check:", {
           format: match?.format,
           setResultsLength: setResults.length,
@@ -182,32 +182,36 @@ export function useSessionManager(ctx: SessionManagerContext) {
           hasCompletedSetsBefore: setResults.slice(0, -1).some(s => !s.isPartial),
         });
       }
+
+      // CORREÇÃO: limpar imediatamente qualquer snapshot "pendente" (pendingEditScore
+      // local, pendingEditScore do contexto de sessão, e suspendedSession.bankScoreState)
+      // na MESMA passada em que atualizamos scoreState. Esses três têm prioridade mais
+      // alta que scoreState em `effectiveScoreState` (page.tsx). Se ficarem "vivos" até
+      // o fim da função (depois de persistState/finish/abandonCurrentSession, todos
+      // assíncronos), os botões de placar continuam mostrando o valor ANTIGO até essas
+      // chamadas terminarem — ou indefinidamente, se alguma delas falhar.
+      setPendingEditScore(null);
+      ctx.clearPendingEdit?.();
+      setSuspendedSession(null);
       
       // PROTEÇÃO #3: Deduplicação de Persistência
-      // Se partida está sendo encerrada, persistir apenas uma vez via /finish
-      // Se não estiver encerrando, persistir via /state
       if (isFinished && winner) {
-        // Finalização já persiste o estado - não chamar persistState separadamente
         console.log("[handleEditScore] Match finished - will persist via /finish endpoint");
       } else {
-        // Apenas persiste se não estiver finalizando
+        console.log("[handleEditScore] Calling persistState with currentGame:", newState.currentGame);
         const result = await persistState(newState, "edit-score");
         if (result.success) {
           console.log("[handleEditScore] State persisted successfully");
         } else if (result.needsResync) {
-          // CORREÇÃO #2: Se houve conflito persistente, forçar re-sincronização
           console.warn("[handleEditScore] Needs resync due to version conflict");
           await fetchMatch(true);
           return;
         } else {
           console.error("[handleEditScore] Failed to persist state");
-          // Não bloqueia o fluxo, mas registra o erro
         }
       }
 
-      // Se partida foi encerrada, atualizar winner no banco
       if (isFinished && winner) {
-        // PROTEÇÃO #3: Persistir estado junto com finalização para evitar duplicidade
         const winnerPlayerId = winner === "player1" ? match?.player1.id : match?.player2.id;
         if (winnerPlayerId && matchId) {
           try {
@@ -220,7 +224,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
               },
               body: JSON.stringify({
                 winnerId: winnerPlayerId,
-                scoreState: newState, // ✅ Incluir scoreState para persistir em uma única chamada
+                scoreState: newState,
                 reason: 'COMPLETED',
               }),
             });
@@ -235,10 +239,8 @@ export function useSessionManager(ctx: SessionManagerContext) {
           } catch (err) {
             console.error('Failed to update match winner:', err);
             
-            // Se estiver offline, salvar para sincronização posterior
             const isOffline = !navigator.onLine;
-            if (isOffline || err instanceof TypeError && err.message === 'Failed to fetch') {
-              // Salvar no localStorage para sync quando voltar online
+            if (isOffline || (err instanceof TypeError && err.message === 'Failed to fetch')) {
               const pendingSync = {
                 matchId,
                 winnerId: winnerPlayerId,
@@ -257,29 +259,18 @@ export function useSessionManager(ctx: SessionManagerContext) {
               console.log('Match finish saved for offline sync:', pendingSync);
             }
             
-            // Mostrar mensagem de erro ao usuário
             const errorMessage = err instanceof Error ? err.message : 'Erro ao finalizar partida';
-            alert(`⚠️ ${errorMessage}\n\nA partida foi encerrada localmente, mas não foi possível sincronizar com o servidor. Verifique sua conexão e tente novamente.`);
+            alert(`⚠️ ${errorMessage}\n\nA partida foi encerrada localmente, mas não foi possível sincronizar com o servidor.`);
           }
         }
         
-        // Chamar callback de partida encerrada se fornecido
         if (onMatchFinished) {
           onMatchFinished(winner);
         }
-        
-        // Não retornar aqui - continuar com o fluxo normal
-        // O banner será mostrado na página de scoring
       }
 
-      // Force session reset to resolve SEQUENCE_CONFLICT
-      // By abandoning the current session and clearing the active state,
-      // the next point will start a fresh session with the correct sequence
       await abandonCurrentSession();
       setSessionActive(false);
-
-      setPendingEditScore(null);
-      ctx.clearPendingEdit?.();
       ctx.close();
     },
     [
@@ -289,6 +280,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
       setScoreState,
       setSessionActive,
       setPendingEditScore,
+      setSuspendedSession,
       suspendedSession,
       persistState,
       abandonCurrentSession,
@@ -296,8 +288,6 @@ export function useSessionManager(ctx: SessionManagerContext) {
       tokenRef,
     ],
   );
-
-  // ─── Beforeunload beacon ───────────────────────────────────────────────────
 
   useEffect(() => {
     const doAbandon = () => {
@@ -308,8 +298,6 @@ export function useSessionManager(ctx: SessionManagerContext) {
       const snapshot = engineRef.current?.serialize() ?? JSON.stringify(state);
       sessionStorage.setItem("last_abandon_timestamp", Date.now().toString());
       const token = tokenRef.current ?? sessionStorage.getItem("access_token");
-      // sendBeacon cannot send Authorization headers; fetch+keepalive survives
-      // page unloads and correctly authenticates the abandon request.
       fetch(`/api/matches/${matchId}/sessions/${sid}/abandon`, {
         method: "POST",
         keepalive: true,
@@ -328,8 +316,6 @@ export function useSessionManager(ctx: SessionManagerContext) {
       doAbandon();
     };
   }, [matchId, sessionIdRef, engineRef, tokenRef]);
-
-  // ─── Suspended session resume ──────────────────────────────────────────────
 
   useEffect(() => {
     if (!suspendedSession || !match) return;
@@ -351,12 +337,8 @@ export function useSessionManager(ctx: SessionManagerContext) {
 
           if (suspendedSession.matchStateSnapshot) {
             const parsed = JSON.parse(suspendedSession.matchStateSnapshot);
-            const history: any[] = Array.isArray(parsed?.history)
-              ? parsed.history
-              : [];
-            const offlinePoints = history.slice(
-              suspendedSession.bankPointCount,
-            );
+            const history: any[] = Array.isArray(parsed?.history) ? parsed.history : [];
+            const offlinePoints = history.slice(suspendedSession.bankPointCount);
             for (const entry of offlinePoints) {
               try {
                 await fetch(`/api/matches/${matchId}/point`, {
@@ -372,12 +354,8 @@ export function useSessionManager(ctx: SessionManagerContext) {
                     isFirstServe: entry.point?.isFirstServe ?? true,
                     isSecondServe: entry.point?.isSecondServe ?? false,
                     timestamp: entry.point?.timestamp ?? Date.now(),
-                    ...(entry.point?.rallyDetails != null
-                      ? { rallyDetails: entry.point.rallyDetails }
-                      : {}),
-                    ...(entry.point?.rallyLength != null
-                      ? { rallyLength: entry.point.rallyLength }
-                      : {}),
+                    ...(entry.point?.rallyDetails != null ? { rallyDetails: entry.point.rallyDetails } : {}),
+                    ...(entry.point?.rallyLength != null ? { rallyLength: entry.point.rallyLength } : {}),
                   }),
                 });
               } catch {}
@@ -409,22 +387,16 @@ export function useSessionManager(ctx: SessionManagerContext) {
               JSON.stringify(normalizeMatchTiebreakState(JSON.parse(suspendedSession.matchStateSnapshot), match.format)),
             );
 
-            const canonicalState =
-              suspendedSession.bankScoreState ?? match.scoreState;
+            const canonicalState = suspendedSession.bankScoreState ?? match.scoreState;
             const canonicalVersion = suspendedSession.bankPointCount;
             if (canonicalState) {
-              engineRef.current.reconcileWithCanonicalState(
-                canonicalState,
-                canonicalVersion,
-              );
+              engineRef.current.reconcileWithCanonicalState(canonicalState, canonicalVersion);
               setScoreState(canonicalState);
             } else {
               const restored = engineRef.current.getState() as ScoringState;
               setScoreState(restored);
             }
           } else if (suspendedSession.bankScoreState) {
-            // FIX Bug 2 (secondary path): when only bankScoreState is present
-            // (no snapshot), load it directly so engine and UI are in sync.
             const normalizedBankState = normalizeMatchTiebreakState(suspendedSession.bankScoreState, match.format);
             engineRef.current = ScoringEngine.fromSerialized(
               config,
@@ -435,27 +407,17 @@ export function useSessionManager(ctx: SessionManagerContext) {
         }
 
         if (!ignored) {
-          const engineState =
-            engineRef.current?.getState() as ScoringState | null;
+          const engineState = engineRef.current?.getState() as ScoringState | null;
           const lastSet = engineState?.sets?.[engineState.sets.length - 1];
           let currentFloorSets = lastSet
             ? { player1: lastSet.player1, player2: lastSet.player2 }
-            : suspendedSession.bankScoreState?.sets?.[
-                  suspendedSession.bankScoreState.sets.length - 1
-                ]
+            : suspendedSession.bankScoreState?.sets?.[suspendedSession.bankScoreState.sets.length - 1]
               ? {
-                  player1:
-                    suspendedSession.bankScoreState.sets[
-                      suspendedSession.bankScoreState.sets.length - 1
-                    ].player1,
-                  player2:
-                    suspendedSession.bankScoreState.sets[
-                      suspendedSession.bankScoreState.sets.length - 1
-                    ].player2,
+                  player1: suspendedSession.bankScoreState.sets[suspendedSession.bankScoreState.sets.length - 1].player1,
+                  player2: suspendedSession.bankScoreState.sets[suspendedSession.bankScoreState.sets.length - 1].player2,
                 }
               : null;
           
-          // CORREÇÃO #5: Se floorCurrentSets for null, buscar do banco como fallback
           if (!currentFloorSets && match?.scoreState) {
             try {
               const bankState = typeof match.scoreState === 'string'

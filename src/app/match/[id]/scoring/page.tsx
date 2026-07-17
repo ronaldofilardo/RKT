@@ -180,7 +180,9 @@ const {
   // Wrapper para handleEditScore com redirecionamento de partida encerrada
   const handleEditScore = useCallback(
     async (setResults: SetEditData[], server: "player1" | "player2") => {
+      console.log("[handleEditScore wrapper] Calling originalHandleEditScore...");
       await originalHandleEditScore(setResults, server);
+      console.log("[handleEditScore wrapper] originalHandleEditScore completed");
       // Não redirecionar automaticamente - usuário vê o banner e decide quando navegar
     },
     [originalHandleEditScore, matchId]
@@ -556,6 +558,8 @@ const {
               winner: (s.player1 > s.player2 ? "player1" : "player2") as
                 | "player1"
                 | "player2",
+              // Include tiebreakScore for sets completed with tie-break
+              ...(s.isTiebreak && s.tiebreakScore ? { tiebreakScore: s.tiebreakScore } : {}),
             }))}
           currentGamePoints={{
             player1: gamePointToDisplay(

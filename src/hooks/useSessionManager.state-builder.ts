@@ -3,6 +3,7 @@ import type { SetEditData } from "@/components/scoring/editScoreHelpers";
 import type { TennisFormat } from "@/core/scoring/types";
 import { parsePointValue } from "@/core/scoring/point-utils";
 import { isMatchTiebreakSet } from "./useSessionManager.utils";
+import { getMatchFormatRules } from "@/lib/matchConfig";
 
 interface BuildNewStateOptions {
   setResults: SetEditData[];
@@ -15,7 +16,7 @@ export function buildNewScoringState(options: BuildNewStateOptions): ScoringStat
   const { setResults, server, format, partialSet } = options;
   
   const setsWon = calculateSetsWon(setResults, format);
-  const setsToWin = format === 'BEST_OF_5' ? 3 : 2;
+  const { setsToWin } = getMatchFormatRules(format);
   const winner =
     setsWon.player1 >= setsToWin
       ? "player1"
@@ -61,13 +62,10 @@ function buildCurrentGame(
   partialSet?: SetEditData
 ): ScoringState["currentGame"] {
   const isLastSet = setResults.length > 0;
-  const hasCompletedSetsBefore = setResults.slice(0, -1).some(s => !s.isPartial);
-  const isMatchTiebreakSet = format === 'BEST_OF_3_MATCH_TB' && 
-    isLastSet && 
-    (hasCompletedSetsBefore || setResults.length === 1) &&
-    setResults[setResults.length - 1]?.isPartial === false;
+  const lastSetIdx = setResults.length - 1;
+  const isMTSet = isLastSet && isMatchTiebreakSet(lastSetIdx, setResults, format) && setResults[lastSetIdx]?.isPartial === false;
 
-  if (isMatchTiebreakSet) {
+  if (isMTSet) {
     return {
       player1: 0,
       player2: 0,
@@ -77,9 +75,13 @@ function buildCurrentGame(
     };
   }
 
+  // If set is partial (incomplete), preserve the current game points selected by user
+  // If set is complete, reset game points to 0
+  const shouldUseGamePoints = partialSet?.isPartial === true;
+  
   return {
-    player1: partialSet && !partialSet.isPartial ? 0 : parsePointValue(partialSet?.currentGamePoints?.player1 ?? 0),
-    player2: partialSet && !partialSet.isPartial ? 0 : parsePointValue(partialSet?.currentGamePoints?.player2 ?? 0),
+    player1: shouldUseGamePoints ? parsePointValue(partialSet.currentGamePoints?.player1 ?? 0) : 0,
+    player2: shouldUseGamePoints ? parsePointValue(partialSet.currentGamePoints?.player2 ?? 0) : 0,
     isDeuce: false,
     advantage: null,
     secondServe: false,
@@ -92,7 +94,7 @@ function calculateSetsWon(setResults: SetEditData[], format: string): { player1:
   
   for (let i = 0; i < setResults.length; i++) {
     const set = setResults[i];
-    const isMatchTiebreak = format === 'BEST_OF_3_MATCH_TB' && (i === 2 || (i === 0 && setResults.length === 1));
+    const isMatchTiebreak = isMatchTiebreakSet(i, setResults, format);
     
     if (isMatchTiebreak) {
       const p1Won = set.p1Games >= 10 && set.p1Games - set.p2Games >= 2;

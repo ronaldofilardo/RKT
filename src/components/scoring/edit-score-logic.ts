@@ -8,6 +8,7 @@ import {
   getNextServerAfterSet,
 } from './editScoreHelpers';
 import { parsePointValue } from '@/core/scoring/point-utils';
+import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from '@/hooks/useSessionManager.utils';
 
 type Player = 'player1' | 'player2';
 
@@ -86,7 +87,8 @@ export function calculateValidation(
   const p2Val = p2Input === '' ? NaN : parseInt(p2Input, 10);
   const bothFilled = !isNaN(p1Val) && !isNaN(p2Val) && p1Val >= 0 && p2Val >= 0;
 
-  // Match Tie-Break detection para TODOS os formatos
+  // Match Tie-Break detection based on index (totalEditedSets = index of current set)
+  // This is a simplified check since we don't have completed sets here
   const isMatchTiebreakSet = 
     (matchFormat === 'BEST_OF_3_MATCH_TB' && totalEditedSets === 2) ||  // 3º set
     (matchFormat === 'SHORT_SET_2V2_NO_AD' && totalEditedSets === 2) ||  // 3º set
@@ -138,12 +140,14 @@ export function calculateMatchState(
   const setsToWin = setsToWinForFormat(matchFormat);
   const totalEditedSets = completedSets.length + newSets.length;
   
-  // Match Tie-Break detection para TODOS os formatos
-  const isMatchTiebreakSet = 
-    (matchFormat === 'BEST_OF_3_MATCH_TB' && totalEditedSets === 2) ||  // 3º set
-    (matchFormat === 'SHORT_SET_2V2_NO_AD' && totalEditedSets === 2) ||  // 3º set
-    (matchFormat === 'BEST_OF_5' && totalEditedSets === 4) ||  // 5º set
-    matchFormat === 'MATCH_TB_10';  // Único set
+  // Build setResults array for unified isMatchTiebreakSet
+  const setResultsForCheck: SetEditData[] = [
+    ...completedSets.map(s => ({ p1Games: s.games.player1, p2Games: s.games.player2, isPartial: false })),
+    ...newSets,
+  ];
+  
+  // Use unified isMatchTiebreakSet from useSessionManager.utils
+  const isMatchTiebreakSet = isMatchTiebreakSetUtil(totalEditedSets, setResultsForCheck, matchFormat);
 
   const p1SetsWonFromProp = completedSets.filter((s) => s.winner === 'player1').length;
   const p2SetsWonFromProp = completedSets.filter((s) => s.winner === 'player2').length;

@@ -430,25 +430,43 @@ function isCurrentGameRegressing(oldCG: any, newCG: any): boolean {
 /**
  * PROTEÇÃO #2 (Enhanced): Validação de regressão em tie-break
  * Verifica se há regressão nos pontos do tie-break quando aplicável
+ * 
+ * Cobre:
+ * - Set tie-break regular (7 pts): isTiebreak=true, tiebreakScore presente
+ * - Match tie-break (10 pts): isTiebreak=true, tiebreakScore com 10+ pontos
+ * - Match tie-break mal persistido: isTiebreak=false mas tiebreakScore presente
  */
 function isTiebreakRegressing(oldSet: any, newSet: any): boolean {
   if (!oldSet || !newSet) return false;
   
-  // Verificar tie-break regular
-  if (oldSet.isTiebreak && oldSet.tiebreakScore && newSet.tiebreakScore) {
-    const oldTb = oldSet.tiebreakScore;
-    const newTb = newSet.tiebreakScore;
-    
+  const oldTb = oldSet.tiebreakScore;
+  const newTb = newSet.tiebreakScore;
+  
+  // Caso 1: Ambos têm tiebreakScore definido (formato consistente)
+  if (oldTb && newTb) {
     return (
       (newTb.player1 < oldTb.player1 && newTb.player2 <= oldTb.player2) ||
       (newTb.player2 < oldTb.player2 && newTb.player1 <= oldTb.player1)
     );
   }
   
-  // Verificar match tie-break (onde games são na verdade pontos)
-  if (!oldSet.isTiebreak && !newSet.isTiebreak && oldSet.tiebreakScore) {
-    // Caso especial: match tie-break mal persistido
+  // Caso 2: Match tie-break persistido como games (formato legado/inconsistente)
+  // oldSet tem tiebreakScore mas newSet não (ou vice-versa)
+  if (oldTb && !newTb && oldSet.isTiebreak) {
+    // newSet deveria ter tiebreakScore mas não tem - isso é uma mudança suspeita
+    // Verificar se os games regrediram
     if (oldSet.player1 > 0 || oldSet.player2 > 0) {
+      return (
+        (newSet.player1 < oldSet.player1 && newSet.player2 <= oldSet.player2) ||
+        (newSet.player2 < oldSet.player2 && newSet.player1 <= oldSet.player1)
+      );
+    }
+  }
+  
+  // Caso 3: Match tie-break no formato "games" onde player1=10, player2=8
+  // (quando isTiebreak=true mas tiebreakScore está como games)
+  if (oldSet.isTiebreak && !oldTb && oldSet.player1 >= 6 && oldSet.player2 >= 6) {
+    if (newSet.player1 > 0 || newSet.player2 > 0) {
       return (
         (newSet.player1 < oldSet.player1 && newSet.player2 <= oldSet.player2) ||
         (newSet.player2 < oldSet.player2 && newSet.player1 <= oldSet.player1)
