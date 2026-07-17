@@ -17,13 +17,13 @@ model Player {
   passwordHash       String
   club               String?
   age                Int?
-  birthDate          DateTime?
   backhand           String?
   dominance          String?
   gender             String?
   ranking            Int?
   rankings           Json?
   createdByUserId    String?
+  birthDate          DateTime?
   matchesAsPlayer1   Match[]                  @relation("Player1")
   matchesAsPlayer2   Match[]                  @relation("Player2")
   endorsements       AnnotationEndorsement[]  @relation("Endorsements")
