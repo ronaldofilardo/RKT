@@ -50,8 +50,8 @@ export function PointDetailsModal({
 }: PointDetailsModalProps) {
   const [mounted, setMounted] = useState(false);
   const [showCloseDialog, setShowCloseDialog] = useState(false);
-  const [form, dispatch] = useReducer(formReducer, initialForm);
-  
+  const [form, dispatch] = useReducer(formReducer, null, () => initialForm);
+
   const tipoRef = useRef<HTMLDivElement>(null);
   const golpeRef = useRef<HTMLDivElement>(null);
   const duracaoRef = useRef<HTMLDivElement>(null);
@@ -63,7 +63,6 @@ export function PointDetailsModal({
 
   useEffect(() => {
     setMounted(true);
-    dispatch({ type: 'RESET' });
   }, []);
 
   const vencedor: Vencedor = winnerPlayerSide === currentServer ? 'sacador' : 'devolvedor';
@@ -84,8 +83,18 @@ export function PointDetailsModal({
       const prev = prevFormRef.current;
       
       if (form.tipo && !prev.tipo && tipoRef.current) return tipoRef.current;
-      if (form.golpe && !prev.golpe && golpeRef.current) return golpeRef.current;
-      if (form.duracao && !prev.duracao && duracaoRef.current) return duracaoRef.current;
+      // Ao escolher golpe (fase 3), rolar para a próxima fase visível (Duração = fase 4)
+      if (form.golpe && !prev.golpe) {
+        if (shouldShowDuracao(form.golpe) && duracaoRef.current) return duracaoRef.current;
+        if (needsSubtipo1 && subtipo1Ref.current) return subtipo1Ref.current;
+        if (needsEfeito && efeitoRef.current) return efeitoRef.current;
+      }
+      // Ao escolher duração (fase 4), rolar para a próxima fase visível (fase 5 e 6)
+      if (form.duracao && !prev.duracao) {
+        if (needsSubtipo1 && subtipo1Ref.current) return subtipo1Ref.current;
+        if (needsSubtipo2 && subtipo2Ref.current) return subtipo2Ref.current;
+        if (needsEfeito && efeitoRef.current) return efeitoRef.current;
+      }
       if (form.subtipo1 && !prev.subtipo1 && subtipo1Ref.current) return subtipo1Ref.current;
       if (form.subtipo2 && !prev.subtipo2 && subtipo2Ref.current) return subtipo2Ref.current;
       if (form.efeito && !prev.efeito && efeitoRef.current) return efeitoRef.current;
@@ -95,17 +104,19 @@ export function PointDetailsModal({
 
     const targetRef = getTargetRef();
     if (targetRef) {
+      // Ao avançar de fase, usar 'start' para revelar a próxima fase e a seguinte ao mesmo tempo
+      const useStart = (form.golpe && !prevFormRef.current.golpe) || (form.duracao && !prevFormRef.current.duracao);
       setTimeout(() => {
         targetRef.scrollIntoView({ 
           behavior: 'smooth', 
-          block: 'center',
+          block: useStart ? 'start' : 'center',
           inline: 'nearest'
         });
       }, 50);
     }
     
     prevFormRef.current = form;
-  }, [form.tipo, form.golpe, form.subtipo1, form.subtipo2, form.efeito, mounted]);
+  }, [form.tipo, form.golpe, form.duracao, form.subtipo1, form.subtipo2, form.efeito, mounted]);
 
   useEffect(() => {
     if (!mounted) return;
