@@ -26,8 +26,6 @@ interface SetInputFormProps {
   onP2PointsChange: (value: string) => void;
   onTiebreakP1Change: (value: string) => void;
   onTiebreakP2Change: (value: string) => void;
-  onAddSet?: () => void;
-  canAddNextSet: boolean;
   matchAlreadyOver: boolean;
   matchWouldEnd: boolean;
   p1SetsWon: number;
@@ -63,8 +61,6 @@ export function SetInputForm({
   onP2PointsChange,
   onTiebreakP1Change,
   onTiebreakP2Change,
-  onAddSet,
-  canAddNextSet,
   matchAlreadyOver,
   matchWouldEnd,
   p1SetsWon,
@@ -246,7 +242,7 @@ export function SetInputForm({
         </div>
       )}
 
-      {partial && floorCurrentSets && (
+      {partial && floorCurrentSets && (p1Val < floorCurrentSets.player1 || p2Val < floorCurrentSets.player2) && (
         <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2 mb-2">
           <p className="text-xs text-amber-300">
             Ponto de parada: {floorCurrentSets.player1}x
@@ -312,16 +308,6 @@ export function SetInputForm({
               : 'Apenas para sets normais — Match Tie-Break usa pontos corridos'}
           </p>
         </div>
-      )}
-
-      {isMatchTiebreakSet ? null : (
-        <button
-          onClick={onAddSet}
-          className="mt-2 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-sm transition-all"
-          disabled={!canAddNextSet}
-        >
-          Adicionar Set {totalEditedSets + 2}
-        </button>
       )}
     </div>
   );

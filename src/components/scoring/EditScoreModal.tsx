@@ -65,6 +65,8 @@ export function EditScoreModal({
   const initializedRef = useRef(false);
   const initialGameRef = useRef<{ player1: string; player2: string } | null>(null);
   const lastGamesRef = useRef<{ p1: number; p2: number } | null>(null);
+  const lastAutoAddRef = useRef<{ p1: number; p2: number; totalEditedSets: number } | null>(null);
+  const inputTouchedRef = useRef({ p1: false, p2: false });
 
   const calculations = useEditScoreCalculator({
     matchFormat,
@@ -174,7 +176,78 @@ export function EditScoreModal({
     }
   }, [bothFilled, p1Val, p2Val, floorCurrentSets, isSetTrulyCompleted, suspendedSession]);
 
-  const handleGameInputChange = useCallback((value: string, setter: (v: string) => void): void => {
+  useEffect(() => {
+    if (!validation.bothFilled || isNaN(p1Val) || isNaN(p2Val)) return;
+    if (!validation.hasWinner) return;
+    // Only auto-add if user has explicitly touched BOTH inputs
+    if (!inputTouchedRef.current.p1 || !inputTouchedRef.current.p2) return;
+    
+    const autoAddKey = { p1: p1Val, p2: p2Val, totalEditedSets };
+    const lastAutoAdd = lastAutoAddRef.current;
+    
+    if (lastAutoAdd && 
+        lastAutoAdd.p1 === autoAddKey.p1 && 
+        lastAutoAdd.p2 === autoAddKey.p2 && 
+        lastAutoAdd.totalEditedSets === autoAddKey.totalEditedSets) {
+      return; // Already processed this score combination
+    }
+    
+    // Check if score was actually changed from currentSets (not just defaults)
+    const scoreWasChanged = p1Val !== currentSets.player1 || p2Val !== currentSets.player2;
+    if (!scoreWasChanged) return;
+    
+    if (shouldAutoAddSet(validation, matchState, currentSets, p1Val, p2Val)) {
+      lastAutoAddRef.current = autoAddKey;
+      // Reset touched state for next set
+      inputTouchedRef.current = { p1: false, p2: false };
+      
+      const setData = createSetEditData(
+        p1Val, p2Val, isSetTrulyCompleted, hasTiebreak,
+        tiebreakP1Num, tiebreakP2Num, isMatchTiebreakSet,
+        state.p1Points, state.p2Points, currentSets
+      );
+
+      const newList = [...state.newSets, setData];
+      setState(prev => ({
+        ...prev,
+        newSets: newList,
+        p1Input: "",
+        p2Input: "",
+        tiebreakP1: "",
+        tiebreakP2: "",
+      }));
+
+      const next = calculateNextServer(
+        currentServer,
+        p1Val,
+        p2Val,
+        matchFormat,
+        setData.tiebreakScore ?? null,
+        completedSets as CompletedSet[],
+      );
+      setState(prev => ({ ...prev, nextServer: next }));
+    }
+  }, [
+    validation,
+    matchState,
+    currentSets,
+    p1Val,
+    p2Val,
+    isSetTrulyCompleted,
+    hasTiebreak,
+    tiebreakP1Num,
+    tiebreakP2Num,
+    isMatchTiebreakSet,
+    state.p1Points,
+    state.p2Points,
+    state.newSets,
+    currentServer,
+    matchFormat,
+    completedSets,
+  ]);
+
+  const handleGameInputChange = useCallback((value: string, setter: (v: string) => void, player: 'p1' | 'p2'): void => {
+    inputTouchedRef.current[player] = true;
     setConfirmError(null);
     setFloorValidationError(null);
     if (value === "") {
@@ -187,48 +260,6 @@ export function EditScoreModal({
     setter(num > 50 ? "50" : value.replace(/^0+(?=[1-9]|$)/, ""));
     setState(prev => ({ ...prev, tiebreakP1: "", tiebreakP2: "", p1Points: "0", p2Points: "0" }));
   }, []);
-
-  const handleAddSet = useCallback(() => {
-    if (!isSetTrulyCompleted) return;
-    if (matchWouldEnd) return;
-    if (totalEditedSets >= maxSets - 1) return;
-    if (matchAlreadyOver) return;
-    if (isMatchTiebreakSet) return;
-
-    const scoreWasChanged = p1Val !== currentSets.player1 || p2Val !== currentSets.player2;
-    if (!scoreWasChanged) return;
-
-    const setData = createSetEditData(
-      p1Val, p2Val, isSetTrulyCompleted, hasTiebreak,
-      tiebreakP1Num, tiebreakP2Num, isMatchTiebreakSet,
-      state.p1Points, state.p2Points, currentSets
-    );
-
-    const newList = [...state.newSets, setData];
-    setState(prev => ({
-      ...prev,
-      newSets: newList,
-      p1Input: "",
-      p2Input: "",
-      tiebreakP1: "",
-      tiebreakP2: "",
-    }));
-
-    const next = calculateNextServer(
-      currentServer,
-      p1Val,
-      p2Val,
-      matchFormat,
-      setData.tiebreakScore ?? null,
-      completedSets as CompletedSet[],
-    );
-    setState(prev => ({ ...prev, nextServer: next }));
-  }, [
-    isSetTrulyCompleted, matchWouldEnd, totalEditedSets, maxSets, matchAlreadyOver,
-    isMatchTiebreakSet, p1Val, p2Val, currentSets, hasTiebreak, tiebreakP1Num,
-    tiebreakP2Num, state.p1Points, state.p2Points, state.newSets, currentServer,
-    matchFormat, completedSets,
-  ]);
 
   const handleConfirm = useCallback(async () => {
     setConfirmError(null);
@@ -437,14 +468,12 @@ export function EditScoreModal({
               p1Val={p1Val}
               p2Val={p2Val}
               validationError={validation.setValidationError}
-              onP1InputChange={(v) => handleGameInputChange(v, (val) => setState(prev => ({ ...prev, p1Input: val })))}
-              onP2InputChange={(v) => handleGameInputChange(v, (val) => setState(prev => ({ ...prev, p2Input: val })))}
+              onP1InputChange={(v) => handleGameInputChange(v, (val) => setState(prev => ({ ...prev, p1Input: val })), 'p1')}
+              onP2InputChange={(v) => handleGameInputChange(v, (val) => setState(prev => ({ ...prev, p2Input: val })), 'p2')}
               onP1PointsChange={(v) => setState(prev => ({ ...prev, p1Points: v }))}
               onP2PointsChange={(v) => setState(prev => ({ ...prev, p2Points: v }))}
               onTiebreakP1Change={(v) => setState(prev => ({ ...prev, tiebreakP1: v }))}
               onTiebreakP2Change={(v) => setState(prev => ({ ...prev, tiebreakP2: v }))}
-              onAddSet={handleAddSet}
-              canAddNextSet={canAddNextSet}
               matchAlreadyOver={matchAlreadyOver}
               matchWouldEnd={matchWouldEnd}
               p1SetsWon={p1SetsWon}

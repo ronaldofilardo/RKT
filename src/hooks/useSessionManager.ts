@@ -410,7 +410,9 @@ export function useSessionManager(ctx: SessionManagerContext) {
           const engineState = engineRef.current?.getState() as ScoringState | null;
           const lastSet = engineState?.sets?.[engineState.sets.length - 1];
           let currentFloorSets = lastSet
-            ? { player1: lastSet.player1, player2: lastSet.player2 }
+            ? (lastSet.isTiebreak && lastSet.tiebreakScore
+                ? { player1: lastSet.tiebreakScore.player1, player2: lastSet.tiebreakScore.player2 }
+                : { player1: lastSet.player1, player2: lastSet.player2 })
             : suspendedSession.bankScoreState?.sets?.[suspendedSession.bankScoreState.sets.length - 1]
               ? {
                   player1: suspendedSession.bankScoreState.sets[suspendedSession.bankScoreState.sets.length - 1].player1,

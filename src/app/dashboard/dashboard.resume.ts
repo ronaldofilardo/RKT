@@ -27,11 +27,21 @@ export function useResumeSession(options: ResumeSessionOptions) {
 
     const floorSets = scoreState?.sets?.length
       ? (() => {
+          // Find the current set being played (last set in array)
           const lastSet = scoreState.sets[scoreState.sets.length - 1];
           const lastSetIsCompleted = isSetCompleted(
             lastSet,
             match.format as TennisFormat
           );
+          
+          // If the last set is a tiebreak in progress, use the game score (not tiebreak score)
+          // If last set is completed, return null (no floor needed for next set)
+          if (lastSet.isTiebreak && lastSet.tiebreakScore) {
+            // This is a tiebreak set in progress - the floor is the game score (6-6, 4-4, etc.)
+            // but we don't enforce a floor on tiebreak points since they start at 0-0
+            return null;
+          }
+          
           return lastSetIsCompleted
             ? null
             : { player1: lastSet.player1, player2: lastSet.player2 };

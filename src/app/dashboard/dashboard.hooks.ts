@@ -64,6 +64,10 @@ export function useDashboardData() {
     }
   }, []);
 
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
   return { matches, setMatches, suspendedFromApi, setSuspendedFromApi, loading, fetchDashboardData };
 }
 
