@@ -69,17 +69,13 @@ describe('sessionService', () => {
       expect(mockPrisma.matchAnnotationSession.findMany).toHaveBeenCalledWith({
         where: {
           annotatorUserId: 'user-1',
-          status: { in: ['ABANDONED', 'IN_PROGRESS'] },
-          match: { state: 'IN_PROGRESS' },
         },
-        include: {
-          match: {
-            include: {
-              player1: { select: { id: true, name: true } },
-              player2: { select: { id: true, name: true } },
-            },
-          },
-        },
+        select: expect.objectContaining({
+          id: true,
+          annotatorUserId: true,
+          isActive: true,
+          status: true,
+        }),
         orderBy: { createdAt: 'desc' },
       });
       expect(result).toHaveLength(2);

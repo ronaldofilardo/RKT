@@ -7,9 +7,14 @@ jest.mock('@/lib/prisma', () => ({
       update: jest.fn(),
       delete: jest.fn(),
     },
+    pointLog: {
+      deleteMany: jest.fn(),
+    },
     matchAnnotationSession: {
       findFirst: jest.fn(),
+      deleteMany: jest.fn(),
     },
+    $transaction: jest.fn((promises) => Promise.all(promises)),
   },
 }));
 
@@ -136,25 +141,30 @@ describe('matchService', () => {
   });
 
   describe('deleteMatch', () => {
-    it('deve deletar partida existente e retornar true', async () => {
+    it('deve deletar partida existente e retornar sucesso', async () => {
       const { deleteMatch } = await import('@/services/matchService');
 
-      mockPrisma.match.findFirst.mockResolvedValue({ id: 'm1' });
+      mockPrisma.match.findFirst.mockResolvedValue({
+        id: 'm1',
+        pointLog: [],
+        annotationSessions: [],
+        state: 'SCHEDULED',
+      });
       mockPrisma.match.delete.mockResolvedValue({ id: 'm1' });
 
-      const result = await deleteMatch('m1');
+      const result = await deleteMatch('m1', { type: 'hard' });
 
-      expect(result).toBe(true);
+      expect(result).toEqual({ success: true, type: 'hard' });
     });
 
-    it('deve retornar false se partida não existe', async () => {
+    it('deve retornar erro MATCH_NOT_FOUND se partida não existe', async () => {
       const { deleteMatch } = await import('@/services/matchService');
 
       mockPrisma.match.findFirst.mockResolvedValue(null);
 
-      const result = await deleteMatch('nonexistent');
+      const result = await deleteMatch('nonexistent', { type: 'hard' });
 
-      expect(result).toBe(false);
+      expect(result).toEqual({ error: 'MATCH_NOT_FOUND' });
     });
   });
 
@@ -616,5 +626,399 @@ it('deve criar partida com scheduledAt', async () => {
           error: expect.stringContaining('SCORE_REGRESSION'),
         })
       );
+    });
+  });
+
+  describe('transitionMatchState - allowScoreEdit bypass (Edit Score)', () => {
+    it('deve permitir reducao do currentGame quando allowScoreEdit=true (mesmo ultimo set)', async () => {
+      const { transitionMatchState } = await import('@/services/matchService');
+
+      mockPrisma.match.findFirst.mockResolvedValue({
+        id: 'm1',
+        state: 'IN_PROGRESS',
+        player1Id: 'p1',
+        player2Id: 'p2',
+        format: 'BEST_OF_5',
+        initialServerId: 'p1',
+        scoreState: {
+          sets: [
+            { player1: 6, player2: 1, isTiebreak: false, tiebreakScore: null },
+            { player1: 5, player2: 7, isTiebreak: false, tiebreakScore: null },
+            { player1: 0, player2: 2, isTiebreak: false, tiebreakScore: null },
+          ],
+          setsWon: { player1: 1, player2: 1 },
+          currentGame: { player1: 2, player2: 3, isDeuce: false, advantage: null, secondServe: false },
+          server: 'player1',
+          isFinished: false,
+          winner: null,
+          startedAt: null,
+          secondServe: false,
+        },
+      });
+      mockPrisma.match.update.mockResolvedValue({ id: 'm1' });
+
+      const editScoreState = {
+        sets: [
+          { player1: 6, player2: 1, isTiebreak: false, tiebreakScore: null },
+          { player1: 5, player2: 7, isTiebreak: false, tiebreakScore: null },
+          { player1: 0, player2: 2, isTiebreak: false, tiebreakScore: null },
+        ],
+        setsWon: { player1: 1, player2: 1 },
+        currentGame: { player1: 0, player2: 1, isDeuce: false, advantage: null, secondServe: false },
+        server: 'player1',
+        isFinished: false,
+        winner: null,
+        startedAt: Date.now(),
+        secondServe: false,
+      };
+
+      const result = await transitionMatchState(
+        'm1', 'IN_PROGRESS', undefined, editScoreState,
+        { allowScoreEdit: true },
+      );
+
+      expect(result).not.toHaveProperty('error');
+    });
+
+    it('deve permitir reducao em tie-break quando allowScoreEdit=true', async () => {
+      const { transitionMatchState } = await import('@/services/matchService');
+
+      mockPrisma.match.findFirst.mockResolvedValue({
+        id: 'm1',
+        state: 'IN_PROGRESS',
+        player1Id: 'p1',
+        player2Id: 'p2',
+        format: 'BEST_OF_3_MATCH_TB',
+        initialServerId: 'p1',
+        scoreState: {
+          sets: [
+            { player1: 6, player2: 1, isTiebreak: false, tiebreakScore: null },
+            { player1: 4, player2: 6, isTiebreak: false, tiebreakScore: null },
+            { player1: 0, player2: 0, isTiebreak: true, tiebreakScore: { player1: 8, player2: 5 } },
+          ],
+          setsWon: { player1: 1, player2: 1 },
+          currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+          server: 'player1',
+          isFinished: false,
+          winner: null,
+          startedAt: null,
+          secondServe: false,
+        },
+      });
+      mockPrisma.match.update.mockResolvedValue({ id: 'm1' });
+
+      const editScoreState = {
+        sets: [
+          { player1: 6, player2: 1, isTiebreak: false, tiebreakScore: null },
+          { player1: 4, player2: 6, isTiebreak: false, tiebreakScore: null },
+          { player1: 0, player2: 0, isTiebreak: true, tiebreakScore: { player1: 2, player2: 1 } },
+        ],
+        setsWon: { player1: 1, player2: 1 },
+        currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+        server: 'player1',
+        isFinished: false,
+        winner: null,
+        startedAt: Date.now(),
+        secondServe: false,
+      };
+
+      const result = await transitionMatchState(
+        'm1', 'IN_PROGRESS', undefined, editScoreState,
+        { allowScoreEdit: true },
+      );
+
+      expect(result).not.toHaveProperty('error');
+    });
+
+    it('deve BLOQUEAR reducao de setsWon mesmo com allowScoreEdit=true (protecao mantida)', async () => {
+      const { transitionMatchState } = await import('@/services/matchService');
+
+      mockPrisma.match.findFirst.mockResolvedValue({
+        id: 'm1',
+        state: 'IN_PROGRESS',
+        player1Id: 'p1',
+        player2Id: 'p2',
+        format: 'BEST_OF_3',
+        initialServerId: 'p1',
+        scoreState: {
+          sets: [],
+          setsWon: { player1: 1, player2: 0 },
+          currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+          server: 'player1',
+          isFinished: false,
+          winner: null,
+          startedAt: null,
+          secondServe: false,
+        },
+      });
+      mockPrisma.match.update.mockResolvedValue({ id: 'm1' });
+
+      const editScoreState = {
+        sets: [],
+        setsWon: { player1: 0, player2: 0 },
+        currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+        server: 'player1',
+        isFinished: false,
+        winner: null,
+        startedAt: Date.now(),
+        secondServe: false,
+      };
+
+      const result = await transitionMatchState(
+        'm1', 'IN_PROGRESS', undefined, editScoreState,
+        { allowScoreEdit: true },
+      );
+
+      expect(result).toEqual({
+        error: "SCORE_REGRESSION: Placar não pode ser inferior ao estado atual",
+      });
+    });
+
+    it('deve BLOQUEAR reducao de currentGame quando allowScoreEdit=false (comportamento legacy mantido)', async () => {
+      const { transitionMatchState } = await import('@/services/matchService');
+
+      mockPrisma.match.findFirst.mockResolvedValue({
+        id: 'm1',
+        state: 'IN_PROGRESS',
+        player1Id: 'p1',
+        player2Id: 'p2',
+        format: 'BEST_OF_5',
+        initialServerId: 'p1',
+        scoreState: {
+          sets: [
+            { player1: 6, player2: 1, isTiebreak: false, tiebreakScore: null },
+            { player1: 5, player2: 7, isTiebreak: false, tiebreakScore: null },
+            { player1: 0, player2: 2, isTiebreak: false, tiebreakScore: null },
+          ],
+          setsWon: { player1: 1, player2: 1 },
+          currentGame: { player1: 2, player2: 3, isDeuce: false, advantage: null, secondServe: false },
+          server: 'player1',
+          isFinished: false,
+          winner: null,
+          startedAt: null,
+          secondServe: false,
+        },
+      });
+      mockPrisma.match.update.mockResolvedValue({ id: 'm1' });
+
+      const editScoreState = {
+        sets: [
+          { player1: 6, player2: 1, isTiebreak: false, tiebreakScore: null },
+          { player1: 5, player2: 7, isTiebreak: false, tiebreakScore: null },
+          { player1: 0, player2: 2, isTiebreak: false, tiebreakScore: null },
+        ],
+        setsWon: { player1: 1, player2: 1 },
+        currentGame: { player1: 0, player2: 1, isDeuce: false, advantage: null, secondServe: false },
+        server: 'player1',
+        isFinished: false,
+        winner: null,
+        startedAt: Date.now(),
+        secondServe: false,
+      };
+
+      const result = await transitionMatchState(
+        'm1', 'IN_PROGRESS', undefined, editScoreState,
+      );
+
+      expect(result).toEqual({
+        error: "SCORE_REGRESSION: Placar não pode ser inferior ao estado atual",
+      });
+    });
+  });
+
+  describe('transitionMatchState - allowScoreEdit bypass (Edit Score)', () => {
+    it('deve permitir reducao do currentGame quando allowScoreEdit=true (mesmo ultimo set)', async () => {
+      const { transitionMatchState } = await import('@/services/matchService');
+
+      mockPrisma.match.findFirst.mockResolvedValue({
+        id: 'm1',
+        state: 'IN_PROGRESS',
+        player1Id: 'p1',
+        player2Id: 'p2',
+        format: 'BEST_OF_5',
+        initialServerId: 'p1',
+        scoreState: {
+          sets: [
+            { player1: 6, player2: 1, isTiebreak: false, tiebreakScore: null },
+            { player1: 5, player2: 7, isTiebreak: false, tiebreakScore: null },
+            { player1: 0, player2: 2, isTiebreak: false, tiebreakScore: null },
+          ],
+          setsWon: { player1: 1, player2: 1 },
+          currentGame: { player1: 2, player2: 3, isDeuce: false, advantage: null, secondServe: false },
+          server: 'player1',
+          isFinished: false,
+          winner: null,
+          startedAt: null,
+          secondServe: false,
+        },
+      });
+      mockPrisma.match.update.mockResolvedValue({ id: 'm1' });
+
+      const editScoreState = {
+        sets: [
+          { player1: 6, player2: 1, isTiebreak: false, tiebreakScore: null },
+          { player1: 5, player2: 7, isTiebreak: false, tiebreakScore: null },
+          { player1: 0, player2: 2, isTiebreak: false, tiebreakScore: null },
+        ],
+        setsWon: { player1: 1, player2: 1 },
+        currentGame: { player1: 0, player2: 1, isDeuce: false, advantage: null, secondServe: false },
+        server: 'player1',
+        isFinished: false,
+        winner: null,
+        startedAt: Date.now(),
+        secondServe: false,
+      };
+
+      const result = await transitionMatchState(
+        'm1', 'IN_PROGRESS', undefined, editScoreState,
+        { allowScoreEdit: true },
+      );
+
+      expect(result).not.toHaveProperty('error');
+    });
+
+    it('deve permitir reducao em tie-break quando allowScoreEdit=true', async () => {
+      const { transitionMatchState } = await import('@/services/matchService');
+
+      mockPrisma.match.findFirst.mockResolvedValue({
+        id: 'm1',
+        state: 'IN_PROGRESS',
+        player1Id: 'p1',
+        player2Id: 'p2',
+        format: 'BEST_OF_3_MATCH_TB',
+        initialServerId: 'p1',
+        scoreState: {
+          sets: [
+            { player1: 6, player2: 1, isTiebreak: false, tiebreakScore: null },
+            { player1: 4, player2: 6, isTiebreak: false, tiebreakScore: null },
+            { player1: 0, player2: 0, isTiebreak: true, tiebreakScore: { player1: 8, player2: 5 } },
+          ],
+          setsWon: { player1: 1, player2: 1 },
+          currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+          server: 'player1',
+          isFinished: false,
+          winner: null,
+          startedAt: null,
+          secondServe: false,
+        },
+      });
+      mockPrisma.match.update.mockResolvedValue({ id: 'm1' });
+
+      const editScoreState = {
+        sets: [
+          { player1: 6, player2: 1, isTiebreak: false, tiebreakScore: null },
+          { player1: 4, player2: 6, isTiebreak: false, tiebreakScore: null },
+          { player1: 0, player2: 0, isTiebreak: true, tiebreakScore: { player1: 2, player2: 1 } },
+        ],
+        setsWon: { player1: 1, player2: 1 },
+        currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+        server: 'player1',
+        isFinished: false,
+        winner: null,
+        startedAt: Date.now(),
+        secondServe: false,
+      };
+
+      const result = await transitionMatchState(
+        'm1', 'IN_PROGRESS', undefined, editScoreState,
+        { allowScoreEdit: true },
+      );
+
+      expect(result).not.toHaveProperty('error');
+    });
+
+    it('deve BLOQUEAR reducao de setsWon mesmo com allowScoreEdit=true (protecao mantida)', async () => {
+      const { transitionMatchState } = await import('@/services/matchService');
+
+      mockPrisma.match.findFirst.mockResolvedValue({
+        id: 'm1',
+        state: 'IN_PROGRESS',
+        player1Id: 'p1',
+        player2Id: 'p2',
+        format: 'BEST_OF_3',
+        initialServerId: 'p1',
+        scoreState: {
+          sets: [],
+          setsWon: { player1: 1, player2: 0 },
+          currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+          server: 'player1',
+          isFinished: false,
+          winner: null,
+          startedAt: null,
+          secondServe: false,
+        },
+      });
+      mockPrisma.match.update.mockResolvedValue({ id: 'm1' });
+
+      const editScoreState = {
+        sets: [],
+        setsWon: { player1: 0, player2: 0 },
+        currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+        server: 'player1',
+        isFinished: false,
+        winner: null,
+        startedAt: Date.now(),
+        secondServe: false,
+      };
+
+      const result = await transitionMatchState(
+        'm1', 'IN_PROGRESS', undefined, editScoreState,
+        { allowScoreEdit: true },
+      );
+
+      expect(result).toEqual({
+        error: "SCORE_REGRESSION: Placar não pode ser inferior ao estado atual",
+      });
+    });
+
+    it('deve BLOQUEAR reducao de currentGame quando allowScoreEdit=false (comportamento legacy mantido)', async () => {
+      const { transitionMatchState } = await import('@/services/matchService');
+
+      mockPrisma.match.findFirst.mockResolvedValue({
+        id: 'm1',
+        state: 'IN_PROGRESS',
+        player1Id: 'p1',
+        player2Id: 'p2',
+        format: 'BEST_OF_5',
+        initialServerId: 'p1',
+        scoreState: {
+          sets: [
+            { player1: 6, player2: 1, isTiebreak: false, tiebreakScore: null },
+            { player1: 5, player2: 7, isTiebreak: false, tiebreakScore: null },
+            { player1: 0, player2: 2, isTiebreak: false, tiebreakScore: null },
+          ],
+          setsWon: { player1: 1, player2: 1 },
+          currentGame: { player1: 2, player2: 3, isDeuce: false, advantage: null, secondServe: false },
+          server: 'player1',
+          isFinished: false,
+          winner: null,
+          startedAt: null,
+          secondServe: false,
+        },
+      });
+      mockPrisma.match.update.mockResolvedValue({ id: 'm1' });
+
+      const editScoreState = {
+        sets: [
+          { player1: 6, player2: 1, isTiebreak: false, tiebreakScore: null },
+          { player1: 5, player2: 7, isTiebreak: false, tiebreakScore: null },
+          { player1: 0, player2: 2, isTiebreak: false, tiebreakScore: null },
+        ],
+        setsWon: { player1: 1, player2: 1 },
+        currentGame: { player1: 0, player2: 1, isDeuce: false, advantage: null, secondServe: false },
+        server: 'player1',
+        isFinished: false,
+        winner: null,
+        startedAt: Date.now(),
+        secondServe: false,
+      };
+
+      const result = await transitionMatchState(
+        'm1', 'IN_PROGRESS', undefined, editScoreState,
+      );
+
+      expect(result).toEqual({
+        error: "SCORE_REGRESSION: Placar não pode ser inferior ao estado atual",
+      });
     });
   });
