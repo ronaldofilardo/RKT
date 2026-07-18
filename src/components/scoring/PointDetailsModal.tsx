@@ -230,7 +230,7 @@ export function PointDetailsModal({
             </Section>
           )}
 
-          {shouldShowDuracao(form.golpe) && (
+          {shouldShowDuracao(form.situacao, form.golpe) && (
             <Section num="4" label="Duração do Rallye" ref={duracaoRef}>
               <Pills
                 options={DURACAO_OPTIONS.map(o => o.value)}
@@ -242,7 +242,7 @@ export function PointDetailsModal({
           )}
 
           {needsSubtipo1 && form.golpe && (
-            <Section num={shouldShowDuracao(form.golpe) ? '5' : '4'} label="Tipo de Erro (Rede)" ref={subtipo1Ref}>
+            <Section num={shouldShowDuracao(form.situacao, form.golpe) ? '5' : '4'} label="Tipo de Erro (Rede)" ref={subtipo1Ref}>
               <Pills
                 options={SUBTIPO1_OPTIONS.map(o => o.value)}
                 selected={form.subtipo1}
@@ -253,7 +253,7 @@ export function PointDetailsModal({
           )}
 
           {needsSubtipo2 && form.tipo && (
-            <Section num={shouldShowDuracao(form.golpe) ? (needsSubtipo1 ? '6' : '5') : (needsSubtipo1 ? '5' : '4')} label="Onde Errou?" ref={subtipo2Ref}>
+            <Section num={shouldShowDuracao(form.situacao, form.golpe) ? (needsSubtipo1 ? '6' : '5') : (needsSubtipo1 ? '5' : '4')} label="Onde Errou?" ref={subtipo2Ref}>
               <Pills
                 options={SUBTIPO2_OPTIONS.map(o => o.value)}
                 selected={form.subtipo2}
@@ -265,10 +265,10 @@ export function PointDetailsModal({
 
           {needsEfeito && form.golpe && (
             <Section num={
-              (shouldShowDuracao(form.golpe) && needsSubtipo1 && needsSubtipo2) ? '7' :
-              (shouldShowDuracao(form.golpe) && (needsSubtipo1 || needsSubtipo2)) ? '6' :
-              (!shouldShowDuracao(form.golpe) && needsSubtipo1 && needsSubtipo2) ? '6' :
-              (shouldShowDuracao(form.golpe) || needsSubtipo1 || needsSubtipo2) ? '5' : '4'
+              (shouldShowDuracao(form.situacao, form.golpe) && needsSubtipo1 && needsSubtipo2) ? '7' :
+              (shouldShowDuracao(form.situacao, form.golpe) && (needsSubtipo1 || needsSubtipo2)) ? '6' :
+              (!shouldShowDuracao(form.situacao, form.golpe) && needsSubtipo1 && needsSubtipo2) ? '6' :
+              (shouldShowDuracao(form.situacao, form.golpe) || needsSubtipo1 || needsSubtipo2) ? '5' : '4'
             } label="Efeito" ref={efeitoRef}>
               <Pills
                 options={EFEITO_OPTIONS.map(o => o.value)}
