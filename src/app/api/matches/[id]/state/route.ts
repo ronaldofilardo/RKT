@@ -46,6 +46,7 @@ export async function PATCH(
       parsed.data.state,
       parsed.data.initialServerId,
       parsed.data.scoreState,
+      { allowScoreEdit: parsed.data.allowScoreEdit },
     );
 
     if (!result) {

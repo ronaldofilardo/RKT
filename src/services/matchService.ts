@@ -303,6 +303,7 @@ export async function transitionMatchState(
   newState: MatchState,
   initialServerId?: string,
   scoreState?: unknown,
+  options?: { allowScoreEdit?: boolean },
 ) {
   const match = await prisma.match.findFirst({
     where: { id },
@@ -355,36 +356,42 @@ export async function transitionMatchState(
       } as const;
     }
 
-    if (
-      typeof newWon.player1 === "number" &&
-      typeof newWon.player2 === "number" &&
-      newWon.player1 === oldWon.player1 &&
-      newWon.player2 === oldWon.player2 &&
-      isCurrentGameRegressing(oldState?.currentGame, newState_?.currentGame)
-    ) {
+    // PROTEÇÃO #2: Validação de regressão do game atual / tie-break
+    // Só é aplicada quando NÃO estamos no fluxo explícito de Edit Score
+    // (allowScoreEdit=true). Em Edit Score, o usuário pode legitimamente
+    // querer regredir o currentGame ou tiebreak points sem avançar games/set.
+    if (!options?.allowScoreEdit) {
+      if (
+        typeof newWon.player1 === "number" &&
+        typeof newWon.player2 === "number" &&
+        newWon.player1 === oldWon.player1 &&
+        newWon.player2 === oldWon.player2 &&
+        isCurrentGameRegressing(oldState?.currentGame, newState_?.currentGame)
+      ) {
+        const oldLastSet = oldState?.sets?.[(oldState.sets.length || 1) - 1];
+        const newLastSet = newState_?.sets?.[(newState_.sets.length || 1) - 1];
+        const sameCurrentGameContext =
+          oldLastSet && newLastSet
+            ? oldLastSet.player1 === newLastSet.player1 &&
+              oldLastSet.player2 === newLastSet.player2
+            : true;
+
+        if (sameCurrentGameContext) {
+          return {
+            error: "SCORE_REGRESSION: Placar não pode ser inferior ao estado atual",
+          } as const;
+        }
+      }
+
+      // PROTEÇÃO #2 (Enhanced): Validação de regressão em tie-break
       const oldLastSet = oldState?.sets?.[(oldState.sets.length || 1) - 1];
       const newLastSet = newState_?.sets?.[(newState_.sets.length || 1) - 1];
-      const sameCurrentGameContext =
-        oldLastSet && newLastSet
-          ? oldLastSet.player1 === newLastSet.player1 &&
-            oldLastSet.player2 === newLastSet.player2
-          : true;
 
-      if (sameCurrentGameContext) {
+      if (oldLastSet && newLastSet && isTiebreakRegressing(oldLastSet, newLastSet)) {
         return {
-          error: "SCORE_REGRESSION: Placar não pode ser inferior ao estado atual",
+          error: "SCORE_REGRESSION: Tie-break não pode regredir",
         } as const;
       }
-    }
-    
-    // PROTEÇÃO #2 (Enhanced): Validação de regressão em tie-break
-    const oldLastSet = oldState?.sets?.[(oldState.sets.length || 1) - 1];
-    const newLastSet = newState_?.sets?.[(newState_.sets.length || 1) - 1];
-    
-    if (oldLastSet && newLastSet && isTiebreakRegressing(oldLastSet, newLastSet)) {
-      return {
-        error: "SCORE_REGRESSION: Tie-break não pode regredir",
-      } as const;
     }
   }
 

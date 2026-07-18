@@ -31,6 +31,7 @@ export async function persistStateWithRetry(
           state: state.isFinished ? "FINISHED" : "IN_PROGRESS",
           scoreState: state,
           version: match.version,
+          allowScoreEdit: label === "edit-score",
         }),
       });
 
