@@ -136,7 +136,8 @@ export function shouldShowSubtipo2(situacao: RallySituacao, tipo: RallyTipo, gol
   return situacao === 'passada' && tipo !== 'winner' && (golpe === 'vbh' || golpe === 'vfh' || golpe === 'smash');
 }
 
-export function shouldShowDuracao(golpe: RallyGolpe | null): boolean {
+export function shouldShowDuracao(situacao: RallySituacao | null, golpe: RallyGolpe | null): boolean {
+  if (situacao === 'devolucao') return false;
   return golpe != null;
 }
 

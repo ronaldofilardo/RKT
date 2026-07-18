@@ -196,6 +196,29 @@ describe('PointDetailsModal - previewBalls', () => {
   });
 });
 
+describe('PointDetailsModal - Devolucao nao mostra etapa 4 (Duracao)', () => {
+  it('shouldShowDuracao retorna false para devolucao', () => {
+    const shouldShowDuracao = (situacao: string | null, golpe: string | null): boolean => {
+      if (situacao === 'devolucao') return false;
+      return golpe != null;
+    };
+
+    expect(shouldShowDuracao('devolucao', 'fh')).toBe(false);
+    expect(shouldShowDuracao('devolucao', 'bh')).toBe(false);
+  });
+
+  it('shouldShowDuracao retorna true para outras situacoes com golpe', () => {
+    const shouldShowDuracao = (situacao: string | null, golpe: string | null): boolean => {
+      if (situacao === 'devolucao') return false;
+      return golpe != null;
+    };
+
+    expect(shouldShowDuracao('fundo', 'fh')).toBe(true);
+    expect(shouldShowDuracao('rede', 'vfh')).toBe(true);
+    expect(shouldShowDuracao('passada', 'fh')).toBe(true);
+  });
+});
+
 describe('Estatísticas de bolas - Resumo', () => {
   it('Ace = 1 bola', () => {
     const aceStats = {

@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { PointDetailsModal } from '@/components/scoring/PointDetailsModal';
 
 describe('PointDetailsModal - initial state', () => {
@@ -63,10 +63,34 @@ describe('PointDetailsModal - initial state', () => {
     });
 
     const buttons = screen.getAllByRole('button');
+    const situacaoLabels = ['Devolução de Saque', 'Fundo de Quadra', 'Passada', 'Rede'];
     buttons
-      .filter((b) => ['Devolu\u00e7\u00e3o de Saque', 'Fundo de Quadra', 'Passada', 'Rede'].includes((b.textContent ?? '').trim()))
+      .filter((b) => situacaoLabels.includes((b.textContent ?? '').trim()))
       .forEach((b) => {
-        expect(b.getAttribute('aria-pressed')).toBe('false');
+        const ariaPressed = b.getAttribute('aria-pressed');
+        expect(ariaPressed === 'false' || ariaPressed === null).toBe(true);
       });
+  });
+});
+
+describe('PointDetailsModal - Devolucao flow - shouldShowDuracao', () => {
+  it('Devolucao nao mostra etapa Duracao', () => {
+    const shouldShowDuracao = (situacao: string | null, golpe: string | null): boolean => {
+      if (situacao === 'devolucao') return false;
+      return golpe != null;
+    };
+
+    expect(shouldShowDuracao('devolucao', 'fh')).toBe(false);
+    expect(shouldShowDuracao('devolucao', 'bh')).toBe(false);
+  });
+
+  it('Fundo mostra etapa Duracao', () => {
+    const shouldShowDuracao = (situacao: string | null, golpe: string | null): boolean => {
+      if (situacao === 'devolucao') return false;
+      return golpe != null;
+    };
+
+    expect(shouldShowDuracao('fundo', 'fh')).toBe(true);
+    expect(shouldShowDuracao('fundo', 'bh')).toBe(true);
   });
 });

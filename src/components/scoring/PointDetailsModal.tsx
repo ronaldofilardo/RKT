@@ -83,9 +83,9 @@ export function PointDetailsModal({
       const prev = prevFormRef.current;
       
       if (form.tipo && !prev.tipo && tipoRef.current) return tipoRef.current;
-      // Ao escolher golpe (fase 3), rolar para a próxima fase visível (Duração = fase 4)
+      // Ao escolher golpe (fase 3), rolar para a próxima fase visível (Duração = fase 4 ou Efeito)
       if (form.golpe && !prev.golpe) {
-        if (shouldShowDuracao(form.golpe) && duracaoRef.current) return duracaoRef.current;
+        if (shouldShowDuracao(form.situacao, form.golpe) && duracaoRef.current) return duracaoRef.current;
         if (needsSubtipo1 && subtipo1Ref.current) return subtipo1Ref.current;
         if (needsEfeito && efeitoRef.current) return efeitoRef.current;
       }
@@ -104,14 +104,15 @@ export function PointDetailsModal({
 
     const targetRef = getTargetRef();
     if (targetRef) {
-      // Ao avançar de fase, usar 'start' para revelar a próxima fase e a seguinte ao mesmo tempo
       const useStart = (form.golpe && !prevFormRef.current.golpe) || (form.duracao && !prevFormRef.current.duracao);
       setTimeout(() => {
-        targetRef.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: useStart ? 'start' : 'center',
-          inline: 'nearest'
-        });
+        if (typeof targetRef.scrollIntoView === 'function') {
+          targetRef.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: useStart ? 'start' : 'center',
+            inline: 'nearest'
+          });
+        }
       }, 50);
     }
     
@@ -194,7 +195,7 @@ export function PointDetailsModal({
           </div>
         </div>
 
-        <div ref={containerRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-[18px]">
+        <div ref={containerRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-[18px]" data-testid="modal-content">
           <Section num="1" label="Situação do Ponto">
             <Pills
               options={SITUACAO_OPTIONS.map(o => o.value)}

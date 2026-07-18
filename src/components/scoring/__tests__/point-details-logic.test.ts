@@ -145,16 +145,27 @@ describe('point-details-logic', () => {
   });
 
   describe('shouldShowDuracao', () => {
-    it('retorna true quando golpe esta selecionado', () => {
-      expect(shouldShowDuracao('fh')).toBe(true);
-      expect(shouldShowDuracao('bh')).toBe(true);
-      expect(shouldShowDuracao('vfh')).toBe(true);
-      expect(shouldShowDuracao('vbh')).toBe(true);
-      expect(shouldShowDuracao('smash')).toBe(true);
+    it('retorna true quando golpe esta selecionado (situacao != devolucao)', () => {
+      expect(shouldShowDuracao('fundo', 'fh')).toBe(true);
+      expect(shouldShowDuracao('fundo', 'bh')).toBe(true);
+      expect(shouldShowDuracao('rede', 'vfh')).toBe(true);
+      expect(shouldShowDuracao('rede', 'vbh')).toBe(true);
+      expect(shouldShowDuracao('passada', 'smash')).toBe(true);
     });
 
     it('retorna false quando golpe e null', () => {
-      expect(shouldShowDuracao(null)).toBe(false);
+      expect(shouldShowDuracao('fundo', null)).toBe(false);
+    });
+
+    it('retorna false para devolucao mesmo com golpe selecionado', () => {
+      expect(shouldShowDuracao('devolucao', 'fh')).toBe(false);
+      expect(shouldShowDuracao('devolucao', 'bh')).toBe(false);
+    });
+
+    it('retorna true para outras situacoes com golpe selecionado', () => {
+      expect(shouldShowDuracao('fundo', 'fh')).toBe(true);
+      expect(shouldShowDuracao('rede', 'vfh')).toBe(true);
+      expect(shouldShowDuracao('passada', 'fh')).toBe(true);
     });
   });
 

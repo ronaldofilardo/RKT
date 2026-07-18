@@ -1,4 +1,4 @@
-import type { ReactNode, RefObject } from 'react';
+import { forwardRef, type ReactNode, type RefObject } from 'react';
 
 interface SectionProps {
   num?: string;
@@ -7,7 +7,7 @@ interface SectionProps {
   ref?: RefObject<HTMLDivElement>;
 }
 
-export function Section({ num, label, children, ref }: SectionProps) {
+export const Section = forwardRef<HTMLDivElement, SectionProps>(({ num, label, children }, ref) => {
   return (
     <div ref={ref}>
       <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">
@@ -16,4 +16,6 @@ export function Section({ num, label, children, ref }: SectionProps) {
       {children}
     </div>
   );
-}
+});
+
+Section.displayName = 'Section';
