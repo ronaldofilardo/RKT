@@ -50,3 +50,5 @@ Thumbs.db
 
 # Agent working dirs
 .agents/*.local.md
+
+.vercel
