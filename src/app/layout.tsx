@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { ToastProvider } from '@/components/Toast';
 import { Providers } from '@/contexts/Providers';
+import { ServiceWorkerUpdater } from '@/components/ServiceWorkerUpdater';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -37,6 +38,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className={inter.className}>
+        <ServiceWorkerUpdater />
         <ToastProvider>
           <Providers>{children}</Providers>
         </ToastProvider>
