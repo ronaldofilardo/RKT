@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import './design-system.css' layer(base);
+
+/* Legacy tokens - kept for compatibility, mapped to Airtable Design System */
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 248, 250, 252;
+  --background-end-rgb: 255, 255, 255;
+  --court-surface: #1e293b;
+  --font-main: Inter, system-ui, -apple-system, sans-serif;
+  --sb-scale: 1;
+  --clr-yellow: #f59e0b;
+  --clr-yellow-glow: rgba(251, 191, 36, 0.15);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 15, 23, 42;
+    --background-end-rgb: 30, 41, 59;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+  overflow-x: hidden;
+}
+
+/* Safe area support for notched devices */
+@supports (padding: max(0px)) {
+  .safe-bottom {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+  .safe-top {
+    padding-top: max(0px, env(safe-area-inset-top));
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: 768px) and (orientation: landscape) {
+  .modal-max-w-tablet {
+    max-width: 600px;
+  }
+}
+
+/* Improve touch targets on mobile */
+@media (max-width: 640px) {
+  button, a, [role="button"] {
+    min-height: 44px;
+  }
+}
+
+/* Hide scrollbar for set badges on mobile */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Prevent text overflow on very small screens */
+@media (max-width: 374px) {
+  .text-4xl {
+    font-size: 1.75rem;
+    line-height: 2rem;
+  }
+}
+
+/* Safe bottom for modern phones with gesture bar */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0.5rem);
+}
+
+/* Fix for select dropdowns - ensure high contrast and readability */
+select,
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="email"],
+input[type="password"] {
+  background-color: #ffffff;
+  color: #181d26;
+}
+
+select option,
+input option {
+  color: #181d26;
+  background-color: #ffffff;
+}
+
+select::placeholder,
+input::placeholder {
+  color: #6b7280;
+}
+
+/* Ensure focused inputs have proper contrast */
+select:focus,
+input:focus {
+  background-color: #ffffff;
+  color: #181d26;
+}

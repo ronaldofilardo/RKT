@@ -1,0 +1,1 @@
+ALTER TABLE "Match" ALTER COLUMN "initialServerId" DROP NOT NULL;

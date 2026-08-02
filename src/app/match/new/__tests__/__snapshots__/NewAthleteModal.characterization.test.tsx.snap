@@ -1,0 +1,443 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NewAthleteModal Characterization should render correctly with default state 1`] = `
+<DocumentFragment>
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center"
+    role="presentation"
+  >
+    <div
+      aria-label="Fechar modal"
+      class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      role="button"
+      tabindex="-1"
+    />
+    <div
+      class="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-auto"
+    >
+      <div
+        class="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between"
+      >
+        <div>
+          <h2
+            class="text-xl font-bold text-gray-900"
+          >
+            Novo Atleta
+          </h2>
+          <p
+            class="text-xs text-gray-500"
+          >
+            Preencha os dados do jogador
+          </p>
+        </div>
+        <button
+          class="text-gray-400 hover:text-gray-600 text-2xl p-1"
+          type="button"
+        >
+          ×
+        </button>
+      </div>
+      <form
+        class="p-6 space-y-4"
+      >
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 mb-1"
+            for="new-athlete-name"
+          >
+            Nome 
+            <span
+              class="text-red-500"
+            >
+              *
+            </span>
+          </label>
+          <input
+            class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-500"
+            id="new-athlete-name"
+            placeholder="Ex: João Silva"
+            type="text"
+            value=""
+          />
+        </div>
+        <div
+          class="grid grid-cols-4 gap-4"
+        >
+          <div
+            class="col-span-1"
+          >
+            <label
+              class="block text-sm font-medium text-gray-700 mb-1"
+              for="new-athlete-gender"
+            >
+              Sexo
+            </label>
+            <select
+              class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900"
+              id="new-athlete-gender"
+            >
+              <option
+                class="text-gray-900"
+                value=""
+              >
+                Selecione...
+              </option>
+              <option
+                class="text-gray-900"
+                value="MALE"
+              >
+                Masculino
+              </option>
+              <option
+                class="text-gray-900"
+                value="FEMALE"
+              >
+                Feminino
+              </option>
+            </select>
+          </div>
+          <div
+            class="col-span-3"
+          >
+            <span
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Data de Nascimento
+            </span>
+            <div
+              class="flex items-end gap-3"
+            >
+              <div
+                class="w-28"
+              >
+                <label
+                  class="sr-only"
+                  for="new-athlete-birth-day"
+                >
+                  Dia
+                </label>
+                <input
+                  class="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-400 text-center text-base"
+                  id="new-athlete-birth-day"
+                  max="31"
+                  maxlength="2"
+                  min="1"
+                  placeholder="DD"
+                  type="number"
+                  value=""
+                />
+              </div>
+              <span
+                class="text-gray-400 text-xl font-medium mb-2.5"
+              >
+                /
+              </span>
+              <div
+                class="w-28"
+              >
+                <label
+                  class="sr-only"
+                  for="new-athlete-birth-month"
+                >
+                  Mês
+                </label>
+                <input
+                  class="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-400 text-center text-base"
+                  id="new-athlete-birth-month"
+                  max="12"
+                  maxlength="2"
+                  min="1"
+                  placeholder="MM"
+                  type="number"
+                  value=""
+                />
+              </div>
+              <span
+                class="text-gray-400 text-xl font-medium mb-2.5"
+              >
+                /
+              </span>
+              <div
+                class="w-36"
+              >
+                <label
+                  class="sr-only"
+                  for="new-athlete-birth-year"
+                >
+                  Ano
+                </label>
+                <input
+                  class="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-400 text-center text-base"
+                  id="new-athlete-birth-year"
+                  max="2030"
+                  maxlength="4"
+                  min="1900"
+                  placeholder="AAAA"
+                  type="number"
+                  value=""
+                />
+              </div>
+            </div>
+            <p
+              class="mt-1.5 text-xs text-gray-500"
+            >
+              Ex: 15 / 03 / 1995
+            </p>
+          </div>
+        </div>
+        <div
+          class="grid grid-cols-4 gap-4 items-start"
+        >
+          <div
+            class="col-span-1"
+          >
+            <label
+              class="block text-sm font-medium text-gray-700 mb-1"
+              for="new-athlete-class"
+            >
+              Classe 
+            </label>
+            <select
+              class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 disabled:bg-gray-50 disabled:text-gray-500"
+              disabled=""
+              id="new-athlete-class"
+            >
+              <option
+                value=""
+              >
+                Aguardando...
+              </option>
+            </select>
+          </div>
+          <div
+            class="col-span-3"
+          >
+            <div
+              class="bg-sky-50 border border-sky-100 rounded-xl p-4 h-full"
+            >
+              <h3
+                class="text-sm font-semibold text-sky-900 mb-2"
+              >
+                Categorias
+              </h3>
+              <p
+                class="text-xs text-sky-700/70 italic"
+              >
+                Preencha sexo e data de nascimento para ver as categorias.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div
+          class="grid grid-cols-2 gap-4"
+        >
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 mb-1"
+              for="new-athlete-dominance"
+            >
+              Dominância
+            </label>
+            <select
+              class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900"
+              id="new-athlete-dominance"
+            >
+              <option
+                class="text-gray-900"
+                value=""
+              >
+                Selecione...
+              </option>
+              <option
+                class="text-gray-900"
+                value="RIGHT"
+              >
+                Destro
+              </option>
+              <option
+                class="text-gray-900"
+                value="LEFT"
+              >
+                Canhoto
+              </option>
+            </select>
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 mb-1"
+              for="new-athlete-backhand"
+            >
+              Backhand
+            </label>
+            <select
+              class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900"
+              id="new-athlete-backhand"
+            >
+              <option
+                class="text-gray-900"
+                value=""
+              >
+                Selecione...
+              </option>
+              <option
+                class="text-gray-900"
+                value="ONE_HANDED"
+              >
+                Uma mão
+              </option>
+              <option
+                class="text-gray-900"
+                value="TWO_HANDED"
+              >
+                Duas mãos
+              </option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <span
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Ranking
+          </span>
+          <div
+            class="space-y-2"
+          >
+            <div
+              class="border border-gray-200 rounded-lg p-3"
+            >
+              <div
+                class="flex items-center gap-2 mb-2"
+              >
+                <input
+                  class="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+                  id="new-ranking-ESTADUAL"
+                  type="checkbox"
+                />
+                <label
+                  class="text-sm font-medium text-gray-700"
+                  for="new-ranking-ESTADUAL"
+                >
+                  Estadual
+                </label>
+              </div>
+            </div>
+            <div
+              class="border border-gray-200 rounded-lg p-3"
+            >
+              <div
+                class="flex items-center gap-2 mb-2"
+              >
+                <input
+                  class="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+                  id="new-ranking-CBT"
+                  type="checkbox"
+                />
+                <label
+                  class="text-sm font-medium text-gray-700"
+                  for="new-ranking-CBT"
+                >
+                  CBT
+                </label>
+              </div>
+            </div>
+            <div
+              class="border border-gray-200 rounded-lg p-3"
+            >
+              <div
+                class="flex items-center gap-2 mb-2"
+              >
+                <input
+                  class="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+                  id="new-ranking-COSAT"
+                  type="checkbox"
+                />
+                <label
+                  class="text-sm font-medium text-gray-700"
+                  for="new-ranking-COSAT"
+                >
+                  COSAT
+                </label>
+              </div>
+            </div>
+            <div
+              class="border border-gray-200 rounded-lg p-3"
+            >
+              <div
+                class="flex items-center gap-2 mb-2"
+              >
+                <input
+                  class="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+                  id="new-ranking-ITF"
+                  type="checkbox"
+                />
+                <label
+                  class="text-sm font-medium text-gray-700"
+                  for="new-ranking-ITF"
+                >
+                  ITF
+                </label>
+              </div>
+            </div>
+            <div
+              class="border border-gray-200 rounded-lg p-3"
+            >
+              <div
+                class="flex items-center gap-2 mb-2"
+              >
+                <input
+                  class="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+                  id="new-ranking-ATP"
+                  type="checkbox"
+                />
+                <label
+                  class="text-sm font-medium text-gray-700"
+                  for="new-ranking-ATP"
+                >
+                  ATP
+                </label>
+              </div>
+            </div>
+            <div
+              class="border border-gray-200 rounded-lg p-3"
+            >
+              <div
+                class="flex items-center gap-2 mb-2"
+              >
+                <input
+                  class="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+                  id="new-ranking-WTA"
+                  type="checkbox"
+                />
+                <label
+                  class="text-sm font-medium text-gray-700"
+                  for="new-ranking-WTA"
+                >
+                  WTA
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="flex gap-3 pt-4"
+        >
+          <button
+            class="flex-1 bg-gray-100 border border-gray-300 text-gray-700 font-semibold py-2.5 rounded-lg hover:bg-gray-200 disabled:opacity-50"
+            type="button"
+          >
+            Cancelar
+          </button>
+          <button
+            class="flex-1 bg-sky-600 text-white font-semibold py-2.5 rounded-lg hover:bg-sky-700 disabled:opacity-50"
+            disabled=""
+            type="submit"
+          >
+            Salvar Atleta
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</DocumentFragment>
+`;
