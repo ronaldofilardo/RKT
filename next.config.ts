@@ -38,7 +38,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: process.env.NODE_ENV === 'production',
   typedRoutes: true,
-  transpilePackages: ['jose', '@prisma/client', '@ducanh2912/next-pwa'],
+  transpilePackages: ['jose', '@ducanh2912/next-pwa'],
   images: {
     remotePatterns: [],
   },

@@ -22,7 +22,8 @@
     "test:setup": "node scripts/test-setup.js",
     "db:test:create": "node scripts/create-test-db.js",
     "db:test:push": "node -e \"require('dotenv').config({path:'.env.test'}); require('child_process').execSync('prisma db push --skip-generate', {stdio:'inherit'})\"",
-    "db:test:seed": "node -e \"require('dotenv').config({path:'.env.test'}); require('child_process').execSync('tsx prisma/seed.ts', {stdio:'inherit'})\""
+    "db:test:seed": "node -e \"require('dotenv').config({path:'.env.test'}); require('child_process').execSync('tsx prisma/seed.ts', {stdio:'inherit'})\"",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
