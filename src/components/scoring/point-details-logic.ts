@@ -58,7 +58,7 @@ export function formReducer(state: PointDetailsForm, action: Action): PointDetai
     case 'SET_GOLPE':
       return { ...state, golpe: action.value, subtipo1: null, subtipo2: null, efeito: null, duracao: null, direcao: null, golpeEsp: null };
     case 'SET_DURACAO':
-      return { ...state, duracao: action.value, subtipo1: null, subtipo2: null, efeito: null, direcao: null, golpeEsp: null };
+      return { ...state, duracao: action.value };
     case 'SET_SUBTIPO1':
       return { ...state, subtipo1: action.value, subtipo2: null, efeito: null, direcao: null, golpeEsp: null };
     case 'SET_SUBTIPO2':

@@ -54,7 +54,7 @@ describe('point-details-logic', () => {
       expect(next.golpeEsp).toBeNull();
     });
 
-    it('deve limpar subtipos e efeito ao SET_DURACAO', () => {
+    it('deve preservar subtipos, efeito, direcao e golpeEsp ao SET_DURACAO', () => {
       const state: PointDetailsForm = {
         ...initialForm,
         situacao: 'fundo',
@@ -69,11 +69,11 @@ describe('point-details-logic', () => {
       };
       const next = formReducer(state, { type: 'SET_DURACAO', value: 'opcao_2' });
       expect(next.duracao).toBe('opcao_2');
-      expect(next.subtipo1).toBeNull();
-      expect(next.subtipo2).toBeNull();
-      expect(next.efeito).toBeNull();
-      expect(next.direcao).toBeNull();
-      expect(next.golpeEsp).toBeNull();
+      expect(next.subtipo1).toBe('passing_shot');
+      expect(next.subtipo2).toBe('out');
+      expect(next.efeito).toBe('topspin');
+      expect(next.direcao).toBe('cruzada');
+      expect(next.golpeEsp).toBe('lob');
     });
   });
 
