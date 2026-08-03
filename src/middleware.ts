@@ -22,6 +22,10 @@ export function getAuthToken(request: Pick<NextRequest, 'headers' | 'cookies'>) 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  if (pathname === '/') {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
   const isPublic = PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
   if (isPublic) return NextResponse.next();
 
@@ -65,6 +69,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/',
     '/api/:path*',
     '/dashboard/:path*',
     '/admin/:path*',
