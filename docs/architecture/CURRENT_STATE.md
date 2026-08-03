@@ -31,11 +31,7 @@ rkt/
 │   ├── schema.prisma           # Modelo de domínio
 │   ├── seed.ts                 # Seed do banco
 │   └── migrations/             # Migrations versionadas
-├── public/
-│   ├── icons/                  # Ícones PWA
-│   ├── manifest.json           # Manifest PWA
-│   ├── sw.js                   # Service Worker
-│   └── workbox-*.js            # Workbox (cache)
+├── public/                     # Assets estáticos (PWA removido 2026-08-02)
 ├── scripts/                    # Scripts utilitários
 ├── specs/                      # Especificações de domínio
 │   ├── api-contracts.md        # Contratos de API
@@ -188,7 +184,6 @@ rkt/
 | `jose` | JWT (autenticação) |
 | `zod` | Validação de schemas |
 | `idb` | IndexedDB (offline sync) |
-| `@ducanh2912/next-pwa` | PWA (service worker) |
 | `bcryptjs` | Hash de senhas |
 
 ### Banco de Dados
@@ -377,11 +372,8 @@ matcher: [
 
 ### PWA (Progressive Web App)
 
-- **Plugin:** `@ducanh2912/next-pwa`
-- **Service Worker:** `public/sw.js` + `public/workbox-*.js`
-- **Manifest:** `public/manifest.json`
-- **Offline Sync:** IndexedDB via `idb`
-- **Estratégia:** Cache-first para estáticos, network-first para API
+- **PWA:** desabilitado (removido 2026-08-02 por cache stale de `/api/matches` em produção)
+- **Offline Sync:** IndexedDB via `idb` permanece disponível para uso futuro
 
 ### Testes
 

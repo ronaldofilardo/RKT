@@ -57,7 +57,7 @@
 - **Estilização:** Tailwind CSS
 - **Testes:** Jest (unitário), Playwright (E2E), Stryker (mutation)
 - **Auth:** JWT via `jose`, middleware + RLS
-- **PWA:** next-pwa, offline sync via IndexedDB (`idb`)
+- **PWA:** desabilitado (removido 2026-08-02 por cache stale da API em produção)
 
 ## Comandos Úteis
 ```bash

@@ -1,33 +1,4 @@
 import type { NextConfig } from 'next';
-import withPWAInit from '@ducanh2912/next-pwa';
-
-const withPWA = withPWAInit({
-  dest: 'public',
-  register: true,
-  disable: process.env.NODE_ENV === 'development',
-  workboxOptions: {
-    skipWaiting: true,
-    clientsClaim: true,
-    cleanupOutdatedCaches: true,
-    runtimeCaching: [
-      {
-        urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com/,
-        handler: 'CacheFirst',
-        options: { cacheName: 'google-fonts', expiration: { maxAgeSeconds: 60 * 60 * 24 * 365 } },
-      },
-      {
-        urlPattern: /\/api\/matches$/,
-        handler: 'StaleWhileRevalidate',
-        options: { cacheName: 'api-matches-list', expiration: { maxAgeSeconds: 30 } },
-      },
-      {
-        urlPattern: /\/api\/players/,
-        handler: 'StaleWhileRevalidate',
-        options: { cacheName: 'api-players', expiration: { maxAgeSeconds: 300 } },
-      },
-    ],
-  },
-});
 
 const securityHeaders = [
   { key: 'X-Frame-Options', value: 'DENY' },
@@ -40,7 +11,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: process.env.NODE_ENV === 'production',
   typedRoutes: true,
-  transpilePackages: ['jose', '@ducanh2912/next-pwa'],
+  transpilePackages: ['jose'],
   images: {
     remotePatterns: [],
   },
@@ -75,4 +46,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
+export default nextConfig;

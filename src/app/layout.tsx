@@ -3,19 +3,12 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { ToastProvider } from '@/components/Toast';
 import { Providers } from '@/contexts/Providers';
-import { ServiceWorkerUpdater } from '@/components/ServiceWorkerUpdater';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Racket App',
   description: 'Sistema de gestão e pontuação de tênis',
-  manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'Racket',
-  },
 };
 
 export const viewport: Viewport = {
@@ -33,12 +26,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <head>
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-        <meta name="mobile-web-app-capable" content="yes" />
-      </head>
       <body className={inter.className}>
-        <ServiceWorkerUpdater />
         <ToastProvider>
           <Providers>{children}</Providers>
         </ToastProvider>
