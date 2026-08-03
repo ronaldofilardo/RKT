@@ -91,26 +91,8 @@ describe('GET /api/matches/suspended-sessions', () => {
     expect(data.matches[0].bankPointCount).toBe(0);
   });
 
-  it('deve usar snapshot do match quando sessão não tem matchStateSnapshot', async () => {
-    mockPrisma.matchAnnotationSession.findMany.mockResolvedValue([
-      {
-        id: 'session-snap',
-        status: 'ABANDONED',
-        matchStateSnapshot: null,
-        finalStateSnapshot: null,
-        endedAt: null,
-        match: {
-          id: 'match-snap',
-          state: 'IN_PROGRESS',
-          format: 'BEST_OF_3',
-          sportType: 'TENNIS',
-          scheduledAt: null,
-          scoreState: { sets: [{ player1: 1, player2: 0 }] },
-          player1: { id: 'p1', name: 'Player 1' },
-          player2: { id: 'p2', name: 'Player 2' },
-        },
-      },
-    ]);
+  it('não deve retornar sessões ABANDONED sem matchStateSnapshot (filtrado no Prisma)', async () => {
+    mockPrisma.matchAnnotationSession.findMany.mockResolvedValue([]);
 
     const req = new NextRequest('http://localhost:3000/api/matches/suspended-sessions', {
       headers: SPECTATOR_HEADERS,
@@ -122,9 +104,7 @@ describe('GET /api/matches/suspended-sessions', () => {
     const data = await res.json();
 
     expect(res.status).toBe(200);
-    expect(data.matches).toHaveLength(1);
-    expect(data.matches[0].id).toBe('match-snap');
-    expect(data.matches[0].scoreState).toEqual({ sets: [{ player1: 1, player2: 0 }] });
+    expect(data.matches).toHaveLength(0);
   });
 
   it('deve lidar com snapshot inválido (JSON corrompido)', async () => {
@@ -169,7 +149,7 @@ describe('GET /api/matches/suspended-sessions', () => {
       {
         id: 'session-abandoned',
         status: 'ABANDONED',
-        matchStateSnapshot: null,
+        matchStateSnapshot: '{"sets":[{"player1":0,"player2":0}]}',
         finalStateSnapshot: null,
         endedAt: null,
         annotatorUserId: 'user-1',

@@ -85,6 +85,7 @@ export async function listSuspendedSessions(userId: string) {
     where: {
       annotatorUserId: userId,
       status: "ABANDONED",
+      matchStateSnapshot: { not: null },
     },
     select: {
       id: true,

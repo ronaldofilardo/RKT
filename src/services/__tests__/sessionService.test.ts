@@ -53,6 +53,7 @@ describe('sessionService', () => {
           annotatorUserId: 'user-1',
           status: 'ABANDONED',
           isActive: false,
+          matchStateSnapshot: '{"sets":[]}',
           match: { id: 'm1', state: 'IN_PROGRESS', player1: { id: 'p1', name: 'P1' }, player2: { id: 'p2', name: 'P2' } },
         },
         {
@@ -60,6 +61,7 @@ describe('sessionService', () => {
           annotatorUserId: 'user-1',
           status: 'ABANDONED',
           isActive: false,
+          matchStateSnapshot: '{"sets":[]}',
           match: { id: 'm2', state: 'FINISHED', player1: { id: 'p3', name: 'P3' }, player2: { id: 'p4', name: 'P4' } },
         },
       ]);
@@ -70,6 +72,7 @@ describe('sessionService', () => {
         where: {
           annotatorUserId: 'user-1',
           status: 'ABANDONED',
+          matchStateSnapshot: { not: null },
         },
         select: expect.objectContaining({
           id: true,
@@ -92,6 +95,7 @@ describe('sessionService', () => {
           annotatorUserId: 'user-1',
           status: 'ABANDONED',
           isActive: false,
+          matchStateSnapshot: '{"sets":[]}',
           match: { id: 'm1', state: 'CANCELLED', player1: { id: 'p1', name: 'P1' }, player2: { id: 'p2', name: 'P2' } },
         },
         {
@@ -99,6 +103,7 @@ describe('sessionService', () => {
           annotatorUserId: 'user-1',
           status: 'ABANDONED',
           isActive: false,
+          matchStateSnapshot: '{"sets":[]}',
           match: { id: 'm2', state: 'IN_PROGRESS', player1: { id: 'p3', name: 'P3' }, player2: { id: 'p4', name: 'P4' } },
         },
       ]);
