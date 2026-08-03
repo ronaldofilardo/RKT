@@ -1,0 +1,9 @@
+{
+  "name": "Racket",
+  "short_name": "Racket",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "description": "Stub manifest — PWA desabilitado"
+}
