@@ -135,7 +135,9 @@ export function useDashboardData(router?: any) {
       .then(([matchList, suspendedList]) => {
         clearTimeout(timeoutId);
         logger.info("[fetchDashboardData] parsed:", matchList.length, suspendedList.length);
-        setMatches(matchList);
+        const suspendedIds = new Set(suspendedList.map((m: any) => m.id));
+        const dedupedMatches = matchList.filter((m: any) => !suspendedIds.has(m.id));
+        setMatches(dedupedMatches);
         setSuspendedFromApi(suspendedList);
       })
       .catch((error) => {
@@ -196,7 +198,9 @@ export function useDashboardData(router?: any) {
           redirectToLogin(routerRef.current);
           return;
         }
-        setMatches(matchList);
+        const suspendedIds = new Set(suspendedList.map((m: any) => m.id));
+        const dedupedMatches = matchList.filter((m: any) => !suspendedIds.has(m.id));
+        setMatches(dedupedMatches);
         setSuspendedFromApi(suspendedList);
       })
       .catch(() => {})

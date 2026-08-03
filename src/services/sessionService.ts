@@ -84,6 +84,7 @@ export async function listSuspendedSessions(userId: string) {
   const allSessions = await prisma.matchAnnotationSession.findMany({
     where: {
       annotatorUserId: userId,
+      status: "ABANDONED",
     },
     select: {
       id: true,
@@ -110,12 +111,11 @@ export async function listSuspendedSessions(userId: string) {
   });
 
   const filtered = allSessions.filter((s) => {
-    const statusOk = ["ABANDONED", "IN_PROGRESS"].includes(s.status);
     const matchOk = !s.match || ["IN_PROGRESS", "FINISHED"].includes(s.match.state);
     logger.log(
-      `[listSuspendedSessions] Filtering session ${s.id}: status=${s.status} (ok=${statusOk}), matchState=${s.match?.state} (ok=${matchOk})`,
+      `[listSuspendedSessions] Filtering session ${s.id}: status=${s.status}, matchState=${s.match?.state} (ok=${matchOk})`,
     );
-    return statusOk && matchOk;
+    return matchOk;
   });
 
   logger.log(

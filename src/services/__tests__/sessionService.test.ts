@@ -44,7 +44,7 @@ describe('sessionService', () => {
   });
 
   describe('listSuspendedSessions', () => {
-    it('deve buscar sessões ABANDONED e IN_PROGRESS de partidas IN_PROGRESS', async () => {
+    it('deve buscar apenas sessões ABANDONED de partidas IN_PROGRESS ou FINISHED', async () => {
       const { listSuspendedSessions } = await import('@/services/sessionService');
 
       mockPrisma.matchAnnotationSession.findMany.mockResolvedValue([
@@ -58,9 +58,9 @@ describe('sessionService', () => {
         {
           id: 's2',
           annotatorUserId: 'user-1',
-          status: 'IN_PROGRESS',
-          isActive: true,
-          match: { id: 'm2', state: 'IN_PROGRESS', player1: { id: 'p3', name: 'P3' }, player2: { id: 'p4', name: 'P4' } },
+          status: 'ABANDONED',
+          isActive: false,
+          match: { id: 'm2', state: 'FINISHED', player1: { id: 'p3', name: 'P3' }, player2: { id: 'p4', name: 'P4' } },
         },
       ]);
 
@@ -69,6 +69,7 @@ describe('sessionService', () => {
       expect(mockPrisma.matchAnnotationSession.findMany).toHaveBeenCalledWith({
         where: {
           annotatorUserId: 'user-1',
+          status: 'ABANDONED',
         },
         select: expect.objectContaining({
           id: true,
@@ -77,8 +78,35 @@ describe('sessionService', () => {
           status: true,
         }),
         orderBy: { createdAt: 'desc' },
+        take: 50,
       });
       expect(result).toHaveLength(2);
+    });
+
+    it('deve filtrar sessões ABANDONED cuja partida foi CANCELLED', async () => {
+      const { listSuspendedSessions } = await import('@/services/sessionService');
+
+      mockPrisma.matchAnnotationSession.findMany.mockResolvedValue([
+        {
+          id: 's1',
+          annotatorUserId: 'user-1',
+          status: 'ABANDONED',
+          isActive: false,
+          match: { id: 'm1', state: 'CANCELLED', player1: { id: 'p1', name: 'P1' }, player2: { id: 'p2', name: 'P2' } },
+        },
+        {
+          id: 's2',
+          annotatorUserId: 'user-1',
+          status: 'ABANDONED',
+          isActive: false,
+          match: { id: 'm2', state: 'IN_PROGRESS', player1: { id: 'p3', name: 'P3' }, player2: { id: 'p4', name: 'P4' } },
+        },
+      ]);
+
+      const result = await listSuspendedSessions('user-1');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('s2');
     });
   });
 
