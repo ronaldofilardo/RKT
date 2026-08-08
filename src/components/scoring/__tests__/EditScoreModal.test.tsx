@@ -87,7 +87,12 @@ describe("EditScoreModal - Pontos do Game Atual", () => {
     expect(p1Select.value).toBe("40");
   });
 
-  it("deve desabilitar pontos no game atual em formato MATCH_TB_10", () => {
+  // Bug #6 (2026-08-07): em modo Match Tiebreak, a seção "Pontos no Game
+  // Atual" não deve mais ser renderizada (anteriormente aparecia desativada
+  // com a frase "Match Tie-Break usa pontos corridos — desativado"). Os
+  // testes a seguir foram ajustados para a nova semântica: em MT, nenhum
+  // combobox de pontos deve existir no document.
+  it("não deve renderizar 'Pontos no Game Atual' em MATCH_TB_10", () => {
     render(
       <EditScoreModal
         {...defaultProps}
@@ -96,15 +101,11 @@ describe("EditScoreModal - Pontos do Game Atual", () => {
       />
     );
 
-    const selects = screen.getAllByRole("combobox");
-    const p1Select = selects[0] as HTMLSelectElement;
-    const p2Select = selects[1] as HTMLSelectElement;
-
-    expect(p1Select).toBeDisabled();
-    expect(p2Select).toBeDisabled();
+    expect(screen.queryByText("Pontos no Game Atual")).toBeNull();
+    expect(screen.queryAllByRole("combobox").length).toBe(0);
   });
 
-  it("deve desabilitar pontos no game atual em BEST_OF_3_MATCH_TB no set 3", () => {
+  it("não deve renderizar 'Pontos no Game Atual' em BEST_OF_3_MATCH_TB no set 3", () => {
     render(
       <EditScoreModal
         {...defaultProps}
@@ -117,15 +118,11 @@ describe("EditScoreModal - Pontos do Game Atual", () => {
       />
     );
 
-    const selects = screen.getAllByRole("combobox");
-    const p1Select = selects[0] as HTMLSelectElement;
-    const p2Select = selects[1] as HTMLSelectElement;
-
-    expect(p1Select).toBeDisabled();
-    expect(p2Select).toBeDisabled();
+    expect(screen.queryByText("Pontos no Game Atual")).toBeNull();
+    expect(screen.queryAllByRole("combobox").length).toBe(0);
   });
 
-  it("deve habilitar pontos no game atual em BEST_OF_3_MATCH_TB no set 1", () => {
+  it("deve habilitar pontos no game atual em BEST_OF_3_MATCH_TB no set 1 (não-MT)", () => {
     render(
       <EditScoreModal
         {...defaultProps}
@@ -142,7 +139,7 @@ describe("EditScoreModal - Pontos do Game Atual", () => {
     expect(p2Select).not.toBeDisabled();
   });
 
-  it("deve mostrar mensagem de match tiebreak desativado", () => {
+  it("não deve exibir mensagem 'Match Tie-Break usa pontos corridos' (bug #6)", () => {
     render(
       <EditScoreModal
         {...defaultProps}
@@ -151,7 +148,6 @@ describe("EditScoreModal - Pontos do Game Atual", () => {
       />
     );
 
-    const mensagens = screen.getAllByText(/Match Tie-Break usa pontos corridos/i);
-    expect(mensagens.length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText(/Match Tie-Break usa pontos corridos/i)).toBeNull();
   });
 });

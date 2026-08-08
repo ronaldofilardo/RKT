@@ -86,19 +86,31 @@ export function useEditScoreCalculator({
     const setValidationError = validation.setValidationError;
     const tiebreakRequired = validation.setValidation?.tiebreakRequired ?? false;
 
-    if (state.newSets.length > 0) return true;
-    if (completedSets.length > 0) return true;
+    // Bug #7/#8 (2026-08-07): the early-return "if there are completed/new
+    // sets, button is enabled" used to fire even when the user had a set
+    // in progress in an invalid state (e.g. MT 6x5 with stale corrupted
+    // completedSets from bug #4). Restrict the shortcut to the case where
+    // the user is NOT currently editing a set (both inputs blank) — that
+    // means they intend to confirm just the previously completed sets.
+    const hasSetsInProgress = bothFilled;
+    if (!hasSetsInProgress && (state.newSets.length > 0 || completedSets.length > 0)) {
+      return true;
+    }
 
     if (!bothFilled) return false;
 
     if (isMatchTiebreakSet) {
+      // In MT mode, allow confirm if no validation error, OR if the set is
+      // truly completed (winner declared). Block otherwise (partial but
+      // invalid, e.g. 6x5 valid isPartial — allowed because setValidationError
+      // is undefined for valid partials).
       return !setValidationError || isSetTrulyCompleted;
     }
 
     if (!hasTiebreak) return true;
-    
-    // For regular tiebreak sets: allow confirm if tiebreak not required yet (partial score like 6-5)
-    // or if tiebreak is complete
+
+    // For regular tiebreak sets: allow confirm if tiebreak not required yet
+    // (partial score like 6-5) or if tiebreak is complete.
     if (!tiebreakRequired) return true;
     return tiebreakComplete;
   }, [validation, tiebreakValidation, matchState, state.newSets.length, completedSets.length]);
@@ -106,11 +118,21 @@ export function useEditScoreCalculator({
   const partial = validation.bothFilled && !validation.isSetTrulyCompleted;
 
   const showGamePointsAtZero = useMemo(() => {
-    const hasPreviousSets = completedSets.length > 0 || state.newSets.length > 0;
-    const isAtZero = !validation.bothFilled || (p1Val === 0 && p2Val === 0);
+    // Bug #10 (2026-08-07): assim que o set atual se completa (ainda sem
+    // handleAddSet ter pushado para newSets), a seção "Pontos no Game Atual"
+    // do próximo set deve aparecer em 0x0. Antes dependia só de
+    // completedSets/newSets, que fica vazio no primeiro set recém-fechado.
+    // Bug sutil: o auto-add às vezes não dispara (ex.: matchWouldEnd=false
+    // mas isMatchTiebreakSet=true), deixando inputs em 6x4. O "próximo game"
+    // ainda é 0x0, então must treat o set já fechado como at-zero também.
+    const hasPreviousSets = completedSets.length > 0 || state.newSets.length > 0 || validation.isSetTrulyCompleted;
+    const isAtZero =
+      !validation.bothFilled ||
+      (p1Val === 0 && p2Val === 0) ||
+      validation.isSetTrulyCompleted;
     const prevSetCompleted = state.newSets.length > 0
       ? state.newSets[state.newSets.length - 1].isPartial === false
-      : completedSets.length > 0;
+      : completedSets.length > 0 || validation.isSetTrulyCompleted;
     return hasPreviousSets && isAtZero && prevSetCompleted;
   }, [validation, p1Val, p2Val, completedSets.length, state.newSets]);
 

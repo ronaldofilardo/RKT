@@ -286,10 +286,19 @@ export function useEditScoreModal(
       }
     }
 
-    const existingCompleted: SetEditData[] = completedSets.map((cs) => ({
+    const sourceCompleted: CompletedSet[] =
+      state.editableCompletedSets && state.editableCompletedSets.length > 0
+        ? state.editableCompletedSets.map((ecs) => ({
+            games: { player1: ecs.p1Games, player2: ecs.p2Games },
+            winner: ecs.p1Games > ecs.p2Games ? 'player1' : ecs.p2Games > ecs.p1Games ? 'player2' : 'player1',
+            tiebreakScore: ecs.tiebreakScore ?? undefined,
+          }))
+        : completedSets;
+    const existingCompleted: SetEditData[] = sourceCompleted.map((cs) => ({
       p1Games: cs.games.player1,
       p2Games: cs.games.player2,
       isPartial: false,
+      tiebreakScore: cs.tiebreakScore ?? undefined,
     }));
     const finalSets = [...existingCompleted, ...state.newSets];
     
@@ -328,6 +337,7 @@ export function useEditScoreModal(
     tiebreakP1Num, tiebreakP2Num, matchWouldEnd, matchState, setsToWin,
     playerNames, canAddNextSet, maxSets, currentSets, initialGameRef,
     state.p1Points, state.p2Points, state.newSets, state.nextServer,
+    state.editableCompletedSets,
     completedSets, onConfirm, currentServer, onMatchFinished,
     isFinishingMatch, bothFilled, isMatchTiebreakSet,
   ]);
@@ -338,14 +348,23 @@ export function useEditScoreModal(
 
   const handleAddSet = useCallback(() => {
     if (!canAddNextSet) return;
-    
+
     const p1Games = parseInt(state.p1Input, 10) || 0;
     const p2Games = parseInt(state.p2Input, 10) || 0;
-    
+    const tbP1Num = parseInt(state.tiebreakP1, 10);
+    const tbP2Num = parseInt(state.tiebreakP2, 10);
+    const hasTiebreakScore =
+      !isNaN(tbP1Num) && !isNaN(tbP2Num) &&
+      tbP1Num >= 0 && tbP2Num >= 0 &&
+      (tbP1Num > 0 || tbP2Num > 0);
+
     const setData: SetEditData = {
       p1Games,
       p2Games,
       isPartial: false,
+      ...(hasTiebreakScore
+        ? { tiebreakScore: { player1: tbP1Num, player2: tbP2Num } }
+        : {}),
     };
 
     setState(prev => ({
@@ -360,11 +379,11 @@ export function useEditScoreModal(
         p1Games,
         p2Games,
         matchFormat,
-        tiebreakScore: null,
+        tiebreakScore: hasTiebreakScore ? { player1: tbP1Num, player2: tbP2Num } : null,
         completedSets: completedSets as CompletedSet[],
       }),
     }));
-  }, [canAddNextSet, state.p1Input, state.p2Input, currentServer, matchFormat, completedSets]);
+  }, [canAddNextSet, state.p1Input, state.p2Input, state.tiebreakP1, state.tiebreakP2, currentServer, matchFormat, completedSets]);
 
   const handlePointsChange = useCallback((p1: string, p2: string) => {
     setState(prev => ({ ...prev, p1Points: p1, p2Points: p2 }));

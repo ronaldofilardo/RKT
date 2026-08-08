@@ -14,28 +14,48 @@ interface SetsSummaryProps {
 export function SetsSummary({ title, sets, playerNames, startIndex = 0 }: SetsSummaryProps) {
   if (sets.length === 0) return null;
 
+  // Bug #3 (2026-08-07): alinhar estilo ao padrão do ScoreboardCard (dark bg,
+  // highlight do vencedor em roxo/cinza, font-mono). Antes usava estilo claro.
   return (
     <div className="space-y-2">
       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
         {title}
       </p>
-      <div className="space-y-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-        {sets.map((set, idx) => (
-          <div
-            key={idx}
-            className="flex items-center gap-3 text-sm text-gray-700"
-          >
-            <span className="text-gray-500 w-14 font-medium">Set {startIndex + idx + 1}</span>
-            <span className="font-mono font-semibold text-gray-900">
-              {set.p1Games}x{set.p2Games}
-            </span>
-            <span
-              className={`text-xs font-semibold ${set.winner === 'player1' ? 'text-sky-700' : set.winner === 'player2' ? 'text-emerald-700' : 'text-gray-500'}`}
+      <div className="space-y-1.5 rounded-lg border border-white/5 bg-gray-700/50 px-3 py-2">
+        {sets.map((set, idx) => {
+          const isWinnerP1 = set.winner === 'player1';
+          const isWinnerP2 = set.winner === 'player2';
+          const p1CellClass = isWinnerP1
+            ? 'bg-purple-700 text-white font-bold'
+            : isWinnerP2
+              ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+              : 'text-gray-300';
+          const p2CellClass = isWinnerP2
+            ? 'bg-purple-700 text-white font-bold'
+            : isWinnerP1
+              ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+              : 'text-gray-300';
+          return (
+            <div
+              key={idx}
+              className="flex items-center gap-3 text-sm"
             >
-              {set.winner === 'player1' ? playerNames.p1 : set.winner === 'player2' ? playerNames.p2 : 'Em andamento'}
-            </span>
-          </div>
-        ))}
+              <span className="text-gray-500 w-14 font-medium text-xs">Set {startIndex + idx + 1}</span>
+              <span className={`font-mono font-semibold px-2 py-1 rounded ${p1CellClass}`}>
+                {set.p1Games}
+              </span>
+              <span className="text-gray-400">×</span>
+              <span className={`font-mono font-semibold px-2 py-1 rounded ${p2CellClass}`}>
+                {set.p2Games}
+              </span>
+              <span
+                className={`text-xs font-semibold ${isWinnerP1 ? 'text-sky-600 dark:text-sky-400' : isWinnerP2 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500'}`}
+              >
+                {isWinnerP1 ? playerNames.p1 : isWinnerP2 ? playerNames.p2 : 'Em andamento'}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -61,52 +81,65 @@ interface EditableSetsSummaryProps {
 export function EditableSetsSummary({ title, sets, playerNames, startIndex = 0, onEditSet, onRemoveSet }: EditableSetsSummaryProps) {
   if (sets.length === 0) return null;
 
+  // Bug #3 (2026-08-07): alinhar estilo ao padrão do ScoreboardCard (dark bg,
+  // highlight do vencedor em roxo/cinza, font-mono). Antes usava estilo claro
+  // (bg-gray-50, text-gray-700) que destoava da tela ao vivo.
   return (
     <div className="space-y-2">
       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
         {title}
       </p>
-      <div className="space-y-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-        {sets.map((set, idx) => (
-          <div
-            key={idx}
-            className="flex items-center gap-3 text-sm text-gray-700"
-          >
-            <span className="text-gray-500 w-14 font-medium">Set {startIndex + idx + 1}</span>
-            <input
-              type="number"
-              min={0}
-              max={50}
-              value={set.p1Games}
-              onChange={(e) => onEditSet(set.index, parseInt(e.target.value, 10) || 0, set.p2Games)}
-              className="w-16 text-center bg-white border rounded-lg px-2 py-1 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <span className="text-gray-400">×</span>
-            <input
-              type="number"
-              min={0}
-              max={50}
-              value={set.p2Games}
-              onChange={(e) => onEditSet(set.index, set.p1Games, parseInt(e.target.value, 10) || 0)}
-              className="w-16 text-center bg-white border rounded-lg px-2 py-1 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <span
-              className={`text-xs font-semibold ${set.winner === 'player1' ? 'text-sky-700' : set.winner === 'player2' ? 'text-emerald-700' : 'text-gray-500'} min-w-[80px]`}
+      <div className="space-y-1.5 rounded-lg border border-white/5 bg-gray-700/50 px-3 py-2">
+        {sets.map((set, idx) => {
+          const isWinnerP1 = set.winner === 'player1';
+          const isWinnerP2 = set.winner === 'player2';
+          const p1CellClass = isWinnerP1
+            ? 'bg-purple-700 text-white font-bold'
+            : isWinnerP2
+              ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+              : 'bg-gray-700 border border-white/10 text-white';
+          const p2CellClass = isWinnerP2
+            ? 'bg-purple-700 text-white font-bold'
+            : isWinnerP1
+              ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+              : 'bg-gray-700 border border-white/10 text-white';
+          return (
+            <div
+              key={idx}
+              className="flex items-center gap-3 text-sm"
             >
-              {set.winner === 'player1' ? playerNames.p1 : set.winner === 'player2' ? playerNames.p2 : 'Em andamento'}
-            </span>
-            {sets.length > 1 && (
-              <button
-                type="button"
-                onClick={() => onRemoveSet(set.index)}
-                className="text-red-500 hover:text-red-700 text-xs ml-2"
-                title="Remover set"
+              <span className="text-gray-500 w-14 font-medium text-xs">Set {startIndex + idx + 1}</span>
+              <input
+                type="number"
+                value={set.p1Games}
+                onChange={(e) => onEditSet(set.index, parseInt(e.target.value, 10) || 0, set.p2Games)}
+                className={`w-16 text-center rounded-lg px-2 py-1 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${p1CellClass}`}
+              />
+              <span className="text-gray-400">×</span>
+              <input
+                type="number"
+                value={set.p2Games}
+                onChange={(e) => onEditSet(set.index, set.p1Games, parseInt(e.target.value, 10) || 0)}
+                className={`w-16 text-center rounded-lg px-2 py-1 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${p2CellClass}`}
+              />
+              <span
+                className={`text-xs font-semibold min-w-[80px] ${isWinnerP1 ? 'text-sky-600 dark:text-sky-400' : isWinnerP2 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500'}`}
               >
-                ✕
-              </button>
-            )}
-          </div>
-        ))}
+                {isWinnerP1 ? playerNames.p1 : isWinnerP2 ? playerNames.p2 : 'Em andamento'}
+              </span>
+              {sets.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => onRemoveSet(set.index)}
+                  className="text-red-500 hover:text-red-700 text-xs ml-2"
+                  title="Remover set"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

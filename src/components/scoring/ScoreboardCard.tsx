@@ -1,4 +1,6 @@
 'use client';
+import { useMemo } from 'react';
+import { normalizeScoreState } from '@/core/scoring/score-normalizer';
 
 interface Player {
   id: string;
@@ -10,14 +12,25 @@ interface ScoreboardCardProps {
   player2: Player;
   scoreState: any;
   isSuspended?: boolean;
+  format?: string;
 }
 
-export function ScoreboardCard({ player1, player2, scoreState, isSuspended }: ScoreboardCardProps) {
-  const sets = scoreState?.sets ?? [];
+export function ScoreboardCard({ player1, player2, scoreState, isSuspended, format }: ScoreboardCardProps) {
+  // Bug #4 (2026-08-07): saneia estado corrupto (MT gravado como games sem
+  // tiebreakScore) antes de renderizar, para que sets de MT exibam os pontos
+  // do tiebreak em vez de tratar pontos como games.
+  const normalized = useMemo(
+    () => normalizeScoreState(scoreState, format as any),
+    [scoreState, format],
+  );
+  const sets = normalized?.sets ?? scoreState?.sets ?? [];
   const currentSetIndex = sets.length > 0 ? sets.length - 1 : 0;
 
   const getSetsWon = (player: 'player1' | 'player2') => {
-    return scoreState?.setsWon?.[player] ?? scoreState?.sets?.filter((s: any) => s[player] > s[player === 'player1' ? 'player2' : 'player1']).length ?? 0;
+    return normalized?.setsWon?.[player]
+      ?? scoreState?.setsWon?.[player]
+      ?? scoreState?.sets?.filter((s: any) => s[player] > s[player === 'player1' ? 'player2' : 'player1']).length
+      ?? 0;
   };
 
   const numSets = Math.max(sets.length, 4);

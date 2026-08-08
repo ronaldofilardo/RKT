@@ -82,12 +82,12 @@ export function SetInputForm({
     const p2Num = parseInt(p2Input, 10);
     const winner = p1Num > p2Num ? playerNames.p1 : playerNames.p2;
 
+    // Bug #6 (2026-08-07): em modo Match Tiebreak, não exibir mensagens
+    // explicativas de regra ("diferença de 2 pontos necessária"). Só mostrar
+    // mensagem quando o set está de fato completo (vencedor declarado).
     if (isMatchTiebreakSet) {
       if (isSetTrulyCompleted) {
         return `${winner} venceu o match tiebreak — partida encerrada`;
-      }
-      if (p1Input && p2Input) {
-        return `Match tiebreak em andamento — diferença de 2 pontos necessária`;
       }
       return null;
     }
@@ -140,7 +140,6 @@ export function SetInputForm({
           onChange={(e) => onP1InputChange(e.target.value)}
           placeholder="0"
           ref={p1InputRef}
-          min={floorCurrentSets?.player1 ?? 0}
           max={isMatchTiebreakSet ? 20 : 50}
         />
         <span className="text-gray-500 text-xs">×</span>
@@ -154,7 +153,6 @@ export function SetInputForm({
           value={p2Input}
           onChange={(e) => onP2InputChange(e.target.value)}
           placeholder="0"
-          min={floorCurrentSets?.player2 ?? 0}
           max={isMatchTiebreakSet ? 20 : 50}
         />
         <span className="text-xs text-gray-400 w-16 truncate text-right">
@@ -252,7 +250,7 @@ export function SetInputForm({
         </div>
       )}
 
-      {(partial || showGamePointsAtZero) && (
+      {(partial || showGamePointsAtZero) && !isMatchTiebreakSet && (
         <div className="space-y-1 pt-1">
           <p className="text-xs font-semibold text-gray-400">
             Pontos no Game Atual
@@ -262,10 +260,9 @@ export function SetInputForm({
               {playerNames.p1}
             </span>
             <select
-              className="w-20 text-center bg-gray-700 border border-white/10 rounded-lg px-1 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-20 text-center bg-gray-700 border border-white/10 rounded-lg px-1 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={p1Points}
               onChange={(e) => onP1PointsChange(e.target.value)}
-              disabled={isMatchTiebreakSet}
             >
               {GAME_POINTS.map((pt) => (
                 <option key={pt} value={pt}>
@@ -281,10 +278,9 @@ export function SetInputForm({
             </select>
             <span className="text-gray-500 text-xs">×</span>
             <select
-              className="w-20 text-center bg-gray-700 border border-white/10 rounded-lg px-1 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-20 text-center bg-gray-700 border border-white/10 rounded-lg px-1 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={p2Points}
               onChange={(e) => onP2PointsChange(e.target.value)}
-              disabled={isMatchTiebreakSet}
             >
               {GAME_POINTS.map((pt) => (
                 <option key={pt} value={pt}>
@@ -302,11 +298,6 @@ export function SetInputForm({
               {playerNames.p2}
             </span>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            {isMatchTiebreakSet
-              ? 'Match Tie-Break usa pontos corridos — desativado'
-              : 'Apenas para sets normais — Match Tie-Break usa pontos corridos'}
-          </p>
         </div>
       )}
     </div>

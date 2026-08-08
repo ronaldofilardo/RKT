@@ -935,3 +935,17 @@ A configuração é setada em `src/lib/prisma.ts` no hook `$use` do Prisma, ante
   - `src/app/dashboard/dashboard.resume.ts` (94 linhas — pronto para uso)
 
 ---
+
+## [TD-033] Heuristica "isMatchTiebreakSet" duplicada com condicoes divergentes
+
+- **Origem:** Bug #4/#5 (2026-08-07) - docs/fix-tasks/scoring-edit-score-2026-08-07.md
+- **Impacto:** Medio
+- **Esforco:** M
+- **Risco se ignorado:** Inconsistencia entre engine live, modal de edicao e dashboard quando um formato novo for adicionado (cada copia da heuristica precisa ser atualizada individualmente; uma delas divergindo gera bugs similares ao #4)
+- **Proposta:**
+  1. Adicionar campo explicito isMatchTiebreak?: boolean em SetScore (src/core/scoring/types.ts:45-50) e grava-lo ao completar o set decisivo (em completeMatchTiebreak, handleGameWon para o BO5).
+  2. Extrair a heuristica atual (em src/hooks/useSessionManager.utils.ts:isMatchTiebreakSet, versao mais completa) para um modulo unico em src/core/scoring/, e importar em TODOS os lugares que hoje duplicam: engine.flow.ts:366-370 (processTiebreakPoint), engine.flow.ts:463-467 (isSetComplete), engine.flow.ts:525-546 (isMatchTiebreakActive), editScoreHelpers.ts:222-233 (getNextServerAfterSet), edit-score-logic.ts:130-140 (calculateValidation).
+  3. Considerar ADR-0005 formalizando a decisao de marcar o set decisivo com flag explicita em vez de inferir por ormat + sets.length.
+- **Owner sugerido:** @backend + @arquitetura
+- **Modulos afetados:** src/core/scoring/, src/components/scoring/, src/hooks/useSessionManager.utils.ts
+- **Status:** Aberto. Mitigacao parcial aplicada (bug #4): saneador read-path em src/core/scoring/score-normalizer.ts que cobre o legado pre-existente; porem a fonte da inconsistencia continua.

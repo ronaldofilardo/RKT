@@ -186,18 +186,18 @@ describe("EditScoreModal - Detecção de Partida Encerrada", () => {
       fireEvent.change(inputs[0], { target: { value: "9" } });
       fireEvent.change(inputs[1], { target: { value: "8" } });
 
-      // Verifica que mostra "em andamento"
-      await waitFor(() => {
-        expect(screen.getByText(/Match tiebreak em andamento/i)).toBeInTheDocument();
-      });
+      // Verifica que a mensagem explicativa de regra NÃO aparece mais (bug #6).
+      // Em MT não-completo, nenhum texto descrevendo a regra de "diferença
+      // de 2 pontos necessária" deve ser oferecido — só silêncio.
+      expect(screen.queryByText(/Match tiebreak em andamento/i)).toBeNull();
+      expect(screen.queryByText(/diferença de 2 pontos/i)).toBeNull();
 
       // Botão Confirmar permanece habilitado para permitir salvamento de estado parcial
-      // O alerta visual ("em andamento") é o mecanismo de proteção principal
       const confirmButton = screen.getByText("Confirmar");
       expect(confirmButton).not.toBeDisabled();
-      
-      // Verifica que mensagem de "em andamento" está presente
-      expect(screen.getByText(/em andamento/i)).toBeInTheDocument();
+
+      // Em modo MT não-completo, o status é silencioso (sem "em andamento").
+      expect(screen.queryByText(/em andamento/i)).toBeNull();
     });
   });
 

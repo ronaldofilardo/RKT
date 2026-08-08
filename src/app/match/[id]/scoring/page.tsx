@@ -210,6 +210,7 @@ export default function ScoringPage() {
             player2={match.player2}
             scoreState={effectiveScoreState}
             isSuspended={!!suspendedSession}
+            format={match.format as string}
           />
         </div>
 
@@ -290,7 +291,7 @@ export default function ScoringPage() {
         serveStep={serveErrorState.serveStep}
         canUndo={canUndo}
         canRedo={canRedo}
-        canEdit={false}
+        canEdit={!isFinished}
         fontScale={fontScale}
         isFinished={isFinished}
         isProcessing={isProcessingPoint}

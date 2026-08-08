@@ -1,74 +1,19 @@
 import type { TennisFormat } from '@/core/scoring/types';
 import { GAME_POINTS } from '@/core/scoring/point-utils';
+// Re-exporta a versão unificada do normalizer (bug #4, 2026-08-07).
+// Mantemos a assinatura pública deste módulo para não quebrar importadores
+// existentes, mas a implementação agora delega para src/core/scoring/score-normalizer
+// (que cobre também BEST_OF_5, BEST_OF_3_NO_AD e SHORT_SET_2V2_NO_AD).
+import {
+  normalizeScoreState as normalizeScoreStateUnified,
+  type NormalizedScoreState as UnifiedNormalizedScoreState,
+} from '@/core/scoring/score-normalizer';
 
 export type { TennisFormat };
-
-export interface NormalizedScoreState {
-  sets: Array<{
-    player1: number;
-    player2: number;
-    isTiebreak?: boolean;
-    tiebreakScore?: { player1: number; player2: number } | null;
-  }>;
-  currentGame?: {
-    player1: number | string;
-    player2: number | string;
-    isDeuce?: boolean;
-    advantage?: 'player1' | 'player2' | null;
-  };
-}
+export type NormalizedScoreState = UnifiedNormalizedScoreState;
 
 export function normalizeScoreState(rawScoreState: any, format?: TennisFormat): NormalizedScoreState | null {
-  if (!rawScoreState) return null;
-
-  let parsed = rawScoreState;
-  if (typeof parsed === 'string') {
-    try {
-      parsed = JSON.parse(parsed);
-    } catch {
-      return null;
-    }
-  }
-
-  if (parsed?.sets && format) {
-    const isMatchTiebreakFormat = format === 'MATCH_TB_10' || format === 'BEST_OF_3_MATCH_TB';
-    if (isMatchTiebreakFormat && parsed.sets.length >= 1) {
-      const setIndex = format === 'MATCH_TB_10' ? 0 : parsed.sets.length - 1;
-      const set = parsed.sets[setIndex];
-      
-      if (set && (set.player1 > 0 || set.player2 > 0) && !set.isTiebreak && !set.tiebreakScore) {
-        parsed.sets[setIndex] = {
-          ...set,
-          tiebreakScore: { player1: set.player1, player2: set.player2 },
-          player1: 0,
-          player2: 0,
-          isTiebreak: true,
-        };
-      }
-    }
-  }
-
-  if (parsed?.sets && parsed?.currentGame) {
-    return parsed;
-  }
-
-  if (parsed?.sets && Array.isArray(parsed.sets)) {
-    return {
-      ...parsed,
-      currentGame: parsed.currentGame ?? {
-        player1: 0,
-        player2: 0,
-        isDeuce: false,
-        advantage: null,
-      },
-    };
-  }
-
-  if (parsed?.state && Array.isArray(parsed?.history)) {
-    return parsed.state;
-  }
-
-  return null;
+  return normalizeScoreStateUnified(rawScoreState, format);
 }
 
 export function formatSetScore(set: {
@@ -110,5 +55,11 @@ export function getSinglePointDisplay(
 }
 
 export function isMatchTiebreakFormat(format: string): boolean {
-  return format === 'MATCH_TB_10' || format === 'BEST_OF_3_MATCH_TB';
+  return (
+    format === 'MATCH_TB_10' ||
+    format === 'BEST_OF_3_MATCH_TB' ||
+    format === 'BEST_OF_5' ||
+    format === 'BEST_OF_3_NO_AD' ||
+    format === 'SHORT_SET_2V2_NO_AD'
+  );
 }
