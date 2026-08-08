@@ -637,4 +637,183 @@ describe("MatchCard", () => {
     expect(container1.textContent).toContain("Pontos");
     expect(container2.textContent).toContain("Pontos");
   });
+
+  it("BEST_OF_5 com 1 set mostra pontos reais (não '-')", () => {
+    const match = {
+      id: "match-bo5-1set",
+      state: "IN_PROGRESS",
+      format: "BEST_OF_5",
+      player1: { name: "Eduardo" },
+      player2: { name: "Ronaldo" },
+      scheduledAt: null,
+      scoreState: {
+        sets: [
+          { player1: 1, player2: 0, isTiebreak: false, tiebreakScore: null },
+        ],
+        currentGame: { player1: 2, player2: 1, isDeuce: false, advantage: null, secondServe: false },
+        server: "player1",
+        isFinished: false,
+        winner: null,
+        setsWon: { player1: 0, player2: 0 },
+      },
+      suspendedSessionId: undefined,
+      matchStateSnapshot: null,
+    };
+
+    render(<MatchCard match={match} />);
+
+    expect(screen.getByText("30")).toBeTruthy();
+    expect(screen.getByText("15")).toBeTruthy();
+    expect(screen.queryByText("Pontos")).toBeTruthy();
+  });
+
+  it("BEST_OF_5 com 4 sets 2-2 e 5º set em tiebreak mostra '-'", () => {
+    const match = {
+      id: "match-bo5-mt",
+      state: "IN_PROGRESS",
+      format: "BEST_OF_5",
+      player1: { name: "P1" },
+      player2: { name: "P2" },
+      scheduledAt: null,
+      scoreState: {
+        sets: [
+          { player1: 6, player2: 4, isTiebreak: false, tiebreakScore: null },
+          { player1: 4, player2: 6, isTiebreak: false, tiebreakScore: null },
+          { player1: 6, player2: 4, isTiebreak: false, tiebreakScore: null },
+          { player1: 4, player2: 6, isTiebreak: false, tiebreakScore: null },
+          { player1: 0, player2: 0, isTiebreak: true, tiebreakScore: { player1: 3, player2: 2 } },
+        ],
+        currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+        server: "player1",
+        isFinished: false,
+        winner: null,
+        setsWon: { player1: 2, player2: 2 },
+      },
+      suspendedSessionId: undefined,
+      matchStateSnapshot: null,
+    };
+
+    const { container } = render(<MatchCard match={match} />);
+
+    expect(container.textContent).toContain("-");
+    expect(screen.queryByText("Pontos")).toBeTruthy();
+  });
+
+  it("BEST_OF_3 com 1 set mostra pontos reais (não '-')", () => {
+    const match = {
+      id: "match-bo3-1set",
+      state: "IN_PROGRESS",
+      format: "BEST_OF_3",
+      player1: { name: "P1" },
+      player2: { name: "P2" },
+      scheduledAt: null,
+      scoreState: {
+        sets: [
+          { player1: 3, player2: 2, isTiebreak: false, tiebreakScore: null },
+        ],
+        currentGame: { player1: 3, player2: 3, isDeuce: true, advantage: null, secondServe: false },
+        server: "player1",
+        isFinished: false,
+        winner: null,
+        setsWon: { player1: 0, player2: 0 },
+      },
+      suspendedSessionId: undefined,
+      matchStateSnapshot: null,
+    };
+
+    render(<MatchCard match={match} />);
+
+    expect(screen.getAllByText("40").length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText("Pontos")).toBeTruthy();
+  });
+
+  it("BEST_OF_3_MATCH_TB com 2 sets 1-1 e 3º set em tiebreak mostra '-'", () => {
+    const match = {
+      id: "match-bo3mt-mt",
+      state: "IN_PROGRESS",
+      format: "BEST_OF_3_MATCH_TB",
+      player1: { name: "P1" },
+      player2: { name: "P2" },
+      scheduledAt: null,
+      scoreState: {
+        sets: [
+          { player1: 6, player2: 4, isTiebreak: false, tiebreakScore: null },
+          { player1: 4, player2: 6, isTiebreak: false, tiebreakScore: null },
+          { player1: 0, player2: 0, isTiebreak: true, tiebreakScore: { player1: 5, player2: 3 } },
+        ],
+        currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+        server: "player1",
+        isFinished: false,
+        winner: null,
+        setsWon: { player1: 1, player2: 1 },
+      },
+      suspendedSessionId: undefined,
+      matchStateSnapshot: null,
+    };
+
+    const { container } = render(<MatchCard match={match} />);
+
+    expect(container.textContent).toContain("-");
+    expect(screen.queryByText("Pontos")).toBeTruthy();
+  });
+
+  it("BEST_OF_5 com sets 3-1 mostra pontos reais (não é set decisivo)", () => {
+    const match = {
+      id: "match-bo5-3-1",
+      state: "IN_PROGRESS",
+      format: "BEST_OF_5",
+      player1: { name: "P1" },
+      player2: { name: "P2" },
+      scheduledAt: null,
+      scoreState: {
+        sets: [
+          { player1: 6, player2: 4, isTiebreak: false, tiebreakScore: null },
+          { player1: 4, player2: 6, isTiebreak: false, tiebreakScore: null },
+          { player1: 6, player2: 4, isTiebreak: false, tiebreakScore: null },
+          { player1: 3, player2: 2, isTiebreak: false, tiebreakScore: null },
+        ],
+        currentGame: { player1: 1, player2: 2, isDeuce: false, advantage: null, secondServe: false },
+        server: "player1",
+        isFinished: false,
+        winner: null,
+        setsWon: { player1: 2, player2: 1 },
+      },
+      suspendedSessionId: undefined,
+      matchStateSnapshot: null,
+    };
+
+    render(<MatchCard match={match} />);
+
+    expect(screen.getByText("15")).toBeTruthy();
+    expect(screen.getByText("30")).toBeTruthy();
+  });
+
+  it("BEST_OF_3 com 1-1 e set normal em andamento mostra pontos reais", () => {
+    const match = {
+      id: "match-bo3-1-1",
+      state: "IN_PROGRESS",
+      format: "BEST_OF_3",
+      player1: { name: "P1" },
+      player2: { name: "P2" },
+      scheduledAt: null,
+      scoreState: {
+        sets: [
+          { player1: 6, player2: 4, isTiebreak: false, tiebreakScore: null },
+          { player1: 4, player2: 6, isTiebreak: false, tiebreakScore: null },
+        ],
+        currentGame: { player1: 3, player2: 2, isDeuce: false, advantage: null, secondServe: false },
+        server: "player1",
+        isFinished: false,
+        winner: null,
+        setsWon: { player1: 1, player2: 1 },
+      },
+      suspendedSessionId: undefined,
+      matchStateSnapshot: null,
+    };
+
+    render(<MatchCard match={match} />);
+
+    expect(screen.getByText("40")).toBeTruthy();
+    expect(screen.getByText("30")).toBeTruthy();
+  });
 });

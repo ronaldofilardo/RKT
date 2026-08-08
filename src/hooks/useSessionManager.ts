@@ -54,6 +54,7 @@ export interface SessionManagerContext {
   clearPendingEdit?: () => void;
   updateScoreContext?: (score: ScoringState) => void;
   close: () => void;
+  closeAll?: () => void;
 }
 
 export function useSessionManager(ctx: SessionManagerContext) {
@@ -221,6 +222,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
         } else if (result.needsResync) {
           logger.warn("[handleEditScore] Needs resync due to version conflict");
           await fetchMatch(true);
+          (ctx.closeAll ?? ctx.close)();
           return;
         } else {
           logger.error("[handleEditScore] Failed to persist state");
@@ -250,7 +252,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
 
       await abandonCurrentSession();
       setSessionActive(false);
-      ctx.close();
+      (ctx.closeAll ?? ctx.close)();
     },
     [
       match,

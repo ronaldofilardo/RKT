@@ -143,6 +143,7 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
       clearPendingEdit,
       updateScoreContext: updateScore,
       close,
+      closeAll,
     });
 
   const handleEditScore = useCallback(

@@ -23,6 +23,8 @@ export interface Match {
   state: "SCHEDULED" | "IN_PROGRESS" | "FINISHED" | "CANCELLED";
   format: string;
   scheduledAt?: string;
+  scoreState?: any;
+  matchStateSnapshot?: any;
 }
 
 export interface RankingEntry {

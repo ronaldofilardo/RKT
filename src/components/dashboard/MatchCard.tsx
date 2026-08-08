@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useCallback } from "react";
-import { normalizeScoreState, isMatchTiebreakFormat, type TennisFormat, getSinglePointDisplay } from "./match-card-utils";
+import { normalizeScoreState, isMatchTiebreakFormat, isCurrentSetMatchTiebreak, type TennisFormat, getSinglePointDisplay } from "./match-card-utils";
 import { MatchStatusBadge, MatchActions, FormatLabel } from "./match-card-components";
 
 interface MatchCardProps {
@@ -48,6 +48,9 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
 
   const hasScore = scoreState != null || suspendedAnnotationScore != null;
   const isMatchTiebreak = isMatchTiebreakFormat(match.format);
+  const isCurrentSetMT = isMatchTiebreak && scoreState?.sets && scoreState.sets.length > 0
+    ? isCurrentSetMatchTiebreak(scoreState.sets, match.format as TennisFormat)
+    : false;
 
   return (
     <div
@@ -114,7 +117,7 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
                     );
                   })}
                   <span className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
-                    {isMatchTiebreak && scoreState.sets.length > 0
+                    {isCurrentSetMT
                       ? '-'
                       : getSinglePointDisplay(scoreState?.currentGame, 'player1')}
                   </span>
@@ -132,7 +135,7 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
                     );
                   })}
                   <span className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
-                    {isMatchTiebreak && scoreState.sets.length > 0
+                    {isCurrentSetMT
                       ? '-'
                       : getSinglePointDisplay(scoreState?.currentGame, 'player2')}
                   </span>

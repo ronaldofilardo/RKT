@@ -6,6 +6,7 @@ import { GAME_POINTS } from '@/core/scoring/point-utils';
 // (que cobre também BEST_OF_5, BEST_OF_3_NO_AD e SHORT_SET_2V2_NO_AD).
 import {
   normalizeScoreState as normalizeScoreStateUnified,
+  isMatchTiebreakSetIndex,
   type NormalizedScoreState as UnifiedNormalizedScoreState,
 } from '@/core/scoring/score-normalizer';
 
@@ -62,4 +63,27 @@ export function isMatchTiebreakFormat(format: string): boolean {
     format === 'BEST_OF_3_NO_AD' ||
     format === 'SHORT_SET_2V2_NO_AD'
   );
+}
+
+export function isCurrentSetMatchTiebreak(
+  sets: Array<{ player1: number; player2: number; isTiebreak?: boolean; tiebreakScore?: { player1: number; player2: number } | null }>,
+  format: TennisFormat,
+): boolean {
+  if (sets.length === 0) return false;
+  if (!isMatchTiebreakFormat(format)) return false;
+
+  const lastSetIndex = sets.length - 1;
+  let p1Won = 0;
+  let p2Won = 0;
+  for (let i = 0; i < lastSetIndex; i++) {
+    const s = sets[i];
+    if (s.isTiebreak && s.tiebreakScore) {
+      if (s.tiebreakScore.player1 > s.tiebreakScore.player2) p1Won++;
+      else if (s.tiebreakScore.player2 > s.tiebreakScore.player1) p2Won++;
+    } else {
+      if (s.player1 > s.player2) p1Won++;
+      else if (s.player2 > s.player1) p2Won++;
+    }
+  }
+  return isMatchTiebreakSetIndex(lastSetIndex, sets.length, format, { p1Won, p2Won });
 }

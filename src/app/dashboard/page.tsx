@@ -92,7 +92,7 @@ export default function DashboardPage() {
       } else if (match.suspendedSessionId || match.matchStateSnapshot) {
         handleResumeSuspended(match);
       } else {
-        router.push(`/match/${match.id}/scoring`);
+        router.push(`/match/${match.id}/scoring?modal=edit-score`);
       }
     },
     [router, handleResumeSuspended],
