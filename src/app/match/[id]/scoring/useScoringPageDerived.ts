@@ -44,18 +44,19 @@ export function useScoringPageDerived(
   const { match, scoreState, engineRef, activeModal, gamePointToDisplay, timelinePoints } =
     state;
   const { isProcessing } = handlers;
-  const { pendingEditScore, undoTimestamp, suspendedSession, session } = state;
+  const { pendingEditScore, suspendedSession, session } = state;
 
   const effectiveScoreState = pendingEditScore?.scoreState
     ?? session.pendingEditScore?.scoreState
-    ?? (undoTimestamp && scoreState ? scoreState : suspendedSession?.bankScoreState)
-    ?? scoreState;
+    ?? scoreState
+    ?? suspendedSession?.bankScoreState
+    ?? null;
 
   const p1IsServing = effectiveScoreState?.server === "player1";
   const p2IsServing = effectiveScoreState?.server === "player2";
-  const isMatchPoint = effectiveScoreState ? checkMatchPoint(effectiveScoreState) : false;
-  const isSetPoint = effectiveScoreState && !checkMatchPoint(effectiveScoreState) ? checkSetPoint(effectiveScoreState) : false;
-  const isBreakPoint = effectiveScoreState && !checkMatchPoint(effectiveScoreState) && !isSetPoint ? checkBreakPoint(effectiveScoreState) : false;
+  const isMatchPoint = effectiveScoreState ? checkMatchPoint(effectiveScoreState, match?.format) : false;
+  const isSetPoint = effectiveScoreState && !checkMatchPoint(effectiveScoreState, match?.format) ? checkSetPoint(effectiveScoreState) : false;
+  const isBreakPoint = effectiveScoreState && !checkMatchPoint(effectiveScoreState, match?.format) && !isSetPoint ? checkBreakPoint(effectiveScoreState) : false;
   const isTiebreak = effectiveScoreState
     ? (effectiveScoreState.sets[effectiveScoreState.sets.length - 1]?.isTiebreak ?? false)
     : false;

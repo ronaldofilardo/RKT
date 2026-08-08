@@ -97,6 +97,7 @@ export function enrichPointsFromHistory(
       isSetBall: sb,
       rallyLength,
       rallyDetails: pt.rallyDetails ?? null,
+      note: pt.rallyDetails?.note,
       pointDetails: pt,
       isTiebreak,
       gameIsDeuce: stateBefore.currentGame.isDeuce,

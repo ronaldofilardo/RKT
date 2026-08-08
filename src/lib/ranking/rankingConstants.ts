@@ -39,6 +39,15 @@ export const CATEGORIES_BY_RANKING: Record<string, Record<string, number[]>> = {
   },
   ITF: {
     '18': [18],
+    '35-39': [35, 36, 37, 38, 39],
+    '40-44': [40, 41, 42, 43, 44],
+    '45-49': [45, 46, 47, 48, 49],
+    '50-54': [50, 51, 52, 53, 54],
+    '55-59': [55, 56, 57, 58, 59],
+    '60-64': [60, 61, 62, 63, 64],
+    '65-69': [65, 66, 67, 68, 69],
+    '70-74': [70, 71, 72, 73, 74],
+    '75+': [75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100],
   },
 };
 
@@ -48,6 +57,15 @@ export const CATEGORY_TO_NUMBER: Record<string, number> = {
   '13-14': 2,
   '15-16': 3,
   '17-18': 4,
+  '35-39': 1,
+  '40-44': 1,
+  '45-49': 1,
+  '50-54': 1,
+  '55-59': 1,
+  '60-64': 1,
+  '65-69': 1,
+  '70-74': 1,
+  '75+': 1,
 };
 
 export const AGE_GROUP_RANGES: Record<string, [number, number]> = {
@@ -154,6 +172,10 @@ export function getAllowedCategoriesForAge(rankingType: RankingType, age: number
   return Array.from(new Set([...natural, ...higher]));
 }
 
+export function getAutoCategoryForAge(rankingType: RankingType, age: number): string[] {
+  return getCategoriesForAge(rankingType, age);
+}
+
 function getAgeGroup(age: number): string | null {
   for (const group of ['A', 'B', 'C']) {
     const [min, max] = AGE_GROUP_RANGES[group];
@@ -209,13 +231,14 @@ export function getClassesForSelection(
 
   return baseClasses.filter((cls) => {
     const clsNum = parseInt(cls.charAt(0));
-    return clsNum >= categoryNum;
+    return clsNum >= 1;
   });
 }
 
 export function getAvailableRankingTypes(age: number): RankingType[] {
   return RANKING_TYPES.filter((type) => {
     if (type === 'ESTADUAL') return true;
+    if (type === 'ATP' || type === 'WTA') return age <= 40;
     if (!hasCategories(type)) return true;
     return getCategoriesForAge(type, age).length > 0;
   });

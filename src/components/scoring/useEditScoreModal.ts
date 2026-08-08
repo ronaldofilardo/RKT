@@ -9,7 +9,6 @@ import {
   createInitialEditScoreState,
   createSetEditData,
   calculateNextServer,
-  shouldAutoAddSet,
 } from "./edit-score-logic";
 import { parsePointValue, pointToProgress } from "@/core/scoring/point-utils";
 import { useEditScoreCalculator } from "./use-edit-score-calculator";
@@ -54,6 +53,8 @@ interface UseEditScoreModalReturn {
   handleConfirm: () => Promise<void>;
   handleCancel: () => void;
   handleAddSet: () => void;
+  handleConfirmSet: () => void;
+  canConfirmSet: boolean;
   handlePointsChange: (p1: string, p2: string) => void;
   handleEditCompletedSet: (index: number, p1Games: number, p2Games: number) => void;
   handleRemoveCompletedSet: (index: number) => void;
@@ -103,10 +104,6 @@ export function useEditScoreModal(
   // Track the serialized content of completedSets so we don't reset state
   // when only the array identity changes (but content stays the same).
   const lastCompletedSetsKeyRef = useRef<string>("");
-  // Auto-add de set: memoriza o snapshot da última combinação (p1,p2) que
-  // disparou handleAddSet, para evitar disparar novamente se o usuário ainda
-  // está editando (ex.: 6-2 já adicionado, não re-adicionar ao digitar mais).
-  const lastAutoAddRef = useRef<string>("");
 
   const calculations = useEditScoreCalculator({
     matchFormat,
@@ -117,7 +114,7 @@ export function useEditScoreModal(
     tiebreakP2: state.tiebreakP2,
   });
 
-  const { validation, tiebreakValidation, matchState, canAddNextSet, partial } = calculations;
+  const { validation, tiebreakValidation, matchState, canAddNextSet, canConfirmSet: canConfirmSetCalc, partial, isPotentialMTSet } = calculations;
   const { tiebreakComplete, tiebreakP1Num, tiebreakP2Num } = tiebreakValidation;
   const { p1Val, p2Val, bothFilled, isSetTrulyCompleted, hasTiebreak, isMatchTiebreakSet } = validation;
   const { matchWouldEnd, maxSets, setsToWin } = matchState;
@@ -208,7 +205,7 @@ export function useEditScoreModal(
     }
     if (!/^\d+$/.test(value)) return;
     const num = parseInt(value, 10);
-    setter(num > 50 ? "50" : value.replace(/^0+(?=[1-9]|$)/, ""));
+    setter(num > 50 ? "50" : num.toString());
     setState(prev => ({ ...prev, tiebreakP1: "", tiebreakP2: "" }));
   }, []);
 
@@ -256,7 +253,7 @@ export function useEditScoreModal(
       }
     }
 
-    if (bothFilled && floorCurrentSets && !isSetTrulyCompleted) {
+    if (bothFilled && floorCurrentSets) {
       if (p1Val < floorCurrentSets.player1 || p2Val < floorCurrentSets.player2) {
         setConfirmError(
           `Placar não pode ser inferior ao ponto de parada (${floorCurrentSets.player1}x${floorCurrentSets.player2}).`,
@@ -311,6 +308,7 @@ export function useEditScoreModal(
         tiebreakP1Num: tiebreakP1Num ?? 0,
         tiebreakP2Num: tiebreakP2Num ?? 0,
         isMatchTiebreakSet,
+        isPotentialMTSet,
         p1Points: state.p1Points,
         p2Points: state.p2Points,
         currentSets,
@@ -339,7 +337,7 @@ export function useEditScoreModal(
     state.p1Points, state.p2Points, state.newSets, state.nextServer,
     state.editableCompletedSets,
     completedSets, onConfirm, currentServer, onMatchFinished,
-    isFinishingMatch, bothFilled, isMatchTiebreakSet,
+    isFinishingMatch, bothFilled, isMatchTiebreakSet, isPotentialMTSet,
   ]);
 
   const handleCancel = useCallback(() => {
@@ -367,6 +365,14 @@ export function useEditScoreModal(
         : {}),
     };
 
+    // For MT sets, p1Games/p2Games ARE the tiebreak points, so pass them
+    // as tiebreakScore to ensure correct server calculation.
+    const tiebreakForServer = isMatchTiebreakSet
+      ? { player1: p1Games, player2: p2Games }
+      : hasTiebreakScore
+        ? { player1: tbP1Num, player2: tbP2Num }
+        : null;
+
     setState(prev => ({
       ...prev,
       newSets: [...prev.newSets, setData],
@@ -379,11 +385,11 @@ export function useEditScoreModal(
         p1Games,
         p2Games,
         matchFormat,
-        tiebreakScore: hasTiebreakScore ? { player1: tbP1Num, player2: tbP2Num } : null,
+        tiebreakScore: tiebreakForServer,
         completedSets: completedSets as CompletedSet[],
       }),
     }));
-  }, [canAddNextSet, state.p1Input, state.p2Input, state.tiebreakP1, state.tiebreakP2, currentServer, matchFormat, completedSets]);
+  }, [canAddNextSet, state.p1Input, state.p2Input, state.tiebreakP1, state.tiebreakP2, currentServer, matchFormat, completedSets, isMatchTiebreakSet]);
 
   const handlePointsChange = useCallback((p1: string, p2: string) => {
     setState(prev => ({ ...prev, p1Points: p1, p2Points: p2 }));
@@ -410,31 +416,25 @@ export function useEditScoreModal(
     setFloorValidationError(null);
   }, []);
 
-  // Auto-add de set: dispara handleAddSet quando o usuário digita um placar
-  // completo válido (ex.: 6-2), abrindo automaticamente o próximo set input.
-  // Evita a regressão do commit c215abd (auto-add prematuro em 6-0) usando
-  // `shouldAutoAddSet`, que exige `isSetTrulyCompleted` (ambos jogadores com
-  // placar válido e set definitivamente encerrado).
-  //
-  // `lastAutoAddRef` previne disparo duplicado para mesma combinação de placar.
-  useEffect(() => {
-    if (!isOpen) {
-      lastAutoAddRef.current = "";
+  const handleConfirmSet = useCallback(() => {
+    if (!canConfirmSetCalc) return;
+    if (isMatchTiebreakSet) {
+      // MT: just confirm the current set (don't add to newSets, match ends)
+      handleConfirm();
       return;
     }
-    if (!inputTouchedRef.current.p1 || !inputTouchedRef.current.p2) {
-      return;
-    }
-    if (!shouldAutoAddSet({ validation, matchState, currentSets, p1Val, p2Val })) {
-      return;
-    }
-
-    const snapshot = `${p1Val}-${p2Val}`;
-    if (lastAutoAddRef.current === snapshot) return;
-    lastAutoAddRef.current = snapshot;
-
     handleAddSet();
-  }, [isOpen, validation, matchState, currentSets, p1Val, p2Val, handleAddSet]);
+    setState(prev => ({
+      ...prev,
+      p1Input: "",
+      p2Input: "",
+      tiebreakP1: "",
+      tiebreakP2: "",
+      p1Points: "0",
+      p2Points: "0",
+    }));
+    inputTouchedRef.current = { p1: false, p2: false };
+  }, [canConfirmSetCalc, isMatchTiebreakSet, handleAddSet, handleConfirm]);
 
   const resetState = useCallback(() => {
     setState({
@@ -463,6 +463,8 @@ return {
     handleConfirm,
     handleCancel,
     handleAddSet,
+    handleConfirmSet,
+    canConfirmSet: canConfirmSetCalc,
     handlePointsChange,
     handleEditCompletedSet,
     handleRemoveCompletedSet,

@@ -107,6 +107,7 @@ export interface TimelinePoint {
   isSetBall: boolean;
   rallyLength: number;
   rallyDetails: ContractRallyDetails | null;
+  note?: string;
   isTiebreak?: boolean;
   gameIsDeuce?: boolean;
   gameAdvantage?: 'player1' | 'player2' | null;

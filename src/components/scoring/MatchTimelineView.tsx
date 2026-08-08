@@ -115,17 +115,18 @@ export function MatchTimelineView({ points, player1Name, player2Name }: MatchTim
               <col style={{ width: '6%' }} />
               <col style={{ width: '5%' }} />
               <col style={{ width: '5%' }} />
+              <col style={{ width: '7%' }} />
             </colgroup>
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                {['BOLA', 'GAME', 'PONTO', 'SAQUE', 'TIPO', 'SITUAÇÃO', 'GOLPE', 'ESPECIAL', 'EFEITO', 'DIREÇÃO', 'ONDE ERROU', 'SUB1', '1ª FALTA', '2ª FALTA', 'ACE / DF', 'TROCAS'].map(h => (
+                {['BOLA', 'GAME', 'PONTO', 'SAQUE', 'TIPO', 'SITUAÇÃO', 'GOLPE', 'ESPECIAL', 'EFEITO', 'DIREÇÃO', 'ONDE ERROU', 'SUB1', '1ª FALTA', '2ª FALTA', 'ACE / DF', 'TROCAS', 'OBS'].map(h => (
                   <th key={h} className="px-1.5 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {hasActiveFilters && filteredPoints.length === 0 && (
-                <tr><td colSpan={17} className="text-center py-6 text-gray-400 text-xs">Nenhum ponto corresponde aos filtros selecionados.</td></tr>
+                <tr><td colSpan={18} className="text-center py-6 text-gray-400 text-xs">Nenhum ponto corresponde aos filtros selecionados.</td></tr>
               )}
               {groupedBySet.map((group, gi) => (
                 <SetGroup

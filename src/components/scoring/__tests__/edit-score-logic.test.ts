@@ -5,6 +5,8 @@ import {
   shouldAutoAddSet,
   type CompletedSet,
 } from '../edit-score-logic';
+import { isPotentialMTSet } from '../edit-score-logic';
+import type { SetEditData } from '../editScoreHelpers';
 
 describe('edit-score-logic - isMatchTiebreakSet', () => {
   describe('calculateValidation', () => {
@@ -43,6 +45,42 @@ describe('edit-score-logic - isMatchTiebreakSet', () => {
       
       expect(result.isMatchTiebreakSet).toBe(false);
     });
+
+    it('deve retornar isMatchTiebreakSet=false para BO5 set 5 com 2-2 (potential MT, não ativo)', () => {
+      const setResults: SetEditData[] = [
+        { p1Games: 6, p2Games: 4, isPartial: false },
+        { p1Games: 3, p2Games: 6, isPartial: false },
+        { p1Games: 6, p2Games: 4, isPartial: false },
+        { p1Games: 4, p2Games: 6, isPartial: false },
+      ];
+      const result = calculateValidation({
+        p1Input: '3',
+        p2Input: '2',
+        matchFormat: 'BEST_OF_5',
+        totalEditedSets: 4,
+        setResults,
+      });
+      
+      expect(result.isMatchTiebreakSet).toBe(false);
+    });
+
+    it('deve retornar isMatchTiebreakSet=true para BO5 set 5 com 6-6 (MT ativo)', () => {
+      const setResults: SetEditData[] = [
+        { p1Games: 6, p2Games: 4, isPartial: false },
+        { p1Games: 3, p2Games: 6, isPartial: false },
+        { p1Games: 6, p2Games: 4, isPartial: false },
+        { p1Games: 4, p2Games: 6, isPartial: false },
+      ];
+      const result = calculateValidation({
+        p1Input: '6',
+        p2Input: '6',
+        matchFormat: 'BEST_OF_5',
+        totalEditedSets: 4,
+        setResults,
+      });
+      
+      expect(result.isMatchTiebreakSet).toBe(true);
+    });
   });
 
   describe('calculateMatchState', () => {
@@ -68,6 +106,68 @@ describe('edit-score-logic - isMatchTiebreakSet', () => {
       const validation = calculateValidation({ p1Input: '3', p2Input: '2', matchFormat: 'BEST_OF_3_MATCH_TB', totalEditedSets: 0 });
       const result = calculateMatchState({ matchFormat: 'BEST_OF_3_MATCH_TB', completedSets: [], newSets: [], validation });
       
+      expect(result.isMatchTiebreakSet).toBe(false);
+    });
+
+    it('deve retornar isPotentialMTSet=true para BEST_OF_5 set 5 com 2-2', () => {
+      const setResults: SetEditData[] = [
+        { p1Games: 6, p2Games: 4, isPartial: false },
+        { p1Games: 3, p2Games: 6, isPartial: false },
+        { p1Games: 6, p2Games: 4, isPartial: false },
+        { p1Games: 4, p2Games: 6, isPartial: false },
+      ];
+      const completedSets: CompletedSet[] = [
+        { games: { player1: 6, player2: 4 }, winner: 'player1' },
+        { games: { player1: 3, player2: 6 }, winner: 'player2' },
+        { games: { player1: 6, player2: 4 }, winner: 'player1' },
+        { games: { player1: 4, player2: 6 }, winner: 'player2' },
+      ];
+      const validation = calculateValidation({
+        p1Input: '3',
+        p2Input: '2',
+        matchFormat: 'BEST_OF_5',
+        totalEditedSets: 4,
+        setResults,
+      });
+      const result = calculateMatchState({
+        matchFormat: 'BEST_OF_5',
+        completedSets,
+        newSets: [],
+        validation,
+      });
+      
+      expect(result.isPotentialMTSet).toBe(true);
+      expect(result.isMatchTiebreakSet).toBe(false);
+    });
+
+    it('deve retornar isPotentialMTSet=false para BEST_OF_5 set 5 com 3-1', () => {
+      const setResults: SetEditData[] = [
+        { p1Games: 6, p2Games: 4, isPartial: false },
+        { p1Games: 6, p2Games: 3, isPartial: false },
+        { p1Games: 6, p2Games: 4, isPartial: false },
+        { p1Games: 4, p2Games: 6, isPartial: false },
+      ];
+      const completedSets: CompletedSet[] = [
+        { games: { player1: 6, player2: 4 }, winner: 'player1' },
+        { games: { player1: 6, player2: 3 }, winner: 'player1' },
+        { games: { player1: 6, player2: 4 }, winner: 'player1' },
+        { games: { player1: 4, player2: 6 }, winner: 'player2' },
+      ];
+      const validation = calculateValidation({
+        p1Input: '5',
+        p2Input: '3',
+        matchFormat: 'BEST_OF_5',
+        totalEditedSets: 4,
+        setResults,
+      });
+      const result = calculateMatchState({
+        matchFormat: 'BEST_OF_5',
+        completedSets,
+        newSets: [],
+        validation,
+      });
+      
+      expect(result.isPotentialMTSet).toBe(false);
       expect(result.isMatchTiebreakSet).toBe(false);
     });
   });
@@ -341,6 +441,80 @@ describe('edit-score-logic - isMatchTiebreakSet', () => {
         expect(result.isValid).toBe(false);
         expect(result.error).toContain('Maximum');
       });
+    });
+  });
+
+  describe('isPotentialMTSet', () => {
+    it('deve retornar false para BEST_OF_3', () => {
+      expect(isPotentialMTSet('BEST_OF_3', 0)).toBe(false);
+    });
+
+    it('deve retornar false para MATCH_TB_10', () => {
+      expect(isPotentialMTSet('MATCH_TB_10', 0)).toBe(false);
+    });
+
+    it('deve retornar false para BEST_OF_5 set 1', () => {
+      expect(isPotentialMTSet('BEST_OF_5', 0)).toBe(false);
+    });
+
+    it('deve retornar false para BEST_OF_5 set 4', () => {
+      expect(isPotentialMTSet('BEST_OF_5', 3)).toBe(false);
+    });
+
+    it('deve retornar true para BEST_OF_5 set 5 sem setResults (fallback)', () => {
+      expect(isPotentialMTSet('BEST_OF_5', 4)).toBe(true);
+    });
+
+    it('deve retornar true para BEST_OF_5 set 5 com score 2-2', () => {
+      const setResults: SetEditData[] = [
+        { p1Games: 6, p2Games: 4, isPartial: false },
+        { p1Games: 3, p2Games: 6, isPartial: false },
+        { p1Games: 6, p2Games: 4, isPartial: false },
+        { p1Games: 4, p2Games: 6, isPartial: false },
+      ];
+      expect(isPotentialMTSet('BEST_OF_5', 4, setResults)).toBe(true);
+    });
+
+    it('deve retornar false para BEST_OF_5 set 5 com score 3-1', () => {
+      const setResults: SetEditData[] = [
+        { p1Games: 6, p2Games: 4, isPartial: false },
+        { p1Games: 6, p2Games: 3, isPartial: false },
+        { p1Games: 6, p2Games: 4, isPartial: false },
+        { p1Games: 4, p2Games: 6, isPartial: false },
+      ];
+      expect(isPotentialMTSet('BEST_OF_5', 4, setResults)).toBe(false);
+    });
+
+    it('deve retornar false para BEST_OF_5 set 5 com score 1-3', () => {
+      const setResults: SetEditData[] = [
+        { p1Games: 6, p2Games: 4, isPartial: false },
+        { p1Games: 3, p2Games: 6, isPartial: false },
+        { p1Games: 4, p2Games: 6, isPartial: false },
+        { p1Games: 3, p2Games: 6, isPartial: false },
+      ];
+      expect(isPotentialMTSet('BEST_OF_5', 4, setResults)).toBe(false);
+    });
+
+    it('deve ignorar sets parciais no cálculo', () => {
+      const setResults: SetEditData[] = [
+        { p1Games: 6, p2Games: 4, isPartial: false },
+        { p1Games: 3, p2Games: 6, isPartial: false },
+        { p1Games: 4, p2Games: 3, isPartial: true },
+        { p1Games: 4, p2Games: 6, isPartial: false },
+      ];
+      expect(isPotentialMTSet('BEST_OF_5', 4, setResults)).toBe(false);
+    });
+
+    it('deve retornar false para BEST_OF_5 set 6 (fora do escopo)', () => {
+      expect(isPotentialMTSet('BEST_OF_5', 5)).toBe(false);
+    });
+
+    it('deve retornar false para SHORT_SET_2V2_NO_AD', () => {
+      expect(isPotentialMTSet('SHORT_SET_2V2_NO_AD', 0)).toBe(false);
+    });
+
+    it('deve retornar false para NO_AD', () => {
+      expect(isPotentialMTSet('NO_AD', 0)).toBe(false);
     });
   });
 });

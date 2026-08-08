@@ -50,6 +50,8 @@ export function PointDetailsModal({
 }: PointDetailsModalProps) {
   const [mounted, setMounted] = useState(false);
   const [showCloseDialog, setShowCloseDialog] = useState(false);
+  const [showNotesModal, setShowNotesModal] = useState(false);
+  const [noteText, setNoteText] = useState('');
   const [form, dispatch] = useReducer(formReducer, null, () => initialForm);
 
   const tipoRef = useRef<HTMLDivElement>(null);
@@ -154,8 +156,9 @@ export function PointDetailsModal({
       direcao: form.direcao ?? undefined,
       golpe_esp: form.golpeEsp ?? undefined,
       previewBalls: isDevolucao ? 2 : 1,
+      note: noteText.trim() || undefined,
     });
-  }, [form, onConfirm, vencedor]);
+  }, [form, onConfirm, vencedor, noteText]);
 
   const handleCancel = useCallback(() => {
     setShowCloseDialog(true);
@@ -324,6 +327,15 @@ export function PointDetailsModal({
 
         <div className="px-5 py-4 border-t border-white/10 flex flex-col gap-2" style={{ backgroundColor: 'rgba(0,0,0,0.15)' }}>
           <button
+            onClick={() => setShowNotesModal(true)}
+            className="w-full py-2 rounded-xl font-bold text-sm bg-transparent text-gray-300 border border-white/15 hover:bg-white/5 hover:text-white transition-all flex items-center justify-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Observações {noteText.trim() ? '(1)' : ''}
+          </button>
+          <button
             onClick={handleConfirm}
             disabled={!canConfirm}
             className={`w-full py-2.5 rounded-xl font-bold transition-all text-sm ${
@@ -376,6 +388,55 @@ export function PointDetailsModal({
               >
                 Continuar preenchendo
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showNotesModal && (
+        <div
+          className="fixed inset-0 z-[2100] flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+          role="button"
+          tabIndex={-1}
+          aria-label="Fechar observações"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowNotesModal(false); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setShowNotesModal(false);
+          }}
+        >
+          <div
+            className="bg-[#1e293b] rounded-[20px] p-6 mx-4 w-[clamp(280px,80vw,420px)] shadow-2xl border border-white/10"
+            role="dialog"
+            aria-label="Observações do ponto"
+            tabIndex={-1}
+          >
+            <h3 className="text-white font-bold text-center text-lg mb-1">Observações do Ponto</h3>
+            <p className="text-gray-400 text-center text-sm mb-4">Registe detalhes importantes sobre este ponto</p>
+            <textarea
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              placeholder="Ex: jogador estava cansado, vento forte, etc."
+              maxLength={500}
+              rows={4}
+              className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/15 text-white placeholder-gray-500 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <p className="text-gray-500 text-xs text-right mt-1">{noteText.length}/500</p>
+            <div className="flex flex-col gap-2 mt-4">
+              <button
+                onClick={() => setShowNotesModal(false)}
+                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all text-sm"
+              >
+                {noteText.trim() ? 'Guardar' : 'Fechar'}
+              </button>
+              {noteText.trim() && (
+                <button
+                  onClick={() => { setNoteText(''); setShowNotesModal(false); }}
+                  className="w-full py-2.5 rounded-xl bg-transparent text-gray-400 font-bold border border-white/10 hover:bg-white/5 hover:text-white transition-all text-sm"
+                >
+                  Limpar observação
+                </button>
+              )}
             </div>
           </div>
         </div>

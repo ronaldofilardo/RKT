@@ -4,16 +4,14 @@ import { VISIBILITY_OPTIONS } from '../matchConstants';
 
 interface MatchDetailsSectionProps {
   visibility: string;
-  apontadorEmail: string;
-  bracketType: 'GRUPO' | 'CHAVE' | 'GRUPO_CHAVE' | '';
+  anotadorEmail: string;
   venueId: string;
   publicMatchCode: string;
   temperature: string;
   humidity: string;
   tags: string;
   onVisibilityChange: (value: string) => void;
-  onApontadorChange: (value: string) => void;
-  onBracketChange: (value: 'GRUPO' | 'CHAVE' | 'GRUPO_CHAVE' | '') => void;
+  onAnotadorChange: (value: string) => void;
   onVenueChange: (value: string) => void;
   onPublicCodeChange: (value: string) => void;
   onTemperatureChange: (value: string) => void;
@@ -23,16 +21,14 @@ interface MatchDetailsSectionProps {
 
 export function MatchDetailsSection({
   visibility,
-  apontadorEmail,
-  bracketType,
+  anotadorEmail,
   venueId,
   publicMatchCode,
   temperature,
   humidity,
   tags,
   onVisibilityChange,
-  onApontadorChange,
-  onBracketChange,
+  onAnotadorChange,
   onVenueChange,
   onPublicCodeChange,
   onTemperatureChange,
@@ -61,40 +57,19 @@ export function MatchDetailsSection({
         </div>
       </section>
 
-      {/* APONTADOR */}
+      {/* ANOTADOR */}
       <section className="bg-white rounded-xl shadow-sm border p-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
-            Apontador (Email ou CPF) <span className="text-gray-400 font-normal">(opcional)</span>
+            Anotador (Email ou CPF) <span className="text-gray-400 font-normal">(opcional)</span>
           </h2>
           <input
             type="text"
-            value={apontadorEmail}
-            onChange={(e) => onApontadorChange(e.target.value)}
-            placeholder="Ex: apontador@exemplo.com ou 12345678901"
+            value={anotadorEmail}
+            onChange={(e) => onAnotadorChange(e.target.value)}
+            placeholder="Ex: anotador@exemplo.com ou 12345678901"
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900 placeholder-gray-500"
           />
-        </div>
-      </section>
-
-      {/* TIPO DE CHAVE */}
-      <section className="bg-white rounded-xl shadow-sm border p-4">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
-            Tipo de Chave <span className="text-gray-400 font-normal">(opcional)</span>
-          </h2>
-          <div className="flex-1">
-            <select
-              value={bracketType}
-              onChange={(e) => onBracketChange(e.target.value as 'GRUPO' | 'CHAVE' | 'GRUPO_CHAVE' | '')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900"
-            >
-              <option value="" className="text-gray-900">Selecione</option>
-              <option value="GRUPO" className="text-gray-900">Grupo</option>
-              <option value="CHAVE" className="text-gray-900">Chave</option>
-              <option value="GRUPO_CHAVE" className="text-gray-900">Grupo + Chave</option>
-            </select>
-          </div>
         </div>
       </section>
 

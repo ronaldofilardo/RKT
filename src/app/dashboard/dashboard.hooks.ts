@@ -107,6 +107,7 @@ export function useDashboardData(router?: any) {
       return matchJson?.data?.matches ?? matchJson?.matches ?? [];
     }).catch((error) => {
       clearTimeout(timeoutId);
+      if (error?.name === 'AbortError') return [];
       logger.error("[fetchDashboardData] matches fetch error:", error);
       return [];
     });
@@ -127,6 +128,7 @@ export function useDashboardData(router?: any) {
       return suspendedJson?.data?.matches ?? suspendedJson?.matches ?? [];
     }).catch((error) => {
       clearTimeout(timeoutId);
+      if (error?.name === 'AbortError') return [];
       logger.error("[fetchDashboardData] suspended-sessions fetch error:", error);
       return [];
     });

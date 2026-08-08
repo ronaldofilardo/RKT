@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/Toast';
 import { logger } from '@/lib/logger';
@@ -17,12 +17,6 @@ import {
   RoundSelector,
 } from './components';
 import type { Athlete } from './types';
-import {
-  MATCH_CATEGORIES,
-  MATCH_CATEGORY_LABELS,
-  MatchCategory,
-  getMatchCategoriesForAge,
-} from './rankingConstants';
 
 export default function NewMatchPage() {
   const router = useRouter();
@@ -60,33 +54,18 @@ export default function NewMatchPage() {
   // Details
   const [nickname] = useState('');
   const [visibility, setVisibility] = useState('PLAYERS_ONLY');
-  const [apontadorEmail, setApontadorEmail] = useState('');
+  const [anotadorEmail, setAnotadorEmail] = useState('');
   const [tournamentName, setTournamentName] = useState('');
   const [clubName, setClubName] = useState('');
   const [category, setCategory] = useState<'INFANTIL' | 'JUVENIL' | 'ADULTO' | 'VETERANO' | ''>('');
   const [roundName, setRoundName] = useState('');
-  const [bracketType, setBracketType] = useState<'GRUPO' | 'CHAVE' | 'GRUPO_CHAVE' | ''>('');
+  const bracketType = '' as const;
   const [venueId, setVenueId] = useState('');
   const [publicMatchCode, setPublicMatchCode] = useState('');
   const [temperature, setTemperature] = useState('');
   const [humidity, setHumidity] = useState('');
   const [tags, setTags] = useState('');
   const [openForAnnotation, setOpenForAnnotation] = useState(false);
-
-  const availableMatchCategories = useMemo<MatchCategory[]>(() => {
-    const ages = [selectedP1?.age, selectedP2?.age].filter(
-      (a): a is number => typeof a === 'number' && a > 0
-    );
-    if (ages.length === 0) return MATCH_CATEGORIES.slice();
-    const allowed = new Set<MatchCategory>();
-    for (const age of ages) {
-      const cats = getMatchCategoriesForAge(age);
-      cats.forEach((c) => allowed.add(c));
-    }
-    if (allowed.size === 0) return MATCH_CATEGORIES.slice();
-    const ordered = MATCH_CATEGORIES.filter((c) => allowed.has(c));
-    return ordered.length > 0 ? ordered : MATCH_CATEGORIES.slice();
-  }, [selectedP1, selectedP2]);
 
   // Tournament suggestions
   const [tournamentSuggestions, setTournamentSuggestions] = useState<string[]>([]);
@@ -214,7 +193,7 @@ export default function NewMatchPage() {
       nickname: nickname || null,
       visibility: visibility || 'PLAYERS_ONLY',
       openForAnnotation,
-      apontadorEmail: apontadorEmail || null,
+      anotadorEmail: anotadorEmail || null,
       scheduledAt: date && time ? new Date(`${date}T${time}`).toISOString() : undefined,
       venueId: venueId || null,
       publicMatchCode: publicMatchCode || null,
@@ -230,8 +209,8 @@ export default function NewMatchPage() {
     }),
     [
       sportType, format, courtType, selectedP1, selectedP2, nickname, visibility,
-      openForAnnotation, apontadorEmail, date, time, venueId, publicMatchCode,
-      tournamentName, clubName, category, roundName, bracketType, temperature, humidity, tags,
+      openForAnnotation, anotadorEmail, date, time, venueId, publicMatchCode,
+      tournamentName, clubName, category, roundName, temperature, humidity, tags,
     ],
   );
 
@@ -438,71 +417,50 @@ export default function NewMatchPage() {
               />
             </div>
 
-            {/* Categoria */}
+            {/* Rodada */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
               <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
-                Categoria <span className="text-gray-400 font-normal">(opcional)</span>
+                Rodada <span className="text-gray-400 font-normal">(opcional)</span>
               </h2>
               <div className="flex-1 relative">
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value as 'INFANTIL' | 'JUVENIL' | 'ADULTO' | 'VETERANO' | '')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-base bg-white text-gray-900"
-                >
-                  <option value="" className="text-gray-900">Selecione</option>
-                  {availableMatchCategories.map((cat) => (
-                    <option key={cat} value={cat} className="text-gray-900">
-                      {MATCH_CATEGORY_LABELS[cat]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Chave */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
-              <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
-                Chave <span className="text-gray-400 font-normal">(opcional)</span>
-              </h2>
-              <select
-                value={bracketType}
-                onChange={(e) => setBracketType(e.target.value as 'GRUPO' | 'CHAVE' | 'GRUPO_CHAVE' | '')}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-base bg-white text-gray-900"
-              >
-                <option value="">Selecione</option>
-                <option value="GRUPO">Grupo</option>
-                <option value="CHAVE">Chave</option>
-                <option value="GRUPO_CHAVE">Grupo + Chave</option>
-              </select>
-            </div>
-
-            {/* Fase */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
-              <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
-                Fase <span className="text-gray-400 font-normal">(opcional)</span>
-              </h2>
-              <div className="flex-1">
                 <RoundSelector
-                  value={roundName}
-                  onChange={setRoundName}
-                  placeholder="Fase da partida"
+                  value={category}
+                  onChange={(val) => {
+                    setCategory(val as 'INFANTIL' | 'JUVENIL' | 'ADULTO' | 'VETERANO' | '');
+                    if (val) setRoundName(val);
+                  }}
+                  placeholder="Selecione a rodada"
                 />
               </div>
             </div>
+
+            {/* Fase - oculta quando rodada já foi selecionada */}
+            {!category && (
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
+                <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
+                  Fase <span className="text-gray-400 font-normal">(opcional)</span>
+                </h2>
+                <div className="flex-1">
+                  <RoundSelector
+                    value={roundName}
+                    onChange={setRoundName}
+                    placeholder="Fase da partida"
+                  />
+                </div>
+              </div>
+            )}
           </section>
 
           <MatchDetailsSection
             visibility={visibility}
-            apontadorEmail={apontadorEmail}
-            bracketType={bracketType}
+            anotadorEmail={anotadorEmail}
             venueId={venueId}
             publicMatchCode={publicMatchCode}
             temperature={temperature}
             humidity={humidity}
             tags={tags}
             onVisibilityChange={setVisibility}
-            onApontadorChange={setApontadorEmail}
-            onBracketChange={setBracketType}
+            onAnotadorChange={setAnotadorEmail}
             onVenueChange={setVenueId}
             onPublicCodeChange={setPublicMatchCode}
             onTemperatureChange={setTemperature}

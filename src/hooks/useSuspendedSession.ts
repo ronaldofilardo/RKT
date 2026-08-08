@@ -62,8 +62,11 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
         if (!ignored) {
           cleanupAfterResume();
         }
-      } catch {
-        logger.error("[suspended session resume] Error:", "Erro ao retomar.");
+      } catch (err) {
+        logger.error("[suspended session resume] Error:", "Erro ao retomar.", err);
+        if (!ignored) {
+          cleanupAfterResume();
+        }
       }
     })();
 

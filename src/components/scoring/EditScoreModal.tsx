@@ -61,6 +61,8 @@ export function EditScoreModal({
     handlePointsChange,
     handleEditCompletedSet,
     handleRemoveCompletedSet,
+    handleConfirmSet,
+    canConfirmSet,
   } = useEditScoreModal(
     {
       isOpen,
@@ -161,6 +163,7 @@ export function EditScoreModal({
             floorCurrentSets={floorCurrentSets}
             floorValidationError={floorValidationError}
             isMatchTiebreakSet={isMatchTiebreakSet}
+            isPotentialMTSet={calculations.isPotentialMTSet}
             hasTiebreak={hasTiebreak}
             isSetTrulyCompleted={isSetTrulyCompleted}
             tiebreakComplete={tiebreakComplete}
@@ -174,6 +177,8 @@ export function EditScoreModal({
             p2SetsWon={p2SetsWon}
             maxSets={maxSets}
             showGamePointsAtZero={calculations.showGamePointsAtZero}
+            canConfirmSet={canConfirmSet}
+            onConfirmSet={handleConfirmSet}
             onP1InputChange={(v: string) => handleGameInputChange(v, (val: string) => setState(prev => ({ ...prev, p1Input: val })), 'p1')}
             onP2InputChange={(v: string) => handleGameInputChange(v, (val: string) => setState(prev => ({ ...prev, p2Input: val })), 'p2')}
             onP1PointsChange={(v: string) => handlePointsChange(v, state.p2Points)}

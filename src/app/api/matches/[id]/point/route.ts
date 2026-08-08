@@ -158,6 +158,7 @@ export async function POST(
                 isFirstServe: parsed.data.isFirstServe,
                 isSecondServe: parsed.data.isSecondServe,
                 firstFaultDetail: parsed.data.firstFaultDetail,
+                note: parsed.data.rallyDetails.note,
               }
             : undefined);
 

@@ -28,56 +28,46 @@ jest.mock('../components', () => ({
   ),
 }));
 
-describe('NewMatchPage - Categoria e Ordem dos Campos', () => {
+describe('NewMatchPage - Rodada e Ordem dos Campos', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     sessionStorage.clear();
   });
 
-  describe('Categoria', () => {
-    it('deve exibir "Kids" ao invés de "Infantil" na lista de categorias', () => {
+  describe('Rodada', () => {
+    it('deve exibir o componente RoundSelector para seleção de rodada', () => {
       render(<NewMatchPage />);
 
-      const kidsOption = screen.getByRole('option', { name: 'Kids' });
-      expect(kidsOption).toBeInTheDocument();
-      expect(kidsOption).toHaveAttribute('value', 'INFANTIL');
+      const roundSelectors = screen.getAllByTestId('round-selector');
+      expect(roundSelectors.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('deve exibir "Infanto-juvenil" ao invés de "Juvenil" na lista de categorias', () => {
-      render(<NewMatchPage />);
-
-      const infantoJuvenilOption = screen.getByRole('option', { name: 'Infanto-juvenil' });
-      expect(infantoJuvenilOption).toBeInTheDocument();
-      expect(infantoJuvenilOption).toHaveAttribute('value', 'JUVENIL');
-    });
-
-    it('não deve conter opção com texto "Infantil" ou "Juvenil"', () => {
-      render(<NewMatchPage />);
-
-      const options = screen.getAllByRole('option');
-      const categoryLabels = ['Infantil', 'Juvenil'];
-
-      categoryLabels.forEach(label => {
-        const foundOption = options.find(opt => opt.textContent === label);
-        expect(foundOption).toBeUndefined();
-      });
-    });
-  });
-
-  describe('Ordem dos Campos', () => {
-    it('deve exibir "Chave" antes de "Fase" no formulário', () => {
+    it('deve ocultar Fase quando rodada é selecionada', () => {
       render(<NewMatchPage />);
 
       const main = screen.getByRole('main');
       const headings = Array.from(main.querySelectorAll('h2'));
       const headingTexts = headings.map(h => h.textContent);
 
-      const chaveIndex = headingTexts.findIndex(t => t?.includes('Chave'));
+      const faseIndex = headingTexts.findIndex(t => t?.includes('Fase'));
+      expect(faseIndex).toBeGreaterThan(-1);
+    });
+  });
+
+  describe('Ordem dos Campos', () => {
+    it('deve exibir "Rodada" antes de "Fase" no formulário', () => {
+      render(<NewMatchPage />);
+
+      const main = screen.getByRole('main');
+      const headings = Array.from(main.querySelectorAll('h2'));
+      const headingTexts = headings.map(h => h.textContent);
+
+      const rodadaIndex = headingTexts.findIndex(t => t?.includes('Rodada'));
       const faseIndex = headingTexts.findIndex(t => t?.includes('Fase'));
 
-      expect(chaveIndex).toBeGreaterThan(-1);
+      expect(rodadaIndex).toBeGreaterThan(-1);
       expect(faseIndex).toBeGreaterThan(-1);
-      expect(chaveIndex).toBeLessThan(faseIndex);
+      expect(rodadaIndex).toBeLessThan(faseIndex);
     });
   });
 });

@@ -4,7 +4,6 @@ import { useParams, useRouter } from "next/navigation";
 import type { TennisFormat } from "@/core/scoring/types";
 import { MatchHeader } from "@/components/scoring/MatchHeader";
 import { PlayerCard } from "@/components/scoring/PlayerCard";
-import { VSIndicator } from "@/components/scoring/VSIndicator";
 import { ContextBadges } from "@/components/scoring/ContextBadges";
 import { ScoreboardCard } from "@/components/scoring/ScoreboardCard";
 import { ActionBar } from "@/components/scoring/ActionBar";
@@ -195,15 +194,6 @@ export default function ScoringPage() {
           <CourtBackground courtType={match.courtType} />
         </div>
 
-        <ContextBadges
-          isMatchPoint={isMatchPoint}
-          isSetPoint={isSetPoint}
-          isBreakPoint={isBreakPoint}
-          isTiebreak={isTiebreak}
-          isSuperTiebreak={isSuperTiebreak}
-          pointsHistory={pointsHistory}
-        />
-
         <div className="my-2 sm:my-3">
           <ScoreboardCard
             player1={match.player1}
@@ -230,9 +220,7 @@ export default function ScoringPage() {
             />
           </div>
 
-          <div className="w-10 sm:w-14 flex-shrink-0">
-            <VSIndicator scoreState={effectiveScoreState} />
-          </div>
+          <div className="w-px h-full bg-white/10 flex-shrink-0" />
 
           <div className="flex-1 min-w-0">
             <PlayerCard
@@ -249,6 +237,15 @@ export default function ScoringPage() {
             />
           </div>
         </div>
+
+        <ContextBadges
+          isMatchPoint={isMatchPoint}
+          isSetPoint={isSetPoint}
+          isBreakPoint={isBreakPoint}
+          isTiebreak={isTiebreak}
+          isSuperTiebreak={isSuperTiebreak}
+          pointsHistory={pointsHistory}
+        />
 
         {isFinished && (
           <div className="mt-2 sm:mt-3 bg-yellow-500/20 border-2 border-yellow-400 rounded-2xl p-3 sm:p-5 text-center relative z-10 mx-0">

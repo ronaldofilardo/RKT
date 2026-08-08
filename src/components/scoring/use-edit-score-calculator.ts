@@ -27,9 +27,11 @@ export interface EditScoreCalculations {
   };
   matchState: EditScoreMatchState;
   canAddNextSet: boolean;
+  canConfirmSet: boolean;
   canConfirm: boolean;
   partial: boolean;
   showGamePointsAtZero: boolean;
+  isPotentialMTSet: boolean;
 }
 
 export function useEditScoreCalculator({
@@ -72,10 +74,38 @@ export function useEditScoreCalculator({
     if (matchState.totalEditedSets >= matchState.maxSets - 1) return false;
     if (matchState.matchAlreadyOver) return false;
     if (matchState.matchWouldEnd) return false;
+    // Only block next set for active MT (not potential MT that hasn't reached 6-6)
     if (matchState.isMatchTiebreakSet) return false;
     if (validation.hasTiebreak && !tiebreakValidation.tiebreakComplete) return false;
     return true;
   }, [validation, matchState, tiebreakValidation]);
+
+  // canConfirmSet: enables the "Confirmar Set" button. Unlike canAddNextSet,
+  // this also allows confirming MT sets (where no next set follows).
+  const canConfirmSet = useMemo(() => {
+    const bothFilled = validation.bothFilled;
+    const isMatchTiebreakSet = matchState.isMatchTiebreakSet;
+    const hasTiebreak = validation.hasTiebreak;
+    const tiebreakComplete = tiebreakValidation.tiebreakComplete;
+    const isSetTrulyCompleted = validation.isSetTrulyCompleted;
+    const setValidationError = validation.setValidationError;
+    const tiebreakRequired = validation.setValidation?.tiebreakRequired ?? false;
+
+    if (!bothFilled) return false;
+
+    if (isMatchTiebreakSet) {
+      // Active MT: allow confirm if no validation error, OR if the set is truly completed
+      return !setValidationError || isSetTrulyCompleted;
+    }
+
+    // Potential MT set that hasn't reached 6-6: treat as regular set
+    if (!isSetTrulyCompleted) return false;
+
+    // Regular set (or potential MT not yet at 6-6): need tiebreak if required
+    if (hasTiebreak && tiebreakRequired && !tiebreakComplete) return false;
+
+    return true;
+  }, [validation, tiebreakValidation, matchState]);
 
   const canConfirm = useMemo(() => {
     const bothFilled = validation.bothFilled;
@@ -86,12 +116,6 @@ export function useEditScoreCalculator({
     const setValidationError = validation.setValidationError;
     const tiebreakRequired = validation.setValidation?.tiebreakRequired ?? false;
 
-    // Bug #7/#8 (2026-08-07): the early-return "if there are completed/new
-    // sets, button is enabled" used to fire even when the user had a set
-    // in progress in an invalid state (e.g. MT 6x5 with stale corrupted
-    // completedSets from bug #4). Restrict the shortcut to the case where
-    // the user is NOT currently editing a set (both inputs blank) — that
-    // means they intend to confirm just the previously completed sets.
     const hasSetsInProgress = bothFilled;
     if (!hasSetsInProgress && (state.newSets.length > 0 || completedSets.length > 0)) {
       return true;
@@ -100,17 +124,11 @@ export function useEditScoreCalculator({
     if (!bothFilled) return false;
 
     if (isMatchTiebreakSet) {
-      // In MT mode, allow confirm if no validation error, OR if the set is
-      // truly completed (winner declared). Block otherwise (partial but
-      // invalid, e.g. 6x5 valid isPartial — allowed because setValidationError
-      // is undefined for valid partials).
       return !setValidationError || isSetTrulyCompleted;
     }
 
     if (!hasTiebreak) return true;
 
-    // For regular tiebreak sets: allow confirm if tiebreak not required yet
-    // (partial score like 6-5) or if tiebreak is complete.
     if (!tiebreakRequired) return true;
     return tiebreakComplete;
   }, [validation, tiebreakValidation, matchState, state.newSets.length, completedSets.length]);
@@ -141,8 +159,10 @@ export function useEditScoreCalculator({
     tiebreakValidation,
     matchState,
     canAddNextSet,
+    canConfirmSet,
     canConfirm,
     partial,
     showGamePointsAtZero,
+    isPotentialMTSet: matchState.isPotentialMTSet,
   };
 }

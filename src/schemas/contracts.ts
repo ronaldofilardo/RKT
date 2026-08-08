@@ -67,6 +67,7 @@ export const RallyDetailsSchema = z.object({
   duracao: RallyDurationSchema.optional(),
   previewBalls: z.number().int().min(0),
   rallyLength: z.number().int().min(0).optional(),
+  note: z.string().max(500).optional(),
 });
 export type RallyDetails = z.infer<typeof RallyDetailsSchema>;
 

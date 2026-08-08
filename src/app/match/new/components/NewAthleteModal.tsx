@@ -10,6 +10,7 @@ import {
   hasClasses,
   getCategoriesForAge,
   getAllowedCategoriesForAge,
+  getAutoCategoryForAge,
   getClassesForSelection,
 } from '../rankingConstants';
 import { useAge } from '../hooks/useAge';
@@ -77,8 +78,25 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
   const availableTypes = useMemo(() => {
     if (age === null) return RANKING_TYPES;
     return RANKING_TYPES.filter((type) => {
+      if (type === 'ATP' || type === 'WTA') return age <= 40;
       if (!hasCategories(type)) return true;
       return getCategoriesForAge(type, age).length > 0;
+    });
+  }, [age]);
+
+  useEffect(() => {
+    if (age === null || age < 11) return;
+    setRankings((prev) => {
+      const updated = { ...prev };
+      for (const type of Object.keys(updated) as RankingType[]) {
+        if (type === 'ESTADUAL' && hasCategories(type)) {
+          const autoCats = getAutoCategoryForAge(type, age);
+          if (autoCats.length > 0 && updated[type].category === '') {
+            updated[type] = { ...updated[type], category: autoCats[0] };
+          }
+        }
+      }
+      return updated;
     });
   }, [age]);
 
@@ -198,10 +216,12 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
 
   const renderRankingRow = (type: RankingType) => {
     const state = rankings[type];
-    const showCategory = hasCategories(type) && age !== null;
-    const showClass = hasClasses(type) && state.category !== '' && form.gender !== '';
+    const showCategory = hasCategories(type) && age !== null && age < 19;
+    const showClass = hasClasses(type) && state.enabled && form.gender !== '' && age !== null && age >= 11;
 
-    const categories = age !== null ? getAllowedCategoriesForAge(type, age) : [];
+    const categories = age !== null
+      ? (type === 'ESTADUAL' ? getAutoCategoryForAge(type, age) : getAllowedCategoriesForAge(type, age))
+      : [];
     const classes =
       state.category && form.gender && age !== null
         ? getClassesForSelection(state.category, form.gender, age)
@@ -221,6 +241,17 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
           <label htmlFor={`new-ranking-${type}`} className="text-sm font-medium text-gray-700">
             {RANKING_TYPE_LABELS[type]}
           </label>
+          {state.enabled && (
+            <button
+              type="button"
+              onClick={() => handleRankingToggle(type)}
+              disabled={submitting}
+              className="ml-auto text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-0.5 rounded transition-colors"
+              title="Remover este ranking"
+            >
+              Remover
+            </button>
+          )}
         </div>
 
         {state.enabled && (
@@ -439,7 +470,7 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
                 ) : (
                   <div className="space-y-1.5">
                     {availableTypes.filter(hasCategories).map(type => {
-                      const allowed = getAllowedCategoriesForAge(type, age);
+                      const allowed = type === 'ESTADUAL' ? getAutoCategoryForAge(type, age) : getAllowedCategoriesForAge(type, age);
                       if (allowed.length === 0) return null;
                       return (
                         <div key={type} className="flex items-center text-sm">
@@ -449,7 +480,10 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
                         </div>
                       );
                     })}
-                    {availableTypes.filter(hasCategories).every(type => getAllowedCategoriesForAge(type, age).length === 0) && (
+                    {availableTypes.filter(hasCategories).every(type => {
+                      const allowed = type === 'ESTADUAL' ? getAutoCategoryForAge(type, age) : getAllowedCategoriesForAge(type, age);
+                      return allowed.length === 0;
+                    }) && (
                       <p className="text-xs text-sky-700/70 italic">Nenhuma categoria encontrada para {age} anos.</p>
                     )}
                   </div>

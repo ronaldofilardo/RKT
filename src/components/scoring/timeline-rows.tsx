@@ -105,6 +105,14 @@ export function PointRow({ point: p, hasGap, isLast: _isLast }: PointRowProps) {
       </td>
       {/* TROCAS */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-500">{p.rallyLength || (isServeFinish ? 1 : 1)}</td>
+      {/* OBS */}
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
+        {p.note ? (
+          <span className="inline-block max-w-[120px] truncate" title={p.note}>
+            📝 {p.note}
+          </span>
+        ) : '–'}
+      </td>
     </>
   );
 
@@ -112,7 +120,7 @@ export function PointRow({ point: p, hasGap, isLast: _isLast }: PointRowProps) {
     return (
       <>
         <tr>
-          <td colSpan={17} className="text-center py-1.5">
+          <td colSpan={18} className="text-center py-1.5">
             <span className="text-[10px] italic text-gray-400 border-t border-dashed border-b border-dashed border-gray-300 px-2">marcação interrompida</span>
           </td>
         </tr>
@@ -171,7 +179,7 @@ export function SetGroup({ setNumber, points, hasActiveFilters, player1Name, pla
         <td colSpan={3} className="px-1.5 py-2">
           <span className="text-[9px] font-black uppercase text-blue-600" style={{ letterSpacing: '0.12em' }}>SET {setNumber}</span>
         </td>
-        <td colSpan={14} className="px-1.5 py-2">
+        <td colSpan={15} className="px-1.5 py-2">
           <span className="text-[10px] text-gray-500">{server} – {receiver}</span>
         </td>
       </tr>

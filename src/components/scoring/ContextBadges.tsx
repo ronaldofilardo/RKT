@@ -9,7 +9,7 @@ interface ContextBadgesProps {
   pointsHistory?: string[];
 }
 
-export function ContextBadges({ isMatchPoint: _isMatchPoint, isSetPoint, isBreakPoint, isTiebreak, isSuperTiebreak, pointsHistory = [] }: ContextBadgesProps) {
+export function ContextBadges({ isMatchPoint, isSetPoint, isBreakPoint, isTiebreak, isSuperTiebreak, pointsHistory = [] }: ContextBadgesProps) {
   const badges: { icon: string; text: string; color: string }[] = [];
 
   if (isSuperTiebreak) {
@@ -18,7 +18,9 @@ export function ContextBadges({ isMatchPoint: _isMatchPoint, isSetPoint, isBreak
     badges.push({ icon: '🎾', text: 'Tie-Break!', color: 'bg-amber-100 text-amber-700 border-amber-200' });
   }
 
-  if (isSetPoint) {
+  if (isMatchPoint) {
+    badges.push({ icon: '🏆', text: 'Match Point!', color: 'bg-purple-100 text-purple-700 border-purple-200' });
+  } else if (isSetPoint) {
     badges.push({ icon: '🎯', text: 'Set Point!', color: 'bg-amber-100 text-amber-700 border-amber-200' });
   } else if (isBreakPoint) {
     badges.push({ icon: '⚡', text: 'Break Point!', color: 'bg-blue-100 text-blue-700 border-blue-200' });

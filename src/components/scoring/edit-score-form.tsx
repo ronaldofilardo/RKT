@@ -15,6 +15,7 @@ interface SetInputFormProps {
   floorCurrentSets: { player1: number; player2: number } | null;
   floorValidationError: string | null;
   isMatchTiebreakSet: boolean;
+  isPotentialMTSet: boolean;
   hasTiebreak: boolean;
   isSetTrulyCompleted: boolean;
   tiebreakComplete: boolean;
@@ -34,6 +35,8 @@ interface SetInputFormProps {
   p2SetsWon: number;
   maxSets: number;
   showGamePointsAtZero: boolean;
+  canConfirmSet: boolean;
+  onConfirmSet: () => void;
 }
 
 export function SetInputForm({
@@ -49,6 +52,7 @@ export function SetInputForm({
   floorCurrentSets,
   floorValidationError,
   isMatchTiebreakSet,
+  isPotentialMTSet,
   hasTiebreak,
   isSetTrulyCompleted,
   tiebreakComplete,
@@ -67,6 +71,8 @@ export function SetInputForm({
   p2SetsWon,
   maxSets,
   showGamePointsAtZero,
+  canConfirmSet,
+  onConfirmSet,
 }: SetInputFormProps) {
   const isMatchOver = matchAlreadyOver || totalEditedSets >= maxSets;
   const p1InputRef = useRef<HTMLInputElement>(null);
@@ -119,6 +125,15 @@ export function SetInputForm({
         <p className="text-xs font-semibold text-purple-400 uppercase tracking-wide">
           Set {totalEditedSets + 1} — Match Tiebreak
         </p>
+      ) : isPotentialMTSet ? (
+        <div className="flex items-center gap-2">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+            Set {totalEditedSets + 1}
+          </p>
+          <span className="text-[10px] text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">
+            Pode virar MT em 6-6
+          </span>
+        </div>
       ) : (
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
           Set {totalEditedSets + 1}
@@ -224,6 +239,17 @@ export function SetInputForm({
         >
           {getStatusMessage()}
         </p>
+      )}
+
+      {isSetTrulyCompleted && !matchWouldEnd && !isMatchOver && (
+        <button
+          type="button"
+          onClick={onConfirmSet}
+          disabled={!canConfirmSet}
+          className="w-full mt-2 px-4 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm text-sm"
+        >
+          Confirmar Set {totalEditedSets + 1}
+        </button>
       )}
 
       {isSetTrulyCompleted && matchWouldEnd && (

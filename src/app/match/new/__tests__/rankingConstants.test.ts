@@ -4,6 +4,7 @@ import {
   calculateAgeFromYear,
   getCategoriesForAge,
   getAllowedCategoriesForAge,
+  getAutoCategoryForAge,
   getMatchCategoriesForAge,
   getAvailableRankingTypes,
   getClassesForSelection,
@@ -121,9 +122,73 @@ describe('rankingConstants - caracterização', () => {
       expect(getAvailableRankingTypes(25)).toContain('ESTADUAL');
     });
 
-    it('ATP/WTA sempre disponiveis', () => {
+    it('ATP/WTA disponiveis para idade <= 40', () => {
       expect(getAvailableRankingTypes(25)).toContain('ATP');
       expect(getAvailableRankingTypes(25)).toContain('WTA');
+      expect(getAvailableRankingTypes(40)).toContain('ATP');
+      expect(getAvailableRankingTypes(40)).toContain('WTA');
+    });
+
+    it('ATP/WTA ocultos para idade > 40', () => {
+      expect(getAvailableRankingTypes(41)).not.toContain('ATP');
+      expect(getAvailableRankingTypes(41)).not.toContain('WTA');
+      expect(getAvailableRankingTypes(50)).not.toContain('ATP');
+      expect(getAvailableRankingTypes(50)).not.toContain('WTA');
+    });
+
+    it('ITF disponivel para 18 e 35+', () => {
+      expect(getAvailableRankingTypes(18)).toContain('ITF');
+      expect(getAvailableRankingTypes(35)).toContain('ITF');
+      expect(getAvailableRankingTypes(50)).toContain('ITF');
+      expect(getAvailableRankingTypes(75)).toContain('ITF');
+    });
+
+    it('ITF oculto para idade entre 19 e 34', () => {
+      expect(getAvailableRankingTypes(25)).not.toContain('ITF');
+      expect(getAvailableRankingTypes(30)).not.toContain('ITF');
+    });
+  });
+
+  describe('getAutoCategoryForAge (categoria automatica sem duplicacao)', () => {
+    it('retorna apenas a categoria natural para ESTADUAL', () => {
+      expect(getAutoCategoryForAge('ESTADUAL', 12)).toEqual(['11-12']);
+      expect(getAutoCategoryForAge('ESTADUAL', 14)).toEqual(['13-14']);
+      expect(getAutoCategoryForAge('ESTADUAL', 16)).toEqual(['15-16']);
+      expect(getAutoCategoryForAge('ESTADUAL', 18)).toEqual(['17-18']);
+    });
+
+    it('nao inclui categoria superior para ESTADUAL', () => {
+      expect(getAutoCategoryForAge('ESTADUAL', 12)).not.toContain('13-14');
+      expect(getAutoCategoryForAge('ESTADUAL', 14)).not.toContain('15-16');
+    });
+
+    it('retorna vazio para adultos no ESTADUAL', () => {
+      expect(getAutoCategoryForAge('ESTADUAL', 19)).toEqual([]);
+      expect(getAutoCategoryForAge('ESTADUAL', 25)).toEqual([]);
+    });
+  });
+
+  describe('getCategoriesForAge - ITF vets', () => {
+    it('retorna categorias ITF para idades 35+', () => {
+      expect(getCategoriesForAge('ITF', 37)).toEqual(['35-39']);
+      expect(getCategoriesForAge('ITF', 42)).toEqual(['40-44']);
+      expect(getCategoriesForAge('ITF', 47)).toEqual(['45-49']);
+      expect(getCategoriesForAge('ITF', 52)).toEqual(['50-54']);
+      expect(getCategoriesForAge('ITF', 57)).toEqual(['55-59']);
+      expect(getCategoriesForAge('ITF', 62)).toEqual(['60-64']);
+      expect(getCategoriesForAge('ITF', 67)).toEqual(['65-69']);
+      expect(getCategoriesForAge('ITF', 72)).toEqual(['70-74']);
+      expect(getCategoriesForAge('ITF', 80)).toEqual(['75+']);
+    });
+
+    it('ITF 18 continua funcionando', () => {
+      expect(getCategoriesForAge('ITF', 18)).toEqual(['18']);
+    });
+
+    it('ITF retorna vazio para idades entre 19 e 34', () => {
+      expect(getCategoriesForAge('ITF', 25)).toEqual([]);
+      expect(getCategoriesForAge('ITF', 30)).toEqual([]);
+      expect(getCategoriesForAge('ITF', 34)).toEqual([]);
     });
   });
 

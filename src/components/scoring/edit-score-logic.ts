@@ -42,6 +42,7 @@ export interface EditScoreValidation {
   setValidationError: string | undefined;
   hasTiebreak: boolean;
   isMatchTiebreakSet: boolean;
+  isPotentialMTSet: boolean;
   tiebreakComplete?: boolean;
   hasValidTiebreak?: boolean;
   tiebreakP1Num?: number;
@@ -59,6 +60,7 @@ export interface EditScoreMatchState {
   matchWouldEnd: boolean;
   totalEditedSets: number;
   isMatchTiebreakSet: boolean;
+  isPotentialMTSet: boolean;
   maxSets: number;
   setsToWin: number;
 }
@@ -86,6 +88,7 @@ export interface CreateSetEditDataInput {
   tiebreakP1Num: number;
   tiebreakP2Num: number;
   isMatchTiebreakSet: boolean;
+  isPotentialMTSet: boolean;
   p1Points: string;
   p2Points: string;
   currentSets: { player1: number; player2: number };
@@ -121,22 +124,62 @@ export function createInitialEditScoreState(currentServer: Player): EditScoreSta
   };
 }
 
+/**
+ * Checks if a set is a "potential MT set" — a deciding set where MT may
+ * activate at 6-6 but the set starts as a regular set.
+ * For BEST_OF_5: 5th set when score is 2-2.
+ * For BEST_OF_3_MATCH_TB/SHORT_SET/NO_AD: always MT at decider (no potential phase).
+ */
+export function isPotentialMTSet(
+  format: TennisFormat,
+  totalEditedSets: number,
+  setResults?: SetEditData[],
+): boolean {
+  if (format !== 'BEST_OF_5') return false;
+  const currentSetNum = totalEditedSets + 1;
+  if (currentSetNum !== 5) return false;
+
+  // Check if score is 2-2 by counting completed sets
+  if (setResults && setResults.length > 0) {
+    let p1Sets = 0;
+    let p2Sets = 0;
+    for (const s of setResults) {
+      const isPartial = 'isPartial' in s ? s.isPartial : false;
+      if (!isPartial) {
+        if (s.p1Games > s.p2Games) p1Sets++;
+        else if (s.p2Games > s.p1Games) p2Sets++;
+      }
+    }
+    return p1Sets === 2 && p2Sets === 2;
+  }
+
+  // Fallback: for BO5, if totalEditedSets is 4, we're on the 5th set.
+  // We can't verify score without setResults, so return true (conservative).
+  return totalEditedSets === 4;
+}
+
 export function calculateValidation(input: EditScoreValidationInput): EditScoreValidation {
   const { p1Input, p2Input, matchFormat, totalEditedSets, setResults } = input;
   const p1Val = p1Input === '' ? NaN : parseInt(p1Input, 10);
   const p2Val = p2Input === '' ? NaN : parseInt(p2Input, 10);
   const bothFilled = !isNaN(p1Val) && !isNaN(p2Val) && p1Val >= 0 && p2Val >= 0;
 
+  const potentialMT = isPotentialMTSet(matchFormat, totalEditedSets, setResults);
+
+  // For potential MT sets (BO5 5th set): MT only activates at 6-6
   let isMatchTiebreakSet: boolean;
-  if (setResults && setResults.length > 0) {
+  if (potentialMT) {
+    // MT only when games reach 6-6
+    isMatchTiebreakSet = bothFilled && p1Val === 6 && p2Val === 6;
+  } else if (setResults && setResults.length > 0) {
     isMatchTiebreakSet = isMatchTiebreakSetUtil(totalEditedSets, setResults, matchFormat);
   } else {
-    isMatchTiebreakSet = 
+    // Fallback for other formats
+    isMatchTiebreakSet =
+      matchFormat === 'MATCH_TB_10' ||
       (matchFormat === 'BEST_OF_3_MATCH_TB' && totalEditedSets === 2) ||
       (matchFormat === 'SHORT_SET_2V2_NO_AD' && totalEditedSets === 2) ||
-      (matchFormat === 'BEST_OF_5' && totalEditedSets === 4) ||
-      matchFormat === 'MATCH_TB_10' ||
-      (matchFormat as any) === 'BEST_OF_3_NO_AD' && totalEditedSets === 2;
+      ((matchFormat as any) === 'BEST_OF_3_NO_AD' && totalEditedSets === 2);
   }
 
   const setValidation = bothFilled
@@ -162,6 +205,7 @@ export function calculateValidation(input: EditScoreValidationInput): EditScoreV
     setValidationError,
     hasTiebreak,
     isMatchTiebreakSet,
+    isPotentialMTSet: potentialMT,
   };
 }
 
@@ -176,7 +220,21 @@ export function calculateMatchState(input: EditScoreMatchStateInput): EditScoreM
     ...newSets,
   ];
   
-  const isMatchTiebreakSet = isMatchTiebreakSetUtil(totalEditedSets, setResultsForCheck, matchFormat);
+  const potentialMT = isPotentialMTSet(matchFormat, totalEditedSets, setResultsForCheck);
+
+  let isMatchTiebreakSet: boolean;
+  if (potentialMT) {
+    // For potential MT sets, MT only activates at 6-6
+    isMatchTiebreakSet = validation.isMatchTiebreakSet;
+  } else if (setResultsForCheck.length > 0) {
+    isMatchTiebreakSet = isMatchTiebreakSetUtil(totalEditedSets, setResultsForCheck, matchFormat);
+  } else {
+    isMatchTiebreakSet =
+      matchFormat === 'MATCH_TB_10' ||
+      (matchFormat === 'BEST_OF_3_MATCH_TB' && totalEditedSets === 2) ||
+      (matchFormat === 'SHORT_SET_2V2_NO_AD' && totalEditedSets === 2) ||
+      ((matchFormat as any) === 'BEST_OF_3_NO_AD' && totalEditedSets === 2);
+  }
 
   const p1SetsWonFromProp = completedSets.filter((s) => s.winner === 'player1').length;
   const p2SetsWonFromProp = completedSets.filter((s) => s.winner === 'player2').length;
@@ -217,6 +275,7 @@ export function calculateMatchState(input: EditScoreMatchStateInput): EditScoreM
     matchWouldEnd,
     totalEditedSets,
     isMatchTiebreakSet,
+    isPotentialMTSet: potentialMT,
     maxSets,
     setsToWin,
   };
@@ -243,7 +302,7 @@ export function calculateTiebreakValidation(
 }
 
 export function createSetEditData(input: CreateSetEditDataInput): SetEditData {
-  const { p1Val, p2Val, isSetTrulyCompleted, hasTiebreak, tiebreakP1Num, tiebreakP2Num, isMatchTiebreakSet, p1Points, p2Points } = input;
+  const { p1Val, p2Val, isSetTrulyCompleted, hasTiebreak, tiebreakP1Num, tiebreakP2Num, isMatchTiebreakSet, isPotentialMTSet, p1Points, p2Points } = input;
   const setData: SetEditData = {
     p1Games: p1Val,
     p2Games: p2Val,
@@ -251,11 +310,13 @@ export function createSetEditData(input: CreateSetEditDataInput): SetEditData {
   };
 
   if (isMatchTiebreakSet) {
+    // Active MT: save as tiebreak score
     setData.tiebreakScore = {
       player1: p1Val,
       player2: p2Val,
     };
-  } else if (hasTiebreak && isSetTrulyCompleted) {
+  } else if (hasTiebreak && isSetTrulyCompleted && !isPotentialMTSet) {
+    // Regular tiebreak set (not MT decider)
     setData.tiebreakScore = {
       player1: tiebreakP1Num,
       player2: tiebreakP2Num,
@@ -266,6 +327,7 @@ export function createSetEditData(input: CreateSetEditDataInput): SetEditData {
       player2: parsePointValue(p2Points),
     };
   }
+  // For potential MT sets that haven't reached 6-6: save as regular set (no tiebreakScore)
 
   return setData;
 }

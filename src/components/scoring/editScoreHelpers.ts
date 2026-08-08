@@ -150,6 +150,16 @@ function validateStandardSet(
     };
   }
 
+  // If winner has gamesNeeded+1 (7), loser must have exactly gamesNeeded-1 (5) or gamesNeeded (6)
+  // Scores like 7-0, 7-1, 7-2, 7-3, 7-4 are invalid — set would have ended earlier
+  if (winner && hasTiebreak) {
+    const winnerGames = winner === 'player1' ? p1Games : p2Games;
+    const loserGames = winner === 'player1' ? p2Games : p1Games;
+    if (winnerGames === gamesNeeded + 1 && loserGames < gamesNeeded - 1) {
+      return { isValid: false, error: 'Invalid set score' };
+    }
+  }
+
   if (hasTiebreak && p1Games === gamesNeeded + 1 && p2Games === gamesNeeded) {
     return { isValid: true, winner: 'player1', hasTiebreak: true };
   } else if (hasTiebreak && p2Games === gamesNeeded + 1 && p1Games === gamesNeeded) {

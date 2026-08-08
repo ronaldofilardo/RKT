@@ -1,18 +1,17 @@
 /**
  * @jest-environment jsdom
  * 
- * Test for the fix: auto-add set when score is complete
+ * Test for the "Confirmar Set" button behavior.
  * 
- * Behavior: When user types a complete set score (e.g., 6-2), the system
- * automatically adds the set and opens the next set input.
- * No manual "Adicionar Set" button needed.
+ * Behavior: When user types a complete set score (e.g., 6-2), a "Confirmar Set"
+ * button appears. The user clicks it to confirm the set and advance to the next.
  */
 
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { EditScoreModal } from "@/components/scoring/EditScoreModal";
 
-describe("EditScoreModal - Auto-Add Set on Complete Score", () => {
+describe("EditScoreModal - Confirmar Set Button", () => {
   const defaultProps = {
     isOpen: true,
     matchFormat: "BEST_OF_3" as const,
@@ -33,65 +32,61 @@ describe("EditScoreModal - Auto-Add Set on Complete Score", () => {
     jest.clearAllMocks();
   });
 
-describe("Auto-add set when score is complete", () => {
-    it("should auto-add set when typing 6-2 (valid completed set)", async () => {
-      const onConfirmMock = jest.fn();
+describe("Confirmar Set button on complete score", () => {
+    it("should show Confirmar Set button when typing 6-2 (valid completed set)", async () => {
+      render(<EditScoreModal {...defaultProps} />);
 
-      render(
-        <EditScoreModal
-          {...defaultProps}
-          onConfirm={onConfirmMock}
-        />
-      );
-
-      let inputs = screen.getAllByPlaceholderText("0");
+      const inputs = screen.getAllByPlaceholderText("0");
       
-      // Type 6 for player1
       fireEvent.change(inputs[0], { target: { value: "6" } });
-      // Clear player2 first (it starts at "0"), then type "2"
       fireEvent.change(inputs[1], { target: { value: "" } });
       fireEvent.change(inputs[1], { target: { value: "2" } });
 
-      // Wait for auto-add to happen
+      await waitFor(() => {
+        expect(screen.getByText(/Confirmar Set 1/i)).toBeInTheDocument();
+      });
+    });
+
+    it("should add set and clear inputs when clicking Confirmar Set", async () => {
+      render(<EditScoreModal {...defaultProps} />);
+
+      const inputs = screen.getAllByPlaceholderText("0");
+      
+      fireEvent.change(inputs[0], { target: { value: "6" } });
+      fireEvent.change(inputs[1], { target: { value: "" } });
+      fireEvent.change(inputs[1], { target: { value: "2" } });
+
+      const confirmSetBtn = await screen.findByText(/Confirmar Set 1/i);
+      fireEvent.click(confirmSetBtn);
+
       await waitFor(() => {
         expect(screen.getByText(/Sets Completados/i)).toBeInTheDocument();
       });
 
-      // Re-query inputs (they're new after auto-add)
-      inputs = screen.getAllByPlaceholderText("0");
-      // Inputs should be cleared for next set
-      expect(inputs[0]).toHaveAttribute('value', '');
-      expect(inputs[1]).toHaveAttribute('value', '');
+      const newInputs = screen.getAllByPlaceholderText("0");
+      expect(newInputs[0]).toHaveAttribute('value', '');
+      expect(newInputs[1]).toHaveAttribute('value', '');
 
-      // Should show "Set 2" for next set
       await waitFor(() => {
         expect(screen.getByText(/Set 2/i)).toBeInTheDocument();
       });
     });
 
-    it("should auto-add set when typing 6-0", async () => {
+    it("should show Confirmar Set button when typing 6-0", async () => {
       render(<EditScoreModal {...defaultProps} />);
 
-      let inputs = screen.getAllByPlaceholderText("0");
+      const inputs = screen.getAllByPlaceholderText("0");
       
-      // Type 6 for player1
       fireEvent.change(inputs[0], { target: { value: "6" } });
-      // Player2 starts at "0", change to "1" then back to "0" to trigger touch
       fireEvent.change(inputs[1], { target: { value: "1" } });
       fireEvent.change(inputs[1], { target: { value: "0" } });
 
-      // Wait for auto-add
       await waitFor(() => {
-        expect(screen.getByText(/Sets Completados/i)).toBeInTheDocument();
+        expect(screen.getByText(/Confirmar Set 1/i)).toBeInTheDocument();
       });
-
-      // Inputs cleared (re-query)
-      inputs = screen.getAllByPlaceholderText("0");
-      expect(inputs[0]).toHaveAttribute('value', '');
-      expect(inputs[1]).toHaveAttribute('value', '');
     });
 
-    it("should NOT auto-add when set is incomplete (3-2)", async () => {
+    it("should NOT show Confirmar Set when set is incomplete (3-2)", async () => {
       const onConfirmMock = jest.fn();
 
       render(
@@ -103,16 +98,13 @@ describe("Auto-add set when score is complete", () => {
 
       const inputs = screen.getAllByPlaceholderText("0");
       
-      // Type 3-2 (incomplete set)
       fireEvent.change(inputs[0], { target: { value: "3" } });
       fireEvent.change(inputs[1], { target: { value: "2" } });
 
-      // Should NOT auto-add
       await waitFor(() => {
-        expect(screen.queryByText(/Sets Completados/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/Confirmar Set/i)).not.toBeInTheDocument();
       });
 
-      // But Confirmar Placar should be enabled
       const confirmButton = screen.getByText("Confirmar");
       await waitFor(() => {
         expect(confirmButton).not.toBeDisabled();
@@ -120,8 +112,8 @@ describe("Auto-add set when score is complete", () => {
     });
   });
 
-  describe("Match tiebreak sets (no auto-add after match tiebreak)", () => {
-    it("should NOT auto-add after MATCH_TB_10 complete", async () => {
+  describe("Match tiebreak sets (no Confirmar Set after match tiebreak)", () => {
+    it("should NOT show Confirmar Set after MATCH_TB_10 complete", async () => {
       render(
         <EditScoreModal
           {...defaultProps}
@@ -131,22 +123,19 @@ describe("Auto-add set when score is complete", () => {
 
       const inputs = screen.getAllByPlaceholderText("0");
       
-      // Type 10-7 (complete match tiebreak)
       fireEvent.change(inputs[0], { target: { value: "10" } });
       fireEvent.change(inputs[1], { target: { value: "" } });
       fireEvent.change(inputs[1], { target: { value: "7" } });
 
-      // Should NOT show "Sets Adicionados" (match ends)
       await waitFor(() => {
-        expect(screen.queryByText(/Sets Completados/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/Confirmar Set/i)).not.toBeInTheDocument();
       });
 
-      // Should show match ended message
       const messages = screen.getAllByText(/venceu o match tiebreak — partida encerrada/i);
       expect(messages.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("should NOT auto-add after BEST_OF_3_MATCH_TB set 3 complete", async () => {
+    it("should NOT show Confirmar Set after BEST_OF_3_MATCH_TB set 3 complete", async () => {
       const completedSets = [
         { games: { player1: 6, player2: 4 }, winner: "player1" as const },
         { games: { player1: 3, player2: 6 }, winner: "player2" as const },
@@ -162,55 +151,45 @@ describe("Auto-add set when score is complete", () => {
 
       const inputs = screen.getAllByPlaceholderText("0");
       
-      // Type 10-8 (complete match tiebreak)
       fireEvent.change(inputs[0], { target: { value: "10" } });
       fireEvent.change(inputs[1], { target: { value: "8" } });
 
-      // Should NOT auto-add (match ends). A seção "Sets Completados"
-      // aparece pois já existem 2 completedSets via prop; o que importa
-      // é confirmar que a partida foi encerrada (banner verde) e nenhum
-      // 3º set foi adicionado na lista de completados.
       await waitFor(() => {
         expect(screen.queryAllByText(/venceu o match tiebreak — partida encerrada/i).length).toBeGreaterThan(0);
       });
-      // O input para o Set 3 (Match Tiebreak) ainda está visível, indicando
-      // que o set digitado permaneceu no input atual e não foi adicionado
-      // à lista de Sets Completados (que permanece com Set 1 e Set 2).
       expect(screen.getByText(/Set 3/i)).toBeInTheDocument();
     });
   });
 
   describe("Multiple sets flow", () => {
-    it("should allow adding multiple sets automatically (6-2, then 3-6)", async () => {
+    it("should allow adding multiple sets via Confirmar Set (6-2, then 3-6)", async () => {
       render(<EditScoreModal {...defaultProps} />);
 
-      const inputs = screen.getAllByPlaceholderText("0");
+      let inputs = screen.getAllByPlaceholderText("0");
       
-      // Set 1: 6-2 (João wins)
+      // Set 1: 6-2
       fireEvent.change(inputs[0], { target: { value: "6" } });
       fireEvent.change(inputs[1], { target: { value: "2" } });
 
-      // Auto-add happens
+      const confirmBtn1 = await screen.findByText(/Confirmar Set 1/i);
+      fireEvent.click(confirmBtn1);
+
       await waitFor(() => {
         expect(screen.getByText(/Sets Completados/i)).toBeInTheDocument();
       });
 
-      // Should now show Set 2
       await waitFor(() => {
         expect(screen.getByText(/Set 2/i)).toBeInTheDocument();
       });
 
-      // Set 2: 3-6 (Pedro wins)
-      const inputs2 = screen.getAllByPlaceholderText("0");
-      fireEvent.change(inputs2[0], { target: { value: "3" } });
-      fireEvent.change(inputs2[1], { target: { value: "6" } });
+      // Set 2: 3-6
+      inputs = screen.getAllByPlaceholderText("0");
+      fireEvent.change(inputs[0], { target: { value: "3" } });
+      fireEvent.change(inputs[1], { target: { value: "6" } });
 
-      // Auto-add second set
-      await waitFor(() => {
-        expect(screen.getByText(/Sets Completados/i)).toBeInTheDocument();
-      });
+      const confirmBtn2 = await screen.findByText(/Confirmar Set 2/i);
+      fireEvent.click(confirmBtn2);
 
-      // Should show Set 3 (match not over at 1-1)
       await waitFor(() => {
         expect(screen.getByText(/Set 3/i)).toBeInTheDocument();
       });
@@ -230,30 +209,24 @@ describe("Auto-add set when score is complete", () => {
 
       const inputs = screen.getAllByPlaceholderText("0");
       
-      // Type 3-2 (no winner, set not complete)
       fireEvent.change(inputs[0], { target: { value: "3" } });
       fireEvent.change(inputs[1], { target: { value: "2" } });
 
-      // No auto-add (set not complete)
       await waitFor(() => {
         expect(screen.queryByText(/Sets Completados/i)).not.toBeInTheDocument();
       });
 
-      // Confirmar Placar should be enabled
       const confirmButton = screen.getByText("Confirmar");
       await waitFor(() => {
         expect(confirmButton).not.toBeDisabled();
       });
 
-      // Click confirm
       fireEvent.click(confirmButton);
 
-      // onConfirm should be called with the partial set
       await waitFor(() => {
         expect(onConfirmMock).toHaveBeenCalled();
       });
 
-      // Verify the set data passed to onConfirm
       const callArgs = onConfirmMock.mock.calls[0][0];
       expect(callArgs).toHaveLength(1);
       expect(callArgs[0]).toEqual({
@@ -277,7 +250,6 @@ describe("Auto-add set when score is complete", () => {
         />
       );
 
-      // Don't type anything, just confirm
       const confirmButton = screen.getByText("Confirmar");
       
       await waitFor(() => {
@@ -286,37 +258,33 @@ describe("Auto-add set when score is complete", () => {
 
       fireEvent.click(confirmButton);
 
-      // Should confirm with just the completed set
       await waitFor(() => {
         expect(onConfirmMock).toHaveBeenCalled();
       });
     });
   });
 
-  describe("Score like 6x5 (set tiebreak required) should not auto-add", () => {
-    it("should not auto-add when typing 6-5", async () => {
+  describe("Score like 6x5 (set tiebreak required) should not show Confirmar Set", () => {
+    it("should not show Confirmar Set when typing 6-5", async () => {
       render(<EditScoreModal {...defaultProps} />);
 
       const inputs = screen.getAllByPlaceholderText("0");
       
-      // Type 6-5
       fireEvent.change(inputs[0], { target: { value: "6" } });
       fireEvent.change(inputs[1], { target: { value: "5" } });
 
-      // Wait and verify no auto-add
       await waitFor(() => {
-        expect(screen.queryByText(/Sets Completados/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/Confirmar Set/i)).not.toBeInTheDocument();
       });
 
-      // Should show "em andamento" message
       await waitFor(() => {
         expect(screen.getByText(/em andamento/i)).toBeInTheDocument();
       });
     });
   });
 
-  describe("BEST_OF_5 format - auto-add", () => {
-    it("should auto-add 6x0 in BEST_OF_5", async () => {
+  describe("BEST_OF_5 format - Confirmar Set", () => {
+    it("should show Confirmar Set for 6x0 in BEST_OF_5", async () => {
       render(
         <EditScoreModal
           {...defaultProps}
@@ -324,16 +292,14 @@ describe("Auto-add set when score is complete", () => {
         />
       );
 
-      let inputs = screen.getAllByPlaceholderText("0");
+      const inputs = screen.getAllByPlaceholderText("0");
       
-      // Type 6-0 (player2 starts at "0", change to "1" then back to "0" to trigger touch)
       fireEvent.change(inputs[0], { target: { value: "6" } });
       fireEvent.change(inputs[1], { target: { value: "1" } });
       fireEvent.change(inputs[1], { target: { value: "0" } });
 
-      // Auto-add should happen
       await waitFor(() => {
-        expect(screen.getByText(/Sets Completados/i)).toBeInTheDocument();
+        expect(screen.getByText(/Confirmar Set 1/i)).toBeInTheDocument();
       });
     });
   });
@@ -353,9 +319,6 @@ describe("Auto-add set when score is complete", () => {
         />
       );
 
-      // When match is already over, no input fields are shown for new sets
-      // (EditableSetsSummary still renders inputs for the already-completed
-      // sets, but only the placeholders for new-set input are absent).
       expect(screen.queryAllByPlaceholderText("0")).toHaveLength(0);
     });
   });

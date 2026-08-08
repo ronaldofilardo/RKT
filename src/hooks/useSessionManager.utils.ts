@@ -163,9 +163,20 @@ export function isMatchTiebreakSet(index: number, setResults: SetEditData[], for
     return currentSetNum === 1;
   }
   
-  // Grand Slam (BEST_OF_5): 5º set com MT em 6/6 (quando 2x2)
+  // Grand Slam (BEST_OF_5): 5º set com MT APENAS quando placar chega em 6/6 (quando 2x2)
+  // O set começa regular e só vira MT quando ambos jogadores chegam a 6 games
   if (format === 'BEST_OF_5' && currentSetNum === 5 && p1Sets === 2 && p2Sets === 2) {
-    return true;
+    // Verificar se o set atual já tem 6-6 (MT ativado)
+    const currentSet = setResults[index];
+    if (currentSet && currentSet.p1Games === 6 && currentSet.p2Games === 6) {
+      return true;
+    }
+    // Se não tem dados do set ainda (input vazio), verificar pelo estado anterior
+    // Se é um set parcial que chegou em 6-6
+    if (currentSet && 'isPartial' in currentSet && currentSet.isPartial) {
+      return currentSet.p1Games === 6 && currentSet.p2Games === 6;
+    }
+    return false;
   }
   
   // Melhor de 3 com MT (BEST_OF_3_MATCH_TB): 3º set quando 1x1
