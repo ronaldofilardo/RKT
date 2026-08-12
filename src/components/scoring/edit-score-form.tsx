@@ -155,7 +155,7 @@ export function SetInputForm({
           onChange={(e) => onP1InputChange(e.target.value)}
           placeholder="0"
           ref={p1InputRef}
-          max={isMatchTiebreakSet ? 20 : 50}
+          max={isMatchTiebreakSet ? 30 : (matchFormat === 'PRO_SET_8' ? 9 : 7)}
         />
         <span className="text-gray-500 text-xs">×</span>
         <input
@@ -168,7 +168,7 @@ export function SetInputForm({
           value={p2Input}
           onChange={(e) => onP2InputChange(e.target.value)}
           placeholder="0"
-          max={isMatchTiebreakSet ? 20 : 50}
+          max={isMatchTiebreakSet ? 30 : (matchFormat === 'PRO_SET_8' ? 9 : 7)}
         />
         <span className="text-xs text-gray-400 w-16 truncate text-right">
           {playerNames.p2}

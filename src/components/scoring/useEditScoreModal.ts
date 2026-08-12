@@ -194,6 +194,25 @@ export function useEditScoreModal(
     }
   }, [isOpen, currentSets, currentGamePoints]);
 
+  const prevIsMatchTiebreakSetRef = useRef(false);
+
+  useEffect(() => {
+    // When potential MT activates (BO5 5th set reaches 6-6), reset inputs to 0/0 for MT points
+    if (isMatchTiebreakSet && !prevIsMatchTiebreakSetRef.current) {
+      // Only reset if the previous state was a potential MT (games were 6/6) or if inputs look like game scores
+      if (p1Val === 6 && p2Val === 6) {
+        setState(prev => ({
+          ...prev,
+          p1Input: "0",
+          p2Input: "0",
+          tiebreakP1: "",
+          tiebreakP2: "",
+        }));
+      }
+    }
+    prevIsMatchTiebreakSetRef.current = isMatchTiebreakSet;
+  }, [isMatchTiebreakSet, p1Val, p2Val]);
+
   const handleGameInputChange = useCallback((value: string, setter: (v: string) => void, player: 'p1' | 'p2'): void => {
     inputTouchedRef.current[player] = true;
     setConfirmError(null);
@@ -231,7 +250,7 @@ export function useEditScoreModal(
     
     if (floorValidationError) return;
     if (validation.setValidationError && !partial) return;
-    if (validation.setValidation?.tiebreakRequired) return;
+    if (validation.setValidation?.tiebreakRequired && !tiebreakComplete) return;
 
     if (bothFilled && hasTiebreak && isSetTrulyCompleted && tiebreakComplete) {
       const setWinner = p1Val > p2Val ? "player1" : "player2";

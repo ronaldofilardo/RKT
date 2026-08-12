@@ -525,6 +525,27 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     setScoreState,
   ]);
 
+  // ─── Audio note upload ────────────────────────────────────────────────────
+
+  const uploadAudioNote = useCallback(
+    async (matchId: string, pointLogId: string, blob: Blob, durationMs: number, token: string | null) => {
+      try {
+        const formData = new FormData();
+        formData.append('file', blob);
+        formData.append('durationMs', String(durationMs));
+
+        await fetch(`/api/matches/${matchId}/point/${pointLogId}/audio`, {
+          method: 'POST',
+          headers: { authorization: `Bearer ${token}` },
+          body: formData,
+        });
+      } catch (err) {
+        logger.error("[uploadAudioNote]", err);
+      }
+    },
+    [],
+  );
+
   // ─── Point details ─────────────────────────────────────────────────────────
 
   const handlePointDetailsConfirm = useCallback(
@@ -575,33 +596,13 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       modalParamsRef,
       isProcessingRef,
       tokenRef,
+      uploadAudioNote,
     ],
   );
 
   // ─── Session lifecycle ─────────────────────────────────────────────────────
 
   // abandonCurrentSession lives in useSessionManager
-
-  // ─── Audio note upload ────────────────────────────────────────────────────
-
-  const uploadAudioNote = useCallback(
-    async (matchId: string, pointLogId: string, blob: Blob, durationMs: number, token: string | null) => {
-      try {
-        const formData = new FormData();
-        formData.append('file', blob);
-        formData.append('durationMs', String(durationMs));
-
-        await fetch(`/api/matches/${matchId}/point/${pointLogId}/audio`, {
-          method: 'POST',
-          headers: { authorization: `Bearer ${token}` },
-          body: formData,
-        });
-      } catch (err) {
-        logger.error("[uploadAudioNote]", err);
-      }
-    },
-    [],
-  );
 
   return {
     persistState,

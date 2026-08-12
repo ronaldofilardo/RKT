@@ -52,12 +52,14 @@ export function useEditScoreCalculator({
       matchFormat,
       totalEditedSets: state.newSets.length + completedSets.length,
       setResults,
+      tiebreakP1: tiebreakP1,
+      tiebreakP2: tiebreakP2,
     });
-  }, [state.p1Input, state.p2Input, matchFormat, state.newSets, completedSets]);
+  }, [state.p1Input, state.p2Input, matchFormat, state.newSets, completedSets, tiebreakP1, tiebreakP2]);
 
   const tiebreakValidation = useMemo(
-    () => calculateTiebreakValidation(tiebreakP1, tiebreakP2, validation.hasTiebreak),
-    [tiebreakP1, tiebreakP2, validation.hasTiebreak],
+    () => calculateTiebreakValidation(tiebreakP1, tiebreakP2, validation.hasTiebreak || !!validation.setValidation?.tiebreakRequired),
+    [tiebreakP1, tiebreakP2, validation.hasTiebreak, validation.setValidation],
   );
 
   const matchState = useMemo(() => calculateMatchState({
