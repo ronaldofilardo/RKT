@@ -88,6 +88,6 @@ export interface ScoringHandlersReturn {
   ) => void;
   handleServeCancel: () => void;
   handleServeErrorCancel: () => void;
-  handlePointDetailsConfirm: (details: any) => void;
+  handlePointDetailsConfirm: (details: any, audio?: { blob: Blob; durationMs: number }) => void;
   isProcessing: boolean;
 }

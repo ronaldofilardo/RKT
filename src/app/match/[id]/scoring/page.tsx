@@ -151,6 +151,7 @@ export default function ScoringPage() {
               points={timelinePoints}
               player1Name={match.player1.name}
               player2Name={match.player2.name}
+              matchId={matchId}
             />
           </div>
         </div>

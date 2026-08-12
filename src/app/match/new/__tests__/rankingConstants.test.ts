@@ -8,6 +8,9 @@ import {
   getMatchCategoriesForAge,
   getAvailableRankingTypes,
   getClassesForSelection,
+  getCosatCategoryAge,
+  isYouthCategory,
+  YOUTH_CATEGORIES,
   HIGHER_CATEGORY,
 } from '../rankingConstants';
 
@@ -147,6 +150,13 @@ describe('rankingConstants - caracterização', () => {
       expect(getAvailableRankingTypes(25)).not.toContain('ITF');
       expect(getAvailableRankingTypes(30)).not.toContain('ITF');
     });
+
+    it('ITF_Juniors disponível a partir de 14 anos', () => {
+      expect(getAvailableRankingTypes(14)).toContain('ITF_Juniors');
+      expect(getAvailableRankingTypes(15)).toContain('ITF_Juniors');
+      expect(getAvailableRankingTypes(18)).toContain('ITF_Juniors');
+      expect(getAvailableRankingTypes(13)).not.toContain('ITF_Juniors');
+    });
   });
 
   describe('getAutoCategoryForAge (categoria automatica sem duplicacao)', () => {
@@ -206,6 +216,33 @@ describe('calculateAgeFromYear', () => {
     const year = 2000;
     const expected = new Date().getFullYear() - year;
     expect(calculateAgeFromYear(year)).toBe(expected);
+  });
+});
+
+describe('getCosatCategoryAge', () => {
+  it('usa a idade que o atleta completa no ano (vira 15 e não disputa mais 13-14)', () => {
+    // atleta com 14 anos hoje mas que completa 15 no ano
+    const turningAge = calculateAgeFromYear(new Date().getFullYear() - 15);
+    expect(getCosatCategoryAge(turningAge - 1, new Date().getFullYear() - 15)).toBe(turningAge);
+  });
+
+  it('mantém a idade atual quando o ano de nascimento é inválido', () => {
+    expect(getCosatCategoryAge(14, 0)).toBe(14);
+    expect(getCosatCategoryAge(14, NaN)).toBe(14);
+  });
+});
+
+describe('isYouthCategory', () => {
+  it('reconhece categorias juvenis do estadual', () => {
+    for (const cat of YOUTH_CATEGORIES) {
+      expect(isYouthCategory(cat)).toBe(true);
+    }
+  });
+
+  it('não reconhece categorias de adultos/veteranos', () => {
+    expect(isYouthCategory('35-39')).toBe(false);
+    expect(isYouthCategory('40-44')).toBe(false);
+    expect(isYouthCategory('')).toBe(false);
   });
 });
 

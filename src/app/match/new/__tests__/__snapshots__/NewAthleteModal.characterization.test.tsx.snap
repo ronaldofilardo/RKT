@@ -387,6 +387,25 @@ exports[`NewAthleteModal Characterization should render correctly with default s
               >
                 <input
                   class="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+                  id="new-ranking-ITF_Juniors"
+                  type="checkbox"
+                />
+                <label
+                  class="text-sm font-medium text-gray-700"
+                  for="new-ranking-ITF_Juniors"
+                >
+                  ITF Juniors
+                </label>
+              </div>
+            </div>
+            <div
+              class="border border-gray-200 rounded-lg p-3"
+            >
+              <div
+                class="flex items-center gap-2 mb-2"
+              >
+                <input
+                  class="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
                   id="new-ranking-ATP"
                   type="checkbox"
                 />

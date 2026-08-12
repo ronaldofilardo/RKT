@@ -243,11 +243,12 @@ export const CreatePlayerInputSchema = z.object({
   dominance: z.enum(['LEFT', 'RIGHT']).optional(),
   backhand: z.enum(['ONE_HANDED', 'TWO_HANDED']).optional(),
   rankings: z.record(
-    z.enum(['ESTADUAL', 'CBT', 'COSAT', 'ITF', 'ATP', 'WTA']),
+    z.enum(['ESTADUAL', 'CBT', 'COSAT', 'ITF', 'ITF_Juniors', 'ATP', 'WTA']),
     z.object({
       position: z.number().min(1),
       category: z.string().optional(),
       class: z.string().optional(),
+      juvenilePosition: z.number().min(1).optional(),
     })
   ).optional(),
   club: z.string().optional(),
@@ -411,11 +412,12 @@ export const RankingEntrySchema = z.object({
   category: z.string().optional(),
   class: z.string().optional(),
   position: z.number().int().min(1),
+  juvenilePosition: z.number().int().min(1).optional(),
 });
 export type RankingEntry = z.infer<typeof RankingEntrySchema>;
 
 export const RankingsSchema = z.record(
-  z.enum(['ESTADUAL', 'CBT', 'COSAT', 'ITF', 'ATP', 'WTA']),
+  z.enum(['ESTADUAL', 'CBT', 'COSAT', 'ITF', 'ITF_Juniors', 'ATP', 'WTA']),
   RankingEntrySchema,
 );
 export type Rankings = z.infer<typeof RankingsSchema>;

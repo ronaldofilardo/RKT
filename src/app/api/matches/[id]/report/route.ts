@@ -5,7 +5,9 @@ import type { Role } from '@/schemas/contracts';
 import { ScoringEngine } from '@/core/scoring/engine';
 import type { TimelinePoint } from '@/core/scoring/types';
 import { enrichPointsFromHistory } from '@/components/scoring/timeline-utils';
+import { enrichTimelineWithAudio, type PointLogAudioMeta } from '@/components/scoring/timeline-utils';
 import { getMatch, findAbandonedSessionSnapshot } from '@/services/matchService';
+import { prisma } from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
@@ -92,6 +94,24 @@ export async function GET(
             // Failed to parse snapshot, keep empty timeline
           }
         }
+      }
+
+      if (timelinePoints.length > 0) {
+        const pointLogs = await prisma.pointLog.findMany({
+          where: { matchId: id },
+          select: {
+            id: true,
+            audioNote: true,
+            audioNoteDuration: true,
+          },
+          orderBy: { timestamp: 'asc' },
+        });
+        const audioMeta: PointLogAudioMeta[] = pointLogs.map(pl => ({
+          pointLogId: pl.id,
+          hasAudioNote: pl.audioNote !== null,
+          audioNoteDuration: pl.audioNoteDuration,
+        }));
+        timelinePoints = enrichTimelineWithAudio(timelinePoints, audioMeta);
       }
 
       return NextResponse.json({

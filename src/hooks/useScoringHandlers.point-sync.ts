@@ -23,6 +23,7 @@ interface PointSyncResult {
 interface ServerResponse {
   scoreState?: ScoringState;
   version?: number;
+  pointLogId?: string;
 }
 
 interface VersionConflictBody {

@@ -7,7 +7,7 @@
  * Owner: @frontend
  */
 
-export const RANKING_TYPES = ['ESTADUAL', 'CBT', 'COSAT', 'ITF', 'ATP', 'WTA'] as const;
+export const RANKING_TYPES = ['ESTADUAL', 'CBT', 'COSAT', 'ITF', 'ITF_Juniors', 'ATP', 'WTA'] as const;
 export type RankingType = (typeof RANKING_TYPES)[number];
 
 export const RANKING_TYPE_LABELS: Record<RankingType, string> = {
@@ -15,6 +15,7 @@ export const RANKING_TYPE_LABELS: Record<RankingType, string> = {
   CBT: 'CBT',
   COSAT: 'COSAT',
   ITF: 'ITF',
+  ITF_Juniors: 'ITF Juniors',
   ATP: 'ATP',
   WTA: 'WTA',
 };
@@ -48,6 +49,9 @@ export const CATEGORIES_BY_RANKING: Record<string, Record<string, number[]>> = {
     '65-69': [65, 66, 67, 68, 69],
     '70-74': [70, 71, 72, 73, 74],
     '75+': [75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100],
+  },
+  ITF_Juniors: {
+    '18': [18],
   },
 };
 
@@ -109,6 +113,30 @@ export function calculateAge(year: number, month: number, day: number): number {
     age--;
   }
   return age;
+}
+
+/**
+ * Categorias juvenis do ranking estadual (infanto-juvenil).
+ */
+export const YOUTH_CATEGORIES = ['11', '11-12', '13-14', '15-16', '17-18'];
+
+export function isYouthCategory(category: string): boolean {
+  return YOUTH_CATEGORIES.includes(category);
+}
+
+/**
+ * Idade efetiva usada para classificar o atleta em um ranking específico.
+ *
+ * No COSAT a faixa é definida pela idade que o atleta COMPLETA no ano
+ * corrente ("turning age"). Assim, um atleta que completa 15 anos no ano
+ * não disputa mais a categoria 13-14 — mesmo que ainda não tenha feito
+ * aniversário.
+ */
+export function getCosatCategoryAge(currentAge: number, birthYear: number): number {
+  if (birthYear && !isNaN(birthYear) && birthYear > 0) {
+    return calculateAgeFromYear(birthYear);
+  }
+  return currentAge;
 }
 
 export function hasCategories(rankingType: RankingType): boolean {
@@ -239,6 +267,7 @@ export function getAvailableRankingTypes(age: number): RankingType[] {
   return RANKING_TYPES.filter((type) => {
     if (type === 'ESTADUAL') return true;
     if (type === 'ATP' || type === 'WTA') return age <= 40;
+    if (type === 'ITF_Juniors') return age >= 14;
     if (!hasCategories(type)) return true;
     return getCategoriesForAge(type, age).length > 0;
   });

@@ -183,8 +183,8 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
   // ─── Core point processing ─────────────────────────────────────────────────
 
   const processPoint = useCallback(
-    async (flow: PointFlow) => {
-      if (!engineRef.current || !match || isProcessingRef.current) return;
+    async (flow: PointFlow): Promise<string | undefined> => {
+      if (!engineRef.current || !match || isProcessingRef.current) return undefined;
       
       isProcessingRef.current = true;
       
@@ -192,7 +192,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         const state = engineRef.current.getState();
         if (state.isFinished) {
           isProcessingRef.current = false;
-          return;
+          return undefined;
         }
         
         engineRef.current.applyPoint(flow);
@@ -223,6 +223,8 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
                 prev ? { ...prev, version: result.serverResponse!.version } : prev,
               );
             }
+
+            return result.serverResponse.pointLogId;
           } else if (result.needsResync) {
             await fetchMatch(true);
           }
@@ -231,9 +233,11 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         }
 
         if (newState.isFinished) setShowFinishedBanner(true);
+        return undefined;
       } catch (err) {
         logger.error("[processPoint]", err);
         setError("Erro ao registrar ponto");
+        return undefined;
       } finally {
         isProcessingRef.current = false;
       }
@@ -524,7 +528,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
   // ─── Point details ─────────────────────────────────────────────────────────
 
   const handlePointDetailsConfirm = useCallback(
-    (details: RallyDetails) => {
+    (details: RallyDetails, audio?: { blob: Blob; durationMs: number }) => {
       const winnerSide = modalParamsRef.current.winner as "player1" | "player2";
       const rallyLengthFromModal = modalParamsRef.current.rallyLength;
       if (!match || !winnerSide || isProcessingRef.current) return;
@@ -556,6 +560,10 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         timestamp: Date.now(),
         rallyDetails: details,
         rallyLength: rallyLengthToUse,
+      }).then((pointLogId) => {
+        if (audio && pointLogId) {
+          uploadAudioNote(match.id, pointLogId, audio.blob, audio.durationMs, tokenRef.current);
+        }
       });
     },
     [
@@ -566,12 +574,34 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       closeAll,
       modalParamsRef,
       isProcessingRef,
+      tokenRef,
     ],
   );
 
   // ─── Session lifecycle ─────────────────────────────────────────────────────
 
   // abandonCurrentSession lives in useSessionManager
+
+  // ─── Audio note upload ────────────────────────────────────────────────────
+
+  const uploadAudioNote = useCallback(
+    async (matchId: string, pointLogId: string, blob: Blob, durationMs: number, token: string | null) => {
+      try {
+        const formData = new FormData();
+        formData.append('file', blob);
+        formData.append('durationMs', String(durationMs));
+
+        await fetch(`/api/matches/${matchId}/point/${pointLogId}/audio`, {
+          method: 'POST',
+          headers: { authorization: `Bearer ${token}` },
+          body: formData,
+        });
+      } catch (err) {
+        logger.error("[uploadAudioNote]", err);
+      }
+    },
+    [],
+  );
 
   return {
     persistState,

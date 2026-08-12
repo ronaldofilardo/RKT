@@ -73,6 +73,7 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     setSyncStatus,
     syncPendingMatches,
     toast,
+    fetchPointLogAudioMeta,
   } = state;
 
   useEffect(() => {
@@ -190,6 +191,12 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
   useEffect(() => {
     fetchMatch();
   }, [fetchMatch]);
+
+  useEffect(() => {
+    if (state.viewMode === 'timeline' && match) {
+      fetchPointLogAudioMeta();
+    }
+  }, [state.viewMode, match, fetchPointLogAudioMeta]);
 
   useEffect(() => {
     if (isOnline) {

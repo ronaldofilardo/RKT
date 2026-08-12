@@ -14,9 +14,10 @@ interface MatchTimelineViewProps {
   points: TimelinePoint[];
   player1Name: string;
   player2Name: string;
+  matchId: string;
 }
 
-export function MatchTimelineView({ points, player1Name, player2Name }: MatchTimelineViewProps) {
+export function MatchTimelineView({ points, player1Name, player2Name, matchId }: MatchTimelineViewProps) {
   const [activeFilters, setActiveFilters] = useState<Set<FilterKey>>(new Set());
 
   const toggleFilter = (key: FilterKey) => {
@@ -138,6 +139,7 @@ export function MatchTimelineView({ points, player1Name, player2Name }: MatchTim
                   player1Name={player1Name}
                   player2Name={player2Name}
                   isLast={gi === groupedBySet.length - 1}
+                  matchId={matchId}
                 />
               ))}
             </tbody>

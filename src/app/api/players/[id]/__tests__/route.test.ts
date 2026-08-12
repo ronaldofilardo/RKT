@@ -3,14 +3,18 @@ import { NextRequest } from 'next/server';
 jest.mock('@/services/playerService', () => ({
   getPlayerById: jest.fn(),
   updatePlayer: jest.fn(),
+  deletePlayer: jest.fn(),
+  countPlayerActiveMatches: jest.fn(),
 }));
 
-import { GET, PUT } from '@/app/api/players/[id]/route';
-import { getPlayerById, updatePlayer } from '@/services/playerService';
+import { GET, PUT, DELETE } from '@/app/api/players/[id]/route';
+import { getPlayerById, updatePlayer, deletePlayer, countPlayerActiveMatches } from '@/services/playerService';
 import { makeAuthHeadersSync } from '@/test-helpers/auth';
 
 const mockGetPlayer = getPlayerById as jest.MockedFunction<typeof getPlayerById>;
 const mockUpdatePlayer = updatePlayer as jest.MockedFunction<typeof updatePlayer>;
+const mockDeletePlayer = deletePlayer as jest.MockedFunction<typeof deletePlayer>;
+const mockCountPlayerActiveMatches = countPlayerActiveMatches as jest.MockedFunction<typeof countPlayerActiveMatches>;
 
 const PLAYER_ID = 'player-123';
 
@@ -29,6 +33,13 @@ function putReq(body: unknown, headers: Record<string, string> = {}) {
     method: 'PUT',
     body: JSON.stringify(body),
     headers: { 'Content-Type': 'application/json', ...ATHLETE, ...headers },
+  });
+}
+
+function deleteReq(headers: Record<string, string> = {}) {
+  return new NextRequest(`http://localhost:3000/api/players/${PLAYER_ID}`, {
+    method: 'DELETE',
+    headers: { ...ATHLETE, ...headers },
   });
 }
 
@@ -214,6 +225,18 @@ describe('PUT /api/players/[id]', () => {
     expect(res.status).toBe(400);
   });
 
+  it('deve aceitar rankings vazio {} para limpar rankings do atleta', async () => {
+    const res = await PUT(putReq({ rankings: {} }), {
+      params: Promise.resolve({ id: PLAYER_ID }),
+    });
+
+    expect(res.status).toBe(200);
+    expect(mockUpdatePlayer).toHaveBeenCalledWith(
+      PLAYER_ID,
+      expect.objectContaining({ rankings: {} }),
+    );
+  });
+
   it('deve retornar 404 quando atleta não existe', async () => {
     mockGetPlayer.mockResolvedValue(null);
     const res = await PUT(putReq({ name: 'João' }), {
@@ -239,5 +262,70 @@ describe('PUT /api/players/[id]', () => {
       params: Promise.resolve({ id: PLAYER_ID }),
     });
     expect(res.status).toBe(200);
+  });
+});
+
+describe('DELETE /api/players/[id]', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetPlayer.mockResolvedValue({ id: PLAYER_ID, name: 'João' } as any);
+    mockCountPlayerActiveMatches.mockResolvedValue([]);
+    mockDeletePlayer.mockResolvedValue({ id: PLAYER_ID, name: 'João' } as any);
+  });
+
+  it('deve excluir atleta sem partidas ativas', async () => {
+    const res = await DELETE(deleteReq(), {
+      params: Promise.resolve({ id: PLAYER_ID }),
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.deleted).toBe(true);
+    expect(mockDeletePlayer).toHaveBeenCalledWith(PLAYER_ID);
+  });
+
+  it('deve retornar 404 quando atleta não existe', async () => {
+    mockGetPlayer.mockResolvedValue(null);
+
+    const res = await DELETE(deleteReq(), {
+      params: Promise.resolve({ id: 'missing' }),
+    });
+
+    expect(res.status).toBe(404);
+    expect(mockDeletePlayer).not.toHaveBeenCalled();
+  });
+
+  it('deve retornar 409 e não excluir quando há partidas em andamento', async () => {
+    mockCountPlayerActiveMatches.mockResolvedValue([{ state: 'IN_PROGRESS', count: 2 }]);
+
+    const res = await DELETE(deleteReq(), {
+      params: Promise.resolve({ id: PLAYER_ID }),
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(409);
+    expect(body.error).toBe('PLAYER_HAS_MATCHES');
+    expect(mockDeletePlayer).not.toHaveBeenCalled();
+  });
+
+  it('deve retornar 409 quando há partidas finalizadas', async () => {
+    mockCountPlayerActiveMatches.mockResolvedValue([{ state: 'FINISHED', count: 1 }]);
+
+    const res = await DELETE(deleteReq(), {
+      params: Promise.resolve({ id: PLAYER_ID }),
+    });
+
+    expect(res.status).toBe(409);
+    expect(mockDeletePlayer).not.toHaveBeenCalled();
+  });
+
+  it('deve retornar 500 em erro inesperado', async () => {
+    mockDeletePlayer.mockRejectedValue(new Error('db down'));
+
+    const res = await DELETE(deleteReq(), {
+      params: Promise.resolve({ id: PLAYER_ID }),
+    });
+
+    expect(res.status).toBe(500);
   });
 });

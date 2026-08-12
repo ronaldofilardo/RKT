@@ -5,6 +5,10 @@ jest.mock('@/lib/prisma', () => ({
       findUnique: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      delete: jest.fn(),
+    },
+    match: {
+      groupBy: jest.fn(),
     },
   },
 }));
@@ -70,6 +74,24 @@ describe('playerService', () => {
   });
 
   describe('createPlayer - birthDate', () => {
+    it('deve calcular idade a partir de birthDate quando age não é fornecido', async () => {
+      const { createPlayer } = await import('@/services/playerService');
+
+      const birthDate = new Date(`${new Date().getFullYear() - 25}-03-15`);
+      mockPrisma.player.create.mockResolvedValue({
+        id: 'p1',
+        name: 'Novo',
+        age: 25,
+        birthDate,
+      });
+
+      const result = await createPlayer({ name: 'Novo', birthDate });
+
+      const callArgs = mockPrisma.player.create.mock.calls[0][0];
+      expect(callArgs.data.age).toBe(new Date().getFullYear() - birthDate.getFullYear());
+      expect(result.birthDate).toEqual(birthDate);
+    });
+
     it('deve criar jogador com birthDate', async () => {
       const { createPlayer } = await import('@/services/playerService');
 
@@ -378,6 +400,49 @@ describe('playerService', () => {
 
       const callArgs = mockPrisma.player.update.mock.calls[0][0];
       expect(callArgs.data.birthDate).toEqual(birthDate);
+    });
+  });
+
+  describe('countPlayerActiveMatches', () => {
+    it('deve agrupar partidas ativas por estado', async () => {
+      const { countPlayerActiveMatches } = await import('@/services/playerService');
+
+      mockPrisma.match.groupBy.mockResolvedValue([
+        { state: 'IN_PROGRESS', _count: { _all: 2 } },
+        { state: 'FINISHED', _count: { _all: 1 } },
+      ]);
+
+      const result = await countPlayerActiveMatches('p1');
+
+      expect(mockPrisma.match.groupBy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          by: ['state'],
+          where: {
+            deletedAt: null,
+            OR: [{ player1Id: 'p1' }, { player2Id: 'p1' }],
+          },
+        }),
+      );
+      expect(result).toEqual([
+        { state: 'IN_PROGRESS', count: 2 },
+        { state: 'FINISHED', count: 1 },
+      ]);
+    });
+  });
+
+  describe('deletePlayer', () => {
+    it('deve excluir jogador pelo id', async () => {
+      const { deletePlayer } = await import('@/services/playerService');
+
+      mockPrisma.player.delete.mockResolvedValue({ id: 'p1', name: 'Fulano' });
+
+      const result = await deletePlayer('p1');
+
+      expect(mockPrisma.player.delete).toHaveBeenCalledWith({
+        where: { id: 'p1' },
+        select: { id: true, name: true },
+      });
+      expect(result.name).toBe('Fulano');
     });
   });
 });

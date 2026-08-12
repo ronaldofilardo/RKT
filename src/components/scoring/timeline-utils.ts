@@ -274,3 +274,28 @@ function safeEnumValidate<T extends z.ZodTypeAny>(
 export function isValidRallyDetails(data: unknown): data is z.infer<typeof RallyDetailsSchema> {
   return RallyDetailsSchema.safeParse(data).success;
 }
+
+export interface PointLogAudioMeta {
+  pointLogId: string;
+  hasAudioNote: boolean;
+  audioNoteDuration: number | null;
+}
+
+export function enrichTimelineWithAudio(
+  points: TimelinePoint[],
+  pointLogs: PointLogAudioMeta[],
+): TimelinePoint[] {
+  const audioMap = new Map(pointLogs.map(pl => [pl.pointLogId, pl]));
+  return points.map((p, i) => {
+    const meta = pointLogs[i];
+    if (meta && audioMap.has(meta.pointLogId)) {
+      return {
+        ...p,
+        pointId: meta.pointLogId,
+        hasAudioNote: meta.hasAudioNote,
+        audioNoteDuration: meta.audioNoteDuration ?? undefined,
+      };
+    }
+    return p;
+  });
+}

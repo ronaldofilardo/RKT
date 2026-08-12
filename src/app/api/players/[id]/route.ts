@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { withRLSHandler } from '@/lib/auth';
-import { getPlayerById, updatePlayer } from '@/services/playerService';
+import { getPlayerById, updatePlayer, deletePlayer, countPlayerActiveMatches } from '@/services/playerService';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withRLSHandler(request, 'SPECTATOR', async () => {
@@ -62,7 +62,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         if (typeof rankings !== 'object' || Array.isArray(rankings)) {
           return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Rankings must be an object' }, { status: 400 });
         }
-        const validRankingTypes = ['ESTADUAL', 'CBT', 'COSAT', 'ITF', 'ATP', 'WTA'];
+        const validRankingTypes = ['ESTADUAL', 'CBT', 'COSAT', 'ITF', 'ITF_Juniors', 'ATP', 'WTA'];
         for (const [key, value] of Object.entries(rankings)) {
           if (!validRankingTypes.includes(key)) {
             return NextResponse.json({ error: 'VALIDATION_ERROR', message: `Invalid ranking type: ${key}` }, { status: 400 });
@@ -90,6 +90,38 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json(updated);
     } catch (error) {
       logger.error('[PLAYERS PUT]', error);
+      return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });
+    }
+  });
+}
+
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  return withRLSHandler(request, 'ATHLETE', async () => {
+    try {
+      const { id } = await params;
+
+      const existing = await getPlayerById(id);
+      if (!existing) {
+        return NextResponse.json({ error: 'NOT_FOUND', message: 'Atleta não encontrado' }, { status: 404 });
+      }
+
+      const matches = await countPlayerActiveMatches(id);
+      const blocking = matches.filter((m) => m.count > 0);
+      if (blocking.length > 0) {
+        return NextResponse.json(
+          {
+            error: 'PLAYER_HAS_MATCHES',
+            message: 'Atleta possui partidas agendadas, em andamento ou finalizadas. Exclua ou encerre essas partidas antes de excluir o atleta.',
+            matches,
+          },
+          { status: 409 }
+        );
+      }
+
+      const deleted = await deletePlayer(id);
+      return NextResponse.json({ id: deleted.id, deleted: true });
+    } catch (error) {
+      logger.error('[PLAYERS DELETE]', error);
       return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });
     }
   });

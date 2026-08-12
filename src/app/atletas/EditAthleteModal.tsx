@@ -13,6 +13,7 @@ interface RankingEntry {
   category?: string;
   class?: string;
   position: number;
+  juvenilePosition?: number;
 }
 
 interface RankingState {
@@ -20,6 +21,7 @@ interface RankingState {
   category: string;
   class: string;
   position: string;
+  juvenilePosition: string;
 }
 
 interface EditAthleteModalProps {
@@ -46,7 +48,7 @@ interface EditAthleteModalProps {
 }
 
 function createEmptyRankingState(): RankingState {
-  return { enabled: false, category: '', class: '', position: '' };
+  return { enabled: false, category: '', class: '', position: '', juvenilePosition: '' };
 }
 
 function athleteToRankingsState(rankings: Record<string, RankingEntry> | null | undefined): Record<RankingType, RankingState> {
@@ -55,6 +57,7 @@ function athleteToRankingsState(rankings: Record<string, RankingEntry> | null | 
     CBT: createEmptyRankingState(),
     COSAT: createEmptyRankingState(),
     ITF: createEmptyRankingState(),
+    ITF_Juniors: createEmptyRankingState(),
     ATP: createEmptyRankingState(),
     WTA: createEmptyRankingState(),
   };
@@ -66,23 +69,25 @@ function athleteToRankingsState(rankings: Record<string, RankingEntry> | null | 
         category: entry.category || '',
         class: entry.class || '',
         position: String(entry.position || ''),
+        juvenilePosition: entry.juvenilePosition ? String(entry.juvenilePosition) : '',
       };
     }
   }
   return state;
 }
 
-function rankingsStateToPayload(state: Record<RankingType, RankingState>): Record<string, RankingEntry> | undefined {
+function rankingsStateToPayload(state: Record<RankingType, RankingState>): Record<string, RankingEntry> {
   const payload: Record<string, RankingEntry> = {};
   for (const [type, s] of Object.entries(state) as [RankingType, RankingState][]) {
     if (s.enabled && s.position) {
       const entry: RankingEntry = { position: parseInt(s.position) };
       if (s.category) entry.category = s.category;
       if (s.class) entry.class = s.class;
+      if (s.juvenilePosition) entry.juvenilePosition = parseInt(s.juvenilePosition);
       payload[type] = entry;
     }
   }
-  return Object.keys(payload).length > 0 ? payload : undefined;
+  return payload;
 }
 
 export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthleteModalProps) {
@@ -100,6 +105,7 @@ export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthle
     CBT: createEmptyRankingState(),
     COSAT: createEmptyRankingState(),
     ITF: createEmptyRankingState(),
+    ITF_Juniors: createEmptyRankingState(),
     ATP: createEmptyRankingState(),
     WTA: createEmptyRankingState(),
   });
@@ -141,14 +147,17 @@ export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthle
   const handleRankingToggle = (type: RankingType) => {
     setRankings((prev) => ({
       ...prev,
-      [type]: { ...prev[type], enabled: !prev[type].enabled, category: '', class: '', position: '' },
+      [type]: { ...prev[type], enabled: !prev[type].enabled, category: '', class: '', position: '', juvenilePosition: '' },
     }));
   };
 
   const handleRankingFieldChange = (type: RankingType, field: keyof RankingState, value: string) => {
     setRankings((prev) => {
       const updated = { ...prev[type], [field]: value };
-      if (field === 'category') updated.class = '';
+      if (field === 'category') {
+        updated.class = '';
+        updated.juvenilePosition = '';
+      }
       return { ...prev, [type]: updated };
     });
   };

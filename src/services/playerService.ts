@@ -65,13 +65,14 @@ export async function createPlayer(data: {
   rankings?: Rankings;
   createdByUserId?: string;
 }) {
+  const age = data.age ?? (data.birthDate ? new Date().getFullYear() - data.birthDate.getFullYear() : undefined);
   return prisma.player.create({
     data: {
       name: data.name,
       email: data.email ?? `temp_${Date.now()}@placeholder.local`,
       passwordHash: data.passwordHash ?? 'PLACEHOLDER',
       gender: data.gender,
-      age: data.age,
+      age,
       birthDate: data.birthDate,
       dominance: data.dominance,
       backhand: data.backhand,
@@ -80,5 +81,24 @@ export async function createPlayer(data: {
       createdByUserId: data.createdByUserId,
     },
     select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true },
+  });
+}
+
+export async function countPlayerActiveMatches(playerId: string) {
+  const groups = await prisma.match.groupBy({
+    by: ['state'],
+    where: {
+      deletedAt: null,
+      OR: [{ player1Id: playerId }, { player2Id: playerId }],
+    },
+    _count: { _all: true },
+  });
+  return groups.map((g) => ({ state: g.state, count: g._count._all }));
+}
+
+export async function deletePlayer(id: string) {
+  return prisma.player.delete({
+    where: { id },
+    select: { id: true, name: true },
   });
 }

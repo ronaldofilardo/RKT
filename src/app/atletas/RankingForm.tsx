@@ -1,12 +1,13 @@
 'use client';
 
-import { RANKING_TYPE_LABELS, RankingType, hasCategories, hasClasses, getCategoriesForAge, getAllowedCategoriesForAge, getAutoCategoryForAge, getClassesForSelection } from '@/app/match/new/rankingConstants';
+import { RANKING_TYPE_LABELS, RankingType, hasCategories, hasClasses, getCategoriesForAge, getAllowedCategoriesForAge, getClassesForSelection, isYouthCategory } from '@/app/match/new/rankingConstants';
 
 interface RankingState {
   enabled: boolean;
   category: string;
   class: string;
   position: string;
+  juvenilePosition: string;
 }
 
 interface RankingFormProps {
@@ -26,6 +27,7 @@ export function RankingForm({ form, rankings, age, saving, onRankingToggle, onRa
     : (Object.keys(rankings) as RankingType[]).filter((type) => {
         if (type === 'ESTADUAL') return true;
         if (type === 'ATP' || type === 'WTA') return age <= 40;
+        if (type === 'ITF_Juniors') return age >= 14;
         if (!hasCategories(type)) return true;
         return getCategoriesForAge(type, age!).length > 0;
       });
@@ -40,8 +42,12 @@ export function RankingForm({ form, rankings, age, saving, onRankingToggle, onRa
       )}
       <div className="space-y-1.5">
         {availableTypes.map((type) => {
-          const showCategory = hasCategories(type) && age !== null && age < 19;
+          const categories = age === null
+            ? []
+            : (type === 'ITF_Juniors' ? ['18'] : getAllowedCategoriesForAge(type, age));
+          const showCategory = hasCategories(type) && age !== null && categories.length > 0;
           const showClasses = hasClasses(type) && rankings[type].enabled && form.gender !== '' && age !== null && age >= 11;
+          const showJuvenilePosition = hasClasses(type) && rankings[type].enabled && isYouthCategory(rankings[type].category);
 
           return (
             <div key={type} className="border border-gray-200 rounded-md px-2.5 py-2">
@@ -82,7 +88,7 @@ export function RankingForm({ form, rankings, age, saving, onRankingToggle, onRa
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-sky-500 bg-white text-gray-900 text-xs"
                       >
                         <option value="">Selecione...</option>
-                        {(type === 'ESTADUAL' ? getAutoCategoryForAge(type, age!) : getAllowedCategoriesForAge(type, age!)).map((cat) => (
+                        {categories.map((cat) => (
                           <option key={cat} value={cat}>{cat} anos</option>
                         ))}
                       </select>
@@ -103,6 +109,21 @@ export function RankingForm({ form, rankings, age, saving, onRankingToggle, onRa
                           <option key={cls} value={cls}>{cls}</option>
                         )) : []}
                       </select>
+                    </div>
+                  )}
+                  {showJuvenilePosition && (
+                    <div>
+                      <label htmlFor={`ranking-${type}-juvenile-position`} className="block text-xs text-gray-500 mb-0.5">Posição Ranking Juvenil</label>
+                      <input
+                        id={`ranking-${type}-juvenile-position`}
+                        type="number"
+                        min="1"
+                        value={rankings[type].juvenilePosition}
+                        onChange={(e) => onRankingFieldChange(type, 'juvenilePosition', e.target.value)}
+                        disabled={saving}
+                        placeholder="Posição no ranking juvenil"
+                        className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-sky-500 bg-white text-gray-900 placeholder-gray-500 text-xs"
+                      />
                     </div>
                   )}
                   <div>

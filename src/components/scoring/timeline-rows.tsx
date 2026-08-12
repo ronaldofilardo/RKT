@@ -1,5 +1,6 @@
 import type { TimelinePoint } from '@/core/scoring/types';
 import { GAME_POINTS } from '@/core/scoring/point-utils';
+import { AudioNotePlayer } from './AudioNotePlayer';
 import {
   situacaoLabel,
   golpeLabel,
@@ -16,6 +17,7 @@ interface PointRowProps {
   point: TimelinePoint;
   hasGap: boolean;
   isLast: boolean;
+  matchId: string;
 }
 
 const BADGE_COLORS = {
@@ -36,7 +38,7 @@ function getPointBadge(p: TimelinePoint): { label: string; color: 'green' | 'red
   return getPointDetailSummary(p.rallyDetails);
 }
 
-export function PointRow({ point: p, hasGap, isLast: _isLast }: PointRowProps) {
+export function PointRow({ point: p, hasGap, isLast: _isLast, matchId }: PointRowProps) {
   const rd = p.rallyDetails;
   const badge = getPointBadge(p);
   const isServeFinish = p.type === 'ACE' || p.type === 'DOUBLE_FAULT';
@@ -107,11 +109,21 @@ export function PointRow({ point: p, hasGap, isLast: _isLast }: PointRowProps) {
       <td className="px-1.5 py-1.5 text-[10px] text-gray-500">{p.rallyLength || (isServeFinish ? 1 : 1)}</td>
       {/* OBS */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
-        {p.note ? (
-          <span className="inline-block max-w-[120px] truncate" title={p.note}>
-            📝 {p.note}
-          </span>
-        ) : '–'}
+        <div className="flex items-center gap-1">
+          {p.note ? (
+            <span className="inline-block max-w-[120px] truncate" title={p.note}>
+              📝 {p.note}
+            </span>
+          ) : null}
+          {p.hasAudioNote && p.pointId ? (
+            <AudioNotePlayer
+              matchId={matchId}
+              pointId={p.pointId}
+              durationMs={p.audioNoteDuration}
+            />
+          ) : null}
+          {!p.note && !p.hasAudioNote ? '–' : null}
+        </div>
       </td>
     </>
   );
@@ -166,9 +178,10 @@ interface SetGroupProps {
   player1Name: string;
   player2Name: string;
   isLast: boolean;
+  matchId: string;
 }
 
-export function SetGroup({ setNumber, points, hasActiveFilters, player1Name, player2Name, isLast }: SetGroupProps) {
+export function SetGroup({ setNumber, points, hasActiveFilters, player1Name, player2Name, isLast, matchId }: SetGroupProps) {
   const firstPoint = points[0];
   const server = firstPoint?.server === 'player1' ? player1Name : player2Name;
   const receiver = firstPoint?.server === 'player1' ? player2Name : player1Name;
@@ -193,6 +206,7 @@ export function SetGroup({ setNumber, points, hasActiveFilters, player1Name, pla
             point={p}
             hasGap={!!hasGap}
             isLast={isLast && i === points.length - 1}
+            matchId={matchId}
           />
         );
       })}

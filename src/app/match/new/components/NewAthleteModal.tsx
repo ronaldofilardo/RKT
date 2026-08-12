@@ -12,6 +12,8 @@ import {
   getAllowedCategoriesForAge,
   getAutoCategoryForAge,
   getClassesForSelection,
+  getCosatCategoryAge,
+  isYouthCategory,
 } from '../rankingConstants';
 import { useAge } from '../hooks/useAge';
 
@@ -26,10 +28,11 @@ interface RankingState {
   category: string;
   class: string;
   position: string;
+  juvenilePosition: string;
 }
 
 function createEmptyRankingState(): RankingState {
-  return { enabled: false, category: '', class: '', position: '' };
+  return { enabled: false, category: '', class: '', position: '', juvenilePosition: '' };
 }
 
 export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalProps) {
@@ -69,16 +72,27 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
     CBT: createEmptyRankingState(),
     COSAT: createEmptyRankingState(),
     ITF: createEmptyRankingState(),
+    ITF_Juniors: createEmptyRankingState(),
     ATP: createEmptyRankingState(),
     WTA: createEmptyRankingState(),
   });
 
   const age = useAge(form.birthYear, form.birthMonth, form.birthDay);
 
+  const birthYearNum = form.birthYear ? parseInt(form.birthYear, 10) : 0;
+
+  const categoryAgeFor = (type: RankingType): number | null => {
+    if (age === null) return null;
+    if (type === 'COSAT') return getCosatCategoryAge(age, birthYearNum);
+    return age;
+  };
+
   const availableTypes = useMemo(() => {
     if (age === null) return RANKING_TYPES;
     return RANKING_TYPES.filter((type) => {
+      if (type === 'ESTADUAL') return true;
       if (type === 'ATP' || type === 'WTA') return age <= 40;
+      if (type === 'ITF_Juniors') return age >= 14;
       if (!hasCategories(type)) return true;
       return getCategoriesForAge(type, age).length > 0;
     });
@@ -115,6 +129,7 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
         category: '',
         class: '',
         position: '',
+        juvenilePosition: '',
       },
     }));
   };
@@ -124,6 +139,7 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
       const updated = { ...prev[type], [field]: value };
       if (field === 'category') {
         updated.class = '';
+        updated.juvenilePosition = '';
       }
       return { ...prev, [type]: updated };
     });
@@ -139,14 +155,15 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
       const token = sessionStorage.getItem('access_token');
       const userId = sessionStorage.getItem('user_id');
 
-      const rankingsPayload: Record<string, { category?: string; class?: string; position: number }> = {};
+      const rankingsPayload: Record<string, { category?: string; class?: string; position: number; juvenilePosition?: number }> = {};
       for (const [type, state] of Object.entries(rankings) as [RankingType, RankingState][]) {
         if (state.enabled && state.position) {
-          const entry: { category?: string; class?: string; position: number } = {
+          const entry: { category?: string; class?: string; position: number; juvenilePosition?: number } = {
             position: parseInt(state.position),
           };
           if (state.category) entry.category = state.category;
           if (state.class) entry.class = state.class;
+          if (state.juvenilePosition) entry.juvenilePosition = parseInt(state.juvenilePosition);
           rankingsPayload[type] = entry;
         }
       }
@@ -203,6 +220,7 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
         CBT: createEmptyRankingState(),
         COSAT: createEmptyRankingState(),
         ITF: createEmptyRankingState(),
+        ITF_Juniors: createEmptyRankingState(),
         ATP: createEmptyRankingState(),
         WTA: createEmptyRankingState(),
       });
@@ -216,12 +234,14 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
 
   const renderRankingRow = (type: RankingType) => {
     const state = rankings[type];
-    const showCategory = hasCategories(type) && age !== null && age < 19;
-    const showClass = hasClasses(type) && state.enabled && form.gender !== '' && age !== null && age >= 11;
-
-    const categories = age !== null
-      ? (type === 'ESTADUAL' ? getAutoCategoryForAge(type, age) : getAllowedCategoriesForAge(type, age))
+    const categoryAge = categoryAgeFor(type);
+    const categories = categoryAge !== null
+      ? (type === 'ITF_Juniors' ? ['18'] : getAllowedCategoriesForAge(type, categoryAge))
       : [];
+    const showCategory = hasCategories(type) && categories.length > 0;
+    const showClass = hasClasses(type) && state.enabled && form.gender !== '' && age !== null && age >= 11;
+    const showJuvenilePosition = hasClasses(type) && state.enabled && isYouthCategory(state.category);
+
     const classes =
       state.category && form.gender && age !== null
         ? getClassesForSelection(state.category, form.gender, age)
@@ -293,6 +313,22 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
                     </option>
                   ))}
                 </select>
+              </div>
+            )}
+
+            {showJuvenilePosition && (
+              <div>
+                <label htmlFor={`new-ranking-${type}-juvenile-position`} className="block text-xs text-gray-500 mb-1">Posição Ranking Juvenil</label>
+                <input
+                  id={`new-ranking-${type}-juvenile-position`}
+                  type="number"
+                  min="1"
+                  value={state.juvenilePosition}
+                  onChange={(e) => handleRankingFieldChange(type, 'juvenilePosition', e.target.value)}
+                  disabled={submitting}
+                  placeholder="Posição no ranking juvenil"
+                  className="w-full px-3 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-500 text-sm"
+                />
               </div>
             )}
 
@@ -470,7 +506,10 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
                 ) : (
                   <div className="space-y-1.5">
                     {availableTypes.filter(hasCategories).map(type => {
-                      const allowed = type === 'ESTADUAL' ? getAutoCategoryForAge(type, age) : getAllowedCategoriesForAge(type, age);
+                      const catAge = categoryAgeFor(type);
+                      const allowed = catAge !== null
+                        ? (type === 'ITF_Juniors' ? ['18'] : getAllowedCategoriesForAge(type, catAge))
+                        : [];
                       if (allowed.length === 0) return null;
                       return (
                         <div key={type} className="flex items-center text-sm">
@@ -481,7 +520,10 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
                       );
                     })}
                     {availableTypes.filter(hasCategories).every(type => {
-                      const allowed = type === 'ESTADUAL' ? getAutoCategoryForAge(type, age) : getAllowedCategoriesForAge(type, age);
+                      const catAge = categoryAgeFor(type);
+                      const allowed = catAge !== null
+                        ? (type === 'ITF_Juniors' ? ['18'] : getAllowedCategoriesForAge(type, catAge))
+                        : [];
                       return allowed.length === 0;
                     }) && (
                       <p className="text-xs text-sky-700/70 italic">Nenhuma categoria encontrada para {age} anos.</p>

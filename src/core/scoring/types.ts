@@ -108,6 +108,9 @@ export interface TimelinePoint {
   rallyLength: number;
   rallyDetails: ContractRallyDetails | null;
   note?: string;
+  hasAudioNote?: boolean;
+  audioNoteDuration?: number;
+  pointId?: string;
   isTiebreak?: boolean;
   gameIsDeuce?: boolean;
   gameAdvantage?: 'player1' | 'player2' | null;

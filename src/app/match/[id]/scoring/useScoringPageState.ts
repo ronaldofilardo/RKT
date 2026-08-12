@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ScoringEngine } from "@/core/scoring/engine";
 import type { ScoringState, TimelinePoint } from "@/core/scoring/types";
@@ -15,6 +15,7 @@ import type { MatchData } from "@/hooks/useScoringHandlers";
 import type { SuspendedSessionState } from "@/hooks/useSessionManager";
 import type { QueuedAction } from "@/schemas/contracts";
 import { enrichPointsFromHistory } from "@/components/scoring/timeline-utils";
+import { enrichTimelineWithAudio, type PointLogAudioMeta } from "@/components/scoring/timeline-utils";
 
 export interface ScoringPageState {
   matchId: string;
@@ -87,6 +88,7 @@ export interface ScoringPageState {
   toast: (options: { type: import("@/components/Toast").ToastType; message: string }) => void;
   gamePointToDisplay: (p: number) => string;
   timelinePoints: TimelinePoint[];
+  fetchPointLogAudioMeta: () => Promise<void>;
 }
 
 export function useScoringPageState(matchId: string): ScoringPageState {
@@ -140,6 +142,7 @@ export function useScoringPageState(matchId: string): ScoringPageState {
 
   const tokenRef = useRef<string | null>(null);
   const [sessionActive, setSessionActive] = useState(false);
+  const [pointLogAudioMeta, setPointLogAudioMeta] = useState<PointLogAudioMeta[]>([]);
 
   const { activeModal, modalParams, open, close, closeAll } =
     useModalStack({ mode: 'internal' });
@@ -162,12 +165,31 @@ export function useScoringPageState(matchId: string): ScoringPageState {
   };
 
   const timelinePoints: TimelinePoint[] = engineRef.current && match
-    ? enrichPointsFromHistory(
-        engineRef.current.getPointHistory(),
-        match.player1.id,
-        match.player2.id,
+    ? enrichTimelineWithAudio(
+        enrichPointsFromHistory(
+          engineRef.current.getPointHistory(),
+          match.player1.id,
+          match.player2.id,
+        ),
+        pointLogAudioMeta,
       )
     : [];
+
+  const fetchPointLogAudioMeta = useCallback(async () => {
+    if (!match) return;
+    try {
+      const token = tokenRef.current;
+      const res = await fetch(`/api/matches/${matchId}/point-logs-meta`, {
+        headers: token ? { authorization: `Bearer ${token}` } : {},
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPointLogAudioMeta(data.pointLogs ?? []);
+      }
+    } catch {
+      // Silently fail — audio is non-critical
+    }
+  }, [match, matchId]);
 
   return {
     matchId,
@@ -234,5 +256,6 @@ export function useScoringPageState(matchId: string): ScoringPageState {
     toast,
     gamePointToDisplay,
     timelinePoints,
+    fetchPointLogAudioMeta,
   };
 }

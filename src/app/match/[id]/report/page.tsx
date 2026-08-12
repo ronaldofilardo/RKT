@@ -157,6 +157,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
               points={report.timelinePoints}
               player1Name={report.player1.name}
               player2Name={report.player2.name}
+              matchId={report.matchId}
             />
           </div>
         )}

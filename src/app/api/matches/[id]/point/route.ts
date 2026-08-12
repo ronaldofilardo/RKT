@@ -50,7 +50,7 @@ export async function POST(
         );
       }
 
-      const result: { scoreState: ScoringState; version: number } | null = await prisma.$transaction(async (tx) => {
+      const result: { scoreState: ScoringState; version: number; pointLogId: string } | null = await prisma.$transaction(async (tx) => {
         const match = await tx.match.findFirst({
           where: { id },
           include: { player1: true, player2: true },
@@ -167,7 +167,7 @@ export async function POST(
           type: parsed.data.type,
           rallyLength: parsed.data.rallyLength,
         });
-        await tx.pointLog.create({
+        const pointLog = await tx.pointLog.create({
           data: {
             matchId: match.id,
             winnerId: parsed.data.winnerId,
@@ -179,7 +179,7 @@ export async function POST(
 
         logger.point.transactionCompleted();
         logger.point.newStateSets(newState.sets);
-        return { scoreState: newState, version: nextVersion };
+        return { scoreState: newState, version: nextVersion, pointLogId: pointLog.id };
       });
 
       if (result?.scoreState) {
@@ -189,6 +189,7 @@ export async function POST(
       return NextResponse.json({
         scoreState: result?.scoreState,
         version: result?.version,
+        pointLogId: result?.pointLogId,
       });
     } catch (error) {
       if (error instanceof TransactionError) {
