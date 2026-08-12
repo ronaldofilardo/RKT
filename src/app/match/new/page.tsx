@@ -427,28 +427,12 @@ export default function NewMatchPage() {
                   value={category}
                   onChange={(val) => {
                     setCategory(val as 'INFANTIL' | 'JUVENIL' | 'ADULTO' | 'VETERANO' | '');
-                    if (val) setRoundName(val);
+                    setRoundName(val);
                   }}
                   placeholder="Selecione a rodada"
                 />
               </div>
             </div>
-
-            {/* Fase - oculta quando rodada já foi selecionada */}
-            {!category && (
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
-                <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
-                  Fase <span className="text-gray-400 font-normal">(opcional)</span>
-                </h2>
-                <div className="flex-1">
-                  <RoundSelector
-                    value={roundName}
-                    onChange={setRoundName}
-                    placeholder="Fase da partida"
-                  />
-                </div>
-              </div>
-            )}
           </section>
 
           <MatchDetailsSection

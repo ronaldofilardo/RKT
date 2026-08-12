@@ -4,6 +4,14 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { RoundSelector } from '../RoundSelector';
 
+const ALL_OPTIONS = [
+  { value: '1a rodada', label: '1a Rodada' },
+  { value: 'oitavas', label: 'Oitavas' },
+  { value: 'quartas', label: 'Quartas' },
+  { value: 'semifinal', label: 'Semifinal' },
+  { value: 'final', label: 'Final' },
+];
+
 describe('RoundSelector', () => {
   const mockOnChange = jest.fn();
 
@@ -11,118 +19,165 @@ describe('RoundSelector', () => {
     mockOnChange.mockClear();
   });
 
-  it('deve renderizar o dropdown com as opções padrão', () => {
-    render(<RoundSelector value="" onChange={mockOnChange} />);
-    
-    const select = screen.getByRole('combobox');
-    expect(select).toBeInTheDocument();
-    
-    expect(screen.getByText('Selecione a rodada')).toBeInTheDocument();
-    expect(screen.getByText('1a Rodada')).toBeInTheDocument();
-    expect(screen.getByText('Oitavas')).toBeInTheDocument();
-    expect(screen.getByText('Quartas')).toBeInTheDocument();
-    expect(screen.getByText('Semifinal')).toBeInTheDocument();
-    expect(screen.getByText('Final')).toBeInTheDocument();
-    expect(screen.getByText('Outras')).toBeInTheDocument();
+  describe('Renderização', () => {
+    it('deve renderizar um único elemento select (combobox)', () => {
+      render(<RoundSelector value="" onChange={mockOnChange} />);
+
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
+    });
+
+    it('deve renderizar o placeholder padrão quando nenhum placeholder for fornecido', () => {
+      render(<RoundSelector value="" onChange={mockOnChange} />);
+
+      expect(screen.getByText('Selecione a rodada')).toBeInTheDocument();
+    });
+
+    it('deve renderizar o placeholder personalizado quando fornecido', () => {
+      render(<RoundSelector value="" onChange={mockOnChange} placeholder="Fase da partida" />);
+
+      expect(screen.getByText('Fase da partida')).toBeInTheDocument();
+      expect(screen.queryByText('Selecione a rodada')).not.toBeInTheDocument();
+    });
+
+    it('deve renderizar exatamente as 5 opções padrão (sem "Outras")', () => {
+      render(<RoundSelector value="" onChange={mockOnChange} />);
+
+      expect(screen.getByText('1a Rodada')).toBeInTheDocument();
+      expect(screen.getByText('Oitavas')).toBeInTheDocument();
+      expect(screen.getByText('Quartas')).toBeInTheDocument();
+      expect(screen.getByText('Semifinal')).toBeInTheDocument();
+      expect(screen.getByText('Final')).toBeInTheDocument();
+    });
+
+    it('NÃO deve renderizar a opção "Outras"', () => {
+      render(<RoundSelector value="" onChange={mockOnChange} />);
+
+      expect(screen.queryByText('Outras')).not.toBeInTheDocument();
+    });
+
+    it('NÃO deve renderizar o option com value="outras"', () => {
+      render(<RoundSelector value="" onChange={mockOnChange} />);
+
+      const select = screen.getByRole('combobox') as HTMLSelectElement;
+      const values = Array.from(select.options).map((o) => o.value);
+      expect(values).not.toContain('outras');
+    });
+
+    it('total de options = 1 placeholder + 5 opções = 6', () => {
+      render(<RoundSelector value="" onChange={mockOnChange} />);
+
+      const select = screen.getByRole('combobox') as HTMLSelectElement;
+      expect(select.options.length).toBe(6);
+    });
   });
 
-  it('deve chamar onChange com o valor selecionado do dropdown', () => {
-    render(<RoundSelector value="" onChange={mockOnChange} />);
-    
-    const select = screen.getByRole('combobox');
-    fireEvent.change(select, { target: { value: '1a rodada' } });
-    
-    expect(mockOnChange).toHaveBeenCalledWith('1a rodada');
-    expect(mockOnChange).toHaveBeenCalledTimes(1);
+  describe('Controle de valor', () => {
+    it('deve refletir o valor recebido via prop "value"', () => {
+      render(<RoundSelector value="quartas" onChange={mockOnChange} />);
+
+      expect(screen.getByRole('combobox')).toHaveValue('quartas');
+    });
+
+    it('deve refletir string vazia quando value="" (placeholder selecionado)', () => {
+      render(<RoundSelector value="" onChange={mockOnChange} />);
+
+      expect(screen.getByRole('combobox')).toHaveValue('');
+    });
+
+    it('deve atualizar o valor exibido quando a prop "value" mudar', () => {
+      const { rerender } = render(<RoundSelector value="" onChange={mockOnChange} />);
+
+      expect(screen.getByRole('combobox')).toHaveValue('');
+
+      rerender(<RoundSelector value="final" onChange={mockOnChange} />);
+      expect(screen.getByRole('combobox')).toHaveValue('final');
+    });
   });
 
-  it('deve mostrar o campo de texto quando "Outras" for selecionado', () => {
-    render(<RoundSelector value="" onChange={mockOnChange} />);
-    
-    const select = screen.getByRole('combobox');
-    fireEvent.change(select, { target: { value: 'outras' } });
-    
-    expect(mockOnChange).toHaveBeenCalledWith('');
-    
-    const input = screen.getByPlaceholderText('Digite o nome da rodada');
-    expect(input).toBeInTheDocument();
+  describe('onChange', () => {
+    it('deve chamar onChange exatamente uma vez ao selecionar uma opção', () => {
+      render(<RoundSelector value="" onChange={mockOnChange} />);
+
+      const select = screen.getByRole('combobox');
+      fireEvent.change(select, { target: { value: '1a rodada' } });
+
+      expect(mockOnChange).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(ALL_OPTIONS.map((o) => [o.label, o.value]))(
+      'deve chamar onChange com "%s" (value=%s) ao selecionar essa opção',
+      (_label, value) => {
+        render(<RoundSelector value="" onChange={mockOnChange} />);
+
+        fireEvent.change(screen.getByRole('combobox'), { target: { value } });
+
+        expect(mockOnChange).toHaveBeenCalledWith(value);
+      },
+    );
+
+    it('deve chamar onChange com "" ao selecionar o placeholder (voltar para vazio)', () => {
+      render(<RoundSelector value="oitavas" onChange={mockOnChange} />);
+
+      fireEvent.change(screen.getByRole('combobox'), { target: { value: '' } });
+
+      expect(mockOnChange).toHaveBeenCalledWith('');
+      expect(mockOnChange).toHaveBeenCalledTimes(1);
+    });
   });
 
-  it('deve permitir digitar múltiplos caracteres no campo "Outras"', () => {
-    render(<RoundSelector value="outras" onChange={mockOnChange} />);
-    
-    const input = screen.getByPlaceholderText('Digite o nome da rodada');
-    
-    fireEvent.change(input, { target: { value: 'F' } });
-    expect(mockOnChange).toHaveBeenCalledWith('F');
-    
-    fireEvent.change(input, { target: { value: 'Fi' } });
-    expect(mockOnChange).toHaveBeenCalledWith('Fi');
-    
-    fireEvent.change(input, { target: { value: 'Fina' } });
-    expect(mockOnChange).toHaveBeenCalledWith('Fina');
-    
-    fireEvent.change(input, { target: { value: 'Final Regional' } });
-    expect(mockOnChange).toHaveBeenCalledWith('Final Regional');
+  describe('Comportamento legado removido (regressão)', () => {
+    it('NÃO deve renderizar campo de texto (input) para customização', () => {
+      render(<RoundSelector value="" onChange={mockOnChange} />);
+
+      expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    });
+
+    it('NÃO deve renderizar input mesmo quando value for um valor não-padrão', () => {
+      render(<RoundSelector value="Valor Inexistente" onChange={mockOnChange} />);
+
+      expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+      expect(screen.queryByPlaceholderText('Digite o nome da rodada')).not.toBeInTheDocument();
+    });
+
+    it('NÃO deve chamar onChange com "" ao receber um valor fora das opções (não há modo "Outras")', () => {
+      render(<RoundSelector value="" onChange={mockOnChange} />);
+
+      fireEvent.change(screen.getByRole('combobox'), { target: { value: 'final' } });
+
+      expect(mockOnChange).toHaveBeenCalledWith('final');
+      expect(mockOnChange).not.toHaveBeenCalledWith('');
+    });
+
+    it('não deve manter estado interno entre renders (componente sem estado)', () => {
+      const { rerender } = render(<RoundSelector value="oitavas" onChange={mockOnChange} />);
+
+      fireEvent.change(screen.getByRole('combobox'), { target: { value: 'final' } });
+      expect(mockOnChange).toHaveBeenLastCalledWith('final');
+
+      rerender(<RoundSelector value="quartas" onChange={mockOnChange} />);
+      expect(screen.getByRole('combobox')).toHaveValue('quartas');
+    });
   });
 
-  it('deve atualizar o campo de texto quando o valor externo mudar para um valor personalizado', () => {
-    const { rerender } = render(<RoundSelector value="Campeonato Local" onChange={mockOnChange} />);
-    
-    expect(screen.getByRole('combobox')).toHaveValue('outras');
-    expect(screen.getByPlaceholderText('Digite o nome da rodada')).toHaveValue('Campeonato Local');
-    
-    rerender(<RoundSelector value="Novo Valor" onChange={mockOnChange} />);
-    
-    expect(screen.getByPlaceholderText('Digite o nome da rodada')).toHaveValue('Novo Valor');
-  });
+  describe('Acessibilidade / atributos', () => {
+    it('select deve ter classes de estilo esperadas', () => {
+      render(<RoundSelector value="" onChange={mockOnChange} />);
 
-  it('deve esconder o campo de texto ao selecionar uma opção padrão após "Outras"', () => {
-    const { rerender } = render(<RoundSelector value="outras" onChange={mockOnChange} />);
-    
-    expect(screen.getByPlaceholderText('Digite o nome da rodada')).toBeInTheDocument();
-    
-    const select = screen.getByRole('combobox');
-    fireEvent.change(select, { target: { value: 'quartas' } });
-    
-    expect(mockOnChange).toHaveBeenCalledWith('quartas');
-    
-    rerender(<RoundSelector value="quartas" onChange={mockOnChange} />);
-    
-    expect(screen.queryByPlaceholderText('Digite o nome da rodada')).not.toBeInTheDocument();
-  });
+      const select = screen.getByRole('combobox');
+      expect(select).toHaveClass('w-full');
+      expect(select).toHaveClass('border');
+      expect(select).toHaveClass('rounded-lg');
+    });
 
-  it('deve usar o placeholder personalizado quando fornecido', () => {
-    render(<RoundSelector value="" onChange={mockOnChange} placeholder="Custom placeholder" />);
-    
-    const select = screen.getByRole('combobox');
-    fireEvent.change(select, { target: { value: 'outras' } });
-    
-    const input = screen.getByPlaceholderText('Custom placeholder');
-    expect(input).toBeInTheDocument();
-  });
+    it('todos os options devem ter classes de texto escuro', () => {
+      render(<RoundSelector value="" onChange={mockOnChange} />);
 
-  it('deve mostrar o campo de texto quando "Outras" for selecionado (sem foco automático)', () => {
-    render(<RoundSelector value="" onChange={mockOnChange} />);
-    
-    const select = screen.getByRole('combobox');
-    fireEvent.change(select, { target: { value: 'outras' } });
-    
-    expect(mockOnChange).toHaveBeenCalledWith('');
-    
-    const input = screen.getByPlaceholderText('Digite o nome da rodada');
-    expect(input).toBeInTheDocument();
-    expect(document.activeElement).not.toBe(input);
-  });
-
-  it('deve limpar o input interno ao mudar de "Outras" para opção padrão', () => {
-    render(<RoundSelector value="Texto Personalizado" onChange={mockOnChange} />);
-    
-    expect(screen.getByPlaceholderText('Digite o nome da rodada')).toHaveValue('Texto Personalizado');
-    
-    const select = screen.getByRole('combobox');
-    fireEvent.change(select, { target: { value: 'semifinal' } });
-    
-    expect(mockOnChange).toHaveBeenCalledWith('semifinal');
+      const select = screen.getByRole('combobox') as HTMLSelectElement;
+      const textOptions = Array.from(select.options).filter((o) => o.textContent !== '');
+      expect(textOptions.length).toBeGreaterThan(0);
+      textOptions.forEach((opt) => {
+        expect(opt).toHaveClass('text-gray-900');
+      });
+    });
   });
 });

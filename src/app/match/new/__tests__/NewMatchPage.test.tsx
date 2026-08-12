@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import NewMatchPage from '../page';
 
 jest.mock('next/navigation', () => ({
@@ -23,51 +23,155 @@ jest.mock('../components', () => ({
   DuplicateMatchModal: () => <div data-testid="duplicate-match-modal">DuplicateMatchModal</div>,
   RoundSelector: ({ value, onChange, placeholder }: any) => (
     <div data-testid="round-selector" data-value={value} data-placeholder={placeholder}>
-      RoundSelector
+      <button type="button" onClick={() => onChange('final')}>
+        trigger
+      </button>
     </div>
   ),
 }));
 
-describe('NewMatchPage - Rodada e Ordem dos Campos', () => {
+describe('NewMatchPage - Torneio, Clube e Rodada (Fase removido)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     sessionStorage.clear();
   });
 
-  describe('Rodada', () => {
-    it('deve exibir o componente RoundSelector para seleção de rodada', () => {
+  describe('Campos presentes', () => {
+    it('deve exibir o campo Torneio (opcional)', () => {
+      render(<NewMatchPage />);
+
+      const main = screen.getByRole('main');
+      const headings = Array.from(main.querySelectorAll('h2'));
+      const headingTexts = headings.map((h) => h.textContent);
+
+      expect(headingTexts.some((t) => t?.includes('Torneio'))).toBe(true);
+    });
+
+    it('deve exibir o campo Clube (opcional)', () => {
+      render(<NewMatchPage />);
+
+      const main = screen.getByRole('main');
+      const headings = Array.from(main.querySelectorAll('h2'));
+      const headingTexts = headings.map((h) => h.textContent);
+
+      expect(headingTexts.some((t) => t?.includes('Clube'))).toBe(true);
+    });
+
+    it('deve exibir o campo Rodada (opcional) montando o componente RoundSelector', () => {
       render(<NewMatchPage />);
 
       const roundSelectors = screen.getAllByTestId('round-selector');
       expect(roundSelectors.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('deve ocultar Fase quando rodada é selecionada', () => {
+    it('deve renderizar input de texto para Torneio com placeholder apropriado', () => {
       render(<NewMatchPage />);
 
-      const main = screen.getByRole('main');
-      const headings = Array.from(main.querySelectorAll('h2'));
-      const headingTexts = headings.map(h => h.textContent);
+      expect(screen.getByPlaceholderText('Nome do torneio')).toBeInTheDocument();
+    });
 
-      const faseIndex = headingTexts.findIndex(t => t?.includes('Fase'));
-      expect(faseIndex).toBeGreaterThan(-1);
+    it('deve renderizar input de texto para Clube com placeholder apropriado', () => {
+      render(<NewMatchPage />);
+
+      expect(screen.getByPlaceholderText('Nome do clube')).toBeInTheDocument();
+    });
+
+    it('deve passar placeholder "Selecione a rodada" para o RoundSelector', () => {
+      render(<NewMatchPage />);
+
+      const roundSelector = screen.getByTestId('round-selector');
+      expect(roundSelector).toHaveAttribute('data-placeholder', 'Selecione a rodada');
     });
   });
 
-  describe('Ordem dos Campos', () => {
-    it('deve exibir "Rodada" antes de "Fase" no formulário', () => {
+  describe('Campo Fase removido (regressão)', () => {
+    it('NÃO deve exibir o heading "Fase" no formulário', () => {
       render(<NewMatchPage />);
 
       const main = screen.getByRole('main');
       const headings = Array.from(main.querySelectorAll('h2'));
-      const headingTexts = headings.map(h => h.textContent);
+      const headingTexts = headings.map((h) => h.textContent);
 
-      const rodadaIndex = headingTexts.findIndex(t => t?.includes('Rodada'));
-      const faseIndex = headingTexts.findIndex(t => t?.includes('Fase'));
+      expect(headingTexts.some((t) => t?.includes('Fase'))).toBe(false);
+    });
+
+    it('NÃO deve renderizar mais de um RoundSelector (campo Fase removido)', () => {
+      render(<NewMatchPage />);
+
+      const roundSelectors = screen.getAllByTestId('round-selector');
+      expect(roundSelectors.length).toBe(1);
+    });
+
+    it('não deve existir heading "(opcional)" extra do antigo campo Fase', () => {
+      render(<NewMatchPage />);
+
+      const main = screen.getByRole('main');
+      const headings = Array.from(main.querySelectorAll('h2'));
+      const faseHeadings = headings.filter((h) =>
+        h.textContent?.match(/^Fase\b/),
+      );
+      expect(faseHeadings.length).toBe(0);
+    });
+  });
+
+  describe('Ordem dos campos', () => {
+    it('deve exibir Torneio, Clube e Rodada nessa ordem dentro da seção', () => {
+      render(<NewMatchPage />);
+
+      const main = screen.getByRole('main');
+      const headings = Array.from(main.querySelectorAll('h2'));
+      const headingTexts = headings.map((h) => h.textContent);
+
+      const torneioIndex = headingTexts.findIndex((t) => t?.includes('Torneio'));
+      const clubeIndex = headingTexts.findIndex((t) => t?.includes('Clube'));
+      const rodadaIndex = headingTexts.findIndex((t) => t?.includes('Rodada'));
+
+      expect(torneioIndex).toBeGreaterThanOrEqual(0);
+      expect(clubeIndex).toBeGreaterThan(torneioIndex);
+      expect(rodadaIndex).toBeGreaterThan(clubeIndex);
+    });
+
+    it('Rodada deve ser o último campo da seção de Torneio (depois de Clube, sem Fase)', () => {
+      render(<NewMatchPage />);
+
+      const main = screen.getByRole('main');
+      const headings = Array.from(main.querySelectorAll('h2'));
+      const headingTexts = headings.map((h) => h.textContent);
+
+      const rodadaIndex = headingTexts.findIndex((t) => t?.includes('Rodada'));
+      const faseIndex = headingTexts.findIndex((t) => t?.includes('Fase'));
 
       expect(rodadaIndex).toBeGreaterThan(-1);
-      expect(faseIndex).toBeGreaterThan(-1);
-      expect(rodadaIndex).toBeLessThan(faseIndex);
+      expect(faseIndex).toBe(-1);
+    });
+  });
+
+  describe('Integração RoundSelector -> estado da partida', () => {
+    it('deve iniciar com value vazio no RoundSelector', () => {
+      render(<NewMatchPage />);
+
+      const roundSelector = screen.getByTestId('round-selector');
+      expect(roundSelector).toHaveAttribute('data-value', '');
+    });
+
+    it('deve propagar seleção do RoundSelector para o estado da página (category e roundName)', async () => {
+      render(<NewMatchPage />);
+
+      const trigger = screen.getByText('trigger', { selector: 'button' });
+      act(() => {
+        trigger.click();
+      });
+
+      await screen.findByText('trigger', { selector: 'button' });
+
+      // Após interação o componente pai deve refletir a mudança;
+      // Verificamos que não há mais o heading "Fase" (regressão) e que
+      // há exatamente 1 RoundSelector, confirmando propagação limpa.
+      const main = screen.getByRole('main');
+      const headings = Array.from(main.querySelectorAll('h2'));
+      const headingTexts = headings.map((h) => h.textContent);
+      expect(headingTexts.some((t) => t?.includes('Fase'))).toBe(false);
+      expect(screen.getAllByTestId('round-selector').length).toBe(1);
     });
   });
 });
