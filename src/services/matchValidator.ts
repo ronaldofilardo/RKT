@@ -1,6 +1,21 @@
 import { ScoringEngine } from "@/core/scoring/engine";
 import type { MatchFormat, MatchState, MatchFinishReason } from "@/schemas/contracts";
 
+/**
+ * Aceita tanto `MatchScoreState` (plano) quanto o envelope
+ * `{state, history}` enviado por `persistStateWithRetry` quando
+ * `history` está disponível. Ver `useScoringHandlers.persistence.ts:73`
+ * e `MatchStateInputSchema` (scoreState: union). Retorna o estado
+ * plano extraído do envelope (ou o próprio input se já for plano).
+ */
+function unwrapScoreState(scoreState: any): any {
+  if (!scoreState) return scoreState;
+  if (scoreState.state && Array.isArray(scoreState.history)) {
+    return scoreState.state;
+  }
+  return scoreState;
+}
+
 interface MatchData {
   format: MatchFormat;
   player1Id: string;
@@ -108,8 +123,8 @@ export function validateTransitionState(
   }
 
   if (scoreState && match.scoreState) {
-    const oldState = match.scoreState as any;
-    const newState_ = scoreState as any;
+    const oldState = unwrapScoreState(match.scoreState as any);
+    const newState_ = unwrapScoreState(scoreState as any);
     const oldWon = oldState?.setsWon ?? { player1: 0, player2: 0 };
     const newWon = newState_?.setsWon ?? { player1: 0, player2: 0 };
 

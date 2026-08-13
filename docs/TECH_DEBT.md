@@ -969,3 +969,39 @@ A configuração é setada em `src/lib/prisma.ts` no hook `$use` do Prisma, ante
   - src/components/scoring/__tests__/ScoreboardCard.test.tsx (3 cenarios)
   - src/hooks/__tests__/useSessionManager.state-builder.test.ts (5 cenarios)
 - **Status:** Correcao primaria FEITA. Melhorias pendentes (3)+(4) acima sao opcionais e de baixa prioridade.
+
+---
+
+## [TD-035] Ausencia de migration_lock.toml e guard de deploy para Prisma migrations
+
+- **Origem:** Bug pos-push commit e8a8f17 (2026-08-13) - colunas `PointLog.audioNote/audioNoteMime/audioNoteDuration` existiam no `schema.prisma` mas nunca tiveram migration gerada; em DEV funcionava via `prisma db push`, mas em PROD a ausencia causou `P2022 ("column PointLog.audioNote does not exist")` na rota `POST /api/matches/[id]/point`. Adicionalmente, a pasta `prisma/migrations/` nao continha `migration_lock.toml` (exigencia do `prisma migrate diff`), sugerindo historico de uso misto `db push` + migrate.
+- **Impacto:** Alto (bug de producao que tirou o scoring on-line)
+- **Esforco:** M
+- **Risco se ignorado:** Qualquer mudanca em `schema.prisma` pode ir para PROD sem a migration correspondente (DEV mascara o drift via `db push`), gerando P2022/P2021 em producao. O bug so e descoberto em runtime pos-deploy.
+- **Proposta:**
+  1. **FEITO (2026-08-13):** Adicionado `prisma/migrations/migration_lock.toml` (provider=postgresql) para habilitar `prisma migrate diff` e `prisma migrate deploy`.
+  2. **FEITO (2026-08-13):** Criada migration `20260813_add_pointlog_audio_note/migration.sql` com as 3 colunas ausentes.
+  3. **PENDENTE:** Adicionar guard no pipeline de CI (`pnpm spec:validate` ou step separado) rodando `prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --exit-code` com shadow DB (requer service Postgres temporario no CI). Falha se diferenca > 0, bloqueando merge de commit que altere `schema.prisma` sem a migration correspondente.
+  4. **PENDENTE:** Documentar no README/AGENTS.md que DEV deve usar `pnpm db:migrate` (nao `pnpm db:push`) para evitar drift. Reservar `db:push` apenas para seed/reset rapido em ambiente efemero.
+  5. **PENDENTE:** Considerar ADR formalizando "toda mudanca de schema DEVE vir acompanhada de migration nomeada (nao aceitar `db push` em DEV sem migration subsequente)".
+- **Owner sugerido:** @arquitetura + @qa (CI guard) + @backend (documentacao/AADR)
+- **Modulos afetados:** prisma/, scripts de CI, AGENTS.md
+- **Status:** Mitigacao FEITA (migration_lock.toml + migration 20260813). Guard de CI pendente.
+
+---
+
+## [TD-036] Cobertura de testes ausente para schemas Zod de contratos API (MatchStateInputSchema e similares)
+
+- **Origem:** Bug pos-push commit e8a8f17 (2026-08-13) - `MatchStateInputSchema.scoreState` aceitava apenas `MatchScoreStateSchema` (plano), rejeitando o envelope `{state, history}` introduzido por `useScoringHandlers.persistence.ts:73`, gerando `VALIDATION_ERROR` 5x "Required" em PROD. Cobertura de teste para schemas de contrato API era inexistente.
+- **Impacto:** Medio (nao detectou bug de validacao em PROD)
+- **Esforco:** P
+- **Risco se ignorado:** Mudancas em schemas de validacao interceptam apenas em runtime de producao; regressoes silenciosas passam por planos de testes que assumem o schema funcionando.
+- **Proposta:**
+  1. **FEITO (2026-08-13):** Suite adicionada em `src/schemas/__tests__/MatchStateInputSchema.test.ts` (12 cenarios) cobrindo plano, envelope `{state, history}`, history inline, ausencia de scoreState, rejeicao de SCHEDULED, precendencia da union.
+  2. **FEITO (2026-08-13):** Suite adicionada em `src/services/__tests__/matchValidator.envelope.test.ts` (10 cenarios) cobrindo unwrap de envelope na deteccao de `SCORE_REGRESSION` (old newX envelope X plano, currentGame, FINISHED).
+  3. **PENDENTE:** Estender cobertura para os demais schemas de contrato em `src/schemas/contracts.ts` (MatchSchema, FinishMatchInputSchema, PointFlowInputSchema, LoginPayloadSchema). Cada um ja tem `ok X` em `pnpm spec:validate` mas so valida structure, nao casos de borda.
+  4. **PENDENTE:** Considerar helper de testes compartilhado para factories de ScoringState valido/invalido (DRY entre as suites).
+- **Owner sugerido:** @qa
+- **Modulos afetados:** src/schemas/__tests__/, src/services/__tests__/
+- **Status:** Parcialmente resolvido (MatchStateInputSchema + matchValidator envelope). Demais schemas pendentes.
+

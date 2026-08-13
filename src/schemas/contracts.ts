@@ -233,6 +233,26 @@ export const MatchScoreStateSchema = z.object({
 });
 export type MatchScoreState = z.infer<typeof MatchScoreStateSchema>;
 
+/**
+ * Snapshot persistido pelo fluxo edit-score quando `history` está
+ * disponível no cliente (formato `{ state, history }` aceito por
+ * `ScoringEngine.fromSerialized`). Quando `history` está ausente, o
+ * cliente envia apenas `MatchScoreStateSchema` (legado).
+ * Ver `useScoringHandlers.persistence.ts:73` e `engine.state.ts:52`.
+ */
+export const MatchScoreStateEnvelopeSchema = z.object({
+  state: MatchScoreStateSchema,
+  history: z
+    .array(
+      z.object({
+        stateBefore: z.unknown(),
+        point: z.unknown(),
+      })
+    )
+    .optional(),
+});
+export type MatchScoreStateEnvelope = z.infer<typeof MatchScoreStateEnvelopeSchema>;
+
 export const MatchSchema = z.object({
   id: flexibleIdValidator,
   format: MatchFormatSchema,
@@ -337,7 +357,9 @@ export const MatchStateInputSchema = z
   .object({
     state: MatchStateSchema,
     initialServerId: z.string().min(1).optional(),
-    scoreState: MatchScoreStateSchema.optional(),
+    scoreState: z
+      .union([MatchScoreStateEnvelopeSchema, MatchScoreStateSchema])
+      .optional(),
     version: z.number().int().optional(),
     allowScoreEdit: z.boolean().optional(),
   })
