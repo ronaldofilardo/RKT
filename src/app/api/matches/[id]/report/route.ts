@@ -5,7 +5,10 @@ import type { Role } from '@/schemas/contracts';
 import { ScoringEngine } from '@/core/scoring/engine';
 import type { TimelinePoint } from '@/core/scoring/types';
 import { enrichPointsFromHistory } from '@/components/scoring/timeline-utils';
-import { enrichTimelineWithAudio, type PointLogAudioMeta } from '@/components/scoring/timeline-utils';
+import {
+  rebuildTimelineFromPointLogs,
+  type PointLogRow,
+} from '@/components/scoring/timeline-rebuild';
 import { getMatch, findAbandonedSessionSnapshot } from '@/services/matchService';
 import { prisma } from '@/lib/prisma';
 
@@ -34,10 +37,6 @@ export async function GET(
       const isCreator = match.createdByUserId === user.id;
       if (!isPlayer && !isCreator && !isStaff) {
         return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
-      }
-
-      if (!match) {
-        return NextResponse.json({ error: 'MATCH_NOT_FOUND' }, { status: 404 });
       }
 
       let timelinePoints: TimelinePoint[] = [];
@@ -96,22 +95,37 @@ export async function GET(
         }
       }
 
-      if (timelinePoints.length > 0) {
-        const pointLogs = await prisma.pointLog.findMany({
-          where: { matchId: id },
-          select: {
-            id: true,
-            audioNote: true,
-            audioNoteDuration: true,
-          },
-          orderBy: { timestamp: 'asc' },
-        });
-        const audioMeta: PointLogAudioMeta[] = pointLogs.map(pl => ({
-          pointLogId: pl.id,
-          hasAudioNote: pl.audioNote !== null,
-          audioNoteDuration: pl.audioNoteDuration,
-        }));
-        timelinePoints = enrichTimelineWithAudio(timelinePoints, audioMeta);
+      // Os `PointLog` são a fonte imutável e completa das anotações
+      // (rallyDetails, firstFault, áudio, etc.). Em cenários reais —
+      // principalmente após undo/redo/sync que descartaram entradas do
+      // `scoreState.history` — o history pode estar incompleto mesmo
+      // quando há N PointLog. Por isso buscamos TODOS os PointLog (com
+      // annotations) e os usamos como base de verdade, mesclando com o
+      // stateBefore do history quando disponível.
+      const pointLogs = await prisma.pointLog.findMany({
+        where: { matchId: id },
+        orderBy: { timestamp: 'asc' },
+        select: {
+          id: true,
+          winnerId: true,
+          type: true,
+          serverId: true,
+          timestamp: true,
+          annotations: true,
+          audioNote: true,
+          audioNoteDuration: true,
+        },
+      }) as PointLogRow[];
+
+      if (pointLogs.length > 0) {
+        const initialServerId = match.initialServerId ?? match.player1.id;
+        timelinePoints = rebuildTimelineFromPointLogs(
+          timelinePoints,
+          pointLogs,
+          match.player1.id,
+          match.player2.id,
+          initialServerId,
+        );
       }
 
       return NextResponse.json({

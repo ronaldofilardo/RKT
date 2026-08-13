@@ -7,6 +7,7 @@ import type {
   ScoringState,
   PointFlow,
   RallyDetails,
+  HistoryEntry,
 } from "@/core/scoring/types";
 import type {
   MatchData,
@@ -157,6 +158,14 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       label: string,
       persistOptions?: { allowScoreEdit?: boolean }
     ): Promise<{ success: boolean; needsResync?: boolean; conflict?: boolean; version?: number }> => {
+      // Tolerante a engines mockados sem getPointHistory (testes). Em produção
+      // sempre existe; se ausente, history fica undefined e mantém o legado
+      // (somente `state` no snapshot).
+      const engineAny = engineRef.current as
+        | ({ getPointHistory?: () => HistoryEntry[] } & typeof engineRef.current)
+        | null;
+      const history = engineAny?.getPointHistory?.();
+
       const result = await persistStateWithRetry(state, label, {
         matchId,
         match,
@@ -164,6 +173,13 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         setError,
         fetchMatch,
         allowScoreEdit: persistOptions?.allowScoreEdit,
+        // Em undo/redo o engine mantém o histórico detalhado (com
+        // rallyDetails/firstFaultDetail). Persisti-lo aqui evita que o
+        // PATCH /state substitua o snapshot anterior e apague os dados do
+        // relatório. Em fluxos sem histórico pertinente (ex.: edit-score,
+        // que chama engine.loadState e zera o history), history será []
+        // e snapshot correspondente gera o mesmo efeito que antes.
+        history,
       });
 
       if (result.success && result.version !== undefined) {
@@ -172,7 +188,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
 
       return result;
     },
-    [matchId, match, tokenRef, setError, fetchMatch, setMatch],
+    [matchId, match, tokenRef, setError, fetchMatch, setMatch, engineRef],
   );
 
   // ─── Services ─────────────────────────────────────────────────────────────

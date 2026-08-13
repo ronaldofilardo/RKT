@@ -1,4 +1,4 @@
-import type { ScoringState } from "@/core/scoring/types";
+import type { ScoringState, HistoryEntry } from "@/core/scoring/types";
 import { logger } from "@/lib/logger";
 import { TIMEOUTS_MS, PERSIST_RETRY, calculateBackoffDelay } from "@/lib/constants";
 
@@ -9,6 +9,15 @@ interface PersistStateOptions {
   setError: (error: string | null) => void;
   fetchMatch?: (forceEngineReset?: boolean) => Promise<void>;
   allowScoreEdit?: boolean;
+  /**
+   * Histórico de pontos detalhado (rallyDetails, firstFaultDetail, etc).
+   * Quando fornecido, o snapshot persistido envia `{ state, history }`
+   * (formato aceito por `ScoringEngine.fromSerialized`), preservando os
+   * dados necessários para o relatório. Quando ausente, mantém o
+   * comportamento legado (somente `state`) — usado por fluxos que já
+   * persistem history via POST /point.
+   */
+  history?: HistoryEntry[];
 }
 
 interface VersionConflictPayload {
@@ -38,7 +47,7 @@ export async function persistStateWithRetry(
   label: string,
   options: PersistStateOptions,
 ): Promise<{ success: boolean; needsResync?: boolean; conflict?: boolean; version?: number }> {
-  const { matchId, match, tokenRef, setError, fetchMatch } = options;
+  const { matchId, match, tokenRef, setError, fetchMatch, history } = options;
 
   if (!match) return { success: false };
 
@@ -58,7 +67,10 @@ export async function persistStateWithRetry(
         },
         body: JSON.stringify({
           state: state.isFinished ? "FINISHED" : "IN_PROGRESS",
-          scoreState: state,
+          // Persiste snapshot `{ state, history }` quando history estiver
+          // disponível, preservando anotações detalhadas para o relatório.
+          // Caso contrário, mantém o legado (somente `state`).
+          scoreState: history ? { state, history } : state,
           version: currentMatch.version,
           allowScoreEdit,
         }),

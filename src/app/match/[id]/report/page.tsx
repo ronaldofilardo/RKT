@@ -106,12 +106,14 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
             </p>
           </div>
           <div className="flex gap-3">
-            <button
-              onClick={() => router.push(`/match/${matchId}/scoring`)}
-              className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl text-sm"
-            >
-              📝 Continuar Anotação
-            </button>
+            {report.state !== 'FINISHED' && (
+              <button
+                onClick={() => router.push(`/match/${matchId}/scoring`)}
+                className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl text-sm"
+              >
+                📝 Continuar Anotação
+              </button>
+            )}
             <button
               onClick={() => router.push('/dashboard')}
               className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl text-sm"
@@ -144,12 +146,14 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
         {report.timelinePoints.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
             <p className="text-gray-500">Nenhum ponto registrado nesta partida.</p>
-            <button
-              onClick={() => router.push(`/match/${matchId}/scoring`)}
-              className="mt-4 text-sky-600 font-semibold underline"
-            >
-              Iniciar anotação
-            </button>
+            {report.state !== 'FINISHED' && (
+              <button
+                onClick={() => router.push(`/match/${matchId}/scoring`)}
+                className="mt-4 text-sky-600 font-semibold underline"
+              >
+                Iniciar anotação
+              </button>
+            )}
           </div>
         ) : (
           <div className="bg-white rounded-xl border border-gray-200 p-4">

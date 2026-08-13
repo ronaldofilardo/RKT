@@ -1,9 +1,9 @@
 /**
  * @jest-environment jsdom
  */
-jest.mock('@/core/scoring/engine', () => ({
-  ScoringEngine: jest.fn().mockImplementation(function(this: any) {
-    this.getState = jest.fn().mockReturnValue({
+jest.mock('@/core/scoring/engine', () => {
+  const makeInstance = () => ({
+    getState: jest.fn().mockReturnValue({
       sets: [],
       currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
       server: 'player1',
@@ -12,11 +12,19 @@ jest.mock('@/core/scoring/engine', () => ({
       setsWon: { player1: 0, player2: 0 },
       startedAt: null,
       secondServe: false,
-    });
-    this.applyPoint = jest.fn();
-    this.isFinished = jest.fn().mockReturnValue(false);
-  }),
-}));
+    }),
+    applyPoint: jest.fn(),
+    isFinished: jest.fn().mockReturnValue(false),
+    getPointHistory: jest.fn().mockReturnValue([]),
+    restorePointHistory: jest.fn(),
+  });
+  return {
+    ScoringEngine: jest.fn().mockImplementation(function (this: any) {
+      Object.assign(this, makeInstance());
+    }),
+    fromSerialized: jest.fn(() => makeInstance()),
+  };
+});
 
 jest.mock('react', () => {
   const actual = jest.requireActual('react');
@@ -30,6 +38,19 @@ import { act } from 'react';
 import { renderHook } from '@testing-library/react';
 import { useScoringHandlers } from '@/hooks/useScoringHandlers';
 import type { ScoreboardUIState } from '@/hooks/useScoreboardUIState';
+
+const mockFetch = jest.fn(async (url: string) => {
+  if (String(url).includes('/point/log-')) {
+    return { ok: true, status: 200, json: async () => ({}) } as Response;
+  }
+  return {
+    ok: true,
+    status: 200,
+    json: async () => ({ scoreState: { sets: [] }, pointLogId: 'log-1', version: 1 }),
+  } as Response;
+});
+(globalThis as any).fetch = mockFetch;
+
 
 function createMockContext(overrides: Partial<Parameters<typeof useScoringHandlers>[0]> = {}) {
   const match = {
@@ -305,5 +326,79 @@ describe('useScoringHandlers - handleServeErrorConfirm', () => {
       expect(flow.rallyDetails.efeito).toBeUndefined();
       expect(flow.rallyDetails.direcao).toBeUndefined();
     });
+  });
+});
+
+// ─── Regressão: handlePointDetailsConfirm + uploadAudioNote ─────────────────
+// Protege contra o bug corrigido nesta sessão:
+//  1) ReferenceError "Cannot access 'uploadAudioNote' before initialization"
+//     (TDZ causado por dependência de useCallback declarada DEPOIS do uso).
+//     Ao renderizar o hook e chamar o handler, o erro de TDZ deve ser ausente.
+//  2) lint react-hooks/exhaustive-deps (uploadAudioNote ausente no array de
+//     dependências de handlePointDetailsConfirm).
+describe('useScoringHandlers - handlePointDetailsConfirm (regressão uploadAudioNote)', () => {
+  beforeEach(() => {
+    mockFetch.mockClear();
+  });
+
+  function makeAudioCtx() {
+    return createMockContext({
+      isOnline: true,
+      modalParamsRef: { current: { winner: 'player1', rallyLength: '8' } },
+      engineRef: {
+        current: {
+          getState: jest.fn().mockReturnValue({
+            server: 'player1',
+            isFinished: false,
+            sets: [],
+            currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+            winner: null,
+            setsWon: { player1: 0, player2: 0 },
+            startedAt: null,
+            secondServe: false,
+          }),
+          applyPoint: jest.fn(),
+          getPointHistory: jest.fn().mockReturnValue([]),
+          restorePointHistory: jest.fn(),
+        } as any,
+      },
+    });
+  }
+
+  it('renderiza o hook e chama handlePointDetailsConfirm sem ReferenceError de TDZ', () => {
+    const ctx = makeAudioCtx();
+    expect(() => renderHook(() => useScoringHandlers(ctx))).not.toThrow();
+
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+    const handlers = result.current;
+
+    expect(() =>
+      handlers.handlePointDetailsConfirm(
+        { tipo: 'winner' as const, previewBalls: 5 },
+        { blob: new Blob(['x']), durationMs: 1234 },
+      ),
+    ).not.toThrow();
+  });
+
+  it('processPoint é invocado (POST /api/matches/{id}/point) ao confirmar detalhes', async () => {
+    const ctx = makeAudioCtx();
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+    const handlers = result.current;
+
+    handlers.handlePointDetailsConfirm({
+      tipo: 'winner' as const,
+      previewBalls: 5,
+    });
+
+    await act(async () => {
+      for (let i = 0; i < 10; i++) {
+        await new Promise((r) => setTimeout(r, 0));
+      }
+    });
+
+    const pointCalls = (mockFetch as jest.Mock).mock.calls.filter((c: any[]) =>
+      String(c[0]) === '/api/matches/match-1/point',
+    );
+    expect(pointCalls).toHaveLength(1);
   });
 });

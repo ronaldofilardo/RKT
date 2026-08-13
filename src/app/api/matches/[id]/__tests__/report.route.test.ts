@@ -1,5 +1,9 @@
 jest.mock('@/lib/prisma', () => ({
-  prisma: {},
+  prisma: {
+    pointLog: {
+      findMany: jest.fn().mockResolvedValue([]),
+    },
+  },
 }));
 
 jest.mock('@/services/matchService', () => ({
@@ -113,5 +117,53 @@ describe('GET /api/matches/[id]/report — autorização (regressão: anotador �
 
     const res = await GET(makeReq(), { params: Promise.resolve({ id: 'nonexistent' }) });
     expect(res.status).toBe(404);
+  });
+});
+
+describe('GET /api/matches/[id]/report — regressão: PointLog como fonte de verdade (match cmscejb8o)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockJwtVerify.mockImplementation(async () => ({
+      payload: { sub: 'p1', role: 'ATHLETE' },
+    } as any));
+  });
+
+  it('quando PointLog > scoreState.history, reconstrói TODOS os PointLog na timeline', async () => {
+    // ScoreState compacto (sem history) — o enrichment via engine não produz
+    // nenhum ponto. Os 24 PointLog devem ainda assim aparecer no relatório.
+    const pointLogs = Array.from({ length: 24 }).map((_, i) => ({
+      id: `log-${i + 1}`,
+      winnerId: i % 2 === 0 ? 'p1' : 'p2',
+      type: i % 5 === 0 ? 'DOUBLE_FAULT' : 'ACE',
+      serverId: 'p1',
+      timestamp: new Date(Date.UTC(2026, 7, 1, 10, 0, i)),
+      annotations: {
+        rallyDetails: { situacao: 'saque', golpe: 'saque', tipo: 'winner', vencedor: 'sacador', previewBalls: 1 },
+        rallyLength: 1,
+        isFirstServe: true,
+        isSecondServe: false,
+      },
+      audioNote: null,
+      audioNoteDuration: null,
+    }));
+
+    const { prisma } = require('@/lib/prisma');
+    (prisma.pointLog.findMany as jest.Mock).mockResolvedValue(pointLogs);
+
+    mockGetMatch.mockResolvedValue(mockMatch({
+      player1: { id: 'p1', name: 'Player 1' },
+      player2: { id: 'p2', name: 'Player 2' },
+    }) as any);
+
+    const res = await GET(makeReq('p1', 'ATHLETE'), { params: Promise.resolve({ id: 'match-1' }) });
+    expect(res.status).toBe(200);
+
+    const data = await res.json();
+    expect(data.timelinePoints).toHaveLength(24);
+    // Cada ponto tem pointId vindo do PointLog.
+    expect(data.timelinePoints[0].pointId).toBe('log-1');
+    expect(data.timelinePoints[23].pointId).toBe('log-24');
+    // rallyDetails preservados do PointLog em todos os 24.
+    expect(data.timelinePoints.every((p: any) => p.rallyDetails?.situacao === 'saque')).toBe(true);
   });
 });

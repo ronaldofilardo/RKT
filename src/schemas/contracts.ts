@@ -216,6 +216,20 @@ export const MatchScoreStateSchema = z.object({
     .optional(),
   startedAt: z.number().nullable().optional(),
   secondServe: z.boolean().optional(),
+  /**
+   * Histórico detalhado de pontos (com rallyDetails, firstFaultDetail,
+   * etc.) gerado pelo ScoringEngine. Persistido junto do estado para
+   * alimentar o relatório pós-partida. Opcional pois snapshots legados
+   * (e estados criados via edit-score) podem não contê-lo.
+   */
+  history: z
+    .array(
+      z.object({
+        stateBefore: z.unknown(),
+        point: z.unknown(),
+      })
+    )
+    .optional(),
 });
 export type MatchScoreState = z.infer<typeof MatchScoreStateSchema>;
 
