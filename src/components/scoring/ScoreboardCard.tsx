@@ -1,6 +1,8 @@
 'use client';
 import { useMemo } from 'react';
 import { normalizeScoreState } from '@/core/scoring/score-normalizer';
+import { isSetCompleted } from '@/app/match/[id]/scoring/scoringHelpers';
+import type { TennisFormat } from '@/lib/matchConfig';
 
 interface Player {
   id: string;
@@ -23,8 +25,30 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
     () => normalizeScoreState(scoreState, format as any),
     [scoreState, format],
   );
-  const sets = normalized?.sets ?? scoreState?.sets ?? [];
-  const currentSetIndex = sets.length > 0 ? sets.length - 1 : 0;
+  // Correção bug do "set atual" (2026-08-13): o critério anterior era
+  // puramente posicional (`sets.length - 1`), assumindo a invariante
+  // "último item do array = set em andamento" garantida pelo motor.
+  // Porém estados vindos de `loadState`/edição manual / snapshot de banco
+  // às vezes terminavam o array com um set finalizado (sem o próximo set
+  // vazio) — e o ScoreboardCard destacava o set finalizado em verde como
+  // "atual". Agora: o "set atual" é o último set NÃO-finalizado conforme
+  // regras oficiais (`isSetCompleted`); se todos os sets estão finalizados
+  // (partida acabou), não há "atual".
+  const tennisFormat = format as TennisFormat | undefined;
+  const sets = useMemo(
+    () => normalized?.sets ?? scoreState?.sets ?? [],
+    [normalized, scoreState],
+  );
+  const currentSetIndex = useMemo(() => {
+    if (sets.length === 0) return 0;
+    // Procura o último set não-finalizado (em andamento).
+    for (let i = sets.length - 1; i >= 0; i--) {
+      if (!isSetCompleted(sets[i], tennisFormat)) return i;
+    }
+    // Todos finalizados: não há "atual" — retorna -1 para que nenhum
+    // set seja destacado com o label 'atual'.
+    return -1;
+  }, [sets, tennisFormat]);
 
   const getSetsWon = (player: 'player1' | 'player2') => {
     return normalized?.setsWon?.[player]
@@ -44,7 +68,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
       return 'text-white font-bold bg-green-600 dark:bg-green-500';
     }
     
-    const isComplete = set.player1 > set.player2 || set.player2 > set.player1;
+    const isComplete = set && isSetCompleted(set, tennisFormat);
     if (!isComplete) {
       return 'text-gray-300 dark:text-gray-600 bg-transparent';
     }
@@ -67,7 +91,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
             {Array.from({ length: numSets }).map((_, i) => {
               const set = sets[i];
               const isCurrent = i === currentSetIndex;
-              const isComplete = set && (set.player1 > set.player2 || set.player2 > set.player1);
+              const isComplete = set && isSetCompleted(set, tennisFormat);
               
               return (
                 <th key={i} scope="col" aria-label={`Set ${i + 1}`} className={`text-center px-1 py-1 w-7 sm:w-9 ${isCurrent ? 'font-bold text-green-600 dark:text-green-400' : ''}`}>
@@ -146,7 +170,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
             {Array.from({ length: numSets }).map((_, i) => {
               const set = sets[i];
               const isCurrent = i === currentSetIndex;
-              const isComplete = set && (set.player1 > set.player2 || set.player2 > set.player1);
+              const isComplete = set && isSetCompleted(set, tennisFormat);
               const p1Won = set && set.player1 > set.player2;
               const p2Won = set && set.player2 > set.player1;
               

@@ -949,3 +949,23 @@ A configuração é setada em `src/lib/prisma.ts` no hook `$use` do Prisma, ante
 - **Owner sugerido:** @backend + @arquitetura
 - **Modulos afetados:** src/core/scoring/, src/components/scoring/, src/hooks/useSessionManager.utils.ts
 - **Status:** Aberto. Mitigacao parcial aplicada (bug #4): saneador read-path em src/core/scoring/score-normalizer.ts que cobre o legado pre-existente; porem a fonte da inconsistencia continua.
+
+---
+
+## [TD-034] Falta de invariante "ultimo set do array = set em andamento" apos `buildNewScoringState` e `loadState`
+
+- **Origem:** Bug do "set atual" (2026-08-13) - ajustar placar e voltar ao scoreboard com set finalizado ao fim do array
+- **Impacto:** Medio (UX; corrige visual ao vivo sem ter que voltar aos cards)
+- **Esforco:** P
+- **Risco se ignorado:** Apos confirmar a edicao de placar com um set finalizado como ultimo item do array, o ScoreboardCard destacava o set finalizado em verde como se fosse o "atual" (em vez de aplicar o destaque ao set em andamento). O estado se autocorrigia ao voltar para a tela de cards (que re-aplica o estado via `isSetCompleted` semantico + `reconcileWithCanonicalState`), porem sem essa navegacao o bug persistia.
+- **Proposta:**
+  1. **FEITO (2026-08-13):** `buildNewScoringState` (src/hooks/useSessionManager.state-builder.ts) agora empurra um set vazio `{ player1: 0, player2: 0, isTiebreak: false, tiebreakScore: null }` ao final do array `newState.sets` quando `!isFinished` E o ultimo SetEditData confirmado esta finalizado (regras oficiais via `validateSetScore` ou fallback 6+2 / TB 7+2 / MT 10+2). Mantida a invariante "ultimo item = set em andamento" mesmo apos `loadState` (que so copia o estado sem normalizar).
+  2. **FEITO (2026-08-13):** `ScoreboardCard` (src/components/scoring/ScoreboardCard.tsx:37-46) agora calcula `currentSetIndex` de forma semantica (ultimo set NAO-finalizado conforme `isSetCompleted`), em vez do critério posicional anterior `sets.length - 1`. A heuristica frágil `set.player1 > set.player2 || set.player2 > set.player1` em tres pontos (`getSetCellStyle`, header, `tfoot`) foi substituida por `isSetCompleted(set, tennisFormat)` para consistencia com o resto do app.
+  3. **PENDENTE:** Considerar mover a garantia da invariante para dentro de `engine.state.ts:loadState` (src/core/scoring/engine.state.ts:35-37) — hoje `loadState` apenas copia; ele poderia normalizar o array `sets[]` ao final (empurrando set vazio se necessario). Isso protegeria qualquer outro chamador de `loadState` que possa surgir no futuro (ex.: `fromSerialized` em retomadas de banco). Avaliar ADR.
+  4. **PENDENTE:** Avaliar mover `isSetCompleted` (src/app/match/[id]/scoring/scoringHelpers.ts) para `src/core/scoring/` para que `ScoreboardCard` e outras camadas de UI nao precisem importar de dentro de `app/match/[id]/scoring/` (acoplamento UI↔Route na hierarchy de pastas).
+- **Owner sugerido:** @backend
+- **Modulos afetados:** src/hooks/useSessionManager.state-builder.ts, src/components/scoring/ScoreboardCard.tsx, (futuro) src/core/scoring/engine.state.ts
+- **Testes de caracterizacao adicionados:**
+  - src/components/scoring/__tests__/ScoreboardCard.test.tsx (3 cenarios)
+  - src/hooks/__tests__/useSessionManager.state-builder.test.ts (5 cenarios)
+- **Status:** Correcao primaria FEITA. Melhorias pendentes (3)+(4) acima sao opcionais e de baixa prioridade.
