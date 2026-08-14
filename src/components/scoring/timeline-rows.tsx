@@ -43,6 +43,11 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId }: PointRo
   const badge = getPointBadge(p);
   const isServeFinish = p.type === 'ACE' || p.type === 'DOUBLE_FAULT';
   const isDoubleFault = p.type === 'DOUBLE_FAULT';
+  // Pontos de saque-falta (1ª ou 2ª): os detalhes do rally (situação,
+  // golpe, efeito, direção, onde errou) ficam redundantes com as colunas
+  // dedicadas "1ª FALTA" e "2ª FALTA" — aqui os suprimimos para evitar
+  // duplicação, deixando essas infos apenas nas colunas dedicadas.
+  const isFaultPoint = p.type === 'FAULT_FIRST' || isDoubleFault || p.isSecondServe === true;
 
   const rowClass = [
     'border-b border-gray-100 hover:bg-gray-50 transition-colors',
@@ -71,10 +76,6 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId }: PointRo
       <td className="px-1.5 py-1.5 text-[10px] text-gray-500">{p.gamesScore.player1}-{p.gamesScore.player2}</td>
       {/* PONTO */}
       <td className="px-1.5 py-1.5 text-[10px] font-bold text-gray-800">{getGameScoreLabelForPoint(p)}</td>
-      {/* SAQUE */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
-        {p.isFirstServe ? '1ª' : p.isSecondServe ? '2ª' : '–'}
-      </td>
       {/* TIPO */}
       <td className="px-1.5 py-1.5 text-[10px]">
         <span className={`px-1.5 py-0.5 rounded-full font-semibold ${BADGE_COLORS[badge.color]}`}>
@@ -82,31 +83,31 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId }: PointRo
         </span>
       </td>
       {/* SITUAÇÃO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{situacaoLabel(rd?.situacao)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : situacaoLabel(rd?.situacao)}</td>
       {/* GOLPE */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{golpeLabel(rd?.golpe)}</td>
-      {/* ESPECIAL */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{golpeEspLabel(rd?.golpe_esp)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : golpeLabel(rd?.golpe)}</td>
       {/* EFEITO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{efeitoLabel(rd?.efeito)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : efeitoLabel(rd?.efeito)}</td>
       {/* DIREÇÃO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{direcaoLabel(rd?.direcao)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : direcaoLabel(rd?.direcao)}</td>
       {/* ONDE ERROU (subtipo2) */}
-      <td className={`px-1.5 py-1.5 text-[10px] ${rd?.subtipo2 === 'out' ? 'text-red-600 font-semibold' : rd?.subtipo2 === 'net' ? 'text-amber-600 font-semibold' : ''}`}>
-        {subtipo2Label(rd?.subtipo2)}
+      <td className={`px-1.5 py-1.5 text-[10px] ${!isFaultPoint && rd?.subtipo2 === 'out' ? 'text-red-600 font-semibold' : !isFaultPoint && rd?.subtipo2 === 'net' ? 'text-amber-600 font-semibold' : ''}`}>
+        {isFaultPoint ? '–' : subtipo2Label(rd?.subtipo2)}
       </td>
       {/* SUBTIPO 1 */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{subtipo1Label(rd?.subtipo1)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : subtipo1Label(rd?.subtipo1)}</td>
       {/* 1ª FALTA (firstFault) */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{formatFirstFault(p)}</td>
       {/* 2ª FALTA — detalhe compacto da 2ª falta do DF */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isDoubleFault ? formatSecondFault(p) : '–'}</td>
-      {/* ACE / DF (resumo expandido) */}
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isDoubleFault ? formatSecondFault(p) : (p.isSecondServe && p.type !== 'ACE' ? formatSecondFault(p) : '–')}</td>
+      {/* ACE (resumo do ACE / DF) */}
       <td className={`px-1.5 py-1.5 text-[10px] ${p.type === 'ACE' ? 'text-green-600 font-semibold' : p.type === 'DOUBLE_FAULT' ? 'text-red-600 font-semibold' : ''}`}>
         {isServeFinish ? formatAceOrDf(p) : ''}
       </td>
       {/* TROCAS */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-500">{p.rallyLength || (isServeFinish ? 1 : 1)}</td>
+      {/* ESPECIAL */}
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : golpeEspLabel(rd?.golpe_esp)}</td>
       {/* OBS */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
         <div className="flex items-center gap-1">
@@ -128,11 +129,34 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId }: PointRo
     </>
   );
 
+  if (p.segmentBreak) {
+    const editedAtLabel = new Date(p.segmentBreak.editedAt).toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    return (
+      <>
+        <tr>
+          <td colSpan={17} className="text-center py-2 bg-amber-50/60 border-y border-dashed border-amber-300">
+            <span className="text-[10px] text-amber-800">
+              ⏸ Partida interrompida em <strong>{p.segmentBreak.previousLabel}</strong> · placar ajustado para <strong>{p.segmentBreak.newLabel}</strong> em {editedAtLabel}
+            </span>
+          </td>
+        </tr>
+        <tr className={rowClass} aria-label={`Ponto: ${p.winner === 'PLAYER_1' ? 'P1' : 'P2'} venceu`}>
+          {cells}
+        </tr>
+      </>
+    );
+  }
+
   if (hasGap) {
     return (
       <>
         <tr>
-          <td colSpan={18} className="text-center py-1.5">
+          <td colSpan={17} className="text-center py-1.5">
             <span className="text-[10px] italic text-gray-400 border-t border-dashed border-b border-dashed border-gray-300 px-2">marcação interrompida</span>
           </td>
         </tr>
@@ -192,7 +216,7 @@ export function SetGroup({ setNumber, points, hasActiveFilters, player1Name, pla
         <td colSpan={3} className="px-1.5 py-2">
           <span className="text-[9px] font-black uppercase text-blue-600" style={{ letterSpacing: '0.12em' }}>SET {setNumber}</span>
         </td>
-        <td colSpan={15} className="px-1.5 py-2">
+        <td colSpan={14} className="px-1.5 py-2">
           <span className="text-[10px] text-gray-500">{server} – {receiver}</span>
         </td>
       </tr>

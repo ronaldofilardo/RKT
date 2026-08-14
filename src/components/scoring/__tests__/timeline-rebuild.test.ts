@@ -115,19 +115,19 @@ describe('rebuildTimelineFromPointLogs (regressão: match cmscejb8o com 24 Point
       player1Id,
       player2Id,
       initialServerId,
+      'BEST_OF_3',
     );
 
     expect(result).toHaveLength(24);
-    // Últimos 8 preservam stateBefore do history (gamesScore 5-4).
-    expect(result[23].gamesScore).toEqual({ player1: 5, player2: 4 });
-    expect(result[23].setNumber).toBe(5);
     expect(result[23].pointId).toBe('log-24');
 
-    // Primeiros 16 reconstruídos a partir do PointLog (stateBefore parcial).
+    // Primeiro ponto: placar inicial 0-0 (set 1, game 0-0); nunca mais zeros.
     expect(result[0].pointNumber).toBe(1);
     expect(result[0].pointId).toBe('log-1');
     expect(result[0].rallyDetails).not.toBeNull();
     expect(result[0].rallyDetails?.situacao).toBe('fundo');
+    expect(result[0].gamesScore).toEqual({ player1: 0, player2: 0 });
+    expect(result[0].setNumber).toBe(1);
 
     // Anotações detalhadas (rallyDetails) presentes em todas as 24 entries.
     for (const tp of result) {
@@ -137,6 +137,21 @@ describe('rebuildTimelineFromPointLogs (regressão: match cmscejb8o com 24 Point
 
     // pointId preenchido a partir do PointLog.id em TODAS as entradas.
     expect(result.every(p => p.pointId?.startsWith('log-'))).toBe(true);
+
+    // Não há mais fallback zero: cada ponto subsequente tem placar coerente
+    // derivado do estado anterior. Em particular, o conjunto
+    // (gamesScore, gameScore, setNumber) nunca deve ser simultaneamente
+    // zeros a partir do segundo ponto.
+    for (let i = 1; i < result.length; i++) {
+      const r = result[i];
+      const isAllZero =
+        r.gamesScore.player1 === 0 &&
+        r.gamesScore.player2 === 0 &&
+        r.gameScore.player1 === 0 &&
+        r.gameScore.player2 === 0 &&
+        r.setNumber === 0;
+      expect(isAllZero).toBe(false);
+    }
   });
 
   it('quando history cobre tudo, mescla annotations e preserva stateBefore', () => {

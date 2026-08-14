@@ -2,6 +2,7 @@
 
 import type { TennisFormat } from "@/core/scoring/types";
 import type { SetEditData } from "./editScoreHelpers";
+import { totalSetsForFormat } from "./editScoreHelpers";
 import type { CompletedSet } from "./edit-score-logic";
 import { useEditScoreModal } from "./useEditScoreModal";
 import { MatchSummary, EditableSetsSummary } from "./edit-score-summary";
@@ -123,7 +124,7 @@ export function EditScoreModal({
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-900">Editar Placar</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Formato: {matchFormat === 'BEST_OF_3' ? 'Melhor de 3' : 'Melhor de 5'} sets
+            Formato: Melhor de {totalSetsForFormat(matchFormat)} sets
           </p>
         </div>
 

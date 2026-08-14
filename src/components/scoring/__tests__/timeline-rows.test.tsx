@@ -51,11 +51,10 @@ describe('PointRow — regressão das divergência UI/payload', () => {
     expect(text).toContain('fechado');
     // Efeito deve aparecer
     expect(text).toContain('flat');
-    // SAQUE 1ª
-    expect(text).toContain('1ª');
-    // Coluna ACE/DF mostra formato detalhado (Bug A)
+    // Coluna ACE mostra formato detalhado (Bug A)
     expect(text).toContain('ACE-FLA-FEC');
-    // Situação e golpe também preenchidos (não mais suprimidos por isServeFinish)
+    // Situação e golpe também preenchidos (ACE não é ponto de falta,
+    // portanto não há supressão)
     expect(text).toContain('Saque');
   });
 
@@ -86,14 +85,11 @@ describe('PointRow — regressão das divergência UI/payload', () => {
     expect(text).toContain('DF');
     // 1ª falta com todas as três partes (Bug "1ª falta perdida")
     expect(text).toContain('out • topspin • aberto');
-    // 2ª falta: net + flat + fechado
+    // 2ª falta: net + flat + fechado (somente aqui — duplicadas de EFEITO,
+    // DIREÇÃO e ONDE ERROU suprimidas nos pontos de falta)
     expect(text).toContain('net • flat • fechado');
-    // subtipo2 (net) aparece em ONDE ERROU (Bug C)
-    expect(text).toContain('net');
-    // Coluna ACE/DF mostra formato detalhado (Bug A)
+    // Coluna ACE mostra formato detalhado (Bug A)
     expect(text).toContain('DF:');
-    // Direção appearing — não mais vazia para saque
-    expect(text).toContain('fechado');
   });
 
   it('Winner em rally: exibe golpe, efeito, direção, badge Winner', () => {
@@ -139,7 +135,7 @@ describe('PointRow — regressão das divergência UI/payload', () => {
     expect(text).toContain('BH');
   });
 
-  it('Ponto sem rallyDetails: badge TIPO mostra –, SAQUE continua visível', () => {
+  it('Ponto sem rallyDetails: badge TIPO mostra –', () => {
     const p = makePoint({
       type: 'WINNER',
       rallyDetails: null,
@@ -150,8 +146,6 @@ describe('PointRow — regressão das divergência UI/payload', () => {
     const text = container.textContent ?? '';
     // Badge TIPO vazio quando não há rd (mostra –)
     expect(text).toContain('–');
-    // SAQUE 1ª continua mostrando — não depende de rallyDetails
-    expect(text).toContain('1ª');
   });
 
   it('Break point: tag BP visível ao lado da bola', () => {

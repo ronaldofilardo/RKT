@@ -18,12 +18,13 @@ interface ScoreboardCardProps {
 }
 
 export function ScoreboardCard({ player1, player2, scoreState, isSuspended, format }: ScoreboardCardProps) {
+  const tennisFormat = format as TennisFormat | undefined;
   // Bug #4 (2026-08-07): saneia estado corrupto (MT gravado como games sem
   // tiebreakScore) antes de renderizar, para que sets de MT exibam os pontos
   // do tiebreak em vez de tratar pontos como games.
   const normalized = useMemo(
-    () => normalizeScoreState(scoreState, format as any),
-    [scoreState, format],
+    () => normalizeScoreState(scoreState, tennisFormat),
+    [scoreState, tennisFormat],
   );
   // Correção bug do "set atual" (2026-08-13): o critério anterior era
   // puramente posicional (`sets.length - 1`), assumindo a invariante
@@ -34,7 +35,6 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
   // "atual". Agora: o "set atual" é o último set NÃO-finalizado conforme
   // regras oficiais (`isSetCompleted`); se todos os sets estão finalizados
   // (partida acabou), não há "atual".
-  const tennisFormat = format as TennisFormat | undefined;
   const sets = useMemo(
     () => normalized?.sets ?? scoreState?.sets ?? [],
     [normalized, scoreState],

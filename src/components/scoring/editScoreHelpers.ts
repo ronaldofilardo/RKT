@@ -32,6 +32,7 @@ export function setsToWinForFormat(format: TennisFormat): number {
       return 3;
     case 'BEST_OF_3':
     case 'BEST_OF_3_MATCH_TB':
+    case 'BEST_OF_3_NO_AD':
     case 'SHORT_SET_2V2_NO_AD':
       return 2;
     default:
@@ -45,6 +46,7 @@ export function totalSetsForFormat(format: TennisFormat): number {
       return 5;
     case 'BEST_OF_3':
     case 'BEST_OF_3_MATCH_TB':
+    case 'BEST_OF_3_NO_AD':
     case 'SHORT_SET_2V2_NO_AD':
       return 3;
     case 'MATCH_TB_10':
@@ -238,7 +240,7 @@ export function getNextServerAfterSet(params: {
     (format === 'BEST_OF_3_MATCH_TB' && completedSets.length === 2 &&
      completedSets.filter(s => s.player1 > s.player2).length === 1 &&
      completedSets.filter(s => s.player2 > s.player1).length === 1) ||
-    (format === 'SHORT_SET_2V2_NO_AD' && completedSets.length === 2 &&
+    ((format === 'SHORT_SET_2V2_NO_AD' || format === 'BEST_OF_3_NO_AD') && completedSets.length === 2 &&
      completedSets.filter(s => s.player1 > s.player2).length === 1 &&
      completedSets.filter(s => s.player2 > s.player1).length === 1);
 

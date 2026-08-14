@@ -181,7 +181,7 @@ export function calculateValidation(input: EditScoreValidationInput): EditScoreV
       matchFormat === 'MATCH_TB_10' ||
       (matchFormat === 'BEST_OF_3_MATCH_TB' && totalEditedSets === 2) ||
       (matchFormat === 'SHORT_SET_2V2_NO_AD' && totalEditedSets === 2) ||
-      ((matchFormat as any) === 'BEST_OF_3_NO_AD' && totalEditedSets === 2);
+      (matchFormat === 'BEST_OF_3_NO_AD' && totalEditedSets === 2);
   }
 
   const setValidation = bothFilled
@@ -250,7 +250,7 @@ export function calculateMatchState(input: EditScoreMatchStateInput): EditScoreM
       matchFormat === 'MATCH_TB_10' ||
       (matchFormat === 'BEST_OF_3_MATCH_TB' && totalEditedSets === 2) ||
       (matchFormat === 'SHORT_SET_2V2_NO_AD' && totalEditedSets === 2) ||
-      ((matchFormat as any) === 'BEST_OF_3_NO_AD' && totalEditedSets === 2);
+      (matchFormat === 'BEST_OF_3_NO_AD' && totalEditedSets === 2);
   }
 
   const p1SetsWonFromProp = completedSets.filter((s) => s.winner === 'player1').length;
