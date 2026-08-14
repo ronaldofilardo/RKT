@@ -468,7 +468,7 @@ describe("MatchCard", () => {
     expect(screen.getByText("Sets")).toBeTruthy();
   });
 
-  it("exibe label 'Pontos' ao lado do último número do set", () => {
+  it("NÃO exibe label 'Pontos' em partida FINALIZADA", () => {
     const match = {
       id: "match-17",
       state: "FINISHED",
@@ -498,8 +498,8 @@ describe("MatchCard", () => {
 
     render(<MatchCard match={match} />);
 
-    const pontosLabels = screen.getAllByText("Pontos");
-    expect(pontosLabels.length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText("Pontos")).toBeFalsy();
+    expect(screen.getByText("Sets")).toBeTruthy();
   });
 
   it("exibe pontuação centralizada nas colunas dos sets e pontos", () => {
@@ -576,7 +576,7 @@ describe("MatchCard", () => {
     expect(screen.getByText("Pedro Oliveira")).toBeTruthy();
   });
 
-  it("exibe layout consistente entre partidas Em Andamento e Finalizadas", () => {
+  it("exibe label 'Sets' em partidas Em Andamento e Finalizadas; 'Pontos' só em Em Andamento", () => {
     const matchInProgress = {
       id: "match-20",
       state: "IN_PROGRESS",
@@ -635,7 +635,7 @@ describe("MatchCard", () => {
     expect(container1.textContent).toContain("Sets");
     expect(container2.textContent).toContain("Sets");
     expect(container1.textContent).toContain("Pontos");
-    expect(container2.textContent).toContain("Pontos");
+    expect(container2.textContent).not.toContain("Pontos");
   });
 
   it("BEST_OF_5 com 1 set mostra pontos reais (não '-')", () => {
@@ -815,5 +815,176 @@ describe("MatchCard", () => {
 
     expect(screen.getByText("40")).toBeTruthy();
     expect(screen.getByText("30")).toBeTruthy();
+  });
+
+  it("partida FINALIZADA BEST_OF_3 com 3º set em tiebreak NÃO exibe coluna Pontos", () => {
+    const match = {
+      id: "match-finished-bo3-mt",
+      state: "FINISHED",
+      format: "BEST_OF_3_NO_AD",
+      player1: { name: "Ronald" },
+      player2: { name: "Mateus" },
+      scheduledAt: "2026-08-14T15:12:00.000Z",
+      scoreState: {
+        sets: [
+          { player1: 6, player2: 3, isTiebreak: false, tiebreakScore: null },
+          { player1: 5, player2: 7, isTiebreak: false, tiebreakScore: null },
+          { player1: 0, player2: 0, isTiebreak: true, tiebreakScore: { player1: 10, player2: 7 } },
+        ],
+        currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+        server: "player1",
+        isFinished: true,
+        winner: "player1",
+        setsWon: { player1: 2, player2: 1 },
+      },
+      suspendedSessionId: undefined,
+      matchStateSnapshot: null,
+    };
+
+    const { container } = render(<MatchCard match={match} />);
+
+    const allText = container.textContent ?? "";
+    expect(allText).toContain("10");
+    expect(allText).toContain("7");
+    expect(screen.queryByText("Pontos")).toBeFalsy();
+    expect(screen.queryByText("-")).toBeFalsy();
+  });
+
+  it("partida FINALIZADA BEST_OF_5 com 5º set em tiebreak NÃO exibe coluna Pontos", () => {
+    const match = {
+      id: "match-finished-bo5-mt",
+      state: "FINISHED",
+      format: "BEST_OF_5",
+      player1: { name: "Eduardo" },
+      player2: { name: "Mateus" },
+      scheduledAt: "2026-08-14T14:11:00.000Z",
+      scoreState: {
+        sets: [
+          { player1: 3, player2: 6, isTiebreak: false, tiebreakScore: null },
+          { player1: 6, player2: 4, isTiebreak: false, tiebreakScore: null },
+          { player1: 3, player2: 6, isTiebreak: false, tiebreakScore: null },
+          { player1: 7, player2: 5, isTiebreak: false, tiebreakScore: null },
+          { player1: 0, player2: 0, isTiebreak: true, tiebreakScore: { player1: 10, player2: 2 } },
+        ],
+        currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+        server: "player1",
+        isFinished: true,
+        winner: "player1",
+        setsWon: { player1: 3, player2: 2 },
+      },
+      suspendedSessionId: undefined,
+      matchStateSnapshot: null,
+    };
+
+    const { container } = render(<MatchCard match={match} />);
+
+    const allText = container.textContent ?? "";
+    expect(allText).toContain("10");
+    expect(allText).toContain("2");
+    expect(screen.queryByText("Pontos")).toBeFalsy();
+    expect(screen.queryByText("-")).toBeFalsy();
+  });
+
+  it("partida FINALIZADA com último set regular NÃO exibe coluna Pontos", () => {
+    const match = {
+      id: "match-finished-regular",
+      state: "FINISHED",
+      format: "BEST_OF_3",
+      player1: { name: "P1" },
+      player2: { name: "P2" },
+      scheduledAt: null,
+      scoreState: {
+        sets: [
+          { player1: 6, player2: 4, isTiebreak: false, tiebreakScore: null },
+          { player1: 6, player2: 2, isTiebreak: false, tiebreakScore: null },
+        ],
+        currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+        server: "player1",
+        isFinished: true,
+        winner: "player1",
+        setsWon: { player1: 2, player2: 0 },
+      },
+      suspendedSessionId: undefined,
+      matchStateSnapshot: null,
+    };
+
+    const { container } = render(<MatchCard match={match} />);
+
+    const allText = container.textContent ?? "";
+    expect(allText).toContain("Sets");
+    expect(screen.queryByText("Pontos")).toBeFalsy();
+    expect(screen.queryByText("-")).toBeFalsy();
+  });
+
+  it("partida FINALIZADA BEST_OF_5: grid de placar tem exatamente 5 colunas (sem Pontos extra)", () => {
+    const match = {
+      id: "match-finished-bo5-grid",
+      state: "FINISHED",
+      format: "BEST_OF_5",
+      player1: { name: "Eduardo" },
+      player2: { name: "Mateus" },
+      scheduledAt: null,
+      scoreState: {
+        sets: [
+          { player1: 3, player2: 6, isTiebreak: false, tiebreakScore: null },
+          { player1: 6, player2: 4, isTiebreak: false, tiebreakScore: null },
+          { player1: 3, player2: 6, isTiebreak: false, tiebreakScore: null },
+          { player1: 7, player2: 5, isTiebreak: false, tiebreakScore: null },
+          { player1: 0, player2: 0, isTiebreak: true, tiebreakScore: { player1: 10, player2: 2 } },
+        ],
+        currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+        server: "player1",
+        isFinished: true,
+        winner: "player1",
+        setsWon: { player1: 3, player2: 2 },
+      },
+      suspendedSessionId: undefined,
+      matchStateSnapshot: null,
+    };
+
+    const { container } = render(<MatchCard match={match} />);
+
+    const grid = container.querySelector(".grid > .text-right") as HTMLElement | null;
+    expect(grid).toBeTruthy();
+    const allGrids = container.querySelectorAll(".grid");
+    const scoreGrid = Array.from(allGrids).find(
+      (el) => (el as HTMLElement).style.gridTemplateColumns.includes("repeat"),
+    ) as HTMLElement | undefined;
+    expect(scoreGrid).toBeTruthy();
+    expect(scoreGrid!.style.gridTemplateColumns).toBe("repeat(5, 1.5rem)");
+  });
+
+  it("partida FINALIZADA BEST_OF_3: grid de placar tem exatamente 3 colunas (sem Pontos extra)", () => {
+    const match = {
+      id: "match-finished-bo3-grid",
+      state: "FINISHED",
+      format: "BEST_OF_3_NO_AD",
+      player1: { name: "Ronald" },
+      player2: { name: "Mateus" },
+      scheduledAt: null,
+      scoreState: {
+        sets: [
+          { player1: 6, player2: 3, isTiebreak: false, tiebreakScore: null },
+          { player1: 5, player2: 7, isTiebreak: false, tiebreakScore: null },
+          { player1: 0, player2: 0, isTiebreak: true, tiebreakScore: { player1: 10, player2: 7 } },
+        ],
+        currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+        server: "player1",
+        isFinished: true,
+        winner: "player1",
+        setsWon: { player1: 2, player2: 1 },
+      },
+      suspendedSessionId: undefined,
+      matchStateSnapshot: null,
+    };
+
+    const { container } = render(<MatchCard match={match} />);
+
+    const allGrids = container.querySelectorAll(".grid");
+    const scoreGrid = Array.from(allGrids).find(
+      (el) => (el as HTMLElement).style.gridTemplateColumns.includes("repeat"),
+    ) as HTMLElement | undefined;
+    expect(scoreGrid).toBeTruthy();
+    expect(scoreGrid!.style.gridTemplateColumns).toBe("repeat(3, 1.5rem)");
   });
 });

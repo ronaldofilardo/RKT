@@ -51,6 +51,7 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
   const isCurrentSetMT = isMatchTiebreak && scoreState?.sets && scoreState.sets.length > 0
     ? isCurrentSetMatchTiebreak(scoreState.sets, match.format as TennisFormat)
     : false;
+  const isFinished = match.state === 'FINISHED';
 
   return (
     <div
@@ -89,56 +90,99 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
             <div className="text-right text-sm font-mono">
               {scoreState?.sets && scoreState.sets.length > 0 ? (
                 <div className="grid" style={{
-                  gridTemplateColumns: `repeat(${scoreState.sets.length}, 1.5rem) 2.5rem`,
+                  gridTemplateColumns: isFinished
+                    ? `repeat(${scoreState.sets.length}, 1.5rem)`
+                    : `repeat(${scoreState.sets.length}, 1.5rem) 2.5rem`,
                   gridTemplateRows: '1.5rem 2rem 2rem',
                   rowGap: '0.125rem',
                 }}>
-                  <span className="text-[10px] text-gray-500 text-center" style={{ gridColumn: `1 / ${scoreState.sets.length + 1}` }}>
-                    Sets
-                  </span>
-                  <span></span>
-                  {scoreState.sets.map((_: any, idx: number) => (
-                    <span key={idx} className="text-[10px] text-gray-500 text-center">
-                      {idx + 1}
-                    </span>
-                  ))}
-                  <span className="text-[10px] text-gray-500 text-center">Pontos</span>
-                  {scoreState.sets.map((s: any, idx: number) => {
-                    let displayScore = s.player1 ?? 0;
-                    if (s.isTiebreak && s.tiebreakScore) {
-                      displayScore = s.tiebreakScore.player1;
-                    } else if (isMatchTiebreak && idx === 0) {
-                      displayScore = s.player1 ?? 0;
-                    }
-                    return (
-                      <span key={idx} className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
-                        {displayScore}
+                  {isFinished ? (
+                    <>
+                      <span className="text-[10px] text-gray-500 text-center" style={{ gridColumn: `1 / ${scoreState.sets.length + 1}` }}>
+                        Sets
                       </span>
-                    );
-                  })}
-                  <span className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
-                    {isCurrentSetMT
-                      ? '-'
-                      : getSinglePointDisplay(scoreState?.currentGame, 'player1')}
-                  </span>
-                  {scoreState.sets.map((s: any, idx: number) => {
-                    let displayScore = s.player2 ?? 0;
-                    if (s.isTiebreak && s.tiebreakScore) {
-                      displayScore = s.tiebreakScore.player2;
-                    } else if (isMatchTiebreak && idx === 0) {
-                      displayScore = s.player2 ?? 0;
-                    }
-                    return (
-                      <span key={idx} className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
-                        {displayScore}
+                      {scoreState.sets.map((_: any, idx: number) => (
+                        <span key={`hdr-${idx}`} className="text-[10px] text-gray-500 text-center">
+                          {idx + 1}
+                        </span>
+                      ))}
+                      {scoreState.sets.map((s: any, idx: number) => {
+                        let displayScore = s.player1 ?? 0;
+                        if (s.isTiebreak && s.tiebreakScore) {
+                          displayScore = s.tiebreakScore.player1;
+                        } else if (isMatchTiebreak && idx === 0) {
+                          displayScore = s.player1 ?? 0;
+                        }
+                        return (
+                          <span key={`p1-${idx}`} className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
+                            {displayScore}
+                          </span>
+                        );
+                      })}
+                      {scoreState.sets.map((s: any, idx: number) => {
+                        let displayScore = s.player2 ?? 0;
+                        if (s.isTiebreak && s.tiebreakScore) {
+                          displayScore = s.tiebreakScore.player2;
+                        } else if (isMatchTiebreak && idx === 0) {
+                          displayScore = s.player2 ?? 0;
+                        }
+                        return (
+                          <span key={`p2-${idx}`} className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
+                            {displayScore}
+                          </span>
+                        );
+                      })}
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-[10px] text-gray-500 text-center" style={{ gridColumn: `1 / ${scoreState.sets.length + 1}` }}>
+                        Sets
                       </span>
-                    );
-                  })}
-                  <span className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
-                    {isCurrentSetMT
-                      ? '-'
-                      : getSinglePointDisplay(scoreState?.currentGame, 'player2')}
-                  </span>
+                      <span></span>
+                      {scoreState.sets.map((_: any, idx: number) => (
+                        <span key={idx} className="text-[10px] text-gray-500 text-center">
+                          {idx + 1}
+                        </span>
+                      ))}
+                      <span className="text-[10px] text-gray-500 text-center">Pontos</span>
+                      {scoreState.sets.map((s: any, idx: number) => {
+                        let displayScore = s.player1 ?? 0;
+                        if (s.isTiebreak && s.tiebreakScore) {
+                          displayScore = s.tiebreakScore.player1;
+                        } else if (isMatchTiebreak && idx === 0) {
+                          displayScore = s.player1 ?? 0;
+                        }
+                        return (
+                          <span key={idx} className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
+                            {displayScore}
+                          </span>
+                        );
+                      })}
+                      <span className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
+                        {isCurrentSetMT
+                          ? '-'
+                          : getSinglePointDisplay(scoreState?.currentGame, 'player1')}
+                      </span>
+                      {scoreState.sets.map((s: any, idx: number) => {
+                        let displayScore = s.player2 ?? 0;
+                        if (s.isTiebreak && s.tiebreakScore) {
+                          displayScore = s.tiebreakScore.player2;
+                        } else if (isMatchTiebreak && idx === 0) {
+                          displayScore = s.player2 ?? 0;
+                        }
+                        return (
+                          <span key={idx} className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
+                            {displayScore}
+                          </span>
+                        );
+                      })}
+                      <span className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
+                        {isCurrentSetMT
+                          ? '-'
+                          : getSinglePointDisplay(scoreState?.currentGame, 'player2')}
+                      </span>
+                    </>
+                  )}
                 </div>
               ) : scoreState?.currentGame ? (
                 <div className="grid grid-cols-1 gap-y-1" style={{ gridTemplateRows: '1.5rem 2rem 2rem' }}>

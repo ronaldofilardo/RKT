@@ -1,4 +1,4 @@
-import { isCurrentSetMatchTiebreak, isMatchTiebreakFormat } from "@/components/dashboard/match-card-utils";
+import { getLastSetPointDisplay, isCurrentSetMatchTiebreak, isMatchTiebreakFormat } from "@/components/dashboard/match-card-utils";
 
 describe("isCurrentSetMatchTiebreak", () => {
   it("retorna false para sets vazios", () => {
@@ -91,5 +91,43 @@ describe("isMatchTiebreakFormat", () => {
     expect(isMatchTiebreakFormat("BEST_OF_3")).toBe(false);
     expect(isMatchTiebreakFormat("PRO_SET_8")).toBe(false);
     expect(isMatchTiebreakFormat("UNKNOWN")).toBe(false);
+  });
+});
+
+describe("getLastSetPointDisplay", () => {
+  it("retorna '-' quando sets está vazio ou undefined", () => {
+    expect(getLastSetPointDisplay([], "player1")).toBe("-");
+    expect(getLastSetPointDisplay(undefined, "player1")).toBe("-");
+  });
+
+  it("retorna games do último set quando não é tiebreak", () => {
+    const sets = [
+      { player1: 6, player2: 4, isTiebreak: false, tiebreakScore: null },
+      { player1: 7, player2: 5, isTiebreak: false, tiebreakScore: null },
+    ];
+    expect(getLastSetPointDisplay(sets, "player1")).toBe("7");
+    expect(getLastSetPointDisplay(sets, "player2")).toBe("5");
+  });
+
+  it("retorna pontos do tiebreak quando último set é tiebreak", () => {
+    const sets = [
+      { player1: 6, player2: 4, isTiebreak: false, tiebreakScore: null },
+      { player1: 4, player2: 6, isTiebreak: false, tiebreakScore: null },
+      { player1: 0, player2: 0, isTiebreak: true, tiebreakScore: { player1: 10, player2: 7 } },
+    ];
+    expect(getLastSetPointDisplay(sets, "player1")).toBe("10");
+    expect(getLastSetPointDisplay(sets, "player2")).toBe("7");
+  });
+
+  it("considera apenas o último set quando há múltiplos", () => {
+    const sets = [
+      { player1: 6, player2: 3, isTiebreak: false, tiebreakScore: null },
+      { player1: 2, player2: 6, isTiebreak: false, tiebreakScore: null },
+      { player1: 6, player2: 1, isTiebreak: false, tiebreakScore: null },
+      { player1: 6, player2: 2, isTiebreak: false, tiebreakScore: null },
+      { player1: 0, player2: 0, isTiebreak: true, tiebreakScore: { player1: 10, player2: 2 } },
+    ];
+    expect(getLastSetPointDisplay(sets, "player1")).toBe("10");
+    expect(getLastSetPointDisplay(sets, "player2")).toBe("2");
   });
 });

@@ -55,6 +55,18 @@ export function getSinglePointDisplay(
   return GAME_POINTS[Math.min(typeof pts === 'number' ? pts : 0, 3)];
 }
 
+export function getLastSetPointDisplay(
+  sets: Array<{ player1: number; player2: number; isTiebreak?: boolean; tiebreakScore?: { player1: number; player2: number } | null }> | undefined,
+  player: 'player1' | 'player2',
+): string {
+  if (!sets || sets.length === 0) return '-';
+  const last = sets[sets.length - 1];
+  if (last.isTiebreak && last.tiebreakScore) {
+    return String(last.tiebreakScore[player] ?? 0);
+  }
+  return String(last[player] ?? 0);
+}
+
 export function isMatchTiebreakFormat(format: string): boolean {
   return (
     format === 'MATCH_TB_10' ||
