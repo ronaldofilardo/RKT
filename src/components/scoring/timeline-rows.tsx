@@ -9,7 +9,7 @@ import {
   golpeEspLabel,
   subtipo1Label,
   subtipo2Label,
-  formatAceOrDf,
+  trocasFaixaLabel,
   getPointDetailSummary,
 } from './timeline-utils';
 
@@ -18,6 +18,8 @@ interface PointRowProps {
   hasGap: boolean;
   isLast: boolean;
   matchId: string;
+  player1Name: string;
+  player2Name: string;
 }
 
 const BADGE_COLORS = {
@@ -38,7 +40,7 @@ function getPointBadge(p: TimelinePoint): { label: string; color: 'green' | 'red
   return getPointDetailSummary(p.rallyDetails);
 }
 
-export function PointRow({ point: p, hasGap, isLast: _isLast, matchId }: PointRowProps) {
+export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, player1Name, player2Name }: PointRowProps) {
   const rd = p.rallyDetails;
   const badge = getPointBadge(p);
   const isServeFinish = p.type === 'ACE' || p.type === 'DOUBLE_FAULT';
@@ -56,26 +58,35 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId }: PointRo
   ].join(' ');
 
   const serverBallColor = p.server === 'player1' ? 'drop-shadow(0 0 2px #3b82f6)' : 'drop-shadow(0 0 2px #ef4444)';
+  const serverName = p.server === 'player1' ? player1Name : player2Name;
+  const winnerName = p.winner === 'PLAYER_1' ? player1Name : player2Name;
 
   const cells = (
     <>
-      {/* BOLA */}
+      {/* SAQUE (quem sacou) */}
       <td className="px-1.5 py-1.5 align-middle">
-        <div className="flex items-center gap-0.5">
-          <svg width="14" height="14" viewBox="0 0 18 18" style={{ filter: serverBallColor }}>
+        <div className="flex items-center gap-1">
+          <svg width="12" height="12" viewBox="0 0 18 18" style={{ filter: serverBallColor, flexShrink: 0 }}>
             <circle cx="9" cy="9" r="7" fill="#CCFF00" />
             <path d="M5 5 Q9 9 13 5" stroke="white" strokeWidth="1.5" fill="none" />
             <path d="M5 13 Q9 9 13 13" stroke="white" strokeWidth="1.5" fill="none" />
           </svg>
+          <span className="text-[10px] text-gray-600 truncate">{serverName}</span>
+        </div>
+        <div className="flex items-center gap-0.5 mt-0.5">
           {p.isBreakPoint && <Tag className="bg-amber-100 text-amber-700">BP</Tag>}
           {p.isGameBall && <Tag className="bg-yellow-100 text-yellow-700">GB</Tag>}
           {p.isSetBall && <Tag className="bg-purple-100 text-purple-700">SB</Tag>}
         </div>
       </td>
-      {/* GAME */}
+      {/* PLACAR GAMES */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-500">{p.gamesScore.player1}-{p.gamesScore.player2}</td>
-      {/* PONTO */}
+      {/* PLACAR GAME */}
       <td className="px-1.5 py-1.5 text-[10px] font-bold text-gray-800">{getGameScoreLabelForPoint(p)}</td>
+      {/* VENCEDOR DO PONTO */}
+      <td className={`px-1.5 py-1.5 text-[10px] font-semibold truncate ${p.winner === 'PLAYER_1' ? 'text-blue-600' : 'text-red-600'}`}>
+        {winnerName}
+      </td>
       {/* TIPO */}
       <td className="px-1.5 py-1.5 text-[10px]">
         <span className={`px-1.5 py-0.5 rounded-full font-semibold ${BADGE_COLORS[badge.color]}`}>
@@ -100,22 +111,14 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId }: PointRo
       <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{formatFirstFault(p)}</td>
       {/* 2ª FALTA — detalhe compacto da 2ª falta do DF */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isDoubleFault ? formatSecondFault(p) : (p.isSecondServe && p.type !== 'ACE' ? formatSecondFault(p) : '–')}</td>
-      {/* ACE (resumo do ACE / DF) */}
-      <td className={`px-1.5 py-1.5 text-[10px] ${p.type === 'ACE' ? 'text-green-600 font-semibold' : p.type === 'DOUBLE_FAULT' ? 'text-red-600 font-semibold' : ''}`}>
-        {isServeFinish ? formatAceOrDf(p) : ''}
-      </td>
       {/* TROCAS */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-500">{p.rallyLength || (isServeFinish ? 1 : 1)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-500">{trocasFaixaLabel(p.rallyLength)}</td>
       {/* ESPECIAL */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : golpeEspLabel(rd?.golpe_esp)}</td>
       {/* OBS */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
-        <div className="flex items-center gap-1">
-          {p.note ? (
-            <span className="inline-block max-w-[120px] truncate" title={p.note}>
-              📝 {p.note}
-            </span>
-          ) : null}
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600 whitespace-normal break-words">
+        <div className="flex flex-col gap-1">
+          {p.note ? <span>📝 {p.note}</span> : null}
           {p.hasAudioNote && p.pointId ? (
             <AudioNotePlayer
               matchId={matchId}
@@ -139,7 +142,7 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId }: PointRo
     return (
       <>
         <tr>
-          <td colSpan={17} className="text-center py-2 bg-amber-50/60 border-y border-dashed border-amber-300">
+          <td colSpan={16} className="text-center py-2 bg-amber-50/60 border-y border-dashed border-amber-300">
             <span className="text-[10px] text-amber-800">
               ⏸ Partida interrompida em <strong>{p.segmentBreak.previousLabel}</strong> · placar ajustado para <strong>{p.segmentBreak.newLabel}</strong> em {editedAtLabel}
             </span>
@@ -156,7 +159,7 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId }: PointRo
     return (
       <>
         <tr>
-          <td colSpan={17} className="text-center py-1.5">
+          <td colSpan={16} className="text-center py-1.5">
             <span className="text-[10px] italic text-gray-400 border-t border-dashed border-b border-dashed border-gray-300 px-2">marcação interrompida</span>
           </td>
         </tr>
@@ -216,7 +219,7 @@ export function SetGroup({ setNumber, points, hasActiveFilters, player1Name, pla
         <td colSpan={3} className="px-1.5 py-2">
           <span className="text-[9px] font-black uppercase text-blue-600" style={{ letterSpacing: '0.12em' }}>SET {setNumber}</span>
         </td>
-        <td colSpan={14} className="px-1.5 py-2">
+        <td colSpan={13} className="px-1.5 py-2">
           <span className="text-[10px] text-gray-500">{server} – {receiver}</span>
         </td>
       </tr>
@@ -231,6 +234,8 @@ export function SetGroup({ setNumber, points, hasActiveFilters, player1Name, pla
             hasGap={!!hasGap}
             isLast={isLast && i === points.length - 1}
             matchId={matchId}
+            player1Name={player1Name}
+            player2Name={player2Name}
           />
         );
       })}

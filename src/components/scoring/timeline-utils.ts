@@ -113,6 +113,14 @@ export function subtipo2Label(s?: string): string {
   return map[s] ?? s;
 }
 
+export function trocasFaixaLabel(rallyLength?: number): string {
+  const n = rallyLength ?? 1;
+  if (n <= 2) return '1-2';
+  if (n <= 6) return '3-6';
+  if (n <= 10) return '7-10';
+  return '11+';
+}
+
 export function tipoLabel(s?: string): string {
   if (!s) return '–';
   const map: Record<string, string> = { winner: 'Winner', erro_nao_forcado: 'Erro Não Forçado', erro_forcado: 'Erro Forçado', dupla_falta: 'Dupla Falta' };
