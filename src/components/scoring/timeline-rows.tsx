@@ -43,7 +43,6 @@ function getPointBadge(p: TimelinePoint): { label: string; color: 'green' | 'red
 export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, player1Name, player2Name }: PointRowProps) {
   const rd = p.rallyDetails;
   const badge = getPointBadge(p);
-  const isServeFinish = p.type === 'ACE' || p.type === 'DOUBLE_FAULT';
   const isDoubleFault = p.type === 'DOUBLE_FAULT';
   // Pontos de saque-falta (1ª ou 2ª): os detalhes do rally (situação,
   // golpe, efeito, direção, onde errou) ficam redundantes com as colunas

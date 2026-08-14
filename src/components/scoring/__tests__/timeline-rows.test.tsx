@@ -173,3 +173,55 @@ describe('PointRow — regressão das divergência UI/payload', () => {
     expect(row2?.className).toContain('border-l-red-500');
   });
 });
+
+describe('PointRow — regressão remoção isServeFinish', () => {
+  it('ACE não quebra build/typecheck e renderiza badge ACe com colunas de falta suprimidas', () => {
+    const p = makePoint({
+      type: 'ACE',
+      isFirstServe: true,
+      rallyDetails: {
+        vencedor: 'sacador',
+        situacao: 'saque',
+        tipo: 'winner',
+        golpe: 'saque',
+        efeito: 'flat',
+        direcao: 'fechado',
+        previewBalls: 1,
+      } as any,
+    });
+    const { container } = render(<PointRow point={p} hasGap={false} isLast={true} />);
+    const text = container.textContent ?? '';
+    expect(text).toContain('ACe');
+    expect(text).toContain('Saque');
+    expect(text).toContain('flat');
+    expect(text).toContain('fechado');
+  });
+
+  it('Double Fault não quebra build/typecheck e renderiza badge DF com detalhes de falta', () => {
+    const p = makePoint({
+      type: 'DOUBLE_FAULT',
+      isFirstServe: false,
+      isSecondServe: true,
+      firstFault: {
+        errorType: 'out',
+        serveEffect: 'topspin',
+        direction: 'aberto',
+      },
+      rallyDetails: {
+        vencedor: 'devolvedor',
+        situacao: 'saque',
+        tipo: 'dupla_falta',
+        golpe: 'saque',
+        subtipo2: 'net',
+        efeito: 'flat',
+        direcao: 'fechado',
+        previewBalls: 1,
+      } as any,
+    });
+    const { container } = render(<PointRow point={p} hasGap={false} isLast={true} />);
+    const text = container.textContent ?? '';
+    expect(text).toContain('DF');
+    expect(text).toContain('out • topspin • aberto');
+    expect(text).toContain('net • flat • fechado');
+  });
+});
