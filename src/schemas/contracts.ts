@@ -362,6 +362,15 @@ export const MatchStateInputSchema = z
       .optional(),
     version: z.number().int().optional(),
     allowScoreEdit: z.boolean().optional(),
+    /**
+     * true somente quando a mudança de placar vem do fluxo "Editar Placar"
+     * (retomada de partida interrompida). Diferente de um `undo` comum,
+     * este flag instrui o backend a preservar o `scoreState` anterior
+     * (com seu `history` completo) em `MatchScoreEdit` antes de
+     * sobrescrevê-lo, para que a timeline do /report não perca o trecho
+     * já anotado antes da correção manual.
+     */
+    isManualScoreEdit: z.boolean().optional(),
   })
   .refine((data) => data.state !== "SCHEDULED", {
     message: "Não é possível voltar para SCHEDULED via API",

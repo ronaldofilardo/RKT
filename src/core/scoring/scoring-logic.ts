@@ -17,11 +17,27 @@ export function getGameScoreLabel(
 export function isBreakPoint(state: ScoringState): boolean {
   if (state.isFinished) return false;
   const set = state.sets[state.sets.length - 1];
-  if (!set) return false;
+  // Tiebreak não tem "quebra de saque" no sentido clássico de game — cada
+  // ponto do tiebreak é servido alternadamente, então o conceito de break
+  // point não se aplica.
+  if (set?.isTiebreak) return false;
+
+  const game = state.currentGame;
   const server = state.server;
-  const receiverGames = server === 'player1' ? set.player2 : set.player1;
-  const serverGames = server === 'player1' ? set.player1 : set.player2;
-  return receiverGames >= serverGames;
+  const receiver = server === 'player1' ? 'player2' : 'player1';
+
+  // Break point é sobre o placar de PONTOS dentro do game atual — não
+  // sobre quantos games já foram vencidos no set. Usar o placar de games
+  // (como a versão anterior fazia) resulta em falso-positivo constante:
+  // no início de qualquer set/game, ambos têm 0 games, e "receiverGames
+  // >= serverGames" (0 >= 0) é sempre verdadeiro.
+  if (game.isDeuce) {
+    return game.advantage === receiver;
+  }
+
+  const receiverPoints = receiver === 'player1' ? game.player1 : game.player2;
+  const serverPoints = server === 'player1' ? game.player1 : game.player2;
+  return receiverPoints >= 3 && serverPoints <= 2;
 }
 
 export function isGameBall(state: ScoringState): boolean {

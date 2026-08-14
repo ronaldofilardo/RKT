@@ -18,6 +18,13 @@ interface PersistStateOptions {
    * persistem history via POST /point.
    */
   history?: HistoryEntry[];
+  /**
+   * true apenas no fluxo "Editar Placar" (retomada de partida
+   * interrompida). Instrui o backend a preservar o `scoreState` anterior
+   * em `MatchScoreEdit` antes de sobrescrevê-lo, para a timeline do
+   * /report não perder o trecho já anotado antes da correção.
+   */
+  isManualScoreEdit?: boolean;
 }
 
 interface VersionConflictPayload {
@@ -47,7 +54,7 @@ export async function persistStateWithRetry(
   label: string,
   options: PersistStateOptions,
 ): Promise<{ success: boolean; needsResync?: boolean; conflict?: boolean; version?: number }> {
-  const { matchId, match, tokenRef, setError, fetchMatch, history } = options;
+  const { matchId, match, tokenRef, setError, fetchMatch, history, isManualScoreEdit } = options;
 
   if (!match) return { success: false };
 
@@ -73,6 +80,7 @@ export async function persistStateWithRetry(
           scoreState: history ? { state, history } : state,
           version: currentMatch.version,
           allowScoreEdit,
+          isManualScoreEdit,
         }),
       });
 

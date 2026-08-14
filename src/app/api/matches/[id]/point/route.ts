@@ -7,6 +7,7 @@ import { ScoringEngine } from '@/core/scoring/engine';
 import type { ScoringState } from '@/core/scoring/types';
 import { emitMatchEvent } from '@/lib/match-events';
 import { logger } from '@/lib/logger';
+import { normalizeScoreState } from '@/core/scoring/score-normalizer';
 
 export async function POST(
   request: NextRequest,
@@ -94,21 +95,9 @@ export async function POST(
 
         let scoreStateToUse = match.scoreState;
         if (scoreStateToUse && typeof scoreStateToUse === 'object') {
-          const isMatchTiebreakFormat = match.format === 'MATCH_TB_10' || match.format === 'BEST_OF_3_MATCH_TB';
-          if (isMatchTiebreakFormat && (scoreStateToUse as any).sets?.length >= 1) {
-            const setIndex = match.format === 'MATCH_TB_10' ? 0 : (scoreStateToUse as any).sets.length - 1;
-            const set = (scoreStateToUse as any).sets[setIndex];
-
-            if (set && (set.player1 > 0 || set.player2 > 0) && !set.isTiebreak && !set.tiebreakScore) {
-              logger.point.normalizedTiebreak();
-              (scoreStateToUse as any).sets[setIndex] = {
-                ...set,
-                tiebreakScore: { player1: set.player1, player2: set.player2 },
-                player1: 0,
-                player2: 0,
-                isTiebreak: true,
-              };
-            }
+          const normalized = normalizeScoreState(scoreStateToUse, match.format as any);
+          if (normalized) {
+            scoreStateToUse = normalized as any;
           }
         }
 

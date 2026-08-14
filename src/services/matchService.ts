@@ -289,7 +289,20 @@ export async function transitionMatchState(
   newState: MatchState,
   initialServerId?: string,
   scoreState?: unknown,
-  options?: { allowScoreEdit?: boolean; expectedVersion?: number },
+  options?: {
+    allowScoreEdit?: boolean;
+    expectedVersion?: number;
+    /**
+     * true quando esta atualização vem do fluxo "Editar Placar" (retomada
+     * de partida interrompida), não de um `undo` comum. Aciona a gravação
+     * do segmento anterior em `MatchScoreEdit` antes de sobrescrever
+     * `match.scoreState`, para que o `/report` consiga reconstruir a
+     * timeline completa (com marcador de interrupção) em vez de perder o
+     * trecho já anotado antes da correção.
+     */
+    isManualScoreEdit?: boolean;
+    editedByUserId?: string;
+  },
 ) {
   const match = await prisma.match.findFirst({
     where: { id },
@@ -321,18 +334,41 @@ export async function transitionMatchState(
     whereClause.version = expectedVersion;
   }
 
+  // Uma edição manual de placar só gera um "segmento fechado" quando existe
+  // de fato um scoreState anterior com conteúdo a preservar (senão não há
+  // nada de útil a registrar — ex.: primeira definição de placar ao
+  // configurar a partida).
+  const shouldRecordSegment =
+    Boolean(options?.isManualScoreEdit) &&
+    Boolean(scoreState) &&
+    match.scoreState !== null &&
+    match.scoreState !== undefined;
+
   try {
-    const updated = await prisma.match.update({
-      where: whereClause,
-      data: {
-        state: newState,
-        ...(newState === "IN_PROGRESS" ? { startedAt: new Date() } : {}),
-        ...(newState === "FINISHED" ? { finishedAt: new Date() } : {}),
-        ...(initialServerId ? { initialServerId } : {}),
-        ...(scoreState ? { scoreState: scoreState as any } : {}),
-        version: { increment: 1 },
-      },
-      include: { player1: true, player2: true },
+    const updated = await prisma.$transaction(async (tx) => {
+      if (shouldRecordSegment) {
+        await tx.matchScoreEdit.create({
+          data: {
+            matchId: id,
+            editedByUserId: options?.editedByUserId,
+            previousScoreState: match.scoreState as any,
+            newScoreState: scoreState as any,
+          },
+        });
+      }
+
+      return tx.match.update({
+        where: whereClause,
+        data: {
+          state: newState,
+          ...(newState === "IN_PROGRESS" ? { startedAt: new Date() } : {}),
+          ...(newState === "FINISHED" ? { finishedAt: new Date() } : {}),
+          ...(initialServerId ? { initialServerId } : {}),
+          ...(scoreState ? { scoreState: scoreState as any } : {}),
+          version: { increment: 1 },
+        },
+        include: { player1: true, player2: true },
+      });
     });
     return updated;
   } catch (error: any) {
@@ -341,4 +377,25 @@ export async function transitionMatchState(
     }
     throw error;
   }
+}
+
+/**
+ * Lista os segmentos de edição de placar de uma partida, em ordem
+ * cronológica. Usado pelo `/report` para reconstruir a timeline completa
+ * (um segmento por trecho de anotação, separado por marcadores de
+ * interrupção) e, futuramente, pelo módulo de estatísticas.
+ */
+export async function getMatchScoreEdits(matchId: string) {
+  return prisma.matchScoreEdit.findMany({
+    where: { matchId },
+    orderBy: { editedAt: "asc" },
+    select: {
+      id: true,
+      editedAt: true,
+      editedByUserId: true,
+      previousScoreState: true,
+      newScoreState: true,
+      note: true,
+    },
+  });
 }

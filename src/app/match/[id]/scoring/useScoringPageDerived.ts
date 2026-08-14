@@ -66,9 +66,7 @@ export function useScoringPageDerived(
   const canUndo = engineRef.current
     ? engineRef.current.getHistoryLength() > 0
     : false;
-  const canRedo = engineRef.current
-    ? engineRef.current.getHistoryLength() > 0
-    : false;
+  const canRedo = false;
   const isSetupNeeded = activeModal === "setup" && !match?.initialServerId;
   const isProcessingPoint = isProcessing === true;
 
@@ -108,8 +106,8 @@ export function useScoringPageDerived(
     : [];
 
   const serverEffectWinnerName = (() => {
-    if (!match || !scoreState) return "";
-    const server = scoreState.server;
+    if (!match || !effectiveScoreState) return "";
+    const server = effectiveScoreState.server;
     if (server === "player1") return match.player2.name;
     return match.player1.name;
   })();

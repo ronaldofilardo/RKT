@@ -551,25 +551,41 @@
 
 ---
 
-## [TD-032] Função redo não exposta na UI (apenas undo implementado)
+## [TD-032] Função redo não implementada (botão "Refazer" desabilitado)
 
 - **Impacto:** Médio
-- **Esforço:** P
+- **Esforço:** M
 - **Risco se ignorado:** Anotadores não conseguem refazer pontos desfeitos
   sem reabrir a modal de editar placar manualmente (UX degradada em uso de tablet).
-- **Proposta:** Adicionar botão "Refazer" na `ActionBar.tsx` (ao lado de "↩ Corrigir")
-  que chama `engine.replayCurrentPoint()`. Engine já expõe
-  `replayCurrentPoint` em `engine.history.ts:20`, basta wire-up com
-  `useScoringHandlers.ts`. Persistir via `persistState(state, "redo")`
-  usando o mesmo path de undo (`label="redo"`).
-- **Owner sugerido:** @frontend
+- **Contexto (2026-08-13):** Correção de BUG-01/BUG-02 desabilitou o redo por ele
+  estar broken por design — `replayCurrentPoint` em `engine.history.ts` fazia
+  undo (pop do último histórico +restore do `stateBefore`), e `canRedo` era
+  calculado com a mesma condição de `canUndo`. Para evitar corrupção de estado
+  persistido, `canRedo` foi setado literalmente para `false` em
+  `useScoringPageDerived.ts` e `replayCurrentPoint` virou no-op (preserva a
+  assinatura p/ não quebrar callers). O botão "Refazer" permanece na UI mas
+  sempre desabilitado. `handleRedo` em `useScoringHandlers.ts` mantém a trava
+  dupla (`isProcessingRef` + `debounceTimerRef`) por defesa.
+- **Proposta:** Implementar um mecanismo real de redo com um cursor de
+  "future history" separado (pilha redo distinta da pilha undo). Ao fazer undo,
+  empilhar a entrada em `future` em vez de descartá-la; ao fazer redo,
+  desempilhar de `future` e reapply ao estado. Somente então expor `canRedo`
+  baseado em `future.length > 0`. Remover o no-op de `replayCurrentPoint` ou
+  trocar a assinatura para operar sobre `future`. Atualizar testes em
+  `engine-edge-cases.test.ts` (describe "ScoringEngine - replayCurrentPoint")
+  e `e2e/flows/04-undo-redo.spec.ts` (verifica existência do botão — só satisfaz
+  `count > 0`, não habilitado, então não precisa mudar).
+- **Owner sugerido:** @backend (engine.history) → @frontend (UI/handlers)
 - **Módulos afetados:**
-  - `src/components/scoring/ActionBar.tsx`
-  - `src/hooks/useScoringHandlers.ts`
-  - `src/core/scoring/engine.history.ts:20` (já existe)
-- **Status:** 🟡 Em débito (Sprint 3 — feature verification)
-  - ✅ Spec `04-undo-redo.spec.ts` cobre undo + documenta ausência
-    de redo na UI via asserção `redoButton.count() === 0`.
+  - `src/core/scoring/engine.history.ts` (adicionar pilha `future` + cursor)
+  - `src/core/scoring/engine.ts` (wire-up `future` em `undoLastPoint`/`replayCurrentPoint`)
+  - `src/app/match/[id]/scoring/useScoringPageDerived.ts` (`canRedo = future.length > 0`)
+  - `src/hooks/useScoringHandlers.ts` (`handleRedo` — já defendido contra race)
+  - `src/components/scoring/ActionBar.tsx` (botão já existe)
+- **Status:** 🟡 Em débito (Sprint — feature verification)
+  - ✅ BUG-01/BUG-02 corrigidos: redo desabilitado evita estado inconsistente.
+  - ⏳ Implementação real pendente (cursor `future`).
+  - ✅ Spec `04-undo-redo.spec.ts` linha 113 verifica existência do botão.
 
 ---
 

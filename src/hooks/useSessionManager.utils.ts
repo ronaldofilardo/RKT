@@ -33,8 +33,9 @@ export function normalizeMatchTiebreakState(scoreState: any, format: string): an
 }
 
 function isMatchTiebreakFormatType(format: string): boolean {
-  return format === 'BEST_OF_3_MATCH_TB' || format === 'MATCH_TB_10' || 
-         format === 'BEST_OF_5' || format === 'SHORT_SET_2V2_NO_AD';
+  return format === 'BEST_OF_3_MATCH_TB' || format === 'MATCH_TB_10' ||
+         format === 'BEST_OF_5' || format === 'SHORT_SET_2V2_NO_AD' ||
+         format === 'BEST_OF_3_NO_AD';
 }
 
 export function validateMatchTiebreakComplete(
@@ -114,13 +115,18 @@ export function calculateSetsWon(setResults: SetEditData[], format: string): { p
     const isMatchTiebreak = isMatchTiebreakSet(i, setResults, format);
     
     if (isMatchTiebreak) {
-      // Check tiebreakScore first, then fall back to p1Games/p2Games
       const tbScore = set.tiebreakScore;
       const p1Score = tbScore ? tbScore.player1 : set.p1Games;
       const p2Score = tbScore ? tbScore.player2 : set.p2Games;
       
       const p1Won = p1Score >= 10 && p1Score - p2Score >= 2;
       const p2Won = p2Score >= 10 && p2Score - p1Score >= 2;
+      if (p1Won) p1Sets++;
+      else if (p2Won) p2Sets++;
+    } else if (set.tiebreakScore) {
+      const tb = set.tiebreakScore;
+      const p1Won = tb.player1 >= 7 && tb.player1 - tb.player2 >= 2;
+      const p2Won = tb.player2 >= 7 && tb.player2 - tb.player1 >= 2;
       if (p1Won) p1Sets++;
       else if (p2Won) p2Sets++;
     } else {

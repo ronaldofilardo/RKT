@@ -389,7 +389,7 @@ export default function ScoringPage() {
           winnerPlayerSide={
             (modalParams.winner as "player1" | "player2") ?? "player1"
           }
-          currentServer={scoreState?.server ?? "player1"}
+          currentServer={effectiveScoreState?.server ?? "player1"}
           player1Name={match.player1.name}
           player2Name={match.player2.name}
           fontScale={fontScale}

@@ -2,7 +2,7 @@ import type { ScoringState } from "@/core/scoring/types";
 import type { SetEditData } from "@/components/scoring/editScoreHelpers";
 import type { TennisFormat } from "@/core/scoring/types";
 import { parsePointValue } from "@/core/scoring/point-utils";
-import { isMatchTiebreakSet } from "./useSessionManager.utils";
+import { isMatchTiebreakSet, calculateSetsWon } from "./useSessionManager.utils";
 import { getMatchFormatRules, validateSetScore } from "@/lib/matchConfig";
 
 interface BuildNewStateOptions {
@@ -154,35 +154,4 @@ function buildCurrentGame(
     advantage: null,
     secondServe: false,
   };
-}
-
-function calculateSetsWon(setResults: SetEditData[], format: string): { player1: number; player2: number } {
-  let p1Sets = 0;
-  let p2Sets = 0;
-  
-  for (let i = 0; i < setResults.length; i++) {
-    const set = setResults[i];
-    const isMatchTiebreak = isMatchTiebreakSet(i, setResults, format);
-    
-    if (isMatchTiebreak) {
-      const tb = set.tiebreakScore;
-      if (tb) {
-        const p1Won = tb.player1 >= 10 && tb.player1 - tb.player2 >= 2;
-        const p2Won = tb.player2 >= 10 && tb.player2 - tb.player1 >= 2;
-        if (p1Won) p1Sets++;
-        else if (p2Won) p2Sets++;
-      }
-    } else if (set.tiebreakScore) {
-      const tb = set.tiebreakScore;
-      const p1Won = tb.player1 >= 7 && tb.player1 - tb.player2 >= 2;
-      const p2Won = tb.player2 >= 7 && tb.player2 - tb.player1 >= 2;
-      if (p1Won) p1Sets++;
-      else if (p2Won) p2Sets++;
-    } else {
-      if (!set.isPartial && set.p1Games > set.p2Games) p1Sets++;
-      else if (!set.isPartial && set.p2Games > set.p1Games) p2Sets++;
-    }
-  }
-  
-  return { player1: p1Sets, player2: p2Sets };
 }

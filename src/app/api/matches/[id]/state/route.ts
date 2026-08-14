@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { MatchStateInputSchema } from '@/schemas/contracts';
-import { withRLSHandler } from '@/lib/auth';
+import { withRLSHandler, getRLSUser } from '@/lib/auth';
 import { transitionMatchState } from '@/services/matchService';
 import { prisma } from '@/lib/prisma';
 
@@ -22,12 +22,19 @@ export async function PATCH(
         );
       }
 
+      const user = getRLSUser();
+
       const result = await transitionMatchState(
         id,
         parsed.data.state,
         parsed.data.initialServerId,
         parsed.data.scoreState,
-        { allowScoreEdit: parsed.data.allowScoreEdit, expectedVersion: parsed.data.version },
+        {
+          allowScoreEdit: parsed.data.allowScoreEdit,
+          expectedVersion: parsed.data.version,
+          isManualScoreEdit: parsed.data.isManualScoreEdit,
+          editedByUserId: user?.id,
+        },
       );
 
       if (!result) {

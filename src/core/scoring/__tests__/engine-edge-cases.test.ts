@@ -273,7 +273,7 @@ describe('ScoringEngine - replayCurrentPoint', () => {
     expect(engine.getHistoryLength()).toBe(0);
   });
 
-  it('deve restaurar estado anterior e remover último entry', () => {
+  it('redo não implementado: replayCurrentPoint é no-op (preserva histórico e estado)', () => {
     const engine = new ScoringEngine(makeConfig('BEST_OF_3'));
     makePoint(engine, 'player-1-id');
     makePoint(engine, 'player-1-id');
@@ -282,8 +282,8 @@ describe('ScoringEngine - replayCurrentPoint', () => {
     expect(engine.getState().currentGame.player1).toBe(2);
 
     engine.replayCurrentPoint();
-    expect(engine.getHistoryLength()).toBe(1);
-    expect(engine.getState().currentGame.player1).toBe(1);
+    expect(engine.getHistoryLength()).toBe(2);
+    expect(engine.getState().currentGame.player1).toBe(2);
   });
 });
 

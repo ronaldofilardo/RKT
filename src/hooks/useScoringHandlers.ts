@@ -156,7 +156,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     async (
       state: ScoringState,
       label: string,
-      persistOptions?: { allowScoreEdit?: boolean }
+      persistOptions?: { allowScoreEdit?: boolean; isManualScoreEdit?: boolean }
     ): Promise<{ success: boolean; needsResync?: boolean; conflict?: boolean; version?: number }> => {
       // Tolerante a engines mockados sem getPointHistory (testes). Em produção
       // sempre existe; se ausente, history fica undefined e mantém o legado
@@ -173,6 +173,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         setError,
         fetchMatch,
         allowScoreEdit: persistOptions?.allowScoreEdit,
+        isManualScoreEdit: persistOptions?.isManualScoreEdit,
         // Em undo/redo o engine mantém o histórico detalhado (com
         // rallyDetails/firstFaultDetail). Persisti-lo aqui evita que o
         // PATCH /state substitua o snapshot anterior e apague os dados do
@@ -201,7 +202,14 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
   const processPoint = useCallback(
     async (flow: PointFlow): Promise<string | undefined> => {
       if (!engineRef.current || !match || isProcessingRef.current) return undefined;
-      
+      if (match.state !== "IN_PROGRESS") {
+        logger.warn("[processPoint] match.state não é IN_PROGRESS — abortando antes de applyPoint", {
+          matchState: match.state,
+          matchId: match.id,
+        });
+        return undefined;
+      }
+
       isProcessingRef.current = true;
       
       try {
@@ -344,6 +352,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
 
   const handleRedo = useCallback(async () => {
     if (!engineRef.current || isProcessingRef.current) return;
+    if (debounceTimerRef.current) return;
     isProcessingRef.current = true;
     try {
       engineRef.current.replayCurrentPoint();
@@ -368,6 +377,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     closeAll,
     engineRef,
     isProcessingRef,
+    debounceTimerRef,
     setScoreState,
   ]);
 
@@ -510,14 +520,16 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
   const handleServeCancel = useCallback(() => {
     handleServeErrorClose();
     if (serveErrorState.firstServeError && engineRef.current) {
-      handleFirstServeErrorClear();
+      engineRef.current.undoLastPoint();
+      setScoreState(engineRef.current.getState() as ScoringState);
     }
     handleFirstServeErrorClear();
   }, [
     handleServeErrorClose,
     serveErrorState.firstServeError,
-    handleFirstServeErrorClear,
     engineRef,
+    setScoreState,
+    handleFirstServeErrorClear,
   ]);
 
   const handleServeErrorCancel = useCallback(() => {

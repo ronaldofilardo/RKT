@@ -66,6 +66,7 @@ model Match {
   player2            Player                   @relation("Player2", fields: [player2Id], references: [id])
   pointLog           PointLog[]
   annotationSessions MatchAnnotationSession[]
+  scoreEdits         MatchScoreEdit[]
 
   @@index([state])
   @@index([deletedAt])
@@ -85,6 +86,34 @@ model PointLog {
   match             Match     @relation(fields: [matchId], references: [id])
 
   @@index([matchId])
+}
+
+/// Registra cada correção manual de placar ("Editar Placar"), usada
+/// tipicamente para retomar uma partida interrompida (ex.: anotador parou
+/// no set 2, 3x2, 30-30, e depois ajusta o placar manualmente para
+/// continuar no set 3). Preserva o snapshot `{state, history}` de ANTES da
+/// edição — que o engine descarta localmente (`loadState` zera seu
+/// `history` em memória) — para que o `/report` (e, no futuro, o módulo de
+/// estatísticas) consiga reconstruir a timeline completa em segmentos,
+/// inserindo um marcador de "interrupção" entre eles, em vez de perder ou
+/// zerar os dados do trecho anterior à edição.
+model MatchScoreEdit {
+  id                 String   @id @default(cuid())
+  matchId            String
+  editedByUserId     String?
+  editedAt           DateTime @default(now())
+  /// Snapshot `{state, history}` (ou apenas `state`, se o segmento anterior
+  /// não tinha history detalhado) imediatamente antes desta edição.
+  previousScoreState Json
+  /// Snapshot `{state, history}` resultante da edição (novo ponto de
+  /// partida para o segmento seguinte de anotação).
+  newScoreState      Json
+  note               String?
+  match              Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([matchId])
+  @@index([matchId, editedAt])
+  @@map("match_score_edits")
 }
 
 model MatchAnnotationSession {

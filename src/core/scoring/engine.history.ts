@@ -18,13 +18,9 @@ export function undoLastPoint(
 }
 
 export function replayCurrentPoint(
-  history: HistoryEntry[],
-  setState: (state: ScoringState) => void,
+  _history: HistoryEntry[],
+  _setState: (state: ScoringState) => void,
 ): void {
-  const entry = history[history.length - 1];
-  if (!entry) return;
-  setState(JSON.parse(JSON.stringify(entry.stateBefore)));
-  history.pop();
 }
 
 export function getHistoryLength(history: HistoryEntry[]): number {

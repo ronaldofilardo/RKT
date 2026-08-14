@@ -37,7 +37,7 @@ export interface SessionManagerContext {
 
   suspendedSession: SuspendedSessionState | null;
   fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
-  persistState: (state: ScoringState, label: string) => Promise<{ success: boolean; needsResync?: boolean }>;
+  persistState: (state: ScoringState, label: string, persistOptions?: { allowScoreEdit?: boolean; isManualScoreEdit?: boolean }) => Promise<{ success: boolean; needsResync?: boolean }>;
 
   setScoreState: Dispatch<SetStateAction<ScoringState | null>>;
   setSessionActive: Dispatch<SetStateAction<boolean>>;
@@ -96,8 +96,16 @@ export function useSessionManager(ctx: SessionManagerContext) {
             body: JSON.stringify({
               state: "FINISHED",
               scoreState: state,
+              ...(match?.version !== undefined ? { version: match.version } : {}),
             }),
           });
+
+          if (stateResponse.status === 409) {
+            logger.warn(
+              "[abandonCurrentSession] Conflito de versão (409) ao finalizar — outro dispositivo já atualizou o placar. Match já FINISHED ou estado divergente; session não fechada.",
+            );
+            return;
+          }
 
           if (!stateResponse.ok) {
             throw new Error(`state PATCH failed: ${stateResponse.status}`);
@@ -141,7 +149,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
         logger.error("[abandonCurrentSession] Error:", e);
       }
     },
-    [matchId, sessionIdRef, engineRef, tokenRef],
+    [matchId, match, sessionIdRef, engineRef, tokenRef],
   );
 
   const handleEditScore = useCallback(
@@ -216,7 +224,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
         logger.log("[handleEditScore] Match finished - will persist via /finish endpoint");
       } else {
         logger.log("[handleEditScore] Calling persistState with currentGame:", newState.currentGame);
-        const result = await persistState(newState, "edit-score");
+        const result = await persistState(newState, "edit-score", { isManualScoreEdit: true });
         if (result.success) {
           logger.log("[handleEditScore] State persisted successfully");
         } else if (result.needsResync) {

@@ -118,6 +118,18 @@ export interface TimelinePoint {
   serveDirection?: string;
   firstFault?: { errorType?: string; serveEffect?: string; direction?: string } | null;
   pointDetails: PointDetails;
+  /**
+   * Presente somente no primeiro ponto de um segmento de anotação que
+   * começou após uma correção manual de placar (ex.: retomada de partida
+   * interrompida). Usado pelo /report para renderizar um marcador de
+   * "interrupção" entre os dois trechos da timeline, sem alterar as
+   * colunas existentes da tabela.
+   */
+  segmentBreak?: {
+    editedAt: string;
+    previousLabel: string;
+    newLabel: string;
+  };
 }
 
 
