@@ -30,6 +30,17 @@ function makePoint(overrides: Partial<TimelinePoint>): TimelinePoint {
   } as TimelinePoint;
 }
 
+const baseProps = {
+  matchId: 'match-1',
+  player1Name: 'Ronaldo',
+  player2Name: 'Mateus',
+  setLabel: 'SET 1',
+  serverLabel: 'Ronaldo',
+  serverHasFixed: true,
+  isFirstPointOfGame: true,
+  isFirstPointOfSet: true,
+};
+
 describe('PointRow — regressão das divergência UI/payload', () => {
   it('ACe: exibe efeito, direção (aberto/fechado), saque 1ª, badge ACe', () => {
     const p = makePoint({
@@ -45,16 +56,15 @@ describe('PointRow — regressão das divergência UI/payload', () => {
         previewBalls: 1,
       } as any,
     });
-    const { container } = render(<PointRow point={p} hasGap={false} isLast={true} />);
+    const { container } = render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
     const text = container.textContent ?? '';
-    // Bug B (regressão): direção do ACe deve aparecer
+    // Direção do ACe deve aparecer
     expect(text).toContain('fechado');
     // Efeito deve aparecer
     expect(text).toContain('flat');
-    // Coluna ACE mostra formato detalhado (Bug A)
-    expect(text).toContain('ACE-FLA-FEC');
-    // Situação e golpe também preenchidos (ACE não é ponto de falta,
-    // portanto não há supressão)
+    // Badge ACe
+    expect(text).toContain('ACe');
+    // Situação e golpe também preenchidos
     expect(text).toContain('Saque');
   });
 
@@ -79,17 +89,14 @@ describe('PointRow — regressão das divergência UI/payload', () => {
         previewBalls: 1,
       } as any,
     });
-    const { container } = render(<PointRow point={p} hasGap={false} isLast={true} />);
+    const { container } = render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
     const text = container.textContent ?? '';
-    // Badge DF (Bug D)
+    // Badge DF
     expect(text).toContain('DF');
-    // 1ª falta com todas as três partes (Bug "1ª falta perdida")
+    // 1ª falta com todas as três partes
     expect(text).toContain('out • topspin • aberto');
-    // 2ª falta: net + flat + fechado (somente aqui — duplicadas de EFEITO,
-    // DIREÇÃO e ONDE ERROU suprimidas nos pontos de falta)
+    // 2ª falta: net + flat + fechado
     expect(text).toContain('net • flat • fechado');
-    // Coluna ACE mostra formato detalhado (Bug A)
-    expect(text).toContain('DF:');
   });
 
   it('Winner em rally: exibe golpe, efeito, direção, badge Winner', () => {
@@ -106,7 +113,7 @@ describe('PointRow — regressão das divergência UI/payload', () => {
         previewBalls: 4,
       } as any,
     });
-    const { container } = render(<PointRow point={p} hasGap={false} isLast={true} />);
+    const { container } = render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
     const text = container.textContent ?? '';
     expect(text).toContain('Winner');
     expect(text).toContain('Fundo');
@@ -128,7 +135,7 @@ describe('PointRow — regressão das divergência UI/payload', () => {
         previewBalls: 2,
       } as any,
     });
-    const { container } = render(<PointRow point={p} hasGap={false} isLast={true} />);
+    const { container } = render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
     const text = container.textContent ?? '';
     expect(text).toContain('ENF');
     expect(text).toContain('net');
@@ -141,87 +148,68 @@ describe('PointRow — regressão das divergência UI/payload', () => {
       rallyDetails: null,
       firstFault: undefined,
     });
-    const { container } = render(<PointRow point={p} hasGap={false} isLast={true} />);
-    const tds = container.querySelectorAll('td');
+    const { container } = render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
     const text = container.textContent ?? '';
-    // Badge TIPO vazio quando não há rd (mostra –)
     expect(text).toContain('–');
-  });
-
-  it('Break point: tag BP visível ao lado da bola', () => {
-    const p = makePoint({ isBreakPoint: true });
-    const { container } = render(<PointRow point={p} hasGap={false} isLast={true} />);
-    expect(screen.getByText('BP')).toBeInTheDocument();
-    expect(container.querySelector('svg')).toBeInTheDocument();
   });
 
   it('hasGap renderiza linha separadora "marcação interrompida"', () => {
     const p = makePoint({});
-    const { container } = render(<PointRow point={p} hasGap={true} isLast={true} />);
+    render(<table><tbody><PointRow {...baseProps} point={p} hasGap={true} isLast={true} /></tbody></table>);
     expect(screen.getByText('marcação interrompida')).toBeInTheDocument();
   });
 
   it('vencedor PLAYER_2 usa borda vermelha, PLAYER_1 usa borda azul', () => {
     const p1 = makePoint({ winner: 'PLAYER_1' });
     const p2 = makePoint({ winner: 'PLAYER_2' });
-    const { container: c1 } = render(<PointRow point={p1} hasGap={false} isLast={true} />);
+    const { container: c1 } = render(<table><tbody><PointRow {...baseProps} point={p1} hasGap={false} isLast={true} /></tbody></table>);
     const row1 = c1.querySelector('tr');
     expect(row1?.className).toContain('border-l-blue-500');
 
-    const { container: c2 } = render(<PointRow point={p2} hasGap={false} isLast={true} />);
+    const { container: c2 } = render(<table><tbody><PointRow {...baseProps} point={p2} hasGap={false} isLast={true} /></tbody></table>);
     const row2 = c2.querySelector('tr');
     expect(row2?.className).toContain('border-l-red-500');
   });
 });
 
-describe('PointRow — regressão remoção isServeFinish', () => {
-  it('ACE não quebra build/typecheck e renderiza badge ACe com colunas de falta suprimidas', () => {
-    const p = makePoint({
-      type: 'ACE',
-      isFirstServe: true,
-      rallyDetails: {
-        vencedor: 'sacador',
-        situacao: 'saque',
-        tipo: 'winner',
-        golpe: 'saque',
-        efeito: 'flat',
-        direcao: 'fechado',
-        previewBalls: 1,
-      } as any,
-    });
-    const { container } = render(<PointRow point={p} hasGap={false} isLast={true} />);
-    const text = container.textContent ?? '';
-    expect(text).toContain('ACe');
-    expect(text).toContain('Saque');
-    expect(text).toContain('flat');
-    expect(text).toContain('fechado');
+describe('PointRow — coluna lateral SET', () => {
+  it('mostra "SET N" + sacador + [S] no primeiro ponto do set (sacador fixo)', () => {
+    const p = makePoint({ server: 'player1' });
+    render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
+    expect(screen.getByText('SET 1')).toBeInTheDocument();
+    expect(screen.getByText('[S]')).toBeInTheDocument();
   });
 
-  it('Double Fault não quebra build/typecheck e renderiza badge DF com detalhes de falta', () => {
-    const p = makePoint({
-      type: 'DOUBLE_FAULT',
-      isFirstServe: false,
-      isSecondServe: true,
-      firstFault: {
-        errorType: 'out',
-        serveEffect: 'topspin',
-        direction: 'aberto',
-      },
-      rallyDetails: {
-        vencedor: 'devolvedor',
-        situacao: 'saque',
-        tipo: 'dupla_falta',
-        golpe: 'saque',
-        subtipo2: 'net',
-        efeito: 'flat',
-        direcao: 'fechado',
-        previewBalls: 1,
-      } as any,
-    });
-    const { container } = render(<PointRow point={p} hasGap={false} isLast={true} />);
-    const text = container.textContent ?? '';
-    expect(text).toContain('DF');
-    expect(text).toContain('out • topspin • aberto');
-    expect(text).toContain('net • flat • fechado');
+  it('mostra "sacador alterna" quando o set tem mais de um sacador', () => {
+    const p = makePoint({ server: 'player1' });
+    render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} serverHasFixed={false} /></tbody></table>);
+    expect(screen.getByText(/sacador alterna/i)).toBeInTheDocument();
+  });
+
+  it('GAMES mostra placar apenas no 1º ponto do game (demais = "–")', () => {
+    const p1 = makePoint({ pointNumber: 1 });
+    const p2 = makePoint({ pointNumber: 2 });
+    const { container: c1 } = render(
+      <table>
+        <tbody>
+          <PointRow {...baseProps} point={p1} hasGap={false} isLast={false} isFirstPointOfGame={true} />
+        </tbody>
+      </table>
+    );
+    // GAMES e PONTOS mostram "0-0" no 1º ponto do game
+    const cells1 = c1.querySelectorAll('td');
+    expect(cells1[1]?.textContent).toBe('0-0');
+    expect(cells1[2]?.textContent).toBe('0-0');
+
+    const { container: c2 } = render(
+      <table>
+        <tbody>
+          <PointRow {...baseProps} point={p2} hasGap={false} isLast={false} isFirstPointOfGame={false} />
+        </tbody>
+      </table>
+    );
+    // Cells: [0]=SET, [1]=GAMES, [2]=PONTOS
+    const cells = c2.querySelectorAll('td');
+    expect(cells[1]?.textContent).toBe('–');
   });
 });

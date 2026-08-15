@@ -30,7 +30,7 @@ function makePoint(overrides: Partial<TimelinePoint>): TimelinePoint {
   } as TimelinePoint;
 }
 
-function renderRow(p: TimelinePoint) {
+function renderRow(p: TimelinePoint, overrides: Partial<React.ComponentProps<typeof PointRow>> = {}) {
   // PointRow gera células <td>; envolvemos em <table><tbody> para HTML válido.
   return render(
     <table>
@@ -42,6 +42,12 @@ function renderRow(p: TimelinePoint) {
           matchId="match-1"
           player1Name="Ronaldo"
           player2Name="Mateus"
+          setLabel="SET 1"
+          serverLabel="Ronaldo"
+          serverHasFixed={true}
+          isFirstPointOfGame={true}
+          isFirstPointOfSet={true}
+          {...overrides}
         />
       </tbody>
     </table>
@@ -78,18 +84,51 @@ describe('PointRow — reorganização do /report (itens 1, 2, 6 e C)', () => {
     expect(screen.getByText(new RegExp(longNote))).toBeInTheDocument();
   });
 
-  it('reorganização (C): coluna SAQUE mostra o nome de quem sacou, não só a cor da bolinha', () => {
+  it('reorganização (C): coluna lateral SET exibe o sacador com [S] no primeiro ponto do set', () => {
     const p = makePoint({ server: 'player1' });
     renderRow(p);
-    // "Ronaldo" aparece em 2 lugares: célula da coluna SAQUE e célula da coluna VENCEDOR.
-    // O importante aqui é que aparece pelo menos uma vez como texto (não só a cor da bolinha).
-    expect(screen.getAllByText('Ronaldo').length).toBeGreaterThanOrEqual(1);
+    // SET 1 + nome do sacador + [S]
+    expect(screen.getByText('SET 1')).toBeInTheDocument();
+    // SET lateral contém o nome; VENCEDOR também. Validamos pelo menos 2
+    // ocorrências de "Ronaldo" (sacador lateral + vencedor do ponto).
+    expect(screen.getAllByText('Ronaldo').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText('[S]')).toBeInTheDocument();
+  });
+
+  it('reorganização (C): coluna GAMES só mostra o placar no 1º ponto do game (demais = –)', () => {
+    const p = makePoint({
+      setNumber: 1,
+      pointNumber: 1,
+      gamesScore: { player1: 0, player2: 0 },
+      gameScore: { player1: 0, player2: 0 },
+    });
+    renderRow(p, { isFirstPointOfGame: true });
+    // GAMES e PONTOS mostram "0-0" no 1º ponto do game
+    expect(screen.getAllByText('0-0').length).toBeGreaterThanOrEqual(2);
+
+    // Segundo ponto do mesmo game: GAMES = –, PONTOS = "15-0"
+    const p2 = makePoint({
+      setNumber: 1,
+      pointNumber: 2,
+      gamesScore: { player1: 0, player2: 0 },
+      gameScore: { player1: 1, player2: 0 },
+    });
+    const { container } = renderRow(p2, { isFirstPointOfGame: false });
+    // Cells: [0]=SET, [1]=GAMES, [2]=PONTOS
+    const cells = container.querySelectorAll('td');
+    expect(cells[1]?.textContent).toBe('–');
+    expect(cells[2]?.textContent).toBe('15-0');
   });
 
   it('reorganização (C): coluna VENCEDOR mostra explicitamente o nome de quem ganhou o ponto', () => {
     const p = makePoint({ winner: 'PLAYER_2', server: 'player1' });
     renderRow(p);
-    // "Mateus" deve aparecer como vencedor (texto explícito), mesmo o saque sendo do Ronaldo.
     expect(screen.getByText('Mateus')).toBeInTheDocument();
+  });
+
+  it('quando o set tem alternância de sacador, coluna SET mostra "sacador alterna"', () => {
+    const p = makePoint({ server: 'player1' });
+    renderRow(p, { serverHasFixed: false });
+    expect(screen.getByText(/sacador alterna/i)).toBeInTheDocument();
   });
 });

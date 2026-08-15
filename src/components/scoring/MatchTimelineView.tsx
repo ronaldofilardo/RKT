@@ -97,8 +97,8 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId }:
 
       <div className="mb-3 text-[10px] text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 space-y-1">
         <p className="font-semibold text-gray-700 mb-1">Como ler esta tabela</p>
-        <p>Cada linha é um ponto disputado, na ordem em que aconteceu. A coluna <strong>SAQUE</strong> mostra quem sacou naquele ponto; <strong>VENCEDOR</strong> mostra quem ganhou o ponto (nome destacado em azul = {player1Name}, em vermelho = {player2Name}).</p>
-        <p><strong>PLACAR GAMES</strong> = placar de sets/games no momento do ponto · <strong>PLACAR GAME</strong> = placar de pontos dentro daquele game (ex: 15-0, Deuce, Adv. P1).</p>
+        <p>Cada linha é um ponto disputado, na ordem em que aconteceu. <strong>SET</strong> identifica o set e o sacador ([S] = sacador) quando o sacador é fixo no set; <strong>VENCEDOR</strong> mostra quem ganhou o ponto (nome destacado em azul = {player1Name}, em vermelho = {player2Name}).</p>
+        <p><strong>GAMES</strong> = placar de games/set no momento do ponto (mostrado só no 1º ponto de cada game para reduzir repetição) · <strong>PONTOS</strong> = placar de pontos dentro daquele game (ex: 15-0, Deuce, Adv. P1).</p>
         <p><strong>BP</strong> = Break Point · <strong>GB</strong> = Game Ball (bola de game) · <strong>SB</strong> = Set Ball (bola de set)</p>
         <p><strong>TIPO</strong>: <strong>ACe</strong> = Ace · <strong>DF</strong> = Dupla Falta · <strong>Winner</strong> = ponto vencedor direto · <strong>ENF</strong> = Erro Não Forçado · <strong>EF</strong> = Erro Forçado</p>
         <p><strong>SITUAÇÃO / GOLPE / EFEITO / DIREÇÃO / ONDE ERROU / SUBTIPO</strong> descrevem como o ponto terminou (que golpe, com que efeito, para onde, e onde foi o erro, se houver).</p>
@@ -109,8 +109,8 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId }:
         <div className="overflow-x-auto">
           <table className="w-full text-[11px]" style={{ tableLayout: 'fixed', borderCollapse: 'collapse' }}>
             <colgroup>
-              <col style={{ width: '9%' }} />
-              <col style={{ width: '6%' }} />
+              <col style={{ width: '10%' }} />
+              <col style={{ width: '5%' }} />
               <col style={{ width: '6%' }} />
               <col style={{ width: '8%' }} />
               <col style={{ width: '6%' }} />
@@ -128,8 +128,13 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId }:
             </colgroup>
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                {['SAQUE', 'PLACAR GAMES', 'PLACAR GAME', 'VENCEDOR', 'TIPO', 'SITUAÇÃO', 'GOLPE', 'EFEITO', 'DIREÇÃO', 'ONDE ERROU', 'SUBTIPO', '1ª FALTA', '2ª FALTA', 'TROCAS', 'ESPECIAL', 'OBSERVAÇÃO'].map(h => (
-                  <th key={h} className="px-1.5 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wide whitespace-normal">{h}</th>
+                {['SET', 'GAMES', 'PONTOS', 'VENCEDOR', 'TIPO', 'SITUAÇÃO', 'GOLPE', 'EFEITO', 'DIREÇÃO', 'ONDE ERROU', 'SUBTIPO', '1ª FALTA', '2ª FALTA', 'TROCAS', 'ESPECIAL', 'OBSERVAÇÃO'].map((h, idx) => (
+                  <th
+                    key={h}
+                    className={`px-1.5 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wide whitespace-normal ${idx === 0 ? 'sticky left-0 bg-gray-50 z-20 border-r border-gray-200' : ''}`}
+                  >
+                    {h}
+                  </th>
                 ))}
               </tr>
             </thead>

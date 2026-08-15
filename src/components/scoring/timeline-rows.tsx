@@ -20,6 +20,16 @@ interface PointRowProps {
   matchId: string;
   player1Name: string;
   player2Name: string;
+  /** Rótulo "SET N" exibido na primeira linha do set. */
+  setLabel?: string;
+  /** Nome do jogador que saca no set (apenas quando fixo). */
+  serverLabel?: string;
+  /** Quando true, o set tem um sacador único (sem alternância). */
+  serverHasFixed: boolean;
+  /** Quando true, esta linha é o primeiro ponto do game atual. */
+  isFirstPointOfGame: boolean;
+  /** Quando true, esta linha é o primeiro ponto do set. */
+  isFirstPointOfSet: boolean;
 }
 
 const BADGE_COLORS = {
@@ -40,14 +50,10 @@ function getPointBadge(p: TimelinePoint): { label: string; color: 'green' | 'red
   return getPointDetailSummary(p.rallyDetails);
 }
 
-export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, player1Name, player2Name }: PointRowProps) {
+export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, player1Name, player2Name, setLabel, serverLabel, serverHasFixed, isFirstPointOfGame, isFirstPointOfSet }: PointRowProps) {
   const rd = p.rallyDetails;
   const badge = getPointBadge(p);
   const isDoubleFault = p.type === 'DOUBLE_FAULT';
-  // Pontos de saque-falta (1ª ou 2ª): os detalhes do rally (situação,
-  // golpe, efeito, direção, onde errou) ficam redundantes com as colunas
-  // dedicadas "1ª FALTA" e "2ª FALTA" — aqui os suprimimos para evitar
-  // duplicação, deixando essas infos apenas nas colunas dedicadas.
   const isFaultPoint = p.type === 'FAULT_FIRST' || isDoubleFault || p.isSecondServe === true;
 
   const rowClass = [
@@ -56,31 +62,36 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, player1Na
     p.isBreakPoint ? 'bg-amber-50/40' : '',
   ].join(' ');
 
-  const serverBallColor = p.server === 'player1' ? 'drop-shadow(0 0 2px #3b82f6)' : 'drop-shadow(0 0 2px #ef4444)';
   const serverName = p.server === 'player1' ? player1Name : player2Name;
   const winnerName = p.winner === 'PLAYER_1' ? player1Name : player2Name;
 
   const cells = (
     <>
-      {/* SAQUE (quem sacou) */}
-      <td className="px-1.5 py-1.5 align-middle">
-        <div className="flex items-center gap-1">
-          <svg width="12" height="12" viewBox="0 0 18 18" style={{ filter: serverBallColor, flexShrink: 0 }}>
-            <circle cx="9" cy="9" r="7" fill="#CCFF00" />
-            <path d="M5 5 Q9 9 13 5" stroke="white" strokeWidth="1.5" fill="none" />
-            <path d="M5 13 Q9 9 13 13" stroke="white" strokeWidth="1.5" fill="none" />
-          </svg>
-          <span className="text-[10px] text-gray-600 truncate">{serverName}</span>
-        </div>
-        <div className="flex items-center gap-0.5 mt-0.5">
-          {p.isBreakPoint && <Tag className="bg-amber-100 text-amber-700">BP</Tag>}
-          {p.isGameBall && <Tag className="bg-yellow-100 text-yellow-700">GB</Tag>}
-          {p.isSetBall && <Tag className="bg-purple-100 text-purple-700">SB</Tag>}
-        </div>
+      {/* SET (lateral) — identifica o set e o sacador. Quando o sacador é fixo
+          no set (sem alternância), mostramos "SET N" + nome do sacador + [S]
+          no primeiro ponto do set e replicamos o nome nos demais pontos. */}
+      <td className="px-1.5 py-1.5 align-middle sticky left-0 bg-white z-10 border-r border-gray-200">
+        {isFirstPointOfSet && setLabel ? (
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[9px] font-black uppercase text-blue-600" style={{ letterSpacing: '0.12em' }}>{setLabel}</span>
+            {serverHasFixed && serverLabel ? (
+              <span className="text-[10px] text-gray-700 font-semibold truncate">{serverLabel} <span className="text-[9px] font-bold text-green-700">[S]</span></span>
+            ) : (
+              <span className="text-[10px] text-gray-500 italic truncate">sacador alterna</span>
+            )}
+          </div>
+        ) : serverHasFixed && serverLabel ? (
+          <span className="text-[10px] text-gray-500 truncate">{serverLabel}</span>
+        ) : (
+          <span className="text-[10px] text-gray-500 truncate">{serverName}</span>
+        )}
       </td>
-      {/* PLACAR GAMES */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-500">{p.gamesScore.player1}-{p.gamesScore.player2}</td>
-      {/* PLACAR GAME */}
+      {/* GAMES — placar de games/set, exibido apenas no 1º ponto de cada game
+          para evitar a repetição visual (0-0 em todos os pontos do game). */}
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-700 font-semibold">
+        {isFirstPointOfGame ? `${p.gamesScore.player1}-${p.gamesScore.player2}` : '–'}
+      </td>
+      {/* PONTOS — placar de pontos dentro do game (15-0, Deuce, Adv. P1, etc.) */}
       <td className="px-1.5 py-1.5 text-[10px] font-bold text-gray-800">{getGameScoreLabelForPoint(p)}</td>
       {/* VENCEDOR DO PONTO */}
       <td className={`px-1.5 py-1.5 text-[10px] font-semibold truncate ${p.winner === 'PLAYER_1' ? 'text-blue-600' : 'text-red-600'}`}>
@@ -209,23 +220,27 @@ interface SetGroupProps {
 
 export function SetGroup({ setNumber, points, hasActiveFilters, player1Name, player2Name, isLast, matchId }: SetGroupProps) {
   const firstPoint = points[0];
-  const server = firstPoint?.server === 'player1' ? player1Name : player2Name;
-  const receiver = firstPoint?.server === 'player1' ? player2Name : player1Name;
+  const setLabel = `SET ${setNumber}`;
+
+  const servers = new Set(points.map(p => p.server));
+  const serverHasFixed = servers.size === 1;
+  const fixedServer = serverHasFixed ? firstPoint.server : null;
+  const serverLabel = fixedServer === 'player1' ? player1Name : player2Name;
 
   return (
     <>
-      <tr className="bg-gray-100 border-b border-gray-200">
-        <td colSpan={3} className="px-1.5 py-2">
-          <span className="text-[9px] font-black uppercase text-blue-600" style={{ letterSpacing: '0.12em' }}>SET {setNumber}</span>
-        </td>
-        <td colSpan={13} className="px-1.5 py-2">
-          <span className="text-[10px] text-gray-500">{server} – {receiver}</span>
-        </td>
-      </tr>
-
       {points.map((p, i) => {
         const prevPoint = i > 0 ? points[i - 1] : null;
         const hasGap = !hasActiveFilters && prevPoint && p.pointNumber - prevPoint.pointNumber > 1;
+        // gamesScore muda → novo game. Também usamos o gameScore como
+        // fallback (quando gamesScore é igual mas gameScore zerou, ex.:
+        // tiebreak).
+        const isFirstPointOfGame =
+          i === 0 ||
+          prevPoint!.gamesScore.player1 !== p.gamesScore.player1 ||
+          prevPoint!.gamesScore.player2 !== p.gamesScore.player2 ||
+          (prevPoint!.gameScore.player1 === 0 && prevPoint!.gameScore.player2 === 0);
+        const isFirstPointOfSet = i === 0;
         return (
           <PointRow
             key={`${p.setNumber}-${p.pointNumber}`}
@@ -235,18 +250,15 @@ export function SetGroup({ setNumber, points, hasActiveFilters, player1Name, pla
             matchId={matchId}
             player1Name={player1Name}
             player2Name={player2Name}
+            setLabel={setLabel}
+            serverLabel={serverLabel}
+            serverHasFixed={serverHasFixed}
+            isFirstPointOfGame={isFirstPointOfGame}
+            isFirstPointOfSet={isFirstPointOfSet}
           />
         );
       })}
     </>
-  );
-}
-
-function Tag({ className, children }: { className?: string; children: React.ReactNode }) {
-  return (
-    <span className={`text-[7px] font-bold px-[3px] py-[1px] rounded leading-none ${className ?? ''}`}>
-      {children}
-    </span>
   );
 }
 

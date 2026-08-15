@@ -33,7 +33,7 @@ function makePoint(overrides: Partial<TimelinePoint>): TimelinePoint {
 }
 
 describe('MatchTimelineView — cabeçalhos e legenda (itens 4, 5 e reorganização C)', () => {
-  it('itens 4/5: cabeçalhos renomeados e sem coluna "ACE" nem os antigos "BOLA/GAME/PONTO/SUB1"', () => {
+  it('cabeçalhos renomeados: SET lateral, GAMES, PONTOS; sem coluna SAQUE', () => {
     render(
       <MatchTimelineView
         points={[makePoint({})]}
@@ -43,21 +43,19 @@ describe('MatchTimelineView — cabeçalhos e legenda (itens 4, 5 e reorganizaç
       />
     );
 
-    // Cabeçalhos da tabela: usar getAllByText porque "SAQUE" também aparece
-    // dentro da legenda explicativa ("Como ler esta tabela") como <strong>.
-    expect(screen.getAllByText('SAQUE').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('PLACAR GAMES').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('PLACAR GAME').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('VENCEDOR').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('ONDE ERROU')).toBeInTheDocument();
-    expect(screen.getByText('SUBTIPO')).toBeInTheDocument();
-    expect(screen.getByText('OBSERVAÇÃO')).toBeInTheDocument();
+    // Cabeçalhos de coluna (escopo: <th> dentro de <thead>)
+    expect(screen.getByText('SET', { selector: 'th' })).toBeInTheDocument();
+    expect(screen.getByText('GAMES', { selector: 'th' })).toBeInTheDocument();
+    expect(screen.getByText('PONTOS', { selector: 'th' })).toBeInTheDocument();
+    expect(screen.getByText('VENCEDOR', { selector: 'th' })).toBeInTheDocument();
+    expect(screen.getByText('ONDE ERROU', { selector: 'th' })).toBeInTheDocument();
+    expect(screen.getByText('SUBTIPO', { selector: 'th' })).toBeInTheDocument();
+    expect(screen.getByText('OBSERVAÇÃO', { selector: 'th' })).toBeInTheDocument();
 
+    expect(screen.queryByText('SAQUE', { selector: 'th' })).not.toBeInTheDocument();
+    expect(screen.queryByText('PLACAR GAMES')).not.toBeInTheDocument();
+    expect(screen.queryByText('PLACAR GAME')).not.toBeInTheDocument();
     expect(screen.queryByText('ACE', { selector: 'th' })).not.toBeInTheDocument();
-    expect(screen.queryByText('BOLA')).not.toBeInTheDocument();
-    expect(screen.queryByText('GAME', { selector: 'th' })).not.toBeInTheDocument();
-    expect(screen.queryByText('PONTO', { selector: 'th' })).not.toBeInTheDocument();
-    expect(screen.queryByText('SUB1')).not.toBeInTheDocument();
   });
 
   it('reorganização (C): legenda explica os códigos para leitor que não assistiu a partida', () => {
