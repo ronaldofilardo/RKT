@@ -1,0 +1,1 @@
+export function resolveSetsWon(normalized:any, scoreState:any, player:'player1'|'player2'){const explicit=normalized?.setsWon?.[player]??scoreState?.setsWon?.[player];if(explicit!==undefined)return explicit;return scoreState?.sets?.filter((s:any)=>s[player]>(s[player==='player1'?'player2':'player1'])).length??0;}
