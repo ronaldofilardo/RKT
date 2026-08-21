@@ -3,24 +3,13 @@ import { prisma } from '@/lib/prisma';
 import { withRLSHandler } from '@/lib/auth';
 import { handleApiError } from '@/lib/api-helpers';
 import { logger } from '@/lib/logger';
-
-const ALLOWED_MIME_TYPES = new Set([
-  'audio/webm',
-  'audio/webm;codecs=opus',
-  'audio/mp4',
-  'audio/ogg',
-  'audio/ogg;codecs=opus',
-]);
-
-const MAX_AUDIO_SIZE = 500 * 1024;
-const MAX_DURATION_MS = 15_000;
-
-function normalizeMime(raw: string): string {
-  if (raw.startsWith('audio/webm')) return 'audio/webm';
-  if (raw.startsWith('audio/mp4')) return 'audio/mp4';
-  if (raw.startsWith('audio/ogg')) return 'audio/ogg';
-  return raw;
-}
+import {
+  ALLOWED_MIME_TYPES,
+  MAX_AUDIO_SIZE,
+  getDurationError,
+  normalizeMime,
+  parseDuration,
+} from './route.helpers';
 
 // ============================================================================
 // GET /api/matches/[id]/point/[pointId]/audio
@@ -111,18 +100,10 @@ export async function POST(
         );
       }
 
-      const durationMs = durationMsRaw ? parseInt(String(durationMsRaw), 10) : 0;
-      if (!Number.isFinite(durationMs) || durationMs < 0) {
-        return NextResponse.json(
-          { error: 'INVALID_DURATION', message: 'Duração inválida' },
-          { status: 400 }
-        );
-      }
-      if (durationMs > MAX_DURATION_MS) {
-        return NextResponse.json(
-          { error: 'DURATION_TOO_LONG', message: `Duração máxima: ${MAX_DURATION_MS / 1000}s. Duração: ${Math.round(durationMs / 1000)}s` },
-          { status: 400 }
-        );
+      const durationMs = parseDuration(durationMsRaw);
+      const durationError = getDurationError(durationMs);
+      if (durationError) {
+        return NextResponse.json(durationError, { status: 400 });
       }
 
       const pointLog = await prisma.pointLog.findFirst({

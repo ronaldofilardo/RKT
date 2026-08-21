@@ -1,10 +1,19 @@
 "use client";
 
-import type { PointFlow, ScoringState } from "@/core/scoring/types";
+import type { PointFlow } from "@/core/scoring/types";
 import type { MatchData } from "./useScoringHandlers";
 import type { QueuedAction } from "@/schemas/contracts";
 import { logger } from "@/lib/logger";
-import { TIMEOUTS_MS } from "@/lib/constants";
+import { TIMEOUTS } from "@/lib/constants";
+import {
+  createPointPayload,
+  enqueueOfflinePoint,
+  handleConflictResponse,
+  handleErrorResponse,
+  handleRequestError,
+  readSuccessfulResponse,
+  type ServerResponse,
+} from './useScoringHandlers.point-sync.helpers';
 
 interface PointSyncConfig {
   matchId: string;
@@ -20,21 +29,6 @@ interface PointSyncResult {
   serverResponse?: ServerResponse;
 }
 
-interface ServerResponse {
-  scoreState?: ScoringState;
-  version?: number;
-  pointLogId?: string;
-}
-
-interface VersionConflictBody {
-  error?: string;
-  expectedSequence?: number;
-}
-
-interface ErrorResponseBody {
-  error?: string;
-  message?: string;
-}
 
 export function createPointSyncService(config: PointSyncConfig) {
   const { matchId, match, tokenRef, pointSequenceRef, setError } = config;
@@ -47,23 +41,12 @@ export function createPointSyncService(config: PointSyncConfig) {
       return { success: false, needsResync: true };
     }
 
-    const payload = {
-      winnerId: flow.winnerId,
-      type: flow.type,
-      serverId: flow.serverId,
-      timestamp: flow.timestamp ?? Date.now(),
-      sequenceNumber,
-      rallyDetails: flow.rallyDetails ?? undefined,
-      rallyLength: flow.rallyLength ?? undefined,
-      isFirstServe: flow.isFirstServe ?? undefined,
-      isSecondServe: flow.isSecondServe ?? undefined,
-      firstFaultDetail: flow.firstFaultDetail ?? undefined,
-    };
+    const payload = createPointPayload(flow, sequenceNumber);
 
     logger.point.request(payload);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), TIMEOUTS_MS.POINT_REQUEST_ABORT);
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUTS.POINT_REQUEST_ABORT_MS);
 
     try {
       const res = await fetch(`/api/matches/${matchId}/point`, {
@@ -84,12 +67,7 @@ export function createPointSyncService(config: PointSyncConfig) {
 
       if (res.ok) {
         try {
-          const data = await res.json();
-          return {
-            success: true,
-            needsResync: false,
-            serverResponse: data,
-          };
+          return readSuccessfulResponse(await res.json());
         } catch (err) {
           logger.point.parseResponseError(err);
           return { success: true, needsResync: false };
@@ -97,40 +75,12 @@ export function createPointSyncService(config: PointSyncConfig) {
       }
 
       if (res.status === 409) {
-        try {
-          const errData = (await res.json()) as VersionConflictBody;
-          if (errData.error === "SEQUENCE_CONFLICT" && errData.expectedSequence) {
-            pointSequenceRef.current = errData.expectedSequence - 1;
-          }
-        } catch (e) {
-          logger.warn("[syncPointToServer] Falha ao parsear body do 409:", e);
-        }
-        setError("Conflito de sequência — sincronizando...");
-        return { success: false, needsResync: true };
+        return handleConflictResponse(res, pointSequenceRef, setError);
       }
 
-      let errorMsg = `Erro ao registrar ponto (${res.status})`;
-      try {
-        const errData = (await res.json()) as ErrorResponseBody;
-        logger.point.responseError(res.status, errData);
-        if (errData.error) {
-          errorMsg = `Erro: ${errData.error} — ${errData.message || "sincronizando..."}`;
-        }
-      } catch (e) {
-        const text = await res.text();
-        logger.point.responseErrorText(res.status, text);
-      }
-      setError(errorMsg);
-      return { success: false, needsResync: true };
+      return handleErrorResponse(res, setError);
     } catch (err) {
-      if (err instanceof Error && err.name === "AbortError") {
-        logger.point.requestTimeout();
-        setError("Tempo esgotado ao registrar ponto — verifique sua conexão");
-      } else {
-        logger.point.requestError(err);
-        setError("Erro de conexão ao registrar ponto");
-      }
-      return { success: false, needsResync: true };
+      return handleRequestError(err, setError);
     }
   };
 
@@ -138,12 +88,7 @@ export function createPointSyncService(config: PointSyncConfig) {
     enqueue: (action: Omit<QueuedAction, "id" | "status" | "retries">) => Promise<void>,
     flow: PointFlow,
   ): Promise<void> => {
-    await enqueue({
-      matchId,
-      type: "POINT",
-      payload: flow as never,
-      timestamp: Date.now(),
-    });
+    await enqueueOfflinePoint(enqueue, matchId, flow);
   };
 
   return {

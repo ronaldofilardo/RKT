@@ -1,120 +1,158 @@
 import type { AnnotationSession } from "@/schemas/contracts";
+import { logger } from "@/lib/logger";
 
-async function getSessionToken(): Promise<string | null> {
-  return sessionStorage.getItem("access_token");
+export interface SessionServiceConfig {
+  baseUrl: string;
+  getToken: () => Promise<string | null>;
 }
 
-export async function listSessions(matchId: string): Promise<AnnotationSession[]> {
-  const token = await getSessionToken();
-
-  const response = await fetch(`/api/matches/${matchId}/sessions`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to list sessions");
-  }
-
-  return response.json();
-}
-
-export async function startSession(
-  matchId: string,
-  autoStarted = false,
-): Promise<AnnotationSession> {
-  const token = await getSessionToken();
-
-  const response = await fetch(`/api/matches/${matchId}/sessions`, {
-    method: "POST",
-    headers: {
+function createSessionService(config: SessionServiceConfig) {
+  async function makeRequest<T>(
+    endpoint: string,
+    options: RequestInit = {},
+    errorMessage: string
+  ): Promise<T> {
+    const token = await config.getToken();
+    const headers: HeadersInit = {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ autoStarted }),
-  });
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    };
 
-  if (!response.ok) {
-    throw new Error("Failed to start session");
-  }
-
-  return response.json();
-}
-
-export async function endSession(
-  matchId: string,
-  sessionId: string,
-  finalState?: unknown,
-  status: "COMPLETED" | "ABANDONED" = "ABANDONED",
-): Promise<AnnotationSession> {
-  const token = await getSessionToken();
-
-  const response = await fetch(`/api/matches/${matchId}/sessions/${sessionId}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      status,
-      ...(finalState ? { finalState } : {}),
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to end session");
-  }
-
-  return response.json();
-}
-
-export async function endorseSession(matchId: string, sessionId: string): Promise<unknown> {
-  const token = await getSessionToken();
-
-  const response = await fetch(`/api/matches/${matchId}/sessions/${sessionId}/endorse`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({}),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to endorse session");
-  }
-
-  return response.json();
-}
-
-export async function markSessionAbandoned({
-  matchId,
-  sessionId,
-  matchStateSnapshot,
-}: {
-  matchId: string;
-  sessionId: string;
-  matchStateSnapshot?: string;
-}): Promise<void> {
-  const token = await getSessionToken();
-
-  const url = `/api/matches/${matchId}/sessions/${sessionId}/abandon`;
-
-  try {
-    fetch(url, {
-      method: "POST",
-      keepalive: true,
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({ matchStateSnapshot }),
-    }).catch(() => {
-      // Silent fail em keepalive
+    const response = await fetch(`${config.baseUrl}${endpoint}`, {
+      ...options,
+      headers,
     });
-  } catch {
-    // Silent fail em fetch
+
+    if (!response.ok) {
+      throw new Error(errorMessage);
+    }
+
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
+    return response.json();
   }
+
+  return {
+    listSessions: (matchId: string): Promise<AnnotationSession[]> =>
+      makeRequest(`/matches/${matchId}/sessions`, {}, "Failed to list sessions"),
+
+    startSession: (
+      matchId: string,
+      autoStarted = false
+    ): Promise<AnnotationSession> =>
+      makeRequest(
+        `/matches/${matchId}/sessions`,
+        {
+          method: "POST",
+          body: JSON.stringify({ autoStarted }),
+        },
+        "Failed to start session"
+      ),
+
+    endSession: (
+      matchId: string,
+      sessionId: string,
+      finalState?: unknown,
+      status: "COMPLETED" | "ABANDONED" = "ABANDONED"
+    ): Promise<AnnotationSession> =>
+      makeRequest(
+        `/matches/${matchId}/sessions/${sessionId}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            status,
+            ...(finalState ? { finalState } : {}),
+          }),
+        },
+        "Failed to end session"
+      ),
+
+    endorseSession: (matchId: string, sessionId: string): Promise<unknown> =>
+      makeRequest(
+        `/matches/${matchId}/sessions/${sessionId}/endorse`,
+        {
+          method: "POST",
+          body: JSON.stringify({}),
+        },
+        "Failed to endorse session"
+      ),
+
+    markSessionAbandoned: async (
+      params: {
+        matchId: string;
+        sessionId: string;
+        matchStateSnapshot?: string;
+      }
+    ): Promise<boolean> => {
+      const { matchId, sessionId, matchStateSnapshot } = params;
+      const token = await config.getToken();
+      const url = `${config.baseUrl}/matches/${matchId}/sessions/${sessionId}/abandon`;
+
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          keepalive: true,
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ matchStateSnapshot }),
+        });
+
+        if (!response.ok) {
+          logger.session.abandonFailed(matchId, sessionId, `[SessionService] markSessionAbandoned failed: ${response.status}`);
+          return false;
+        }
+
+        return true;
+      } catch (error) {
+        logger.session.abandonFailed(matchId, sessionId, error);
+        return false;
+      }
+    },
+  };
 }
+
+function createClientService(): ReturnType<typeof createSessionService> {
+  if (typeof window === "undefined") {
+    throw new Error(
+      "Session service can only be used client-side. Use createSessionService directly on server."
+    );
+  }
+
+  return createSessionService({
+    baseUrl: "/api",
+    getToken: () => Promise.resolve(sessionStorage.getItem("access_token")),
+  });
+}
+
+let clientServiceInstance: ReturnType<typeof createSessionService> | null = null;
+
+function getClientService(): ReturnType<typeof createSessionService> {
+  if (!clientServiceInstance) {
+    clientServiceInstance = createClientService();
+  }
+  return clientServiceInstance;
+}
+
+function makeLazyClientFunction<K extends keyof ReturnType<typeof createSessionService>>(
+  key: K
+): ReturnType<typeof createSessionService>[K] {
+  return (async (...args: unknown[]) => {
+    const service = getClientService();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (service[key] as any)(...args);
+  }) as ReturnType<typeof createSessionService>[K];
+}
+
+export const listSessions = makeLazyClientFunction("listSessions");
+export const startSession = makeLazyClientFunction("startSession");
+export const endSession = makeLazyClientFunction("endSession");
+export const endorseSession = makeLazyClientFunction("endorseSession");
+export const markSessionAbandoned = makeLazyClientFunction("markSessionAbandoned");
+
+export { createSessionService };

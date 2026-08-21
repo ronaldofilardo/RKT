@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { logger } from "@/lib/logger";
 import { isTokenExpired } from "@/lib/jwt-client";
+import { TIMEOUTS } from "@/lib/constants";
 import {
   ensureAuthCookie,
   readAuthState,
@@ -80,11 +81,11 @@ export function useDashboardData(router?: any) {
     const timeoutId = setTimeout(() => {
       logger.warn("[fetchDashboardData] timeout 15s");
       setLoading(false);
-    }, 15000);
+    }, TIMEOUTS.DASHBOARD_FETCH_TIMEOUT_MS);
 
     logger.info("[fetchDashboardData] starting fetches");
 
-    const fetchWithTimeout = (url: string, options: RequestInit = {}, ms = 10000) => {
+    const fetchWithTimeout = (url: string, options: RequestInit = {}, ms = TIMEOUTS.MATCH_FETCH_TIMEOUT_MS) => {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), ms);
       return fetch(url, { ...options, signal: controller.signal })
@@ -93,7 +94,7 @@ export function useDashboardData(router?: any) {
 
     const matchPromise = fetchWithTimeout("/api/matches", {
       headers: { authorization: `Bearer ${accessToken}` },
-    }, 10000).then(async (matchRes) => {
+    }, TIMEOUTS.MATCH_FETCH_TIMEOUT_MS).then(async (matchRes) => {
       clearTimeout(timeoutId);
       logger.info("[fetchDashboardData] matches response:", matchRes.status);
       if (matchRes.status === 401) {
@@ -114,7 +115,7 @@ export function useDashboardData(router?: any) {
 
     const suspendedPromise = fetchWithTimeout("/api/matches/suspended-sessions", {
       headers: { authorization: `Bearer ${accessToken}` },
-    }, 10000).then(async (suspendedRes) => {
+    }, TIMEOUTS.MATCH_FETCH_TIMEOUT_MS).then(async (suspendedRes) => {
       clearTimeout(timeoutId);
       logger.info("[fetchDashboardData] suspended-sessions response:", suspendedRes.status);
       if (suspendedRes.status === 401) {
@@ -169,7 +170,7 @@ export function useDashboardData(router?: any) {
 
     setLoading(true);
 
-    const fetchWithTimeout = (url: string, options: RequestInit = {}, ms = 10000) => {
+    const fetchWithTimeout = (url: string, options: RequestInit = {}, ms = TIMEOUTS.MATCH_FETCH_TIMEOUT_MS) => {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), ms);
       return fetch(url, { ...options, signal: controller.signal })
@@ -178,7 +179,7 @@ export function useDashboardData(router?: any) {
 
     const matchPromise = fetchWithTimeout("/api/matches", {
       headers: { authorization: `Bearer ${accessToken}` },
-    }, 10000).then(async (matchRes) => {
+    }, TIMEOUTS.MATCH_FETCH_TIMEOUT_MS).then(async (matchRes) => {
       if (matchRes.status === 401) return null;
       if (!matchRes.ok) return [];
       const matchJson = await matchRes.json();
@@ -187,7 +188,7 @@ export function useDashboardData(router?: any) {
 
     const suspendedPromise = fetchWithTimeout("/api/matches/suspended-sessions", {
       headers: { authorization: `Bearer ${accessToken}` },
-    }, 10000).then(async (suspendedRes) => {
+    }, TIMEOUTS.MATCH_FETCH_TIMEOUT_MS).then(async (suspendedRes) => {
       if (suspendedRes.status === 401) return null;
       if (!suspendedRes.ok) return [];
       const suspendedJson = await suspendedRes.json();

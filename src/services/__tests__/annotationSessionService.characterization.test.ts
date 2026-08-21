@@ -34,7 +34,7 @@ Object.defineProperty(global, 'sessionStorage', {
 let serviceModule: any;
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  jest.resetAllMocks();
   // Resetar módulo para cada teste
   jest.isolateModules(() => {
     serviceModule = require('../annotationSessionService');
@@ -99,7 +99,7 @@ describe('annotationSessionService (characterization)', () => {
       );
     });
 
-    it('SUSPECT: TD-XXX — Não há tratamento para token null/undefined', async () => {
+    it('FIXED: não inclui Authorization header quando token é null', async () => {
       mockSessionStorage.getItem.mockReturnValue(null);
 
       (global.fetch as jest.Mock).mockResolvedValue({
@@ -109,16 +109,15 @@ describe('annotationSessionService (characterization)', () => {
 
       await serviceModule.listSessions(matchId);
 
-      // Comportamento observado: chama fetch com Authorization: Bearer null
+      // Comportamento corrigido: NÃO inclui Authorization header quando token é null
       expect(global.fetch).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
-          headers: expect.objectContaining({
-            Authorization: 'Bearer null',
+          headers: expect.not.objectContaining({
+            Authorization: expect.anything(),
           }),
         })
       );
-      // SUSPECT: Deveria lançar erro ou não chamar fetch sem token?
     });
   });
 
@@ -335,7 +334,7 @@ describe('annotationSessionService (characterization)', () => {
 
   describe('markSessionAbandoned', () => {
     it('deve chamar POST /api/matches/:id/sessions/:sessionId/abandon com keepalive=true', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue(undefined);
+      (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
 
       await serviceModule.markSessionAbandoned({
         matchId,
@@ -343,8 +342,11 @@ describe('annotationSessionService (characterization)', () => {
         matchStateSnapshot: '{"sets":[]}',
       });
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        `/api/matches/${matchId}/sessions/${sessionId}/abandon`,
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      const call = (global.fetch as jest.Mock).mock.calls[0];
+      // Verifica se a URL contém o path esperado (pode ter baseUrl diferente em testes)
+      expect(call[0]).toContain(`/matches/${matchId}/sessions/${sessionId}/abandon`);
+      expect(call[1]).toEqual(
         expect.objectContaining({
           method: 'POST',
           keepalive: true,
@@ -359,9 +361,9 @@ describe('annotationSessionService (characterization)', () => {
     });
 
     it('deve omitir matchStateSnapshot quando undefined', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue(undefined);
+      (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
 
-      await serviceModule.markSessionAbandoned({ matchId, sessionId });
+      const result = await serviceModule.markSessionAbandoned({ matchId, sessionId });
 
       expect(global.fetch).toHaveBeenCalledWith(
         expect.anything(),
@@ -369,33 +371,30 @@ describe('annotationSessionService (characterization)', () => {
           body: JSON.stringify({}),
         })
       );
+      expect(result).toBe(true);
     });
 
-    it('SUSPECT: TD-XXX — Ignora erros silenciosamente (fail silently)', async () => {
+    it('FIXED: retorna false em erro de rede (não falha silenciosamente)', async () => {
       (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
 
-      // Comportamento observado: não lança erro, falha silenciosamente
-      await expect(serviceModule.markSessionAbandoned({ matchId, sessionId }))
-        .resolves.toBeUndefined();
-
-      // SUSPECT: Deveria pelo menos logar o erro ou tentar retry?
+      // Comportamento corrigido: retorna false em vez de falhar silenciosamente
+      const result = await serviceModule.markSessionAbandoned({ matchId, sessionId });
+      expect(result).toBe(false);
     });
 
-    it('SUSPECT: TD-XXX — Não há callback de sucesso/fracasso', async () => {
+    it('FIXED: retorna true em sucesso', async () => {
       (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
 
       const result = await serviceModule.markSessionAbandoned({ matchId, sessionId });
-      expect(result).toBeUndefined();
-
-      // SUSPECT: Como o caller sabe se funcionou? Deveria retornar Promise<boolean>?
+      expect(result).toBe(true);
     });
 
     it('deve incluir token apenas quando disponível', async () => {
       mockSessionStorage.getItem.mockReturnValue(null);
 
-      (global.fetch as jest.Mock).mockResolvedValue(undefined);
+      (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
 
-      await serviceModule.markSessionAbandoned({ matchId, sessionId });
+      const result = await serviceModule.markSessionAbandoned({ matchId, sessionId });
 
       expect(global.fetch).toHaveBeenCalledWith(
         expect.anything(),
@@ -405,6 +404,7 @@ describe('annotationSessionService (characterization)', () => {
           }),
         })
       );
+      expect(result).toBe(true);
     });
   });
 

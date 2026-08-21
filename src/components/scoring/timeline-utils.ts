@@ -2,6 +2,10 @@ import { z } from 'zod';
 import type { TimelinePoint } from '@/core/scoring/types';
 import { getGameScoreLabel } from '@/core/scoring/scoring-logic';
 import {
+  matchesTimelineFilters,
+  formatAceOrDoubleFault,
+} from './timeline-utils.refactor.helpers';
+import {
   RallyDetailsSchema,
   RallySituacaoSchema,
   RallyTipoSchema,
@@ -23,13 +27,7 @@ export function filterTimelinePoints(
     errorsOnly?: boolean;
   },
 ): TimelinePoint[] {
-  return points.filter(p => {
-    if (filters.playerWinner && p.winner !== filters.playerWinner) return false;
-    if (filters.breakPointsOnly && !p.isBreakPoint) return false;
-    if (filters.winnersOnly && p.type !== 'WINNER' && p.type !== 'ACE') return false;
-    if (filters.errorsOnly && p.type !== 'UNFORCED_ERROR' && p.type !== 'FORCED_ERROR' && p.type !== 'DOUBLE_FAULT') return false;
-    return true;
-  });
+  return points.filter(p => matchesTimelineFilters(p, filters));
 }
 
 export function countByFilter(points: TimelinePoint[], filter: (p: TimelinePoint) => boolean): number {
@@ -42,36 +40,9 @@ export function getGameScoreLabelForPoint(p: TimelinePoint): string {
 }
 
 export function formatAceOrDf(p: TimelinePoint): string {
-  if (p.type === 'ACE') {
-    const parts = ['ACE'];
-    const rd = p.rallyDetails;
-    if (rd?.efeito) {
-      const efeitoMap: Record<string, string> = { topspin: 'TOP', slice: 'SLI', flat: 'FLA' };
-      parts.push(efeitoMap[rd.efeito] ?? rd.efeito.toUpperCase().slice(0, 3));
-    }
-    if (rd?.direcao) {
-      const dirMap: Record<string, string> = { aberto: 'AB', centro: 'CEN', fechado: 'FEC', cruzada: 'CRU', paralela: 'PAR' };
-      parts.push(dirMap[rd.direcao] ?? rd.direcao.toUpperCase().slice(0, 3));
-    }
-    return parts.join('-');
-  }
-  if (p.type === 'DOUBLE_FAULT' || p.type === 'FAULT_SECOND') {
-    const ff = p.firstFault;
-    const firstPart = ff
-      ? `1o.${ff.serveEffect ? `-${capitalize(ff.serveEffect.slice(0, 3))}` : ''}${ff.direction ? `-${capitalize(ff.direction.slice(0, 3))}` : ''}`
-      : '1o.';
-    const rd = p.rallyDetails;
-    const secondPart = rd
-      ? `2o.${rd.efeito ? `-${capitalize(rd.efeito.slice(0, 3))}` : ''}${rd.direcao ? `-${capitalize(rd.direcao.slice(0, 3))}` : ''}`
-      : '2o.';
-    return `DF: ${firstPart} > ${secondPart}`;
-  }
-  return '–';
+  return formatAceOrDoubleFault(p);
 }
 
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
-}
 
 export function situacaoLabel(s?: string): string {
   const map: Record<string, string> = { devolucao: 'Devolução', fundo: 'Fundo', rede: 'Rede', passada: 'Passada', saque: 'Saque' };

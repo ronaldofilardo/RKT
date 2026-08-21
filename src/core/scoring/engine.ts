@@ -1,5 +1,6 @@
 import type { ScoringEngineConfig, ScoringState, PointFlow, PointDetails, HistoryEntry } from './types';
-import { logger } from '@/lib/logger';
+import { createPointDetails, isFirstFault, resolvePointWinner } from './engine.apply-point.helpers';
+
 import { createInitialState, getState, serialize, reconcileWithCanonicalState } from './engine.state';
 import { saveToHistory, undoLastPoint as undoHistory, replayCurrentPoint as replayHistory, getHistoryLength, getPointHistory, restorePointHistory, clearHistory } from './engine.history';
 import {
@@ -24,54 +25,19 @@ export class ScoringEngine {
   }
 
   applyPoint(flow: PointFlow): ScoringState {
-    if (this.state.isFinished) {
-      throw new Error('MATCH_ALREADY_FINISHED');
-    }
-
-    const isFaultFirst = flow.type === 'FAULT_FIRST' || flow.firstFault;
-
-    const winner: 'player1' | 'player2' | null =
-      isFaultFirst ? null :
-      (flow.winnerId === this.config.player1Id ? 'player1' :
-       flow.winnerId === this.config.player2Id ? 'player2' : null);
-
-    if (!isFaultFirst && winner === null) {
-      logger.error('[ScoringEngine] applyPoint: invalid winnerId', {
-        winnerId: flow.winnerId,
-        player1Id: this.config.player1Id,
-        player2Id: this.config.player2Id,
-        type: flow.type,
-      });
-      throw new Error('INVALID_WINNER');
-    }
-
-    const details: PointDetails = {
-      winnerId: flow.winnerId,
-      type: (flow.type as PointDetails['type']) || 'WINNER',
-      isFirstServe: flow.isFirstServe ?? true,
-      isSecondServe: flow.isSecondServe ?? false,
-      isLet: false,
-      serverId: flow.serverId,
-      timestamp: flow.timestamp ?? Date.now(),
-      rallyDetails: flow.rallyDetails ?? null,
-      rallyLength: flow.rallyLength ?? 0,
-      firstFaultDetail: flow.firstFaultDetail ?? null,
-    };
-
-    if (flow.type === 'DOUBLE_FAULT') {
-      const newState = this.handleDoubleFault(winner!, details);
-      this.state = newState;
-      return getState(this.state);
-    }
-
-    if (isFaultFirst) {
-      return this.handleFirstServeFault(winner ?? this.state.server, details);
-    }
-
+    if (this.state.isFinished) throw new Error('MATCH_ALREADY_FINISHED');
+    const faultFirst = isFirstFault(flow);
+    const winner = resolvePointWinner(flow, this.config);
+    const details = createPointDetails(flow);
+    if (flow.type === 'DOUBLE_FAULT') return this.applyDoubleFault(winner!, details);
+    if (faultFirst) return this.handleFirstServeFault(winner ?? this.state.server, details);
     saveToHistory(this.history, this.state, details);
+    this.state = this.processPoint(winner!);
+    return getState(this.state);
+  }
 
-    const newState = this.processPoint(winner!);
-    this.state = newState;
+  private applyDoubleFault(winner: 'player1' | 'player2', details: PointDetails): ScoringState {
+    this.state = this.handleDoubleFault(winner, details);
     return getState(this.state);
   }
 

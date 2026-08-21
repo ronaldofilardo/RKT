@@ -1,12 +1,13 @@
+import { TIMEOUTS } from './constants';
+
 const LOCK_KEY = "pendingMatchSyncs.lock";
-const LOCK_TTL_MS = 15000;
 
 export function acquireLocalStorageLock(): boolean {
   if (typeof window === "undefined") return false;
   try {
     const now = Date.now();
     const existing = Number(localStorage.getItem(LOCK_KEY) ?? 0);
-    if (existing && now - existing < LOCK_TTL_MS) {
+    if (existing && now - existing < TIMEOUTS.LOCK_TTL_MS) {
       return false;
     }
     localStorage.setItem(LOCK_KEY, String(now));

@@ -1,5 +1,6 @@
 import type { ScoringState, HistoryEntry, TimelinePoint } from './types';
 import { GAME_POINTS } from './point-utils';
+import { getFirstFault, getGameScore, getGamesScore, getRallyLength, getSetNumber } from './scoring-logic.helpers';
 
 export function getGameScoreLabel(
   p1: number, p2: number,
@@ -69,56 +70,32 @@ export function enrichPointsFromHistory(
     const entry = history[i];
     const stateBefore = entry.stateBefore;
     const pt = entry.point;
-
-    const winner: 'PLAYER_1' | 'PLAYER_2' =
-      pt.winnerId === player1Id ? 'PLAYER_1' : 'PLAYER_2';
-
-    const setNumber = stateBefore.sets.length > 0 ? stateBefore.sets.length : 1;
+    const setNumber = getSetNumber(stateBefore);
     const currentSet = stateBefore.sets[stateBefore.sets.length - 1];
-    const gamesScore = {
-      player1: currentSet?.player1 ?? 0,
-      player2: currentSet?.player2 ?? 0,
-    };
-
-    const gameScore = {
-      player1: stateBefore.currentGame.player1,
-      player2: stateBefore.currentGame.player2,
-    };
-
-    const bp = isBreakPoint(stateBefore);
-    const gb = isGameBall(stateBefore);
-    const sb = isSetBall(stateBefore, setNumber);
-
     const isServeFinish = pt.type === 'ACE' || pt.type === 'DOUBLE_FAULT';
     const isDevolucao = pt.rallyDetails?.situacao === 'devolucao';
-    const rallyLength = pt.rallyLength ?? (isServeFinish ? 1 : isDevolucao ? 2 : 0);
-    const isTiebreak = currentSet?.isTiebreak ?? false;
-
-    const firstFault = pt.type === 'DOUBLE_FAULT' && pt.firstFaultDetail
-      ? pt.firstFaultDetail
-      : undefined;
 
     points.push({
       pointNumber: i + 1,
-      winner,
+      winner: pt.winnerId === player1Id ? 'PLAYER_1' : 'PLAYER_2',
       type: pt.type,
       server: stateBefore.server,
       isFirstServe: pt.isFirstServe,
       isSecondServe: pt.isSecondServe,
-      gameScore,
-      gamesScore,
+      gameScore: getGameScore(stateBefore),
+      gamesScore: getGamesScore(stateBefore),
       setNumber,
-      isBreakPoint: bp,
-      isGameBall: gb,
-      isSetBall: sb,
-      rallyLength,
+      isBreakPoint: isBreakPoint(stateBefore),
+      isGameBall: isGameBall(stateBefore),
+      isSetBall: isSetBall(stateBefore, setNumber),
+      rallyLength: getRallyLength(pt, isServeFinish, isDevolucao),
       rallyDetails: pt.rallyDetails ?? null,
       note: pt.rallyDetails?.note,
       pointDetails: pt,
-      isTiebreak,
+      isTiebreak: currentSet?.isTiebreak ?? false,
       gameIsDeuce: stateBefore.currentGame.isDeuce,
       gameAdvantage: stateBefore.currentGame.advantage,
-      firstFault,
+      firstFault: getFirstFault(pt),
     });
   }
 

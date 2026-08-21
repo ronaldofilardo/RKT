@@ -1,6 +1,8 @@
 import type { ScoringState, HistoryEntry } from "@/core/scoring/types";
 import { logger } from "@/lib/logger";
-import { TIMEOUTS_MS, PERSIST_RETRY, calculateBackoffDelay } from "@/lib/constants";
+import { TIMEOUTS, PERSIST } from "@/lib/constants";
+import { getAllowScoreEdit, getPersistedScoreState, getRetryDelay } from "./useScoringHandlers.persistence.helpers";
+import { handleVersionConflict } from "./useScoringHandlers.persistence.conflict";
 
 interface PersistStateOptions {
   matchId: string;
@@ -27,11 +29,6 @@ interface PersistStateOptions {
   isManualScoreEdit?: boolean;
 }
 
-interface VersionConflictPayload {
-  error?: string;
-  currentVersion?: number;
-}
-
 interface ErrorResponseBody {
   error?: string;
   message?: string;
@@ -41,13 +38,6 @@ interface SuccessResponseBody {
   version?: number;
 }
 
-async function readConflict(response: Response): Promise<VersionConflictPayload> {
-  try {
-    return (await response.json()) as VersionConflictPayload;
-  } catch {
-    return {};
-  }
-}
 
 export async function persistStateWithRetry(
   state: ScoringState,
@@ -58,11 +48,10 @@ export async function persistStateWithRetry(
 
   if (!match) return { success: false };
 
-  const allowScoreEdit =
-    options.allowScoreEdit ?? (label === "edit-score" || label === "undo");
+  const allowScoreEdit = getAllowScoreEdit(label, options.allowScoreEdit);
 
   let currentMatch = match;
-  const { MAX_ATTEMPTS: maxRetries } = PERSIST_RETRY;
+  const maxRetries = PERSIST.MAX_RETRIES;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -77,7 +66,7 @@ export async function persistStateWithRetry(
           // Persiste snapshot `{ state, history }` quando history estiver
           // disponível, preservando anotações detalhadas para o relatório.
           // Caso contrário, mantém o legado (somente `state`).
-          scoreState: history ? { state, history } : state,
+          scoreState: getPersistedScoreState(state, history),
           version: currentMatch.version,
           allowScoreEdit,
           isManualScoreEdit,
@@ -85,28 +74,12 @@ export async function persistStateWithRetry(
       });
 
       if (response.status === 409) {
-        const errorData = await readConflict(response);
-        logger.persist.conflict(label, errorData.currentVersion, currentMatch.version);
-
-        if (!fetchMatch) {
-          setError("Conflito de versão: re-sincronize o placar manualmente");
-          return { success: false, needsResync: true, conflict: true };
-        }
-
-        try {
-          await fetchMatch(true);
-        } catch (refetchErr) {
-          logger.persist.refetchFailed(label, refetchErr);
-          setError("Conflito de versão: re-sincronize o placar manualmente");
-          return { success: false, needsResync: true, conflict: true };
-        }
-
-        setError(
-          label === "undo"
-            ? "Outro dispositivo atualizou o placar. Sincronizado com a versão mais recente."
-            : "Conflito de versão resolvido: placar re-sincronizado.",
-        );
-        return { success: false, needsResync: true, conflict: true };
+        return handleVersionConflict(response, {
+          label,
+          currentVersion: currentMatch.version,
+          fetchMatch,
+          setError,
+        });
       }
 
       if (!response.ok) {
@@ -128,7 +101,7 @@ export async function persistStateWithRetry(
         logger.persist.maxRetriesExhausted(label);
         setError(`Erro ao sincronizar placar (${label})`);
       } else {
-        const delay = calculateBackoffDelay(attempt);
+        const delay = getRetryDelay(attempt);
         logger.persist.retrying(label, delay);
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
@@ -138,4 +111,4 @@ export async function persistStateWithRetry(
   return { success: false };
 }
 
-export const _INTERNAL = { TIMEOUTS_MS, PERSIST_RETRY };
+export const _INTERNAL = { TIMEOUTS, PERSIST };

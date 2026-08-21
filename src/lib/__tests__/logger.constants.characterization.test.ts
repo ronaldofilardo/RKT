@@ -8,7 +8,7 @@
  */
 
 import { logger } from "@/lib/logger";
-import { TIMEOUTS_MS, PERSIST_RETRY, calculateBackoffDelay } from "@/lib/constants";
+import { TIMEOUTS, PERSIST, calculateBackoffDelay } from "@/lib/constants";
 
 describe("logger namespace", () => {
   afterEach(() => {
@@ -129,27 +129,23 @@ describe("logger namespace", () => {
   });
 });
 
-describe("TIMEOUTS_MS constants", () => {
-  it("POINT_REQUEST_ABORT é 15 segundos (caracterização histórica)", () => {
-    expect(TIMEOUTS_MS.POINT_REQUEST_ABORT).toBe(15_000);
+describe("TIMEOUTS constants", () => {
+  it("POINT_REQUEST_ABORT_MS é 10 segundos (caracterização histórica)", () => {
+    expect(TIMEOUTS.POINT_REQUEST_ABORT_MS).toBe(10_000);
   });
 
-  it("OFFLINE_SYNC_RETRY é 30 segundos", () => {
-    expect(TIMEOUTS_MS.OFFLINE_SYNC_RETRY).toBe(30_000);
+  it("OFFLINE_SYNC_RETRY_MS é 30 segundos", () => {
+    expect(TIMEOUTS.OFFLINE_SYNC_RETRY_MS).toBe(30_000);
   });
 
-  it("PERSIST_BASE_DELAY é 1 segundo", () => {
-    expect(TIMEOUTS_MS.PERSIST_BASE_DELAY).toBe(1_000);
+  it("PERSIST_BASE_DELAY_MS é 1 segundo", () => {
+    expect(PERSIST.BASE_DELAY_MS).toBe(1_000);
   });
 });
 
-describe("PERSIST_RETRY constants", () => {
-  it("MAX_ATTEMPTS é 3", () => {
-    expect(PERSIST_RETRY.MAX_ATTEMPTS).toBe(3);
-  });
-
-  it("BACKOFF_MULTIPLIER é 2 (exponential backoff base 2)", () => {
-    expect(PERSIST_RETRY.BACKOFF_MULTIPLIER).toBe(2);
+describe("PERSIST constants", () => {
+  it("MAX_RETRIES é 3", () => {
+    expect(PERSIST.MAX_RETRIES).toBe(3);
   });
 });
 

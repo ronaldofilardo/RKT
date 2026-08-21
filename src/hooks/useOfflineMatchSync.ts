@@ -5,7 +5,7 @@ import {
   writePendingMatchSyncs,
 } from "@/lib/offlineStorageSync";
 import { logger } from "@/lib/logger";
-import { TIMEOUTS_MS } from "@/lib/constants";
+import { TIMEOUTS } from "@/lib/constants";
 
 interface PendingMatchSync {
   matchId: string;
@@ -90,7 +90,7 @@ export function useOfflineMatchSync() {
       if (navigator.onLine) {
         syncPendingMatches();
       }
-    }, TIMEOUTS_MS.OFFLINE_SYNC_RETRY);
+    }, TIMEOUTS.OFFLINE_SYNC_RETRY_MS);
 
     return () => {
       window.removeEventListener("online", handleOnline);

@@ -11,7 +11,7 @@
 
 import { createPointSyncService } from "@/hooks/useScoringHandlers.point-sync";
 import type { MatchData } from "@/hooks/useScoringHandlers";
-import { TIMEOUTS_MS } from "@/lib/constants";
+import { TIMEOUTS } from "@/lib/constants";
 
 const baseMatch: MatchData = {
   id: "match-1",
@@ -163,7 +163,7 @@ describe("createPointSyncService", () => {
     expect(result).toEqual({ success: false, needsResync: true });
   });
 
-  it("usa TIMEOUTS_MS.POINT_REQUEST_ABORT no AbortController", async () => {
+  it("usa TIMEOUTS.POINT_REQUEST_ABORT_MS no AbortController", async () => {
     const { service } = createService();
 
     const realSetTimeout = global.setTimeout;
@@ -178,10 +178,10 @@ describe("createPointSyncService", () => {
     await Promise.resolve();
 
     const abortCall = setTimeoutSpy.mock.calls.find(
-      (call) => typeof call[1] === "number" && call[1] === TIMEOUTS_MS.POINT_REQUEST_ABORT,
+      (call) => typeof call[1] === "number" && call[1] === TIMEOUTS.POINT_REQUEST_ABORT_MS,
     );
     expect(abortCall).toBeDefined();
-    expect(abortCall![1]).toBe(15_000);
+    expect(abortCall![1]).toBe(10_000);
 
     setTimeoutSpy.mockRestore();
     realSetTimeout(() => undefined, 0);

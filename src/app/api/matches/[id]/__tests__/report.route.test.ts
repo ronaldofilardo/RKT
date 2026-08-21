@@ -33,30 +33,8 @@ jest.mock('@/core/scoring/engine', () => {
   };
   const handler = {
     applyPoint(flow: any) {
-      this._hist.push({
-        stateBefore: JSON.parse(JSON.stringify(this._state)),
-        point: {
-          winnerId: flow.winnerId,
-          type: flow.type,
-          isFirstServe: flow.isFirstServe ?? true,
-          isSecondServe: flow.isSecondServe ?? false,
-          isLet: false,
-          serverId: flow.serverId,
-          timestamp: flow.timestamp ?? Date.now(),
-          rallyDetails: flow.rallyDetails ?? null,
-          rallyLength: flow.rallyLength ?? 0,
-          firstFaultDetail: flow.firstFaultDetail ?? null,
-        },
-      });
-      const w = flow.winnerId === this._cfg.player1Id ? 'player1' : 'player2';
-      const g = this._state.currentGame;
-      if (flow.type === 'FAULT_FIRST') {
-        g.secondServe = true;
-      } else if (w === 'player1') {
-        g.player1 += 1;
-      } else {
-        g.player2 += 1;
-      }
+      recordMockPoint(this, flow);
+      updateMockGame(this, flow);
       return this._state;
     },
     getState() {
@@ -83,6 +61,8 @@ jest.mock('@/core/scoring/engine', () => {
     ),
   };
 });
+
+import { recordMockPoint, updateMockGame } from './report-route-test.engine';
 
 import { NextRequest } from 'next/server';
 import { GET } from '@/app/api/matches/[id]/report/route';

@@ -1,12 +1,20 @@
 import type { TennisFormat } from '@/core/scoring/types';
 import type { SetEditData } from './editScoreHelpers';
 import {
+  getNextServerAfterSet,
   validateSetResult,
-  validateMatchTiebreakInput,
+} from './editScoreHelpers';
+import {
+  calculateTiebreakState,
+  countCompletedSetWins,
+  parseGameScore,
+  resolveSetValidation,
+  resolveValidationMatchTiebreak,
+} from './edit-score-validation.helpers';
+import {
   setsToWinForFormat,
   totalSetsForFormat,
-  getNextServerAfterSet,
-} from './editScoreHelpers';
+} from '@/core/scoring/format-rules';
 import { parsePointValue } from '@/core/scoring/point-utils';
 import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from '@/hooks/useSessionManager.utils';
 
@@ -65,24 +73,43 @@ export interface EditScoreMatchState {
   setsToWin: number;
 }
 
-export interface EditScoreValidationInput {
-  p1Input: string;
-  p2Input: string;
-  matchFormat: TennisFormat;
-  totalEditedSets: number;
-  setResults?: SetEditData[];
+export interface TiebreakInput {
   tiebreakP1?: string;
   tiebreakP2?: string;
 }
 
-export interface EditScoreMatchStateInput {
+export interface GameScoreInput {
+  p1Input: string;
+  p2Input: string;
+}
+
+export interface ValidationContext {
   matchFormat: TennisFormat;
+  totalEditedSets: number;
+  setResults?: SetEditData[];
+}
+
+export interface EditScoreValidationInput extends GameScoreInput, TiebreakInput, ValidationContext {}
+
+export interface CompletedSetsInput {
   completedSets: CompletedSet[];
+}
+
+export interface NewSetsInput {
   newSets: SetEditData[];
+}
+
+export interface ValidationResultInput {
   validation: EditScoreValidation;
 }
 
-export interface CreateSetEditDataInput {
+export interface EditScoreMatchStateInput
+  extends ValidationContext,
+    CompletedSetsInput,
+    NewSetsInput,
+    ValidationResultInput {}
+
+export interface SetResultInput {
   p1Val: number;
   p2Val: number;
   isSetTrulyCompleted: boolean;
@@ -96,15 +123,20 @@ export interface CreateSetEditDataInput {
   currentSets: { player1: number; player2: number };
 }
 
-export interface ShouldAutoAddSetInput {
+export interface CreateSetEditDataInput extends SetResultInput {}
+
+export interface AutoAddSetContext {
   validation: EditScoreValidation;
   matchState: EditScoreMatchState;
   currentSets: { player1: number; player2: number };
+}
+
+export interface ShouldAutoAddSetInput extends AutoAddSetContext {
   p1Val: number;
   p2Val: number;
 }
 
-export interface CalculateNextServerInput {
+export interface NextServerContext {
   currentServer: Player;
   p1Games: number;
   p2Games: number;
@@ -112,6 +144,8 @@ export interface CalculateNextServerInput {
   tiebreakScore: { player1: number; player2: number } | null;
   completedSets: CompletedSet[];
 }
+
+export interface CalculateNextServerInput extends NextServerContext {}
 
 export function createInitialEditScoreState(currentServer: Player): EditScoreState {
   return {
@@ -138,77 +172,53 @@ export function isPotentialMTSet(
   setResults?: SetEditData[],
 ): boolean {
   if (format !== 'BEST_OF_5') return false;
-  const currentSetNum = totalEditedSets + 1;
-  if (currentSetNum !== 5) return false;
+  if (totalEditedSets + 1 !== 5) return false;
+  if (!setResults || setResults.length === 0) return totalEditedSets === 4;
 
-  // Check if score is 2-2 by counting completed sets
-  if (setResults && setResults.length > 0) {
-    let p1Sets = 0;
-    let p2Sets = 0;
-    for (const s of setResults) {
-      const isPartial = 'isPartial' in s ? s.isPartial : false;
-      if (!isPartial) {
-        if (s.p1Games > s.p2Games) p1Sets++;
-        else if (s.p2Games > s.p1Games) p2Sets++;
-      }
-    }
-    return p1Sets === 2 && p2Sets === 2;
-  }
-
-  // Fallback: for BO5, if totalEditedSets is 4, we're on the 5th set.
-  // We can't verify score without setResults, so return true (conservative).
-  return totalEditedSets === 4;
+  const wins = countCompletedSetWins(setResults);
+  return wins.player1 === 2 && wins.player2 === 2;
 }
 
 export function calculateValidation(input: EditScoreValidationInput): EditScoreValidation {
-  const { p1Input, p2Input, matchFormat, totalEditedSets, setResults, tiebreakP1, tiebreakP2 } = input;
-  const p1Val = p1Input === '' ? NaN : parseInt(p1Input, 10);
-  const p2Val = p2Input === '' ? NaN : parseInt(p2Input, 10);
-  const bothFilled = !isNaN(p1Val) && !isNaN(p2Val) && p1Val >= 0 && p2Val >= 0;
-
+  const {
+    p1Input,
+    p2Input,
+    matchFormat,
+    totalEditedSets,
+    setResults,
+    tiebreakP1,
+    tiebreakP2,
+  } = input;
+  const { p1Val, p2Val, bothFilled } = parseGameScore(p1Input, p2Input);
   const potentialMT = isPotentialMTSet(matchFormat, totalEditedSets, setResults);
-
-  // For potential MT sets (BO5 5th set): MT only activates at 6-6
-  let isMatchTiebreakSet: boolean;
-  if (potentialMT) {
-    // MT only when games reach 6-6
-    isMatchTiebreakSet = bothFilled && p1Val === 6 && p2Val === 6;
-  } else if (setResults && setResults.length > 0) {
-    isMatchTiebreakSet = isMatchTiebreakSetUtil(totalEditedSets, setResults, matchFormat);
-  } else {
-    // Fallback for other formats
-    isMatchTiebreakSet =
-      matchFormat === 'MATCH_TB_10' ||
-      (matchFormat === 'BEST_OF_3_MATCH_TB' && totalEditedSets === 2) ||
-      (matchFormat === 'SHORT_SET_2V2_NO_AD' && totalEditedSets === 2) ||
-      (matchFormat === 'BEST_OF_3_NO_AD' && totalEditedSets === 2);
-  }
-
-  const setValidation = bothFilled
-    ? isMatchTiebreakSet
-      ? validateMatchTiebreakInput({ p1Points: p1Val, p2Points: p2Val })
-      : validateSetResult({ p1Games: p1Val, p2Games: p2Val }, matchFormat)
-    : null;
-
+  const isMatchTiebreakSet = resolveValidationMatchTiebreak(
+    matchFormat,
+    totalEditedSets,
+    setResults,
+    potentialMT,
+    bothFilled,
+    p1Val,
+    p2Val,
+  );
+  const setValidation = resolveSetValidation(
+    bothFilled,
+    isMatchTiebreakSet,
+    p1Val,
+    p2Val,
+    matchFormat,
+  );
   const hasWinner = setValidation?.winner !== undefined;
   const completed = hasWinner && !setValidation?.isPartial;
-
-  // Calculate tiebreak complete locally for validation purposes
-  const tbP1Num = tiebreakP1 ? parseInt(tiebreakP1, 10) : NaN;
-  const tbP2Num = tiebreakP2 ? parseInt(tiebreakP2, 10) : NaN;
-  const hasValidTiebreak = !isNaN(tbP1Num) && !isNaN(tbP2Num) && tbP1Num >= 0 && tbP2Num >= 0;
-  // For regular tiebreak (tiebreakRequired): min 7 points + 2 lead
-  const tiebreakCompleteLocal =
-    setValidation?.tiebreakRequired ?
-      hasValidTiebreak && ((tbP1Num >= 7 || tbP2Num >= 7) && Math.abs(tbP1Num - tbP2Num) >= 2) :
-      false;
-
-  // If a regular set reaches 6/6 and tiebreak is complete, set is truly completed
-  const isSetTrulyCompleted = completed && (!setValidation?.tiebreakRequired || tiebreakCompleteLocal);
+  const tiebreakState = calculateTiebreakState(
+    tiebreakP1,
+    tiebreakP2,
+    setValidation?.tiebreakRequired ?? false,
+  );
+  const isSetTrulyCompleted =
+    completed &&
+    (!setValidation?.tiebreakRequired || tiebreakState.tiebreakComplete);
   const setValidationError = isSetTrulyCompleted ? undefined : setValidation?.error;
   const hasTiebreak = setValidation?.hasTiebreak ?? false;
-
-  // If MT is active, it's no longer a "potential" MT set
   const isPotentialMTSetResult = potentialMT && !isMatchTiebreakSet;
 
   return {
@@ -223,36 +233,30 @@ export function calculateValidation(input: EditScoreValidationInput): EditScoreV
     hasTiebreak,
     isMatchTiebreakSet,
     isPotentialMTSet: isPotentialMTSetResult,
+    hasValidTiebreak: tiebreakState.hasValidTiebreak,
+    tiebreakComplete: tiebreakState.tiebreakComplete,
   };
 }
 
-export function calculateMatchState(input: EditScoreMatchStateInput): EditScoreMatchState {
-  const { matchFormat, completedSets, newSets, validation } = input;
-  const maxSets = totalSetsForFormat(matchFormat);
-  const setsToWin = setsToWinForFormat(matchFormat);
-  const totalEditedSets = completedSets.length + newSets.length;
-  
-  const setResultsForCheck: SetEditData[] = [
-    ...completedSets.map(s => ({ p1Games: s.games.player1, p2Games: s.games.player2, isPartial: false })),
+function buildSetResultsForCheck(
+  completedSets: CompletedSet[],
+  newSets: SetEditData[],
+): SetEditData[] {
+  return [
+    ...completedSets.map((s) => ({
+      p1Games: s.games.player1,
+      p2Games: s.games.player2,
+      isPartial: false,
+    })),
     ...newSets,
   ];
-  
-  const potentialMT = isPotentialMTSet(matchFormat, totalEditedSets, setResultsForCheck);
+}
 
-  let isMatchTiebreakSet: boolean;
-  if (potentialMT) {
-    // For potential MT sets, MT only activates at 6-6
-    isMatchTiebreakSet = validation.isMatchTiebreakSet;
-  } else if (setResultsForCheck.length > 0) {
-    isMatchTiebreakSet = isMatchTiebreakSetUtil(totalEditedSets, setResultsForCheck, matchFormat);
-  } else {
-    isMatchTiebreakSet =
-      matchFormat === 'MATCH_TB_10' ||
-      (matchFormat === 'BEST_OF_3_MATCH_TB' && totalEditedSets === 2) ||
-      (matchFormat === 'SHORT_SET_2V2_NO_AD' && totalEditedSets === 2) ||
-      (matchFormat === 'BEST_OF_3_NO_AD' && totalEditedSets === 2);
-  }
-
+function computeSetsWon(
+  completedSets: CompletedSet[],
+  newSets: SetEditData[],
+  validation: EditScoreValidation,
+): { p1SetsWon: number; p2SetsWon: number; p1SetsWonFromProp: number; p2SetsWonFromProp: number; newP1SetsWon: number; newP2SetsWon: number } {
   const p1SetsWonFromProp = completedSets.filter((s) => s.winner === 'player1').length;
   const p2SetsWonFromProp = completedSets.filter((s) => s.winner === 'player2').length;
 
@@ -278,10 +282,66 @@ export function calculateMatchState(input: EditScoreMatchStateInput): EditScoreM
     newP2SetsWon +
     (validation.isSetTrulyCompleted && validation.setValidation?.winner === 'player2' ? 1 : 0);
 
-  const matchAlreadyOver = p1SetsWonFromProp >= setsToWin || p2SetsWonFromProp >= setsToWin;
-  const matchWouldEnd = p1SetsWon >= setsToWin || p2SetsWon >= setsToWin;
+  return {
+    p1SetsWon,
+    p2SetsWon,
+    p1SetsWonFromProp,
+    p2SetsWonFromProp,
+    newP1SetsWon,
+    newP2SetsWon,
+  };
+}
+
+function determineMatchTiebreakStatus(
+  format: TennisFormat,
+  totalEditedSets: number,
+  setResultsForCheck: SetEditData[],
+  potentialMT: boolean,
+  validation: EditScoreValidation,
+): { isMatchTiebreakSet: boolean; isPotentialMTSetResult: boolean } {
+  let isMatchTiebreakSet: boolean;
+  if (potentialMT) {
+    isMatchTiebreakSet = validation.isMatchTiebreakSet;
+  } else if (setResultsForCheck.length > 0) {
+    isMatchTiebreakSet = isMatchTiebreakSetUtil(totalEditedSets, setResultsForCheck, format);
+  } else {
+    isMatchTiebreakSet =
+      format === 'MATCH_TB_10' ||
+      (format === 'BEST_OF_3_MATCH_TB' && totalEditedSets === 2) ||
+      (format === 'SHORT_SET_2V2_NO_AD' && totalEditedSets === 2) ||
+      (format === 'BEST_OF_3_NO_AD' && totalEditedSets === 2);
+  }
 
   const isPotentialMTSetResult = potentialMT && !isMatchTiebreakSet;
+
+  return { isMatchTiebreakSet, isPotentialMTSetResult };
+}
+
+export function calculateMatchState(input: EditScoreMatchStateInput): EditScoreMatchState {
+  const { matchFormat, completedSets, newSets, validation } = input;
+  const maxSets = totalSetsForFormat(matchFormat);
+  const setsToWin = setsToWinForFormat(matchFormat);
+  const totalEditedSets = completedSets.length + newSets.length;
+
+  const setResultsForCheck = buildSetResultsForCheck(completedSets, newSets);
+  const potentialMT = isPotentialMTSet(matchFormat, totalEditedSets, setResultsForCheck);
+
+  const { isMatchTiebreakSet, isPotentialMTSetResult } = determineMatchTiebreakStatus(
+    matchFormat,
+    totalEditedSets,
+    setResultsForCheck,
+    potentialMT,
+    validation,
+  );
+
+  const { p1SetsWon, p2SetsWon, p1SetsWonFromProp, p2SetsWonFromProp, newP1SetsWon, newP2SetsWon } = computeSetsWon(
+    completedSets,
+    newSets,
+    validation,
+  );
+
+  const matchAlreadyOver = p1SetsWonFromProp >= setsToWin || p2SetsWonFromProp >= setsToWin;
+  const matchWouldEnd = p1SetsWon >= setsToWin || p2SetsWon >= setsToWin;
 
   return {
     p1SetsWonFromProp,
@@ -329,13 +389,11 @@ export function createSetEditData(input: CreateSetEditDataInput): SetEditData {
   };
 
   if (isMatchTiebreakSet) {
-    // Active MT: save as tiebreak score
     setData.tiebreakScore = {
       player1: p1Val,
       player2: p2Val,
     };
   } else if (hasTiebreak && isSetTrulyCompleted && !isPotentialMTSet) {
-    // Regular tiebreak set (not MT decider)
     setData.tiebreakScore = {
       player1: tiebreakP1Num,
       player2: tiebreakP2Num,
@@ -346,7 +404,6 @@ export function createSetEditData(input: CreateSetEditDataInput): SetEditData {
       player2: parsePointValue(p2Points),
     };
   }
-  // For potential MT sets that haven't reached 6-6: save as regular set (no tiebreakScore)
 
   return setData;
 }
@@ -367,7 +424,7 @@ export function shouldAutoAddSet(input: ShouldAutoAddSetInput): boolean {
 
 export function calculateNextServer(input: CalculateNextServerInput): Player {
   const { currentServer, p1Games, p2Games, matchFormat, tiebreakScore, completedSets } = input;
-  const completedSetsGames = completedSets.map(cs => ({ player1: cs.games.player1, player2: cs.games.player2 }));
+  const completedSetsGames = completedSets.map((cs) => ({ player1: cs.games.player1, player2: cs.games.player2 }));
   return getNextServerAfterSet({
     currentServer,
     p1Games,
@@ -377,6 +434,3 @@ export function calculateNextServer(input: CalculateNextServerInput): Player {
     completedSets: completedSetsGames,
   });
 }
-
-// Funções de parse foram movidas para @/core/scoring/point-utils para evitar duplicação
-// Use: import { parsePointValue, toDisplayPoint, pointToProgress } from '@/core/scoring/point-utils';

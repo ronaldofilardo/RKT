@@ -7,7 +7,7 @@
  * (e2e/flows/03-offline-sync.spec.ts).
  */
 
-import { TIMEOUTS_MS } from "@/lib/constants";
+import { TIMEOUTS } from "@/lib/constants";
 
 describe("useOfflineMatchSync — contrato", () => {
   it("hook é função exportada", () => {
@@ -15,11 +15,11 @@ describe("useOfflineMatchSync — contrato", () => {
     expect(typeof mod.useOfflineMatchSync).toBe("function");
   });
 
-  it("usa TIMEOUTS_MS.OFFLINE_SYNC_RETRY = 30s para o retry interval", () => {
-    expect(TIMEOUTS_MS.OFFLINE_SYNC_RETRY).toBe(30_000);
+  it("usa TIMEOUTS.OFFLINE_SYNC_RETRY_MS = 30s para o retry interval", () => {
+    expect(TIMEOUTS.OFFLINE_SYNC_RETRY_MS).toBe(30_000);
   });
 
   it("timeout de retry é múltiplo de 1000 (sanity check)", () => {
-    expect(TIMEOUTS_MS.OFFLINE_SYNC_RETRY % 1000).toBe(0);
+    expect(TIMEOUTS.OFFLINE_SYNC_RETRY_MS % 1000).toBe(0);
   });
 });

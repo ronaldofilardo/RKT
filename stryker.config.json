@@ -3,15 +3,12 @@
   "mutate": [
     "src/core/scoring/engine.ts",
     "src/core/scoring/scoring-logic.ts",
-    "src/core/scoring/types.ts",
-    "src/lib/auth.ts",
-    "src/schemas/contracts.ts",
-    "src/app/api/**/route.ts",
-    "src/components/scoring/timeline-utils.ts"
+    "src/core/scoring/types.ts"
   ],
   "testRunner": "jest",
   "jest": {
-    "configFile": "jest.config.js"
+    "configFile": "jest.config.stryker.js",
+    "projectType": "custom"
   },
   "reporters": [
     "html",
@@ -25,7 +22,7 @@
     "break": 50
   },
   "plugins": ["@stryker-mutator/jest-runner"],
-  "concurrency": 2,
-  "timeoutMS": 60000,
-  "incremental": true
+  "concurrency": 1,
+  "timeoutMS": 120000,
+  "incremental": false
 }

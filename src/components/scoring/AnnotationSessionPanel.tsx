@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { listSessions } from '@/services/annotationSessionService';
-import type { AnnotationEndorsement } from '@/schemas/contracts';
+import type { AnnotationSession, AnnotationEndorsement } from '@/schemas/contracts';
 
 interface AnnotationSessionPanelProps {
   sessionId: string | null;
@@ -28,7 +28,7 @@ export function AnnotationSessionPanel({ sessionId, matchId, isActive, onStart, 
       try {
         const sessions = await listSessions(matchId);
         if (cancelled) return;
-        const current = sessions.find((s) => s.id === sessionId);
+        const current = sessions.find((s: AnnotationSession) => s.id === sessionId);
         if (current?.endorsements) {
           setEndorsements(current.endorsements);
         }

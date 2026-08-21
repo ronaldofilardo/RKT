@@ -1,6 +1,6 @@
 import { ScoringEngine } from "@/core/scoring/engine";
 import type { ScoringState } from "@/core/scoring/types";
-import { setsToWinForFormat } from "@/components/scoring/editScoreHelpers";
+import { setsToWinForFormat } from "@/core/scoring/format-rules";
 import { pointToProgress } from "@/core/scoring/point-utils";
 
 describe("useSessionManager - handleEditScore Logic", () => {

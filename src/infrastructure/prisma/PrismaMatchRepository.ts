@@ -9,6 +9,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { buildMatchCreateData } from './PrismaMatchRepository.create.helpers';
 import type { Match, Prisma } from '@prisma/client';
 import type { IMatchRepository, MatchListingOptions, MatchUpsertInput, TransactionClient } from '../ports/match.repository.port';
 import type { IUnitOfWork } from '../ports/uow.port';
@@ -75,26 +76,7 @@ export class PrismaMatchRepository implements IMatchRepository {
   }
 
   async create(input: MatchUpsertInput, tx?: TransactionClient): Promise<Match & { player1: unknown; player2: unknown }> {
-    const data: Prisma.MatchCreateInput = {
-      format: input.format,
-      sportType: input.sportType || 'TENNIS',
-      courtType: input.courtType || null,
-      nickname: input.nickname || null,
-      visibility: (input.visibility as Match['visibility']) || ('PUBLIC' as Match['visibility']),
-      openForAnnotation: input.openForAnnotation || false,
-      tournamentName: input.tournamentName || null,
-      category: input.category || null,
-      round: input.round || input.roundName || null,
-      bracketType: input.bracketType || null,
-      temperature: input.temperature || null,
-      humidity: input.humidity || null,
-      state: 'SCHEDULED',
-      player1: { connect: { id: input.player1Id } },
-      player2: { connect: { id: input.player2Id } },
-      ...(input.initialServerId ? { initialServerId: input.initialServerId } : {}),
-      scheduledAt: input.scheduledAt || null,
-      ...(input.createdByUserId ? { createdByUserId: input.createdByUserId } : {}),
-    };
+    const data = buildMatchCreateData(input);
     const c = this.getClient(tx);
     return (c as unknown as { match: { create: (args: { data: Prisma.MatchCreateInput; include: { player1: true; player2: true } }) => Promise<Match & { player1: unknown; player2: unknown }> } }).match.create({ data, include: { player1: true, player2: true } });
   }

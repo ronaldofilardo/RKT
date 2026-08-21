@@ -2,7 +2,7 @@
 
 import type { TennisFormat } from "@/core/scoring/types";
 import type { SetEditData } from "./editScoreHelpers";
-import { totalSetsForFormat } from "./editScoreHelpers";
+import { totalSetsForFormat } from "@/core/scoring/format-rules";
 import type { CompletedSet } from "./edit-score-logic";
 import { useEditScoreModal } from "./useEditScoreModal";
 import { MatchSummary, EditableSetsSummary } from "./edit-score-summary";

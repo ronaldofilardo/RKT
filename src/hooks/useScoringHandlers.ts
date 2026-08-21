@@ -1,8 +1,8 @@
 "use client";
 import { logger } from "@/lib/logger";
+import { TIMEOUTS } from "@/lib/constants";
 
 import { useCallback, useEffect } from "react";
-import { ScoringEngine } from "@/core/scoring/engine";
 import type {
   ScoringState,
   PointFlow,
@@ -17,7 +17,14 @@ import type {
 import { persistStateWithRetry } from "./useScoringHandlers.persistence";
 import { createServerHelpersService } from "./useScoringHandlers.server-helpers.service";
 import { createModalHandlersService } from "./useScoringHandlers.modals.service";
-import { createPointSyncService } from "./useScoringHandlers.point-sync";
+import { createPointSyncService } from './useScoringHandlers.point-sync';
+import { createFetchMatch } from './useScoringHandlers.fetch-match';
+import { createPointDetailsHandler } from './useScoringHandlers.point-details';
+import {
+  applyLocalPoint,
+  canProcessPoint,
+  reconcileServerState,
+} from './useScoringHandlers.process-point.helpers';
 
 export function useScoringHandlers(ctx: ScoringHandlersContext) {
   const {
@@ -63,77 +70,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
   // ─── Match data fetch ──────────────────────────────────────────────────────
 
   const fetchMatch = useCallback(
-    async (forceEngineReset = false) => {
-      try {
-        const res = await fetch(`/api/matches/${matchId}`, {
-          headers: { authorization: `Bearer ${tokenRef.current}` },
-        });
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
-          throw new Error(errorData.error || `Erro ao buscar partida: ${res.status}`);
-        }
-        const data: MatchData = await res.json();
-        setMatch(data);
-
-        if (data._count && typeof data._count.pointLog === "number") {
-          pointSequenceRef.current = data._count.pointLog;
-        } else if (typeof data.version === "number") {
-          pointSequenceRef.current = data.version;
-        }
-
-        if (forceEngineReset || !engineRef.current) {
-          const config = {
-            format: data.format as any,
-            player1Id: data.player1.id,
-            player2Id: data.player2.id,
-            initialServerId: data.initialServerId || data.player1.id,
-          };
-
-          let scoreStateToUse: any = data.scoreState;
-
-          if (scoreStateToUse) {
-            if (typeof scoreStateToUse === "string") {
-              try {
-                scoreStateToUse = JSON.parse(scoreStateToUse);
-              } catch {}
-            }
-            if (!scoreStateToUse.setsWon) {
-              scoreStateToUse.setsWon = { player1: 0, player2: 0 };
-            }
-            engineRef.current = ScoringEngine.fromSerialized(
-              config,
-              JSON.stringify(scoreStateToUse),
-            );
-          } else if (data.initialServerId) {
-            engineRef.current = new ScoringEngine(config);
-          } else {
-            openRef.current("setup");
-          }
-          setScoreState(
-            (engineRef.current?.getState() as ScoringState) ?? null,
-          );
-
-          if (forceEngineReset && engineRef.current) {
-            const serverHistory = engineRef.current.getPointHistory();
-            const synced = serverHistory
-              .slice(-20)
-              .map((entry) => entry.point.winnerId);
-            if (synced.length > 0) {
-              setPointsHistory(synced);
-            } else {
-              setPointsHistory([]);
-            }
-          }
-        }
-
-        setIsLoading(false);
-      } catch (err) {
-        logger.error("[fetchMatch]", err);
-        setError("Erro ao carregar partida");
-        setIsLoading(false);
-      }
-    },
-    [
+    createFetchMatch({
       matchId,
       tokenRef,
       engineRef,
@@ -144,7 +81,8 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       setIsLoading,
       setError,
       setPointsHistory,
-    ],
+    }),
+    [matchId, tokenRef, engineRef, openRef, pointSequenceRef, setMatch, setScoreState, setIsLoading, setError, setPointsHistory],
   );
 
   // ─── State persistence ────────────────────────────────────────────────────
@@ -201,57 +139,34 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
 
   const processPoint = useCallback(
     async (flow: PointFlow): Promise<string | undefined> => {
-      if (!engineRef.current || !match || isProcessingRef.current) return undefined;
-      if (match.state !== "IN_PROGRESS") {
-        logger.warn("[processPoint] match.state não é IN_PROGRESS — abortando antes de applyPoint", {
-          matchState: match.state,
-          matchId: match.id,
-        });
-        return undefined;
-      }
+      if (!canProcessPoint(engineRef, match, isProcessingRef)) return undefined;
 
       isProcessingRef.current = true;
-      
+
       try {
-        const state = engineRef.current.getState();
-        if (state.isFinished) {
-          isProcessingRef.current = false;
-          return undefined;
-        }
-        
-        engineRef.current.applyPoint(flow);
-        const newState = engineRef.current.getState() as ScoringState;
-        setScoreState(newState);
-        setPointsHistory((prev) => [...prev.slice(-19), flow.winnerId]);
-        const seq = ++pointSequenceRef.current;
+        const newState = applyLocalPoint(
+          engineRef,
+          flow,
+          setScoreState,
+          setPointsHistory,
+          pointSequenceRef,
+        );
+        if (!newState) return undefined;
+        const seq = pointSequenceRef.current;
 
         if (isOnline) {
           const result = await pointSync.syncPointToServer(flow, seq);
-          
+
           if (result.success && result.serverResponse?.scoreState) {
-            const currentHistory = engineRef.current.getPointHistory();
-            setScoreState(result.serverResponse.scoreState);
-            engineRef.current = ScoringEngine.fromSerialized(
-              {
-                format: match.format as any,
-                player1Id: match.player1.id,
-                player2Id: match.player2.id,
-                initialServerId: match.initialServerId || match.player1.id,
-              },
-              JSON.stringify(result.serverResponse.scoreState),
+            return reconcileServerState(
+              result,
+              match!,
+              engineRef,
+              setScoreState,
+              setMatch,
             );
-            engineRef.current.restorePointHistory(currentHistory);
-
-            if (result.serverResponse.version !== undefined) {
-              setMatch((prev) =>
-                prev ? { ...prev, version: result.serverResponse!.version } : prev,
-              );
-            }
-
-            return result.serverResponse.pointLogId;
-          } else if (result.needsResync) {
-            await fetchMatch(true);
           }
+          if (result.needsResync) await fetchMatch(true);
         } else {
           await pointSync.queuePointForOffline(enqueue, flow);
         }
@@ -433,7 +348,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         );
         handleFirstServeErrorClear();
         setServeStep("none");
-      }, 50);
+      }, TIMEOUTS.DEBOUNCE_MS);
     },
     [
       match,
@@ -577,55 +492,19 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
   // ─── Point details ─────────────────────────────────────────────────────────
 
   const handlePointDetailsConfirm = useCallback(
-    (details: RallyDetails, audio?: { blob: Blob; durationMs: number }) => {
-      const winnerSide = modalParamsRef.current.winner as "player1" | "player2";
-      const rallyLengthFromModal = modalParamsRef.current.rallyLength;
-      if (!match || !winnerSide || isProcessingRef.current) return;
-      
-      const rallyLengthToUse = rallyLengthFromModal
-        ? parseInt(rallyLengthFromModal, 10) || details.previewBalls
-        : details.previewBalls;
-      
-      const flowType =
-        details.tipo === "winner"
-          ? "WINNER"
-          : details.tipo === "erro_forcado"
-            ? "FORCED_ERROR"
-            : "UNFORCED_ERROR";
-      const id = winnerSide === "player1" ? match.player1.id : match.player2.id;
-      
-      closeAll();
-      
-      processPoint({
-        winnerId: id,
-        type: flowType,
-        serverId: serverHelpers.getServerId(),
-        isFirstServe:
-          serveErrorState.serveStep !== "second" &&
-          !serveErrorState.firstServeError,
-        isSecondServe:
-          serveErrorState.serveStep === "second" ||
-          serveErrorState.firstServeError !== null,
-        timestamp: Date.now(),
-        rallyDetails: details,
-        rallyLength: rallyLengthToUse,
-      }).then((pointLogId) => {
-        if (audio && pointLogId) {
-          uploadAudioNote(match.id, pointLogId, audio.blob, audio.durationMs, tokenRef.current);
-        }
-      });
-    },
-    [
+    createPointDetailsHandler({
       match,
-      processPoint,
-      serverHelpers,
-      serveErrorState,
-      closeAll,
       modalParamsRef,
       isProcessingRef,
-      tokenRef,
+      closeAll,
+      processPoint,
+      getServerId: serverHelpers.getServerId,
+      serveStep: serveErrorState.serveStep,
+      firstServeError: serveErrorState.firstServeError,
       uploadAudioNote,
-    ],
+      token: tokenRef.current,
+    }),
+    [match, modalParamsRef, isProcessingRef, closeAll, processPoint, serverHelpers, serveErrorState, uploadAudioNote, tokenRef],
   );
 
   // ─── Session lifecycle ─────────────────────────────────────────────────────
