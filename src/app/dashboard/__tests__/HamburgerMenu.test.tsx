@@ -53,7 +53,7 @@ jest.mock('@/lib/matchConfig', () => ({
   isMatchTiebreakActive: jest.fn(),
 }));
 
-describe.skip('DashboardPage - Menu Hamburguer (TD-046)', () => {
+describe('DashboardPage - Menu Hamburguer (TD-046)', () => {
   const mockRouter = {
     push: jest.fn(),
     replace: jest.fn(),

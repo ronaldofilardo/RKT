@@ -1,5 +1,6 @@
 import type { ScoringState } from '@/core/scoring/types';
 import type { TennisFormat } from '@/lib/matchConfig';
+type ScoreSet = ScoringState['sets'][number];
 
 export function isMatchTiebreakFormat(format?: TennisFormat): boolean {
   return format === 'BEST_OF_3_MATCH_TB' || format === 'SHORT_SET_2V2_NO_AD' || format === 'MATCH_TB_10';
@@ -23,7 +24,7 @@ export function getLastSet(state: ScoringState) {
   return state.sets[state.sets.length - 1] ?? null;
 }
 
-export function getSetLeader(set: any) {
+export function getSetLeader(set: ScoreSet) {
   const winner = set.player1 > set.player2 ? 'player1' : 'player2';
   const loser = winner === 'player1' ? 'player2' : 'player1';
   return { winner, loser, leaderGames: set[winner], loserGames: set[loser] };
@@ -42,7 +43,7 @@ export function isMatchPointSetPosition(state: ScoringState, format?: string): b
   return state.setsWon.player1 === setsToWin - 1 || state.setsWon.player2 === setsToWin - 1;
 }
 
-export function isMatchPointSetWon(set: any): boolean {
+export function isMatchPointSetWon(set: ScoreSet): boolean {
   const { leaderGames, loserGames } = getSetLeader(set);
   const regularSet = leaderGames >= 6 && leaderGames - loserGames >= 2;
   const tiebreakWin = set.isTiebreak && set.tiebreakScore && isTiebreakScoreComplete(set.tiebreakScore);

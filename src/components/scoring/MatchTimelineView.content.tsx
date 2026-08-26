@@ -3,7 +3,7 @@ import type { FilterKey } from './timeline-types';
 import { FilterBar } from './timeline-filters';
 import { SetGroup } from './timeline-rows';
 
-type Props = { points: TimelinePoint[]; player1Name: string; player2Name: string; matchId: string; activeFilters: Set<FilterKey>; filteredPoints: TimelinePoint[]; groupedBySet: { setNumber: number; points: TimelinePoint[] }[]; counts: { p1: number; p2: number; bp: number; winners: number; errors: number }; hasActiveFilters: boolean; onToggleFilter: (key: FilterKey) => void; onClearFilters: () => void; };
+type Props = { points: TimelinePoint[]; player1Name: string; player2Name: string; matchId: string; activeFilters: Set<FilterKey>; filteredPoints: TimelinePoint[]; groupedBySet: { setNumber: number; points: TimelinePoint[] }[]; counts: { p1: number; p2: number; bp: number; ace: number; winner: number; forcedError: number; unforcedError: number; doubleFault: number; }; hasActiveFilters: boolean; onToggleFilter: (key: FilterKey) => void; onClearFilters: () => void; };
 
 export function MatchTimelineContent({ points, player1Name, player2Name, matchId, activeFilters, filteredPoints, groupedBySet, counts, hasActiveFilters, onToggleFilter, onClearFilters }: Props) {
   if (points.length === 0) {

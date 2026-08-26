@@ -1,6 +1,10 @@
 import { logger } from '@/lib/logger';
 
-function getSnapshotString(session: any): string | null {
+import type { listSuspendedSessions } from '@/services/sessionService';
+
+type SuspendedSession = Awaited<ReturnType<typeof listSuspendedSessions>>[number];
+
+function getSnapshotString(session: SuspendedSession): string | null {
   const sessionSnapshot = session.matchStateSnapshot ?? null;
   const matchScoreState = session.match.scoreState
     ? typeof session.match.scoreState === 'string'
@@ -19,7 +23,7 @@ function parseSnapshot(snapshotString: string | null): unknown {
   }
 }
 
-export function mapSuspendedSession(session: any) {
+export function mapSuspendedSession(session: SuspendedSession) {
   const match = session.match;
   const snapshotString = getSnapshotString(session);
   const snapshot = parseSnapshot(snapshotString);

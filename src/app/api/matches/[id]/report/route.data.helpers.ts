@@ -1,6 +1,7 @@
 import type { TimelinePoint } from '@/core/scoring/types';
 import { rebuildTimelineFromPointLogs, type PointLogRow } from '@/components/scoring/timeline-rebuild';
-import { findAbandonedSessionSnapshot } from '@/services/matchService';
+import { findAbandonedSessionSnapshot, getMatch } from '@/services/matchService';
+import type { TennisFormat } from '@/core/scoring/types';
 import { prisma } from '@/lib/prisma';
 
 export async function buildReportTimeline(
@@ -8,19 +9,22 @@ export async function buildReportTimeline(
   player1Id: string,
   player2Id: string,
   initialServerId: string,
-  format: any,
+  format: TennisFormat,
 ): Promise<{ pointLogs: PointLogRow[]; timelinePoints: TimelinePoint[] }> {
   const pointLogs = await prisma.pointLog.findMany({
     where: { matchId },
-    orderBy: { timestamp: 'asc' },
+    orderBy: [{ sequenceNumber: 'asc' }, { timestamp: 'asc' }, { id: 'asc' }],
     select: {
       id: true,
       winnerId: true,
       type: true,
       serverId: true,
+      sequenceNumber: true,
+      clientEventId: true,
       timestamp: true,
       annotations: true,
       audioNote: true,
+      audioNoteMime: true,
       audioNoteDuration: true,
     },
   }) as PointLogRow[];
@@ -30,7 +34,9 @@ export async function buildReportTimeline(
   return { pointLogs, timelinePoints };
 }
 
-export async function getReportScoreState(match: any, matchId: string): Promise<unknown> {
+type ReportMatch = NonNullable<Awaited<ReturnType<typeof getMatch>>>;
+
+export async function getReportScoreState(match: ReportMatch, matchId: string): Promise<unknown> {
   if (match.scoreState) return match.scoreState;
   const abandonedSession = await findAbandonedSessionSnapshot(matchId);
   if (!abandonedSession?.matchStateSnapshot) return null;

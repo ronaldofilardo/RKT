@@ -1,11 +1,21 @@
-jest.mock('@/lib/prisma', () => ({
-  prisma: {
-    match: {
-      findFirst: jest.fn(),
-      update: jest.fn(),
+jest.mock('@/lib/prisma', () => {
+  const matchUpdate = jest.fn();
+  return {
+    prisma: {
+      match: {
+        findFirst: jest.fn(),
+        findUnique: jest.fn(),
+        update: matchUpdate,
+      },
+      matchScoreEdit: { create: jest.fn() },
+      $transaction: jest.fn((operation: unknown) =>
+        typeof operation === 'function'
+          ? operation({ match: { update: matchUpdate }, matchScoreEdit: { create: jest.fn() } })
+          : Promise.all(operation as Promise<unknown>[])
+      ),
     },
-  },
-}));
+  };
+});
 
 jest.mock('@/core/scoring/engine', () => ({
   ScoringEngine: {

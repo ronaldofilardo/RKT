@@ -5,21 +5,29 @@ type TimelineFilters = {
   playerWinner?: 'PLAYER_1' | 'PLAYER_2';
   breakPointsOnly?: boolean;
   winnersOnly?: boolean;
+  acesOnly?: boolean;
+  forcedErrorsOnly?: boolean;
+  unforcedErrorsOnly?: boolean;
+  doubleFaultsOnly?: boolean;
   errorsOnly?: boolean;
 };
 
 export function matchesTimelineFilters(p: TimelinePoint, filters: TimelineFilters): boolean {
-  if (filters.playerWinner && p.winner !== filters.playerWinner) return false;
-  if (filters.breakPointsOnly && !p.isBreakPoint) return false;
-  if (filters.winnersOnly && p.type !== 'WINNER' && p.type !== 'ACE') return false;
-  if (filters.errorsOnly && !isErrorPoint(p)) return false;
-  return true;
+  const checks = [
+    !filters.playerWinner || p.winner === filters.playerWinner,
+    !filters.breakPointsOnly || p.isBreakPoint,
+    !filters.winnersOnly || p.type === 'WINNER' || p.type === 'ACE',
+    !filters.acesOnly || p.type === 'ACE',
+    !filters.forcedErrorsOnly || p.type === 'FORCED_ERROR',
+    !filters.unforcedErrorsOnly || p.type === 'UNFORCED_ERROR',
+    !filters.doubleFaultsOnly || p.type === 'DOUBLE_FAULT',
+    !filters.errorsOnly || isErrorType(p.type),
+  ];
+  return checks.every(Boolean);
 }
 
-function isErrorPoint(p: TimelinePoint): boolean {
-  return p.type === 'UNFORCED_ERROR'
-    || p.type === 'FORCED_ERROR'
-    || p.type === 'DOUBLE_FAULT';
+function isErrorType(type: string): boolean {
+  return type === 'UNFORCED_ERROR' || type === 'FORCED_ERROR' || type === 'DOUBLE_FAULT';
 }
 
 function formatAceDetails(rd?: RallyDetails | null): string {

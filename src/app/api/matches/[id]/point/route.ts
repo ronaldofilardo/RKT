@@ -14,8 +14,11 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   return withRLSHandler(request, 'ATHLETE', async () => {
+    let requestId = '';
+    let requestClientEventId: string | undefined;
     try {
       const { id } = await params;
+      requestId = id;
 
       let body;
       try {
@@ -51,7 +54,9 @@ export async function POST(
         );
       }
 
+            requestClientEventId = parsed.data.clientEventId;
       const result: { scoreState: ScoringState; version: number; pointLogId: string } | null = await prisma.$transaction(async (tx) => {
+
         const match = await tx.match.findFirst({
           where: { id },
           include: { player1: true, player2: true },
@@ -62,7 +67,22 @@ export async function POST(
           throw new TransactionError('Partida não encontrada', 404, 'MATCH_NOT_FOUND');
         }
 
+                if (parsed.data.clientEventId) {
+          const existingPoint = await tx.pointLog.findFirst({
+            where: { matchId: id, clientEventId: parsed.data.clientEventId },
+            select: { id: true },
+          });
+          if (existingPoint) {
+            return {
+              scoreState: match.scoreState as unknown as ScoringState,
+              version: match.version,
+              pointLogId: existingPoint.id,
+            };
+          }
+        }
+
         if (match.state !== 'IN_PROGRESS') {
+
           logger.point.matchNotInProgress(match.state);
           throw new TransactionError('Partida não está em andamento', 422, 'MATCH_NOT_IN_PROGRESS');
         }
@@ -72,9 +92,11 @@ export async function POST(
           throw new TransactionError('Defina o primeiro sacador antes de pontuar', 422, 'MATCH_NOT_STARTED');
         }
 
-        if (parsed.data.sequenceNumber) {
-          const pointLogCount = await tx.pointLog.count({ where: { matchId: id } });
-          if (parsed.data.sequenceNumber !== pointLogCount + 1) {
+                const pointLogCount = await tx.pointLog.count({ where: { matchId: id } });
+        const nextSequenceNumber = pointLogCount + 1;
+        if (parsed.data.sequenceNumber !== undefined) {
+          if (parsed.data.sequenceNumber !== nextSequenceNumber) {
+
             logger.point.sequenceConflict({
               expected: pointLogCount + 1,
               received: parsed.data.sequenceNumber,
@@ -83,7 +105,8 @@ export async function POST(
               `Conflito de sequência: esperado ${pointLogCount + 1}, recebido ${parsed.data.sequenceNumber}`,
               409,
               'SEQUENCE_CONFLICT',
-              { expectedSequence: pointLogCount + 1 }
+                            { expectedSequence: nextSequenceNumber }
+
             );
           }
         }
@@ -162,7 +185,10 @@ export async function POST(
             winnerId: parsed.data.winnerId,
             type: parsed.data.type,
             serverId: parsed.data.serverId,
-            annotations,
+                        annotations,
+            sequenceNumber: nextSequenceNumber,
+            clientEventId: parsed.data.clientEventId,
+
           },
         });
 
@@ -187,7 +213,28 @@ export async function POST(
           { status: error.status }
         );
       }
+            if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002' &&
+        requestClientEventId
+      ) {
+        const [existingPoint, currentMatch] = await Promise.all([
+          prisma.pointLog.findFirst({
+            where: { matchId: requestId, clientEventId: requestClientEventId },
+            select: { id: true },
+          }),
+          prisma.match.findUnique({ where: { id: requestId }, select: { scoreState: true, version: true } }),
+        ]);
+        if (existingPoint && currentMatch) {
+          return NextResponse.json({
+            scoreState: currentMatch.scoreState,
+            version: currentMatch.version,
+            pointLogId: existingPoint.id,
+          });
+        }
+      }
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+
         return NextResponse.json(
           {
             error: 'VERSION_CONFLICT',

@@ -27,6 +27,15 @@ export const CATEGORIES_BY_RANKING: Record<string, Record<string, number[]>> = {
     '13-14': [13, 14],
     '15-16': [15, 16],
     '17-18': [17, 18],
+    '35-39': [35, 36, 37, 38, 39],
+    '40-44': [40, 41, 42, 43, 44],
+    '45-49': [45, 46, 47, 48, 49],
+    '50-54': [50, 51, 52, 53, 54],
+    '55-59': [55, 56, 57, 58, 59],
+    '60-64': [60, 61, 62, 63, 64],
+    '65-69': [65, 66, 67, 68, 69],
+    '70-74': [70, 71, 72, 73, 74],
+    '75+': [75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100],
   },
   CBT: {
     '11-12': [11, 12],
@@ -50,9 +59,7 @@ export const CATEGORIES_BY_RANKING: Record<string, Record<string, number[]>> = {
     '70-74': [70, 71, 72, 73, 74],
     '75+': [75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100],
   },
-  ITF_Juniors: {
-    '18': [18],
-  },
+  
 };
 
 export const CATEGORY_TO_NUMBER: Record<string, number> = {
@@ -166,7 +173,8 @@ export function getMatchCategoriesForAge(age: number): MatchCategory[] {
   if (age < 11) return [];
   if (age <= 12) return ['INFANTIL', 'JUVENIL'];
   if (age <= 18) return ['JUVENIL', 'ADULTO'];
-  return [];
+  if (age < 35) return ['ADULTO'];
+  return ['VETERANO'];
 }
 
 export function getCategoriesForAge(rankingType: RankingType, age: number): string[] {
@@ -186,22 +194,75 @@ export const HIGHER_CATEGORY: Record<string, string | undefined> = {
   '17-18': undefined,
 };
 
+export const LOWER_CATEGORY: Record<string, string | undefined> = {
+  '35-39': undefined,
+  '40-44': '35-39',
+  '45-49': '40-44',
+  '50-54': '45-49',
+  '55-59': '50-54',
+  '60-64': '55-59',
+  '65-69': '60-64',
+  '70-74': '65-69',
+  '75+': '70-74',
+};
+
+function getYouthCategoriesFrom(natural: string[], validKeys: string[]): string[] {
+  const result = [...natural];
+  let current = natural.at(-1);
+  while (current) {
+    current = HIGHER_CATEGORY[current];
+    if (current && validKeys.includes(current)) result.push(current);
+  }
+  return result;
+}
+
+function getVeteranCategoriesFrom(natural: string[], validKeys: string[]): string[] {
+  const current = natural[0];
+  const lower = current ? LOWER_CATEGORY[current] : undefined;
+  return lower && validKeys.includes(lower) ? [natural[0], lower] : natural;
+}
+
 export function getAllowedCategoriesForAge(rankingType: RankingType, age: number): string[] {
   const categories = CATEGORIES_BY_RANKING[rankingType];
   if (!categories) return [];
 
   const validKeys = Object.keys(categories);
   const natural = getCategoriesForAge(rankingType, age);
-  const higher = natural
-    .map((cat) => HIGHER_CATEGORY[cat])
-    .filter((c): c is string => typeof c === 'string')
-    .filter((c) => validKeys.includes(c));
-
-  return Array.from(new Set([...natural, ...higher]));
+  if (natural.length === 0) return [];
+  if (age >= 35) return getVeteranCategoriesFrom(natural, validKeys);
+  return getYouthCategoriesFrom(natural, validKeys);
 }
 
 export function getAutoCategoryForAge(rankingType: RankingType, age: number): string[] {
   return getCategoriesForAge(rankingType, age);
+}
+
+function isRankingGenderCompatible(rankingType: RankingType, gender: string): boolean {
+  if (rankingType === 'ATP') return gender === 'MALE';
+  if (rankingType === 'WTA') return gender === 'FEMALE';
+  return true;
+}
+
+export function isRankingTypeAllowedForProfile(
+  rankingType: RankingType,
+  age: number | null,
+  gender: string | null | undefined,
+): boolean {
+  if (gender && !isRankingGenderCompatible(rankingType, gender)) return false;
+  if (age === null) return true;
+  if (rankingType === 'ITF_Juniors') return age >= 14 && age <= 18;
+  if (rankingType === 'ATP' || rankingType === 'WTA') return age <= 40;
+  if (!hasCategories(rankingType)) return true;
+  return getAllowedCategoriesForAge(rankingType, age).length > 0;
+}
+
+export function isRankingCategoryAllowed(
+  rankingType: RankingType,
+  category: string | undefined,
+  age: number | null,
+): boolean {
+  if (!category || !hasCategories(rankingType) || age === null) return true;
+  return getAllowedCategoriesForAge(rankingType, age).includes(category);
 }
 
 function getAgeGroup(age: number): string | null {

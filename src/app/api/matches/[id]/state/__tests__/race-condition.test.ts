@@ -114,7 +114,12 @@ describe('PATCH /api/matches/[id]/state — race condition (optimistic locking)'
       'FINISHED',
       undefined,
       undefined,
-      { allowScoreEdit: undefined, expectedVersion: 3 },
+      {
+        allowScoreEdit: undefined,
+        expectedVersion: 3,
+        isManualScoreEdit: undefined,
+        editedByUserId: 'user-123',
+      },
     );
   });
 
@@ -168,7 +173,12 @@ describe('PATCH /api/matches/[id]/state — race condition (optimistic locking)'
       'IN_PROGRESS',
       'p1',
       undefined,
-      { allowScoreEdit: undefined, expectedVersion: undefined },
+      {
+        allowScoreEdit: undefined,
+        expectedVersion: undefined,
+        isManualScoreEdit: undefined,
+        editedByUserId: 'user-123',
+      },
     );
   });
 
@@ -196,6 +206,11 @@ describe('PATCH /api/matches/[id]/state — race condition (optimistic locking)'
     await PATCH(makeRequest('m-1', { state: 'IN_PROGRESS', version: 5 }), await params('m-1'));
 
     const lastCall = mockTransition.mock.calls[mockTransition.mock.calls.length - 1];
-    expect(lastCall[4]).toEqual({ allowScoreEdit: undefined, expectedVersion: 5 });
+    expect(lastCall[4]).toEqual({
+      allowScoreEdit: undefined,
+      expectedVersion: 5,
+      isManualScoreEdit: undefined,
+      editedByUserId: 'user-123',
+    });
   });
 });

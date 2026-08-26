@@ -1,3 +1,4 @@
+import { getSinglePointDisplay } from './match-card-utils';
 
 const FORMAT_LABELS: Record<string, string> = {
   BEST_OF_3: 'Melhor de 3 Sets',
@@ -92,5 +93,86 @@ export function FormatLabel({ format }: FormatLabelProps) {
     <span className="text-xs text-gray-500">
       {FORMAT_LABELS[format] || format}
     </span>
+  );
+}
+
+interface ScoreDisplayProps {
+  scoreState: any;
+  format: string;
+  isSuspended: boolean;
+}
+
+export function ScoreDisplay({ scoreState, format, isSuspended }: ScoreDisplayProps) {
+  const isMatchTiebreak = format === 'MATCH_TB_10' || format === 'BEST_OF_3_MATCH_TB';
+  const textColor = isSuspended ? 'text-amber-700' : 'text-gray-900';
+
+  if (!scoreState?.sets || scoreState.sets.length === 0) {
+    return (
+      <div className="grid grid-cols-[1.5rem_2.5rem] gap-x-1 text-[10px] text-gray-500">
+        <span></span>
+        <span className="text-center">Pontos</span>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="grid"
+      style={{
+        gridTemplateColumns: `repeat(${scoreState.sets.length}, 1.5rem) 2.5rem`,
+        gridTemplateRows: 'auto auto 2rem 2rem',
+        rowGap: '0.125rem',
+      }}
+    >
+      <span className="text-[10px] text-gray-500 text-center" style={{ gridColumn: `1 / ${scoreState.sets.length + 1}` }}>
+        Sets
+      </span>
+      <span></span>
+
+      {scoreState.sets.map((_: any, idx: number) => (
+        <span key={idx} className="text-[10px] text-gray-500 text-center">
+          {idx + 1}
+        </span>
+      ))}
+      <span className="text-[10px] text-gray-500 text-center">Pontos</span>
+
+      {scoreState.sets.map((s: any, idx: number) => {
+        let displayScore = s.player1 ?? 0;
+        if (s.isTiebreak && s.tiebreakScore) {
+          displayScore = s.tiebreakScore.player1;
+        } else if (isMatchTiebreak && idx === 0) {
+          displayScore = s.player1 ?? 0;
+        }
+        return (
+          <span key={idx} className={`text-sm flex items-center justify-center ${textColor}`}>
+            {displayScore}
+          </span>
+        );
+      })}
+      <span className={`text-sm flex items-center justify-center ${textColor}`}>
+        {isMatchTiebreak && scoreState.sets.length > 0
+          ? '-'
+          : getSinglePointDisplay(scoreState?.currentGame, 'player1')}
+      </span>
+
+      {scoreState.sets.map((s: any, idx: number) => {
+        let displayScore = s.player2 ?? 0;
+        if (s.isTiebreak && s.tiebreakScore) {
+          displayScore = s.tiebreakScore.player2;
+        } else if (isMatchTiebreak && idx === 0) {
+          displayScore = s.player2 ?? 0;
+        }
+        return (
+          <span key={idx} className={`text-sm flex items-center justify-center ${textColor}`}>
+            {displayScore}
+          </span>
+        );
+      })}
+      <span className={`text-sm flex items-center justify-center ${textColor}`}>
+        {isMatchTiebreak && scoreState.sets.length > 0
+          ? '-'
+          : getSinglePointDisplay(scoreState?.currentGame, 'player2')}
+      </span>
+    </div>
   );
 }

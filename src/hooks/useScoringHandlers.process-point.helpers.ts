@@ -1,5 +1,5 @@
 import type { MutableRefObject } from 'react';
-import type { PointFlow, ScoringState } from '@/core/scoring/types';
+import type { PointFlow, ScoringState, TennisFormat } from '@/core/scoring/types';
 import { ScoringEngine } from '@/core/scoring/engine';
 import type { MatchData } from './useScoringHandlers';
 
@@ -42,7 +42,7 @@ export function reconcileServerState(
   setScoreState(serverState);
   engineRef.current = ScoringEngine.fromSerialized(
     {
-      format: match.format as any,
+      format: match.format as TennisFormat,
       player1Id: match.player1.id,
       player2Id: match.player2.id,
       initialServerId: match.initialServerId || match.player1.id,

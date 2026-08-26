@@ -1,22 +1,28 @@
-import { getGameScoreLabel } from '@/components/scoring/timeline-utils';
+import { getGameScoreLabel } from '@/core/scoring/scoring-logic';
 
-function getSnapshotState(raw: unknown): any {
-  return raw && typeof raw === 'object' && 'state' in (raw as any)
-    ? (raw as any).state
-    : raw;
+type SnapshotRecord = Record<string, unknown>;
+type SnapshotSet = { player1?: number; player2?: number; isTiebreak?: boolean };
+
+function isRecord(value: unknown): value is SnapshotRecord { return typeof value === 'object' && value !== null; }
+function asSet(value: unknown): SnapshotSet | undefined { return isRecord(value) ? { player1: typeof value.player1 === 'number' ? value.player1 : 0, player2: typeof value.player2 === 'number' ? value.player2 : 0, isTiebreak: value.isTiebreak === true } : undefined; }
+
+function getSnapshotState(raw: unknown): SnapshotRecord {
+  if (!isRecord(raw)) return {};
+  return isRecord(raw.state) ? raw.state : raw;
 }
 
-function getSnapshotSet(parsed: any) {
-  const sets = parsed?.sets ?? [];
-  return { setNumber: sets.length > 0 ? sets.length : 1, currentSet: sets[sets.length - 1] };
+function getSnapshotSet(parsed: SnapshotRecord): { setNumber: number; currentSet?: SnapshotSet } {
+  const sets = Array.isArray(parsed.sets) ? parsed.sets : [];
+  return { setNumber: sets.length > 0 ? sets.length : 1, currentSet: asSet(sets[sets.length - 1]) };
 }
 
-function getSnapshotPoints(parsed: any, currentSet: any): string {
+function getSnapshotPoints(parsed: SnapshotRecord, currentSet?: SnapshotSet): string {
+  const game = isRecord(parsed.currentGame) ? parsed.currentGame : {};
   return getGameScoreLabel(
-    parsed?.currentGame?.player1 ?? 0,
-    parsed?.currentGame?.player2 ?? 0,
-    parsed?.currentGame?.isDeuce,
-    parsed?.currentGame?.advantage,
+    typeof game.player1 === 'number' ? game.player1 : 0,
+    typeof game.player2 === 'number' ? game.player2 : 0,
+    game.isDeuce === true,
+    typeof game.advantage === 'string' ? game.advantage : null,
     currentSet?.isTiebreak,
   );
 }

@@ -83,9 +83,12 @@ model PointLog {
   audioNote         Bytes?
   audioNoteMime     String?
   audioNoteDuration Int?
+  sequenceNumber   Int?
+  clientEventId     String?
   match             Match     @relation(fields: [matchId], references: [id])
 
   @@index([matchId])
+  @@unique([matchId, clientEventId])
 }
 
 /// Registra cada correção manual de placar ("Editar Placar"), usada

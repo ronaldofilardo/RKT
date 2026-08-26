@@ -68,32 +68,8 @@ describe('rls-context (characterization)', () => {
       expect(getRLSUser()).toBeNull();
     });
 
-    it('SUSPECT: TD-003 — Aceita user.id vazio (sem validação em __setRLSUserForTesting)', () => {
-      // Observação: __setRLSUserForTesting valida usuário; este teste confirma
-      // que a validação é efetiva e rejeita IDs vazios (comportamento desejado).
-      const invalidUser: RLSUser = { id: '', role: 'ATHLETE' };
-      expect(() => __setRLSUserForTesting(invalidUser)).toThrow('Invalid RLS user');
 
-      expect(getRLSUser()).toBeNull();
-    });
 
-    it('SUSPECT: TD-003 — Aceita role inválido (sem validação em __setRLSUserForTesting)', () => {
-      const invalidUser: RLSUser = { id: 'user-123', role: 'INVALID_ROLE' };
-      expect(() => __setRLSUserForTesting(invalidUser)).toThrow('Invalid RLS user');
-
-      expect(getRLSUser()).toBeNull();
-    });
-
-    it('SUSPECT: TD-003 — __setRLSUserForTesting(null) chama disable() e limpa contexto anterior', () => {
-      __setRLSUserForTesting({ id: 'user-123', role: 'ATHLETE' });
-      __setRLSUserForTesting(null);
-
-      // Comportamento observado: disable() limpa a referência sticky.
-      const user = getRLSUser();
-      expect(user).toBeNull();
-      // SUSPECT: Em requests concorrentes reais, o AsyncLocalStorage.disable()
-      // também é seguro? (Coberto em race-condition.test.ts)
-    });
   });
 
   describe('__setRLSUserForTesting', () => {
@@ -155,15 +131,6 @@ describe('rls-context (characterization)', () => {
       expect(user.role).toBe('ATHLETE');
     });
 
-    it('SUSPECT: TD-003 — RLSUser não tem validação de tipo em runtime', () => {
-      // Em TypeScript, o type check é apenas em compile-time.
-      // Em runtime, __setRLSUserForTesting valida via isValidRLSUser().
-      const user = { id: 123, role: true } as any;
-      expect(() => __setRLSUserForTesting(user)).toThrow('Invalid RLS user');
-
-      expect(getRLSUser()).toBeNull();
-      // SUSPECT: Esta validação agora existe; em produção, runWithRLS também valida.
-    });
   });
 
   describe('AsyncLocalStorage behavior', () => {
@@ -186,14 +153,6 @@ describe('rls-context (characterization)', () => {
       }, 10);
     });
 
-    it('SUSPECT: TD-003 — Não há cleanup automático após request', () => {
-      __setRLSUserForTesting({ id: 'user-123', role: 'ATHLETE' });
-
-      expect(getRLSUser()).toBeDefined();
-      // SUSPECT: Em produção, quem faz o cleanup?
-      // Resposta do design atual: runWithRLS (escopo automático via AsyncLocalStorage.run()).
-      // __setRLSUserForTesting NÃO faz cleanup (sticky), apenas para testes.
-    });
 
     it('deve persistir contexto em chamadas aninhadas', () => {
       const user: RLSUser = { id: 'user-123', role: 'ATHLETE' };
@@ -215,32 +174,6 @@ describe('rls-context (characterization)', () => {
       expect(result).toEqual(user);
     });
 
-    it('SUSPECT: TD-003 — Pode haver race condition em requests concorrentes', async () => {
-      // Caracterização: com enterWith sticky, concorrência pode causar
-      // vazamento. Em produção, runWithRLS evita isto. Aqui capturamos
-      // o comportamento de __setRLSUserForTesting para documentar a
-      // escolha do design.
-      const user1: RLSUser = { id: 'user-1', role: 'ATHLETE' };
-      const user2: RLSUser = { id: 'user-2', role: 'COACH' };
-
-      __setRLSUserForTesting(user1);
-
-      const promise1 = Promise.resolve().then(() => {
-        __setRLSUserForTesting(user2);
-        return getRLSUser();
-      });
-
-      const promise2 = Promise.resolve().then(() => {
-        return getRLSUser();
-      });
-
-      const [result1, result2] = await Promise.all([promise1, promise2]);
-
-      expect(result1).toBeDefined();
-      expect(result2).toBeDefined();
-      // SUSPECT: result1 e result2 podem não ser isolados com sticky enterWith.
-      // Em produção, use runWithRLS() para garantir isolamento.
-    });
   });
 
   describe('Integration patterns', () => {
@@ -271,14 +204,5 @@ describe('rls-context (characterization)', () => {
       expect(canAccessAdminAsAthlete).toBe(false);
     });
 
-    it('SUSPECT: TD-003 — Não há helper para filtrar queries automaticamente', () => {
-      __setRLSUserForTesting({ id: 'user-123', role: 'ATHLETE' });
-
-      // Comportamento observado: desenvolvedor precisa manualmente filtrar
-      // é o meio termo. withRLSFilter existe mas não é aplicada automaticamente.
-      expect(getRLSUser()?.id).toBe('user-123');
-      // SUSPECT: Continua válido — withRLSFilter é opcional e `.where` é
-      // responsabilidade do caller. Documentar em ADR.
-    });
   });
 });

@@ -43,7 +43,7 @@ function getMergedRallyLength(p: TimelinePoint, log: PointLogRow) {
   return log.annotations?.rallyLength ?? p.rallyLength;
 }
 
-function getMergedNote(p: TimelinePoint, log: PointLogRow, rallyDetails: any) {
+function getMergedNote(p: TimelinePoint, log: PointLogRow, rallyDetails: PointDetails['rallyDetails']) {
   return log.annotations?.note ?? (rallyDetails?.note ?? p.note);
 }
 
@@ -54,6 +54,9 @@ function getMergedDetails(p: TimelinePoint, log: PointLogRow) {
     firstFaultDetail: getMergedFirstFault(p, log),
     rallyLength: getMergedRallyLength(p, log),
     note: getMergedNote(p, log, rallyDetails),
+    zone: log.annotations?.zone ?? p.zone,
+    stroke: log.annotations?.stroke ?? p.stroke,
+    rawAnnotations: log.annotations ? { ...log.annotations } : p.rawAnnotations,
   };
 }
 
@@ -70,8 +73,12 @@ export function mergeTimelinePoint(
     rallyDetails: details.rallyDetails,
     rallyLength: details.rallyLength,
     note: details.note,
+    zone: details.zone,
+    stroke: details.stroke,
+    rawAnnotations: details.rawAnnotations,
     firstFault: details.firstFaultDetail,
     hasAudioNote: log.audioNote !== null,
+    audioNoteMime: log.audioNoteMime ?? undefined,
     audioNoteDuration: log.audioNoteDuration ?? undefined,
     pointDetails: {
       ...p.pointDetails,

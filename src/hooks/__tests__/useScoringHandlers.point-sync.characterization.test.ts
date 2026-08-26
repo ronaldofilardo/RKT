@@ -181,9 +181,11 @@ describe("createPointSyncService", () => {
       (call) => typeof call[1] === "number" && call[1] === TIMEOUTS.POINT_REQUEST_ABORT_MS,
     );
     expect(abortCall).toBeDefined();
-    expect(abortCall![1]).toBe(10_000);
+        expect(abortCall![1]).toBe(10_000);
+    clearTimeout(abortCall![0] as ReturnType<typeof setTimeout>);
 
     setTimeoutSpy.mockRestore();
+
     realSetTimeout(() => undefined, 0);
   });
 

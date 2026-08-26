@@ -15,6 +15,7 @@ interface ReportData {
   state: string;
   startedAt: string | null;
   finishedAt: string | null;
+  scoreEditsCount: number;
 }
 
 export default function ReportPage({ params }: { params: Promise<{ id: string }> }) {
@@ -101,8 +102,11 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
               {report.player1.name} vs {report.player2.name}
               {' · '}
               {report.format.replace(/_/g, ' ')}
-              {' · '}
+                            {' · '}
               {report.state === 'FINISHED' ? '✅ Finalizada' : report.state === 'IN_PROGRESS' ? '🔴 Em andamento' : 'Aguardando'}
+              {' · '}
+              {report.scoreEditsCount} correção(ões) manual(is)
+
             </p>
           </div>
           <div className="flex gap-3">

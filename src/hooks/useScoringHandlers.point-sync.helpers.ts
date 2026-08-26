@@ -106,9 +106,9 @@ export function handleRequestError(
 }
 
 export async function enqueueOfflinePoint(
-  enqueue: (action: Omit<QueuedAction, 'id' | 'status' | 'retries'>) => Promise<void>,
+  enqueue: (action: Omit<QueuedAction, 'id' | 'status' | 'retries'>) => Promise<QueuedAction>,
   matchId: string,
   flow: PointFlow,
-): Promise<void> {
-  await enqueue({ matchId, type: 'POINT', payload: flow as never, timestamp: Date.now() });
+): Promise<QueuedAction> {
+  return enqueue({ matchId, type: 'POINT', payload: flow as never, timestamp: Date.now() });
 }

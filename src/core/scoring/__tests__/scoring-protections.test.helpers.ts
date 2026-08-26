@@ -27,7 +27,7 @@ export function normalizeMatchTiebreakState(scoreState: any, format: string): an
 }
 
 function isStoredRegularTiebreakSet(set: any) {
-  return !set.isTiebreak && Boolean(set.tiebreakScore) && (set.player1 > 0 || set.player2 > 0);
+  return set.isTiebreak && Boolean(set.tiebreakScore) && (set.player1 > 0 || set.player2 > 0);
 }
 
 function hasScoreRegression(oldSet: any, newSet: any) {

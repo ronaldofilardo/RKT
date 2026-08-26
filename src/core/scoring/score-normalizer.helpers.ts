@@ -1,68 +1,40 @@
 import type { TennisFormat } from './types';
-export type CompletedSets = { p1Won: number; p2Won: number };
+import type { NormalizedScoreState } from './score-normalizer';
 
-export function isMatchTiebreakSetIndex(
-  setIndex: number,
-  _totalSets: number,
-  format: TennisFormat,
-  completedSetsBefore: CompletedSets = { p1Won: 0, p2Won: 0 },
-): boolean {
+export type CompletedSets = { p1Won: number; p2Won: number };
+export type NormalizedSet = NormalizedScoreState['sets'][number];
+export type ParsedScoreState = Omit<NormalizedScoreState, 'sets'> & { sets?: NormalizedSet[]; [key: string]: unknown };
+
+export function isMatchTiebreakSetIndex(setIndex: number, _totalSets: number, format: TennisFormat, completedSetsBefore: CompletedSets = { p1Won: 0, p2Won: 0 }): boolean {
   const setNum = setIndex + 1;
   if (format === 'MATCH_TB_10') return setNum === 1;
-  if (format === 'BEST_OF_5' && setNum === 5) {
-    return completedSetsBefore.p1Won === 2 && completedSetsBefore.p2Won === 2;
-  }
-  if (
-    (format === 'BEST_OF_3_MATCH_TB'
-      || format === 'BEST_OF_3_NO_AD'
-      || format === 'SHORT_SET_2V2_NO_AD')
-    && setNum === 3
-  ) {
-    return completedSetsBefore.p1Won === 1 && completedSetsBefore.p2Won === 1;
-  }
+  if (format === 'BEST_OF_5' && setNum === 5) return completedSetsBefore.p1Won === 2 && completedSetsBefore.p2Won === 2;
+  if ((format === 'BEST_OF_3_MATCH_TB' || format === 'BEST_OF_3_NO_AD' || format === 'SHORT_SET_2V2_NO_AD') && setNum === 3) return completedSetsBefore.p1Won === 1 && completedSetsBefore.p2Won === 1;
   return false;
 }
 
 export function looksLikeMatchTiebreakFormat(format: TennisFormat): boolean {
-  return format === 'MATCH_TB_10'
-    || format === 'BEST_OF_3_MATCH_TB'
-    || format === 'BEST_OF_5'
-    || format === 'BEST_OF_3_NO_AD'
-    || format === 'SHORT_SET_2V2_NO_AD';
+  return format === 'MATCH_TB_10' || format === 'BEST_OF_3_MATCH_TB' || format === 'BEST_OF_5' || format === 'BEST_OF_3_NO_AD' || format === 'SHORT_SET_2V2_NO_AD';
 }
 
-function isCorruptedMatchTiebreakSet(set: any, isMtSet: boolean): boolean {
-  return Boolean(
-    isMtSet
-      && set
-      && (set.player1 > 0 || set.player2 > 0)
-      && !set.isTiebreak
-      && !set.tiebreakScore,
-  );
+function isCorruptedMatchTiebreakSet(set: NormalizedSet, isMtSet: boolean): boolean {
+  return Boolean(isMtSet && (set.player1 > 0 || set.player2 > 0) && !set.isTiebreak && !set.tiebreakScore);
 }
 
-function sanitizeMatchTiebreakSet(set: any) {
-  return {
-    ...set,
-    tiebreakScore: { player1: set.player1, player2: set.player2 },
-    player1: 0,
-    player2: 0,
-    isTiebreak: true,
-  };
+function sanitizeMatchTiebreakSet(set: NormalizedSet): NormalizedSet {
+  return { ...set, tiebreakScore: { player1: set.player1, player2: set.player2 }, player1: 0, player2: 0, isTiebreak: true };
 }
 
-function countCompletedSet(set: any, completed: CompletedSets): void {
-  if (!set) return;
+function countCompletedSet(set: NormalizedSet, completed: CompletedSets): void {
   if (set.player1 > set.player2) completed.p1Won++;
   else if (set.player2 > set.player1) completed.p2Won++;
 }
 
-function updateCompletedSets(set: any, completed: CompletedSets): void {
-  if (!set) return;
+function updateCompletedSets(set: NormalizedSet, completed: CompletedSets): void {
   if (!set.isTiebreak || set.tiebreakScore) countCompletedSet(set, completed);
 }
 
-export function normalizeMatchTiebreakSets(sets: any[], format: TennisFormat): any[] {
+export function normalizeMatchTiebreakSets(sets: NormalizedSet[], format: TennisFormat): NormalizedSet[] {
   const completed: CompletedSets = { p1Won: 0, p2Won: 0 };
   return sets.map((set, idx) => {
     const isMtSet = isMatchTiebreakSetIndex(idx, sets.length, format, completed);
@@ -72,24 +44,16 @@ export function normalizeMatchTiebreakSets(sets: any[], format: TennisFormat): a
   });
 }
 
-export function addDefaultCurrentGame(parsed: any) {
-  return {
-    ...parsed,
-    currentGame: parsed.currentGame ?? {
-      player1: 0,
-      player2: 0,
-      isDeuce: false,
-      advantage: null,
-    },
-  };
+export function addDefaultCurrentGame(parsed: ParsedScoreState): ParsedScoreState {
+  return { ...parsed, currentGame: parsed.currentGame ?? { player1: 0, player2: 0, isDeuce: false, advantage: null } };
 }
 
-export function hasSetsProperty(parsed: any): boolean {
-  return Boolean(parsed?.sets);
+export function hasSetsProperty(parsed: ParsedScoreState): parsed is ParsedScoreState & { sets: NormalizedSet[] } {
+  return Array.isArray(parsed.sets);
 }
 
-export function finalizeNormalizedState(parsed: any): any | null {
-  if (parsed?.sets && parsed?.currentGame) return parsed;
-  if (parsed?.sets && Array.isArray(parsed.sets)) return addDefaultCurrentGame(parsed);
+export function finalizeNormalizedState(parsed: ParsedScoreState): ParsedScoreState | null {
+  if (parsed.sets && parsed.currentGame) return parsed;
+  if (parsed.sets) return addDefaultCurrentGame(parsed);
   return null;
 }

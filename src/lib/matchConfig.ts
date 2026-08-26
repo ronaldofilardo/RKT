@@ -1,11 +1,3 @@
-import {
-  isAtTiebreakScore,
-  isBestOfThreeMatchTiebreak,
-  isCompleteByGameMargin,
-  isCompleteByTiebreakScore,
-  isGrandSlamDecidingTiebreak,
-} from './matchConfig.helpers';
-
 export type TennisFormat =
   | "BEST_OF_3"
   | "BEST_OF_5"
@@ -139,8 +131,18 @@ export function isMatchTiebreakActive(
 ): boolean {
   if (format === 'MATCH_TB_10') return true;
   
-  return isGrandSlamDecidingTiebreak(format, currentSetNum, p1Sets, p2Sets)
-    || isBestOfThreeMatchTiebreak(format, currentSetNum, p1Sets, p2Sets);
+  // Grand Slam: 5º set — MT em 6/6 (verificação adicional no engine pela flag isTiebreak)
+  if (format === 'BEST_OF_5' && currentSetNum === 5 && p1Sets === 2 && p2Sets === 2) {
+    return true;
+  }
+  
+  // Melhor de 3 com MT: 3º set quando 1x1
+  if ((format === 'BEST_OF_3_MATCH_TB' || format === 'SHORT_SET_2V2_NO_AD' || format === 'BEST_OF_3_NO_AD') && 
+      currentSetNum === 3 && p1Sets === 1 && p2Sets === 1) {
+    return true;
+  }
+  
+  return false;
 }
 
 function isMatchTiebreakFormatType(format: TennisFormat): boolean {
@@ -173,16 +175,17 @@ export function validateSetScore(
   const min = Math.min(p1, p2);
   const winner: "PLAYER_1" | "PLAYER_2" = p1 >= p2 ? "PLAYER_1" : "PLAYER_2";
   const g = rules.gamesPerSet;
+  const tb = rules.tiebreakAt;
 
-  if (isCompleteByGameMargin(max, min, g)) {
+  if (max >= g && max - min >= 2) {
     return { complete: true, inTiebreak: false, winner, isTiebreak: false };
   }
 
-  if (isCompleteByTiebreakScore(max, min, rules)) {
+  if (rules.useTiebreak && tb > 0 && max === tb + 1 && min === tb) {
     return { complete: true, inTiebreak: false, winner, isTiebreak: true };
   }
 
-  const inTiebreak = isAtTiebreakScore(p1, p2, rules);
+  const inTiebreak = !!(rules.useTiebreak && tb > 0 && p1 === tb && p2 === tb);
   return { complete: false, inTiebreak };
 }
 

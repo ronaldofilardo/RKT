@@ -6,10 +6,6 @@ import { ScoringEngine } from "@/core/scoring/engine";
 import type { SuspendedSessionState } from "./useSessionManager";
 import type { MatchData } from "@/hooks/useScoringHandlers";
 import { normalizeMatchTiebreakState } from "./useSessionManager.utils";
-import {
-  restoreFreshScoreState,
-  syncOfflinePoints,
-} from './useSuspendedSession.resume.helpers';
 
 interface SuspendedSessionConfig {
   suspendedSession: SuspendedSessionState | null;
@@ -88,16 +84,49 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
         const history: any[] = Array.isArray(parsed?.history) ? parsed.history : [];
         const offlinePoints = history.slice(suspendedSession.bankPointCount);
         
-                await syncOfflinePoints(matchId, tokenRef.current, offlinePoints);
+        for (const entry of offlinePoints) {
+          try {
+            if (!entry?.point?.winnerId || !entry?.point?.type || !entry?.point?.serverId) {
+              logger.warn('[suspended session resume] Skipping invalid offline point:', entry);
+              continue;
+            }
+            
+            await fetch(`/api/matches/${matchId}/point`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                authorization: `Bearer ${tokenRef.current}`,
+              },
+              body: JSON.stringify({
+                winnerId: entry.point.winnerId,
+                type: entry.point.type,
+                serverId: entry.point.serverId,
+                isFirstServe: entry.point.isFirstServe ?? true,
+                isSecondServe: entry.point.isSecondServe ?? false,
+                timestamp: entry.point.timestamp ?? Date.now(),
+                ...(entry.point.rallyDetails != null ? { rallyDetails: entry.point.rallyDetails } : {}),
+                ...(entry.point.rallyLength != null ? { rallyLength: entry.point.rallyLength } : {}),
+              }),
+            });
+          } catch (err) {
+            logger.error('[suspended session resume] Failed to sync offline point:', err);
+          }
+        }
 
         await fetchMatch(true);
-        await restoreFreshScoreState(
-          matchId,
-          tokenRef.current,
-          engineConfig,
-          engineRef,
-          setScoreState,
-        );
+        const freshRes = await fetch(`/api/matches/${matchId}`, {
+          headers: { authorization: `Bearer ${tokenRef.current}` },
+        });
+        if (freshRes.ok) {
+          const freshData: MatchData = await freshRes.json();
+          if (freshData.scoreState) {
+            engineRef.current = ScoringEngine.fromSerialized(
+              engineConfig,
+              JSON.stringify(freshData.scoreState),
+            );
+            setScoreState(engineRef.current.getState() as any);
+          }
+        }
       }
     }
 

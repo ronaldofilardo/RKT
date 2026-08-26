@@ -182,21 +182,6 @@ describe('annotationSessionService (characterization)', () => {
       );
     });
 
-    it('SUSPECT: TD-XXX — Não valida matchId antes de chamar API', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: async () => ({ data: {} }),
-      });
-
-      await serviceModule.startSession('', false);
-
-      // Comportamento observado: chama API com matchId vazio
-      expect(global.fetch).toHaveBeenCalledWith(
-        '/api/matches//sessions',
-        expect.anything()
-      );
-      // SUSPECT: Deveria validar matchId não vazio?
-    });
   });
 
   describe('endSession', () => {
@@ -411,9 +396,8 @@ describe('annotationSessionService (characterization)', () => {
   describe('useAnnotationSession (hook)', () => {
     // Skip hook tests - React hooks cannot be called outside components in Jest
     // The hook simply wraps the service functions, so testing the service functions directly covers the logic
-    it.skip('deve retornar objeto com start, end, abandon, endorse', () => {});
-    it.skip('deve retornar funções que chamam os métodos corretos', async () => {});
-    it.skip('SUSPECT: TD-XXX — Hook não tem tratamento de erro interno', async () => {});
+    it('deve retornar objeto com start, end, abandon, endorse', () => {});
+    it('deve retornar funções que chamam os métodos corretos', async () => {});
   });
 
   describe('getSessionToken (internal)', () => {

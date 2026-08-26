@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     const accessToken = await generateToken(player.id, player.role);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       accessToken,
       refreshToken: 'hardcoded-refresh',
       user: {
@@ -50,6 +50,14 @@ export async function POST(request: NextRequest) {
         role: player.role,
       },
     });
+    response.cookies.set('rkt_access_token', accessToken, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 2,
+      path: '/',
+    });
+    return response;
   } catch (error) {
     logger.error('[LOGIN POST]', error);
     return handleApiError(error);

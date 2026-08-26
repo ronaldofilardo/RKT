@@ -140,9 +140,11 @@ describe("Match Tie-Break Integration - All Formats", () => {
         { p1Games: 6, p2Games: 4, isPartial: false },
         { p1Games: 3, p2Games: 6, isPartial: false },
         { p1Games: 6, p2Games: 4, isPartial: false },
-        { p1Games: 4, p2Games: 6, isPartial: false },
+                { p1Games: 4, p2Games: 6, isPartial: false },
+        { p1Games: 6, p2Games: 6, isPartial: true },
       ];
       expect(isMatchTiebreakSet(4, setResults, "BEST_OF_5")).toBe(true);
+
     });
 
     it("isMatchTiebreakSet: set 4 (index 3) should NOT be MT", () => {

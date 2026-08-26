@@ -1,5 +1,6 @@
 import type { ScoringState, TennisFormat } from '@/core/scoring/types';
 import type { ScoringPageState } from './useScoringPageState';
+type ScoreSet = ScoringState['sets'][number];
 import { checkBreakPoint, checkMatchPoint, checkSetPoint, isSetCompleted } from './scoringHelpers';
 
 export function getEffectiveScoreState(state: ScoringPageState): ScoringState | null {
@@ -27,7 +28,7 @@ export function getEditScoreCurrentSets(score: ScoringState | null, format: Tenn
   return { player1: lastSet.player1, player2: lastSet.player2 };
 }
 
-function getSetWinner(set: any): 'player1' | 'player2' {
+function getSetWinner(set: ScoreSet): 'player1' | 'player2' {
   if (set.tiebreakScore) return set.tiebreakScore.player1 > set.tiebreakScore.player2 ? 'player1' : 'player2';
   return set.player1 > set.player2 ? 'player1' : 'player2';
 }

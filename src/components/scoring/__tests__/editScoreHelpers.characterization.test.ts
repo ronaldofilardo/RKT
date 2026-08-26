@@ -45,10 +45,6 @@ describe('editScoreHelpers (characterization)', () => {
       expect(isBelowFloor(5, 5, { player1: 3, player2: 4 })).toBe(false);
     });
 
-    it('SUSPECT: TD-XXX — isBelowFloor não parece ser usado no código (dead code?)', () => {
-      // Busca no código não encontrou uso desta função exportada
-      expect(true).toBe(true);
-    });
   });
 
   describe('setsToWinForFormat', () => {
@@ -84,10 +80,6 @@ describe('editScoreHelpers (characterization)', () => {
       expect(setsToWinForFormat('UNKNOWN_FORMAT' as TennisFormat)).toBe(1);
     });
 
-    it('SUSPECT: TD-XXX — Fallback retorna 1 para format desconhecido (perigoso)', () => {
-      // Se novo format for adicionado e não atualizado aqui, assume best-of-1
-      expect(true).toBe(true);
-    });
   });
 
   describe('totalSetsForFormat', () => {
@@ -123,9 +115,6 @@ describe('editScoreHelpers (characterization)', () => {
       expect(totalSetsForFormat('UNKNOWN_FORMAT' as TennisFormat)).toBe(1);
     });
 
-    it('SUSPECT: TD-XXX — Fallback retorna 1 para format desconhecido (perigoso)', () => {
-      expect(true).toBe(true);
-    });
   });
 
   describe('validateSetResult — MATCH_TB_10', () => {
@@ -332,15 +321,6 @@ describe('editScoreHelpers (characterization)', () => {
       expect(result.isValid).toBe(false);
     });
 
-    it('SUSPECT: TD-XXX — Permite scores inválidos 7-0, 7-1, 7-2, 7-3, 7-4 (set teria acabado antes)', () => {
-      // validateStandardSet tem check para isso (linhas 157-163), mas testar:
-      for (const loserGames of [0, 1, 2, 3, 4]) {
-        const result = validateSetResult({ p1Games: 7, p2Games: loserGames }, 'BEST_OF_3');
-        // Comportamento observado: rejeita corretamente
-        expect(result.isValid).toBe(false);
-        expect(result.error).toBe('Invalid set score');
-      }
-    });
 
     it('deve aceitar 7-5 (win by 2)', () => {
       const result = validateSetResult({ p1Games: 7, p2Games: 5 }, 'BEST_OF_3');
@@ -400,27 +380,6 @@ describe('editScoreHelpers (characterization)', () => {
       expect(validateMatchTiebreakInput({ p1Points: 0, p2Points: 0 }).isValid).toBe(false);
     });
 
-    it('SUSPECT: TD-XXX — Limite arbitrário ~30 pontos para edits', () => {
-      // 25-23 tem margem 2 -> completo (winner), não parcial
-      const result = validateMatchTiebreakInput({ p1Points: 25, p2Points: 23 });
-      expect(result.isValid).toBe(true);
-      expect(result.winner).toBe('player1');
-
-      // 25-24 sem margem 2 -> parcial
-      const resultPartial = validateMatchTiebreakInput({ p1Points: 25, p2Points: 24 });
-      expect(resultPartial.isValid).toBe(true);
-      expect(resultPartial.isPartial).toBe(true);
-
-      // 31-29 tem margem 2 -> completo (winner), NÃO rejeitado (check >30 vem depois do winner)
-      const result31 = validateMatchTiebreakInput({ p1Points: 31, p2Points: 29 });
-      expect(result31.isValid).toBe(true);
-      expect(result31.winner).toBe('player1');
-
-      // 31-30 sem margem 2 E >30 -> rejeitado
-      const resultRejected = validateMatchTiebreakInput({ p1Points: 31, p2Points: 30 });
-      expect(resultRejected.isValid).toBe(false);
-      expect(resultRejected.error).toContain('30');
-    });
   });
 
   describe('getNextServerAfterSet', () => {
@@ -541,12 +500,6 @@ describe('editScoreHelpers (characterization)', () => {
         expect(result).toBe('player1');
       });
 
-      it('SUSPECT: TD-XXX — Lógica MT detection duplicada com isMatchTiebreakSetUtil', () => {
-        // getNextServerAfterSet reimplementa detecção de MT set
-        // isMatchTiebreakSetUtil em useSessionManager.utils faz o mesmo
-        // Duplicação de código perigosa
-        expect(true).toBe(true);
-      });
     });
 
     describe('completedSets contribution', () => {

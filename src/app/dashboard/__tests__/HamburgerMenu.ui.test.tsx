@@ -77,7 +77,7 @@ const mockFetchEmpty = () => {
   ) as any;
 };
 
-describe.skip('DashboardPage - hamburger visível (TD-046)', () => {
+describe('DashboardPage - hamburger visível (TD-046)', () => {
   const mockRouter = { push: jest.fn() };
 
   beforeEach(() => {
@@ -107,7 +107,7 @@ describe.skip('DashboardPage - hamburger visível (TD-046)', () => {
   });
 });
 
-describe.skip('DashboardPage - menu lateral aberto (TD-046)', () => {
+describe('DashboardPage - menu lateral aberto (TD-046)', () => {
   const mockRouter = { push: jest.fn() };
 
   beforeEach(() => {

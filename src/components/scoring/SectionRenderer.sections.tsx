@@ -20,12 +20,13 @@ import {
 import { Section } from './point-details-section';
 import { Pills } from './pills-component';
 import type { SectionRendererProps } from './SectionRenderer';
+import type { RallyDirecao, RallyGolpeEsp } from '@/core/scoring/types';
 
 type Dispatch = SectionRendererProps['dispatch'];
 type Refs = SectionRendererProps['refs'];
 
 function labelMap(options: Array<{ value: string; label: string }>) {
-  return Object.fromEntries(options.map((option) => [option.value, option.label])) as any;
+  return Object.fromEntries(options.map((option) => [option.value, option.label])) as Record<string, string>;
 }
 
 export function SituationSection({ form, dispatch }: { form: PointDetailsForm; dispatch: Dispatch }) {
@@ -59,12 +60,12 @@ export function EfeitoSection({ form, vencedor, dispatch, refs, needsSubtipo1, n
   return <Section num={num} label="Efeito" ref={refs.efeitoRef}><Pills options={EFEITO_OPTIONS.map((option) => option.value)} selected={form.efeito} onChange={(value) => dispatch({ type: 'SET_EFEITO', value })} labelMap={labelMap(EFEITO_OPTIONS)} /></Section>;
 }
 
-export function DirecaoSection({ form, dispatch, direcaoOptions, isBlocked }: { form: PointDetailsForm; dispatch: Dispatch; direcaoOptions: any[]; isBlocked: boolean }) {
+export function DirecaoSection({ form, dispatch, direcaoOptions, isBlocked }: { form: PointDetailsForm; dispatch: Dispatch; direcaoOptions: RallyDirecao[]; isBlocked: boolean }) {
   if (!form.golpe) return null;
   return <Section num="" label="Direção"><Pills options={direcaoOptions} selected={isBlocked ? null : form.direcao} onChange={(value) => dispatch({ type: 'SET_DIRECAO', value })} labelMap={DIRECAO_LABELS} /></Section>;
 }
 
-export function GolpeEspSection({ form, dispatch, options }: { form: PointDetailsForm; dispatch: Dispatch; options: any[] }) {
+export function GolpeEspSection({ form, dispatch, options }: { form: PointDetailsForm; dispatch: Dispatch; options: RallyGolpeEsp[] }) {
   if (!options.length) return null;
   return <Section num="" label="Golpe Especial"><Pills options={options} selected={form.golpeEsp} onChange={(value) => dispatch({ type: 'SET_GOLPE_ESP', value })} labelMap={GOLPE_ESP_LABELS} /></Section>;
 }

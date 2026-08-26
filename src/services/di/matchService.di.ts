@@ -5,19 +5,13 @@
  * @see docs/REFACTOR_QUEUE.md F3
  */
 
-import type { MatchState, CreateMatchInput, MatchFinishReason } from '@/schemas/contracts';
-import type { IMatchRepository, MatchListingOptions, TransactionClient } from '@/infrastructure/ports/match.repository.port';
+import type { MatchFormat, MatchState, CreateMatchInput, MatchFinishReason } from '@/schemas/contracts';
+import type { IMatchRepository, MatchListingOptions, MatchUpsertInput, TransactionClient } from '@/infrastructure/ports/match.repository.port';
 import type { IUnitOfWork } from '@/infrastructure/ports/uow.port';
 import { validateFinishMatch, validateTransitionState } from '../matchValidator';
 import { ValidationError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { Prisma } from '@prisma/client';
-import {
-  buildFinishUpdateData,
-  buildMatchUpdateData,
-  buildMatchUpsertInput,
-  sanitizeMatchUpdate,
-} from './matchService.di.helpers';
 
 export interface MatchServiceDependencies {
   matchRepository: IMatchRepository;
@@ -40,11 +34,37 @@ export class MatchService {
   }
 
   async createMatch(data: CreateMatchInput, createdByUserId?: string, tx?: TransactionClient) {
-    if (data.player1Id === data.player2Id) {
+    const { player1Id, player2Id, format, sportType, courtType, scheduledAt, initialServerId, nickname, visibility, openForAnnotation, tournamentName, category, round, roundName, bracketType, temperature, humidity } = data;
+
+    if (player1Id === player2Id) {
       throw new ValidationError({ player2Id: ['Jogador 2 deve ser diferente do Jogador 1'] });
     }
-    if (!createdByUserId) logger.warn('[createMatch] createdByUserId ausente');
-    return this.deps.matchRepository.create(buildMatchUpsertInput(data, createdByUserId), tx);
+
+    if (!createdByUserId) {
+      logger.warn('[createMatch] createdByUserId ausente');
+    }
+
+    const input: MatchUpsertInput = {
+      format: format as MatchFormat,
+      sportType: sportType || 'TENNIS',
+      courtType: courtType || null,
+      nickname: nickname || null,
+      visibility: visibility || 'PUBLIC',
+      openForAnnotation: openForAnnotation || false,
+      tournamentName: tournamentName || null,
+      category: category || null,
+      round: round || roundName || null,
+      bracketType: bracketType || null,
+      temperature: temperature || null,
+      humidity: humidity || null,
+      player1Id,
+      player2Id,
+      ...(initialServerId ? { initialServerId } : {}),
+      scheduledAt: scheduledAt || null,
+      ...(createdByUserId ? { createdByUserId } : {}),
+    };
+
+    return this.deps.matchRepository.create(input, tx);
   }
 
   async updateMatch(id: string, data: Record<string, unknown>) {
@@ -52,12 +72,30 @@ export class MatchService {
       const match = await this.deps.matchRepository.findById(id);
       if (!match) return null;
 
-      const sanitized = sanitizeMatchUpdate(data);
-      return this.deps.matchRepository.update(
-        id,
-        buildMatchUpdateData(sanitized) as Prisma.MatchUpdateInput,
-        tx,
-      );
+      const ALLOWED_FIELDS = ['nickname', 'sportType', 'courtType', 'visibility', 'openForAnnotation', 'scheduledAt', 'initialServerId', 'tournamentName', 'category', 'roundName', 'bracketType', 'temperature', 'humidity'] as const;
+      type AllowedField = (typeof ALLOWED_FIELDS)[number];
+
+      const sanitized: Partial<Record<AllowedField, unknown>> = {};
+      for (const key of ALLOWED_FIELDS) {
+        if (data[key] !== undefined) sanitized[key] = data[key];
+      }
+
+      const prismaData: Record<string, unknown> = {};
+      if (sanitized.nickname !== undefined) prismaData.nickname = sanitized.nickname as string;
+      if (sanitized.sportType !== undefined) prismaData.sportType = sanitized.sportType as string;
+      if (sanitized.courtType !== undefined) prismaData.courtType = sanitized.courtType as string | null;
+      if (sanitized.visibility !== undefined) prismaData.visibility = sanitized.visibility as string;
+      if (sanitized.openForAnnotation !== undefined) prismaData.openForAnnotation = sanitized.openForAnnotation as boolean;
+      if (sanitized.scheduledAt !== undefined) prismaData.scheduledAt = new Date(sanitized.scheduledAt as string);
+      if (sanitized.initialServerId !== undefined) prismaData.initialServerId = sanitized.initialServerId as string;
+      if (sanitized.tournamentName !== undefined) prismaData.tournamentName = sanitized.tournamentName as string | null;
+      if (sanitized.category !== undefined) prismaData.category = sanitized.category as string | null;
+      if (sanitized.roundName !== undefined) prismaData.roundName = sanitized.roundName as string | null;
+      if (sanitized.bracketType !== undefined) prismaData.bracketType = sanitized.bracketType as string | null;
+      if (sanitized.temperature !== undefined) prismaData.temperature = sanitized.temperature as number | null;
+      if (sanitized.humidity !== undefined) prismaData.humidity = sanitized.humidity as number | null;
+
+      return this.deps.matchRepository.update(id, prismaData as Prisma.MatchUpdateInput, tx);
     });
   }
 
@@ -85,13 +123,13 @@ export class MatchService {
       const validation = validateFinishMatch({ format: match.format as any, player1Id: match.player1Id, player2Id: match.player2Id, initialServerId: match.initialServerId, scoreState: match.scoreState, state: match.state }, scoreState, options?.reason);
       if (!validation.valid) return { error: validation.error } as const;
 
-      const updateData = buildFinishUpdateData(
-        scoreState,
-        match.scoreState,
-        options?.reason,
-        options?.note,
-        options?.winnerId,
-      );
+      const updateData: Record<string, unknown> = { state: 'FINISHED', finishedAt: new Date(), finishReason: options?.reason || 'COMPLETED' };
+      const receivedHasHistory = scoreState && typeof scoreState === 'object' && Array.isArray((scoreState as any).history) && (scoreState as any).state;
+      if (receivedHasHistory) updateData.scoreState = scoreState;
+      else if (scoreState && !match.scoreState) updateData.scoreState = scoreState;
+      if (options?.note) updateData.finishNote = options.note;
+      if (options?.winnerId) updateData.winnerId = options.winnerId;
+
       return this.deps.matchRepository.update(id, updateData as Prisma.MatchUpdateInput, tx);
     });
   }

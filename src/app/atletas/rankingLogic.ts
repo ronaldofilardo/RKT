@@ -51,12 +51,20 @@ function rankingsStateToPayload(
   return payload;
 }
 
-function computeAvailableTypes(age: number | null): RankingType[] {
-  if (age === null) return [...RANKING_TYPES];
+function isGenderCompatible(type: RankingType, gender: string): boolean {
+  if (!gender) return true;
+  if (type === 'ATP') return gender === 'MALE';
+  if (type === 'WTA') return gender === 'FEMALE';
+  return true;
+}
+
+function computeAvailableTypes(age: number | null, gender = ''): RankingType[] {
   return RANKING_TYPES.filter((type) => {
+    if (!isGenderCompatible(type, gender)) return false;
+    if (age === null) return true;
     if (type === 'ESTADUAL') return true;
     if (type === 'ATP' || type === 'WTA') return age <= 40;
-    if (type === 'ITF_Juniors') return age >= 14;
+    if (type === 'ITF_Juniors') return age >= 14 && age <= 18;
     if (!hasCategories(type)) return true;
     return getCategoriesForAge(type, age).length > 0;
   });
@@ -73,7 +81,7 @@ function computeCategoriesForType(
   categoryAge: number | null
 ): string[] {
   if (categoryAge === null) return [];
-  if (rankingType === 'ITF_Juniors') return ['18'];
+  if (rankingType === 'ITF_Juniors') return [];
   return getAllowedCategoriesForAge(rankingType, categoryAge);
 }
 
@@ -113,7 +121,7 @@ function computeClassesForType(
   gender: string,
   age: number | null
 ): string[] {
-  if (!category || !gender || age === null) return [];
+  if (!gender || age === null) return [];
   return getClassesForSelection(category, gender, age);
 }
 
@@ -184,5 +192,6 @@ export {
   RANKING_TYPES,
   RANKING_TYPE_LABELS,
   getAllowedCategoriesForAge,
+  getCategoriesForAge,
 };
 export type { RankingState };

@@ -1,6 +1,6 @@
 import type { ScoringEngineConfig, ScoringState, SetScore } from './types';
-import { getSetsToWin } from './format-rules';
-import { incrementSetsWon, finishMatch, startMatchTiebreak, continueAfterSet, isShortMatchFormat, isTiebreakComplete, hasWonRegularSet } from './set-completion.helpers';
+import { createEmptyGame } from './engine.state';
+import { getSetsToWin, usesNoAd, isFinalSet, getGamesToTiebreak } from './format-rules';
 
 export function completeSet(
   setWinner: 'player1' | 'player2',
@@ -10,12 +10,67 @@ export function completeSet(
   state: ScoringState,
   config: ScoringEngineConfig,
 ): ScoringState {
-  const setsWon = incrementSetsWon(setWinner, state);
-  const setsToWin = config.format === 'BEST_OF_3_MATCH_TB' || config.format === 'BEST_OF_3_NO_AD' || config.format === 'SHORT_SET_2V2_NO_AD' ? 2 : getSetsToWin(config);
-  if (setsWon.player1 >= setsToWin) return finishMatch(state, newSets, setsWon, 'player1', newServer);
-  if (setsWon.player2 >= setsToWin) return finishMatch(state, newSets, setsWon, 'player2', newServer);
-  if (isShortMatchFormat(config) && setsWon.player1 === 1 && setsWon.player2 === 1) return startMatchTiebreak(state, newSets, setsWon, newServer);
-  return continueAfterSet(state, newSets, setsWon, newServer);
+  const setsWon = { ...state.setsWon };
+  if (setWinner === 'player1') setsWon.player1++;
+  else setsWon.player2++;
+
+  const setsToWin = getSetsToWin(config);
+
+  if (config.format === 'BEST_OF_3_MATCH_TB' || config.format === 'BEST_OF_3_NO_AD' || config.format === 'SHORT_SET_2V2_NO_AD') {
+    if (setsWon.player1 >= 2) {
+      state.sets = newSets;
+      state.setsWon = setsWon;
+      state.isFinished = true;
+      state.winner = 'player1';
+      state.server = newServer;
+      return state;
+    }
+    if (setsWon.player2 >= 2) {
+      state.sets = newSets;
+      state.setsWon = setsWon;
+      state.isFinished = true;
+      state.winner = 'player2';
+      state.server = newServer;
+      return state;
+    }
+    if (setsWon.player1 === 1 && setsWon.player2 === 1) {
+      const matchTbSet: SetScore = {
+        player1: 0,
+        player2: 0,
+        isTiebreak: true,
+        tiebreakScore: { player1: 0, player2: 0 },
+      };
+      newSets.push(matchTbSet);
+      state.sets = newSets;
+      state.setsWon = setsWon;
+      state.currentGame = createEmptyGame();
+      state.server = newServer;
+      return state;
+    }
+  }
+
+  if (setsWon.player1 >= setsToWin) {
+    state.sets = newSets;
+    state.setsWon = setsWon;
+    state.isFinished = true;
+    state.winner = 'player1';
+    state.server = newServer;
+    return state;
+  }
+  if (setsWon.player2 >= setsToWin) {
+    state.sets = newSets;
+    state.setsWon = setsWon;
+    state.isFinished = true;
+    state.winner = 'player2';
+    state.server = newServer;
+    return state;
+  }
+
+  state.sets = newSets;
+  state.setsWon = setsWon;
+  state.currentGame = createEmptyGame();
+  state.server = newServer;
+  return state;
 }
 
 export function completeSetWithTiebreak(
@@ -45,6 +100,38 @@ export function isSetComplete(
   config: ScoringEngineConfig,
   sets: SetScore[],
 ): boolean {
-  return isTiebreakComplete(set, config, sets) || hasWonRegularSet(set, config);
-}
+  const diff = Math.abs(set.player1 - set.player2);
+  const maxGames = Math.max(set.player1, set.player2);
 
+  if (set.isTiebreak && set.tiebreakScore) {
+    const tb = set.tiebreakScore;
+    const tbMax = Math.max(tb.player1, tb.player2);
+    const tbDiff = Math.abs(tb.player1 - tb.player2);
+    const isMatchTb = config.format === 'MATCH_TB_10' ||
+      (config.format === 'BEST_OF_5' && sets.length === 5) ||
+      (config.format === 'BEST_OF_3_MATCH_TB' && sets.length === 3) ||
+      (config.format === 'BEST_OF_3_NO_AD' && sets.length === 3) ||
+      (config.format === 'SHORT_SET_2V2_NO_AD' && sets.length === 3);
+    const tbMin = isMatchTb ? 10 : 7;
+    return tbMax >= tbMin && tbDiff >= 2;
+  }
+
+  if (usesNoAd(config)) {
+    const needed = config.format === 'SHORT_SET_2V2_NO_AD' ? 4 : 6;
+    return maxGames >= needed && diff >= 2;
+  }
+
+  if (isFinalSet(config)) {
+    const needed = getGamesToTiebreak(config);
+    if (config.format === 'PRO_SET_8') {
+      return maxGames >= 8 && diff >= 2;
+    }
+    return maxGames >= needed && diff >= 2;
+  }
+
+  if (config.format === 'BEST_OF_3') {
+    return maxGames >= 6 && diff >= 2;
+  }
+
+  return maxGames >= 6 && diff >= 2;
+}

@@ -1,4 +1,5 @@
 import type { RallyDetails } from '@/core/scoring/types';
+import type { PointFlow } from '@/core/scoring/types';
 import type { MatchData } from './useScoringHandlers.types';
 
 type PointDetailsDeps = {
@@ -6,7 +7,7 @@ type PointDetailsDeps = {
   modalParamsRef: { current: Record<string, string> };
   isProcessingRef: { current: boolean };
   closeAll: () => void;
-  processPoint: (flow: any) => Promise<string | undefined>;
+  processPoint: (flow: PointFlow) => Promise<string | undefined>;
   getServerId: () => string;
   serveStep: 'none' | 'second';
   firstServeError: unknown;

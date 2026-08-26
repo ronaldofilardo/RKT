@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 import { ScoringEngine } from '@/core/scoring/engine';
-import type { ScoringState } from '@/core/scoring/types';
+import type { ScoringState, TennisFormat } from '@/core/scoring/types';
 import type { MatchData } from './useScoringHandlers.types';
 
 type FetchMatchDeps = {
@@ -32,18 +32,20 @@ function updatePointSequence(data: MatchData, pointSequenceRef: FetchMatchDeps['
   else if (typeof data.version === 'number') pointSequenceRef.current = data.version;
 }
 
-function parseScoreState(data: MatchData): any {
-  let scoreState: any = data.scoreState;
-  if (scoreState && typeof scoreState === 'string') {
-    try { scoreState = JSON.parse(scoreState); } catch {}
+function parseScoreState(data: MatchData): ScoringState | null {
+  let scoreState: unknown = data.scoreState;
+  if (typeof scoreState === 'string') {
+    try { scoreState = JSON.parse(scoreState) as unknown; } catch { return null; }
   }
-  if (scoreState && !scoreState.setsWon) scoreState.setsWon = { player1: 0, player2: 0 };
-  return scoreState;
+  if (!scoreState || typeof scoreState !== 'object') return null;
+  const normalized = { ...(scoreState as ScoringState) };
+  if (!normalized.setsWon) normalized.setsWon = { player1: 0, player2: 0 };
+  return normalized;
 }
 
 function buildEngineConfig(data: MatchData) {
   return {
-    format: data.format as any,
+    format: data.format as TennisFormat,
     player1Id: data.player1.id,
     player2Id: data.player2.id,
     initialServerId: data.initialServerId || data.player1.id,

@@ -76,7 +76,9 @@ export interface ScoringHandlersReturn {
   handleUndo: () => void;
   handleRedo: () => void;
   handleCancelSecondServe: () => void;
-  openAceModal: () => void;
+    openAceModal: () => void;
+  handleAceDirect: () => void;
+
   openPointDetails: (side: "player1" | "player2") => void;
   handleServerEffectConfirm: (
     effect?: string,

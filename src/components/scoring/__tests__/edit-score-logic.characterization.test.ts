@@ -147,11 +147,6 @@ describe('edit-score-logic (complete characterization)', () => {
       expect(isPotentialMTSet('NO_AD', 0)).toBe(false);
     });
 
-    it('SUSPECT: TD-XXX — Fallback conservativo retorna true sem setResults (pode ativar MT prematuramente)', () => {
-      // Se totalEditedSets === 4 mas não temos setResults, assume 2-2
-      // Isso pode ativar MT em 5º set quando na verdade é 3-1 ou 4-0
-      expect(true).toBe(true);
-    });
   });
 
   describe('calculateValidation', () => {
@@ -280,17 +275,7 @@ describe('edit-score-logic (complete characterization)', () => {
         expect(result.isPotentialMTSet).toBe(true); // Ainda potential
       });
 
-      it('SUSPECT: TD-XXX — Usa isMatchTiebreakSetUtil apenas quando setResults fornecido', () => {
-        // Quando setResults não fornecido, usa fallback hardcoded
-        // Isso pode divergir da lógica real do useSessionManager.utils
-        expect(true).toBe(true);
-      });
 
-      it('SUSPECT: TD-XXX — Fallback hardcoded para formatos não cobertos', () => {
-        // Linhas 179-184: fallback para outros formatos
-        // Não usa isMatchTiebreakSetUtil nem valida setResults
-        expect(true).toBe(true);
-      });
     });
 
     describe('setValidation', () => {
@@ -543,10 +528,6 @@ describe('edit-score-logic (complete characterization)', () => {
       expect(result.isMatchTiebreakSet).toBe(true);
     });
 
-    it('SUSPECT: TD-XXX — Reimplementa MT detection (duplicação com calculateValidation e isMatchTiebreakSetUtil)', () => {
-      // Linhas 242-254: lógica duplicada de detecção MT
-      expect(true).toBe(true);
-    });
 
     it('deve calcular isPotentialMTSet', () => {
       const completedSets = [
@@ -754,11 +735,6 @@ describe('edit-score-logic (complete characterization)', () => {
       expect(shouldAutoAddSet(baseInput)).toBe(true);
     });
 
-    it('SUSPECT: TD-XXX — Não considera isPotentialMTSet', () => {
-      // Se for potential MT set (BO5 5º set 2-2), deveria auto-add?
-      // Atualmente retorna true se não for MT ativo
-      expect(true).toBe(true);
-    });
   });
 
   describe('calculateNextServer', () => {

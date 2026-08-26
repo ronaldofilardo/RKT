@@ -19,13 +19,15 @@ function getFormatRules(format: string): ReturnType<typeof getMatchFormatRules> 
   try { return getMatchFormatRules(format as TennisFormat); } catch { return null; }
 }
 
-function isCompletedSet(set: any, rules: ReturnType<typeof getMatchFormatRules> | null) {
+type ResumeSet = { player1: number; player2: number };
+
+function isCompletedSet(set: ResumeSet, rules: ReturnType<typeof getMatchFormatRules> | null) {
   return rules
     ? isSetCompleteForFormat({ player1: set.player1, player2: set.player2 }, rules)
     : Math.max(set.player1, set.player2) >= 6 && Math.abs(set.player1 - set.player2) >= 2;
 }
 
-function getCompletedSets(sets: any[], format: string) {
+function getCompletedSets(sets: ResumeSet[], format: string): ResumeSet[] {
   const rules = getFormatRules(format);
   return sets.filter((set) => isCompletedSet(set, rules));
 }

@@ -47,6 +47,12 @@ describe('NewAthleteModal — Characterization Tests', () => {
       expect(screen.getByText('Cancelar')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Salvar Atleta' })).toBeInTheDocument();
     });
+
+    it('separa os campos em Cadastro e Ranking', () => {
+      setupModal();
+      expect(screen.getByRole('heading', { name: '1. Cadastro' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: '2. Ranking' })).toBeInTheDocument();
+    });
   });
 
   describe('Form validation & basic fields', () => {
@@ -86,7 +92,7 @@ describe('NewAthleteModal — Characterization Tests', () => {
       fireEvent.change(screen.getAllByPlaceholderText('DD')[0], { target: { value: '15' } });
       fireEvent.change(screen.getAllByPlaceholderText('MM')[0], { target: { value: '03' } });
       fireEvent.change(screen.getAllByPlaceholderText('AAAA')[0], { target: { value: String(currentYear - 20) } });
-      expect(screen.getByText('Idade: 20 anos')).toBeInTheDocument();
+      expect(screen.getByText((_, element) => element?.textContent === 'Idade: 20 anos')).toBeInTheDocument();
     });
 
     it('renders dominance select', () => {
@@ -210,13 +216,10 @@ describe('NewAthleteModal — Characterization Tests', () => {
       expect(options).toContain('15-16 anos');
     });
 
-    it('ITF_Juniors only shows 18 category', () => {
+    it('ITF_Juniors does not show a category', () => {
       const itfJuniorsCheckbox = screen.getByLabelText('ITF Juniors');
       fireEvent.click(itfJuniorsCheckbox);
-      const categorySelect = screen.getByLabelText('Categoria');
-      fireEvent.click(categorySelect);
-      const options = screen.getAllByRole('option').map(o => o.textContent).filter(t => t?.includes('anos'));
-      expect(options).toContain('18 anos');
+      expect(screen.queryByLabelText('Categoria')).not.toBeInTheDocument();
     });
 
     it('ITF shows veteran categories for age >= 35', () => {
@@ -232,8 +235,9 @@ describe('NewAthleteModal — Characterization Tests', () => {
       const categorySelect = screen.getByLabelText('Categoria');
       fireEvent.click(categorySelect);
       const options = screen.getAllByRole('option').map(o => o.textContent).filter(t => t?.includes('anos'));
-      // For age 50, only 50-54 is available (no higher mapping for adult categories)
+      // A categoria-base é 50-54; o veterano pode se autoenquadrar também na faixa imediatamente inferior.
       expect(options).toContain('50-54 anos');
+      expect(options).toContain('45-49 anos');
     });
   });
 

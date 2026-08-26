@@ -6,14 +6,15 @@ import {
   shouldShowSubtipo2,
 } from './point-details-logic';
 import type { SectionRendererProps } from './SectionRenderer';
+import type { RallyDirecao, RallyGolpeEsp } from '@/core/scoring/types';
 
 export interface SectionRenderState {
   needsSubtipo1: boolean;
   needsSubtipo2: boolean;
   needsEfeito: boolean;
   isDirecaoBlocked: boolean;
-  direcaoOptions: any[];
-  golpeEspOptions: any[];
+  direcaoOptions: RallyDirecao[];
+  golpeEspOptions: RallyGolpeEsp[];
 }
 
 function needsSubtipo1(props: SectionRendererProps): boolean {
@@ -31,12 +32,12 @@ function needsEfeito(props: SectionRendererProps): boolean {
   return Boolean(form.golpe && form.situacao && form.tipo && shouldShowEfeito(vencedor, form.situacao, form.tipo, Boolean(form.subtipo1), Boolean(form.subtipo2)));
 }
 
-function getDirectionOptions(props: SectionRendererProps): any[] {
+function getDirectionOptions(props: SectionRendererProps): RallyDirecao[] {
   const { form } = props;
   return form.efeito || form.situacao ? getDirecaoOptions(form.efeito, form.situacao ?? 'fundo', form.tipo ?? 'winner') : [];
 }
 
-function getSpecialStrokeOptions(props: SectionRendererProps): any[] {
+function getSpecialStrokeOptions(props: SectionRendererProps): RallyGolpeEsp[] {
   const { form, vencedor } = props;
   return form.golpe ? getGolpeEspOptions(form.golpe, form.efeito, vencedor, form.situacao ?? 'fundo', form.tipo ?? 'winner', form.subtipo2, form.direcao) : [];
 }

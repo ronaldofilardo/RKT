@@ -1,7 +1,7 @@
 export function canAddNextSet(
-  validation: any,
-  matchState: any,
-  tiebreakValidation: any,
+  validation: EditValidation,
+  matchState: EditMatchState,
+  tiebreakValidation: TiebreakValidation,
 ): boolean {
   if (!validation.isSetTrulyCompleted) return false;
   if (matchState.totalEditedSets >= matchState.maxSets - 1) return false;
@@ -12,7 +12,11 @@ export function canAddNextSet(
   return true;
 }
 
-export function canConfirmSet(validation: any, matchState: any, tiebreakValidation: any): boolean {
+type EditValidation = { bothFilled: boolean; isSetTrulyCompleted: boolean; hasTiebreak: boolean; setValidationError?: string | null; setValidation?: { tiebreakRequired?: boolean } | null };
+type EditMatchState = { totalEditedSets: number; maxSets: number; matchAlreadyOver: boolean; matchWouldEnd: boolean; isMatchTiebreakSet: boolean };
+type TiebreakValidation = { tiebreakComplete: boolean };
+
+export function canConfirmSet(validation: EditValidation, matchState: EditMatchState, tiebreakValidation: TiebreakValidation): boolean {
   const bothFilled = validation.bothFilled;
   const isMatchTiebreakSet = matchState.isMatchTiebreakSet;
   const isSetTrulyCompleted = validation.isSetTrulyCompleted;
@@ -27,9 +31,9 @@ export function canConfirmSet(validation: any, matchState: any, tiebreakValidati
 }
 
 export function canConfirm(
-  validation: any,
-  matchState: any,
-  tiebreakValidation: any,
+  validation: EditValidation,
+  matchState: EditMatchState,
+  tiebreakValidation: TiebreakValidation,
   hasNewSets: boolean,
   hasCompletedSets: boolean,
 ): boolean {
@@ -46,11 +50,11 @@ export function canConfirm(
 }
 
 export function shouldShowGamePointsAtZero(
-  validation: any,
+  validation: EditValidation,
   p1Val: number,
   p2Val: number,
   completedSetsLength: number,
-  newSets: any[],
+  newSets: Array<{ isPartial: boolean }>,
 ): boolean {
   const hasPreviousSets = completedSetsLength > 0 || newSets.length > 0 || validation.isSetTrulyCompleted;
   const isAtZero = !validation.bothFilled

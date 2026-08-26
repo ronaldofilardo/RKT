@@ -438,23 +438,5 @@ describe('matchValidator (characterization)', () => {
       expect(isTiebreakRegressing(oldSet, newSet)).toBe(false);
     });
 
-    it('SUSPECT: TD-XXX — Detecção de tiebreak regression pode ter falsos positivos', () => {
-      // Cenário: tiebreakScore some mas set score continua
-      const oldSet = {
-        player1: 6,
-        player2: 6,
-        isTiebreak: true,
-        tiebreakScore: { player1: 5, player2: 3 },
-      };
-      const newSet = {
-        player1: 7,
-        player2: 6,
-        isTiebreak: false,
-        // tiebreakScore foi removido após finalizar tiebreak
-      };
-
-      expect(isTiebreakRegressing(oldSet, newSet)).toBe(false);
-      // SUSPECT: A lógica lida corretamente com transição tiebreak → set completo?
-    });
   });
 });

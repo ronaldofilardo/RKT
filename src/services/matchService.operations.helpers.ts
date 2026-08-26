@@ -37,7 +37,6 @@ export function buildMatchUpdateData(sanitized: Partial<Record<AllowedField, unk
 
 export function buildFinishUpdateData(
   scoreState: unknown,
-  existingScoreState: unknown,
   reason?: string,
   note?: string,
   winnerId?: string,
@@ -47,10 +46,7 @@ export function buildFinishUpdateData(
     finishedAt: new Date(),
     finishReason: reason || 'COMPLETED',
   };
-  const receivedHasHistory = scoreState && typeof scoreState === 'object'
-    && Array.isArray((scoreState as any).history)
-    && (scoreState as any).state;
-  if (receivedHasHistory || (scoreState && !existingScoreState)) updateData.scoreState = scoreState;
+  if (scoreState) updateData.scoreState = scoreState;
   if (note) updateData.finishNote = note;
   if (winnerId) updateData.winnerId = winnerId;
   return updateData;

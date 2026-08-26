@@ -1,5 +1,158 @@
+'use client';
+
 import { VISIBILITY_OPTIONS } from '../matchConstants';
-interface Props { visibility:string; anotadorEmail:string; venueId:string; publicMatchCode:string; temperature:string; humidity:string; tags:string; onVisibilityChange:(v:string)=>void; onAnotadorChange:(v:string)=>void; onVenueChange:(v:string)=>void; onPublicCodeChange:(v:string)=>void; onTemperatureChange:(v:string)=>void; onHumidityChange:(v:string)=>void; onTagsChange:(v:string)=>void; }
-function Field({title,value,placeholder,onChange,type='text'}:{title:string;value:string;placeholder:string;onChange:(v:string)=>void;type?:string}){return <section className="bg-white rounded-xl shadow-sm border p-4"><div className="flex flex-col sm:flex-row sm:items-center gap-3"><h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">{title}</h2><input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900 placeholder-gray-500"/></div></section>}
-function Weather({temperature,humidity,onTemperatureChange,onHumidityChange}:Pick<Props,'temperature'|'humidity'|'onTemperatureChange'|'onHumidityChange'>){return <section className="bg-white rounded-xl shadow-sm border p-4"><div className="flex flex-col sm:flex-row sm:items-center gap-3"><h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">Condições Climáticas <span className="text-gray-400 font-normal">(opcional)</span></h2><div className="grid grid-cols-2 gap-3 flex-1"><Field title="Temperatura (°C)" value={temperature} onChange={onTemperatureChange} placeholder="Ex: 25" type="number"/><Field title="Umidade (%)" value={humidity} onChange={onHumidityChange} placeholder="Ex: 60" type="number"/></div></div></section>}
-export function MatchDetailsSection(p:Props){return <><section className="bg-white rounded-xl shadow-sm border p-4"><div className="flex flex-col sm:flex-row sm:items-center gap-3"><h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">Visibilidade</h2><select value={p.visibility} onChange={e=>p.onVisibilityChange(e.target.value)} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900">{VISIBILITY_OPTIONS.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select></div></section><Field title="Anotador (Email ou CPF) (opcional)" value={p.anotadorEmail} onChange={p.onAnotadorChange} placeholder="Ex: anotador@exemplo.com ou 12345678901"/><Field title="Local (ID) (opcional)" value={p.venueId} onChange={p.onVenueChange} placeholder="ID do local"/><Field title="Código Público (opcional)" value={p.publicMatchCode} onChange={p.onPublicCodeChange} placeholder="Código único para localizar partida"/><Weather temperature={p.temperature} humidity={p.humidity} onTemperatureChange={p.onTemperatureChange} onHumidityChange={p.onHumidityChange}/><Field title="Tags (separadas por vírgula) (opcional)" value={p.tags} onChange={p.onTagsChange} placeholder="Ex: juvenil, treino, amistoso"/></>}
+
+interface MatchDetailsSectionProps {
+  visibility: string;
+  anotadorEmail: string;
+  venueId: string;
+  publicMatchCode: string;
+  temperature: string;
+  humidity: string;
+  tags: string;
+  onVisibilityChange: (value: string) => void;
+  onAnotadorChange: (value: string) => void;
+  onVenueChange: (value: string) => void;
+  onPublicCodeChange: (value: string) => void;
+  onTemperatureChange: (value: string) => void;
+  onHumidityChange: (value: string) => void;
+  onTagsChange: (value: string) => void;
+}
+
+export function MatchDetailsSection({
+  visibility,
+  anotadorEmail,
+  venueId,
+  publicMatchCode,
+  temperature,
+  humidity,
+  tags,
+  onVisibilityChange,
+  onAnotadorChange,
+  onVenueChange,
+  onPublicCodeChange,
+  onTemperatureChange,
+  onHumidityChange,
+  onTagsChange,
+}: MatchDetailsSectionProps) {
+  return (
+    <>
+      {/* VISIBILIDADE */}
+      <section className="bg-white rounded-xl shadow-sm border p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">Visibilidade</h2>
+          <div className="flex-1">
+            <select
+              value={visibility}
+              onChange={(e) => onVisibilityChange(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900"
+            >
+              {VISIBILITY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value} className="text-gray-900">
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </section>
+
+      {/* ANOTADOR */}
+      <section className="bg-white rounded-xl shadow-sm border p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
+            Anotador (Email ou CPF) <span className="text-gray-400 font-normal">(opcional)</span>
+          </h2>
+          <input
+            type="text"
+            value={anotadorEmail}
+            onChange={(e) => onAnotadorChange(e.target.value)}
+            placeholder="Ex: anotador@exemplo.com ou 12345678901"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900 placeholder-gray-500"
+          />
+        </div>
+      </section>
+
+      {/* LOCAL */}
+      <section className="bg-white rounded-xl shadow-sm border p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
+            Local (ID) <span className="text-gray-400 font-normal">(opcional)</span>
+          </h2>
+          <input
+            type="text"
+            value={venueId}
+            onChange={(e) => onVenueChange(e.target.value)}
+            placeholder="ID do local"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900 placeholder-gray-500"
+          />
+        </div>
+      </section>
+
+      {/* CÓDIGO PÚBLICO */}
+      <section className="bg-white rounded-xl shadow-sm border p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
+            Código Público <span className="text-gray-400 font-normal">(opcional)</span>
+          </h2>
+          <input
+            type="text"
+            value={publicMatchCode}
+            onChange={(e) => onPublicCodeChange(e.target.value)}
+            placeholder="Código único para localizar partida"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900 placeholder-gray-500"
+          />
+        </div>
+      </section>
+
+      {/* CONDIÇÕES CLIMÁTICAS */}
+      <section className="bg-white rounded-xl shadow-sm border p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
+            Condições Climáticas <span className="text-gray-400 font-normal">(opcional)</span>
+          </h2>
+          <div className="grid grid-cols-2 gap-3 flex-1">
+            <div>
+              <label htmlFor="match-temperature" className="block text-sm font-medium text-gray-700 mb-1">Temperatura (°C)</label>
+              <input
+                id="match-temperature"
+                type="number"
+                value={temperature}
+                onChange={(e) => onTemperatureChange(e.target.value)}
+                placeholder="Ex: 25"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900 placeholder-gray-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="match-humidity" className="block text-sm font-medium text-gray-700 mb-1">Umidade (%)</label>
+              <input
+                id="match-humidity"
+                type="number"
+                value={humidity}
+                onChange={(e) => onHumidityChange(e.target.value)}
+                placeholder="Ex: 60"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900 placeholder-gray-500"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TAGS */}
+      <section className="bg-white rounded-xl shadow-sm border p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
+            Tags (separadas por vírgula) <span className="text-gray-400 font-normal">(opcional)</span>
+          </h2>
+          <input
+            type="text"
+            value={tags}
+            onChange={(e) => onTagsChange(e.target.value)}
+            placeholder="Ex: juvenil, treino, amistoso"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900 placeholder-gray-500"
+          />
+        </div>
+      </section>
+    </>
+  );
+}

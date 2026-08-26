@@ -74,7 +74,9 @@ export function validatePlayerRankings(rankings: unknown): string | null {
   return null;
 }
 
-export function validatePlayerUpdate(body: any): string | null {
+type PlayerUpdateBody = Record<string, unknown>;
+
+export function validatePlayerUpdate(body: PlayerUpdateBody): string | null {
   const nameError = validatePlayerName(body.name);
   if (nameError) return nameError;
 
@@ -95,10 +97,10 @@ export function validatePlayerUpdate(body: any): string | null {
   return validatePlayerRankings(body.rankings);
 }
 
-export function buildPlayerUpdateData(body: any): Record<string, unknown> {
+export function buildPlayerUpdateData(body: PlayerUpdateBody): Record<string, unknown> {
   const birthDateResult = parsePlayerBirthDate(body.birthDate);
   const updateData: Record<string, unknown> = {};
-  if (body.name !== undefined) updateData.name = body.name.trim();
+  if (typeof body.name === 'string') updateData.name = body.name.trim();
   if (body.gender !== undefined) updateData.gender = body.gender;
   if (birthDateResult.calculatedAge !== undefined) {
     updateData.age = birthDateResult.calculatedAge;

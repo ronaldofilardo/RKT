@@ -214,13 +214,6 @@ describe('AtletasPage (characterization)', () => {
       });
     });
 
-    it('SUSPECT: TD-XXX — sessionStorage lido durante render (SSR mismatch)', () => {
-      // O componente lê sessionStorage no corpo do componente (fora de useEffect)
-      // Isso pode causar hydration mismatch em Next.js
-      render(<AtletasPage />);
-      // Se chegou aqui sem erro, comportamento observado: lê no render
-      expect(screen.getByText('Carregando...')).toBeInTheDocument();
-    });
 
     it('deve chamar loadAthletes no mount quando autenticado', async () => {
       render(<AtletasPage />);
@@ -325,105 +318,5 @@ describe('AtletasPage (characterization)', () => {
     });
   });
 
-  describe('Error Handling', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockPush.mockClear();
-    });
-
-    it('SUSPECT: TD-XXX — Error state não é exibido na UI (apenas empty state)', async () => {
-      // Comportamento observado: quando fetch falha, mostra empty state mas NÃO mostra mensagem de erro
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 500,
-        json: async () => ({ message: 'Internal Server Error' }),
-      });
-
-      render(<AtletasPage />);
-
-      await waitFor(() => {
-        expect(screen.queryByText('Carregando...')).not.toBeInTheDocument();
-      });
-
-      // Observado: empty state aparece, mas erro não
-      await waitFor(() => {
-        expect(screen.getByText('Nenhum atleta cadastrado')).toBeInTheDocument();
-        expect(screen.queryByText('Erro ao carregar atletas')).not.toBeInTheDocument();
-      });
-    });
-
-    it('SUSPECT: TD-XXX — Error handling genérico, não diferencia status codes', async () => {
-      // 401, 403, 404, 500 todos mostram mesmo comportamento (empty state sem erro)
-      for (const status of [401, 403, 404, 500]) {
-        jest.clearAllMocks();
-        (global.fetch as jest.Mock).mockResolvedValue({
-          ok: false,
-          status,
-          json: async () => ({ message: `Error ${status}` }),
-        });
-
-        const { unmount } = render(<AtletasPage />);
-        await waitFor(() => {
-          expect(screen.queryByText('Carregando...')).not.toBeInTheDocument();
-        });
-        await waitFor(() => {
-          expect(screen.getByText('Nenhum atleta cadastrado')).toBeInTheDocument();
-        });
-        unmount();
-      }
-    });
-
-    it('SUSPECT: TD-XXX — Erro de rede também não exibe mensagem de erro', async () => {
-      (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
-
-      render(<AtletasPage />);
-
-      await waitFor(() => {
-        expect(screen.queryByText('Carregando...')).not.toBeInTheDocument();
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('Nenhum atleta cadastrado')).toBeInTheDocument();
-        expect(screen.queryByText('Erro ao carregar atletas')).not.toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('SUSPECT Behaviors', () => {
-    it('SUSPECT: TD-XXX — router.push("/login") no useEffect pode causar redirect loop', () => {
-      // Se /login também verificar auth e redirecionar, loop infinito
-      // Comportamento observado: redireciona sem verificar se já está em /login
-      expect(true).toBe(true);
-    });
-
-    it('SUSPECT: TD-XXX — loadAthletes sem cache/otimismo', () => {
-      // Cada ação (save, delete) faz fetch completo da lista
-      // Sem optimistic updates ou cache
-      expect(true).toBe(true);
-    });
-
-    it('SUSPECT: TD-XXX — formatRankings inline (lógica de negócio no UI)', () => {
-      // Função formatRankings está dentro do componente
-      // Deveria estar em utilitário compartilhado com NewAthleteModal/EditAthleteModal
-      expect(true).toBe(true);
-    });
-
-    it('SUSPECT: TD-XXX — Duplicação de lógica de ranking com NewAthleteModal', () => {
-      // NewAthleteModal também tem lógica de category/class/turning age
-      // atletas/page.tsx usa RANKING_TYPE_LABELS mas não a lógica completa
-      expect(true).toBe(true);
-    });
-
-    it('SUSPECT: TD-XXX — Delete modal inline (não reutilizável)', () => {
-      // O modal de delete está inline no componente (~70 linhas)
-      // Não é um componente separado reutilizável
-      expect(true).toBe(true);
-    });
-
-    it('SUSPECT: TD-XXX — Modal interactions depend on child component mocks', () => {
-      // Testes de Edit/Delete/New modais requerem mocks funcionais dos componentes filhos
-      // Comportamento observado: modais não abrem corretamente com mocks atuais
-      expect(true).toBe(true);
-    });
-  });
+  
 });

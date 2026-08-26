@@ -67,6 +67,10 @@ export function buildMatchUpdateData(sanitized: Partial<Record<AllowedField, unk
   return result;
 }
 
+function isScoreEnvelope(value: unknown): value is { history: unknown[]; state: unknown } {
+  return typeof value === 'object' && value !== null && Array.isArray((value as { history?: unknown }).history) && Boolean((value as { state?: unknown }).state);
+}
+
 export function buildFinishUpdateData(
   scoreState: unknown,
   existingScoreState: unknown,
@@ -77,9 +81,7 @@ export function buildFinishUpdateData(
   const updateData: Record<string, unknown> = {
     state: 'FINISHED', finishedAt: new Date(), finishReason: reason || 'COMPLETED',
   };
-  const hasHistory = scoreState && typeof scoreState === 'object'
-    && Array.isArray((scoreState as any).history)
-    && (scoreState as any).state;
+  const hasHistory = isScoreEnvelope(scoreState);
   if (hasHistory || (scoreState && !existingScoreState)) updateData.scoreState = scoreState;
   if (note) updateData.finishNote = note;
   if (winnerId) updateData.winnerId = winnerId;

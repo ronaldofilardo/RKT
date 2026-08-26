@@ -9,10 +9,6 @@ import type {
   RallyGolpeEsp,
   RallyDuration,
 } from '@/core/scoring/types';
-import {
-  resolveGolpeEspOptions,
-  resolveGolpeOptions,
-} from './point-details-options.helpers';
 
 export type { RallyDuration };
 export type Vencedor = 'sacador' | 'devolvedor';
@@ -53,60 +49,31 @@ export const initialForm: PointDetailsForm = {
   golpeEsp: null,
 };
 
-type FormActionHandler = (state: PointDetailsForm, action: any) => PointDetailsForm;
-
-const FORM_ACTION_HANDLERS: Record<string, FormActionHandler> = {
-  SET_SITUACAO: (_state, action) => ({ ...initialForm, situacao: action.value }),
-  SET_TIPO: (state, action) => ({
-    ...state,
-    tipo: action.value,
-    golpe: null,
-    subtipo1: null,
-    subtipo2: null,
-    efeito: null,
-    duracao: null,
-    direcao: null,
-    golpeEsp: null,
-  }),
-  SET_GOLPE: (state, action) => ({
-    ...state,
-    golpe: action.value,
-    subtipo1: null,
-    subtipo2: null,
-    efeito: null,
-    duracao: null,
-    direcao: null,
-    golpeEsp: null,
-  }),
-  SET_DURACAO: (state, action) => ({ ...state, duracao: action.value }),
-  SET_SUBTIPO1: (state, action) => ({
-    ...state,
-    subtipo1: action.value,
-    subtipo2: null,
-    efeito: null,
-    direcao: null,
-    golpeEsp: null,
-  }),
-  SET_SUBTIPO2: (state, action) => ({
-    ...state,
-    subtipo2: action.value,
-    efeito: null,
-    direcao: null,
-    golpeEsp: null,
-  }),
-  SET_EFEITO: (state, action) => ({
-    ...state,
-    efeito: action.value,
-    direcao: null,
-    golpeEsp: null,
-  }),
-  SET_DIRECAO: (state, action) => ({ ...state, direcao: action.value, golpeEsp: null }),
-  SET_GOLPE_ESP: (state, action) => ({ ...state, golpeEsp: action.value }),
-  RESET: () => initialForm,
-};
-
 export function formReducer(state: PointDetailsForm, action: Action): PointDetailsForm {
-  return FORM_ACTION_HANDLERS[action.type]?.(state, action) ?? state;
+  switch (action.type) {
+    case 'SET_SITUACAO':
+      return { ...initialForm, situacao: action.value };
+    case 'SET_TIPO':
+      return { ...state, tipo: action.value, golpe: null, subtipo1: null, subtipo2: null, efeito: null, duracao: null, direcao: null, golpeEsp: null };
+    case 'SET_GOLPE':
+      return { ...state, golpe: action.value, subtipo1: null, subtipo2: null, efeito: null, duracao: null, direcao: null, golpeEsp: null };
+    case 'SET_DURACAO':
+      return { ...state, duracao: action.value };
+    case 'SET_SUBTIPO1':
+      return { ...state, subtipo1: action.value, subtipo2: null, efeito: null, direcao: null, golpeEsp: null };
+    case 'SET_SUBTIPO2':
+      return { ...state, subtipo2: action.value, efeito: null, direcao: null, golpeEsp: null };
+    case 'SET_EFEITO':
+      return { ...state, efeito: action.value, direcao: null, golpeEsp: null };
+    case 'SET_DIRECAO':
+      return { ...state, direcao: action.value, golpeEsp: null };
+    case 'SET_GOLPE_ESP':
+      return { ...state, golpeEsp: action.value };
+    case 'RESET':
+      return initialForm;
+    default:
+      return state;
+  }
 }
 
 export const SITUACAO_OPTIONS: { value: RallySituacao; label: string }[] = [
@@ -146,7 +113,17 @@ export function getTipoOptions(vencedor: Vencedor, situacao: RallySituacao): Ral
 }
 
 export function getGolpeOptions(vencedor: Vencedor, situacao: RallySituacao, tipo: RallyTipo): RallyGolpe[] {
-  return resolveGolpeOptions(vencedor, situacao, tipo);
+  if (vencedor === 'sacador' && (situacao === 'fundo' || situacao === 'devolucao')) return ['fh', 'bh'];
+  if (vencedor === 'sacador' && situacao === 'passada' && tipo !== 'winner') return ['vfh', 'vbh', 'smash'];
+  if (vencedor === 'sacador' && situacao === 'passada' && tipo === 'winner') return ['fh', 'bh'];
+  if (vencedor === 'sacador' && situacao === 'rede' && tipo !== 'winner') return ['fh', 'bh'];
+  if (vencedor === 'sacador' && situacao === 'rede' && tipo === 'winner') return ['vfh', 'vbh', 'smash'];
+  if (vencedor === 'devolvedor' && (situacao === 'fundo' || situacao === 'devolucao')) return ['fh', 'bh'];
+  if (vencedor === 'devolvedor' && situacao === 'passada' && tipo === 'winner') return ['fh', 'bh'];
+  if (vencedor === 'devolvedor' && situacao === 'passada' && tipo !== 'winner') return ['vfh', 'vbh', 'smash'];
+  if (vencedor === 'devolvedor' && situacao === 'rede' && tipo !== 'winner') return ['fh', 'bh'];
+  if (vencedor === 'devolvedor' && situacao === 'rede' && tipo === 'winner') return ['vfh', 'vbh', 'smash'];
+  return ['fh', 'bh'];
 }
 
 export function shouldShowSubtipo1(vencedor: Vencedor, situacao: RallySituacao, tipo: RallyTipo): boolean {
@@ -222,15 +199,26 @@ export function getGolpeEspOptions(
   subtipo2: RallySubtipo2 | null,
   direcao: RallyDirecao | null,
 ): RallyGolpeEsp[] {
-  return resolveGolpeEspOptions(
-    golpe,
-    efeito,
-    vencedor,
-    situacao,
-    tipo,
-    subtipo2,
-    direcao,
-  );
+  if (golpe === 'smash') return [];
+  if (efeito === 'flat') return [];
+  if (efeito === 'slice') return ['lob', 'drop_shot'];
+  if ((golpe === 'vbh' || golpe === 'vfh') && !efeito) {
+    if (vencedor === 'devolvedor') return ['drop_shot', 'bate_pronto', 'swing_volley'];
+    if (vencedor === 'sacador' && subtipo2 && (subtipo2 === 'out' || subtipo2 === 'net') && direcao && ['cruzada', 'paralela', 'centro'].includes(direcao)) {
+      return ['drop_shot', 'bate_pronto', 'swing_volley'];
+    }
+    if (vencedor === 'sacador' && ((situacao === 'rede' && tipo === 'winner') || (situacao === 'passada' && tipo !== 'winner'))) {
+      return ['lob', 'drop_shot', 'bate_pronto', 'swing_volley'];
+    }
+  }
+  if (efeito === 'topspin') {
+    if (vencedor === 'devolvedor' && situacao === 'fundo') return [];
+    if (tipo === 'winner') return ['lob'];
+    if (vencedor === 'sacador' && situacao === 'rede') return ['lob'];
+    if (vencedor === 'sacador' && situacao === 'fundo') return ['lob', 'bate_pronto'];
+    return [];
+  }
+  return [];
 }
 
 export const GOLPE_ESP_LABELS: Record<RallyGolpeEsp, string> = {

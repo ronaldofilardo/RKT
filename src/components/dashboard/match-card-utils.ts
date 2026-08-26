@@ -1,5 +1,5 @@
 import type { TennisFormat } from '@/core/scoring/types';
-import { formatPointValue, getSinglePointValue } from './match-card-utils.helpers';
+import { GAME_POINTS } from '@/core/scoring/point-utils';
 // Re-exporta a versão unificada do normalizer (bug #4, 2026-08-07).
 // Mantemos a assinatura pública deste módulo para não quebrar importadores
 // existentes, mas a implementação agora delega para src/core/scoring/score-normalizer
@@ -37,8 +37,12 @@ export function formatGamePoints(currentGame: {
 }): string {
   const pts1 = currentGame.player1 ?? 0;
   const pts2 = currentGame.player2 ?? 0;
-  const p1 = formatPointValue(pts1, currentGame.advantage === 'player1');
-  const p2 = formatPointValue(pts2, currentGame.advantage === 'player2');
+  const p1 = currentGame.advantage === 'player1'
+    ? 'AD'
+    : (GAME_POINTS[Math.min(typeof pts1 === 'number' ? pts1 : 0, 3)] ?? String(pts1));
+  const p2 = currentGame.advantage === 'player2'
+    ? 'AD'
+    : (GAME_POINTS[Math.min(typeof pts2 === 'number' ? pts2 : 0, 3)] ?? String(pts2));
   return `${p1}-${p2}`;
 }
 
@@ -46,7 +50,9 @@ export function getSinglePointDisplay(
   currentGame: { player1?: number | string; player2?: number | string; advantage?: 'player1' | 'player2' | null } | undefined,
   player: 'player1' | 'player2',
 ): string {
-  return getSinglePointValue(currentGame, player);
+  const pts = currentGame?.[player] ?? 0;
+  if (currentGame?.advantage === player) return 'AD';
+  return GAME_POINTS[Math.min(typeof pts === 'number' ? pts : 0, 3)];
 }
 
 export function getLastSetPointDisplay(

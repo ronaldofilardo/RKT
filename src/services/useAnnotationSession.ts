@@ -6,7 +6,7 @@ import {
   endSession,
   markSessionAbandoned,
   endorseSession,
-} from "./annotationSessionApi";
+} from "./annotationSessionService";
 
 export function useAnnotationSession() {
   const start = useCallback(async (matchId: string, autoStarted = false) => {

@@ -74,11 +74,11 @@ describe('useMatchEvents', () => {
 
   it('deve fechar EventSource e setar ref como null no cleanup', async () => {
     let cleanupFn: (() => void) | undefined;
-    let refObj: any;
+    const refObjects: Array<{ current: unknown }> = [];
     jest.mock('react', () => ({
       ...jest.requireActual('react'),
       useEffect: jest.fn((fn: Function) => { cleanupFn = fn(); }),
-      useRef: jest.fn((init: any) => { refObj = { current: init }; return refObj; }),
+      useRef: jest.fn((init: unknown) => { const ref = { current: init }; refObjects.push(ref); return ref; }),
       useState: jest.fn((init: any) => {
         const val = typeof init === 'function' ? init() : init;
         return [val, jest.fn()];
@@ -91,7 +91,7 @@ describe('useMatchEvents', () => {
     if (cleanupFn) cleanupFn();
 
     expect(mockClose).toHaveBeenCalled();
-    expect(refObj.current).toBeNull();
+    expect(refObjects[0]?.current).toBeNull();
   });
 
   it('deve fechar EventSource no onerror', async () => {

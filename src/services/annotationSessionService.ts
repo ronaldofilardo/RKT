@@ -139,20 +139,34 @@ function getClientService(): ReturnType<typeof createSessionService> {
   return clientServiceInstance;
 }
 
-function makeLazyClientFunction<K extends keyof ReturnType<typeof createSessionService>>(
-  key: K
-): ReturnType<typeof createSessionService>[K] {
-  return (async (...args: unknown[]) => {
-    const service = getClientService();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (service[key] as any)(...args);
-  }) as ReturnType<typeof createSessionService>[K];
+export async function listSessions(matchId: string): Promise<AnnotationSession[]> {
+  return getClientService().listSessions(matchId);
 }
 
-export const listSessions = makeLazyClientFunction("listSessions");
-export const startSession = makeLazyClientFunction("startSession");
-export const endSession = makeLazyClientFunction("endSession");
-export const endorseSession = makeLazyClientFunction("endorseSession");
-export const markSessionAbandoned = makeLazyClientFunction("markSessionAbandoned");
+export async function startSession(matchId: string, autoStarted = false): Promise<AnnotationSession> {
+  return getClientService().startSession(matchId, autoStarted);
+}
+
+export async function endSession(
+  matchId: string,
+  sessionId: string,
+  finalState?: unknown,
+  status: "COMPLETED" | "ABANDONED" = "ABANDONED",
+): Promise<AnnotationSession> {
+  return getClientService().endSession(matchId, sessionId, finalState, status);
+}
+
+export async function endorseSession(matchId: string, sessionId: string): Promise<unknown> {
+  return getClientService().endorseSession(matchId, sessionId);
+}
+
+export async function markSessionAbandoned(params: {
+  matchId: string;
+  sessionId: string;
+  matchStateSnapshot?: string;
+}): Promise<boolean> {
+  return getClientService().markSessionAbandoned(params);
+}
+
 
 export { createSessionService };

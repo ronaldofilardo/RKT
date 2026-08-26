@@ -40,12 +40,12 @@ describe('rankingConstants - caracterização', () => {
   });
 
   describe('getAllowedCategoriesForAge (libera categoria superior)', () => {
-    it('atleta 12 (ESTADUAL) libera 11-12 e 13-14', () => {
-      expect(getAllowedCategoriesForAge('ESTADUAL', 12)).toEqual(['11-12', '13-14']);
+    it('atleta 12 (ESTADUAL) libera a categoria-base e todas as superiores', () => {
+      expect(getAllowedCategoriesForAge('ESTADUAL', 12)).toEqual(['11-12', '13-14', '15-16', '17-18']);
     });
 
-    it('atleta 14 (ESTADUAL) libera 13-14 e 15-16', () => {
-      expect(getAllowedCategoriesForAge('ESTADUAL', 14)).toEqual(['13-14', '15-16']);
+    it('atleta 14 (ESTADUAL) libera a categoria-base e todas as superiores', () => {
+      expect(getAllowedCategoriesForAge('ESTADUAL', 14)).toEqual(['13-14', '15-16', '17-18']);
     });
 
     it('atleta 16 (ESTADUAL) libera 15-16 e 17-18', () => {
@@ -56,8 +56,8 @@ describe('rankingConstants - caracterização', () => {
       expect(getAllowedCategoriesForAge('ESTADUAL', 18)).toEqual(['17-18']);
     });
 
-    it('atleta 12 (CBT) libera 11-12 e 13-14', () => {
-      expect(getAllowedCategoriesForAge('CBT', 12)).toEqual(['11-12', '13-14']);
+    it('atleta 12 (CBT) libera a categoria-base e todas as superiores existentes', () => {
+      expect(getAllowedCategoriesForAge('CBT', 12)).toEqual(['11-12', '13-14', '15-16', '17-18']);
     });
 
     it('nao libera categoria superior inexistente no ranking type (COSAT nao tem 17-18)', () => {
@@ -76,7 +76,11 @@ describe('rankingConstants - caracterização', () => {
       expect(result).toContain('13-14');
     });
 
-    it('adulto 19+ continua vazio', () => {
+    it('veterano 43 (ESTADUAL) libera a categoria-base e uma faixa inferior', () => {
+      expect(getAllowedCategoriesForAge('ESTADUAL', 43)).toEqual(['40-44', '35-39']);
+    });
+
+    it('adulto 19+ continua vazio quando não há faixa adulta', () => {
       expect(getAllowedCategoriesForAge('ESTADUAL', 19)).toEqual([]);
     });
   });
@@ -110,9 +114,9 @@ describe('rankingConstants - caracterização', () => {
       expect(getMatchCategoriesForAge(18)).toEqual(['JUVENIL', 'ADULTO']);
     });
 
-    it('adulto 19+ retorna vazio (sem restricao UX - escolhe livremente)', () => {
-      expect(getMatchCategoriesForAge(19)).toEqual([]);
-      expect(getMatchCategoriesForAge(30)).toEqual([]);
+    it('adulto 19+ pertence à categoria ADULTO', () => {
+      expect(getMatchCategoriesForAge(19)).toEqual(['ADULTO']);
+      expect(getMatchCategoriesForAge(30)).toEqual(['ADULTO']);
     });
 
     it('idade abaixo de 11 retorna vazio', () => {

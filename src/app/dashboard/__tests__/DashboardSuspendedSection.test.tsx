@@ -65,7 +65,7 @@ const setupAuth = () => {
   });
 };
 
-describe.skip('DashboardPage - seção Anotações Suspensas (TD-046)', () => {
+describe('DashboardPage - seção Anotações Suspensas (TD-046)', () => {
   const mockRouter = { push: jest.fn() };
 
   beforeEach(() => {

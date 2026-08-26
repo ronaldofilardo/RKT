@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { TennisFormat } from "@/core/scoring/types";
+import { logger } from "@/lib/logger";
 import type { SetEditData } from "./editScoreHelpers";
 import type { CompletedSet } from "./edit-score-logic";
 import {
@@ -11,7 +12,6 @@ import {
 } from "./edit-score-logic";
 import { parsePointValue, pointToProgress } from "@/core/scoring/point-utils";
 import { useEditScoreCalculator } from "./use-edit-score-calculator";
-import { getConfirmValidationError, getFinalSets, getFreshFloorError, getSetWinner, getTiebreakInput, isConfirmationBlocked, isMatchFinishing } from "./useEditScoreModal.confirm.helpers";
 
 interface EditScoreModalState {
   p1Input: string;
@@ -59,22 +59,6 @@ interface UseEditScoreModalReturn {
   handleEditCompletedSet: (index: number, p1Games: number, p2Games: number) => void;
   handleRemoveCompletedSet: (index: number) => void;
   resetState: () => void;
-}
-
-function toEditableCompletedSets(completedSets: CompletedSet[]) {
-  return completedSets.map((cs) => ({ p1Games: cs.games.player1, p2Games: cs.games.player2, isPartial: false, tiebreakScore: cs.tiebreakScore }));
-}
-
-function completedSetsKey(completedSets: CompletedSet[]) {
-  return completedSets.map((cs) => [cs.games.player1, cs.games.player2, cs.winner, cs.tiebreakScore?.player1, cs.tiebreakScore?.player2].join('-')).join('|');
-}
-
-function resetModalOnOpen(setState: React.Dispatch<React.SetStateAction<EditScoreModalState>>, currentServer: EditScoreModalState['nextServer'], completedSets: CompletedSet[]) {
-  setState(() => ({ ...createInitialEditScoreState(currentServer), editableCompletedSets: toEditableCompletedSets(completedSets) }));
-}
-
-function syncCompletedSets(setState: React.Dispatch<React.SetStateAction<EditScoreModalState>>, completedSets: CompletedSet[]) {
-  setState((prev) => ({ ...prev, editableCompletedSets: toEditableCompletedSets(completedSets) }));
 }
 
 export function useEditScoreModal(
@@ -141,26 +125,45 @@ export function useEditScoreModal(
   //   (b) the *content* of completedSets changes (not just array identity).
   // This prevents production re-renders (which create new completedSets arrays)
   // from wiping out the user's in-progress selections (inputs, points, newSets).
-  // Reset state only on modal transitions or actual completed-set content changes.
   useEffect(() => {
     const justOpened = isOpen && !prevIsOpenRef.current;
-    const key = completedSetsKey(completedSets);
-    const changed = key !== lastCompletedSetsKeyRef.current;
+    const completedSetsKey = completedSets
+      .map(cs => `${cs.games.player1}-${cs.games.player2}-${cs.winner}${cs.tiebreakScore ? `:${cs.tiebreakScore.player1}-${cs.tiebreakScore.player2}` : ""}`)
+      .join("|");
+    const completedSetsChanged = completedSetsKey !== lastCompletedSetsKeyRef.current;
 
     if (justOpened) {
-      resetModalOnOpen(setState, currentServer, completedSets);
+      setState(_prev => ({
+        ...createInitialEditScoreState(currentServer),
+        editableCompletedSets: completedSets.map((cs) => ({
+          p1Games: cs.games.player1,
+          p2Games: cs.games.player2,
+          isPartial: false,
+          tiebreakScore: cs.tiebreakScore,
+        })),
+      }));
       setConfirmError(null);
       setFloorValidationError(null);
       initializedRef.current = false;
       initialGameRef.current = null;
       setIsFinishingMatch(false);
       inputTouchedRef.current = { p1: false, p2: false };
-      lastCompletedSetsKeyRef.current = key;
-    } else if (isOpen && changed) {
-      syncCompletedSets(setState, completedSets);
+      lastCompletedSetsKeyRef.current = completedSetsKey;
+    } else if (isOpen && completedSetsChanged) {
+      // Only the completed sets changed (new set added externally); sync the
+      // editableCompletedSets without wiping the user's input/points/newSets.
+      setState(prev => ({
+        ...prev,
+        editableCompletedSets: completedSets.map((cs) => ({
+          p1Games: cs.games.player1,
+          p2Games: cs.games.player2,
+          isPartial: false,
+          tiebreakScore: cs.tiebreakScore,
+        })),
+      }));
       setConfirmError(null);
       setFloorValidationError(null);
-      lastCompletedSetsKeyRef.current = key;
+      lastCompletedSetsKeyRef.current = completedSetsKey;
     } else if (!isOpen) {
       initializedRef.current = false;
       initialGameRef.current = null;
@@ -228,27 +231,133 @@ export function useEditScoreModal(
   const handleConfirm = useCallback(async () => {
     if (isFinishingMatch) return;
     setConfirmError(null);
+    
+    if (onRefreshFloor && floorCurrentSets && !isSetTrulyCompleted) {
+      try {
+        const freshFloor = await onRefreshFloor();
+        if (freshFloor) {
+          if (p1Val < freshFloor.player1 || p2Val < freshFloor.player2) {
+            setConfirmError(
+              `Placar atualizado: ${freshFloor.player1}x${freshFloor.player2}. Seu placar (${p1Val}x${p2Val}) é inferior.`
+            );
+            return;
+          }
+        }
+      } catch (err) {
+        logger.error('[handleConfirm] Failed to refresh floor:', err);
+      }
+    }
+    
+    if (floorValidationError) return;
+    if (validation.setValidationError && !partial) return;
+    if (validation.setValidation?.tiebreakRequired && !tiebreakComplete) return;
 
-    const freshFloorError = await getFreshFloorError(onRefreshFloor, floorCurrentSets, isSetTrulyCompleted, p1Val, p2Val);
-    if (freshFloorError) { setConfirmError(freshFloorError); return; }
+    if (bothFilled && hasTiebreak && isSetTrulyCompleted && tiebreakComplete) {
+      const setWinner = p1Val > p2Val ? "player1" : "player2";
+      const tiebreakWinner = tiebreakP1Num > tiebreakP2Num ? "player1" : "player2";
+      if (setWinner !== tiebreakWinner) {
+        setConfirmError("Vencedor do tiebreak não corresponde ao vencedor do set.");
+        return;
+      }
+    }
 
-    const validationError = getConfirmValidationError({
-      floorValidationError, validation, partial, bothFilled, hasTiebreak, isSetTrulyCompleted,
-      tiebreakComplete, p1Val, p2Val, tiebreakP1Num, tiebreakP2Num, matchWouldEnd, matchState,
-      setsToWin, setWinner: getSetWinner(validation), playerNames, floorCurrentSets, canAddNextSet,
-      maxSets, initialGame: initialGameRef.current, currentSets, p1Points: state.p1Points,
-      p2Points: state.p2Points, parsePointValue, pointToProgress,
-    });
-    if (validationError) { setConfirmError(validationError); return; }
-    if (isConfirmationBlocked({ floorValidationError, isSetTrulyCompleted, matchWouldEnd, canAddNextSet, maxSets })) return;
+    if (isSetTrulyCompleted && matchWouldEnd) {
+      const wouldBeP1Sets = matchState.p1SetsWonFromProp + matchState.newP1SetsWon + (validation.setValidation?.winner === "player1" ? 1 : 0);
+      const wouldBeP2Sets = matchState.p2SetsWonFromProp + matchState.newP2SetsWon + (validation.setValidation?.winner === "player2" ? 1 : 0);
+      if (wouldBeP1Sets > setsToWin || wouldBeP2Sets > setsToWin) {
+        setConfirmError(
+          `Partida já encerrou com ${setsToWin} sets para ${wouldBeP1Sets > setsToWin ? playerNames?.p1 : playerNames?.p2}.`,
+        );
+        return;
+      }
+    }
 
-    const finalSets = getFinalSets({ state, completedSets, bothFilled, p1Val, p2Val, isSetTrulyCompleted, hasTiebreak, tiebreakP1Num, tiebreakP2Num, isMatchTiebreakSet, isPotentialMTSet, currentSets, createSetEditData });
+    if (bothFilled && floorCurrentSets) {
+      if (p1Val < floorCurrentSets.player1 || p2Val < floorCurrentSets.player2) {
+        setConfirmError(
+          `Placar não pode ser inferior ao ponto de parada (${floorCurrentSets.player1}x${floorCurrentSets.player2}).`,
+        );
+        return;
+      }
+    }
+
+    if (isSetTrulyCompleted && !matchWouldEnd && !canAddNextSet && maxSets > 1) {
+      return;
+    }
+
+    if (!isSetTrulyCompleted && initialGameRef.current) {
+      const sameSetScore = p1Val === currentSets.player1 && p2Val === currentSets.player2;
+
+      if (sameSetScore) {
+        const initial = initialGameRef.current;
+        const oldP1 = pointToProgress(parsePointValue(initial.player1));
+        const oldP2 = pointToProgress(parsePointValue(initial.player2));
+        const newP1 = pointToProgress(parsePointValue(state.p1Points));
+        const newP2 = pointToProgress(parsePointValue(state.p2Points));
+
+        if ((newP1 < oldP1 && newP2 <= oldP2) || (newP2 < oldP2 && newP1 <= oldP1)) {
+          setConfirmError("Placar não pode ser inferior ao estado atual");
+          return;
+        }
+      }
+    }
+
+    const sourceCompleted: CompletedSet[] =
+      state.editableCompletedSets && state.editableCompletedSets.length > 0
+        ? state.editableCompletedSets.map((ecs) => ({
+            games: { player1: ecs.p1Games, player2: ecs.p2Games },
+            winner: ecs.p1Games > ecs.p2Games ? 'player1' : ecs.p2Games > ecs.p1Games ? 'player2' : 'player1',
+            tiebreakScore: ecs.tiebreakScore ?? undefined,
+          }))
+        : completedSets;
+    const existingCompleted: SetEditData[] = sourceCompleted.map((cs) => ({
+      p1Games: cs.games.player1,
+      p2Games: cs.games.player2,
+      isPartial: false,
+      tiebreakScore: cs.tiebreakScore ?? undefined,
+    }));
+    const finalSets = [...existingCompleted, ...state.newSets];
+    
+    if (bothFilled) {
+      const setData = createSetEditData({
+        p1Val,
+        p2Val,
+        isSetTrulyCompleted,
+        hasTiebreak,
+        tiebreakP1Num: tiebreakP1Num ?? 0,
+        tiebreakP2Num: tiebreakP2Num ?? 0,
+        isMatchTiebreakSet,
+        isPotentialMTSet,
+        p1Points: state.p1Points,
+        p2Points: state.p2Points,
+        currentSets,
+      });
+      finalSets.push(setData);
+    }
+
     const nextServer = state.nextServer || currentServer;
-    const matchFinishes = isMatchFinishing(matchWouldEnd, isSetTrulyCompleted);
-    if (matchFinishes) setIsFinishingMatch(true);
+    
+    if (matchWouldEnd && isSetTrulyCompleted) {
+      setIsFinishingMatch(true);
+    }
+    
     onConfirm(finalSets, nextServer);
-    if (matchFinishes && onMatchFinished) onMatchFinished(getSetWinner(validation));
-  }, [onRefreshFloor, floorCurrentSets, isSetTrulyCompleted, p1Val, p2Val, floorValidationError, validation, partial, hasTiebreak, tiebreakComplete, tiebreakP1Num, tiebreakP2Num, matchWouldEnd, matchState, setsToWin, playerNames, canAddNextSet, maxSets, currentSets, initialGameRef, state.p1Points, state.p2Points, state.newSets, state.nextServer, state.editableCompletedSets, completedSets, onConfirm, currentServer, onMatchFinished, isFinishingMatch, bothFilled, isMatchTiebreakSet, isPotentialMTSet]);
+
+    // Call onMatchFinished if the match would end with this set
+    if (matchWouldEnd && isSetTrulyCompleted && onMatchFinished) {
+      const winner = validation.setValidation?.winner === "player1" ? "player1" : "player2";
+      onMatchFinished(winner);
+    }
+  }, [
+    onRefreshFloor, floorCurrentSets, isSetTrulyCompleted, p1Val, p2Val,
+    floorValidationError, validation, partial, hasTiebreak, tiebreakComplete,
+    tiebreakP1Num, tiebreakP2Num, matchWouldEnd, matchState, setsToWin,
+    playerNames, canAddNextSet, maxSets, currentSets, initialGameRef,
+    state.p1Points, state.p2Points, state.newSets, state.nextServer,
+    state.editableCompletedSets,
+    completedSets, onConfirm, currentServer, onMatchFinished,
+    isFinishingMatch, bothFilled, isMatchTiebreakSet, isPotentialMTSet,
+  ]);
 
   const handleCancel = useCallback(() => {
     onCancel();
@@ -256,12 +365,32 @@ export function useEditScoreModal(
 
   const handleAddSet = useCallback(() => {
     if (!canAddNextSet) return;
+
     const p1Games = parseInt(state.p1Input, 10) || 0;
     const p2Games = parseInt(state.p2Input, 10) || 0;
     const tbP1Num = parseInt(state.tiebreakP1, 10);
     const tbP2Num = parseInt(state.tiebreakP2, 10);
-    const tiebreak = getTiebreakInput(p1Games, p2Games, tbP1Num, tbP2Num, isMatchTiebreakSet);
-    const setData: SetEditData = { p1Games, p2Games, isPartial: false, ...(tiebreak.hasScore ? { tiebreakScore: tiebreak.score! } : {}) };
+    const hasTiebreakScore =
+      !isNaN(tbP1Num) && !isNaN(tbP2Num) &&
+      tbP1Num >= 0 && tbP2Num >= 0 &&
+      (tbP1Num > 0 || tbP2Num > 0);
+
+    const setData: SetEditData = {
+      p1Games,
+      p2Games,
+      isPartial: false,
+      ...(hasTiebreakScore
+        ? { tiebreakScore: { player1: tbP1Num, player2: tbP2Num } }
+        : {}),
+    };
+
+    // For MT sets, p1Games/p2Games ARE the tiebreak points, so pass them
+    // as tiebreakScore to ensure correct server calculation.
+    const tiebreakForServer = isMatchTiebreakSet
+      ? { player1: p1Games, player2: p2Games }
+      : hasTiebreakScore
+        ? { player1: tbP1Num, player2: tbP2Num }
+        : null;
 
     setState(prev => ({
       ...prev,
@@ -270,7 +399,14 @@ export function useEditScoreModal(
       p2Input: "",
       tiebreakP1: "",
       tiebreakP2: "",
-      nextServer: calculateNextServer({ currentServer, p1Games, p2Games, matchFormat, tiebreakScore: tiebreak.score, completedSets: completedSets as CompletedSet[] }),
+      nextServer: calculateNextServer({
+        currentServer,
+        p1Games,
+        p2Games,
+        matchFormat,
+        tiebreakScore: tiebreakForServer,
+        completedSets: completedSets as CompletedSet[],
+      }),
     }));
   }, [canAddNextSet, state.p1Input, state.p2Input, state.tiebreakP1, state.tiebreakP2, currentServer, matchFormat, completedSets, isMatchTiebreakSet]);
 

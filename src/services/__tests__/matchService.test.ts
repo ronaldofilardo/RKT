@@ -1,22 +1,29 @@
-jest.mock('@/lib/prisma', () => ({
-  prisma: {
-    match: {
-      findMany: jest.fn(),
-      findFirst: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
+jest.mock('@/lib/prisma', () => {
+  const matchUpdate = jest.fn();
+  const match = {
+    findMany: jest.fn(),
+    findFirst: jest.fn(),
+    create: jest.fn(),
+    update: matchUpdate,
+    delete: jest.fn(),
+  };
+  return {
+    prisma: {
+      match,
+      pointLog: { deleteMany: jest.fn() },
+      matchAnnotationSession: { findFirst: jest.fn(), deleteMany: jest.fn() },
+      $transaction: jest.fn((operation: unknown) => {
+        if (typeof operation === 'function') {
+          return operation({
+            match: { update: matchUpdate },
+            matchScoreEdit: { create: jest.fn().mockResolvedValue({ id: 'edit-1' }) },
+          });
+        }
+        return Promise.all(operation as Promise<unknown>[]);
+      }),
     },
-    pointLog: {
-      deleteMany: jest.fn(),
-    },
-    matchAnnotationSession: {
-      findFirst: jest.fn(),
-      deleteMany: jest.fn(),
-    },
-    $transaction: jest.fn((promises) => Promise.all(promises)),
-  },
-}));
+  };
+});
 
 import { prisma } from '@/lib/prisma';
 

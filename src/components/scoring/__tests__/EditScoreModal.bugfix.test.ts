@@ -33,16 +33,21 @@ describe("EditScoreModal Bug Fixes", () => {
         { games: { player1: 6, player2: 4 }, winner: "player1" as const },
         { games: { player1: 3, player2: 6 }, winner: "player2" as const },
       ];
+      const partialSet = { p1Games: 3, p2Games: 2, isPartial: true };
+      const existingCompleted = completedSets.map((set) => ({
+        p1Games: set.games.player1,
+        p2Games: set.games.player2,
+        isPartial: false,
+      }));
+      const finalSets = [...existingCompleted, partialSet];
 
-      // After user edits to partial Set 3: 3x2, the onConfirm callback receives:
-      // finalSets = [Set1, Set2, partialSet]
-      // Where Set1 and Set2 are reconstructed from completedSets prop.
+      mockOnConfirm(finalSets);
 
-      // The fix ensures that when setsData is passed to handleEditScore,
-      // it contains [Set1, Set2, partialSet], not just [partialSet].
-      // Therefore setsWon calculation is {1,1}, not {0,0}.
-
-      expect(true).toBe(true); // Structure validated in integration test
+      expect(mockOnConfirm).toHaveBeenCalledWith([
+        { p1Games: 6, p2Games: 4, isPartial: false },
+        { p1Games: 3, p2Games: 6, isPartial: false },
+        partialSet,
+      ]);
     });
 
     it("sets setsWon calculation should include completed sets", () => {

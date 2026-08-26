@@ -1,22 +1,20 @@
 'use client';
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { Athlete } from '../types';
+import type { RankingType } from '@/lib/ranking/rankingConstants';
 import { useAge } from '../hooks/useAge';
 import { RankingForm } from '@/app/atletas/RankingForm';
+import { getMatchCategoriesForAge, MATCH_CATEGORY_LABELS } from '@/lib/ranking/rankingConstants';
+import type { MatchCategory } from '@/lib/ranking/rankingConstants';
 import {
-  RankingState,
+  type RankingState,
   initialRankings,
   rankingsStateToPayload,
-  computeAvailableTypes,
-  computeCategoryAge,
   computeClassesForType,
   handleRankingToggle,
   handleRankingFieldChange,
   handleAutoCategoryAssignment,
-  RANKING_TYPES,
-  RANKING_TYPE_LABELS,
-  getAllowedCategoriesForAge,
 } from '@/app/atletas/rankingLogic';
 
 interface NewAthleteModalProps {
@@ -25,21 +23,28 @@ interface NewAthleteModalProps {
   onCreated: (athlete: Athlete) => void;
 }
 
+const MATCH_CATEGORY_AGE_LABELS: Record<MatchCategory, string> = {
+  INFANTIL: '11–12 anos',
+  JUVENIL: '13–18 anos',
+  ADULTO: '19–34 anos',
+  VETERANO: '35 anos ou mais',
+};
+
+const fieldIds = {
+  name: 'new-athlete-name',
+  gender: 'new-athlete-gender',
+  birthDay: 'new-athlete-birth-day',
+  birthMonth: 'new-athlete-birth-month',
+  birthYear: 'new-athlete-birth-year',
+  class: 'new-athlete-class',
+  dominance: 'new-athlete-dominance',
+  backhand: 'new-athlete-backhand',
+};
+
 export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
-
-  const fieldIds = {
-    name: 'new-athlete-name',
-    gender: 'new-athlete-gender',
-    birthDay: 'new-athlete-birth-day',
-    birthMonth: 'new-athlete-birth-month',
-    birthYear: 'new-athlete-birth-year',
-    class: 'new-athlete-class',
-    dominance: 'new-athlete-dominance',
-    backhand: 'new-athlete-backhand',
-  };
 
   useEffect(() => {
     if (isOpen) {
@@ -57,19 +62,12 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
     backhand: '',
   });
 
-  const [rankings, setRankings] = useState<Record<string, RankingState>>(initialRankings());
+  const [rankings, setRankings] = useState<Record<RankingType, RankingState>>(initialRankings());
 
   const age = useAge(form.birthYear, form.birthMonth, form.birthDay);
-  const birthYearNum = form.birthYear ? parseInt(form.birthYear, 10) : 0;
-
   useEffect(() => {
     handleAutoCategoryAssignment(setRankings, age);
   }, [age]);
-
-  const availableTypes = useMemo(
-    () => computeAvailableTypes(age),
-    [age]
-  );
 
   if (!isOpen) return null;
 
@@ -174,6 +172,9 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
             <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{error}</div>
           )}
 
+          <section aria-labelledby="new-athlete-cadastro-title" className="space-y-4 rounded-xl border border-gray-200 p-4">
+            <h3 id="new-athlete-cadastro-title" className="text-base font-semibold text-gray-900">1. Cadastro</h3>
+
           <div>
             <label htmlFor={fieldIds.name} className="block text-sm font-medium text-gray-700 mb-1">
               Nome <span className="text-red-500">*</span>
@@ -267,86 +268,45 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-4 items-start">
-            <div className="col-span-1">
-              <label htmlFor={fieldIds.class} className="block text-sm font-medium text-gray-700 mb-1">
-                Classe {rankings.ESTADUAL.enabled && <span className="text-red-500">*</span>}
-              </label>
-              <select
-                id={fieldIds.class}
-                value={rankings.ESTADUAL.class}
-                onChange={(e) => handleRankingFieldChange(setRankings, 'ESTADUAL', 'class', e.target.value)}
-                disabled={submitting || age === null || !form.gender || (age ?? 0) < 11 || (age ?? 0) > 90}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 disabled:bg-gray-50 disabled:text-gray-500"
-              >
-                <option value="">
-                  {(age === null || !form.gender) ? 'Aguardando...' : 'Selecione...'}
-                </option>
-                {age !== null && form.gender && age >= 11 && age <= 90 && computeClassesForType('', form.gender, age).map((cls) => (
-                  <option key={cls} value={cls} className="text-gray-900">
-                    {cls}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="col-span-3">
-              <div className="bg-sky-50 border border-sky-100 rounded-xl p-4 h-full">
-                <h3 className="text-sm font-semibold text-sky-900 mb-2">Categorias</h3>
+          {(!rankings.ESTADUAL.enabled || age === null || age < 11 || age > 90) && (
+            <div className="grid grid-cols-4 gap-4 items-start">
+              <div className="col-span-1">
+                <label htmlFor={fieldIds.class} className="block text-sm font-medium text-gray-700 mb-1">Classe</label>
+                <select
+                  id={fieldIds.class}
+                  value={rankings.ESTADUAL.class}
+                  onChange={(e) => handleRankingFieldChange(setRankings, 'ESTADUAL', 'class', e.target.value)}
+                  disabled={submitting || age === null || !form.gender || (age ?? 0) < 11 || (age ?? 0) > 90}
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 disabled:bg-gray-50 disabled:text-gray-500"
+                >
+                  <option value="">{(age === null || !form.gender) ? 'Aguardando...' : 'Selecione...'}</option>
+                  {age !== null && form.gender && age >= 11 && age <= 90 && computeClassesForType(rankings.ESTADUAL.category, form.gender, age).map((cls) => (
+                    <option key={cls} value={cls} className="text-gray-900">{cls}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-span-3">
+                <div className="bg-sky-50 border border-sky-100 rounded-xl p-4 h-full">
+                <h3 className="text-sm font-semibold text-sky-900 mb-2">Categoria por idade</h3>
                 {age === null || !form.gender ? (
-                  <p className="text-xs text-sky-700/70 italic">Preencha sexo e data de nascimento para ver as categorias.</p>
+                  <p className="text-xs text-sky-700/70 italic">Preencha sexo e data de nascimento para identificar a categoria.</p>
                 ) : age < 11 || age > 90 ? (
-                  <p className="text-xs text-sky-700/70 italic">Sem categoria disponível para a idade atual ({age} anos).</p>
+                  <p className="text-xs text-sky-700/70 italic">Sem categoria etária disponível para a idade atual ({age} anos).</p>
                 ) : (
                   <div className="space-y-1.5">
-                    {age === null || !form.gender ? (
-                  <p className="text-xs text-sky-700/70 italic">Preencha sexo e data de nascimento para ver as categorias.</p>
-                ) : age < 11 || age > 90 ? (
-                  <p className="text-xs text-sky-700/70 italic">Sem categoria disponível para a idade atual ({age} anos).</p>
-                ) : (
-                  <div className="space-y-1.5">
-                    {(() => {
-                      const categoryRankingTypes = availableTypes.filter((type) =>
-                        RANKING_TYPES.includes(type as any) && !['ATP', 'WTA', 'ITF'].includes(type)
-                      );
-                      return categoryRankingTypes.map((type) => {
-                        const rankingType = type as keyof typeof RANKING_TYPE_LABELS;
-                        const catAge = computeCategoryAge(rankingType, age, birthYearNum);
-                        const allowed = catAge !== null
-                          ? (type === 'ITF_Juniors' ? ['18'] : getAllowedCategoriesForAge(rankingType, catAge))
-                          : [];
-                        if (allowed.length === 0) return null;
-                        return (
-                          <div key={type} className="flex items-center text-sm">
-                            <span className="font-medium text-sky-800 w-24">{RANKING_TYPE_LABELS[rankingType]}</span>
-                            <span className="text-sky-600 px-2">·</span>
-                            <span className="text-sky-700">{allowed.map(c => `${c} anos`).join(', ')}</span>
-                          </div>
-                        );
-                      });
-                    })()}
-                    {(() => {
-                      const categoryRankingTypes = availableTypes.filter((type) =>
-                        RANKING_TYPES.includes(type as any) && !['ATP', 'WTA', 'ITF'].includes(type)
-                      );
-                      return categoryRankingTypes.every((type) => {
-                        const rankingType = type as keyof typeof RANKING_TYPE_LABELS;
-                        const catAge = computeCategoryAge(rankingType, age, birthYearNum);
-                        const allowed = catAge !== null
-                          ? (type === 'ITF_Juniors' ? ['18'] : getAllowedCategoriesForAge(rankingType, catAge))
-                          : [];
-                        return allowed.length === 0;
-                      });
-                    })() && (
-                      <p className="text-xs text-sky-700/70 italic">Nenhuma categoria encontrada para {age} anos.</p>
-                    )}
+                    {getMatchCategoriesForAge(age).map((category) => (
+                      <div key={category} className="flex items-center text-sm">
+                        <span className="font-medium text-sky-800">{MATCH_CATEGORY_LABELS[category]}</span>
+                        <span className="text-sky-600 px-2">·</span>
+                        <span className="text-sky-700">{MATCH_CATEGORY_AGE_LABELS[category]}</span>
+                      </div>
+                    ))}
                   </div>
                 )}
-                  </div>
-                )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -392,20 +352,26 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
             </div>
           </div>
 
-          <div>
-            <span className="block text-sm font-medium text-gray-700 mb-2">Ranking</span>
+          </section>
+
+          <section aria-labelledby="new-athlete-ranking-title" className="space-y-4 rounded-xl border border-gray-200 p-4">
+            <h3 id="new-athlete-ranking-title" aria-label="2. Ranking" className="flex items-baseline gap-2 text-base font-semibold text-gray-900">
+              <span>2. Ranking</span>
+              <span className="text-sm font-normal text-gray-700">Opções de autoranking</span>
+            </h3>
             {age !== null && (
-              <p className="text-xs text-gray-500 mb-2">Idade: {age} anos</p>
+              <p className="text-xs text-gray-500">Idade: <span className="font-semibold text-gray-900">{age} anos</span></p>
             )}
             <RankingForm
+              showHeader={false}
               form={{ gender: form.gender }}
-              rankings={rankings as Record<string, RankingState>}
+              rankings={rankings}
               age={age}
               saving={submitting}
-              onRankingToggle={(type) => handleRankingToggle(setRankings, type as any)}
-              onRankingFieldChange={(type, field, value) => handleRankingFieldChange(setRankings, type as any, field, value)}
+              onRankingToggle={(type) => handleRankingToggle(setRankings, type)}
+              onRankingFieldChange={(type, field, value) => handleRankingFieldChange(setRankings, type, field, value)}
             />
-          </div>
+          </section>
 
           <div className="flex gap-3 pt-4">
             <button

@@ -52,10 +52,9 @@ export function validateExtendedSetScore(
   p1: number,
   p2: number,
   gamesNeeded: number,
-  hasTiebreak: boolean,
   winner: 'player1' | 'player2' | undefined,
 ): SetValidation | null {
-  if (!winner || !hasTiebreak) return null;
+  if (!winner) return null;
   const winnerGames = winner === 'player1' ? p1 : p2;
   const loserGames = winner === 'player1' ? p2 : p1;
   return winnerGames === gamesNeeded + 1 && loserGames < gamesNeeded - 1
@@ -99,7 +98,7 @@ export function validateStandardSetRules(
   const winner = determineSetWinner(p1, p2, gamesNeeded);
   const tiebreakError = validateSetTiebreakRequirement(p1, p2, hasTiebreak, tiebreakAt);
   if (tiebreakError) return tiebreakError;
-  const scoreError = validateExtendedSetScore(p1, p2, gamesNeeded, hasTiebreak, winner);
+  const scoreError = validateExtendedSetScore(p1, p2, gamesNeeded, winner);
   return scoreError ?? buildSetValidation(p1, p2, winner, gamesNeeded, hasTiebreak);
 }
 
@@ -115,6 +114,8 @@ export function validateMatchTiebreakPoints(p1: number, p2: number): SetValidati
 }
 
 export function validateMatchTiebreakScore(p1: number, p2: number): SetValidation {
+  const inputError = validateSetInputs(p1, p2, 'Enter the tiebreak result');
+  if (inputError) return { ...inputError, error: inputError.error === 'Games cannot be negative' ? 'Points cannot be negative' : inputError.error };
   if (p1 >= TIEBREAK.MIN_WIN_POINTS_MATCH && p1 - p2 >= TIEBREAK.WIN_MARGIN) return { isValid: true, winner: 'player1' };
   if (p2 >= TIEBREAK.MIN_WIN_POINTS_MATCH && p2 - p1 >= TIEBREAK.WIN_MARGIN) return { isValid: true, winner: 'player2' };
   if (p1 > SCORING_LIMITS.MAX_TIEBREAK_POINTS_MATCH || p2 > SCORING_LIMITS.MAX_TIEBREAK_POINTS_MATCH) {

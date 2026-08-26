@@ -1,9 +1,19 @@
 import type { SetEditData } from '@/components/scoring/editScoreHelpers';
 
+type NormalizableSet = {
+  player1: number;
+  player2: number;
+  isTiebreak?: boolean;
+  tiebreakScore?: { player1: number; player2: number } | null;
+};
+
+export type NormalizableScoreState = {
+  sets?: NormalizableSet[];
+};
+
 function isMatchTiebreakFormat(format: string): boolean {
   return format === 'BEST_OF_3_MATCH_TB' || format === 'MATCH_TB_10'
-    || format === 'BEST_OF_5' || format === 'SHORT_SET_2V2_NO_AD'
-    || format === 'BEST_OF_3_NO_AD';
+    || format === 'SHORT_SET_2V2_NO_AD' || format === 'BEST_OF_3_NO_AD';
 }
 
 function scorePair(set: SetEditData) {
@@ -15,7 +25,7 @@ function wonByTwo(first: number, second: number, minimum: number): boolean {
   return first >= minimum && first - second >= 2;
 }
 
-function normalizeSet(set: any) {
+function normalizeSet(set: NormalizableSet): NormalizableSet {
   return {
     ...set,
     tiebreakScore: { player1: set.player1, player2: set.player2 },
@@ -25,31 +35,42 @@ function normalizeSet(set: any) {
   };
 }
 
-function getNormalizationTarget(scoreState: any, format: string) {
-  if (!scoreState || !isMatchTiebreakFormat(format) || !scoreState.sets?.length) return null;
+function getNormalizationTarget(scoreState: NormalizableScoreState | null | undefined, format: string): { index: number; set: NormalizableSet } | null {
+  if (!scoreState || !scoreState.sets?.length) return null;
+  if (format === 'BEST_OF_5') {
+    if (scoreState.sets.length < 5) return null;
+    const regular = scoreState.sets.slice(0, 4);
+    const p1Wins = regular.filter(set => set.player1 > set.player2).length;
+    const p2Wins = regular.filter(set => set.player2 > set.player1).length;
+    const deciding = scoreState.sets[4];
+    if (p1Wins !== 2 || p2Wins !== 2 || deciding.player1 !== 6 || deciding.player2 !== 6) return null;
+    return deciding.isTiebreak || deciding.tiebreakScore ? null : { index: 4, set: deciding };
+  }
+  if (!isMatchTiebreakFormat(format)) return null;
   const index = format === 'MATCH_TB_10' ? 0 : scoreState.sets.length - 1;
   const set = scoreState.sets[index];
   if (!set || !(set.player1 > 0 || set.player2 > 0) || set.isTiebreak || set.tiebreakScore) return null;
   return { index, set };
 }
 
-function replaceNormalizationTarget(scoreState: any, format: string, index: number, set: any) {
+function replaceNormalizationTarget(scoreState: NormalizableScoreState, format: string, index: number, set: NormalizableSet): NormalizableScoreState {
   const result = { ...scoreState };
   const newSet = normalizeSet(set);
   result.sets = format === 'MATCH_TB_10'
     ? [newSet]
-    : result.sets.map((item: any, i: number) => i === index ? newSet : item);
+    : (result.sets ?? []).map((item, i) => i === index ? newSet : item);
   return result;
 }
 
-export function normalizeMatchTiebreakState(scoreState: any, format: string): any {
+export function normalizeMatchTiebreakState(scoreState: NormalizableScoreState | null | undefined, format: string): NormalizableScoreState | null | undefined {
   const target = getNormalizationTarget(scoreState, format);
-  return target ? replaceNormalizationTarget(scoreState, format, target.index, target.set) : scoreState;
+  return target && scoreState ? replaceNormalizationTarget(scoreState, format, target.index, target.set) : scoreState;
 }
 
 export function getMatchTiebreakIndex(format: string, resultLength: number): number | null {
+  if (format === 'BEST_OF_5') return resultLength === 5 ? 4 : null;
   if (!isMatchTiebreakFormat(format)) return null;
-  const index = format === 'MATCH_TB_10' ? 0 : format === 'BEST_OF_5' ? 4 : 2;
+  const index = format === 'MATCH_TB_10' ? 0 : 2;
   return resultLength === 1 ? 0 : index;
 }
 
@@ -100,11 +121,8 @@ function countRegularSets(setResults: SetEditData[], index: number) {
   }, { player1: 0, player2: 0 });
 }
 
-function isGrandSlamDecidingSet(index: number, sets: SetEditData[], score: { player1: number; player2: number }) {
-  if (index !== 4 || score.player1 !== 2 || score.player2 !== 2) return false;
-  const current = sets[index];
-  if (!current || current.p1Games !== 6 || current.p2Games !== 6) return false;
-  return true;
+function isGrandSlamDecidingSet(index: number, _sets: SetEditData[], score: { player1: number; player2: number }) {
+  return index === 4 && score.player1 === 2 && score.player2 === 2;
 }
 
 function isOneAllDecidingSet(index: number, format: string, score: { player1: number; player2: number }) {

@@ -1,16 +1,5 @@
 import type { ScoringEngineConfig, ScoringState, SetScore } from './types';
 import { createEmptyGame } from './engine.state';
-import {
-  addWinnerPoint,
-  createMatchTiebreakSet,
-  getNextServer,
-  isMatchTiebreakComplete,
-  updateCompletedMatchTiebreak,
-  hasOneSetEach,
-  isActiveDecidingSet,
-  isMatchTiebreakStartFormat,
-  countRegularSets,
-} from './match-tiebreak.helpers';
 
 export function processMatchTiebreak(
   winner: 'player1' | 'player2',
@@ -28,11 +17,16 @@ export function processMatchTiebreak(
   const set = state.sets[currentSetIndex];
 
   const tb = set.tiebreakScore ?? { player1: 0, player2: 0 };
-  const newTb = addWinnerPoint(winner, tb);
-  const total = newTb.player1 + newTb.player2;
-  const newServer = getNextServer(total, state.server);
+  const newTb = { ...tb };
+  if (winner === 'player1') newTb.player1++;
+  else newTb.player2++;
 
-  if (isMatchTiebreakComplete(newTb)) {
+  const total = newTb.player1 + newTb.player2;
+  const newServer = total % 2 === 0
+    ? state.server
+    : (state.server === 'player1' ? 'player2' : 'player1');
+
+  if ((newTb.player1 >= 10 || newTb.player2 >= 10) && Math.abs(newTb.player1 - newTb.player2) >= 2) {
     return completeMatchTiebreak(winner, newTb, newServer, state);
   }
 
@@ -52,7 +46,14 @@ function completeMatchTiebreak(
   state: ScoringState,
 ): ScoringState {
   if (state.sets.length <= 1) {
-    state.sets = [createMatchTiebreakSet(winner, tbScore)];
+    const setWinnerGames = winner === 'player1' ? 1 : 0;
+    const setLoserGames = winner === 'player1' ? 0 : 1;
+    state.sets = [{
+      player1: setWinnerGames,
+      player2: setLoserGames,
+      isTiebreak: true,
+      tiebreakScore: tbScore,
+    }];
     state.setsWon = winner === 'player1' ? { player1: 1, player2: 0 } : { player1: 0, player2: 1 };
     state.isFinished = true;
     state.winner = winner;
@@ -60,15 +61,63 @@ function completeMatchTiebreak(
     return state;
   }
 
-  return updateCompletedMatchTiebreak(state, winner, tbScore, newServer);
+  const currentSetIndex = state.sets.length - 1;
+  const currentSet = state.sets[currentSetIndex];
+  const completedSet: SetScore = {
+    ...currentSet,
+    isTiebreak: true,
+    tiebreakScore: tbScore,
+  };
+  const newSets = [...state.sets];
+  newSets[currentSetIndex] = completedSet;
+
+  const setsWon = { ...state.setsWon };
+  if (winner === 'player1') setsWon.player1++;
+  else setsWon.player2++;
+
+  state.sets = newSets;
+  state.setsWon = setsWon;
+  state.isFinished = true;
+  state.winner = winner;
+  state.server = newServer;
+  return state;
 }
 
 export function shouldStartMatchTiebreak(state: ScoringState, config: ScoringEngineConfig): boolean {
-  return isMatchTiebreakStartFormat(config.format) && hasOneSetEach(state);
+  if (config.format === 'BEST_OF_3_MATCH_TB') {
+    const setsWon = state.setsWon;
+    if (setsWon.player1 === 1 && setsWon.player2 === 1 && state.sets.length === 2) {
+      return true;
+    }
+  }
+
+  if (config.format === 'BEST_OF_3_NO_AD') {
+    const setsWon = state.setsWon;
+    if (setsWon.player1 === 1 && setsWon.player2 === 1 && state.sets.length === 2) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 export function isMatchTiebreakActive(state: ScoringState, config: ScoringEngineConfig): boolean {
   const format = config.format as any;
+  const currentSetNum = state.sets.length;
+  const p1Sets = state.sets.filter(s => !s.isTiebreak && s.player1 > s.player2).length;
+  const p2Sets = state.sets.filter(s => !s.isTiebreak && s.player2 > s.player1).length;
+
   if (format === 'MATCH_TB_10') return true;
-  return isActiveDecidingSet(state, format, countRegularSets(state));
+
+  if (format === 'BEST_OF_5' && currentSetNum === 5 && p1Sets === 2 && p2Sets === 2) {
+    const fifthSet = state.sets[4];
+    return fifthSet?.isTiebreak === true;
+  }
+
+  if ((format === 'BEST_OF_3_MATCH_TB' || format === 'SHORT_SET_2V2_NO_AD' || format === 'BEST_OF_3_NO_AD') &&
+      currentSetNum === 3 && p1Sets === 1 && p2Sets === 1) {
+    return true;
+  }
+
+  return false;
 }

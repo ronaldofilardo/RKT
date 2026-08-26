@@ -26,7 +26,9 @@ async function extractUserFromHeaders(request: NextRequest): Promise<RLSUser | n
 
 async function extractUserFromJwt(request: NextRequest): Promise<RLSUser | null> {
   const authHeader = request.headers.get('authorization');
-  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const cookieToken = request.cookies.get('rkt_access_token')?.value;
+  const token = bearerToken ?? cookieToken ?? null;
   if (!token) return null;
   const payload = await decodeJwtPayload(token);
   if (!payload) return null;

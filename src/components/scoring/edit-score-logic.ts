@@ -1,16 +1,10 @@
 import type { TennisFormat } from '@/core/scoring/types';
 import type { SetEditData } from './editScoreHelpers';
 import {
-  getNextServerAfterSet,
   validateSetResult,
+  validateMatchTiebreakInput,
+  getNextServerAfterSet,
 } from './editScoreHelpers';
-import {
-  calculateTiebreakState,
-  countCompletedSetWins,
-  parseGameScore,
-  resolveSetValidation,
-  resolveValidationMatchTiebreak,
-} from './edit-score-validation.helpers';
 import {
   setsToWinForFormat,
   totalSetsForFormat,
@@ -172,51 +166,64 @@ export function isPotentialMTSet(
   setResults?: SetEditData[],
 ): boolean {
   if (format !== 'BEST_OF_5') return false;
-  if (totalEditedSets + 1 !== 5) return false;
-  if (!setResults || setResults.length === 0) return totalEditedSets === 4;
+  const currentSetNum = totalEditedSets + 1;
+  if (currentSetNum !== 5) return false;
 
-  const wins = countCompletedSetWins(setResults);
-  return wins.player1 === 2 && wins.player2 === 2;
+  if (setResults && setResults.length > 0) {
+    let p1Sets = 0;
+    let p2Sets = 0;
+    for (const s of setResults) {
+      const isPartial = 'isPartial' in s ? s.isPartial : false;
+      if (!isPartial) {
+        if (s.p1Games > s.p2Games) p1Sets++;
+        else if (s.p2Games > s.p1Games) p2Sets++;
+      }
+    }
+    return p1Sets === 2 && p2Sets === 2;
+  }
+
+  return totalEditedSets === 4;
 }
 
 export function calculateValidation(input: EditScoreValidationInput): EditScoreValidation {
-  const {
-    p1Input,
-    p2Input,
-    matchFormat,
-    totalEditedSets,
-    setResults,
-    tiebreakP1,
-    tiebreakP2,
-  } = input;
-  const { p1Val, p2Val, bothFilled } = parseGameScore(p1Input, p2Input);
+  const { p1Input, p2Input, matchFormat, totalEditedSets, setResults, tiebreakP1, tiebreakP2 } = input;
+  const p1Val = p1Input === '' ? NaN : parseInt(p1Input, 10);
+  const p2Val = p2Input === '' ? NaN : parseInt(p2Input, 10);
+  const bothFilled = !isNaN(p1Val) && !isNaN(p2Val) && p1Val >= 0 && p2Val >= 0;
+
   const potentialMT = isPotentialMTSet(matchFormat, totalEditedSets, setResults);
-  const isMatchTiebreakSet = resolveValidationMatchTiebreak(
-    matchFormat,
-    totalEditedSets,
-    setResults,
-    potentialMT,
-    bothFilled,
-    p1Val,
-    p2Val,
-  );
-  const setValidation = resolveSetValidation(
-    bothFilled,
-    isMatchTiebreakSet,
-    p1Val,
-    p2Val,
-    matchFormat,
-  );
+
+  let isMatchTiebreakSet: boolean;
+  if (potentialMT) {
+    isMatchTiebreakSet = bothFilled && p1Val === 6 && p2Val === 6;
+  } else if (setResults && setResults.length > 0) {
+    isMatchTiebreakSet = isMatchTiebreakSetUtil(totalEditedSets, setResults, matchFormat);
+  } else {
+    isMatchTiebreakSet =
+      matchFormat === 'MATCH_TB_10' ||
+      (matchFormat === 'BEST_OF_3_MATCH_TB' && totalEditedSets === 2) ||
+      (matchFormat === 'SHORT_SET_2V2_NO_AD' && totalEditedSets === 2) ||
+      (matchFormat === 'BEST_OF_3_NO_AD' && totalEditedSets === 2);
+  }
+
+  const setValidation = bothFilled
+    ? isMatchTiebreakSet
+      ? validateMatchTiebreakInput({ p1Points: p1Val, p2Points: p2Val })
+      : validateSetResult({ p1Games: p1Val, p2Games: p2Val }, matchFormat)
+    : null;
+
   const hasWinner = setValidation?.winner !== undefined;
   const completed = hasWinner && !setValidation?.isPartial;
-  const tiebreakState = calculateTiebreakState(
-    tiebreakP1,
-    tiebreakP2,
-    setValidation?.tiebreakRequired ?? false,
-  );
-  const isSetTrulyCompleted =
-    completed &&
-    (!setValidation?.tiebreakRequired || tiebreakState.tiebreakComplete);
+
+  const tbP1Num = tiebreakP1 ? parseInt(tiebreakP1, 10) : NaN;
+  const tbP2Num = tiebreakP2 ? parseInt(tiebreakP2, 10) : NaN;
+  const hasValidTiebreak = !isNaN(tbP1Num) && !isNaN(tbP2Num) && tbP1Num >= 0 && tbP2Num >= 0;
+  const tiebreakCompleteLocal =
+    setValidation?.tiebreakRequired ?
+      hasValidTiebreak && ((tbP1Num >= 7 || tbP2Num >= 7) && Math.abs(tbP1Num - tbP2Num) >= 2) :
+      false;
+
+  const isSetTrulyCompleted = completed && (!setValidation?.tiebreakRequired || tiebreakCompleteLocal);
   const setValidationError = isSetTrulyCompleted ? undefined : setValidation?.error;
   const hasTiebreak = setValidation?.hasTiebreak ?? false;
   const isPotentialMTSetResult = potentialMT && !isMatchTiebreakSet;
@@ -233,8 +240,8 @@ export function calculateValidation(input: EditScoreValidationInput): EditScoreV
     hasTiebreak,
     isMatchTiebreakSet,
     isPotentialMTSet: isPotentialMTSetResult,
-    hasValidTiebreak: tiebreakState.hasValidTiebreak,
-    tiebreakComplete: tiebreakState.tiebreakComplete,
+    hasValidTiebreak,
+    tiebreakComplete: tiebreakCompleteLocal,
   };
 }
 

@@ -34,7 +34,7 @@ const buildFinishedMatch = (id: string, nickname: string) => ({
   player2: { id: 'p2', name: 'Jogador 2' },
 });
 
-describe.skip('useDashboardData - parsing de response (TD-046 + jose ESM blocker)', () => {
+describe('useDashboardData - parsing de response (TD-046 + jose ESM blocker)', () => {
   const originalConsoleError = console.error;
   beforeEach(() => {
     jest.clearAllMocks();

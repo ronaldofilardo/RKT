@@ -1,11 +1,12 @@
 import { logger } from '@/lib/logger';
 import { ScoringEngine } from '@/core/scoring/engine';
 import type { MatchData } from '@/hooks/useScoringHandlers';
+import type { HistoryEntry, ScoringEngineConfig, ScoringState } from '@/core/scoring/types';
 
 export async function syncOfflinePoint(
   matchId: string,
   token: string | null,
-  entry: any,
+  entry: HistoryEntry,
 ): Promise<void> {
   if (!entry?.point?.winnerId || !entry?.point?.type || !entry?.point?.serverId) {
     logger.warn('[suspended session resume] Skipping invalid offline point:', entry);
@@ -33,7 +34,7 @@ export async function syncOfflinePoint(
 export async function syncOfflinePoints(
   matchId: string,
   token: string | null,
-  points: any[],
+  points: HistoryEntry[],
 ): Promise<void> {
   for (const entry of points) {
     try {
@@ -47,9 +48,9 @@ export async function syncOfflinePoints(
 export async function restoreFreshScoreState(
   matchId: string,
   token: string | null,
-  engineConfig: any,
-  engineRef: React.MutableRefObject<any>,
-  setScoreState: (state: any) => void,
+  engineConfig: ScoringEngineConfig,
+  engineRef: React.MutableRefObject<ScoringEngine | null>,
+  setScoreState: (state: ScoringState) => void,
 ): Promise<void> {
   const freshRes = await fetch(`/api/matches/${matchId}`, {
     headers: { authorization: `Bearer ${token}` },
@@ -58,5 +59,5 @@ export async function restoreFreshScoreState(
   const freshData: MatchData = await freshRes.json();
   if (!freshData.scoreState) return;
   engineRef.current = ScoringEngine.fromSerialized(engineConfig, JSON.stringify(freshData.scoreState));
-  setScoreState(engineRef.current.getState() as any);
+  setScoreState(engineRef.current.getState());
 }

@@ -3,10 +3,12 @@ const mockTx = {
     findFirst: jest.fn(),
     update: jest.fn(),
   },
-  pointLog: {
+    pointLog: {
     count: jest.fn(),
     create: jest.fn(),
+    findFirst: jest.fn(),
   },
+
 };
 
 jest.mock('@/lib/prisma', () => ({
@@ -113,7 +115,39 @@ describe('POST /api/matches/[id]/point', () => {
     expect(res.status).toBe(403);
   });
 
+    it('retorna o mesmo log sem reaplicar o ponto quando clientEventId já existe', async () => {
+    mockTx.match.findFirst.mockResolvedValue(mockMatch({
+      version: 4,
+      scoreState: { sets: [], currentGame: {}, server: 'player1', isFinished: false, winner: null },
+    }));
+    mockTx.pointLog.findFirst.mockResolvedValue({ id: 'point-existing' });
+
+    const req = new NextRequest('http://localhost:3000/api/matches/match-1/point', {
+      method: 'POST',
+      body: JSON.stringify({
+        winnerId: 'cjs5nqpr7000001l29u6qr9f1',
+        type: 'WINNER',
+        serverId: 'cjs5nqpr7000001l29u6qr9f2',
+        clientEventId: 'client-event-1',
+        sequenceNumber: 5,
+      }),
+      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+    });
+
+    const mod = await import('@/app/api/matches/[id]/point/route');
+    const res = await mod.POST(req, { params: Promise.resolve({ id: 'match-1' }) });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.pointLogId).toBe('point-existing');
+    expect(body.version).toBe(4);
+    expect(mockTx.match.update).not.toHaveBeenCalled();
+    expect(mockTx.pointLog.create).not.toHaveBeenCalled();
+    expect(mockTx.pointLog.count).not.toHaveBeenCalled();
+  });
+
   it('deve retornar 404 se partida não existe', async () => {
+
     mockTx.match.findFirst.mockResolvedValue(null);
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/point', {

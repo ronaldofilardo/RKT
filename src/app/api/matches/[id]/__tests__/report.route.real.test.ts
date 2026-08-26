@@ -1,5 +1,5 @@
 // Teste REAL para impedir regressao - mocks, contratos, Arrange-Act-Assert
-import { GET } from '../route';
+import { GET } from '../report/route';
 import { NextRequest } from 'next/server';
 
 jest.mock('@/lib/auth', () => ({

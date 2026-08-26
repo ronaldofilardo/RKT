@@ -1,37 +1,73 @@
 import { prisma } from "@/lib/prisma";
+import { PrismaClient } from "@prisma/client";
 import type {
-
+  MatchFormat,
   MatchState,
   CreateMatchInput,
   MatchFinishReason,
 } from "@/schemas/contracts";
 import { listMatches, getMatch, findAbandonedSessionSnapshot } from "./matchRepository";
 import { validateFinishMatch, validateTransitionState } from "./matchValidator";
-
-import {
-  buildCreateMatchData,
-  validateCreateMatchPlayers,
-  warnMissingCreator,
-  type MatchTransactionClient,
-} from './matchService.create.helpers';
-import {
-  buildFinishUpdateData,
-  buildMatchUpdateData,
-  sanitizeMatchUpdate,
-} from './matchService.operations.helpers';
+import { ValidationError } from "@/lib/errors";
+import { logger } from "@/lib/logger";
 
 export { listMatches, getMatch, findAbandonedSessionSnapshot };
 
-export async function createMatch(
-  data: CreateMatchInput,
-  createdByUserId?: string,
-  tx?: MatchTransactionClient,
-) {
-  validateCreateMatchPlayers(data);
-  warnMissingCreator(createdByUserId);
+export async function createMatch(data: CreateMatchInput, createdByUserId?: string, tx?: Parameters<Parameters<PrismaClient['$transaction']>[0]>[0]) {
+  const {
+    player1Id,
+    player2Id,
+    format,
+    sportType,
+    courtType,
+    scheduledAt,
+    initialServerId,
+    nickname,
+    visibility,
+    openForAnnotation,
+    tournamentName,
+    category,
+    round,
+    roundName,
+    bracketType,
+    temperature,
+    humidity,
+  } = data;
+
+  if (player1Id === player2Id) {
+    throw new ValidationError({
+      player2Id: ["Jogador 2 deve ser diferente do Jogador 1"],
+    });
+  }
+
+  if (!createdByUserId) {
+    logger.warn(
+      "[createMatch] createdByUserId ausente — partida será criada sem auditoria de autor (TD-045)",
+    );
+  }
+
   const client = tx ?? prisma;
   return client.match.create({
-    data: buildCreateMatchData(data, createdByUserId),
+    data: {
+      format: format as MatchFormat,
+      sportType: sportType || "TENNIS",
+      courtType: courtType || null,
+      nickname: nickname || null,
+      visibility: visibility || "PUBLIC",
+      openForAnnotation: openForAnnotation || false,
+      tournamentName: tournamentName || null,
+      category: category || null,
+      round: round || roundName || null,
+      bracketType: bracketType || null,
+      temperature: temperature || null,
+      humidity: humidity || null,
+      state: "SCHEDULED",
+      player1Id,
+      player2Id,
+      ...(initialServerId ? { initialServerId } : {}),
+      scheduledAt: scheduledAt || null,
+      ...(createdByUserId ? { createdByUserId } : {}),
+    },
     include: { player1: true, player2: true },
   });
 }
@@ -40,10 +76,73 @@ export async function updateMatch(id: string, data: Record<string, unknown>) {
   const match = await prisma.match.findFirst({ where: { id } });
   if (!match) return null;
 
-  const sanitized = sanitizeMatchUpdate(data);
+  const ALLOWED_FIELDS = [
+    'nickname',
+    'sportType',
+    'courtType',
+    'visibility',
+    'openForAnnotation',
+    'scheduledAt',
+    'initialServerId',
+    'tournamentName',
+    'category',
+    'roundName',
+    'bracketType',
+    'temperature',
+    'humidity',
+  ] as const;
+  type AllowedField = (typeof ALLOWED_FIELDS)[number];
+
+  const sanitized: Partial<Record<AllowedField, unknown>> = {};
+  for (const key of ALLOWED_FIELDS) {
+    if (data[key] !== undefined) {
+      sanitized[key] = data[key];
+    }
+  }
+
   return prisma.match.update({
     where: { id },
-    data: buildMatchUpdateData(sanitized),
+    data: {
+      ...(sanitized.nickname !== undefined
+        ? { nickname: sanitized.nickname as string }
+        : {}),
+      ...(sanitized.sportType !== undefined
+        ? { sportType: sanitized.sportType as string }
+        : {}),
+      ...(sanitized.courtType !== undefined
+        ? { courtType: sanitized.courtType as string | null }
+        : {}),
+      ...(sanitized.visibility !== undefined
+        ? { visibility: sanitized.visibility as string }
+        : {}),
+      ...(sanitized.openForAnnotation !== undefined
+        ? { openForAnnotation: sanitized.openForAnnotation as boolean }
+        : {}),
+      ...(sanitized.scheduledAt !== undefined
+        ? { scheduledAt: new Date(sanitized.scheduledAt as string) }
+        : {}),
+      ...(sanitized.initialServerId !== undefined
+        ? { initialServerId: sanitized.initialServerId as string }
+        : {}),
+      ...(sanitized.tournamentName !== undefined
+        ? { tournamentName: sanitized.tournamentName as string | null }
+        : {}),
+      ...(sanitized.category !== undefined
+        ? { category: sanitized.category as string | null }
+        : {}),
+      ...(sanitized.roundName !== undefined
+        ? { roundName: sanitized.roundName as string | null }
+        : {}),
+      ...(sanitized.bracketType !== undefined
+        ? { bracketType: sanitized.bracketType as string | null }
+        : {}),
+      ...(sanitized.temperature !== undefined
+        ? { temperature: sanitized.temperature as number | null }
+        : {}),
+      ...(sanitized.humidity !== undefined
+        ? { humidity: sanitized.humidity as number | null }
+        : {}),
+    },
     include: { player1: true, player2: true },
   });
 }
@@ -147,13 +246,36 @@ export async function finishMatch(
     return { error: validation.error } as const;
   }
 
-  const updateData = buildFinishUpdateData(
-    scoreState,
-    match.scoreState,
-    options?.reason,
-    options?.note,
-    options?.winnerId,
-  );
+  const updateData: Record<string, unknown> = {
+    state: 'FINISHED',
+    finishedAt: new Date(),
+    finishReason: options?.reason || 'COMPLETED',
+  };
+
+  // scoreState recebido do cliente tipicamente é apenas o estado (sem history).
+  // Sobrescrever perderia o {state, history} persistido pela rota /point.
+  // Se o snapshot recebido já contiver history, use-o; senão, preservar o
+  // já existente (cuja timeline ficará disponível no relatório).
+  const receivedHasHistory =
+    scoreState && typeof scoreState === 'object' &&
+    Array.isArray((scoreState as any).history) &&
+    (scoreState as any).state;
+
+  if (receivedHasHistory) {
+    updateData.scoreState = scoreState;
+  } else if (scoreState && !match.scoreState) {
+    // Nada persistido antes: aceita o que veio (legado / races iniciais).
+    updateData.scoreState = scoreState;
+  }
+  // Caso contrário: não tocar scoreState já persistido.
+
+  if (options?.note) {
+    updateData.finishNote = options.note;
+  }
+
+  if (options?.winnerId) {
+    updateData.winnerId = options.winnerId;
+  }
 
   return prisma.match.update({
     where: { id },

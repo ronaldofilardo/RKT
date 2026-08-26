@@ -45,14 +45,21 @@ interface FilterBarProps {
     p1: number;
     p2: number;
     bp: number;
-    winners: number;
-    errors: number;
+    winners?: number;
+    errors?: number;
+    ace?: number;
+    winner?: number;
+    forcedError?: number;
+    unforcedError?: number;
+    doubleFault?: number;
   };
   playerNames: { p1: string; p2: string };
 }
 
 export function FilterBar({ activeFilters, onToggleFilter, onClearFilters, counts, playerNames }: FilterBarProps) {
   const hasActiveFilters = activeFilters.size > 0;
+  const winnerCount = counts.winners ?? ((counts.ace ?? 0) + (counts.winner ?? 0));
+  const errorCount = counts.errors ?? ((counts.forcedError ?? 0) + (counts.unforcedError ?? 0) + (counts.doubleFault ?? 0));
 
   return (
     <div className="flex flex-wrap gap-2 mb-4" role="group" aria-label="Filtros da timeline">
@@ -77,13 +84,13 @@ export function FilterBar({ activeFilters, onToggleFilter, onClearFilters, count
         />
       )}
       <Chip
-        label={`Winners / Aces (${counts.winners})`}
+        label={`Winners / Aces (${winnerCount})`}
         active={activeFilters.has('winners')}
         color="gray"
         onClick={() => onToggleFilter('winners')}
       />
       <Chip
-        label={`Erros (${counts.errors})`}
+        label={`Erros (${errorCount})`}
         active={activeFilters.has('errors')}
         color="gray"
         onClick={() => onToggleFilter('errors')}

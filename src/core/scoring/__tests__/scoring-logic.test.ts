@@ -47,17 +47,17 @@ describe('scoring-logic', () => {
       expect(isBreakPoint(state)).toBe(false);
     });
 
-    it('deve retornar true quando receptor tem games iguais ao servidor (4-4)', () => {
+    it('deve retornar true quando receptor está em vantagem de pontos (30-40)', () => {
       const state = createBaseState({
-        sets: [{ player1: 4, player2: 4, isTiebreak: false, tiebreakScore: null }],
+        currentGame: { player1: 2, player2: 3, isDeuce: false, advantage: null, secondServe: false },
         server: 'player1',
       });
       expect(isBreakPoint(state)).toBe(true);
     });
 
-    it('deve retornar true quando receptor tem mais games que servidor', () => {
+    it('deve retornar true quando receptor alcança game point contra o sacador', () => {
       const state = createBaseState({
-        sets: [{ player1: 5, player2: 6, isTiebreak: false, tiebreakScore: null }],
+        currentGame: { player1: 2, player2: 3, isDeuce: false, advantage: null, secondServe: false },
         server: 'player1',
       });
       expect(isBreakPoint(state)).toBe(true);
@@ -78,7 +78,7 @@ describe('scoring-logic', () => {
 
     it('deve considerar server ao calcular break point (player2 servidor)', () => {
       const state = createBaseState({
-        sets: [{ player1: 5, player2: 4, isTiebreak: false, tiebreakScore: null }],
+        currentGame: { player1: 3, player2: 2, isDeuce: false, advantage: null, secondServe: false },
         server: 'player2',
       });
       expect(isBreakPoint(state)).toBe(true);

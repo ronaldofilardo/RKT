@@ -7,13 +7,6 @@ import type {
 } from '@/core/scoring/types';
 import { ScoringEngine } from '@/core/scoring/engine';
 import { enrichPointsFromHistory } from '@/core/scoring/scoring-logic';
-import {
-  addFailedEntry,
-  addSuccessfulEntry,
-  getLastPointDetails,
-  pointLogToFlow,
-} from './timeline-rebuild.helpers';
-import { getLogPointDetails, mergeTimelinePoint } from './timeline-rebuild.merge.helpers';
 
 /**
  * Estrutura mínima vinda do `prisma.pointLog.findMany` usada na reconstrução
@@ -25,19 +18,27 @@ export interface PointLogRow {
   winnerId: string;
   type: string;
   serverId: string;
-  timestamp: Date;
+    timestamp: Date;
+  sequenceNumber: number | null;
+  clientEventId: string | null;
   annotations:
+
     | {
         rallyDetails?: RallyDetails | null;
         rallyLength?: number;
         isFirstServe?: boolean;
         isSecondServe?: boolean;
         firstFaultDetail?: { errorType?: string; serveEffect?: string; direction?: string } | null;
-        note?: string;
+                note?: string;
+        zone?: string;
+        stroke?: string;
       }
+
     | null;
   audioNote: Buffer | null;
+  audioNoteMime: string | null;
   audioNoteDuration: number | null;
+
 }
 
 /**
@@ -83,7 +84,7 @@ export function rebuildTimelineFromPointLogs(
   // tiebreaks que seriam custosos de ressuscitar pela simulação), apenas
   // sobrescrevendo as anotações detalhadas com os dados frescos do PointLog.
   if (history.length >= pointLogs.length) {
-    return history.map((p, i) => mergeTimelinePoint(p, pointLogs[i], i + 1));
+    return history.map((p, i) => mergeWithPointLog(p, pointLogs[i], i + 1));
   }
 
   // Caminho de RECONSTRUÇÃO: history incompleto (ou vazio). Simula o placar
@@ -94,7 +95,7 @@ export function rebuildTimelineFromPointLogs(
   // dados frescos do PointLog correspondente.
   const simulatedHistory = simulateScoreFromPointLogs(pointLogs, config);
   const enriched = enrichPointsFromHistory(simulatedHistory, player1Id, player2Id);
-  return enriched.map((p, i) => mergeTimelinePoint(p, pointLogs[i], i + 1));
+  return enriched.map((p, i) => mergeWithPointLog(p, pointLogs[i], i + 1));
 }
 
 /**
@@ -124,7 +125,7 @@ function simulateScoreFromPointLogs(
     try {
       stateBefore = engine.getState();
       engine.applyPoint(flow);
-      details = getLastPointDetails(engine) ?? getLogPointDetails(log);
+      details = extractLastPointDetailsFromEngine(engine) ?? buildPointDetailsFromLog(log);
 
       lastStateBefore = engine.getState();
     } catch {
@@ -132,12 +133,111 @@ function simulateScoreFromPointLogs(
       // Reaproveita o último stateBefore e constrói um PointDetails a partir
       // do PointLog, mantendo o seviço do relatório resiliente a dados
       // inconsistentes sem produzir placar zero.
-      addFailedEntry(history, lastStateBefore, log);
+      history.push({
+        stateBefore: lastStateBefore,
+        point: buildPointDetailsFromLog(log),
+      });
       continue;
     }
 
-    addSuccessfulEntry(history, stateBefore, details, log);
+    history.push({
+      stateBefore,
+      point: details ?? buildPointDetailsFromLog(log),
+    });
   }
 
   return history;
+}
+
+/**
+ * Converte um `PointLogRow` em `PointFlow` para alimentar o engine na
+ * simulação. Mapeia `annotations` (rallyDetails, isFirstServe,
+ * firstFaultDetail, etc.) para os campos correspondentes de PointFlow.
+ *
+ * Observação: quando o `type` do PointLog é `FAULT_FIRST` (1ª falta que
+ * não encerra o ponto) ou `firstFaultDetail` está presente com tipo
+ * `DOUBLE_FAULT`, é crucial sinalizar `firstFault: true` para que o
+ * engine atualize apenas `secondServe` em vez de computar um ponto.
+ */
+function pointLogToFlow(log: PointLogRow): import('@/core/scoring/types').PointFlow {
+  const ann = log.annotations;
+  const type = log.type;
+  return {
+    winnerId: log.winnerId,
+    type,
+    serverId: log.serverId,
+    timestamp: log.timestamp.getTime(),
+    isFirstServe: ann?.isFirstServe,
+    isSecondServe: ann?.isSecondServe,
+    firstFault: type === 'FAULT_FIRST',
+    firstFaultDetail: ann?.firstFaultDetail ?? null,
+    rallyDetails: ann?.rallyDetails ?? null,
+    rallyLength: ann?.rallyLength,
+  };
+}
+
+/**
+ * Extrai o `PointDetails` do último ponto aplicado no engine, consultando
+ * o histórico interno. Como `engine.applyPoint` sempre chama `saveToHistory`
+ * antes de processar (ver `engine.ts:71,79,86`), a última entrada é o ponto
+ * recém-aplicado.
+ */
+function extractLastPointDetailsFromEngine(engine: ScoringEngine): PointDetails | null {
+  const history = engine.getPointHistory();
+  return history.length > 0 ? history[history.length - 1].point : null;
+}
+
+/**
+ * Constrói um `PointDetails` mínimo a partir do `PointLogRow` — usado como
+ * fallback quando o engine rejeitou o ponto ou quando há inconsistência de
+ * dados. Prioriza os `annotations` do PointLog para preservar rallyDetails,
+ * firstFaultDetail, etc., garantindo que as anotações detalhadas não se
+ * percam mesmo em cenários degenerados.
+ */
+function buildPointDetailsFromLog(log: PointLogRow): PointDetails {
+  const ann = log.annotations;
+  return {
+    winnerId: log.winnerId,
+    type: log.type as PointDetails['type'],
+    isFirstServe: ann?.isFirstServe ?? true,
+    isSecondServe: ann?.isSecondServe ?? false,
+    isLet: false,
+    serverId: log.serverId,
+    timestamp: log.timestamp.getTime(),
+    rallyDetails: ann?.rallyDetails ?? null,
+    rallyLength: ann?.rallyLength ?? 0,
+    firstFaultDetail: ann?.firstFaultDetail ?? null,
+  };
+}
+
+function mergeWithPointLog(p: TimelinePoint, log: PointLogRow, pointNumber: number): TimelinePoint {
+  const ann = log.annotations;
+  const rallyDetails = ann?.rallyDetails ?? p.rallyDetails ?? null;
+  const firstFaultDetail = ann?.firstFaultDetail ?? p.firstFault ?? null;
+  const rallyLength = ann?.rallyLength ?? p.rallyLength;
+    const note = ann?.note ?? (rallyDetails?.note ?? p.note);
+  return {
+
+    ...p,
+    pointNumber,
+    sequenceNumber: log.sequenceNumber ?? pointNumber,
+    clientEventId: log.clientEventId ?? undefined,
+        recordedAt: log.timestamp.toISOString(),
+    zone: ann?.zone,
+    stroke: ann?.stroke,
+    pointId: log.id,
+
+    rallyDetails,
+    rallyLength,
+    note,
+    firstFault: firstFaultDetail,
+    hasAudioNote: log.audioNote !== null,
+    audioNoteDuration: log.audioNoteDuration ?? undefined,
+    pointDetails: {
+      ...p.pointDetails,
+      rallyDetails,
+      rallyLength,
+      firstFaultDetail,
+    },
+  };
 }

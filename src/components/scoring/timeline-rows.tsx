@@ -93,8 +93,11 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, player1Na
       </td>
       {/* PONTOS — placar de pontos dentro do game (15-0, Deuce, Adv. P1, etc.) */}
       <td className="px-1.5 py-1.5 text-[10px] font-bold text-gray-800">{getGameScoreLabelForPoint(p)}</td>
+            {/* SEQUÊNCIA */}
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-500">{p.sequenceNumber ?? p.pointNumber}</td>
       {/* VENCEDOR DO PONTO */}
       <td className={`px-1.5 py-1.5 text-[10px] font-semibold truncate ${p.winner === 'PLAYER_1' ? 'text-blue-600' : 'text-red-600'}`}>
+
         {winnerName}
       </td>
       {/* TIPO */}
@@ -105,8 +108,12 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, player1Na
       </td>
       {/* SITUAÇÃO */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : situacaoLabel(rd?.situacao)}</td>
+            {/* ZONA / STROKE BRUTOS DO SCOUT */}
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{p.zone ?? '–'}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{p.stroke ?? '–'}</td>
       {/* GOLPE */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : golpeLabel(rd?.golpe)}</td>
+
       {/* EFEITO */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : efeitoLabel(rd?.efeito)}</td>
       {/* DIREÇÃO */}
@@ -152,7 +159,8 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, player1Na
     return (
       <>
         <tr>
-          <td colSpan={16} className="text-center py-2 bg-amber-50/60 border-y border-dashed border-amber-300">
+                    <td colSpan={19} className="text-center py-2 bg-amber-50/60 border-y border-dashed border-amber-300">
+
             <span className="text-[10px] text-amber-800">
               ⏸ Partida interrompida em <strong>{p.segmentBreak.previousLabel}</strong> · placar ajustado para <strong>{p.segmentBreak.newLabel}</strong> em {editedAtLabel}
             </span>
@@ -169,7 +177,8 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, player1Na
     return (
       <>
         <tr>
-          <td colSpan={16} className="text-center py-1.5">
+                    <td colSpan={19} className="text-center py-1.5">
+
             <span className="text-[10px] italic text-gray-400 border-t border-dashed border-b border-dashed border-gray-300 px-2">marcação interrompida</span>
           </td>
         </tr>

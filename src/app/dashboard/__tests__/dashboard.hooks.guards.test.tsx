@@ -4,7 +4,7 @@
  * Testes para os fixes aplicados em useDashboardData:
  * - Guard de token expirado (isTokenExpired) limpa sessão e redireciona
  * - Renderiza suspendedFromApi no estado
- * - Não chama fetch (sem signal) — fetch é executado sem AbortController signal
+ * - As chamadas usam AbortController signal para timeout e cleanup
  * - Não executa 2x sob StrictMode (fetchedRef previne double-mount)
  */
 import { renderHook, waitFor } from '@testing-library/react';
@@ -59,7 +59,7 @@ const mockFetchWith = (...responses: Array<{ ok?: boolean; body: any }>) => {
   }) as any;
 };
 
-describe.skip('useDashboardData - guard de token expirado (TD-046 + jose ESM blocker)', () => {
+describe('useDashboardData - guard de token expirado (TD-046 + jose ESM blocker)', () => {
   let consoleError: typeof console.error;
 
   beforeEach(() => {
@@ -76,10 +76,7 @@ describe.skip('useDashboardData - guard de token expirado (TD-046 + jose ESM blo
     console.error = consoleError;
   });
 
-  // NOTA: isTokenExpired esta hardcoded (jwt-client.ts) para sempre retornar false.
-  // Logo, um token com exp no passado NAO dispara redirect para /login no codigo atual.
-  // Este comportamento e documentado aqui para evitar regressao quando o JWT for restaurado.
-  it('nao redireciona para /login quando access_token tem exp no passado (isTokenExpired hardcoded)', async () => {
+  it('redireciona para /login quando access_token tem exp no passado', async () => {
     const expiredToken = buildJwt({ sub: 'u', exp: Math.floor(Date.now() / 1000) - 60 });
     setupSessionStorage({
       access_token: expiredToken,
@@ -91,11 +88,8 @@ describe.skip('useDashboardData - guard de token expirado (TD-046 + jose ESM blo
     const { useDashboardData } = await import('@/app/dashboard/dashboard.hooks');
     renderHook(() => useDashboardData());
 
-    // Como isTokenExpired retorna false sempre, nao ha redirect.
-    await waitFor(() => expect(window.location.replace).not.toHaveBeenCalled());
-    // O fetch NAO e abortado pelo redirect; portanto, como token existe,
-    // o fetch e executado (mesmo que com exp no passado).
-    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    await waitFor(() => expect(window.location.replace).toHaveBeenCalledWith('/login'));
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it('não redireciona quando access_token tem exp no futuro', async () => {
@@ -129,7 +123,7 @@ describe.skip('useDashboardData - guard de token expirado (TD-046 + jose ESM blo
   });
 });
 
-describe.skip('useDashboardData - suspendedFromApi (TD-046 + jose ESM blocker)', () => {
+describe('useDashboardData - suspendedFromApi (TD-046 + jose ESM blocker)', () => {
   let consoleError: typeof console.error;
 
   beforeEach(() => {
@@ -180,7 +174,7 @@ describe.skip('useDashboardData - suspendedFromApi (TD-046 + jose ESM blocker)',
   });
 });
 
-describe.skip('useDashboardData - sem AbortController signal (TD-046 + jose ESM blocker)', () => {
+describe('useDashboardData - AbortController e cleanup', () => {
   let consoleError: typeof console.error;
 
   beforeEach(() => {
@@ -197,7 +191,7 @@ describe.skip('useDashboardData - sem AbortController signal (TD-046 + jose ESM 
     console.error = consoleError;
   });
 
-  it('chama fetch sem options.signal (não pode ser abortado externamente)', async () => {
+  it('chama fetch com options.signal para permitir timeout e cancelamento', async () => {
     const validToken = buildJwt({ sub: 'u', exp: Math.floor(Date.now() / 1000) + 3600 });
     setupSessionStorage({ access_token: validToken, user_id: 'u', user_role: 'ATHLETE' });
     mockFetchWith(
@@ -211,7 +205,7 @@ describe.skip('useDashboardData - sem AbortController signal (TD-046 + jose ESM 
     await waitFor(() => expect(global.fetch).toHaveBeenCalled());
     const callArgs = (global.fetch as jest.Mock).mock.calls[0];
     const options = callArgs[1];
-    expect(options?.signal).toBeUndefined();
+    expect(options?.signal).toBeInstanceOf(AbortSignal);
   });
 
   it('sempre chama loading=false após fetch completar', async () => {

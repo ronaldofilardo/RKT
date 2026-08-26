@@ -103,7 +103,7 @@ const setupSessionStorage = () => {
   });
 };
 
-describe.skip('DashboardPage - view "Partidas Anotadas" (TD-046)', () => {
+describe('DashboardPage - view "Partidas Anotadas" (TD-046)', () => {
   const mockRouter = { push: jest.fn() };
 
   beforeEach(() => {

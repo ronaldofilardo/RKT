@@ -13,7 +13,9 @@ export interface ScoringPageHandlers {
   handleUndo: ReturnType<typeof useScoringHandlers>["handleUndo"];
   handleRedo: ReturnType<typeof useScoringHandlers>["handleRedo"];
   handleCancelSecondServe: ReturnType<typeof useScoringHandlers>["handleCancelSecondServe"];
-  openAceModal: ReturnType<typeof useScoringHandlers>["openAceModal"];
+    openAceModal: ReturnType<typeof useScoringHandlers>["openAceModal"];
+  handleAceDirect: ReturnType<typeof useScoringHandlers>["handleAceDirect"];
+
   handleServerEffectConfirm: ReturnType<typeof useScoringHandlers>["handleServerEffectConfirm"];
   handleServeErrorConfirm: ReturnType<typeof useScoringHandlers>["handleServeErrorConfirm"];
   handleServeCancel: ReturnType<typeof useScoringHandlers>["handleServeCancel"];
@@ -88,6 +90,7 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     handleRedo,
     handleCancelSecondServe,
     openAceModal,
+    handleAceDirect,
     handleServerEffectConfirm,
     handleServeErrorConfirm,
     handleServeCancel,
@@ -253,6 +256,7 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     handleRedo,
     handleCancelSecondServe,
     openAceModal,
+    handleAceDirect,
     handleServerEffectConfirm,
     handleServeErrorConfirm,
     handleServeCancel,

@@ -109,8 +109,15 @@ export interface TimelinePoint {
   rallyDetails: ContractRallyDetails | null;
   note?: string;
   hasAudioNote?: boolean;
+  audioNoteMime?: string;
   audioNoteDuration?: number;
   pointId?: string;
+  sequenceNumber?: number;
+  clientEventId?: string;
+  recordedAt?: string;
+  zone?: string;
+  stroke?: string;
+  rawAnnotations?: Record<string, unknown> | null;
   isTiebreak?: boolean;
   gameIsDeuce?: boolean;
   gameAdvantage?: 'player1' | 'player2' | null;
@@ -127,6 +134,8 @@ export interface TimelinePoint {
    */
   segmentBreak?: {
     editedAt: string;
+    editedByUserId?: string;
+    note?: string;
     previousLabel: string;
     newLabel: string;
   };

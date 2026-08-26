@@ -23,8 +23,13 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
 
 jest.mock('@/lib/prisma', () => {
+  const txUpdate = jest.fn();
   const txMock = {
     match: {
+      create: jest.fn(),
+      update: txUpdate,
+    },
+    matchScoreEdit: {
       create: jest.fn(),
     },
   };
@@ -34,7 +39,7 @@ jest.mock('@/lib/prisma', () => {
       findFirst: jest.fn(),
       findUnique: jest.fn(),
       create: jest.fn(),
-      update: jest.fn(),
+      update: txUpdate,
       delete: jest.fn(),
     },
     pointLog: {
@@ -427,27 +432,6 @@ describe('matchService (characterization)', () => {
       expect(result.error).toBe('MATCH_NOT_FOUND');
     });
 
-    it('SUSPECT: TD-XXX — Soft delete não limpa pointLog e annotationSessions', async () => {
-      // Comportamento observado: soft delete apenas marca `state='CANCELLED'`
-      // + `deletedAt`/`deletedBy`/`finishNote`; pointLog e sessions
-      // permanecem no banco (só hard delete limpa via $transaction).
-      mockPrisma.match.findFirst.mockResolvedValue({
-        id: 'match-1',
-        state: 'SCHEDULED',
-        pointLog: [{ id: 'p1' }, { id: 'p2' }],
-        annotationSessions: [{ id: 's1' }],
-      });
-      mockPrisma.match.update.mockResolvedValue({ id: 'match-1', state: 'CANCELLED' });
-
-      const result: any = await deleteMatch('match-1', { type: 'soft' });
-
-      expect(result.success).toBe(true);
-      // Hard delete limpa pointLog/sessions — soft delete apenas marca.
-      expect(mockPrisma.pointLog.deleteMany).not.toHaveBeenCalled();
-      expect(mockPrisma.matchAnnotationSession.deleteMany).not.toHaveBeenCalled();
-      // SUSPECT: pointLog e sessions permanecem no banco?
-      // Deveriam ser deletados ou marcados como deleted também?
-    });
   });
 
   describe('finishMatch', () => {

@@ -152,6 +152,7 @@ export const PointFlowInputSchema = z.object({
   serverId: flexibleIdValidator,
   timestamp: z.number().optional(),
   sequenceNumber: z.number().int().positive().optional(),
+  clientEventId: z.string().min(1).max(128).optional(),
   isFirstServe: z.boolean().optional(),
   isSecondServe: z.boolean().optional(),
   firstFaultDetail: z
