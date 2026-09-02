@@ -267,23 +267,84 @@ describe('ScoringEngine - undoLastPoint advanced', () => {
 });
 
 describe('ScoringEngine - replayCurrentPoint', () => {
-  it('deve ser no-op se não há histórico', () => {
+  it('deve ser no-op se não há redo', () => {
     const engine = new ScoringEngine(makeConfig('BEST_OF_3'));
     engine.replayCurrentPoint();
     expect(engine.getHistoryLength()).toBe(0);
+    expect(engine.getRedoLength()).toBe(0);
   });
 
-  it('redo não implementado: replayCurrentPoint é no-op (preserva histórico e estado)', () => {
+  it('deve refazer imediatamente após undo', () => {
     const engine = new ScoringEngine(makeConfig('BEST_OF_3'));
     makePoint(engine, 'player-1-id');
     makePoint(engine, 'player-1-id');
 
     expect(engine.getHistoryLength()).toBe(2);
     expect(engine.getState().currentGame.player1).toBe(2);
+    expect(engine.getRedoLength()).toBe(0);
+
+    engine.undoLastPoint();
+    expect(engine.getHistoryLength()).toBe(1);
+    expect(engine.getState().currentGame.player1).toBe(1);
+    expect(engine.getRedoLength()).toBe(1);
 
     engine.replayCurrentPoint();
     expect(engine.getHistoryLength()).toBe(2);
     expect(engine.getState().currentGame.player1).toBe(2);
+    expect(engine.getRedoLength()).toBe(0);
+  });
+
+  it('deve alternar undo/redo múltiplas vezes', () => {
+    const engine = new ScoringEngine(makeConfig('BEST_OF_3'));
+    makePoint(engine, 'player-1-id');
+    makePoint(engine, 'player-1-id');
+    makePoint(engine, 'player-2-id');
+
+    expect(engine.getState().currentGame.player1).toBe(2);
+    expect(engine.getState().currentGame.player2).toBe(1);
+
+    engine.undoLastPoint();
+    expect(engine.getState().currentGame.player2).toBe(0);
+    expect(engine.getRedoLength()).toBe(1);
+
+    engine.replayCurrentPoint();
+    expect(engine.getState().currentGame.player2).toBe(1);
+    expect(engine.getRedoLength()).toBe(0);
+
+    engine.undoLastPoint();
+    expect(engine.getState().currentGame.player2).toBe(0);
+    expect(engine.getRedoLength()).toBe(1);
+
+    engine.undoLastPoint();
+    expect(engine.getState().currentGame.player1).toBe(1);
+    expect(engine.getRedoLength()).toBe(2);
+
+    engine.replayCurrentPoint();
+    expect(engine.getState().currentGame.player1).toBe(2);
+    expect(engine.getRedoLength()).toBe(1);
+  });
+
+  it('deve limpar redo ao aplicar novo ponto', () => {
+    const engine = new ScoringEngine(makeConfig('BEST_OF_3'));
+    makePoint(engine, 'player-1-id');
+    makePoint(engine, 'player-1-id');
+
+    engine.undoLastPoint();
+    expect(engine.getRedoLength()).toBe(1);
+
+    makePoint(engine, 'player-2-id');
+    expect(engine.getHistoryLength()).toBe(2);
+    expect(engine.getRedoLength()).toBe(0);
+    expect(engine.getState().currentGame.player1).toBe(1);
+    expect(engine.getState().currentGame.player2).toBe(1);
+  });
+
+  it('deve retornar null ao tentar redo sem histórico de redo', () => {
+    const engine = new ScoringEngine(makeConfig('BEST_OF_3'));
+    makePoint(engine, 'player-1-id');
+    const result = engine.replayCurrentPoint();
+    expect(result).toBeNull();
+    expect(engine.getState().currentGame.player1).toBe(1);
   });
 });
 

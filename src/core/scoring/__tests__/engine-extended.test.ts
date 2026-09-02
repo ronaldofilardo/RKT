@@ -86,6 +86,49 @@ describe('ScoringEngine - undoLastPoint', () => {
   });
 });
 
+describe('ScoringEngine - redo after undo integration', () => {
+  it('deve refazer ponto e restaurar estado e history corretamente', () => {
+    const engine = createEngine();
+    makePoint(engine, 'player-1-id');
+    makePoint(engine, 'player-2-id');
+
+    const beforeUndo = engine.getState();
+    expect(beforeUndo.currentGame.player1).toBe(1);
+    expect(beforeUndo.currentGame.player2).toBe(1);
+    expect(engine.getHistoryLength()).toBe(2);
+    expect(engine.getRedoLength()).toBe(0);
+
+    engine.undoLastPoint();
+    const afterUndo = engine.getState();
+    expect(afterUndo.currentGame.player2).toBe(0);
+    expect(engine.getHistoryLength()).toBe(1);
+    expect(engine.getRedoLength()).toBe(1);
+
+    engine.replayCurrentPoint();
+    const afterRedo = engine.getState();
+    expect(afterRedo.currentGame.player1).toBe(1);
+    expect(afterRedo.currentGame.player2).toBe(1);
+    expect(engine.getHistoryLength()).toBe(2);
+    expect(engine.getRedoLength()).toBe(0);
+  });
+
+  it('deve impedir redo após novo ponto', () => {
+    const engine = createEngine();
+    makePoint(engine, 'player-1-id');
+    makePoint(engine, 'player-1-id');
+
+    engine.undoLastPoint();
+    expect(engine.getRedoLength()).toBe(1);
+
+    makePoint(engine, 'player-2-id');
+    expect(engine.getHistoryLength()).toBe(2);
+    expect(engine.getRedoLength()).toBe(0);
+
+    const result = engine.replayCurrentPoint();
+    expect(result).toBeNull();
+  });
+});
+
 describe('ScoringEngine - getHistoryLength', () => {
   let engine: ScoringEngine;
 
@@ -102,6 +145,40 @@ describe('ScoringEngine - getHistoryLength', () => {
     expect(engine.getHistoryLength()).toBe(1);
     makePoint(engine, 'player-2-id');
     expect(engine.getHistoryLength()).toBe(2);
+  });
+});
+
+describe('ScoringEngine - getRedoLength', () => {
+  let engine: ScoringEngine;
+
+  beforeEach(() => {
+    engine = createEngine();
+  });
+
+  it('deve retornar 0 no início', () => {
+    expect(engine.getRedoLength()).toBe(0);
+  });
+
+  it('deve incrementar após undo e zerar após redo', () => {
+    makePoint(engine, 'player-1-id');
+    makePoint(engine, 'player-2-id');
+    expect(engine.getRedoLength()).toBe(0);
+
+    engine.undoLastPoint();
+    expect(engine.getRedoLength()).toBe(1);
+
+    engine.replayCurrentPoint();
+    expect(engine.getRedoLength()).toBe(0);
+  });
+
+  it('deve limpar redo ao aplicar novo ponto', () => {
+    makePoint(engine, 'player-1-id');
+    makePoint(engine, 'player-1-id');
+    engine.undoLastPoint();
+    expect(engine.getRedoLength()).toBe(1);
+
+    makePoint(engine, 'player-2-id');
+    expect(engine.getRedoLength()).toBe(0);
   });
 });
 
@@ -358,7 +435,7 @@ describe('ScoringEngine - undoLastPoint advanced scenarios', () => {
     makePoint(engine, 'player-1-id', 'WINNER');
     const undone = engine.undoLastPoint();
     expect(undone).not.toBeNull();
-    expect(undone?.type).toBe('WINNER');
-    expect(undone?.winnerId).toBe('player-1-id');
+    expect(undone?.point.type).toBe('WINNER');
+    expect(undone?.point.winnerId).toBe('player-1-id');
   });
 });

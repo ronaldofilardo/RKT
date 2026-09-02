@@ -66,7 +66,9 @@ export function useScoringPageDerived(
   const canUndo = engineRef.current
     ? engineRef.current.getHistoryLength() > 0
     : false;
-  const canRedo = false;
+  const canRedo = engineRef.current
+    ? engineRef.current.getRedoLength() > 0
+    : false;
   const isSetupNeeded = activeModal === "setup" && !match?.initialServerId;
   const isProcessingPoint = isProcessing === true;
 

@@ -416,11 +416,76 @@ describe('ScoringEngine — Characterization Tests', () => {
   });
 
   describe('replayCurrentPoint', () => {
-    it('does nothing when no history', () => {
+    it('does nothing when no redo history', () => {
       const config = createConfig('BEST_OF_3');
       const engine = new ScoringEngine(config);
       engine.replayCurrentPoint(); // should not throw
       expect(engine.getState().currentGame.player1).toBe(0);
+      expect(engine.getRedoLength()).toBe(0);
+    });
+
+    it('restores state after undo+redo', () => {
+      const config = createConfig('BEST_OF_3');
+      const engine = new ScoringEngine(config);
+      engine.applyPoint({ type: 'WINNER', winnerId: 'p1', timestamp: Date.now() });
+      engine.applyPoint({ type: 'WINNER', winnerId: 'p1', timestamp: Date.now() });
+
+      expect(engine.getState().currentGame.player1).toBe(2);
+      expect(engine.getHistoryLength()).toBe(2);
+      expect(engine.getRedoLength()).toBe(0);
+
+      engine.undoLastPoint();
+      expect(engine.getState().currentGame.player1).toBe(1);
+      expect(engine.getHistoryLength()).toBe(1);
+      expect(engine.getRedoLength()).toBe(1);
+
+      engine.replayCurrentPoint();
+      expect(engine.getState().currentGame.player1).toBe(2);
+      expect(engine.getHistoryLength()).toBe(2);
+      expect(engine.getRedoLength()).toBe(0);
+    });
+
+    it('returns null when redo stack is empty', () => {
+      const config = createConfig('BEST_OF_3');
+      const engine = new ScoringEngine(config);
+      engine.applyPoint({ type: 'WINNER', winnerId: 'p1', timestamp: Date.now() });
+      const result = engine.replayCurrentPoint();
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('getRedoLength', () => {
+    it('returns 0 initially', () => {
+      const config = createConfig('BEST_OF_3');
+      const engine = new ScoringEngine(config);
+      expect(engine.getRedoLength()).toBe(0);
+    });
+
+    it('increases after undo and decreases after redo', () => {
+      const config = createConfig('BEST_OF_3');
+      const engine = new ScoringEngine(config);
+      engine.applyPoint({ type: 'WINNER', winnerId: 'p1', timestamp: Date.now() });
+      engine.applyPoint({ type: 'WINNER', winnerId: 'p2', timestamp: Date.now() });
+      expect(engine.getRedoLength()).toBe(0);
+
+      engine.undoLastPoint();
+      expect(engine.getRedoLength()).toBe(1);
+
+      engine.replayCurrentPoint();
+      expect(engine.getRedoLength()).toBe(0);
+    });
+
+    it('clears redo after new point', () => {
+      const config = createConfig('BEST_OF_3');
+      const engine = new ScoringEngine(config);
+      engine.applyPoint({ type: 'WINNER', winnerId: 'p1', timestamp: Date.now() });
+      engine.applyPoint({ type: 'WINNER', winnerId: 'p1', timestamp: Date.now() });
+
+      engine.undoLastPoint();
+      expect(engine.getRedoLength()).toBe(1);
+
+      engine.applyPoint({ type: 'WINNER', winnerId: 'p2', timestamp: Date.now() });
+      expect(engine.getRedoLength()).toBe(0);
     });
   });
 

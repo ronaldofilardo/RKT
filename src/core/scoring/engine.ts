@@ -1,7 +1,7 @@
 import type { ScoringEngineConfig, ScoringState, PointFlow, PointDetails, HistoryEntry } from './types';
 import { logger } from '@/lib/logger';
 import { createInitialState, getState, serialize, reconcileWithCanonicalState } from './engine.state';
-import { saveToHistory, undoLastPoint as undoHistory, replayCurrentPoint as replayHistory, getHistoryLength, getPointHistory, restorePointHistory, clearHistory } from './engine.history';
+import { saveToHistory, undoLastPoint as undoHistory, replayCurrentPoint as replayHistory, getHistoryLength, getPointHistory, restorePointHistory, clearHistory, clearRedoHistory, getRedoLength } from './engine.history';
 import {
   processRegularPoint as processRegularPointFlow,
   processTiebreakPoint as processTiebreakPointHandler,
@@ -13,6 +13,7 @@ export class ScoringEngine {
   private state: ScoringState;
   private config: ScoringEngineConfig;
   private history: HistoryEntry[] = [];
+  private redoStack: HistoryEntry[] = [];
 
   constructor(config: ScoringEngineConfig, initialState?: ScoringState) {
     this.config = config;
@@ -69,6 +70,7 @@ export class ScoringEngine {
     }
 
     saveToHistory(this.history, this.state, details);
+    clearRedoHistory(this.redoStack);
 
     const newState = this.processPoint(winner!);
     this.state = newState;
@@ -77,6 +79,7 @@ export class ScoringEngine {
 
   private handleFirstServeFault(_winner: 'player1' | 'player2', details: PointDetails): ScoringState {
     saveToHistory(this.history, this.state, details);
+    clearRedoHistory(this.redoStack);
     this.state.currentGame.secondServe = true;
     this.state.secondServe = true;
     return getState(this.state);
@@ -84,6 +87,7 @@ export class ScoringEngine {
 
   private handleDoubleFault(winner: 'player1' | 'player2', details: PointDetails): ScoringState {
     saveToHistory(this.history, this.state, details);
+    clearRedoHistory(this.redoStack);
     this.state.secondServe = false;
     this.state.currentGame.secondServe = false;
     return this.processPoint(winner);
@@ -105,16 +109,30 @@ export class ScoringEngine {
     return processRegularPointFlow(winner, this.state, this.config);
   }
 
-  undoLastPoint(): PointDetails | null {
-    return undoHistory(this.history, (newState) => { this.state = newState; });
+  undoLastPoint(): { point: PointDetails } | null {
+    const result = undoHistory(this.history, this.redoStack, this.state);
+    if (result) {
+      this.state = result.stateBefore;
+      return { point: result.point };
+    }
+    return null;
   }
 
-  replayCurrentPoint(): void {
-    replayHistory(this.history, (newState) => { this.state = newState; });
+  replayCurrentPoint(): { point: PointDetails } | null {
+    const result = replayHistory(this.redoStack, this.history, this.state);
+    if (result) {
+      this.state = result.stateBefore;
+      return { point: result.point };
+    }
+    return null;
   }
 
   getHistoryLength(): number {
     return getHistoryLength(this.history);
+  }
+
+  getRedoLength(): number {
+    return getRedoLength(this.redoStack);
   }
 
   getState(): Readonly<ScoringState> {
@@ -150,10 +168,12 @@ export class ScoringEngine {
   loadState(newState: ScoringState): void {
     this.state = JSON.parse(JSON.stringify(newState));
     this.history = [];
+    this.redoStack = [];
   }
 
   clearHistory(): void {
     clearHistory(this.history);
+    clearRedoHistory(this.redoStack);
   }
 
   serialize(): string {

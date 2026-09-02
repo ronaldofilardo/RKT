@@ -15,7 +15,7 @@ jest.mock('@/core/scoring/engine', () => ({
     });
     this.applyPoint = jest.fn();
     this.isFinished = jest.fn().mockReturnValue(false);
-    this.undoLastPoint = jest.fn().mockReturnValue({ type: 'WINNER', winnerId: 'p1' });
+    this.undoLastPoint = jest.fn().mockReturnValue({ point: { type: 'WINNER', winnerId: 'p1' } });
     this.getHistoryLength = jest.fn().mockReturnValue(1);
   }),
 }));
@@ -279,7 +279,7 @@ describe('useScoringHandlers - handleUndo', () => {
         startedAt: Date.now(),
         secondServe: false,
       }),
-      undoLastPoint: jest.fn().mockReturnValue({ type: 'WINNER', winnerId: 'p1' }),
+      undoLastPoint: jest.fn().mockReturnValue({ point: { type: 'WINNER', winnerId: 'p1' } }),
       getHistoryLength: jest.fn().mockReturnValue(1),
     };
 
@@ -297,5 +297,140 @@ describe('useScoringHandlers - handleUndo', () => {
     handlers.handleUndo();
 
     expect(mockEngine.getState).toHaveBeenCalled();
+  });
+});
+
+describe('useScoringHandlers - handleRedo', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({}),
+    });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('deve chamar replayCurrentPoint e atualizar state/history', async () => {
+    const setScoreState = jest.fn();
+    const setPointsHistory = jest.fn();
+    const closeAll = jest.fn();
+
+    const mockEngine = {
+      getState: jest.fn().mockReturnValue({
+        sets: [{ player1: 1, player2: 0, isTiebreak: false, tiebreakScore: null }],
+        currentGame: { player1: 1, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+        server: 'player1' as const,
+        isFinished: false,
+        winner: null,
+        setsWon: { player1: 0, player2: 0 },
+        startedAt: Date.now(),
+        secondServe: false,
+      }),
+      replayCurrentPoint: jest.fn().mockReturnValue({ point: { type: 'WINNER', winnerId: 'p1' } }),
+    };
+
+    const ctx = createMockContext({
+      engineRef: { current: mockEngine as any },
+      setScoreState,
+      setPointsHistory,
+      closeAll,
+      onUndoComplete: jest.fn(),
+    });
+
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+    const handlers = result.current;
+
+    await handlers.handleRedo();
+
+    expect(mockEngine.replayCurrentPoint).toHaveBeenCalled();
+    expect(setScoreState).toHaveBeenCalled();
+    expect(closeAll).toHaveBeenCalled();
+  });
+
+  it('deve atualizar pointsHistory com o ponto refeito', async () => {
+    const setScoreState = jest.fn();
+    const setPointsHistory = jest.fn();
+    const closeAll = jest.fn();
+
+    const mockEngine = {
+      getState: jest.fn().mockReturnValue({
+        sets: [{ player1: 1, player2: 0, isTiebreak: false, tiebreakScore: null }],
+        currentGame: { player1: 1, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+        server: 'player1' as const,
+        isFinished: false,
+        winner: null,
+        setsWon: { player1: 0, player2: 0 },
+        startedAt: Date.now(),
+        secondServe: false,
+      }),
+      replayCurrentPoint: jest.fn().mockReturnValue({ point: { type: 'WINNER', winnerId: 'p2' } }),
+    };
+
+    const ctx = createMockContext({
+      engineRef: { current: mockEngine as any },
+      setScoreState,
+      setPointsHistory,
+      closeAll,
+      onUndoComplete: jest.fn(),
+    });
+
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+    const handlers = result.current;
+
+    await handlers.handleRedo();
+
+    expect(setPointsHistory).toHaveBeenCalledWith(expect.any(Function));
+  });
+
+  it('não deve fazer nada se replayCurrentPoint retornar null', async () => {
+    const setScoreState = jest.fn();
+    const setPointsHistory = jest.fn();
+    const closeAll = jest.fn();
+
+    const mockEngine = {
+      getState: jest.fn(),
+      replayCurrentPoint: jest.fn().mockReturnValue(null),
+    };
+
+    const ctx = createMockContext({
+      engineRef: { current: mockEngine as any },
+      setScoreState,
+      setPointsHistory,
+      closeAll,
+      onUndoComplete: jest.fn(),
+    });
+
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+    const handlers = result.current;
+
+    await handlers.handleRedo();
+
+    expect(setScoreState).not.toHaveBeenCalled();
+    expect(closeAll).not.toHaveBeenCalled();
+  });
+
+  it('não deve fazer nada se engineRef.current for null', async () => {
+    const setScoreState = jest.fn();
+    const setPointsHistory = jest.fn();
+    const closeAll = jest.fn();
+
+    const ctx = createMockContext({
+      engineRef: { current: null },
+      setScoreState,
+      setPointsHistory,
+      closeAll,
+      onUndoComplete: jest.fn(),
+    });
+
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+    const handlers = result.current;
+
+    await handlers.handleRedo();
+
+    expect(setScoreState).not.toHaveBeenCalled();
+    expect(closeAll).not.toHaveBeenCalled();
   });
 });

@@ -376,9 +376,11 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     if (debounceTimerRef.current) return;
     isProcessingRef.current = true;
     try {
-      engineRef.current.replayCurrentPoint();
+      const redone = engineRef.current.replayCurrentPoint();
+      if (!redone) return;
       const newState = engineRef.current.getState() as ScoringState;
       setScoreState(newState);
+      setPointsHistory((prev) => [...prev, redone.point.winnerId]);
       const result = await persistState(newState, "redo");
       if (result.success) {
         closeAll();
@@ -400,6 +402,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     isProcessingRef,
     debounceTimerRef,
     setScoreState,
+    setPointsHistory,
   ]);
 
   const handleCancelSecondServe = useCallback(() => {
