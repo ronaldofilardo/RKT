@@ -77,6 +77,11 @@ export function useScoringPageDerived(
     const lastSetIsCompleted = isSetCompleted(lastSet, match?.format as TennisFormat);
 
     if (lastSet.isTiebreak && lastSet.tiebreakScore) {
+      // Regular tiebreak (games at threshold like 6-6): show game scores for edit modal
+      // Match tiebreak (games at 0-0): show tiebreak points for edit modal
+      if (lastSet.player1 > 0 || lastSet.player2 > 0) {
+        return { player1: lastSet.player1, player2: lastSet.player2 };
+      }
       return {
         player1: lastSet.tiebreakScore.player1,
         player2: lastSet.tiebreakScore.player2,

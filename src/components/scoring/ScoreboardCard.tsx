@@ -108,28 +108,26 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
             <td className={`text-left py-2 pr-2 font-semibold ${isSuspended ? 'text-amber-900 dark:text-amber-200' : 'text-gray-900 dark:text-gray-100'}`}>
               {player1.name}
             </td>
-            {Array.from({ length: numSets }).map((_, i) => {
-              const set = sets[i];
-              const isCurrent = i === currentSetIndex;
-              const style = getSetCellStyle(set, i, 'player1', isCurrent);
-              
-              return (
-                <td
-                  key={i}
-                  className={`text-center px-1 py-2 text-sm font-mono rounded-sm ${style}`}
-                >
-                  {set ? (
-                    set.isTiebreak && set.tiebreakScore ? (
-                      // Match Tie-Break ou tie-break normal: mostrar pontos do tiebreak
-                      set.tiebreakScore.player1
-                    ) : (
-                      // Set normal: mostrar games
-                      set.player1
-                    )
-                  ) : '-'}
-                </td>
-              );
-            })}
+             {Array.from({ length: numSets }).map((_, i) => {
+               const set = sets[i];
+               const isCurrent = i === currentSetIndex;
+               const style = getSetCellStyle(set, i, 'player1', isCurrent);
+               
+               return (
+                 <td
+                   key={i}
+                   className={`text-center px-1 py-2 text-sm font-mono rounded-sm ${style}`}
+                 >
+                    {set ? (
+                      set.isTiebreak && set.tiebreakScore ? (
+                        set.tiebreakScore.player1
+                      ) : (
+                        set.player1
+                      )
+                    ) : '-'}
+                 </td>
+               );
+             })}
             <td className="text-right px-2 py-2" aria-label="Espaço reservado"></td>
           </tr>
 
@@ -138,28 +136,26 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
             <td className={`text-left py-2 pr-2 font-semibold ${isSuspended ? 'text-amber-900 dark:text-amber-200' : 'text-gray-900 dark:text-gray-100'}`}>
               {player2.name}
             </td>
-            {Array.from({ length: numSets }).map((_, i) => {
-              const set = sets[i];
-              const isCurrent = i === currentSetIndex;
-              const style = getSetCellStyle(set, i, 'player2', isCurrent);
-              
-              return (
-                <td
-                  key={i}
-                  className={`text-center px-1 py-2 text-sm font-mono rounded-sm ${style}`}
-                >
-                  {set ? (
-                    set.isTiebreak && set.tiebreakScore ? (
-                      // Match Tie-Break ou tie-break normal: mostrar pontos do tiebreak
-                      set.tiebreakScore.player2
-                    ) : (
-                      // Set normal: mostrar games
-                      set.player2
-                    )
-                  ) : '-'}
-                </td>
-              );
-            })}
+             {Array.from({ length: numSets }).map((_, i) => {
+               const set = sets[i];
+               const isCurrent = i === currentSetIndex;
+               const style = getSetCellStyle(set, i, 'player2', isCurrent);
+               
+               return (
+                 <td
+                   key={i}
+                   className={`text-center px-1 py-2 text-sm font-mono rounded-sm ${style}`}
+                 >
+                    {set ? (
+                      set.isTiebreak && set.tiebreakScore ? (
+                        set.tiebreakScore.player2
+                      ) : (
+                        set.player2
+                      )
+                    ) : '-'}
+                 </td>
+               );
+             })}
             <td className="text-right px-2 py-2" aria-label="Espaço reservado"></td>
           </tr>
         </tbody>

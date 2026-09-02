@@ -400,7 +400,7 @@ export function createSetEditData(input: CreateSetEditDataInput): SetEditData {
       player1: p1Val,
       player2: p2Val,
     };
-  } else if (hasTiebreak && isSetTrulyCompleted && !isPotentialMTSet) {
+  } else if (hasTiebreak && !isPotentialMTSet && tiebreakP1Num >= 0 && tiebreakP2Num >= 0) {
     setData.tiebreakScore = {
       player1: tiebreakP1Num,
       player2: tiebreakP2Num,

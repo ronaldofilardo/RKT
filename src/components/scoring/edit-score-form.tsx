@@ -277,7 +277,7 @@ export function SetInputForm({
         </div>
       )}
 
-      {(partial || showGamePointsAtZero) && !isMatchTiebreakSet && (
+      {(partial || showGamePointsAtZero) && !isMatchTiebreakSet && !hasTiebreak && (
         <div className="space-y-1 pt-1">
           <p className="text-xs font-semibold text-gray-400">
             Pontos no Game Atual

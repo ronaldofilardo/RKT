@@ -14,7 +14,7 @@ export function canAddNextSet(
 
 type EditValidation = { bothFilled: boolean; isSetTrulyCompleted: boolean; hasTiebreak: boolean; setValidationError?: string | null; setValidation?: { tiebreakRequired?: boolean } | null };
 type EditMatchState = { totalEditedSets: number; maxSets: number; matchAlreadyOver: boolean; matchWouldEnd: boolean; isMatchTiebreakSet: boolean };
-type TiebreakValidation = { tiebreakComplete: boolean };
+type TiebreakValidation = { tiebreakComplete: boolean; hasValidTiebreak: boolean };
 
 export function canConfirmSet(validation: EditValidation, matchState: EditMatchState, tiebreakValidation: TiebreakValidation): boolean {
   const bothFilled = validation.bothFilled;
@@ -26,7 +26,7 @@ export function canConfirmSet(validation: EditValidation, matchState: EditMatchS
   if (!bothFilled) return false;
   if (isMatchTiebreakSet) return !setValidationError || isSetTrulyCompleted;
   if (!isSetTrulyCompleted) return false;
-  if (validation.hasTiebreak && tiebreakRequired && !tiebreakValidation.tiebreakComplete) return false;
+  if (validation.hasTiebreak && tiebreakRequired && !tiebreakValidation.hasValidTiebreak) return false;
   return true;
 }
 
@@ -46,7 +46,7 @@ export function canConfirm(
   }
   if (!validation.hasTiebreak) return true;
   if (!validation.setValidation?.tiebreakRequired) return true;
-  return tiebreakValidation.tiebreakComplete;
+  return tiebreakValidation.hasValidTiebreak;
 }
 
 export function shouldShowGamePointsAtZero(

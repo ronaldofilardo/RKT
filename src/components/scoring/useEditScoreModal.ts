@@ -250,7 +250,6 @@ export function useEditScoreModal(
     
     if (floorValidationError) return;
     if (validation.setValidationError && !partial) return;
-    if (validation.setValidation?.tiebreakRequired && !tiebreakComplete) return;
 
     if (bothFilled && hasTiebreak && isSetTrulyCompleted && tiebreakComplete) {
       const setWinner = p1Val > p2Val ? "player1" : "player2";
@@ -335,7 +334,23 @@ export function useEditScoreModal(
       finalSets.push(setData);
     }
 
-    const nextServer = state.nextServer || currentServer;
+    const allCompletedSetsForServer: CompletedSet[] = [
+      ...(completedSets as CompletedSet[]),
+      ...state.newSets.map((ns) => ({
+        games: { player1: ns.p1Games, player2: ns.p2Games } as Record<'player1' | 'player2', number>,
+        winner: (ns.p1Games > ns.p2Games ? 'player1' : 'player2') as 'player1' | 'player2',
+        tiebreakScore: ns.tiebreakScore,
+      })),
+    ];
+    let nextServer = calculateNextServer({
+      currentServer,
+      p1Games: p1Val,
+      p2Games: p2Val,
+      matchFormat,
+      tiebreakScore: tiebreakComplete ? { player1: tiebreakP1Num, player2: tiebreakP2Num } : null,
+      completedSets: allCompletedSetsForServer,
+    });
+    nextServer = nextServer || currentServer;
     
     if (matchWouldEnd && isSetTrulyCompleted) {
       setIsFinishingMatch(true);
@@ -353,9 +368,9 @@ export function useEditScoreModal(
     floorValidationError, validation, partial, hasTiebreak, tiebreakComplete,
     tiebreakP1Num, tiebreakP2Num, matchWouldEnd, matchState, setsToWin,
     playerNames, canAddNextSet, maxSets, currentSets, initialGameRef,
-    state.p1Points, state.p2Points, state.newSets, state.nextServer,
+    state.p1Points, state.p2Points, state.newSets,
     state.editableCompletedSets,
-    completedSets, onConfirm, currentServer, onMatchFinished,
+    completedSets, onConfirm, currentServer, matchFormat, onMatchFinished,
     isFinishingMatch, bothFilled, isMatchTiebreakSet, isPotentialMTSet,
   ]);
 

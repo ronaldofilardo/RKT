@@ -122,6 +122,7 @@ function validateStandardSet(
   } else if (hasTiebreak && p1Games === tiebreakAt && p2Games === tiebreakAt) {
     return {
       isValid: false,
+      hasTiebreak: true,
       tiebreakRequired: true,
       error: 'Tiebreak required',
     };

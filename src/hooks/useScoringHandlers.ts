@@ -231,17 +231,36 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
           
           if (result.success && result.serverResponse?.scoreState) {
             const currentHistory = engineRef.current.getPointHistory();
-            setScoreState(result.serverResponse.scoreState);
-            engineRef.current = ScoringEngine.fromSerialized(
-              {
-                format: match.format as any,
-                player1Id: match.player1.id,
-                player2Id: match.player2.id,
-                initialServerId: match.initialServerId || match.player1.id,
-              },
-              JSON.stringify(result.serverResponse.scoreState),
+            const localState = engineRef.current.getState();
+            const serverState = result.serverResponse.scoreState;
+
+            // Guard: if local state is in a tiebreak but server response lost
+            // the tiebreak info (corrupted snapshot), skip the overwrite to
+            // prevent the UI from switching from tiebreak to game scoring.
+            const localInTiebreak = localState.sets?.some(
+              (s: any) => s.isTiebreak && s.tiebreakScore
             );
-            engineRef.current.restorePointHistory(currentHistory);
+            const serverHasTiebreak = serverState.sets?.some(
+              (s: any) => s.isTiebreak && s.tiebreakScore
+            );
+            if (localInTiebreak && !serverHasTiebreak) {
+              logger.warn("[processPoint] server response missing tiebreak info — keeping local state", {
+                localSets: localState.sets?.length,
+                serverSets: serverState.sets?.length,
+              });
+            } else {
+              setScoreState(serverState);
+              engineRef.current = ScoringEngine.fromSerialized(
+                {
+                  format: match.format as any,
+                  player1Id: match.player1.id,
+                  player2Id: match.player2.id,
+                  initialServerId: match.initialServerId || match.player1.id,
+                },
+                JSON.stringify(serverState),
+              );
+              engineRef.current.restorePointHistory(currentHistory);
+            }
 
             if (result.serverResponse.version !== undefined) {
               setMatch((prev) =>

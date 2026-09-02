@@ -89,7 +89,6 @@ export function useEditScoreCalculator({
     const bothFilled = validation.bothFilled;
     const isMatchTiebreakSet = matchState.isMatchTiebreakSet;
     const hasTiebreak = validation.hasTiebreak;
-    const tiebreakComplete = tiebreakValidation.tiebreakComplete;
     const isSetTrulyCompleted = validation.isSetTrulyCompleted;
     const setValidationError = validation.setValidationError;
     const tiebreakRequired = validation.setValidation?.tiebreakRequired ?? false;
@@ -105,7 +104,7 @@ export function useEditScoreCalculator({
     if (!isSetTrulyCompleted) return false;
 
     // Regular set (or potential MT not yet at 6-6): need tiebreak if required
-    if (hasTiebreak && tiebreakRequired && !tiebreakComplete) return false;
+    if (hasTiebreak && tiebreakRequired && !tiebreakValidation.hasValidTiebreak) return false;
 
     return true;
   }, [validation, tiebreakValidation, matchState]);
@@ -114,7 +113,6 @@ export function useEditScoreCalculator({
     const bothFilled = validation.bothFilled;
     const isMatchTiebreakSet = matchState.isMatchTiebreakSet;
     const hasTiebreak = validation.hasTiebreak;
-    const tiebreakComplete = tiebreakValidation.tiebreakComplete;
     const isSetTrulyCompleted = validation.isSetTrulyCompleted;
     const setValidationError = validation.setValidationError;
     const tiebreakRequired = validation.setValidation?.tiebreakRequired ?? false;
@@ -133,7 +131,7 @@ export function useEditScoreCalculator({
     if (!hasTiebreak) return true;
 
     if (!tiebreakRequired) return true;
-    return tiebreakComplete;
+    return tiebreakValidation.hasValidTiebreak;
   }, [validation, tiebreakValidation, matchState, state.newSets.length, completedSets.length]);
 
   const partial = validation.bothFilled && !validation.isSetTrulyCompleted;

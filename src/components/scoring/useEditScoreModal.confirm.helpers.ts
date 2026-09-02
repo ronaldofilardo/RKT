@@ -36,6 +36,7 @@ type ValidationArgs = {
   hasTiebreak: boolean;
   isSetTrulyCompleted: boolean;
   tiebreakComplete: boolean;
+  hasValidTiebreak: boolean;
   p1Val: number;
   p2Val: number;
   tiebreakP1Num: number;
@@ -135,7 +136,7 @@ export function getSetWinner(validation: ValidationData): PlayerSide {
 function getBasicValidationBlock(args: ValidationArgs): string | null {
   if (args.floorValidationError) return '';
   if (args.validation.setValidationError && !args.partial) return '';
-  if (args.validation.setValidation?.tiebreakRequired && !args.tiebreakComplete) return '';
+  if (args.validation.setValidation?.tiebreakRequired && !args.hasValidTiebreak) return '';
   return null;
 }
 

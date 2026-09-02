@@ -141,26 +141,58 @@ describe('ScoreboardCard', () => {
     expect(screen.getByText('Player Two')).toBeInTheDocument();
   });
 
-  it('renders tiebreak set correctly', () => {
-    const tiebreakScoreState = {
+  it('renders in-progress regular tiebreak game scores (6-6) in player rows', () => {
+    const tiebreakInProgressState = {
       sets: [
-        { player1: 7, player2: 6, isTiebreak: true, tiebreakScore: { player1: 7, player2: 5 } },
+        {
+          player1: 6,
+          player2: 6,
+          isTiebreak: true,
+          tiebreakScore: { player1: 5, player2: 3 },
+        },
       ],
-      setsWon: {
-        player1: 1,
-        player2: 0,
-      },
+      setsWon: { player1: 0, player2: 0 },
+      isFinished: false,
+      winner: null,
     };
     render(
       <ScoreboardCard
         player1={mockPlayer1}
         player2={mockPlayer2}
-        scoreState={tiebreakScoreState}
+        scoreState={tiebreakInProgressState}
+        format="BEST_OF_3"
       />
     );
-    // Tie-break: deve mostrar os pontos do tiebreak (7x5), não os games (7x6)
-    expect(screen.getByText('7')).toBeInTheDocument();
     expect(screen.getByText('5')).toBeInTheDocument();
+    expect(screen.getByText('3')).toBeInTheDocument();
+  });
+
+  it('renders completed match tiebreak points (0-0 games) in player rows', () => {
+    const completedMatchTiebreakState = {
+      sets: [
+        {
+          player1: 0,
+          player2: 0,
+          isTiebreak: true,
+          tiebreakScore: { player1: 7, player2: 4 },
+        },
+      ],
+      setsWon: { player1: 1, player2: 0 },
+      isFinished: false,
+      winner: null,
+    };
+    render(
+      <ScoreboardCard
+        player1={mockPlayer1}
+        player2={mockPlayer2}
+        scoreState={completedMatchTiebreakState}
+        format="BEST_OF_3"
+      />
+    );
+    const tiebreakP1 = screen.getAllByText('7');
+    expect(tiebreakP1.length).toBe(1);
+    const tiebreakP2 = screen.getAllByText('4');
+    expect(tiebreakP2.length).toBe(1);
   });
 
   it('renders multiple completed sets with numbered headers', () => {
