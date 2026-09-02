@@ -329,6 +329,158 @@ describe('useScoringHandlers - handleServeErrorConfirm', () => {
   });
 });
 
+// ─── handleServeErrorDirect — DF sem modal, sem effect/direction ─────────────────
+describe('useScoringHandlers - handleServeErrorDirect', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  describe('quando step é "first"', () => {
+    it('registra firstServeError sem effect/direction e avança para segundo saque', () => {
+      const handleServeErrorOpen = jest.fn();
+      const handleServeErrorClose = jest.fn();
+      const handleFirstServeErrorSet = jest.fn();
+      const setServeStep = jest.fn();
+      const close = jest.fn();
+      const closeAll = jest.fn();
+
+      const ctx = createMockContext({
+        handleServeErrorOpen,
+        handleServeErrorClose,
+        handleFirstServeErrorSet,
+        setServeStep,
+        close,
+        closeAll,
+        engineRef: { current: {} as any },
+        serveErrorState: {
+          serveStep: 'none' as const,
+          pendingServeError: null,
+          firstServeError: null,
+          isServeEffectModalOpen: false,
+        },
+      });
+
+      const { result } = renderHook(() => useScoringHandlers(ctx));
+
+      act(() => {
+        result.current.handleServeErrorDirect('out', 'first');
+      });
+
+      expect(handleServeErrorOpen).toHaveBeenCalledWith('out', 'first');
+      expect(handleFirstServeErrorSet).toHaveBeenCalledWith({
+        errorType: 'out',
+        serveEffect: undefined,
+        direction: undefined,
+      });
+      expect(handleServeErrorClose).toHaveBeenCalled();
+      expect(setServeStep).toHaveBeenCalledWith('second');
+      expect(closeAll).toHaveBeenCalled();
+    });
+  });
+
+  describe('quando step é "second" (double fault)', () => {
+    function makeDfDirectCtx(overrides: Partial<any> = {}) {
+      const applyPoint = jest.fn();
+      const ctx = createMockContext({
+        isOnline: false,
+        handleServeErrorOpen: jest.fn(),
+        handleServeErrorClose: jest.fn(),
+        handleFirstServeErrorClear: jest.fn(),
+        setServeStep: jest.fn(),
+        closeAll: jest.fn(),
+        serveErrorState: {
+          serveStep: 'second' as const,
+          pendingServeError: { errorType: 'net' as const, serveStep: 'second' as const },
+          firstServeError: {
+            errorType: 'out' as const,
+            serveEffect: 'topspin',
+            direction: 'aberto',
+          },
+          firstFaultDetail: null,
+          isServeEffectModalOpen: false,
+        },
+        engineRef: {
+          current: {
+            getState: jest.fn().mockReturnValue({
+              server: 'player1',
+              isFinished: false,
+              sets: [],
+              currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+              winner: null,
+              setsWon: { player1: 0, player2: 0 },
+              startedAt: null,
+              secondServe: false,
+            }),
+            applyPoint,
+            getPointHistory: jest.fn().mockReturnValue([]),
+          } as any,
+        },
+        ...overrides,
+      });
+      return { ctx, applyPoint };
+    }
+
+    it('emite DOUBLE_FAULT sem effect/direction na 2ª falta, mas com firstFaultDetail da 1ª', () => {
+      const { ctx, applyPoint } = makeDfDirectCtx();
+      const { result } = renderHook(() => useScoringHandlers(ctx));
+
+      act(() => {
+        result.current.handleServeErrorDirect('net', 'second');
+      });
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      expect(applyPoint).toHaveBeenCalledTimes(1);
+      const flow = applyPoint.mock.calls[0][0];
+      expect(flow.type).toBe('DOUBLE_FAULT');
+      expect(flow.firstFaultDetail).toEqual({
+        errorType: 'out',
+        serveEffect: 'topspin',
+        direction: 'aberto',
+      });
+      expect(flow.rallyDetails.subtipo2).toBe('net');
+      expect(flow.rallyDetails.tipo).toBe('dupla_falta');
+      expect(flow.rallyDetails.efeito).toBeUndefined();
+      expect(flow.rallyDetails.direcao).toBeUndefined();
+    });
+
+    it('firstFaultDetail é undefined quando não há firstServeError', () => {
+      const { ctx, applyPoint } = makeDfDirectCtx({
+        serveErrorState: {
+          serveStep: 'second' as const,
+          pendingServeError: { errorType: 'out' as const, serveStep: 'second' as const },
+          firstServeError: null,
+          firstFaultDetail: null,
+          isServeEffectModalOpen: false,
+        },
+      });
+      const { result } = renderHook(() => useScoringHandlers(ctx));
+
+      act(() => {
+        result.current.handleServeErrorDirect('out', 'second');
+      });
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      expect(applyPoint).toHaveBeenCalledTimes(1);
+      const flow = applyPoint.mock.calls[0][0];
+      expect(flow.type).toBe('DOUBLE_FAULT');
+      expect(flow.firstFaultDetail).toBeUndefined();
+      expect(flow.rallyDetails.efeito).toBeUndefined();
+      expect(flow.rallyDetails.direcao).toBeUndefined();
+    });
+  });
+});
+
 // ─── Regressão: handlePointDetailsConfirm + uploadAudioNote ─────────────────
 // Protege contra o bug corrigido nesta sessão:
 //  1) ReferenceError "Cannot access 'uploadAudioNote' before initialization"

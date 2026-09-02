@@ -39,6 +39,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     setSetupLoading,
     setPointsHistory,
     setShowFinishedBanner,
+    handleServeErrorOpen,
     handleServeErrorClose,
     handleFirstServeErrorSet,
     handleFirstServeErrorClear,
@@ -571,6 +572,77 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     ]
   );
 
+  const handleServeErrorDirect = useCallback(
+    (errorType: "out" | "net", step: "first" | "second") => {
+      if (!match || isProcessingRef.current) return;
+
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      handleServeErrorOpen(errorType, step);
+
+      if (step === "first") {
+        if (!engineRef.current) return;
+        handleFirstServeErrorSet({
+          errorType: serveErrorState.pendingServeError?.errorType ?? errorType,
+          serveEffect: undefined,
+          direction: undefined,
+        });
+        handleServeErrorClose();
+        setServeStep("second");
+        closeAll();
+      } else {
+        const rallyDetails = modalService.createDoubleFaultRallyDetails(
+          errorType,
+          undefined,
+          undefined
+        );
+        const firstFaultDetail = serveErrorState.firstServeError
+          ? {
+              errorType: serveErrorState.firstServeError.errorType,
+              serveEffect: serveErrorState.firstServeError.serveEffect,
+              direction: serveErrorState.firstServeError.direction,
+            }
+          : undefined;
+        closeAll();
+
+        debounceTimerRef.current = setTimeout(() => {
+          processPoint({
+            winnerId: serverHelpers.getWinnerId(false),
+            type: "DOUBLE_FAULT",
+            serverId: serverHelpers.getServerId(),
+            timestamp: Date.now(),
+            rallyDetails,
+            rallyLength: 1,
+            isFirstServe: false,
+            isSecondServe: true,
+            firstFaultDetail,
+          });
+          handleFirstServeErrorClear();
+          handleServeErrorClose();
+          setServeStep("none");
+        }, 50);
+      }
+    },
+    [
+      match,
+      serveErrorState,
+      serverHelpers,
+      processPoint,
+      handleFirstServeErrorSet,
+      handleFirstServeErrorClear,
+      handleServeErrorClose,
+      handleServeErrorOpen,
+      setServeStep,
+      closeAll,
+      engineRef,
+      modalService,
+      debounceTimerRef,
+      isProcessingRef,
+    ]
+  );
+
   const handleServeCancel = useCallback(() => {
     handleServeErrorClose();
     if (serveErrorState.firstServeError && engineRef.current) {
@@ -702,6 +774,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
 
     handleServerEffectConfirm,
     handleServeErrorConfirm,
+    handleServeErrorDirect,
     handleServeCancel,
     handleServeErrorCancel,
     handlePointDetailsConfirm,

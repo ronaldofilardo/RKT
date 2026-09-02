@@ -18,6 +18,7 @@ export interface ScoringPageHandlers {
 
   handleServerEffectConfirm: ReturnType<typeof useScoringHandlers>["handleServerEffectConfirm"];
   handleServeErrorConfirm: ReturnType<typeof useScoringHandlers>["handleServeErrorConfirm"];
+  handleServeErrorDirect: ReturnType<typeof useScoringHandlers>["handleServeErrorDirect"];
   handleServeCancel: ReturnType<typeof useScoringHandlers>["handleServeCancel"];
   handleServeErrorCancel: ReturnType<typeof useScoringHandlers>["handleServeErrorCancel"];
   handlePointDetailsConfirm: ReturnType<typeof useScoringHandlers>["handlePointDetailsConfirm"];
@@ -93,6 +94,7 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     handleAceDirect,
     handleServerEffectConfirm,
     handleServeErrorConfirm,
+    handleServeErrorDirect,
     handleServeCancel,
     handleServeErrorCancel,
     handlePointDetailsConfirm,
@@ -115,6 +117,7 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     setSetupLoading,
     setPointsHistory,
     setShowFinishedBanner,
+    handleServeErrorOpen,
     handleServeErrorClose,
     handleFirstServeErrorSet,
     handleFirstServeErrorClear,
@@ -259,6 +262,7 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     handleAceDirect,
     handleServerEffectConfirm,
     handleServeErrorConfirm,
+    handleServeErrorDirect,
     handleServeCancel,
     handleServeErrorCancel,
     handlePointDetailsConfirm,

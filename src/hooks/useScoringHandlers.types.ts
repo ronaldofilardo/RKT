@@ -47,6 +47,7 @@ export interface ScoringHandlersContext {
   setShowFinishedBanner: Dispatch<SetStateAction<boolean>>;
 
   handleServeErrorClose: () => void;
+  handleServeErrorOpen: (type: 'out' | 'net', step: 'first' | 'second') => void;
   handleFirstServeErrorSet: (err: {
     errorType: "out" | "net";
     serveEffect?: string;
@@ -87,6 +88,10 @@ export interface ScoringHandlersReturn {
   handleServeErrorConfirm: (
     effect?: string,
     direction?: string
+  ) => void;
+  handleServeErrorDirect: (
+    errorType: "out" | "net",
+    step: "first" | "second"
   ) => void;
   handleServeCancel: () => void;
   handleServeErrorCancel: () => void;

@@ -82,6 +82,7 @@ export default function ScoringPage() {
     handleServeErrorConfirm,
     handleServeCancel,
     handleServeErrorCancel,
+    handleServeErrorDirect,
     handlePointDetailsConfirm,
     handlePointFromCard,
     handleServeErrorWithModal,
@@ -294,11 +295,12 @@ export default function ScoringPage() {
         fontScale={fontScale}
         isFinished={isFinished}
         isProcessing={isProcessingPoint}
-                onAceDirect={handleAceDirect}
+        onAceDirect={handleAceDirect}
         onAceWithDetails={openAceModal}
-
         onOut={(step) => handleServeErrorWithModal("out", step)}
         onNet={(step) => handleServeErrorWithModal("net", step)}
+        onOutDirect={(step) => handleServeErrorDirect("out", step)}
+        onNetDirect={(step) => handleServeErrorDirect("net", step)}
         onCancelSecondServe={handleCancelSecondServe}
         onServeCancel={handleServeCancel}
         onUndo={() => state.open("undo")}
