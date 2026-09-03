@@ -1,12 +1,19 @@
 'use client';
 
+import { useEffect } from 'react';
+import { logger } from '@/lib/logger';
+
 export default function GlobalError({
-  error: _error,
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    logger.error('[GlobalError] Critical layout crash:', error);
+  }, [error]);
+
   return (
     <html lang="pt-BR">
       <body>

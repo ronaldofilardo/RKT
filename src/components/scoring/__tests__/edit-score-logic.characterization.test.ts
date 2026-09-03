@@ -340,7 +340,7 @@ describe('edit-score-logic (complete characterization)', () => {
         expect(result.hasValidTiebreak).toBe(true);
       });
 
-      it('deve retornar hasValidTiebreak=false para valores vazios', () => {
+      it('deve retornar hasValidTiebreak=true para valores vazios (tratados como 0x0)', () => {
         const result = calculateValidation({
           ...baseInput,
           p1Input: '6',
@@ -349,7 +349,7 @@ describe('edit-score-logic (complete characterization)', () => {
           tiebreakP1: '',
           tiebreakP2: '',
         });
-        expect(result.hasValidTiebreak).toBe(false);
+        expect(result.hasValidTiebreak).toBe(true);
       });
     });
 

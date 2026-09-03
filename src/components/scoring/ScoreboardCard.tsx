@@ -119,7 +119,14 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
                    className={`text-center px-1 py-2 text-sm font-mono rounded-sm ${style}`}
                  >
                     {set ? (
-                      set.isTiebreak && set.tiebreakScore ? (
+                      // Bug (2026-09-02): durante um tie-break de set normal
+                      // (games em 6x6, por ex.), este placar deve continuar
+                      // mostrando os games (6x6), não os pontos do tie-break
+                      // (que já aparecem nos cards grandes dos jogadores).
+                      // Só usamos tiebreakScore aqui para o set de Match
+                      // Tiebreak decisivo, que fica com games 0x0 (ou 1x0/0x1
+                      // ao concluir) e por isso precisa exibir os pontos.
+                      set.isTiebreak && set.tiebreakScore && set.player1 <= 1 && set.player2 <= 1 ? (
                         set.tiebreakScore.player1
                       ) : (
                         set.player1
@@ -147,7 +154,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
                    className={`text-center px-1 py-2 text-sm font-mono rounded-sm ${style}`}
                  >
                     {set ? (
-                      set.isTiebreak && set.tiebreakScore ? (
+                      set.isTiebreak && set.tiebreakScore && set.player1 <= 1 && set.player2 <= 1 ? (
                         set.tiebreakScore.player2
                       ) : (
                         set.player2

@@ -83,8 +83,10 @@ export function calculateTiebreakState(
   tiebreakP2: string | undefined,
   tiebreakRequired: boolean,
 ): TiebreakValidationState {
-  const tbP1Num = tiebreakP1 ? parseInt(tiebreakP1, 10) : NaN;
-  const tbP2Num = tiebreakP2 ? parseInt(tiebreakP2, 10) : NaN;
+  // Bug (2026-09-02): campo de TB vazio representa 0x0 (tie-break ainda
+  // não começou), não um valor ausente/inválido — ver edit-score-logic.ts.
+  const tbP1Num = tiebreakP1 ? parseInt(tiebreakP1, 10) : 0;
+  const tbP2Num = tiebreakP2 ? parseInt(tiebreakP2, 10) : 0;
   const hasValidTiebreak =
     !isNaN(tbP1Num) && !isNaN(tbP2Num) && tbP1Num >= 0 && tbP2Num >= 0;
   const tiebreakComplete =

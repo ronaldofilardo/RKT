@@ -330,6 +330,7 @@ export function useEditScoreModal(
         p1Points: state.p1Points,
         p2Points: state.p2Points,
         currentSets,
+        matchFormat,
       });
       finalSets.push(setData);
     }

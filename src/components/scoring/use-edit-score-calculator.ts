@@ -128,6 +128,15 @@ export function useEditScoreCalculator({
       return !setValidationError || isSetTrulyCompleted;
     }
 
+    // Bug (2026-09-02): quando o placar de games é realmente inválido
+    // (ex.: 7x0 num set com tiebreak, onde o vencedor deveria ter fechado
+    // em 6x0), validateStandardSet retorna um erro SEM o campo `hasTiebreak`
+    // definido — e o `?? false` abaixo fazia `!hasTiebreak` virar `true`,
+    // liberando o Confirmar mesmo com placar inválido. Precisamos bloquear
+    // aqui quando há um erro genuíno (não o "Tiebreak required" pendente,
+    // que é tratado normalmente logo abaixo via hasValidTiebreak).
+    if (setValidationError && !tiebreakRequired) return false;
+
     if (!hasTiebreak) return true;
 
     if (!tiebreakRequired) return true;

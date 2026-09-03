@@ -320,10 +320,12 @@ describe('edit-score-logic - isMatchTiebreakSet', () => {
       expect(result.tiebreakComplete).toBe(false);
     });
 
-    it('deve retornar hasValidTiebreak=false para valores vazios', () => {
+    it('deve retornar hasValidTiebreak=true para valores vazios (tratados como 0x0, tiebreak ainda não iniciado)', () => {
       const result = calculateTiebreakValidation('', '', true);
       
-      expect(result.hasValidTiebreak).toBe(false);
+      expect(result.hasValidTiebreak).toBe(true);
+      expect(result.tiebreakP1Num).toBe(0);
+      expect(result.tiebreakP2Num).toBe(0);
       expect(result.tiebreakComplete).toBe(false);
     });
 

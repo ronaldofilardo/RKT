@@ -115,6 +115,7 @@ export interface SetResultInput {
   p1Points: string;
   p2Points: string;
   currentSets: { player1: number; player2: number };
+  matchFormat?: TennisFormat;
 }
 
 export interface CreateSetEditDataInput extends SetResultInput {}
@@ -215,8 +216,12 @@ export function calculateValidation(input: EditScoreValidationInput): EditScoreV
   const hasWinner = setValidation?.winner !== undefined;
   const completed = hasWinner && !setValidation?.isPartial;
 
-  const tbP1Num = tiebreakP1 ? parseInt(tiebreakP1, 10) : NaN;
-  const tbP2Num = tiebreakP2 ? parseInt(tiebreakP2, 10) : NaN;
+  // Bug (2026-09-02): campo de TB vazio (usuário ainda não digitou nada)
+  // representa um tie-break que ainda não começou (0x0) — ex.: retomar
+  // uma partida anotada em 6-6 games. Antes, campo vazio virava NaN e
+  // bloqueava o botão "Confirmar" mesmo com o set corretamente em 6x6/0x0.
+  const tbP1Num = tiebreakP1 ? parseInt(tiebreakP1, 10) : 0;
+  const tbP2Num = tiebreakP2 ? parseInt(tiebreakP2, 10) : 0;
   const hasValidTiebreak = !isNaN(tbP1Num) && !isNaN(tbP2Num) && tbP1Num >= 0 && tbP2Num >= 0;
   const tiebreakCompleteLocal =
     setValidation?.tiebreakRequired ?
@@ -372,8 +377,11 @@ export function calculateTiebreakValidation(
   tiebreakP2: string,
   hasTiebreak: boolean,
 ): { hasValidTiebreak: boolean; tiebreakComplete: boolean; tiebreakP1Num: number; tiebreakP2Num: number } {
-  const tiebreakP1Num = parseInt(tiebreakP1, 10);
-  const tiebreakP2Num = parseInt(tiebreakP2, 10);
+  // Bug (2026-09-02): ver comentário equivalente em calculateValidation —
+  // campo vazio de TB representa 0x0 (tie-break ainda não começou), não
+  // um valor inválido/ausente.
+  const tiebreakP1Num = tiebreakP1 ? parseInt(tiebreakP1, 10) : 0;
+  const tiebreakP2Num = tiebreakP2 ? parseInt(tiebreakP2, 10) : 0;
   const hasValidTiebreak =
     !isNaN(tiebreakP1Num) &&
     !isNaN(tiebreakP2Num) &&
@@ -388,7 +396,7 @@ export function calculateTiebreakValidation(
 }
 
 export function createSetEditData(input: CreateSetEditDataInput): SetEditData {
-  const { p1Val, p2Val, isSetTrulyCompleted, hasTiebreak, tiebreakP1Num, tiebreakP2Num, isMatchTiebreakSet, isPotentialMTSet, p1Points, p2Points } = input;
+  const { p1Val, p2Val, isSetTrulyCompleted, hasTiebreak, tiebreakP1Num, tiebreakP2Num, isMatchTiebreakSet, isPotentialMTSet, p1Points, p2Points, matchFormat } = input;
   const setData: SetEditData = {
     p1Games: p1Val,
     p2Games: p2Val,
@@ -396,6 +404,17 @@ export function createSetEditData(input: CreateSetEditDataInput): SetEditData {
   };
 
   if (isMatchTiebreakSet) {
+    // Bug (2026-09-02): p1Val/p2Val aqui são os PONTOS do match tiebreak
+    // (ex.: 10x8), não games. Salvá-los direto em p1Games/p2Games fazia o
+    // placar dinâmico mostrar "10/8" em vez do games real do set.
+    // No BEST_OF_5, o 5º set só vira MT em 6x6 — o games final deve ser
+    // 7x6 (ou 6x7), como o motor de pontuação ao vivo já produz via
+    // completeSetWithTiebreak. Nos formatos "MT puro" (MATCH_TB_10 etc.),
+    // o set começa em 0x0, então o games final correto é 1x0 (ou 0x1).
+    const baseGames = matchFormat === 'BEST_OF_5' ? 6 : 0;
+    const winner: Player = p1Val > p2Val ? 'player1' : 'player2';
+    setData.p1Games = winner === 'player1' ? baseGames + 1 : baseGames;
+    setData.p2Games = winner === 'player2' ? baseGames + 1 : baseGames;
     setData.tiebreakScore = {
       player1: p1Val,
       player2: p2Val,
