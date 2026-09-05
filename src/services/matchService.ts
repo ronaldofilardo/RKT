@@ -220,6 +220,7 @@ export async function finishMatch(
     reason?: MatchFinishReason;
     note?: string;
     winnerId?: string;
+    expectedVersion?: number;
   }
 ) {
   const match = await prisma.match.findFirst({
@@ -254,18 +255,33 @@ export async function finishMatch(
 
   // scoreState recebido do cliente tipicamente é apenas o estado (sem history).
   // Sobrescrever perderia o {state, history} persistido pela rota /point.
-  // Se o snapshot recebido já contiver history, use-o; senão, preservar o
-  // já existente (cuja timeline ficará disponível no relatório).
+  // Se o snapshot recebido já contiver history, use-o; senão, verificar se o
+  // scoreState existente tem history para preservar.
   const receivedHasHistory =
     scoreState && typeof scoreState === 'object' &&
     Array.isArray((scoreState as any).history) &&
     (scoreState as any).state;
 
+  const existingHasHistory =
+    match.scoreState && typeof match.scoreState === 'object' &&
+    Array.isArray((match.scoreState as any).history) &&
+    (match.scoreState as any).state;
+
   if (receivedHasHistory) {
+    // Cliente enviou { state, history } — usar diretamente
     updateData.scoreState = scoreState;
   } else if (scoreState && !match.scoreState) {
     // Nada persistido antes: aceita o que veio (legado / races iniciais).
     updateData.scoreState = scoreState;
+  } else if (scoreState && match.scoreState && !receivedHasHistory && existingHasHistory) {
+    // FIX #11: O cliente enviou apenas `state` (sem history), mas o servidor
+    // já tem {state, history}. Preservar o history existente e atualizar
+    // apenas o state. Sem isso, uma edição de placar via PATCH /state
+    // (que envia state plano) faria o scoreState do banco ficar defasado.
+    updateData.scoreState = {
+      state: scoreState,
+      history: (match.scoreState as any).history,
+    };
   }
   // Caso contrário: não tocar scoreState já persistido.
 
@@ -277,11 +293,25 @@ export async function finishMatch(
     updateData.winnerId = options.winnerId;
   }
 
-  return prisma.match.update({
-    where: { id },
-    data: updateData,
-    include: { player1: true, player2: true },
-  });
+  // Optimistic lock: if version is provided, only update if version matches.
+  // This prevents two concurrent finish requests from both succeeding.
+  const whereClause: { id: string; version?: number } = { id };
+  if (options?.expectedVersion !== undefined) {
+    whereClause.version = options.expectedVersion;
+  }
+
+  try {
+    return await prisma.match.update({
+      where: whereClause,
+      data: updateData,
+      include: { player1: true, player2: true },
+    });
+  } catch (error: any) {
+    if (error?.code === 'P2025' && options?.expectedVersion !== undefined) {
+      return { error: 'VERSION_CONFLICT' } as const;
+    }
+    throw error;
+  }
 }
 
 export async function transitionMatchState(
@@ -334,15 +364,14 @@ export async function transitionMatchState(
     whereClause.version = expectedVersion;
   }
 
-  // Uma edição manual de placar só gera um "segmento fechado" quando existe
-  // de fato um scoreState anterior com conteúdo a preservar (senão não há
-  // nada de útil a registrar — ex.: primeira definição de placar ao
-  // configurar a partida).
+  // Uma edição manual de placar gera um "segmento fechado" quando isManualScoreEdit
+  // está ativo. Se match.scoreState já existir, preservamos o estado anterior em
+  // previousScoreState para que o /report reconstrua a timeline. Se for null
+  // (primeira definição de placar), registramos com previousScoreState=null para
+  // que o /report saiba que houve uma edição neste ponto.
   const shouldRecordSegment =
     Boolean(options?.isManualScoreEdit) &&
-    Boolean(scoreState) &&
-    match.scoreState !== null &&
-    match.scoreState !== undefined;
+    Boolean(scoreState);
 
   try {
     const updated = await prisma.$transaction(async (tx) => {

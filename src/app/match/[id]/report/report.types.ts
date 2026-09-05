@@ -1,6 +1,7 @@
 import type { TimelinePoint, TennisFormat } from '@/core/scoring/types';
 import type { ReportSummary } from '@/core/report/report-types';
 import type { ReportIntegrity } from '@/core/report/report-types';
+import type { AdvancedMatchStats } from '@/core/report/compute-stats';
 
 export interface ReportData {
   matchId: string;
@@ -21,6 +22,7 @@ export interface ReportData {
   scoreState: unknown;
   timelinePoints: TimelinePoint[];
   summary: ReportSummary;
+  advancedStats?: AdvancedMatchStats;
   integrity?: ReportIntegrity;
   scoreEditsCount?: number;
   state: string;

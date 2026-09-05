@@ -2,14 +2,31 @@ import type { ScoringState } from "@/core/scoring/types";
 import { validateSetScore, getMatchFormatRules } from "@/lib/matchConfig";
 import type { TennisFormat } from "@/lib/matchConfig";
 
+function isMatchTiebreakSetIndex(format: TennisFormat | undefined, setIndex: number, setsWon?: { player1: number; player2: number }): boolean {
+  if (!format) return false;
+  if (format === 'MATCH_TB_10') return true;
+  if (format === 'BEST_OF_5' && setIndex === 4 && setsWon) {
+    return setsWon.player1 === 2 && setsWon.player2 === 2;
+  }
+  if ((format === 'BEST_OF_3_MATCH_TB' || format === 'BEST_OF_3_NO_AD' || format === 'SHORT_SET_2V2_NO_AD') && setIndex === 2 && setsWon) {
+    return setsWon.player1 === 1 && setsWon.player2 === 1;
+  }
+  return false;
+}
+
+function getTiebreakMinimumForSet(format: TennisFormat | undefined, setIndex: number, setsWon?: { player1: number; player2: number }): number {
+  return isMatchTiebreakSetIndex(format, setIndex, setsWon) ? 10 : 7;
+}
+
 export function isSetCompleted(
   set: { player1: number; player2: number; isTiebreak: boolean; tiebreakScore?: { player1: number; player2: number } | null },
   format?: TennisFormat,
+  setIndex?: number,
+  setsWon?: { player1: number; player2: number },
 ): boolean {
   // Check tiebreak score FIRST (standard or match tiebreak)
   if (set.isTiebreak && set.tiebreakScore) {
-    const isMatchTiebreakFormat = format === 'BEST_OF_3_MATCH_TB' || format === 'SHORT_SET_2V2_NO_AD' || format === 'MATCH_TB_10';
-    const tbMin = isMatchTiebreakFormat ? (format === 'SHORT_SET_2V2_NO_AD' ? 7 : 10) : 7;
+    const tbMin = getTiebreakMinimumForSet(format, setIndex ?? 0, setsWon);
     const tb = set.tiebreakScore;
     return (tb.player1 >= tbMin && tb.player1 - tb.player2 >= 2) ||
            (tb.player2 >= tbMin && tb.player2 - tb.player1 >= 2);
@@ -43,7 +60,8 @@ export function checkMatchPoint(state: ScoringState, format?: string): boolean {
 
   if (!p1OnMatchPoint && !p2OnMatchPoint) return false;
 
-  const set = state.sets[state.sets.length - 1];
+  const setIndex = state.sets.length - 1;
+  const set = state.sets[setIndex];
   if (!set) return false;
 
   const setWinner = set.player1 > set.player2 ? 'player1' : 'player2';
@@ -52,9 +70,10 @@ export function checkMatchPoint(state: ScoringState, format?: string): boolean {
   const loserGames = set[setLoser];
 
   const isRegularSet = leaderGames >= 6 && leaderGames - loserGames >= 2;
+  const tbMin = getTiebreakMinimumForSet(format as TennisFormat, setIndex, state.setsWon);
   const isTiebreakWin = set.isTiebreak && set.tiebreakScore &&
-    ((set.tiebreakScore.player1 >= 7 && set.tiebreakScore.player1 - set.tiebreakScore.player2 >= 2) ||
-     (set.tiebreakScore.player2 >= 7 && set.tiebreakScore.player2 - set.tiebreakScore.player1 >= 2));
+    ((set.tiebreakScore.player1 >= tbMin && set.tiebreakScore.player1 - set.tiebreakScore.player2 >= 2) ||
+     (set.tiebreakScore.player2 >= tbMin && set.tiebreakScore.player2 - set.tiebreakScore.player1 >= 2));
   const setAlmostWon = leaderGames >= 5 && leaderGames - loserGames >= 1;
 
   return (p1OnMatchPoint || p2OnMatchPoint) && (isRegularSet || !!isTiebreakWin || setAlmostWon);

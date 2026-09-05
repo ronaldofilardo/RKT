@@ -1,5 +1,7 @@
 import { jwtVerify } from 'jose';
 
+// NOTE: The secret is cached at module load time. If JWT_SECRET is rotated,
+// the running process must be restarted to pick up the new value.
 let secretKey: Uint8Array | null = null;
 
 function getSecretKey(): Uint8Array | null {

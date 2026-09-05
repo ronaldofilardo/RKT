@@ -1,4 +1,4 @@
-import { calculateAgeFromYear } from '../rankingConstants';
+import { calculateAgeFromYear } from '@/lib/ranking/rankingConstants';
 
 describe('calculateAgeFromYear Characterization', () => {
   const currentYear = new Date().getFullYear();

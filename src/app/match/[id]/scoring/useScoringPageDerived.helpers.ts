@@ -23,7 +23,7 @@ export function getPointFlags(score: ScoringState | null, format: string | undef
 export function getEditScoreCurrentSets(score: ScoringState | null, format: TennisFormat | undefined) {
   if (!score) return { player1: 0, player2: 0 };
   const lastSet = score.sets[score.sets.length - 1];
-  if (!lastSet || isSetCompleted(lastSet, format as TennisFormat)) return { player1: 0, player2: 0 };
+  if (!lastSet || isSetCompleted(lastSet, format as TennisFormat, score.sets.length - 1, score.setsWon)) return { player1: 0, player2: 0 };
   if (lastSet.isTiebreak && lastSet.tiebreakScore) return lastSet.tiebreakScore;
   return { player1: lastSet.player1, player2: lastSet.player2 };
 }
@@ -35,7 +35,7 @@ function getSetWinner(set: ScoreSet): 'player1' | 'player2' {
 
 export function getEditScoreCompletedSets(score: ScoringState | null, format: TennisFormat | undefined) {
   if (!score) return [];
-  return score.sets.filter((set) => isSetCompleted(set, format as TennisFormat)).map((set) => ({
+  return score.sets.filter((set, i) => isSetCompleted(set, format as TennisFormat, i, score.setsWon)).map((set) => ({
     games: { player1: set.player1, player2: set.player2 } as Record<'player1' | 'player2', number>,
     winner: getSetWinner(set),
     ...(set.isTiebreak && set.tiebreakScore ? { tiebreakScore: set.tiebreakScore } : {}),

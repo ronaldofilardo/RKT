@@ -1,6 +1,6 @@
 'use client';
 
-import { RANKING_TYPE_LABELS, RankingType } from '@/app/match/new/rankingConstants';
+import { RANKING_TYPE_LABELS, RankingType } from '@/lib/ranking/rankingConstants';
 import type { Athlete, RankingEntry } from './useAtletasController';
 
 function birthDate(value: string | null | undefined) {

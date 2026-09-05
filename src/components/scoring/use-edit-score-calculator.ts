@@ -11,6 +11,12 @@ import {
 export interface UseEditScoreCalculatorParams {
   matchFormat: TennisFormat;
   completedSets: CompletedSet[];
+  editableCompletedSets?: Array<{
+    p1Games: number;
+    p2Games: number;
+    isPartial: boolean;
+    tiebreakScore?: { player1: number; player2: number } | null;
+  }>;
   currentServer: 'player1' | 'player2';
   state: EditScoreState;
   tiebreakP1: string;
@@ -37,10 +43,17 @@ export interface EditScoreCalculations {
 export function useEditScoreCalculator({
   matchFormat,
   completedSets,
+  editableCompletedSets,
   state,
   tiebreakP1,
   tiebreakP2,
 }: UseEditScoreCalculatorParams): EditScoreCalculations {
+  // FIX #8: Usar editableCompletedSets (array editado pelo usuário) em vez
+  // do prop completedSets para calcular totalEditedSets. Quando o usuário
+  // remove ou edita sets completados, o prop original não muda — mas o
+  // editableCompletedSets reflete as remoções/edições do usuário.
+  const effectiveCompletedCount = editableCompletedSets?.length ?? completedSets.length;
+
   const validation = useMemo(() => {
     const setResults: SetEditData[] = [
       ...completedSets.map(cs => ({ p1Games: cs.games.player1, p2Games: cs.games.player2, isPartial: false })),
@@ -50,12 +63,12 @@ export function useEditScoreCalculator({
       p1Input: state.p1Input,
       p2Input: state.p2Input,
       matchFormat,
-      totalEditedSets: state.newSets.length + completedSets.length,
+      totalEditedSets: state.newSets.length + effectiveCompletedCount,
       setResults,
       tiebreakP1: tiebreakP1,
       tiebreakP2: tiebreakP2,
     });
-  }, [state.p1Input, state.p2Input, matchFormat, state.newSets, completedSets, tiebreakP1, tiebreakP2]);
+  }, [state.p1Input, state.p2Input, matchFormat, state.newSets, effectiveCompletedCount, completedSets, tiebreakP1, tiebreakP2]);
 
   const tiebreakValidation = useMemo(
     () => calculateTiebreakValidation(tiebreakP1, tiebreakP2, validation.hasTiebreak || !!validation.setValidation?.tiebreakRequired),
@@ -67,8 +80,8 @@ export function useEditScoreCalculator({
     completedSets,
     newSets: state.newSets,
     validation,
-    totalEditedSets: state.newSets.length + completedSets.length,
-  }), [matchFormat, completedSets, state.newSets, validation]);
+    totalEditedSets: state.newSets.length + effectiveCompletedCount,
+  }), [matchFormat, completedSets, state.newSets, validation, effectiveCompletedCount]);
 
   const { p1Val, p2Val } = validation;
 

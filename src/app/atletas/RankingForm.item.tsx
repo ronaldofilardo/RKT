@@ -1,4 +1,4 @@
-import { RANKING_TYPE_LABELS, RankingType, hasCategories, hasClasses, getAllowedCategoriesForAge, getClassesForSelection, isYouthCategory, calculateAgeFromYear } from '@/app/match/new/rankingConstants';
+import { RANKING_TYPE_LABELS, RankingType, hasCategories, hasClasses, getAllowedCategoriesForAge, getClassesForSelection, isYouthCategory, calculateAgeFromYear } from '@/lib/ranking/rankingConstants';
 
 export interface RankingState { enabled: boolean; category: string; class: string; position: string; juvenilePosition: string; }
 type FieldKey = Exclude<keyof RankingState, 'enabled'>;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useOfflineSync } from './useOfflineSync';
 import { ScoringEngine } from '@/core/scoring/engine';
 import type { ScoringState, PointFlow } from '@/core/scoring/types';
@@ -43,8 +43,12 @@ export function useMatchScoring({
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [pendingActions, setPendingActions] = useState<number>(0);
+  const isProcessingRef = useRef(false);
 
   const applyPoint = useCallback(async (pointFlow: Omit<PointFlowInput, 'timestamp'>) => {
+    if (isProcessingRef.current) return;
+    isProcessingRef.current = true;
+
     const pointFlowWithTimestamp: PointFlowInput = {
       ...pointFlow,
       timestamp: Date.now(),
@@ -97,12 +101,20 @@ export function useMatchScoring({
     } catch (error) {
       if (onSyncError) onSyncError(error as Error);
       throw error;
+    } finally {
+      isProcessingRef.current = false;
     }
   }, [engine, matchId, isOnline, enqueue, onSyncError]);
 
   const refreshScoreState = useCallback(() => {
     setScoreState(engine.getState());
   }, [engine]);
+
+  useEffect(() => {
+    return () => {
+      isProcessingRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const handleSyncComplete = () => {

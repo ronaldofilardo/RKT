@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { TennisFormat } from "@/core/scoring/types";
-import { logger } from "@/lib/logger";
 import type { SetEditData } from "./editScoreHelpers";
+import { validateSetResult } from "./editScoreHelpers";
 import type { CompletedSet } from "./edit-score-logic";
 import {
   createInitialEditScoreState,
@@ -12,7 +12,7 @@ import {
 } from "./edit-score-logic";
 import { parsePointValue, pointToProgress } from "@/core/scoring/point-utils";
 import { useEditScoreCalculator } from "./use-edit-score-calculator";
-import { getFinalSets } from "./useEditScoreModal.confirm.helpers";
+import { getFinalSets, getFloorError, getFreshFloorError } from "./useEditScoreModal.confirm.helpers";
 
 interface EditScoreModalState {
   p1Input: string;
@@ -113,6 +113,7 @@ export function useEditScoreModal(
   const calculations = useEditScoreCalculator({
     matchFormat,
     completedSets: completedSets as CompletedSet[],
+    editableCompletedSets: state.editableCompletedSets,
     currentServer,
     state,
     tiebreakP1: state.tiebreakP1,
@@ -245,19 +246,12 @@ export function useEditScoreModal(
     if (isFinishingMatch) return;
     setConfirmError(null);
     
+    // FIX #13: Usar getFreshFloorError consolidado em vez de lógica inline
     if (onRefreshFloor && floorCurrentSets && !isSetTrulyCompleted) {
-      try {
-        const freshFloor = await onRefreshFloor();
-        if (freshFloor) {
-          if (p1Val < freshFloor.player1 || p2Val < freshFloor.player2) {
-            setConfirmError(
-              `Placar atualizado: ${freshFloor.player1}x${freshFloor.player2}. Seu placar (${p1Val}x${p2Val}) é inferior.`
-            );
-            return;
-          }
-        }
-      } catch (err) {
-        logger.error('[handleConfirm] Failed to refresh floor:', err);
+      const freshError = await getFreshFloorError(onRefreshFloor, floorCurrentSets, isSetTrulyCompleted, p1Val, p2Val);
+      if (freshError) {
+        setConfirmError(freshError);
+        return;
       }
     }
     
@@ -284,11 +278,11 @@ export function useEditScoreModal(
       }
     }
 
-    if (bothFilled && floorCurrentSets) {
-      if (p1Val < floorCurrentSets.player1 || p2Val < floorCurrentSets.player2) {
-        setConfirmError(
-          `Placar não pode ser inferior ao ponto de parada (${floorCurrentSets.player1}x${floorCurrentSets.player2}).`,
-        );
+    // FIX #13: Usar getFloorError consolidado em vez de lógica inline
+    if (bothFilled) {
+      const floorError = getFloorError(p1Val, p2Val, floorCurrentSets);
+      if (floorError) {
+        setConfirmError(floorError);
         return;
       }
     }
@@ -429,6 +423,13 @@ export function useEditScoreModal(
   }, []);
 
   const handleEditCompletedSet = useCallback((index: number, p1Games: number, p2Games: number) => {
+    // FIX #4: Validar inline antes de atualizar o estado. Impedir placares
+    // inválidos como 99-99, -5-3, ou set sem vencedor claro.
+    const validation = validateSetResult({ p1Games, p2Games }, matchFormat);
+    if (validation.error && !validation.isPartial) {
+      setConfirmError(validation.error);
+      return;
+    }
     setState(prev => {
       const newEditable = [...prev.editableCompletedSets];
       if (newEditable[index]) {
@@ -438,10 +439,15 @@ export function useEditScoreModal(
     });
     setConfirmError(null);
     setFloorValidationError(null);
-  }, []);
+  }, [matchFormat]);
 
   const handleRemoveCompletedSet = useCallback((index: number) => {
+    // FIX #5: Impedir remoção de todos os sets completados. Manter pelo menos
+    // 0 sets é aceitável (partida sem sets), mas ficar com array vazio quando
+    // o prop original tinha sets cria inconsistência entre editableCompletedSets
+    // e calculateMatchState (que usa o prop).
     setState(prev => {
+      if (prev.editableCompletedSets.length <= 0) return prev;
       const newEditable = prev.editableCompletedSets.filter((_, i) => i !== index);
       return { ...prev, editableCompletedSets: newEditable };
     });

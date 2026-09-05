@@ -39,19 +39,20 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
     () => normalized?.sets ?? scoreState?.sets ?? [],
     [normalized, scoreState],
   );
+  const setsWon = normalized?.setsWon;
   const currentSetIndex = useMemo(() => {
     if (sets.length === 0) return 0;
     // Procura o último set não-finalizado (em andamento).
     for (let i = sets.length - 1; i >= 0; i--) {
-      if (!isSetCompleted(sets[i], tennisFormat)) return i;
+      if (!isSetCompleted(sets[i], tennisFormat, i, setsWon)) return i;
     }
     // Todos finalizados: não há "atual" — retorna -1 para que nenhum
     // set seja destacado com o label 'atual'.
     return -1;
-  }, [sets, tennisFormat]);
+  }, [sets, tennisFormat, setsWon]);
 
   const getSetsWon = (player: 'player1' | 'player2') => {
-    return normalized?.setsWon?.[player]
+    return setsWon?.[player]
       ?? scoreState?.setsWon?.[player]
       ?? scoreState?.sets?.filter((s: any) => s[player] > s[player === 'player1' ? 'player2' : 'player1']).length
       ?? 0;
@@ -68,7 +69,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
       return 'text-white font-bold bg-green-600 dark:bg-green-500';
     }
     
-    const isComplete = set && isSetCompleted(set, tennisFormat);
+    const isComplete = set && isSetCompleted(set, tennisFormat, undefined, setsWon);
     if (!isComplete) {
       return 'text-gray-300 dark:text-gray-600 bg-transparent';
     }
@@ -91,7 +92,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
             {Array.from({ length: numSets }).map((_, i) => {
               const set = sets[i];
               const isCurrent = i === currentSetIndex;
-              const isComplete = set && isSetCompleted(set, tennisFormat);
+              const isComplete = set && isSetCompleted(set, tennisFormat, i, setsWon);
               
               return (
                 <th key={i} scope="col" aria-label={`Set ${i + 1}`} className={`text-center px-1 py-1 w-7 sm:w-9 ${isCurrent ? 'font-bold text-green-600 dark:text-green-400' : ''}`}>
@@ -173,7 +174,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
             {Array.from({ length: numSets }).map((_, i) => {
               const set = sets[i];
               const isCurrent = i === currentSetIndex;
-              const isComplete = set && isSetCompleted(set, tennisFormat);
+              const isComplete = set && isSetCompleted(set, tennisFormat, i, setsWon);
               const p1Won = set && set.player1 > set.player2;
               const p2Won = set && set.player2 > set.player1;
               

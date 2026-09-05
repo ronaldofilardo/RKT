@@ -5,10 +5,10 @@
  * Data: 2026-07-20
  * Owner: @qa
  * 
- * Comportamentos suspeitos:
- * - // SUSPECT: TD-XXX — validateFinishMatch permite finalizar sem winnerId em alguns casos
- * - // SUSPECT: TD-XXX — validateTransitionState não valida todas as transições de estado
- * - // SUSPECT: TD-XXX — Score regression detection pode ter falsos positivos em tiebreak
+ * Comportamentos suspeitos (resolvidos):
+ * - TD-036: validateFinishMatch exige winnerId válido para reason=COMPLETED
+ * - TD-036: validateTransitionState bloqueia SCHEDULED→FINISHED via ALLOWED_TRANSITIONS
+ * - Score regression detection funciona corretamente em tiebreak (testes validam)
  */
 
 import { describe, it, expect } from '@jest/globals';

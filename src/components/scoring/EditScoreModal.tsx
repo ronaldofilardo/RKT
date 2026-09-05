@@ -2,6 +2,7 @@
 
 import type { TennisFormat } from "@/core/scoring/types";
 import type { SetEditData } from "./editScoreHelpers";
+import { validateSetResult } from "./editScoreHelpers";
 import { totalSetsForFormat } from "@/core/scoring/format-rules";
 import type { CompletedSet } from "./edit-score-logic";
 import { useEditScoreModal } from "./useEditScoreModal";
@@ -112,6 +113,15 @@ export function EditScoreModal({
     isPartial: s.isPartial,
   }));
 
+  // FIX #12: Calcular erros de validação para cada set completado editado
+  const completedSetValidationErrors: Record<number, string> = {};
+  state.editableCompletedSets.forEach((s, idx) => {
+    const v = validateSetResult({ p1Games: s.p1Games, p2Games: s.p2Games }, matchFormat);
+    if (v.error && !v.isPartial) {
+      completedSetValidationErrors[idx] = v.error;
+    }
+  });
+
   if (!isOpen) return null;
 
   return (
@@ -148,6 +158,7 @@ export function EditScoreModal({
             startIndex={0}
             onEditSet={handleEditCompletedSet}
             onRemoveSet={handleRemoveCompletedSet}
+            validationErrors={completedSetValidationErrors}
           />
 
           <MatchSummary

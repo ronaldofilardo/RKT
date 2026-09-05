@@ -272,6 +272,10 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
             return result.serverResponse.pointLogId;
           } else if (result.needsResync) {
             await fetchMatch(true);
+            // Clear the error after successful resync — the state is now
+            // reconciled with the server (the point may have been saved
+            // before the timeout/error occurred).
+            setError(null);
           }
         } else {
           await pointSync.queuePointForOffline(enqueue, flow);
@@ -431,11 +435,12 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       timestamp: Date.now(),
       rallyDetails,
       rallyLength: 1,
+    }).finally(() => {
+      handleFirstServeErrorClear();
+      setServeStep("none");
     }).catch((err: unknown) =>
       logger.error("[handleAceDirect] Error processing ACE:", err),
     );
-    handleFirstServeErrorClear();
-    setServeStep("none");
   }, [
     match,
     isProcessingRef,
@@ -473,7 +478,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
 
       const rallyDetails = modalService.createAceRallyDetails(effect, direction);
 
-      debounceTimerRef.current = setTimeout(() => {
+        debounceTimerRef.current = setTimeout(() => {
         processPoint({
           winnerId: serverHelpers.getWinnerId(true),
           type: "ACE",
@@ -483,14 +488,15 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
           timestamp: Date.now(),
           rallyDetails,
           rallyLength: 1,
+        }).finally(() => {
+          handleFirstServeErrorClear();
+          setServeStep("none");
         }).catch((err) =>
           logger.error(
             "[handleServerEffectConfirm] Error processing ACE:",
             err
           )
         );
-        handleFirstServeErrorClear();
-        setServeStep("none");
       }, TIMEOUTS.DEBOUNCE_MS);
     },
     [
@@ -551,10 +557,11 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
             isFirstServe: false,
             isSecondServe: true,
             firstFaultDetail,
+          }).finally(() => {
+            handleFirstServeErrorClear();
+            handleServeErrorClose();
+            setServeStep("none");
           });
-          handleFirstServeErrorClear();
-          handleServeErrorClose();
-          setServeStep("none");
         }, 50);
       }
     },
@@ -621,10 +628,11 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
             isFirstServe: false,
             isSecondServe: true,
             firstFaultDetail,
+          }).finally(() => {
+            handleFirstServeErrorClear();
+            handleServeErrorClose();
+            setServeStep("none");
           });
-          handleFirstServeErrorClear();
-          handleServeErrorClose();
-          setServeStep("none");
         }, 50);
       }
     },
@@ -647,6 +655,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
   );
 
   const handleServeCancel = useCallback(() => {
+    if (isProcessingRef.current) return;
     handleServeErrorClose();
     if (serveErrorState.firstServeError && engineRef.current) {
       engineRef.current.undoLastPoint();
@@ -659,9 +668,11 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     engineRef,
     setScoreState,
     handleFirstServeErrorClear,
+    isProcessingRef,
   ]);
 
   const handleServeErrorCancel = useCallback(() => {
+    if (isProcessingRef.current) return;
     closeAll();
     handleServeErrorClose();
     if (serveErrorState.serveStep !== "second") {
@@ -680,6 +691,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     setServeStep,
     engineRef,
     setScoreState,
+    isProcessingRef,
   ]);
 
   // ─── Audio note upload ────────────────────────────────────────────────────

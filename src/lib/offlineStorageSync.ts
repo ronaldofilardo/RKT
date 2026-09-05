@@ -6,7 +6,8 @@ export function acquireLocalStorageLock(): boolean {
   if (typeof window === "undefined") return false;
   try {
     const now = Date.now();
-    const existing = Number(localStorage.getItem(LOCK_KEY) ?? 0);
+    const raw = localStorage.getItem(LOCK_KEY);
+    const existing = Number(raw ?? 0);
     if (existing && now - existing < TIMEOUTS.LOCK_TTL_MS) {
       return false;
     }
@@ -53,7 +54,14 @@ export function writePendingMatchSyncs<T>(items: T[]): void {
 
 export function appendPendingMatchSync<T>(item: T): void {
   if (typeof window === "undefined") return;
-  const items = readPendingMatchSyncs<T>();
-  items.push(item);
-  writePendingMatchSyncs(items);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const items = readPendingMatchSyncs<T>();
+      items.push(item);
+      writePendingMatchSyncs(items);
+      return;
+    } catch {
+      if (attempt === 1) return;
+    }
+  }
 }

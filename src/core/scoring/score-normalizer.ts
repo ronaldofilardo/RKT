@@ -1,3 +1,4 @@
+// TODO: Remove this file after data migration window closes. It normalizes corrupted data from a historical bug (Bug #4, 2026-08-07).
 import type { TennisFormat } from './types';
 
 /**

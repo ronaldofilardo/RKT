@@ -1,14 +1,10 @@
 /**
  * @jest-environment jsdom
  *
- * Testes de caracteriza��o da view "Partidas Anotadas" no DashboardPage.
- * Validam que partidas com state=FINISHED s�o listadas em /partidasanotadas
- * e que o estado vazio � exibido quando n�o h� partidas finalizadas.
- *
- * TD-046 — Sprint 0: testes pulados aguardando restaura��o do dashboard
- * (commit 1511b97 reduziu o componente de 448L para stub de 7L).
+ * Testes de caracterização da view "Partidas Anotadas" no DashboardPage.
+ * Validam que partidas com state=FINISHED são listadas em /partidasanotadas
+ * e que o estado vazio é exibido quando não há partidas finalizadas.
  */
-// describe.skip abaixo substitui describe nesta suite enquanto TD-046 n�o fecha.
 import { render, screen, waitFor } from '@testing-library/react';
 import DashboardPage from '@/app/dashboard/page';
 import { useRouter, usePathname } from 'next/navigation';

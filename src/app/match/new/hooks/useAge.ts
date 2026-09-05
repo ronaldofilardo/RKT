@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { calculateAge } from '../rankingConstants';
+import { calculateAge } from '@/lib/ranking/rankingConstants';
 
 export function useAge(birthYear: string, birthMonth: string, birthDay: string): number | null {
   return useMemo(() => {

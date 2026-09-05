@@ -118,6 +118,7 @@ export class ScoringEngine {
     return null;
   }
 
+  /** @deprecated Redo feature disabled (TD-032) — kept for potential future re-enablement. */
   replayCurrentPoint(): { point: PointDetails } | null {
     const result = replayHistory(this.redoStack, this.history, this.state);
     if (result) {

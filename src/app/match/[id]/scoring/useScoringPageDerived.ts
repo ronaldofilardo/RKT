@@ -66,6 +66,8 @@ export function useScoringPageDerived(
   const canUndo = engineRef.current
     ? engineRef.current.getHistoryLength() > 0
     : false;
+  // @deprecated Redo feature disabled (TD-032) — canRedo is always false in practice;
+  // engine.redoStack is cleared on every applyPoint, so getRedoLength() is always 0.
   const canRedo = engineRef.current
     ? engineRef.current.getRedoLength() > 0
     : false;
@@ -76,7 +78,7 @@ export function useScoringPageDerived(
     if (!effectiveScoreState) return { player1: 0, player2: 0 };
     const lastSet = effectiveScoreState.sets[effectiveScoreState.sets.length - 1];
     if (!lastSet) return { player1: 0, player2: 0 };
-    const lastSetIsCompleted = isSetCompleted(lastSet, match?.format as TennisFormat);
+    const lastSetIsCompleted = isSetCompleted(lastSet, match?.format as TennisFormat, effectiveScoreState.sets.length - 1, effectiveScoreState.setsWon);
 
     if (lastSet.isTiebreak && lastSet.tiebreakScore) {
       // Regular tiebreak (games at threshold like 6-6): show game scores for edit modal
@@ -95,7 +97,7 @@ export function useScoringPageDerived(
 
   const editScoreCompletedSets = effectiveScoreState
     ? effectiveScoreState.sets
-        .filter((s) => isSetCompleted(s, match?.format as TennisFormat))
+        .filter((s, i) => isSetCompleted(s, match?.format as TennisFormat, i, effectiveScoreState.setsWon))
         .map((s) => {
           const winner = s.tiebreakScore
             ? s.tiebreakScore.player1 > s.tiebreakScore.player2

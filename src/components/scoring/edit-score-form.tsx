@@ -180,7 +180,7 @@ export function SetInputForm({
         <p className="text-xs text-red-400">{floorValidationError}</p>
       )}
 
-      {!isMatchTiebreakSet && hasTiebreak && p1Input && p2Input && ((p1Val === 6 && p2Val === 6) || (matchFormat === 'SHORT_SET_2V2_NO_AD' && p1Val === 4 && p2Val === 4)) && (
+      {!isMatchTiebreakSet && hasTiebreak && p1Input && p2Input && ((p1Val === 6 && p2Val === 6) || (matchFormat === 'SHORT_SET_2V2_NO_AD' && p1Val === 4 && p2Val === 4) || (matchFormat === 'PRO_SET_8' && p1Val === 9 && p2Val === 9)) && (
         <div className="space-y-1 pt-1">
           <p className="text-xs font-semibold text-gray-400">
             Tie-Break

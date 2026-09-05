@@ -6,6 +6,7 @@ import type { ScoringState } from "@/core/scoring/types";
 interface MatchFinishConfig {
   matchId: string;
   tokenRef: React.MutableRefObject<string | null>;
+  matchVersion?: number | null;
 }
 
 export async function finishMatch(
@@ -13,7 +14,7 @@ export async function finishMatch(
   winnerId: string,
   scoreState: ScoringState
 ): Promise<{ success: boolean; error?: string }> {
-  const { matchId, tokenRef } = config;
+  const { matchId, tokenRef, matchVersion } = config;
 
   try {
     const token = tokenRef.current;
@@ -27,6 +28,7 @@ export async function finishMatch(
         winnerId: winnerId,
         scoreState: scoreState,
         reason: 'COMPLETED',
+        ...(matchVersion != null ? { version: matchVersion } : {}),
       }),
     });
 

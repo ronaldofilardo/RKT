@@ -57,7 +57,7 @@ describe('isSetCompleted - Correção Match Tie-Break', () => {
       expect(isSetCompleted(set, 'MATCH_TB_10')).toBe(false);
     });
 
-    it('deve detectar set completado em SHORT_SET_2V2_NO_AD com tiebreak 7-5', () => {
+    it('deve detectar set completado em SHORT_SET_2V2_NO_AD com tiebreak 7-5 (set regular, index 0)', () => {
       const set = {
         player1: 0,
         player2: 0,
@@ -65,7 +65,51 @@ describe('isSetCompleted - Correção Match Tie-Break', () => {
         tiebreakScore: { player1: 7, player2: 5 },
       };
 
-      expect(isSetCompleted(set, 'SHORT_SET_2V2_NO_AD')).toBe(true);
+      expect(isSetCompleted(set, 'SHORT_SET_2V2_NO_AD', 0)).toBe(true);
+    });
+
+    it('deve detectar set incompleto em SHORT_SET_2V2_NO_AD com tiebreak 7-5 (MT, index 2, sets 1-1)', () => {
+      const set = {
+        player1: 0,
+        player2: 0,
+        isTiebreak: true,
+        tiebreakScore: { player1: 7, player2: 5 },
+      };
+
+      expect(isSetCompleted(set, 'SHORT_SET_2V2_NO_AD', 2, { player1: 1, player2: 1 })).toBe(false);
+    });
+
+    it('deve detectar set completado em SHORT_SET_2V2_NO_AD com tiebreak 10-8 (MT, index 2, sets 1-1)', () => {
+      const set = {
+        player1: 0,
+        player2: 0,
+        isTiebreak: true,
+        tiebreakScore: { player1: 10, player2: 8 },
+      };
+
+      expect(isSetCompleted(set, 'SHORT_SET_2V2_NO_AD', 2, { player1: 1, player2: 1 })).toBe(true);
+    });
+
+    it('deve detectar set incompleto em BEST_OF_5 com tiebreak 7-5 (MT no 5º set, index 4, sets 2-2)', () => {
+      const set = {
+        player1: 0,
+        player2: 0,
+        isTiebreak: true,
+        tiebreakScore: { player1: 7, player2: 5 },
+      };
+
+      expect(isSetCompleted(set, 'BEST_OF_5', 4, { player1: 2, player2: 2 })).toBe(false);
+    });
+
+    it('deve detectar set completado em BEST_OF_5 com tiebreak 10-8 (MT no 5º set, index 4, sets 2-2)', () => {
+      const set = {
+        player1: 0,
+        player2: 0,
+        isTiebreak: true,
+        tiebreakScore: { player1: 10, player2: 8 },
+      };
+
+      expect(isSetCompleted(set, 'BEST_OF_5', 4, { player1: 2, player2: 2 })).toBe(true);
     });
   });
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { GAME_POINTS } from '@/core/scoring/point-utils';
+import { SCORING_LIMITS } from '@/lib/constants';
 import type { SetInputFormProps } from './edit-score-form';
 
 export function MatchClosedNotice() {
@@ -31,7 +32,7 @@ export function ScoreInputs({ props }: { props: SetInputFormProps }) {
   const { matchFormat, playerNames, p1Input, p2Input, p1Val, p2Val, isMatchTiebreakSet, onP1InputChange, onP2InputChange } = props;
   const p1InputRef = useRef<HTMLInputElement>(null);
   useEffect(() => { p1InputRef.current?.focus(); }, []);
-  const max = isMatchTiebreakSet ? 30 : matchFormat === 'PRO_SET_8' ? 9 : 7;
+  const max = isMatchTiebreakSet ? SCORING_LIMITS.TIEBREAK_INPUT_CAP : matchFormat === 'PRO_SET_8' ? 9 : 7;
   const p1Border = p1Input && p2Input && p1Val > p2Val ? 'border-green-500/50' : 'border-white/10';
   const p2Border = p1Input && p2Input && p2Val > p1Val ? 'border-green-500/50' : 'border-white/10';
   return (
@@ -46,14 +47,15 @@ export function ScoreInputs({ props }: { props: SetInputFormProps }) {
 }
 
 function TiebreakInput({ value, onChange }: { value: string; onChange: (value: string) => void }) {
-  return <input type="number" className="w-16 text-center bg-gray-700 border border-white/10 rounded-lg px-2 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" value={value} onChange={(e) => { const parsed = parseInt(e.target.value, 10); if (!Number.isNaN(parsed) && parsed >= 0) onChange(String(parsed)); else if (e.target.value === '') onChange(''); }} min={0} max={20} placeholder="0" />;
+  return <input type="number" className="w-16 text-center bg-gray-700 border border-white/10 rounded-lg px-2 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" value={value} onChange={(e) => { const parsed = parseInt(e.target.value, 10); if (!Number.isNaN(parsed) && parsed >= 0) onChange(String(parsed)); else if (e.target.value === '') onChange(''); }} min={0} max={SCORING_LIMITS.TIEBREAK_INPUT_CAP} placeholder="0" />;
 }
 
 function isTiebreakRequired(props: SetInputFormProps): boolean {
   const { isMatchTiebreakSet, hasTiebreak, p1Input, p2Input, p1Val, p2Val, matchFormat } = props;
   const standardTiebreak = p1Val === 6 && p2Val === 6;
   const shortTiebreak = matchFormat === 'SHORT_SET_2V2_NO_AD' && p1Val === 4 && p2Val === 4;
-  return !isMatchTiebreakSet && hasTiebreak && Boolean(p1Input && p2Input) && (standardTiebreak || shortTiebreak);
+  const proSetTiebreak = matchFormat === 'PRO_SET_8' && p1Val === 9 && p2Val === 9;
+  return !isMatchTiebreakSet && hasTiebreak && Boolean(p1Input && p2Input) && (standardTiebreak || shortTiebreak || proSetTiebreak);
 }
 
 export function TiebreakSection({ props }: { props: SetInputFormProps }) {

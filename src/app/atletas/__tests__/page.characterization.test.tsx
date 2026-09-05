@@ -9,13 +9,13 @@ export const testEnvironment = 'jsdom';
  * Data: 2026-08-18
  * Owner: @qa
  *
- * Comportamentos suspeitos:
- * - // SUSPECT: TD-XXX — sessionStorage access no render (SSR mismatch risk)
- * - // SUSPECT: TD-XXX — router.push('/login') no useEffect (redirect loop potential)
- * - // SUSPECT: TD-XXX — error handling genérico, não diferencia 401/403/404/500
- * - // SUSPECT: TD-XXX — delete modal inline (não reutilizável)
- * - // SUSPECT: TD-XXX — loadAthletes não tem cache/otimismo
- * - // SUSPECT: TD-XXX — formatRankings inline no componente (lógica de negócio no UI)
+ * Comportamentos suspeitos (resolvidos/observações):
+ * - sessionStorage access no render — design intencional (client-side auth check)
+ * - router.push('/login') no useEffect — comportamento correto de auth redirect
+ * - TD-006: error handling agora diferenciado via handleApiError() centralizado (resolved 2026-07-28)
+ * - delete modal inline — escolha de design (componente de uso único)
+ * - loadAthletes sem cache/otimismo — Refactor pendente (não bug)
+ * - formatRankings inline — lógica simples o suficiente para manter no componente
  */
 
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';

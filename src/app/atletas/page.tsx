@@ -7,7 +7,7 @@ import { EditAthleteModal } from './EditAthleteModal';
 import {
   RANKING_TYPE_LABELS,
   RankingType,
-} from '@/app/match/new/rankingConstants';
+} from '@/lib/ranking/rankingConstants';
 import { logger } from '@/lib/logger';
 
 interface RankingEntry {
@@ -42,18 +42,19 @@ export default function AtletasPage() {
   const [deleting, setDeleting] = useState(false);
 
   const token = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
-  const userId = typeof window !== 'undefined' ? sessionStorage.getItem('user_id') : null;
 
   const loadAthletes = useCallback(async () => {
     setError(null);
     try {
-      if (!userId) {
+      const currentToken = sessionStorage.getItem('access_token');
+      const currentUserId = sessionStorage.getItem('user_id');
+      if (!currentUserId) {
         setAthletes([]);
         return;
       }
 
-      const res = await fetch(`/api/players?userId=${encodeURIComponent(userId)}`, {
-        headers: { authorization: `Bearer ${token}` },
+      const res = await fetch(`/api/players?userId=${encodeURIComponent(currentUserId)}`, {
+        headers: { authorization: `Bearer ${currentToken}` },
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -65,7 +66,7 @@ export default function AtletasPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar atletas');
     }
-  }, [token, userId]);
+  }, []);
 
   useEffect(() => {
     const userRole = sessionStorage.getItem('user_role');

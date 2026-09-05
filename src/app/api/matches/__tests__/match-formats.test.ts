@@ -10,10 +10,11 @@ describe('MatchFormat Enum - 6 formatos oficiais de Tênis', () => {
     'BEST_OF_3_NO_AD',
     'SHORT_SET_2V2_NO_AD',
     'MATCH_TB_10',
+    'PRO_SET_8',
   ];
 
-  it('deve ter exatamente 6 formatos válidos de tênis', () => {
-    expect(validFormats.length).toBe(6);
+  it('deve ter exatamente 7 formatos válidos de tênis', () => {
+    expect(validFormats.length).toBe(7);
   });
 
   it('deve incluir BEST_OF_3', () => {
@@ -40,8 +41,8 @@ describe('MatchFormat Enum - 6 formatos oficiais de Tênis', () => {
     expect(validFormats).toContain('MATCH_TB_10');
   });
 
-  it('NÃO deve incluir PRO_SET_8 (formato removido)', () => {
-    expect(validFormats).not.toContain('PRO_SET_8');
+  it('deve incluir PRO_SET_8', () => {
+    expect(validFormats).toContain('PRO_SET_8');
   });
 
   it('NÃO deve incluir BEST_OF_3_NO_AD_START_2_2 (formato inválido)', () => {

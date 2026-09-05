@@ -15,6 +15,7 @@ import {
 import { buildNewScoringState } from "./useSessionManager.state-builder";
 import { finishMatch } from "./useSessionManager.match-finish";
 import { useSuspendedSession } from "./useSuspendedSession";
+import { useToast } from "@/components/Toast";
 
 export interface SuspendedSessionState {
   matchStateSnapshot: string | null;
@@ -55,6 +56,12 @@ export interface SessionManagerContext {
   updateScoreContext?: (score: ScoringState) => void;
   close: () => void;
   closeAll?: () => void;
+  /**
+   * Ref para verificar se um ponto está sendo processado.
+   * Usado para prevenir que o modal de edição de placar seja confirmado
+   * enquanto um POST /point está em andamento (race condition #1).
+   */
+  isProcessingRef?: MutableRefObject<boolean>;
 }
 
 export function useSessionManager(ctx: SessionManagerContext) {
@@ -73,6 +80,8 @@ export function useSessionManager(ctx: SessionManagerContext) {
     setFloorCurrentSets,
     setPendingEditScore,
   } = ctx;
+
+  const { toast } = useToast();
 
   const abandonCurrentSession = useCallback(
     async (snapshot?: string) => {
@@ -158,11 +167,19 @@ export function useSessionManager(ctx: SessionManagerContext) {
       server: "player1" | "player2",
       onMatchFinished?: (winner: "player1" | "player2") => void
     ) => {
+      // FIX #1: Impedir confirmação enquanto um ponto está sendo sincronizado.
+      // Se isProcessingRef estiver true, um POST /point está em andamento —
+      // o engineRef pode estar num estado transitório e a edição seria
+      // aplicada sobre dados desatualizados.
+      if (ctx.isProcessingRef?.current) {
+        return;
+      }
+
       const partialSet = setResults.find((set) => set.isPartial);
       
       const tbValidation = validateMatchTiebreakComplete(setResults, match?.format || '');
       if (!tbValidation.valid) {
-        alert(tbValidation.error);
+        toast({ type: 'error', message: tbValidation.error ?? 'Validação de tiebreak falhou' });
         return;
       }
       
@@ -185,7 +202,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
           newState.setsWon.player1 < bankSetsWon.player1 ||
           newState.setsWon.player2 < bankSetsWon.player2
         ) {
-          alert("Cannot reduce the number of sets already won.");
+          toast({ type: 'error', message: 'Cannot reduce the number of sets already won.' });
           return;
         }
       }
@@ -193,6 +210,25 @@ export function useSessionManager(ctx: SessionManagerContext) {
       const isFinished = newState.isFinished;
       const winner = newState.winner;
 
+      // PROTEÇÃO: Persistir ANTES de aplicar estado local.
+      // Antes, o engine era atualizado antes da persistState — se ela falhasse,
+      // a UI mostrava o placar editado enquanto o servidor ainda tinha o antigo.
+      logger.log("[handleEditScore] Calling persistState with currentGame:", newState.currentGame);
+      const result = await persistState(newState, "edit-score", { isManualScoreEdit: true });
+      if (result.success) {
+        logger.log("[handleEditScore] State persisted successfully");
+      } else if (result.needsResync) {
+        logger.warn("[handleEditScore] Needs resync due to version conflict — state re-synced from server");
+        await fetchMatch(true);
+        (ctx.closeAll ?? ctx.close)();
+        return;
+      } else {
+        logger.error("[handleEditScore] Failed to persist state");
+        toast({ type: 'error', message: 'Falha ao salvar placar editado. Tente novamente.' });
+        return;
+      }
+
+      // Aplicar estado local SOMENTE após persistência confirmada
       if (engineRef.current) {
         engineRef.current.loadState(newState);
         setScoreState(newState);
@@ -208,48 +244,24 @@ export function useSessionManager(ctx: SessionManagerContext) {
         });
       }
 
-      // CORREÇÃO: limpar imediatamente qualquer snapshot "pendente" (pendingEditScore
-      // local, pendingEditScore do contexto de sessão, e suspendedSession.bankScoreState)
-      // na MESMA passada em que atualizamos scoreState. Esses três têm prioridade mais
-      // alta que scoreState em `effectiveScoreState` (page.tsx). Se ficarem "vivos" até
-      // o fim da função (depois de persistState/finish/abandonCurrentSession, todos
-      // assíncronos), os botões de placar continuam mostrando o valor ANTIGO até essas
-      // chamadas terminarem — ou indefinidamente, se alguma delas falhar.
+      // Limpar snapshots pendentes
       setPendingEditScore(null);
       ctx.clearPendingEdit?.();
       setSuspendedSession(null);
-      
-      // PROTEÇÃO #3: Deduplicação de Persistência
-      if (isFinished && winner) {
-        logger.log("[handleEditScore] Match finished - will persist via /finish endpoint");
-      } else {
-        logger.log("[handleEditScore] Calling persistState with currentGame:", newState.currentGame);
-        const result = await persistState(newState, "edit-score", { isManualScoreEdit: true });
-        if (result.success) {
-          logger.log("[handleEditScore] State persisted successfully");
-        } else if (result.needsResync) {
-          logger.warn("[handleEditScore] Needs resync due to version conflict");
-          await fetchMatch(true);
-          (ctx.closeAll ?? ctx.close)();
-          return;
-        } else {
-          logger.error("[handleEditScore] Failed to persist state");
-        }
-      }
 
       if (isFinished && winner) {
         const winnerPlayerId = winner === "player1" ? match?.player1.id : match?.player2.id;
         if (winnerPlayerId && matchId) {
           const result = await finishMatch(
-            { matchId, tokenRef },
+            { matchId, tokenRef, matchVersion: match?.version },
             winnerPlayerId,
             newState
           );
           
           if (result.error === 'offline') {
-            alert('⚠️ Partida finalizada offline. Sincronização pendente.');
+            toast({ type: 'info', message: 'Partida finalizada offline. Sincronização pendente.' });
           } else if (!result.success && result.error) {
-            alert(`⚠️ ${result.error}\n\nA partida foi encerrada localmente, mas não foi possível sincronizar com o servidor.`);
+            toast({ type: 'error', message: `${result.error}\n\nA partida foi encerrada localmente, mas não foi possível sincronizar com o servidor.` });
           }
         }
         
@@ -280,11 +292,14 @@ export function useSessionManager(ctx: SessionManagerContext) {
   );
 
   useEffect(() => {
+    let abandoned = false;
     const doAbandon = () => {
+      if (abandoned) return;
       const sid = sessionIdRef.current;
       if (!sid) return;
       const state = engineRef.current?.getState();
       if (!state || state.isFinished) return;
+      abandoned = true;
       const snapshot = engineRef.current?.serialize() ?? JSON.stringify(state);
       sessionStorage.setItem("last_abandon_timestamp", Date.now().toString());
       const token = tokenRef.current ?? sessionStorage.getItem("access_token");

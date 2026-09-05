@@ -5,9 +5,9 @@
  * Data: 2026-07-20
  * Owner: @qa
  *
- * Comportamentos suspeitos:
- * - // SUSPECT: TD-008 — JWT_SECRET hardcoded em vez de usar getJWTSecret()
- * - // SUSPECT: TD-004 — GET sem paginação máxima (pode retornar todos os matches)
+ * Comportamentos suspeitos (resolvidos):
+ * - TD-044: JWT_SECRET agora usa getJWTSecret() centralizado (resolved 2026-07-28)
+ * - TD-043: GET com paginação cursor-based, limit cap em 100 (resolved 2026-07-28)
  *
  * NOTA (TD-029): Originalmente esta suíte fazia `fetch()` real contra um
  * servidor Next.js rodando em localhost:3000 (portanto era, na prática, um
@@ -130,7 +130,7 @@ describe('GET /api/matches (characterization)', () => {
         where: { state: 'IN_PROGRESS' },
       }),
     );
-    // SUSPECT: TD-004 — Não há validação de valores válidos para state
+    // Resolvido (TD-042): MatchStateSchema.safeParse valida state; 400 retornado se inválido
   });
 
   it('deve aceitar query param cursor para paginação', async () => {
@@ -166,7 +166,7 @@ describe('GET /api/matches (characterization)', () => {
     const json = await res.json();
 
     expect(json.data.matches.length).toBeLessThanOrEqual(20);
-    // SUSPECT: TD-004 — limit máximo não é validado (pode ser 1000+)
+    // Resolvido (TD-043): PAGINATION_LIMITS.MAX=100, extractPagination aplica cap + validação NaN
   });
 });
 

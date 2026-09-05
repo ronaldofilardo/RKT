@@ -122,12 +122,9 @@ export function validateMatchTiebreakComplete(
     return { valid: true };
   }
 
-  if (p1Score >= tbMin || p2Score >= tbMin) {
-    if (Math.abs(p1Score - p2Score) < 2) {
-      return { valid: true };
-    }
-  }
-
+  // FIX #7: MT 10-9 (ou qualquer placar >= 10 sem margem de 2) NÃO é válido
+  // quando o set NÃO é parcial (jogo finalizado). Antes, retornava
+  // { valid: true } para 10-9, permitindo finalizar partida com MT incompleto.
   if (!set.isPartial) {
     return {
       valid: false,
@@ -135,6 +132,7 @@ export function validateMatchTiebreakComplete(
     };
   }
 
+  // Set parcial (em andamento): MT ainda não terminou, validar depois
   return { valid: true };
 }
 

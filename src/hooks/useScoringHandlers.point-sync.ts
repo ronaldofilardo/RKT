@@ -53,6 +53,7 @@ export function createPointSyncService(config: PointSyncConfig) {
       serverId: flow.serverId,
       timestamp: flow.timestamp ?? Date.now(),
       sequenceNumber,
+      clientEventId: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       rallyDetails: flow.rallyDetails ?? undefined,
       rallyLength: flow.rallyLength ?? undefined,
       isFirstServe: flow.isFirstServe ?? undefined,
@@ -129,10 +130,12 @@ export function createPointSyncService(config: PointSyncConfig) {
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") {
         logger.point.requestTimeout();
-        setError("Tempo esgotado ao registrar ponto — verifique sua conexão");
+        // The point may have been saved on the server before the timeout.
+        // A resync will reconcile the state — inform the user accordingly.
+        setError("Tempo esgotado — sincronizando placar...");
       } else {
         logger.point.requestError(err);
-        setError("Erro de conexão ao registrar ponto");
+        setError("Erro de conexão — sincronizando...");
       }
       return { success: false, needsResync: true };
     } finally {

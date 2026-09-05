@@ -53,6 +53,8 @@ describe('Match Tie-Break - Bug Fix: Placar 8x2 não deve encerrar partida', () 
   });
 
   describe('isSetCompleted para Match Tie-Break', () => {
+    const mtSetsWon = { player1: 1, player2: 1 };
+
     it('deve retornar false para match tie-break 8x2 (ainda não chegou a 10)', () => {
       const set = {
         player1: 0,
@@ -61,7 +63,7 @@ describe('Match Tie-Break - Bug Fix: Placar 8x2 não deve encerrar partida', () 
         tiebreakScore: { player1: 8, player2: 2 },
       };
       
-      const result = isSetCompleted(set, 'BEST_OF_3_MATCH_TB');
+      const result = isSetCompleted(set, 'BEST_OF_3_MATCH_TB', 2, mtSetsWon);
       
       expect(result).toBe(false);
     });
@@ -74,7 +76,7 @@ describe('Match Tie-Break - Bug Fix: Placar 8x2 não deve encerrar partida', () 
         tiebreakScore: { player1: 10, player2: 2 },
       };
       
-      const result = isSetCompleted(set, 'BEST_OF_3_MATCH_TB');
+      const result = isSetCompleted(set, 'BEST_OF_3_MATCH_TB', 2, mtSetsWon);
       
       expect(result).toBe(true);
     });
@@ -87,7 +89,7 @@ describe('Match Tie-Break - Bug Fix: Placar 8x2 não deve encerrar partida', () 
         tiebreakScore: { player1: 12, player2: 10 },
       };
       
-      const result = isSetCompleted(set, 'BEST_OF_3_MATCH_TB');
+      const result = isSetCompleted(set, 'BEST_OF_3_MATCH_TB', 2, mtSetsWon);
       
       expect(result).toBe(true);
     });
@@ -100,7 +102,7 @@ describe('Match Tie-Break - Bug Fix: Placar 8x2 não deve encerrar partida', () 
         tiebreakScore: { player1: 10, player2: 9 },
       };
       
-      const result = isSetCompleted(set, 'BEST_OF_3_MATCH_TB');
+      const result = isSetCompleted(set, 'BEST_OF_3_MATCH_TB', 2, mtSetsWon);
       
       expect(result).toBe(false);
     });
@@ -113,7 +115,7 @@ describe('Match Tie-Break - Bug Fix: Placar 8x2 não deve encerrar partida', () 
         tiebreakScore: { player1: 9, player2: 8 },
       };
       
-      const result = isSetCompleted(set, 'BEST_OF_3_MATCH_TB');
+      const result = isSetCompleted(set, 'BEST_OF_3_MATCH_TB', 2, mtSetsWon);
       
       expect(result).toBe(false);
     });

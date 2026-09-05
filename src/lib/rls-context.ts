@@ -41,22 +41,6 @@ export function getRLSUser(): RLSUser | null {
 }
 
 /**
- * @deprecated Use `runWithRLS` em vez de `setRLSUser`. `enterWith` (sticky mode)
- * persiste o contexto após o evento atual, causando VAZAMENTO de contexto entre
- * requests HTTP concorrentes que compartilham a mesma task/microtask. Esta
- * função agora é um no-op que apenas avisa no console.
- *
- * Para cenários de teste characterization que precisam de side-effect sticky,
- * use `__setRLSUserForTesting` (exported apenas em NODE_ENV=test).
- */
-export function setRLSUser(user: RLSUser | null): void {
-  logger.warn(
-    '[RLS] setRLSUser está deprecated e não faz mais nada. Use runWithRLS ou withRLSHandler.',
-  );
-  void user;
-}
-
-/**
  * @internal Apenas para testes. Permite simular o comportamento sticky do
  * `setRLSUser` original (antes da deprecação) sem restaurar a API deprecada
  * em produção. Usa `enterWith` deliberadamente — em testes não há concorrência

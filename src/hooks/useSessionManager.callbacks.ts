@@ -5,6 +5,7 @@ import { validateMatchTiebreakComplete } from './useSessionManager.utils';
 import { buildNewScoringState } from './useSessionManager.state-builder';
 import { finishMatch } from './useSessionManager.match-finish';
 import type { SessionManagerContext } from './useSessionManager';
+import type { ToastType } from '@/components/Toast';
 
 async function completeFinishedSession(ctx: SessionManagerContext, sid: string, state: unknown) {
   const stateResponse = await fetch(`/api/matches/${ctx.matchId}/state`, {
@@ -48,17 +49,21 @@ export function createAbandonCurrentSession(ctx: SessionManagerContext) {
   };
 }
 
-export function createHandleEditScore(ctx: SessionManagerContext, abandonCurrentSession: (snapshot?: string) => Promise<void>) {
+export function createHandleEditScore(
+  ctx: SessionManagerContext,
+  abandonCurrentSession: (snapshot?: string) => Promise<void>,
+  toast?: (opts: { type: ToastType; message: string }) => void,
+) {
   return async (setResults: SetEditData[], server: 'player1' | 'player2', onMatchFinished?: (winner: 'player1' | 'player2') => void) => {
     const partialSet = setResults.find((set) => set.isPartial);
     const tbValidation = validateMatchTiebreakComplete(setResults, ctx.match?.format || '');
-    if (!tbValidation.valid) { alert(tbValidation.error); return; }
+    if (!tbValidation.valid) { toast?.({ type: 'error', message: tbValidation.error ?? 'Validação de tiebreak falhou' }); return; }
     const newState = buildNewScoringState({ setResults, server, format: (ctx.match?.format as TennisFormat) || 'BEST_OF_3', partialSet });
     logger.log('[handleEditScore] newState.currentGame:', newState.currentGame);
     logger.log('[handleEditScore] partialSet:', partialSet);
     if (ctx.suspendedSession) {
       const bankSetsWon = ctx.suspendedSession.bankScoreState?.setsWon ?? { player1: 0, player2: 0 };
-      if (newState.setsWon.player1 < bankSetsWon.player1 || newState.setsWon.player2 < bankSetsWon.player2) { alert('Cannot reduce the number of sets already won.'); return; }
+      if (newState.setsWon.player1 < bankSetsWon.player1 || newState.setsWon.player2 < bankSetsWon.player2) { toast?.({ type: 'error', message: 'Cannot reduce the number of sets already won.' }); return; }
     }
     const isFinished = newState.isFinished;
     const winner = newState.winner;
@@ -85,9 +90,9 @@ export function createHandleEditScore(ctx: SessionManagerContext, abandonCurrent
     if (isFinished && winner) {
       const winnerPlayerId = winner === 'player1' ? ctx.match?.player1.id : ctx.match?.player2.id;
       if (winnerPlayerId && ctx.matchId) {
-        const result = await finishMatch({ matchId: ctx.matchId, tokenRef: ctx.tokenRef }, winnerPlayerId, newState);
-        if (result.error === 'offline') alert('⚠️ Partida finalizada offline. Sincronização pendente.');
-        else if (!result.success && result.error) alert(`⚠️ ${result.error}\n\nA partida foi encerrada localmente, mas não foi possível sincronizar com o servidor.`);
+        const result = await finishMatch({ matchId: ctx.matchId, tokenRef: ctx.tokenRef, matchVersion: ctx.match?.version }, winnerPlayerId, newState);
+        if (result.error === 'offline') toast?.({ type: 'info', message: 'Partida finalizada offline. Sincronização pendente.' });
+        else if (!result.success && result.error) toast?.({ type: 'error', message: `${result.error}\n\nA partida foi encerrada localmente, mas não foi possível sincronizar com o servidor.` });
       }
       if (onMatchFinished) onMatchFinished(winner);
     }

@@ -5,13 +5,13 @@
  * Data: 2026-08-18
  * Owner: @qa
  *
- * Comportamentos suspeitos:
- * - // SUSPECT: TD-XXX — isMatchTiebreakSetUtil importado de useSessionManager.utils (duplicação com getNextServerAfterSet)
- * - // SUSPECT: TD-XXX — calculateValidation usa isMatchTiebreakSetUtil apenas quando setResults fornecido
- * - // SUSPECT: TD-XXX — calculateMatchState reimplementa lógica de MT detection (duplicação)
- * - // SUSPECT: TD-XXX — createSetEditData tem lógica complexa de tiebreakScore vs currentGamePoints
- * - // SUSPECT: TD-XXX — shouldAutoAddSet não considera isPotentialMTSet
- * - // SUSPECT: TD-XXX — Muitos parâmetros em createSetEditData (10 params) — REFACTOR_QUEUE item 9
+ * Comportamentos suspeitos (resolvidos):
+ * - TD-046: isMatchTiebreakSetUtil importado de useSessionManager.utils (canônico) — sem duplicação
+ * - calculateValidation usa isMatchTiebreakSetUtil apenas quando setResults fornecido (design correto)
+ * - calculateMatchState delega detecção de MT para calculateValidation (sem reimplementação)
+ * - createSetEditData usa lógica condicional clara: tiebreakScore vs currentGamePoints
+ * - shouldAutoAddSet recebe isPotentialMTSet via matchState (testes validam)
+ * - createSetEditData tem 10 params (REFACTOR_QUEUE item 9 — refactor pendente, não bug)
  */
 
 import {

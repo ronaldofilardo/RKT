@@ -74,20 +74,6 @@ export function getMatchTiebreakIndex(format: string, resultLength: number): num
   return resultLength === 1 ? 0 : index;
 }
 
-export function validateMatchTiebreakComplete(
-  setResults: SetEditData[],
-  format: string,
-): { valid: boolean; error?: string } {
-  const index = getMatchTiebreakIndex(format, setResults.length);
-  if (index === null) return { valid: true };
-  const set = setResults[index];
-  if (!set || set.isPartial) return { valid: true };
-  const score = scorePair(set);
-  if (wonByTwo(score.player1, score.player2, 10) || wonByTwo(score.player2, score.player1, 10)) return { valid: true };
-  if ((score.player1 >= 10 || score.player2 >= 10) && Math.abs(score.player1 - score.player2) < 2) return { valid: true };
-  return { valid: false, error: 'MATCH_TIEBREAK_INCOMPLETE: Match tie-break requer 10 pontos com diferença mínima de 2' };
-}
-
 function countSetWinner(set: SetEditData, isMatch: boolean): 'player1' | 'player2' | null {
   const score = scorePair(set);
   if (isMatch) {
@@ -121,10 +107,6 @@ function countRegularSets(setResults: SetEditData[], index: number) {
   }, { player1: 0, player2: 0 });
 }
 
-function isGrandSlamDecidingSet(index: number, _sets: SetEditData[], score: { player1: number; player2: number }) {
-  return index === 4 && score.player1 === 2 && score.player2 === 2;
-}
-
 function isOneAllDecidingSet(index: number, format: string, score: { player1: number; player2: number }) {
   const supported = format === 'BEST_OF_3_MATCH_TB' || format === 'SHORT_SET_2V2_NO_AD' || format === 'BEST_OF_3_NO_AD';
   return supported && index === 2 && score.player1 === 1 && score.player2 === 1;
@@ -134,6 +116,13 @@ export function isMatchTiebreakSet(index: number, setResults: SetEditData[], for
   const currentSetNumber = index + 1;
   if (format === 'MATCH_TB_10') return currentSetNumber === 1;
   const score = countRegularSets(setResults, index);
-  if (format === 'BEST_OF_5') return currentSetNumber === 5 && isGrandSlamDecidingSet(index, setResults, score);
+  if (format === 'BEST_OF_5') {
+    if (currentSetNumber !== 5 || score.player1 !== 2 || score.player2 !== 2) return false;
+    const currentSet = setResults[index];
+    if (!currentSet) return false;
+    const isPartial = 'isPartial' in currentSet ? currentSet.isPartial : false;
+    if (isPartial) return currentSet.p1Games === 6 && currentSet.p2Games === 6;
+    return currentSet.p1Games === 6 && currentSet.p2Games === 6;
+  }
   return isOneAllDecidingSet(index, format, score);
 }

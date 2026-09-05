@@ -10,6 +10,96 @@ import {
 } from '@/components/scoring/timeline-rebuild';
 import { getMatch, findAbandonedSessionSnapshot, getMatchScoreEdits } from '@/services/matchService';
 import { prisma } from '@/lib/prisma';
+import type { ReportSummary, ReportIntegrity, PlayerPointSummary } from '@/core/report/report-types';
+import { computeAdvancedStats } from '@/core/report/compute-stats';
+
+function buildPlayerSummary(
+  points: TimelinePoint[],
+  isPlayer1: boolean,
+): PlayerPointSummary {
+  const winner = isPlayer1 ? 'PLAYER_1' : 'PLAYER_2';
+  const pointsWon = points.filter(p => p.winner === winner).length;
+  const aces = points.filter(p => p.type === 'ACE' && p.server === (isPlayer1 ? 'player1' : 'player2')).length;
+  const doubleFaults = points.filter(p => p.type === 'DOUBLE_FAULT' && p.server === (isPlayer1 ? 'player1' : 'player2')).length;
+
+  let winners = 0;
+  let forcedErrors = 0;
+  let unforcedErrors = 0;
+  for (const p of points) {
+    const tipo = p.rallyDetails?.tipo;
+    if (p.winner === winner) {
+      if (tipo === 'winner') winners++;
+    } else {
+      if (tipo === 'erro_forcado') forcedErrors++;
+      else if (tipo === 'erro_nao_forcado') unforcedErrors++;
+    }
+  }
+
+  const isServer = (p: TimelinePoint) =>
+    (isPlayer1 && p.server === 'player1') || (!isPlayer1 && p.server === 'player2');
+  const breakPoints = points.filter(p => p.isBreakPoint && !isServer(p)).length;
+  const breakPointsWon = points.filter(p => p.isBreakPoint && !isServer(p) && p.winner === winner).length;
+
+  return { pointsWon, aces, winners, forcedErrors, unforcedErrors, doubleFaults, breakPoints, breakPointsWon };
+}
+
+function buildReportSummary(
+  timelinePoints: TimelinePoint[],
+): ReportSummary {
+  const sets: ReportSummary['sets'] = [];
+  const setMap = new Map<number, { p1: number; p2: number; isTiebreak: boolean }>();
+
+  for (const p of timelinePoints) {
+    const s = p.setNumber;
+    if (!setMap.has(s)) setMap.set(s, { p1: 0, p2: 0, isTiebreak: false });
+    const entry = setMap.get(s)!;
+    if (p.winner === 'PLAYER_1') entry.p1++;
+    else entry.p2++;
+    if (p.isTiebreak) entry.isTiebreak = true;
+  }
+
+  for (const [, v] of setMap) {
+    sets.push({ player1: v.p1, player2: v.p2, isTiebreak: v.isTiebreak });
+  }
+
+  return {
+    totalPoints: timelinePoints.length,
+    player1: buildPlayerSummary(timelinePoints, true),
+    player2: buildPlayerSummary(timelinePoints, false),
+    sets,
+  };
+}
+
+function buildReportIntegrity(
+  pointLogs: PointLogRow[],
+  timelinePoints: TimelinePoint[],
+): ReportIntegrity {
+  const warnings: string[] = [];
+  const missingSequence = pointLogs.filter((p, i) => {
+    if (p.sequenceNumber == null) return false;
+    return p.sequenceNumber !== i + 1;
+  }).length;
+
+  const withoutAnnotation = timelinePoints.filter(
+    p => !p.rallyDetails && !p.note && !p.hasAudioNote,
+  ).length;
+
+  if (missingSequence > 0) {
+    warnings.push(`${missingSequence} ponto(s) com sequência fora de ordem`);
+  }
+  if (withoutAnnotation > 0) {
+    warnings.push(`${withoutAnnotation} ponto(s) sem detalhes de anotação`);
+  }
+
+  return {
+    status: warnings.length === 0 ? 'OK' : missingSequence > 0 ? 'LEGACY_SEQUENCE' : 'INCOMPLETE_ANNOTATION',
+    pointLogCount: pointLogs.length,
+    timelinePointCount: timelinePoints.length,
+    missingSequenceCount: missingSequence,
+    pointsWithoutAnnotationDetails: withoutAnnotation,
+    warnings,
+  };
+}
 
 /**
  * Descreve um snapshot `{state, history}` (ou state puro) de forma legível
@@ -170,16 +260,31 @@ export async function GET(
         }
       }
 
+      const summary = buildReportSummary(timelinePoints);
+      const integrity = buildReportIntegrity(pointLogs, timelinePoints);
+      const advancedStats = computeAdvancedStats(timelinePoints);
+
       return NextResponse.json({
         matchId: id,
         player1: { id: match.player1.id, name: match.player1.name },
         player2: { id: match.player2.id, name: match.player2.name },
         format: match.format,
+        sportType: match.sportType,
+        courtType: match.courtType ?? null,
+        tournamentName: match.tournamentName ?? null,
+        category: match.category ?? null,
+        round: match.round ?? null,
+        bracketType: match.bracketType ?? null,
+        temperature: match.temperature ?? null,
+        humidity: match.humidity ?? null,
+        winnerId: match.winnerId ?? null,
+        finishReason: match.finishReason ?? null,
+        finishNote: match.finishNote ?? null,
         scoreState: responseScoreState,
         timelinePoints,
-        // Quantidade de correções manuais de placar detectadas — útil para
-        // o cliente exibir "esta partida teve N interrupções" sem precisar
-        // varrer `timelinePoints` procurando `segmentBreak`.
+        summary,
+        integrity,
+        advancedStats,
         scoreEditsCount: scoreEdits.length,
         state: match.state,
         startedAt: match.startedAt,

@@ -80,8 +80,11 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
   } = state;
 
   useEffect(() => {
-    tokenRef.current = sessionStorage.getItem("access_token");
-  }, [tokenRef]);
+    const freshToken = sessionStorage.getItem("access_token");
+    if (freshToken !== tokenRef.current) {
+      tokenRef.current = freshToken;
+    }
+  });
 
   const {
     persistState,
@@ -151,6 +154,7 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
       updateScoreContext: updateScore,
       close,
       closeAll,
+      isProcessingRef,
     });
 
   const handleEditScore = useCallback(

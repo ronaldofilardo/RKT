@@ -2,12 +2,20 @@ import type { ScoringState } from '@/core/scoring/types';
 import type { TennisFormat } from '@/lib/matchConfig';
 type ScoreSet = ScoringState['sets'][number];
 
-export function isMatchTiebreakFormat(format?: TennisFormat): boolean {
-  return format === 'BEST_OF_3_MATCH_TB' || format === 'SHORT_SET_2V2_NO_AD' || format === 'MATCH_TB_10';
+function isMatchTiebreakSetIndex(format: TennisFormat | undefined, setIndex: number, setsWon?: { player1: number; player2: number }): boolean {
+  if (!format) return false;
+  if (format === 'MATCH_TB_10') return true;
+  if (format === 'BEST_OF_5' && setIndex === 4 && setsWon) {
+    return setsWon.player1 === 2 && setsWon.player2 === 2;
+  }
+  if ((format === 'BEST_OF_3_MATCH_TB' || format === 'BEST_OF_3_NO_AD' || format === 'SHORT_SET_2V2_NO_AD') && setIndex === 2 && setsWon) {
+    return setsWon.player1 === 1 && setsWon.player2 === 1;
+  }
+  return false;
 }
 
-export function getTiebreakMinimum(format?: TennisFormat): number {
-  return format === 'SHORT_SET_2V2_NO_AD' ? 7 : 10;
+export function getTiebreakMinimum(format?: TennisFormat, setIndex?: number, setsWon?: { player1: number; player2: number }): number {
+  return isMatchTiebreakSetIndex(format, setIndex ?? 0, setsWon) ? 10 : 7;
 }
 
 export function isTiebreakScoreComplete(score: { player1: number; player2: number }, minimum = 7): boolean {

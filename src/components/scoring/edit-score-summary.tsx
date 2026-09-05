@@ -76,9 +76,10 @@ interface EditableSetsSummaryProps {
   startIndex?: number;
   onEditSet: (index: number, p1Games: number, p2Games: number) => void;
   onRemoveSet: (index: number) => void;
+  validationErrors?: Record<number, string>;
 }
 
-export function EditableSetsSummary({ title, sets, playerNames, startIndex = 0, onEditSet, onRemoveSet }: EditableSetsSummaryProps) {
+export function EditableSetsSummary({ title, sets, playerNames, startIndex = 0, onEditSet, onRemoveSet, validationErrors }: EditableSetsSummaryProps) {
   if (sets.length === 0) return null;
 
   // Bug #3 (2026-08-07): alinhar estilo ao padrão do ScoreboardCard (dark bg,
@@ -93,16 +94,21 @@ export function EditableSetsSummary({ title, sets, playerNames, startIndex = 0, 
         {sets.map((set, idx) => {
           const isWinnerP1 = set.winner === 'player1';
           const isWinnerP2 = set.winner === 'player2';
+          const hasValidationError = Boolean(validationErrors?.[set.index]);
           const p1CellClass = isWinnerP1
             ? 'bg-purple-700 text-white font-bold'
             : isWinnerP2
               ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-              : 'bg-gray-700 border border-white/10 text-white';
+              : hasValidationError
+                ? 'bg-gray-700 border border-red-500 text-white'
+                : 'bg-gray-700 border border-white/10 text-white';
           const p2CellClass = isWinnerP2
             ? 'bg-purple-700 text-white font-bold'
             : isWinnerP1
               ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-              : 'bg-gray-700 border border-white/10 text-white';
+              : hasValidationError
+                ? 'bg-gray-700 border border-red-500 text-white'
+                : 'bg-gray-700 border border-white/10 text-white';
           return (
             <div
               key={idx}
@@ -127,6 +133,7 @@ export function EditableSetsSummary({ title, sets, playerNames, startIndex = 0, 
               >
                 {isWinnerP1 ? playerNames.p1 : isWinnerP2 ? playerNames.p2 : 'Em andamento'}
               </span>
+              {hasValidationError && <span className="text-xs text-red-400 ml-1" title={validationErrors?.[set.index]}>!</span>}
               {sets.length > 1 && (
                 <button
                   type="button"

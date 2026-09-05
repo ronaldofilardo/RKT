@@ -43,6 +43,7 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
   useEffect(() => {
     if (!suspendedSession || !match) return;
     let ignored = false;
+    const controller = new AbortController();
 
     (async () => {
       try {
@@ -54,7 +55,7 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
         };
 
         if (suspendedSession.snapshotStatus === "SNAPSHOT_AHEAD") {
-          await resumeFromSnapshotAhead(engineConfig);
+          await resumeFromSnapshotAhead(engineConfig, controller.signal);
         } else {
           await resumeFromBankAhead(engineConfig);
         }
@@ -63,6 +64,7 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
           cleanupAfterResume();
         }
       } catch (err) {
+        if ((err as Error)?.name === 'AbortError') return;
         logger.error("[suspended session resume] Error:", "Erro ao retomar.", err);
         if (!ignored) {
           cleanupAfterResume();
@@ -72,9 +74,10 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
 
     return () => {
       ignored = true;
+      controller.abort();
     };
 
-    async function resumeFromSnapshotAhead(engineConfig: any) {
+    async function resumeFromSnapshotAhead(engineConfig: any, signal?: AbortSignal) {
       const session = await startSession(matchId, false);
       sessionIdRef.current = session.id;
       setSessionActive(true);
@@ -107,8 +110,10 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
                 ...(entry.point.rallyDetails != null ? { rallyDetails: entry.point.rallyDetails } : {}),
                 ...(entry.point.rallyLength != null ? { rallyLength: entry.point.rallyLength } : {}),
               }),
+              signal,
             });
           } catch (err) {
+            if ((err as Error)?.name === 'AbortError') throw err;
             logger.error('[suspended session resume] Failed to sync offline point:', err);
           }
         }
@@ -116,6 +121,7 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
         await fetchMatch(true);
         const freshRes = await fetch(`/api/matches/${matchId}`, {
           headers: { authorization: `Bearer ${tokenRef.current}` },
+          signal,
         });
         if (freshRes.ok) {
           const freshData: MatchData = await freshRes.json();

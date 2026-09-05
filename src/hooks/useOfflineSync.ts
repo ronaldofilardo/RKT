@@ -66,8 +66,15 @@ export function useOfflineSync() {
             
             if (matchRes.ok) {
               const matchData = await matchRes.json();
-              // version é o número de pontos já persistidos
-              matchSequences.set(action.matchId, matchData.version || 0);
+              // Use pointLog count as the source of truth for sequence.
+              // version is incremented on every mutation (point, undo,
+              // edit-score), not just on point creation, so it can be
+              // higher than the actual point count after undo/edit.
+              const pointCount = matchData._count?.pointLog;
+              matchSequences.set(
+                action.matchId,
+                typeof pointCount === 'number' ? pointCount : (matchData.version || 0),
+              );
             } else {
               // Se não conseguiu buscar, usa 0 como fallback
               matchSequences.set(action.matchId, 0);

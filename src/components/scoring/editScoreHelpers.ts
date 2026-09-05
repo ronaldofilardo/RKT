@@ -22,15 +22,6 @@ export interface SetValidation {
   tiebreakRequired?: boolean;
 }
 
-export function isBelowFloor(
-  p1: number,
-  p2: number,
-  floor: { player1: number; player2: number } | null,
-): boolean {
-  if (!floor) return false;
-  return p1 < floor.player1 || p2 < floor.player2;
-}
-
 export function validateSetResult(
   result: { p1Games: number; p2Games: number },
   format: TennisFormat,
@@ -196,6 +187,9 @@ export function getNextServerAfterSet(params: {
   const { currentServer, p1Games, p2Games, format, tiebreakPoints, completedSets = [] } = params;
 
   // Check if this is a Match Tiebreak set
+  // For BEST_OF_5: 5th set is MT only when series is 2-2 (the MT activation
+  // at 6-6 is handled elsewhere; during MT editing, games are 0-0).
+  // For other formats: 3rd set is always MT when series is 1-1.
   const isMatchTiebreakSet = 
     format === 'MATCH_TB_10' ||
     (format === 'BEST_OF_5' && completedSets.length === 4 && 

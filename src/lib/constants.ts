@@ -10,9 +10,11 @@ export const TIMEOUTS = {
 
 export const SCORING_LIMITS = {
   MAX_TIEBREAK_POINTS_STANDARD: 30,
-  MAX_TIEBREAK_POINTS_MATCH: 20,
+  MAX_TIEBREAK_POINTS_MATCH: 30,
   MAX_TIEBREAK_DURATION_SECONDS: 15,
   NOTE_MAX_LENGTH: 500,
+  /** Max input value for tiebreak point fields in the edit-score UI. */
+  TIEBREAK_INPUT_CAP: 30,
 } as const;
 
 export const PERSIST = {

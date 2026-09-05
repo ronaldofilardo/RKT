@@ -22,7 +22,8 @@ export default function LocateMatchesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/matches')
+    const controller = new AbortController();
+    fetch('/api/matches', { signal: controller.signal })
       .then(res => res.json())
       .then(data => {
         setMatches(data.matches || []);
@@ -32,6 +33,7 @@ export default function LocateMatchesPage() {
         setMatches([]);
         setLoading(false);
       });
+    return () => controller.abort();
   }, []);
 
   const filteredMatches = matches.filter(match => {

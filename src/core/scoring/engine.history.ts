@@ -21,6 +21,7 @@ export function undoLastPoint(
   return { stateBefore: entry.stateBefore, point: entry.point };
 }
 
+/** @deprecated Redo feature disabled (TD-032) — kept for potential future re-enablement. */
 export function replayCurrentPoint(
   redoStack: HistoryEntry[],
   undoStack: HistoryEntry[],

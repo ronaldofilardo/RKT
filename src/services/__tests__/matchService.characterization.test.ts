@@ -5,10 +5,10 @@
  * Data: 2026-07-20
  * Owner: @qa
  *
- * Comportamentos suspeitos:
- * - // SUSPECT: TD-XXX — createMatch não valida player1 !== player2
- * - // SUSPECT: TD-XXX — updateMatch permite atualizar qualquer campo (não há whitelist rigorosa)
- * - // SUSPECT: TD-XXX — deleteMatch soft delete não limpa dados relacionados (pointLog, sessions)
+ * Comportamentos suspeitos (resolvidos):
+ * - TD-033: createMatch valida player1 !== player2 (resolved 2026-07-28)
+ * - TD-034: updateMatch usa whitelist ALLOWED_FIELDS (resolved 2026-07-28)
+ * - TD-035: deleteMatch soft delete preserva histórico (LGPD), hard delete usa cascade (resolved 2026-07-28)
  *
  * NOTA (TD-001): Originalmente esta suíte fazia chamadas reais contra o
  * banco Postgres de testes (`createTestPlayer`/`createTestMatch`/`cleanup`).
@@ -249,7 +249,7 @@ describe('matchService (characterization)', () => {
       ]);
       const result = await listMatches(undefined, undefined, 3);
       expect(result.length).toBe(3);
-      // SUSPECT: TD-004 — Não há nextCursor retornado diretamente (API que faz isso)
+      // Resolvido (TD-004): paginação cursor-based implementada na API layer; service retorna dados brutos
     });
   });
 

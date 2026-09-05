@@ -22,10 +22,9 @@ export default function AguardandoAnotadorPage() {
   useEffect(() => {
     if (!matchId) return;
 
-    const token = sessionStorage.getItem('access_token');
-
     const poll = setInterval(async () => {
       try {
+        const token = sessionStorage.getItem('access_token');
         const res = await fetch(`/api/matches/${matchId}`, {
           headers: { authorization: `Bearer ${token}` },
         });

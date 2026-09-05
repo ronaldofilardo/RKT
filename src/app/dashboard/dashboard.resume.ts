@@ -31,7 +31,9 @@ export function useResumeSession(options: ResumeSessionOptions) {
           const lastSet = scoreState.sets[scoreState.sets.length - 1];
           const lastSetIsCompleted = isSetCompleted(
             lastSet,
-            match.format as TennisFormat
+            match.format as TennisFormat,
+            scoreState.sets.length - 1,
+            scoreState.setsWon
           );
           
           // If the last set is a tiebreak in progress, use the game score (not tiebreak score)

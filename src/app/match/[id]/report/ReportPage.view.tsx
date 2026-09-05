@@ -1,5 +1,9 @@
+'use client';
+
+import { useState } from 'react';
 import type { ReportData } from './report.types';
 import { MatchTimelineView } from '@/components/scoring/MatchTimelineView';
+import { AdvancedStats } from '@/components/report/AdvancedStats';
 import { downloadReportCsv } from './report-export';
 
 type Props = {
@@ -12,19 +16,56 @@ type Props = {
   onDashboard: () => void;
 };
 
+type Tab = 'summary' | 'advanced' | 'timeline';
+
 function formatDate(iso: string | null) {
   return iso ? new Date(iso).toLocaleString('pt-BR') : '–';
 }
 
 export function ReportPageView({ report, matchId, p1Points, p2Points, totalPoints, onContinue, onDashboard }: Props) {
+  const [activeTab, setActiveTab] = useState<Tab>('summary');
+
   return (
     <div className="min-h-screen bg-gray-50">
       <ReportHeader report={report} onContinue={onContinue} onDashboard={onDashboard} onExport={() => downloadReportCsv(report)} />
       <main className="max-w-7xl mx-auto px-6 py-6">
-        <ReportStats report={report} p1Points={p1Points} p2Points={p2Points} totalPoints={totalPoints} />
+        <TabBar activeTab={activeTab} onTabChange={setActiveTab} hasAdvancedStats={!!report.advancedStats} />
+        {activeTab === 'summary' && <ReportStats report={report} p1Points={p1Points} p2Points={p2Points} totalPoints={totalPoints} />}
+        {activeTab === 'advanced' && report.advancedStats && (
+          <AdvancedStats stats={report.advancedStats} player1Name={report.player1.name} player2Name={report.player2.name} />
+        )}
         <IntegrityNotice report={report} />
-        <ReportTimeline report={report} matchId={matchId} onContinue={onContinue} />
+        {activeTab === 'timeline' && <ReportTimeline report={report} matchId={matchId} onContinue={onContinue} />}
       </main>
+    </div>
+  );
+}
+
+function TabBar({ activeTab, onTabChange, hasAdvancedStats }: { activeTab: Tab; onTabChange: (tab: Tab) => void; hasAdvancedStats: boolean }) {
+  const tabs: Array<{ id: Tab; label: string; disabled?: boolean }> = [
+    { id: 'summary', label: 'Resumo' },
+    { id: 'advanced', label: 'Estatísticas Avançadas', disabled: !hasAdvancedStats },
+    { id: 'timeline', label: 'Timeline' },
+  ];
+
+  return (
+    <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl">
+      {tabs.map(tab => (
+        <button
+          key={tab.id}
+          onClick={() => !tab.disabled && onTabChange(tab.id)}
+          disabled={tab.disabled}
+          className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+            activeTab === tab.id
+              ? 'bg-white text-gray-900 shadow-sm'
+              : tab.disabled
+                ? 'text-gray-400 cursor-not-allowed'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+          }`}
+        >
+          {tab.label}
+        </button>
+      ))}
     </div>
   );
 }

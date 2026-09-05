@@ -27,6 +27,7 @@ export async function POST(
         {
           reason: parsed.data.reason,
           note: parsed.data.note,
+          expectedVersion: parsed.data.version,
         }
       );
 
@@ -35,7 +36,8 @@ export async function POST(
       }
 
       if ('error' in result) {
-        return NextResponse.json({ error: result.error }, { status: 422 });
+        const status = result.error === 'VERSION_CONFLICT' ? 409 : 422;
+        return NextResponse.json({ error: result.error }, { status });
       }
 
       return NextResponse.json(result);

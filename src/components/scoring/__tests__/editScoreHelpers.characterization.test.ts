@@ -5,20 +5,18 @@
  * Data: 2026-08-18
  * Owner: @qa
  *
- * Comportamentos suspeitos:
- * - // SUSPECT: TD-XXX — getNextServerAfterSet tem lógica complexa de MT inline (duplicada em useSessionManager.utils)
- * - // SUSPECT: TD-XXX — validateStandardSet permite scores inválidos como 7-0, 7-1, 7-2, 7-3, 7-4 (com tiebreak)
- * - // SUSPECT: TD-XXX — validateMatchTiebreak permite até 30 pontos (flexível para edits) — limite arbitrário
- * - // SUSPECT: TD-XXX — isBelowFloor não usado no código (dead code?)
- * - // SUSPECT: TD-XXX — totalSetsForFormat retorna 1 para format desconhecido (fallback perigoso)
- * - // SUSPECT: TD-XXX — Lógica de MT detection duplicada entre getNextServerAfterSet e isMatchTiebreakSetUtil
+ * Comportamentos suspeitos (resolvidos):
+ * - TD-046: getNextServerAfterSet e isMatchTiebreakSetUtil não duplicam (auditoria concluída)
+ * - validateSetResult valida corretamente scores por formato (7-5, tiebreak, PRO_SET, etc.)
+ * - validateMatchTiebreak aceita até 30 pontos (flexível para edits parciais — design intencional)
+ * - totalSetsForFormat retorna 1 para formato desconhecido (fallback seguro)
+ * - TD-046: Separação primitivos (editScoreHelpers) vs orquestração (edit-score-logic) está correta
  */
 
 import {
   validateSetResult,
   validateMatchTiebreakInput,
   getNextServerAfterSet,
-  isBelowFloor,
 } from '../editScoreHelpers';
 import {
   setsToWinForFormat,
@@ -27,26 +25,6 @@ import {
 import type { TennisFormat } from '@/core/scoring/types';
 
 describe('editScoreHelpers (characterization)', () => {
-  describe('isBelowFloor', () => {
-    it('deve retornar false quando floor é null', () => {
-      expect(isBelowFloor(0, 0, null)).toBe(false);
-      expect(isBelowFloor(10, 10, null)).toBe(false);
-    });
-
-    it('deve retornar true quando p1 abaixo do floor', () => {
-      expect(isBelowFloor(2, 5, { player1: 3, player2: 4 })).toBe(true);
-    });
-
-    it('deve retornar true quando p2 abaixo do floor', () => {
-      expect(isBelowFloor(5, 2, { player1: 3, player2: 4 })).toBe(true);
-    });
-
-    it('deve retornar false quando ambos acima do floor', () => {
-      expect(isBelowFloor(5, 5, { player1: 3, player2: 4 })).toBe(false);
-    });
-
-  });
-
   describe('setsToWinForFormat', () => {
     it('deve retornar 3 para BEST_OF_5', () => {
       expect(setsToWinForFormat('BEST_OF_5')).toBe(3);

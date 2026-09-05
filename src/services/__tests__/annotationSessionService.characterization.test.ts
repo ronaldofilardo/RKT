@@ -5,11 +5,11 @@
  * Data: 2026-07-20
  * Owner: @qa
  * 
- * Comportamentos suspeitos:
- * - // SUSPECT: TD-XXX — Service é client-side ('use client'), não server-side
- * - // SUSPECT: TD-XXX — getToken usa sessionStorage diretamente (não há refresh)
- * - // SUSPECT: TD-XXX — markSessionAbandoned usa keepalive mas ignora erros silenciosamente
- * - // SUSPECT: TD-XXX — Não há validação de inputs antes de chamar API
+ * Comportamentos suspeitos (resolvidos):
+ * - Service é client-side ('use client') — design intencional para uso em browser
+ * - TD-037: getToken usa sessionStorage diretamente — validateId() adicionado; refresh strategy é dívida separada
+ * - TD-038: markSessionAbandoned agora faz await + log em erro (resolved 2026-07-28)
+ * - TD-037/039: Validação de inputs via validateId(); markSessionAbandoned retorna { synced: boolean }
  */
 
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';

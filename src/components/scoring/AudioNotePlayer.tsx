@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 interface AudioNotePlayerProps {
   matchId: string;
@@ -21,6 +21,21 @@ export function AudioNotePlayer({ matchId, pointId, durationMs, token }: AudioNo
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const objectUrlRef = useRef<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
+    };
+  }, []);
 
   const stopPlayback = useCallback(() => {
     if (audioRef.current) {
@@ -41,11 +56,16 @@ export function AudioNotePlayer({ matchId, pointId, durationMs, token }: AudioNo
       return;
     }
 
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setIsLoading(true);
 
     try {
       const res = await fetch(`/api/matches/${matchId}/point/${pointId}/audio`, {
         headers: token ? { authorization: `Bearer ${token}` } : {},
+        signal: controller.signal,
       });
 
       if (!res.ok) {
@@ -71,9 +91,12 @@ export function AudioNotePlayer({ matchId, pointId, durationMs, token }: AudioNo
       await audio.play();
       setIsPlaying(true);
     } catch {
+      if (controller.signal.aborted) return;
       stopPlayback();
     } finally {
-      setIsLoading(false);
+      if (!controller.signal.aborted) {
+        setIsLoading(false);
+      }
     }
   }, [matchId, pointId, token, isPlaying, stopPlayback]);
 

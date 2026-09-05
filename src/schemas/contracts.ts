@@ -351,6 +351,7 @@ export const FinishMatchInputSchema = z.object({
   reason: MatchFinishReasonSchema,
   note: z.string().max(500).optional(),
   scoreState: MatchScoreStateSchema.optional(),
+  version: z.number().int().optional(),
 });
 export type FinishMatchInput = z.infer<typeof FinishMatchInputSchema>;
 

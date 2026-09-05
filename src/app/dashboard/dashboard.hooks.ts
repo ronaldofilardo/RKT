@@ -55,6 +55,7 @@ export function useDashboardData(router?: any) {
   const fetchedRef = useRef(false);
   const routerRef = useRef(router);
   routerRef.current = router;
+  const dashboardAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (fetchedRef.current) return;
@@ -156,6 +157,10 @@ export function useDashboardData(router?: any) {
         logger.info("[fetchDashboardData] END");
         setLoading(false);
       });
+
+    return () => {
+      dashboardAbortRef.current?.abort();
+    };
   }, []);
 
   const fetchDashboardData = useCallback(() => {
@@ -170,8 +175,11 @@ export function useDashboardData(router?: any) {
 
     setLoading(true);
 
+    dashboardAbortRef.current?.abort();
+    const controller = new AbortController();
+    dashboardAbortRef.current = controller;
+
     const fetchWithTimeout = (url: string, options: RequestInit = {}, ms = TIMEOUTS.MATCH_FETCH_TIMEOUT_MS) => {
-      const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), ms);
       return fetch(url, { ...options, signal: controller.signal })
         .finally(() => clearTimeout(timer));

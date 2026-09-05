@@ -35,7 +35,7 @@ export function useOfflineMatchSync() {
         for (const sync of pendingSyncs) {
           try {
             const response = await fetch(`/api/matches/${sync.matchId}/finish`, {
-              method: "PATCH",
+              method: "POST",
               headers: {
                 "Content-Type": "application/json",
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
