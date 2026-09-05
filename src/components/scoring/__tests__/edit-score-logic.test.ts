@@ -463,8 +463,8 @@ describe('edit-score-logic - isMatchTiebreakSet', () => {
       expect(isPotentialMTSet('BEST_OF_5', 3)).toBe(false);
     });
 
-    it('deve retornar true para BEST_OF_5 set 5 sem setResults (fallback)', () => {
-      expect(isPotentialMTSet('BEST_OF_5', 4)).toBe(true);
+    it('deve retornar false para BEST_OF_5 set 5 sem setResults (fallback conservativo — sem setResults não pode confirmar 2-2)', () => {
+      expect(isPotentialMTSet('BEST_OF_5', 4)).toBe(false);
     });
 
     it('deve retornar true para BEST_OF_5 set 5 com score 2-2', () => {

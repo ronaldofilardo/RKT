@@ -79,8 +79,8 @@ export function validateMatchTiebreakInput(
     return { isValid: true, winner: 'player2' };
   }
   // Allow partial scores up to max points (flexible for edits)
-  if (p1Points > SCORING_LIMITS.MAX_TIEBREAK_POINTS_STANDARD || p2Points > SCORING_LIMITS.MAX_TIEBREAK_POINTS_STANDARD) {
-    return { isValid: false, error: `Maximum ${SCORING_LIMITS.MAX_TIEBREAK_POINTS_STANDARD} points in tiebreak` };
+  if (p1Points > SCORING_LIMITS.MAX_TIEBREAK_POINTS_MATCH || p2Points > SCORING_LIMITS.MAX_TIEBREAK_POINTS_MATCH) {
+    return { isValid: false, error: `Maximum ${SCORING_LIMITS.MAX_TIEBREAK_POINTS_MATCH} points in match tiebreak` };
   }
   // Partial score (in progress)
   return {
@@ -134,7 +134,11 @@ function validateStandardSet(
     const winnerGames = winner === 'player1' ? p1Games : p2Games;
     const loserGames = winner === 'player1' ? p2Games : p1Games;
     if (winnerGames === gamesNeeded + 1 && loserGames < gamesNeeded - 1) {
-      return { isValid: false, error: 'Invalid set score' };
+      return {
+        isValid: false,
+        hasTiebreak: true,
+        error: `Set score ${p1Games}x${p2Games} is not possible — set would have ended earlier`,
+      };
     }
   }
 
@@ -210,16 +214,17 @@ export function getNextServerAfterSet(params: {
 
   const isTiebreakWin = winnerGames === tiebreakAt + 1 && loserGames === tiebreakAt;
 
-  // For Match Tiebreak: server alternates every 2 points (standard tiebreak)
-  // First point: currentServer serves, then alternate every 2 points
-  // Total points = p1Games + p2Games (since these represent points in MT)
-  if (isMatchTiebreakSet && tiebreakPoints) {
-    const totalPoints = tiebreakPoints.player1 + tiebreakPoints.player2;
-    // In standard tiebreak: server serves 1 point, then alternate every 2 points
-    // totalPoints % 4 === 0 or 3 -> same as initial server for next point
-    // totalPoints % 4 === 1 or 2 -> other player
-    // But for "next server after set", we want who would serve next
-    // For display purposes in edit modal, return based on total points parity
+  // For Match Tiebreak: server alternates every 2 points (standard tiebreak).
+  // First point: currentServer serves, then alternate every 2 points.
+  // When tiebreakPoints is available, use it directly. When null (e.g. editing
+  // a MT set from completedSets), derive total points from p1Games + p2Games
+  // since in MT the "games" field actually stores the tiebreak points.
+  if (isMatchTiebreakSet) {
+    const totalPoints = tiebreakPoints
+      ? tiebreakPoints.player1 + tiebreakPoints.player2
+      : p1Games + p2Games;
+    // In standard tiebreak: server serves 1 point, then alternate every 2 points.
+    // Even totalPoints → same as initial server; odd → alternate.
     if (totalPoints % 2 === 0) {
       return currentServer;
     }
@@ -229,9 +234,9 @@ export function getNextServerAfterSet(params: {
   if (isTiebreakWin && tiebreakPoints) {
     const tbWinner = Math.max(tiebreakPoints.player1, tiebreakPoints.player2);
     const tbLoser = Math.min(tiebreakPoints.player1, tiebreakPoints.player2);
-    const tbMin = format === 'MATCH_TB_10'
-      ? TIEBREAK.MIN_WIN_POINTS_MATCH
-      : TIEBREAK.MIN_WIN_POINTS_STANDARD;
+    // At this point, isMatchTiebreakSet already returned above, so we are
+    // always in a regular tiebreak — MIN_WIN_POINTS_STANDARD is correct.
+    const tbMin = TIEBREAK.MIN_WIN_POINTS_STANDARD;
 
     if (tbWinner >= tbMin && tbWinner - tbLoser >= TIEBREAK.WIN_MARGIN) {
       return currentServer;

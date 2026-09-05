@@ -12,6 +12,7 @@ import {
 } from "./edit-score-logic";
 import { parsePointValue, pointToProgress } from "@/core/scoring/point-utils";
 import { useEditScoreCalculator } from "./use-edit-score-calculator";
+import { getFinalSets } from "./useEditScoreModal.confirm.helpers";
 
 interface EditScoreModalState {
   p1Input: string;
@@ -38,6 +39,9 @@ interface UseEditScoreModalOptions {
   currentServer: "player1" | "player2";
   completedSets: CompletedSet[];
   currentGamePoints?: { player1: number | string; player2: number | string };
+  // Quando true, currentGamePoints traz os pontos de um tie-break de set já
+  // em andamento (valores brutos, ex.: 3 e 4), não pontos de game.
+  isTiebreak?: boolean;
   floorCurrentSets?: { player1: number; player2: number } | null;
   onRefreshFloor?: () => Promise<{ player1: number; player2: number } | null>;
 }
@@ -74,6 +78,7 @@ export function useEditScoreModal(
     currentServer,
     completedSets,
     currentGamePoints,
+    isTiebreak,
     floorCurrentSets,
     onRefreshFloor,
   } = options;
@@ -186,13 +191,21 @@ export function useEditScoreModal(
       if (gamePoints) {
         const p1 = typeof gamePoints.player1 === "number" ? gamePoints.player1.toString() : gamePoints.player1;
         const p2 = typeof gamePoints.player2 === "number" ? gamePoints.player2.toString() : gamePoints.player2;
-        initialGameRef.current = { player1: p1, player2: p2 };
-        setState(prev => ({ ...prev, p1Points: p1, p2Points: p2 }));
+        if (isTiebreak) {
+          // O set já está em 6-6 (ou 4-4 no short set) e o tie-break está
+          // em andamento: os "pontos de game" atuais SÃO os pontos do
+          // tie-break, então pré-preenchemos o campo de Tie-Break em vez
+          // de "Pontos no Game Atual" (que não é exibido neste caso).
+          setState(prev => ({ ...prev, tiebreakP1: p1, tiebreakP2: p2 }));
+        } else {
+          initialGameRef.current = { player1: p1, player2: p2 };
+          setState(prev => ({ ...prev, p1Points: p1, p2Points: p2 }));
+        }
       }
 
       initializedRef.current = true;
     }
-  }, [isOpen, currentSets, currentGamePoints]);
+  }, [isOpen, currentSets, currentGamePoints, isTiebreak]);
 
   const prevIsMatchTiebreakSetRef = useRef(false);
 
@@ -301,39 +314,23 @@ export function useEditScoreModal(
       }
     }
 
-    const sourceCompleted: CompletedSet[] =
-      state.editableCompletedSets && state.editableCompletedSets.length > 0
-        ? state.editableCompletedSets.map((ecs) => ({
-            games: { player1: ecs.p1Games, player2: ecs.p2Games },
-            winner: ecs.p1Games > ecs.p2Games ? 'player1' : ecs.p2Games > ecs.p1Games ? 'player2' : 'player1',
-            tiebreakScore: ecs.tiebreakScore ?? undefined,
-          }))
-        : completedSets;
-    const existingCompleted: SetEditData[] = sourceCompleted.map((cs) => ({
-      p1Games: cs.games.player1,
-      p2Games: cs.games.player2,
-      isPartial: false,
-      tiebreakScore: cs.tiebreakScore ?? undefined,
-    }));
-    const finalSets = [...existingCompleted, ...state.newSets];
-    
-    if (bothFilled) {
-      const setData = createSetEditData({
-        p1Val,
-        p2Val,
-        isSetTrulyCompleted,
-        hasTiebreak,
-        tiebreakP1Num: tiebreakP1Num ?? 0,
-        tiebreakP2Num: tiebreakP2Num ?? 0,
-        isMatchTiebreakSet,
-        isPotentialMTSet,
-        p1Points: state.p1Points,
-        p2Points: state.p2Points,
-        currentSets,
-        matchFormat,
-      });
-      finalSets.push(setData);
-    }
+    // Build finalSets using the shared helper (eliminates duplication with
+    // confirm.helpers.ts — Bug #14).
+    const finalSets = getFinalSets({
+      state,
+      completedSets,
+      bothFilled,
+      p1Val,
+      p2Val,
+      isSetTrulyCompleted,
+      hasTiebreak,
+      tiebreakP1Num: tiebreakP1Num ?? 0,
+      tiebreakP2Num: tiebreakP2Num ?? 0,
+      isMatchTiebreakSet,
+      isPotentialMTSet,
+      currentSets,
+      createSetEditData,
+    });
 
     const allCompletedSetsForServer: CompletedSet[] = [
       ...(completedSets as CompletedSet[]),
@@ -369,9 +366,7 @@ export function useEditScoreModal(
     floorValidationError, validation, partial, hasTiebreak, tiebreakComplete,
     tiebreakP1Num, tiebreakP2Num, matchWouldEnd, matchState, setsToWin,
     playerNames, canAddNextSet, maxSets, currentSets, initialGameRef,
-    state.p1Points, state.p2Points, state.newSets,
-    state.editableCompletedSets,
-    completedSets, onConfirm, currentServer, matchFormat, onMatchFinished,
+    state, completedSets, onConfirm, currentServer, matchFormat, onMatchFinished,
     isFinishingMatch, bothFilled, isMatchTiebreakSet, isPotentialMTSet,
   ]);
 
@@ -386,10 +381,13 @@ export function useEditScoreModal(
     const p2Games = parseInt(state.p2Input, 10) || 0;
     const tbP1Num = parseInt(state.tiebreakP1, 10);
     const tbP2Num = parseInt(state.tiebreakP2, 10);
+    // Include tiebreakScore whenever the inputs are valid numbers (even 0-0).
+    // Previously required > 0 which excluded a tiebreak that just started —
+    // Bug #12. In practice, canAddNextSet gates this so the tiebreak is
+    // always complete before handleAddSet runs, but this is safer.
     const hasTiebreakScore =
       !isNaN(tbP1Num) && !isNaN(tbP2Num) &&
-      tbP1Num >= 0 && tbP2Num >= 0 &&
-      (tbP1Num > 0 || tbP2Num > 0);
+      tbP1Num >= 0 && tbP2Num >= 0;
 
     const setData: SetEditData = {
       p1Games,

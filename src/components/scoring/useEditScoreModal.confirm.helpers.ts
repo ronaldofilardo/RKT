@@ -116,7 +116,10 @@ export function getPointRegressionError(args: ValidationArgs): string | null {
 }
 
 export function getCompletedSets(state: EditableState, completedSets: CompletedSet[]): SetEditData[] {
-  const source = state.editableCompletedSets?.length ? state.editableCompletedSets : completedSets;
+  // Always use editableCompletedSets when defined (initialized from props on
+  // open). Falling back to `completedSets` when the array is empty discards
+  // user removals — Bug #11.
+  const source = state.editableCompletedSets ?? completedSets;
   return source.map((set) => {
     const p1Games = 'games' in set ? set.games.player1 : set.p1Games;
     const p2Games = 'games' in set ? set.games.player2 : set.p2Games;

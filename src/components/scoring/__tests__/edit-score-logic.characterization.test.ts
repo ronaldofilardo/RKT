@@ -88,8 +88,8 @@ describe('edit-score-logic (complete characterization)', () => {
       expect(isPotentialMTSet('BEST_OF_5', 3)).toBe(false);
     });
 
-    it('deve retornar true para BEST_OF_5 set 5 sem setResults (fallback conservativo)', () => {
-      expect(isPotentialMTSet('BEST_OF_5', 4)).toBe(true);
+    it('deve retornar false para BEST_OF_5 set 5 sem setResults (fallback conservativo — sem setResults não pode confirmar 2-2)', () => {
+      expect(isPotentialMTSet('BEST_OF_5', 4)).toBe(false);
     });
 
     it('deve retornar true para BEST_OF_5 set 5 com score 2-2', () => {
@@ -582,9 +582,9 @@ describe('edit-score-logic (complete characterization)', () => {
       expect(result.tiebreakComplete).toBe(false);
     });
 
-    it('deve retornar hasValidTiebreak=false para vazios', () => {
+    it('deve retornar hasValidTiebreak=true para vazios (campo vazio = 0x0, TB ainda não iniciado)', () => {
       const result = calculateTiebreakValidation('', '', true);
-      expect(result.hasValidTiebreak).toBe(false);
+      expect(result.hasValidTiebreak).toBe(true);
       expect(result.tiebreakComplete).toBe(false);
     });
 

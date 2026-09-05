@@ -183,7 +183,10 @@ export function isPotentialMTSet(
     return p1Sets === 2 && p2Sets === 2;
   }
 
-  return totalEditedSets === 4;
+  // Fallback: without setResults we cannot verify the 2-2 score, so assume
+  // not a potential MT set. Previously returned `totalEditedSets === 4` which
+  // is true for any 5th set regardless of the actual score — Bug #13.
+  return false;
 }
 
 export function calculateValidation(input: EditScoreValidationInput): EditScoreValidation {

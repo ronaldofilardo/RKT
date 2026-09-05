@@ -351,13 +351,23 @@ export default function ScoringPage() {
           currentServer={effectiveScoreState.server}
           completedSets={editScoreCompletedSets}
           currentGamePoints={{
-            player1: gamePointToDisplay(
-              effectiveScoreState.currentGame?.player1 ?? 0,
-            ),
-            player2: gamePointToDisplay(
-              effectiveScoreState.currentGame?.player2 ?? 0,
-            ),
+            // Durante um tie-break ao vivo, currentGame.player1/player2 já
+            // guarda os PONTOS do tie-break (0,1,2,3...), não os pontos de
+            // game. Passar por gamePointToDisplay converteria 3 -> "40" e
+            // 4 -> "AD", corrompendo o placar. Nesse caso repassamos o
+            // valor bruto para o modal usar no campo de Tie-Break.
+            player1: isTiebreak
+              ? (effectiveScoreState.currentGame?.player1 ?? 0)
+              : gamePointToDisplay(
+                  effectiveScoreState.currentGame?.player1 ?? 0,
+                ),
+            player2: isTiebreak
+              ? (effectiveScoreState.currentGame?.player2 ?? 0)
+              : gamePointToDisplay(
+                  effectiveScoreState.currentGame?.player2 ?? 0,
+                ),
           }}
+          isTiebreak={isTiebreak}
           floorCurrentSets={state.floorCurrentSets}
           suspendedSession={state.suspendedSession}
           onConfirm={handleEditScore}

@@ -450,9 +450,8 @@ describe('editScoreHelpers (characterization)', () => {
             { player1: 4, player2: 6 },
           ],
         });
-        // Detectado como MT set, 12 pontos total, 12 % 2 = 0 -> player1
-        // Mas completedSets contribui: 6+4+3+6+6+4+4+6 = 39 games + 12 = 51 (ímpar) -> player2
-        expect(result).toBe('player2');
+        // MT: totalPoints = 6+6 = 12, 12 % 2 = 0 → currentServer (player1)
+        expect(result).toBe('player1');
       });
 
       it('deve detectar BEST_OF_3_MATCH_TB 3º set com 1-1 como MT', () => {

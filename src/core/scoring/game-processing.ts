@@ -18,10 +18,6 @@ function processStandardPoint(
 
   if (usesNoAd(config)) {
     if (game.player1 >= 3 && game.player2 >= 3) {
-      game.isDeuce = true;
-      game.player1 = 3;
-      game.player2 = 3;
-      state.currentGame = game;
       return handleGameWon(winner, game, state, config);
     }
     const needed = 4;
@@ -80,7 +76,15 @@ export function processRegularPoint(
   config: ScoringEngineConfig,
 ): ScoringState {
   const game = state.currentGame;
-  if (game.isDeuce) return processDeucePoint(winner, state, config);
+  if (game.isDeuce) {
+    // Em formatos "no-ad", a partir do 3-3 o game é decidido no PRÓXIMO
+    // ponto (sudden death / ponto de ouro) — quem vencer esse ponto único
+    // vence o game, sem precisar de 2 pontos de vantagem. O deuce
+    // tradicional (processDeucePoint) só se aplica a formatos com
+    // vantagem.
+    if (usesNoAd(config)) return handleGameWon(winner, game, state, config);
+    return processDeucePoint(winner, state, config);
+  }
   return processStandardPoint(winner, state, config);
 }
 
@@ -94,7 +98,17 @@ export function handleGameWon(
   let currentSet = state.sets[currentSetIndex] ?? createEmptySetForFormat(config.format);
 
   const initGames = getInitialGames(config.format);
-  if (isSetComplete(currentSet, state.setsWon, config, state.sets) && !currentSet.isTiebreak && (currentSet.player1 > initGames || currentSet.player2 > initGames)) {
+  // Um set já contabilizado em `setsWon` está definitivamente encerrado — mesmo
+  // quando seu placar final não bate mais com `isSetComplete()` (ex.: um set
+  // vencido no tie-break vira "7-6", diferença de apenas 1 game, que a checagem
+  // padrão de set completo NÃO reconhece como concluído). Usar a soma de
+  // `setsWon` contra `state.sets.length` é a forma robusta de saber que o
+  // último set do array já foi fechado e que o próximo game pertence a um set
+  // novo, evitando que os games seguintes sejam somados por engano ao set
+  // anterior já finalizado (o que corrompia o placar do set seguinte).
+  const setsDecided = state.setsWon.player1 + state.setsWon.player2;
+  const lastSetAlreadyDecided = state.sets.length > 0 && setsDecided >= state.sets.length;
+  if (lastSetAlreadyDecided || (isSetComplete(currentSet, state.setsWon, config, state.sets) && !currentSet.isTiebreak && (currentSet.player1 > initGames || currentSet.player2 > initGames))) {
     currentSet = createEmptySetForFormat(config.format);
   }
 
@@ -106,27 +120,7 @@ export function handleGameWon(
     throw new Error('INVALID_GAME_WINNER');
   }
 
-  const newSets = [...state.sets];
-  if (currentSet.player1 === initGames && currentSet.player2 === initGames && !currentSet.isTiebreak) {
-    newSets.push(newSet);
-  } else {
-    newSets[currentSetIndex] = newSet;
-  }
-
   const newServer = state.server === 'player1' ? 'player2' : 'player1';
-
-  if (config.format === 'BEST_OF_5' &&
-      state.setsWon.player1 === 2 && state.setsWon.player2 === 2 &&
-      newSet.player1 === 6 && newSet.player2 === 6 && !newSet.isTiebreak) {
-    newSet.isTiebreak = true;
-    newSet.tiebreakScore = { player1: 0, player2: 0 };
-    const setIdx = newSets.length - 1;
-    newSets[setIdx] = newSet;
-    state.sets = newSets;
-    state.currentGame = createEmptyGame();
-    state.server = newServer;
-    return state;
-  }
 
   const shouldStartMatchTb = shouldStartMatchTiebreak(state, config);
   if (shouldStartMatchTb) {
@@ -136,7 +130,28 @@ export function handleGameWon(
       isTiebreak: true,
       tiebreakScore: { player1: 0, player2: 0 },
     };
+    const newSets = [...state.sets];
     newSets.push(matchTbSet);
+    state.sets = newSets;
+    state.currentGame = createEmptyGame();
+    state.server = newServer;
+    return state;
+  }
+
+  const newSets = [...state.sets];
+  if (currentSet.player1 === initGames && currentSet.player2 === initGames && !currentSet.isTiebreak) {
+    newSets.push(newSet);
+  } else {
+    newSets[currentSetIndex] = newSet;
+  }
+
+  if (config.format === 'BEST_OF_5' &&
+      state.setsWon.player1 === 2 && state.setsWon.player2 === 2 &&
+      newSet.player1 === 6 && newSet.player2 === 6 && !newSet.isTiebreak) {
+    newSet.isTiebreak = true;
+    newSet.tiebreakScore = { player1: 0, player2: 0 };
+    const setIdx = newSets.length - 1;
+    newSets[setIdx] = newSet;
     state.sets = newSets;
     state.currentGame = createEmptyGame();
     state.server = newServer;

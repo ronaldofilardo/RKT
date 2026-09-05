@@ -1,0 +1,57 @@
+--- /tmp/original-game-processing.ts	2026-09-05 10:49:32.379323830 +0000
++++ /home/claude/work/bkpRKT/src/core/scoring/game-processing.ts	2026-09-05 11:20:44.768757319 +0000
+@@ -18,11 +18,16 @@
+ 
+   if (usesNoAd(config)) {
+     if (game.player1 >= 3 && game.player2 >= 3) {
++      // "No-ad": ao EMPATAR em 3-3, o game NÃO acaba aqui — esse é o ponto
++      // que leva ao "ponto decisivo" (sudden death). Quem fez o ponto que
++      // deixou 3-3 não pode ganhar o game por isso; é preciso aguardar o
++      // próximo ponto, que aí sim decide o game (ver processRegularPoint,
++      // que trata game.isDeuce em formato no-ad como ponto único decisivo,
++      // sem precisar de 2 pontos de vantagem como no deuce tradicional).
+       game.isDeuce = true;
+       game.player1 = 3;
+       game.player2 = 3;
+-      state.currentGame = game;
+-      return handleGameWon(winner, game, state, config);
++      return { ...state, currentGame: game };
+     }
+     const needed = 4;
+     if (game.player1 >= needed || game.player2 >= needed) {
+@@ -80,7 +85,15 @@
+   config: ScoringEngineConfig,
+ ): ScoringState {
+   const game = state.currentGame;
+-  if (game.isDeuce) return processDeucePoint(winner, state, config);
++  if (game.isDeuce) {
++    // Em formatos "no-ad", a partir do 3-3 o game é decidido no PRÓXIMO
++    // ponto (sudden death / ponto de ouro) — quem vencer esse ponto único
++    // vence o game, sem precisar de 2 pontos de vantagem. O deuce
++    // tradicional (processDeucePoint) só se aplica a formatos com
++    // vantagem.
++    if (usesNoAd(config)) return handleGameWon(winner, game, state, config);
++    return processDeucePoint(winner, state, config);
++  }
+   return processStandardPoint(winner, state, config);
+ }
+ 
+@@ -94,7 +107,17 @@
+   let currentSet = state.sets[currentSetIndex] ?? createEmptySetForFormat(config.format);
+ 
+   const initGames = getInitialGames(config.format);
+-  if (isSetComplete(currentSet, state.setsWon, config, state.sets) && !currentSet.isTiebreak && (currentSet.player1 > initGames || currentSet.player2 > initGames)) {
++  // Um set já contabilizado em `setsWon` está definitivamente encerrado — mesmo
++  // quando seu placar final não bate mais com `isSetComplete()` (ex.: um set
++  // vencido no tie-break vira "7-6", diferença de apenas 1 game, que a checagem
++  // padrão de set completo NÃO reconhece como concluído). Usar a soma de
++  // `setsWon` contra `state.sets.length` é a forma robusta de saber que o
++  // último set do array já foi fechado e que o próximo game pertence a um set
++  // novo, evitando que os games seguintes sejam somados por engano ao set
++  // anterior já finalizado (o que corrompia o placar do set seguinte).
++  const setsDecided = state.setsWon.player1 + state.setsWon.player2;
++  const lastSetAlreadyDecided = state.sets.length > 0 && setsDecided >= state.sets.length;
++  if (lastSetAlreadyDecided || (isSetComplete(currentSet, state.setsWon, config, state.sets) && !currentSet.isTiebreak && (currentSet.player1 > initGames || currentSet.player2 > initGames))) {
+     currentSet = createEmptySetForFormat(config.format);
+   }
+ 

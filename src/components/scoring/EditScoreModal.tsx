@@ -18,6 +18,10 @@ interface EditScoreModalProps {
   currentServer: Player;
   completedSets?: CompletedSet[];
   currentGamePoints?: { player1: number | string; player2: number | string };
+  // Indica que currentGamePoints representa os pontos de um tie-break de
+  // set já em andamento (e não os pontos de um game normal), para que o
+  // modal pré-preencha o campo "Tie-Break" em vez de "Pontos no Game Atual".
+  isTiebreak?: boolean;
   floorCurrentSets?: { player1: number; player2: number } | null;
   onConfirm: (setResults: SetEditData[], server: Player) => void;
   onCancel: () => void;
@@ -43,6 +47,7 @@ export function EditScoreModal({
   currentServer,
   completedSets = [],
   currentGamePoints,
+  isTiebreak = false,
   floorCurrentSets = null,
   onConfirm,
   onCancel,
@@ -72,6 +77,7 @@ export function EditScoreModal({
       currentServer,
       completedSets: completedSets as CompletedSet[],
       currentGamePoints,
+      isTiebreak,
       floorCurrentSets,
       onRefreshFloor,
       playerNames,

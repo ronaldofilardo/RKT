@@ -140,7 +140,11 @@ export function useEditScoreCalculator({
     if (!hasTiebreak) return true;
 
     if (!tiebreakRequired) return true;
-    return tiebreakValidation.hasValidTiebreak;
+    // When tiebreak is required (e.g. 6x6), the tiebreak must be actually
+    // complete (>=7 with 2-point margin), not just have valid number inputs.
+    // Using hasValidTiebreak here allowed confirming 6x6 with empty tiebreak
+    // fields (0x0) — Bug #9.
+    return tiebreakValidation.tiebreakComplete;
   }, [validation, tiebreakValidation, matchState, state.newSets.length, completedSets.length]);
 
   const partial = validation.bothFilled && !validation.isSetTrulyCompleted;
