@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { TennisFormat } from "@/core/scoring/types";
 import type { SetEditData } from "./editScoreHelpers";
-import { validateSetResult } from "./editScoreHelpers";
+import { validateSetResult, getMaxValidGames } from "./editScoreHelpers";
 import type { CompletedSet } from "./edit-score-logic";
 import {
   createInitialEditScoreState,
@@ -53,7 +53,7 @@ interface UseEditScoreModalReturn {
   floorValidationError: string | null;
   isFinishingMatch: boolean;
   calculations: any;
-  handleGameInputChange: (value: string, setter: (v: string) => void, player: 'p1' | 'p2') => void;
+  handleGameInputChange: (value: string, setter: (v: string) => void, player: 'p1' | 'p2', otherInput?: string) => void;
   handleConfirm: () => Promise<void>;
   handleCancel: () => void;
   handleAddSet: () => void;
@@ -227,7 +227,7 @@ export function useEditScoreModal(
     prevIsMatchTiebreakSetRef.current = isMatchTiebreakSet;
   }, [isMatchTiebreakSet, p1Val, p2Val]);
 
-  const handleGameInputChange = useCallback((value: string, setter: (v: string) => void, player: 'p1' | 'p2'): void => {
+  const handleGameInputChange = useCallback((value: string, setter: (v: string) => void, player: 'p1' | 'p2', otherInput?: string): void => {
     inputTouchedRef.current[player] = true;
     setConfirmError(null);
     setFloorValidationError(null);
@@ -238,9 +238,11 @@ export function useEditScoreModal(
     }
     if (!/^\d+$/.test(value)) return;
     const num = parseInt(value, 10);
-    setter(num > 50 ? "50" : num.toString());
+    const otherGames = otherInput ? (parseInt(otherInput, 10) || 0) : 0;
+    const maxGames = getMaxValidGames(otherGames, matchFormat);
+    setter(num > maxGames ? String(maxGames) : num.toString());
     setState(prev => ({ ...prev, tiebreakP1: "", tiebreakP2: "" }));
-  }, []);
+  }, [matchFormat]);
 
   const handleConfirm = useCallback(async () => {
     if (isFinishingMatch) return;
@@ -255,8 +257,14 @@ export function useEditScoreModal(
       }
     }
     
-    if (floorValidationError) return;
-    if (validation.setValidationError && !partial) return;
+    if (floorValidationError) {
+      setConfirmError(floorValidationError);
+      return;
+    }
+    if (validation.setValidationError && !partial) {
+      setConfirmError(validation.setValidationError);
+      return;
+    }
 
     if (bothFilled && hasTiebreak && isSetTrulyCompleted && tiebreakComplete) {
       const setWinner = p1Val > p2Val ? "player1" : "player2";
@@ -288,6 +296,7 @@ export function useEditScoreModal(
     }
 
     if (isSetTrulyCompleted && !matchWouldEnd && !canAddNextSet && maxSets > 1) {
+      setConfirmError("Não é possível adicionar mais sets.");
       return;
     }
 

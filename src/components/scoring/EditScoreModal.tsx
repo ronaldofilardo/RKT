@@ -197,8 +197,8 @@ export function EditScoreModal({
             showGamePointsAtZero={calculations.showGamePointsAtZero}
             canConfirmSet={canConfirmSet}
             onConfirmSet={handleConfirmSet}
-            onP1InputChange={(v: string) => handleGameInputChange(v, (val: string) => setState(prev => ({ ...prev, p1Input: val })), 'p1')}
-            onP2InputChange={(v: string) => handleGameInputChange(v, (val: string) => setState(prev => ({ ...prev, p2Input: val })), 'p2')}
+            onP1InputChange={(v: string) => handleGameInputChange(v, (val: string) => setState(prev => ({ ...prev, p1Input: val })), 'p1', state.p2Input)}
+            onP2InputChange={(v: string) => handleGameInputChange(v, (val: string) => setState(prev => ({ ...prev, p2Input: val })), 'p2', state.p1Input)}
             onP1PointsChange={(v: string) => handlePointsChange(v, state.p2Points)}
             onP2PointsChange={(v: string) => handlePointsChange(state.p1Points, v)}
             onTiebreakP1Change={(v: string) => setState(prev => ({ ...prev, tiebreakP1: v }))}

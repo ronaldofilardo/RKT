@@ -60,6 +60,7 @@ export function SetInputForm({
   partial,
   p1Val,
   p2Val,
+  validationError,
   onP1InputChange,
   onP2InputChange,
   onP1PointsChange,
@@ -234,7 +235,13 @@ export function SetInputForm({
         </p>
       )}
 
-      {p1Input && p2Input && (
+      {p1Input && p2Input && validationError && (
+        <p className="text-xs text-red-400 mt-1">
+          {validationError}
+        </p>
+      )}
+
+      {p1Input && p2Input && !validationError && (
         <p
           className={`text-xs ${isSetTrulyCompleted ? 'text-green-400' : 'text-amber-400'}`}
         >

@@ -22,6 +22,20 @@ export interface SetValidation {
   tiebreakRequired?: boolean;
 }
 
+export function getMaxValidGames(otherGames: number, format: TennisFormat): number {
+  if (format === 'MATCH_TB_10') return 30;
+  if (!shouldHaveTiebreak(format)) return 30;
+
+  const gamesNeeded = format === 'PRO_SET_8' ? 8
+    : format === 'SHORT_SET_2V2_NO_AD' ? 4 : 6;
+  const tiebreakAt = getTiebreakAtForFormat(format);
+  const absMax = tiebreakAt + 1;
+
+  if (otherGames >= absMax) return tiebreakAt;
+  if (otherGames >= gamesNeeded - 1) return absMax;
+  return gamesNeeded;
+}
+
 export function validateSetResult(
   result: { p1Games: number; p2Games: number },
   format: TennisFormat,
@@ -96,17 +110,18 @@ function validateStandardSet(
     return { isValid: false, error: 'Enter the set result' };
   }
 
-  // Over-max: in tiebreak formats, max games for a single player is gamesNeeded+1
+  // Over-max: in tiebreak formats, max games for a single player is tiebreakAt+1
+  // (e.g. standard set tiebreak at 6→7, PRO_SET_8 tiebreak at 9→10).
   if (hasTiebreak) {
-    const maxValid = gamesNeeded + 1;
+    const maxValid = tiebreakAt + 1;
     if (p1Games > maxValid || p2Games > maxValid) {
       return { isValid: false, error: `Maximum ${maxValid} games in a set` };
     }
-    // Impossible tie at the tiebreak ceiling (e.g. 7-7): a tiebreak set always
-    // ends gamesNeeded+1 vs gamesNeeded (7-6). Both players reaching
-    // gamesNeeded+1 cannot happen and previously fell through to isPartial.
+    // Impossible tie at the tiebreak ceiling (e.g. 7-7, 10-10): a tiebreak set always
+    // ends maxValid vs tiebreakAt (e.g. 7-6, 10-9). Both players reaching
+    // maxValid cannot happen and previously fell through to isPartial.
     if (p1Games === maxValid && p2Games === maxValid) {
-      return { isValid: false, error: `Set score ${p1Games}x${p2Games} is not possible — tiebreak ends ${maxValid}x${gamesNeeded}` };
+      return { isValid: false, error: `Set score ${p1Games}x${p2Games} is not possible — tiebreak ends ${maxValid}x${tiebreakAt}` };
     }
   }
 
@@ -151,9 +166,9 @@ function validateStandardSet(
   // tiebreak completo). Adicionar tiebreakRequired: true faz o fluxo exigir
   // o placar do tiebreak antes de habilitar a confirmação, como já acontece
   // corretamente no ramo de 6x6.
-  if (hasTiebreak && p1Games === gamesNeeded + 1 && p2Games === gamesNeeded) {
+  if (hasTiebreak && p1Games === tiebreakAt + 1 && p2Games === tiebreakAt) {
     return { isValid: true, winner: 'player1', hasTiebreak: true, tiebreakRequired: true };
-  } else if (hasTiebreak && p2Games === gamesNeeded + 1 && p1Games === gamesNeeded) {
+  } else if (hasTiebreak && p2Games === tiebreakAt + 1 && p1Games === tiebreakAt) {
     return { isValid: true, winner: 'player2', hasTiebreak: true, tiebreakRequired: true };
   }
 
@@ -174,7 +189,7 @@ function validateStandardSet(
   return {
     isValid: true,
     winner,
-    hasTiebreak: hasTiebreak && (p1Games === gamesNeeded + 1 || p2Games === gamesNeeded + 1),
+    hasTiebreak: hasTiebreak && (p1Games === tiebreakAt + 1 || p2Games === tiebreakAt + 1),
   };
 }
 

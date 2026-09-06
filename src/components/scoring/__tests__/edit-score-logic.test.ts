@@ -362,12 +362,11 @@ describe('edit-score-logic - isMatchTiebreakSet', () => {
         expect(result.winner).toBe('player1');
       });
 
-      it('deve validar set completo 9-8 com tiebreak', () => {
+      it('deve retornar isPartial=true para 9-8 em PRO_SET_8 (margem insuficiente)', () => {
         const result = validateSetResult({ p1Games: 9, p2Games: 8 }, 'PRO_SET_8');
         
         expect(result.isValid).toBe(true);
-        expect(result.winner).toBe('player1');
-        expect(result.hasTiebreak).toBe(true);
+        expect(result.isPartial).toBe(true);
       });
 
       it('deve requerer tiebreak em 9-9', () => {
@@ -392,11 +391,11 @@ describe('edit-score-logic - isMatchTiebreakSet', () => {
         expect(result.isPartial).toBe(true);
       });
 
-      it('deve retornar erro para 10-8 (máximo 9 games)', () => {
+      it('deve validar 10-8 em PRO_SET_8 (vence por margem 2 antes do tiebreak em 9-9)', () => {
         const result = validateSetResult({ p1Games: 10, p2Games: 8 }, 'PRO_SET_8');
         
-        expect(result.isValid).toBe(false);
-        expect(result.error).toContain('Maximum');
+        expect(result.isValid).toBe(true);
+        expect(result.winner).toBe('player1');
       });
     });
 
