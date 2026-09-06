@@ -1,4 +1,5 @@
 'use client';
+import { getFormatLabel } from '@/core/scoring/format-labels';
 
 interface MatchHeaderProps {
   elapsedSeconds: number;
@@ -8,6 +9,7 @@ interface MatchHeaderProps {
   onTimeline?: () => void;
   canEdit?: boolean;
   isFinished?: boolean;
+  format?: string;
 }
 
 function formatTime(elapsedSeconds: number): string {
@@ -20,7 +22,7 @@ function formatTime(elapsedSeconds: number): string {
   return `${mins}:${String(secs).padStart(2, '0')}`;
 }
 
-export function MatchHeader({ elapsedSeconds, onClose, onEditMatch, onStats, onTimeline, canEdit, isFinished }: MatchHeaderProps) {
+export function MatchHeader({ elapsedSeconds, onClose, onEditMatch, onStats, onTimeline, canEdit, isFinished, format }: MatchHeaderProps) {
   return (
     <div className="bg-white border-b border-gray-200 px-2 sm:px-4 py-2 sm:py-3 dark:bg-slate-900 dark:border-slate-700">
       <div className="flex items-center justify-between gap-1 sm:gap-2">
@@ -33,6 +35,11 @@ export function MatchHeader({ elapsedSeconds, onClose, onEditMatch, onStats, onT
         )}
 
         <div className="flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0">
+          {format && (
+            <span className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap hidden xs:inline">
+              Modo de jogo: <span className="font-semibold">{getFormatLabel(format)}</span>
+            </span>
+          )}
           <span className="text-[10px] sm:text-xs font-mono font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">
             {formatTime(elapsedSeconds)}
           </span>

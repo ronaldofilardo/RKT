@@ -1,4 +1,5 @@
 import type { CompletedSetsInfo, SnapshotStatus } from './ResumeAnnotationModal.helpers';
+import { getFormatLabel } from '@/core/scoring/format-labels';
 
 interface BodyProps {
   player1Name: string; player2Name: string; format: string; completedSetsInfo: CompletedSetsInfo | null;
@@ -13,8 +14,8 @@ export function ResumeAnnotationBody({ player1Name, player2Name, format, complet
       <p className="font-semibold">{snapshotStatus === 'IN_SYNC' ? 'Sincronizado' : snapshotStatus === 'SNAPSHOT_AHEAD' ? 'Pontos offline' : 'Banco à frente'}</p>
       <p className="text-xs mt-0.5 opacity-80">Snapshot: {snapshotPointCount} ponto(s) | Banco: {bankPointCount} ponto(s)</p>
     </div>
-    {completedSetsInfo && completedSetsInfo.total > 0 && <p className="text-gray-300 text-sm">Placar: {completedSetsInfo.completedSets.map((set) => `${set.player1}x${set.player2}`).join(', ')} ({format})</p>}
-    {completedSetsInfo && !completedSetsInfo.total && <p className="text-gray-300 text-sm">Formato: {format}</p>}
+    {completedSetsInfo && completedSetsInfo.total > 0 && <p className="text-gray-300 text-sm">Placar: {completedSetsInfo.completedSets.map((set) => `${set.player1}x${set.player2}`).join(', ')} ({getFormatLabel(format)})</p>}
+    {completedSetsInfo && !completedSetsInfo.total && <p className="text-gray-300 text-sm">Modo de jogo: {getFormatLabel(format)}</p>}
     {completedSetsInfo?.current && !completedSetsInfo.isFinished && <p className="text-gray-300 text-sm">Set atual: {completedSetsInfo.current.player1} x {completedSetsInfo.current.player2}</p>}
     {previousPointsCount > 0 && snapshotStatus !== 'SNAPSHOT_AHEAD' && <p className="text-blue-300 text-sm">Você havia marcado {previousPointsCount} ponto(s).</p>}
     {snapshotStatus === 'SNAPSHOT_AHEAD' && <p className="text-amber-200 text-sm">Você tinha <span className="font-bold">{diff}</span> ponto(s) marcado(s) offline que não foram sincronizados. Deseja enviá-los agora?</p>}

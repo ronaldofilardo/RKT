@@ -429,7 +429,7 @@ describe("MatchCard", () => {
 
     render(<MatchCard match={match} />);
 
-    expect(screen.getByText("UNKNOWN_FORMAT")).toBeTruthy();
+    expect(screen.getByText(/UNKNOWN_FORMAT/)).toBeTruthy();
   });
 
   it("exibe label 'Sets' centralizado acima dos números dos sets", () => {

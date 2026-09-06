@@ -140,7 +140,7 @@ export function EditScoreModal({
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-900">Editar Placar</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Formato: Melhor de {totalSetsForFormat(matchFormat)} sets
+            Modo de jogo: Melhor de {totalSetsForFormat(matchFormat)} sets
           </p>
         </div>
 
