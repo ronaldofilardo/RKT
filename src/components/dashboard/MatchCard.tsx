@@ -52,6 +52,15 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
     ? isCurrentSetMatchTiebreak(scoreState.sets, match.format as TennisFormat)
     : false;
   const isFinished = match.state === 'FINISHED';
+  // Bug (2026-09-05): ao voltar de /scoring para /dashboard, o set atual em
+  // tiebreak (ex.: games 6x6, tiebreak 2x1) mostrava os PONTOS do tiebreak
+  // (2/1) na coluna do set em vez dos games (6/6), e a coluna "Pontos" ficava
+  // vazia (currentGame não guarda os pontos do tiebreak). O set em si sempre
+  // deve exibir games; os pontos do tiebreak em andamento aparecem na coluna
+  // "Pontos" — exceto no set decisivo de Match Tiebreak (isCurrentSetMT), que
+  // já é tratado à parte.
+  const lastSet = scoreState?.sets && scoreState.sets.length > 0 ? scoreState.sets[scoreState.sets.length - 1] : null;
+  const lastSetTiebreakScore = !isCurrentSetMT && lastSet?.isTiebreak && lastSet?.tiebreakScore ? lastSet.tiebreakScore : null;
 
   return (
     <div
@@ -146,12 +155,14 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
                       ))}
                       <span className="text-[10px] text-gray-500 text-center">Pontos</span>
                       {scoreState.sets.map((s: any, idx: number) => {
-                        let displayScore = s.player1 ?? 0;
-                        if (s.isTiebreak && s.tiebreakScore) {
-                          displayScore = s.tiebreakScore.player1;
-                        } else if (isMatchTiebreak && idx === 0) {
-                          displayScore = s.player1 ?? 0;
-                        }
+                        // Só o set decisivo de Match Tiebreak (isCurrentSetMT) usa os
+                        // pontos do tiebreak como placar do "set" — sets normais em
+                        // tiebreak (ex.: 6x6) sempre mostram games aqui; os pontos do
+                        // tiebreak em andamento aparecem na coluna "Pontos" abaixo.
+                        const isLastSet = idx === scoreState.sets.length - 1;
+                        const displayScore = isLastSet && isCurrentSetMT && s.isTiebreak && s.tiebreakScore
+                          ? s.tiebreakScore.player1
+                          : (s.player1 ?? 0);
                         return (
                           <span key={idx} className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
                             {displayScore}
@@ -161,15 +172,15 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
                       <span className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
                         {isCurrentSetMT
                           ? '-'
-                          : getSinglePointDisplay(scoreState?.currentGame, 'player1')}
+                          : lastSetTiebreakScore
+                            ? lastSetTiebreakScore.player1
+                            : getSinglePointDisplay(scoreState?.currentGame, 'player1')}
                       </span>
                       {scoreState.sets.map((s: any, idx: number) => {
-                        let displayScore = s.player2 ?? 0;
-                        if (s.isTiebreak && s.tiebreakScore) {
-                          displayScore = s.tiebreakScore.player2;
-                        } else if (isMatchTiebreak && idx === 0) {
-                          displayScore = s.player2 ?? 0;
-                        }
+                        const isLastSet = idx === scoreState.sets.length - 1;
+                        const displayScore = isLastSet && isCurrentSetMT && s.isTiebreak && s.tiebreakScore
+                          ? s.tiebreakScore.player2
+                          : (s.player2 ?? 0);
                         return (
                           <span key={idx} className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
                             {displayScore}
@@ -179,7 +190,9 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
                       <span className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
                         {isCurrentSetMT
                           ? '-'
-                          : getSinglePointDisplay(scoreState?.currentGame, 'player2')}
+                          : lastSetTiebreakScore
+                            ? lastSetTiebreakScore.player2
+                            : getSinglePointDisplay(scoreState?.currentGame, 'player2')}
                       </span>
                     </>
                   )}

@@ -102,6 +102,12 @@ function validateStandardSet(
     if (p1Games > maxValid || p2Games > maxValid) {
       return { isValid: false, error: `Maximum ${maxValid} games in a set` };
     }
+    // Impossible tie at the tiebreak ceiling (e.g. 7-7): a tiebreak set always
+    // ends gamesNeeded+1 vs gamesNeeded (7-6). Both players reaching
+    // gamesNeeded+1 cannot happen and previously fell through to isPartial.
+    if (p1Games === maxValid && p2Games === maxValid) {
+      return { isValid: false, error: `Set score ${p1Games}x${p2Games} is not possible — tiebreak ends ${maxValid}x${gamesNeeded}` };
+    }
   }
 
   let winner: 'player1' | 'player2' | undefined;
@@ -133,10 +139,22 @@ function validateStandardSet(
     }
   }
 
+  // Bug (2026-09-05): estes ramos cobrem o placar de games já resolvido por
+  // tiebreak (ex.: 7x6). Antes retornavam `hasTiebreak: true` sem marcar
+  // `tiebreakRequired: true`, então calculateValidation() considerava o set
+  // "verdadeiramente completo" mesmo sem nenhum placar de tiebreak informado
+  // (campos vazios tratados como 0x0). Isso liberava indevidamente o botão
+  // Confirmar em formatos BEST_OF_5 (e outros com tiebreak) para um placar
+  // 7x6/6x7 sem pontos de tiebreak reais, e o clique em Confirmar então
+  // travava silenciosamente na tela de edição (handleConfirm/useEditScoreModal
+  // faz `return` sem feedback quando canAddNextSet é falso por falta de
+  // tiebreak completo). Adicionar tiebreakRequired: true faz o fluxo exigir
+  // o placar do tiebreak antes de habilitar a confirmação, como já acontece
+  // corretamente no ramo de 6x6.
   if (hasTiebreak && p1Games === gamesNeeded + 1 && p2Games === gamesNeeded) {
-    return { isValid: true, winner: 'player1', hasTiebreak: true };
+    return { isValid: true, winner: 'player1', hasTiebreak: true, tiebreakRequired: true };
   } else if (hasTiebreak && p2Games === gamesNeeded + 1 && p1Games === gamesNeeded) {
-    return { isValid: true, winner: 'player2', hasTiebreak: true };
+    return { isValid: true, winner: 'player2', hasTiebreak: true, tiebreakRequired: true };
   }
 
   if (!winner) {
