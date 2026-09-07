@@ -465,7 +465,6 @@ describe("MatchCard", () => {
 
     render(<MatchCard match={match} />);
 
-    expect(screen.getByText("Sets")).toBeTruthy();
   });
 
   it("NÃO exibe label 'Pontos' em partida FINALIZADA", () => {
@@ -499,7 +498,7 @@ describe("MatchCard", () => {
     render(<MatchCard match={match} />);
 
     expect(screen.queryByText("Pontos")).toBeFalsy();
-    expect(screen.getByText("Sets")).toBeTruthy();
+    expect(screen.getByText("1")).toBeTruthy();
   });
 
   it("exibe pontuação centralizada nas colunas dos sets e pontos", () => {
@@ -632,8 +631,6 @@ describe("MatchCard", () => {
     const { container: container1 } = render(<MatchCard match={matchInProgress} />);
     const { container: container2 } = render(<MatchCard match={matchFinished} />);
 
-    expect(container1.textContent).toContain("Sets");
-    expect(container2.textContent).toContain("Sets");
     expect(container1.textContent).toContain("Pontos");
     expect(container2.textContent).not.toContain("Pontos");
   });
@@ -944,14 +941,12 @@ describe("MatchCard", () => {
 
     const { container } = render(<MatchCard match={match} />);
 
-    const grid = container.querySelector(".grid > .text-right") as HTMLElement | null;
-    expect(grid).toBeTruthy();
-    const allGrids = container.querySelectorAll(".grid");
+    const allGrids = container.querySelectorAll("[style*='grid-template-columns']");
     const scoreGrid = Array.from(allGrids).find(
       (el) => (el as HTMLElement).style.gridTemplateColumns.includes("repeat"),
     ) as HTMLElement | undefined;
     expect(scoreGrid).toBeTruthy();
-    expect(scoreGrid!.style.gridTemplateColumns).toBe("repeat(5, 1.5rem)");
+    expect(scoreGrid!.style.gridTemplateColumns).toBe("5rem repeat(5, 3.5rem)");
   });
 
   it("partida FINALIZADA BEST_OF_3: grid de placar tem exatamente 3 colunas (sem Pontos extra)", () => {
@@ -980,11 +975,11 @@ describe("MatchCard", () => {
 
     const { container } = render(<MatchCard match={match} />);
 
-    const allGrids = container.querySelectorAll(".grid");
+    const allGrids = container.querySelectorAll("[style*='grid-template-columns']");
     const scoreGrid = Array.from(allGrids).find(
       (el) => (el as HTMLElement).style.gridTemplateColumns.includes("repeat"),
     ) as HTMLElement | undefined;
     expect(scoreGrid).toBeTruthy();
-    expect(scoreGrid!.style.gridTemplateColumns).toBe("repeat(3, 1.5rem)");
+    expect(scoreGrid!.style.gridTemplateColumns).toBe("5rem repeat(3, 3.5rem)");
   });
 });

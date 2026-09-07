@@ -124,6 +124,15 @@ export async function POST(
           }
         }
 
+        if (scoreStateToUse && typeof scoreStateToUse === 'object') {
+          const ss = scoreStateToUse as any;
+          const innerState = ss.state ?? ss;
+          if (innerState?.isFinished === true) {
+            logger.point.matchAlreadyFinished(innerState?.winner);
+            throw new TransactionError('Partida já finalizada', 422, 'MATCH_ALREADY_FINISHED');
+          }
+        }
+
         const engine = scoreStateToUse
           ? ScoringEngine.fromSerialized(
               {
@@ -142,7 +151,19 @@ export async function POST(
             });
 
         logger.point.applying(parsed.data);
-        const newState = engine.applyPoint(parsed.data);
+        let newState: ScoringState;
+        try {
+          newState = engine.applyPoint(parsed.data);
+        } catch (engineError) {
+          const msg = engineError instanceof Error ? engineError.message : String(engineError);
+          if (msg === 'MATCH_ALREADY_FINISHED') {
+            throw new TransactionError('Partida já finalizada', 422, 'MATCH_ALREADY_FINISHED');
+          }
+          if (msg === 'INVALID_WINNER') {
+            throw new TransactionError('Jogador vencedor inválido para esta partida', 400, 'INVALID_WINNER');
+          }
+          throw engineError;
+        }
 
         const isMatchFinished = newState.isFinished;
 

@@ -28,6 +28,7 @@ export interface EditScoreCalculations {
   tiebreakValidation: {
     hasValidTiebreak: boolean;
     tiebreakComplete: boolean;
+    tiebreakImpossible: boolean;
     tiebreakP1Num: number;
     tiebreakP2Num: number;
   };
@@ -105,8 +106,10 @@ export function useEditScoreCalculator({
     const isSetTrulyCompleted = validation.isSetTrulyCompleted;
     const setValidationError = validation.setValidationError;
     const tiebreakRequired = validation.setValidation?.tiebreakRequired ?? false;
+    const tiebreakImpossible = tiebreakValidation.tiebreakImpossible;
 
     if (!bothFilled) return false;
+    if (tiebreakImpossible) return false;
 
     if (isMatchTiebreakSet) {
       // Active MT: allow confirm if no validation error, OR if the set is truly completed
@@ -125,40 +128,47 @@ export function useEditScoreCalculator({
   const canConfirm = useMemo(() => {
     const bothFilled = validation.bothFilled;
     const isMatchTiebreakSet = matchState.isMatchTiebreakSet;
-    const hasTiebreak = validation.hasTiebreak;
-    const isSetTrulyCompleted = validation.isSetTrulyCompleted;
     const setValidationError = validation.setValidationError;
     const tiebreakRequired = validation.setValidation?.tiebreakRequired ?? false;
+    const tiebreakImpossible = tiebreakValidation.tiebreakImpossible;
 
-    const hasSetsInProgress = bothFilled;
-    if (!hasSetsInProgress && (state.newSets.length > 0 || completedSets.length > 0)) {
+    // Se já existem newSets pendentes e não há input atual, permitir confirmar (envia newSets existentes)
+    if (!bothFilled && state.newSets.length > 0) {
       return true;
     }
 
-    if (!bothFilled) return false;
-
-    if (isMatchTiebreakSet) {
-      return !setValidationError || isSetTrulyCompleted;
+    // Sem placar novo (inputs vazios ou pre-fill 0x0) mas com sets já
+    // completados/editados: permite confirmar para persistir as edições dos
+    // sets existentes — o propósito do modal é editar o placar, e exigir um
+    // novo set para poder salvar bloqueava essa edição.
+    const scoresAreZero = bothFilled && validation.p1Val === 0 && validation.p2Val === 0;
+    if ((!bothFilled || scoresAreZero) && (completedSets.length > 0 || state.newSets.length > 0)) {
+      return true;
     }
 
-    // Bug (2026-09-02): quando o placar de games é realmente inválido
-    // (ex.: 7x0 num set com tiebreak, onde o vencedor deveria ter fechado
-    // em 6x0), validateStandardSet retorna um erro SEM o campo `hasTiebreak`
-    // definido — e o `?? false` abaixo fazia `!hasTiebreak` virar `true`,
-    // liberando o Confirmar mesmo com placar inválido. Precisamos bloquear
-    // aqui quando há um erro genuíno (não o "Tiebreak required" pendente,
-    // que é tratado normalmente logo abaixo via hasValidTiebreak).
+    // Precisa de ambos os inputs preenchidos
+    if (!bothFilled) return false;
+
+    // Bloquear tiebreak impossível (ex.: 7x10, 13x8)
+    if (tiebreakImpossible) return false;
+
+    // Para match tiebreak, lógica existente
+    if (isMatchTiebreakSet) {
+      return !setValidationError || validation.isSetTrulyCompleted;
+    }
+
+    // Bloquear para erros genuínos (não "Tiebreak required")
     if (setValidationError && !tiebreakRequired) return false;
 
-    if (!hasTiebreak) return true;
+    // Para sets com tiebreak obrigatório (6x6): precisa de tiebreak completo
+    // para auto-avanço, mas permite confirmar parcial se tiebreak não completo
+    if (tiebreakRequired) {
+      // Permite confirmar mesmo com tiebreak incompleto (salva 6x6 como parcial)
+      return true;
+    }
 
-    if (!tiebreakRequired) return true;
-    // When tiebreak is required (e.g. 6x6), the tiebreak must be actually
-    // complete (>=7 with 2-point margin), not just have valid number inputs.
-    // Using hasValidTiebreak here allowed confirming 6x6 with empty tiebreak
-    // fields (0x0) — Bug #9.
-    return tiebreakValidation.tiebreakComplete;
-  }, [validation, tiebreakValidation, matchState, state.newSets.length, completedSets.length]);
+    return true;
+  }, [validation, matchState, state.newSets.length, completedSets.length, tiebreakValidation]);
 
   const partial = validation.bothFilled && !validation.isSetTrulyCompleted;
 

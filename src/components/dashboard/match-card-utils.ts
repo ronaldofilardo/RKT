@@ -77,6 +77,39 @@ export function isMatchTiebreakFormat(format: string): boolean {
   );
 }
 
+/**
+ * Formata o placar de um set em notação compacta para exibição no card.
+ *
+ * - Set normal:          "6" / "3" (games)
+ * - Tiebreak regular:    "7 [6]" / "6" (games com placar do TB)
+ * - Match Tiebreak:      "10 [8]" / "8" (pontos do TB)
+ *
+ * A notação é compacta para caber nas colunas de 3.5rem do grid.
+ */
+export function formatCompactSetScore(
+  set: { player1: number; player2: number; isTiebreak?: boolean; tiebreakScore?: { player1: number; player2: number } | null },
+  player: 'player1' | 'player2',
+): string {
+  const isRegularTiebreak = (set.player1 === 7 && set.player2 === 6) || (set.player1 === 6 && set.player2 === 7);
+
+  if (isRegularTiebreak && set.tiebreakScore) {
+    const gameScore = set[player] ?? 0;
+    const tbScore = set.tiebreakScore[player] ?? 0;
+    return `${gameScore} [${tbScore}]`;
+  }
+
+  if (set.tiebreakScore) {
+    const score = set.tiebreakScore[player] ?? 0;
+    const opponent = player === 'player1' ? set.tiebreakScore.player2 : set.tiebreakScore.player1;
+    if (score > opponent) {
+      return `${score} [${opponent}]`;
+    }
+    return String(score);
+  }
+
+  return String(set[player] ?? 0);
+}
+
 export function isCurrentSetMatchTiebreak(
   sets: Array<{ player1: number; player2: number; isTiebreak?: boolean; tiebreakScore?: { player1: number; player2: number } | null }>,
   format: TennisFormat,
@@ -89,7 +122,7 @@ export function isCurrentSetMatchTiebreak(
   let p2Won = 0;
   for (let i = 0; i < lastSetIndex; i++) {
     const s = sets[i];
-    if (s.isTiebreak && s.tiebreakScore) {
+    if (s.tiebreakScore) {
       if (s.tiebreakScore.player1 > s.tiebreakScore.player2) p1Won++;
       else if (s.tiebreakScore.player2 > s.tiebreakScore.player1) p2Won++;
     } else {

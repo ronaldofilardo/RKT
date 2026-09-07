@@ -34,6 +34,7 @@ export async function PATCH(
           expectedVersion: parsed.data.version,
           isManualScoreEdit: parsed.data.isManualScoreEdit,
           editedByUserId: user?.id,
+          note: parsed.data.note,
         },
       );
 

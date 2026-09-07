@@ -26,14 +26,16 @@ export function getMaxValidGames(otherGames: number, format: TennisFormat): numb
   if (format === 'MATCH_TB_10') return 30;
   if (!shouldHaveTiebreak(format)) return 30;
 
-  const gamesNeeded = format === 'PRO_SET_8' ? 8
-    : format === 'SHORT_SET_2V2_NO_AD' ? 4 : 6;
   const tiebreakAt = getTiebreakAtForFormat(format);
-  const absMax = tiebreakAt + 1;
 
-  if (otherGames >= absMax) return tiebreakAt;
-  if (otherGames >= gamesNeeded - 1) return absMax;
-  return gamesNeeded;
+  // Cap dinâmico por "otherGames" removido: ele impedia digitar 7-x/7-6
+  // (o 7 era truncado para 6 quando o adversário tinha <6 games) e impedia
+  // digitar 10+ em sets de Match Tiebreak de formatos melhor-de-3. O cap fixo
+  // (tiebreakAt + 1) permite qualquer placar válido no input; placares
+  // impossíveis (ex.: 10-8 em PRO_SET_8) são bloqueados por validateSetResult
+  // com mensagem clara (Item 5 do PLANO_AJUSTAR_PLACAR).
+  void otherGames;
+  return tiebreakAt + 1;
 }
 
 export function validateSetResult(
@@ -152,6 +154,21 @@ function validateStandardSet(
         error: `Set score ${p1Games}x${p2Games} is not possible — set would have ended earlier`,
       };
     }
+    // PRO_SET_8 (tiebreakAt > gamesNeeded): o placar de tiebreakAt+1 (10) só
+    // é alcançável via tiebreak a partir de tiebreakAt x tiebreakAt (9x9).
+    // 10x8 seria impossível: em 9x8 o set continua até 9x9, então o 10º game
+    // só existe contra um perdedor com exatamente tiebreakAt games.
+    if (
+      tiebreakAt > gamesNeeded &&
+      winnerGames === tiebreakAt + 1 &&
+      loserGames !== tiebreakAt
+    ) {
+      return {
+        isValid: false,
+        hasTiebreak: true,
+        error: `Set score ${p1Games}x${p2Games} is not possible — ${tiebreakAt + 1} games only from ${tiebreakAt}x${tiebreakAt} tiebreak`,
+      };
+    }
   }
 
   // Bug (2026-09-05): estes ramos cobrem o placar de games já resolvido por
@@ -207,6 +224,19 @@ function validateMatchTiebreak(p1Points: number, p2Points: number): SetValidatio
     isValid: true,
     isPartial: true,
   };
+}
+
+export function isTiebreakScoreImpossible(p1: number, p2: number): boolean {
+  if (p1 < 0 || p2 < 0) return false;
+  if (p1 === p2) return false;
+
+  const winner = Math.max(p1, p2);
+  const loser = Math.min(p1, p2);
+
+  if (loser < 6 && winner > 7) return true;
+  if (loser >= 6 && winner > loser + 2) return true;
+
+  return false;
 }
 
 export function getNextServerAfterSet(params: {

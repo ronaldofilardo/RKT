@@ -75,7 +75,7 @@ function createMockContext(overrides: Partial<Parameters<typeof useScoringHandle
     match,
     isOnline: true,
     enqueue: jest.fn().mockResolvedValue(undefined),
-    engineRef: { current: null as any },
+    engineRef: { current: { getPointHistory: jest.fn().mockReturnValue([]) } as any },
     tokenRef: { current: 'token' },
     modalParamsRef: { current: {} },
     openRef: { current: jest.fn() },

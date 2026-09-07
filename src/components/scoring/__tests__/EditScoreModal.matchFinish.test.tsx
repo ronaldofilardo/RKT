@@ -298,7 +298,10 @@ describe("EditScoreModal - Detecção de Partida Encerrada", () => {
       });
     });
 
-    it("deve mostrar 'Partida Encerrada' com placar 7-6 após tie-break no 3º set", async () => {
+    it("NÃO deve encerrar partida com placar 7-6 sem placar de tiebreak (games 7-6 só existem após o TB)", async () => {
+      // 7-6 isolado não é um resultado completo: um game a 6-6 só existe
+      // dentro do tiebreak, e o set só termina em 7-6 quando o placar do TB
+      // foi registrado (PLANO_AJUSTAR_PLACAR, itens 1 e 2).
       const completedSets = [
         {
           games: { player1: 6, player2: 3 },
@@ -319,15 +322,19 @@ describe("EditScoreModal - Detecção de Partida Encerrada", () => {
         />
       );
 
-      // Digita placar 7-6 no 3º set
+      // Digita placar 7-6 no 3º set (sem placar de tiebreak)
       const inputs = screen.getAllByPlaceholderText("0");
       fireEvent.change(inputs[0], { target: { value: "7" } });
       fireEvent.change(inputs[1], { target: { value: "6" } });
 
-      // Verifica que mostra banner de partida encerrada
+      // Não deve mostrar banner de partida encerrada nem mensagem de vitória
       await waitFor(() => {
-        expect(screen.getByText(/Partida encerrada — confirmar para finalizar/i)).toBeInTheDocument();
+        expect(screen.queryByText(/Partida encerrada — confirmar para finalizar/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/venceu o set/i)).not.toBeInTheDocument();
       });
+      // O set segue em andamento (para registrar 7-6 completo, o usuário
+      // digita 6-6 → informa o placar do tiebreak → o sistema grava 7-6 + TB)
+      expect(screen.getByText(/Set 3 em andamento/i)).toBeInTheDocument();
     });
   });
 

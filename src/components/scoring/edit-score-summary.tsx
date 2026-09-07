@@ -67,6 +67,7 @@ interface EditableSet {
   winner: Player | null;
   index: number;
   isPartial: boolean;
+  hasValidationError?: boolean;
 }
 
 interface EditableSetsSummaryProps {
@@ -75,11 +76,10 @@ interface EditableSetsSummaryProps {
   playerNames: { p1: string; p2: string };
   startIndex?: number;
   onEditSet: (index: number, p1Games: number, p2Games: number) => void;
-  onRemoveSet: (index: number) => void;
   validationErrors?: Record<number, string>;
 }
 
-export function EditableSetsSummary({ title, sets, playerNames, startIndex = 0, onEditSet, onRemoveSet, validationErrors }: EditableSetsSummaryProps) {
+export function EditableSetsSummary({ title, sets, playerNames, startIndex = 0, onEditSet, validationErrors }: EditableSetsSummaryProps) {
   if (sets.length === 0) return null;
 
   // Bug #3 (2026-08-07): alinhar estilo ao padrão do ScoreboardCard (dark bg,
@@ -134,16 +134,6 @@ export function EditableSetsSummary({ title, sets, playerNames, startIndex = 0, 
                 {isWinnerP1 ? playerNames.p1 : isWinnerP2 ? playerNames.p2 : 'Em andamento'}
               </span>
               {hasValidationError && <span className="text-xs text-red-400 ml-1" title={validationErrors?.[set.index]}>!</span>}
-              {sets.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => onRemoveSet(set.index)}
-                  className="text-red-500 hover:text-red-700 text-xs ml-2"
-                  title="Remover set"
-                >
-                  ✕
-                </button>
-              )}
             </div>
           );
         })}

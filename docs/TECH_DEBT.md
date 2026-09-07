@@ -493,6 +493,18 @@
 - **Status:** ✅ Resolvido (2026-07-25) — Sprint 2 do plano de elevação.
   Todas as 7 suites de `EditScoreModal` agora passam (61/61 testes).
   Zero falhas no projeto inteiro (99/99 suites, 1200 testes passando).
+  - ✅ Update 2026-09-07: regressões pós-WIP (auto-add removido) sanadas —
+    5 testes restantes de `no-auto-add`/`matchFinish` voltaram a passar:
+    1. **Bug real:** clamp dinâmico em `getMaxValidGames` (por placar do
+       adversário) impedia digitar 7-x/7-6 (o 7 virava 6) e digitá-los em
+       sets de Match Tiebreak de melhor-de-3 (o 10 virava 6). Cap agora é
+       fixo (`tiebreakAt + 1`; 30 p/ MT ativo) — placares impossíveis
+       seguem bloqueados na validação, não no input.
+    2. **Bug real:** confirmar com inputs vazios/0x0 (sem novo set) era
+       bloqueado mesmo havendo sets completados editados — `canConfirm`/
+       `handleConfirm` agora permitem, persistindo as edições.
+    3. Teste de 7-6 reescrito: 7-6 sem placar de tiebreak NÃO encerra a
+       partida (7-6 só existe após TB registrado — PLANO_AJUSTAR_PLACAR).
 
 ---
 

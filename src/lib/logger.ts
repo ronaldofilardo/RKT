@@ -66,6 +66,7 @@ export const logger = {
     matchNotFound: (id: string) => console.error("[POINT] Match not found:", id),
     matchNotInProgress: (state: string) => console.error("[POINT] Match not in progress:", state),
     noInitialServer: () => console.error("[POINT] No initial server set"),
+    matchAlreadyFinished: (winner?: string) => console.error("[POINT] Match already finished, winner:", winner ?? "unknown"),
     sequenceConflict: (info: { expected: number; received: number }) =>
       console.error("[POINT] Sequence conflict:", info),
     parseError: (e: unknown) => console.error("[POINT] Failed to parse request body:", e),

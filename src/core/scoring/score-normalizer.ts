@@ -81,6 +81,50 @@ function parseRawScoreState(rawScoreState: any): any | null {
   return parsed;
 }
 
+/**
+ * Extrai o array history do rawScoreState (antes de extrair só o state).
+ * Usado para reconstruir tiebreakScore de sets corrompidos.
+ */
+function extractHistory(rawScoreState: any): any[] | null {
+  if (!rawScoreState) return null;
+  let parsed = rawScoreState;
+  if (typeof parsed === 'string') {
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      return null;
+    }
+  }
+  if (parsed?.state && Array.isArray(parsed?.history)) {
+    return parsed.history;
+  }
+  return null;
+}
+
+/**
+ * Tenta reconstruir o tiebreakScore de um set a partir do history.
+ *
+ * Procura de trás pra frente o último stateBefore onde o set no índice
+ * `setIndex` tinha isTiebreak: true e tiebreakScore preenchido.
+ */
+function reconstructTiebreakFromHistory(
+  history: any[] | null,
+  setIndex: number,
+): { player1: number; player2: number } | null {
+  if (!history || !Array.isArray(history)) return null;
+
+  for (let i = history.length - 1; i >= 0; i--) {
+    const entry = history[i];
+    const sets = entry?.stateBefore?.sets;
+    if (!Array.isArray(sets)) continue;
+    const set = sets[setIndex];
+    if (set && set.isTiebreak && set.tiebreakScore) {
+      return { player1: set.tiebreakScore.player1, player2: set.tiebreakScore.player2 };
+    }
+  }
+  return null;
+}
+
 function looksLikeMatchTiebreakFormat(format: TennisFormat): boolean {
   return (
     format === 'MATCH_TB_10' ||
@@ -147,6 +191,29 @@ export function normalizeScoreState(
       return set;
     });
     parsed.sets = newSets;
+  }
+
+  // Pass 2: Detect regular tiebreak sets (7-6 or 6-7) with missing tiebreakScore.
+  // Any set ending 7-6 or 6-7 always had a tiebreak. Try to reconstruct from history.
+  if (parsed?.sets && Array.isArray(parsed.sets)) {
+    const history = extractHistory(rawScoreState);
+    let changed = false;
+    const normalizedSets = parsed.sets.map((set: any, idx: number) => {
+      if (!set) return set;
+      if (set.tiebreakScore != null) return set;
+      const is76 = set.player1 === 7 && set.player2 === 6;
+      const is67 = set.player1 === 6 && set.player2 === 7;
+      if (!is76 && !is67) return set;
+      const reconstructed = reconstructTiebreakFromHistory(history, idx);
+      if (reconstructed) {
+        changed = true;
+        return { ...set, tiebreakScore: reconstructed };
+      }
+      return set;
+    });
+    if (changed) {
+      parsed.sets = normalizedSets;
+    }
   }
 
   if (parsed?.sets && parsed?.currentGame) {

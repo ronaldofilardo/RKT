@@ -4,6 +4,7 @@ import {
   validateSetResult,
   validateMatchTiebreakInput,
   getNextServerAfterSet,
+  isTiebreakScoreImpossible,
 } from './editScoreHelpers';
 import {
   setsToWinForFormat,
@@ -46,6 +47,7 @@ export interface EditScoreValidation {
   isMatchTiebreakSet: boolean;
   isPotentialMTSet: boolean;
   tiebreakComplete?: boolean;
+  tiebreakImpossible?: boolean;
   hasValidTiebreak?: boolean;
   tiebreakP1Num?: number;
   tiebreakP2Num?: number;
@@ -219,20 +221,34 @@ export function calculateValidation(input: EditScoreValidationInput): EditScoreV
   const hasWinner = setValidation?.winner !== undefined;
   const completed = hasWinner && !setValidation?.isPartial;
 
-  // Bug (2026-09-02): campo de TB vazio (usuário ainda não digitou nada)
-  // representa um tie-break que ainda não começou (0x0) — ex.: retomar
-  // uma partida anotada em 6-6 games. Antes, campo vazio virava NaN e
-  // bloqueava o botão "Confirmar" mesmo com o set corretamente em 6x6/0x0.
   const tbP1Num = tiebreakP1 ? parseInt(tiebreakP1, 10) : 0;
   const tbP2Num = tiebreakP2 ? parseInt(tiebreakP2, 10) : 0;
   const hasValidTiebreak = !isNaN(tbP1Num) && !isNaN(tbP2Num) && tbP1Num >= 0 && tbP2Num >= 0;
+  const tbLoser = Math.min(tbP1Num, tbP2Num);
+  const tbWinner = Math.max(tbP1Num, tbP2Num);
+
+  const tiebreakImpossibleLocal =
+    !!(setValidation?.tiebreakRequired) &&
+    hasValidTiebreak &&
+    isTiebreakScoreImpossible(tbP1Num, tbP2Num);
+
   const tiebreakCompleteLocal =
     setValidation?.tiebreakRequired ?
-      hasValidTiebreak && ((tbP1Num >= 7 || tbP2Num >= 7) && Math.abs(tbP1Num - tbP2Num) >= 2) :
+      hasValidTiebreak && !tiebreakImpossibleLocal && (
+        (tbLoser < 6 && tbWinner === 7) ||
+        (tbLoser >= 6 && tbWinner === tbLoser + 2)
+      ) :
       false;
 
-  const isSetTrulyCompleted = completed && (!setValidation?.tiebreakRequired || tiebreakCompleteLocal);
-  const setValidationError = isSetTrulyCompleted ? undefined : setValidation?.error;
+  // Quando o tiebreak é obrigatório e está completo (ex.: 6x6 + TB 7x5),
+  // o set está verdadeiramente completo — o vencedor do tiebreak decide.
+  const tiebreakImpliesCompleted = !!(setValidation?.tiebreakRequired && tiebreakCompleteLocal);
+  const effectiveCompleted = completed || tiebreakImpliesCompleted;
+  const isSetTrulyCompleted = effectiveCompleted && (!setValidation?.tiebreakRequired || tiebreakCompleteLocal);
+  const setValidationError =
+    tiebreakImpossibleLocal
+      ? `Placar de tiebreak impossível — o set teria terminado antes de ${tbWinner}x${tbLoser}`
+      : isSetTrulyCompleted ? undefined : setValidation?.error;
   const hasTiebreak = setValidation?.hasTiebreak ?? false;
   const isPotentialMTSetResult = potentialMT && !isMatchTiebreakSet;
 
@@ -250,6 +266,7 @@ export function calculateValidation(input: EditScoreValidationInput): EditScoreV
     isPotentialMTSet: isPotentialMTSetResult,
     hasValidTiebreak,
     tiebreakComplete: tiebreakCompleteLocal,
+    tiebreakImpossible: tiebreakImpossibleLocal,
   };
 }
 
@@ -276,12 +293,14 @@ function computeSetsWon(
   const p2SetsWonFromProp = completedSets.filter((s) => s.winner === 'player2').length;
 
   const newP1SetsWon = newSets.filter((s) => {
+    if (s.isPartial) return false;
     if (s.tiebreakScore) {
       return s.tiebreakScore.player1 > s.tiebreakScore.player2;
     }
     return s.p1Games > s.p2Games;
   }).length;
   const newP2SetsWon = newSets.filter((s) => {
+    if (s.isPartial) return false;
     if (s.tiebreakScore) {
       return s.tiebreakScore.player2 > s.tiebreakScore.player1;
     }
@@ -379,10 +398,7 @@ export function calculateTiebreakValidation(
   tiebreakP1: string,
   tiebreakP2: string,
   hasTiebreak: boolean,
-): { hasValidTiebreak: boolean; tiebreakComplete: boolean; tiebreakP1Num: number; tiebreakP2Num: number } {
-  // Bug (2026-09-02): ver comentário equivalente em calculateValidation —
-  // campo vazio de TB representa 0x0 (tie-break ainda não começou), não
-  // um valor inválido/ausente.
+): { hasValidTiebreak: boolean; tiebreakComplete: boolean; tiebreakImpossible: boolean; tiebreakP1Num: number; tiebreakP2Num: number } {
   const tiebreakP1Num = tiebreakP1 ? parseInt(tiebreakP1, 10) : 0;
   const tiebreakP2Num = tiebreakP2 ? parseInt(tiebreakP2, 10) : 0;
   const hasValidTiebreak =
@@ -390,12 +406,24 @@ export function calculateTiebreakValidation(
     !isNaN(tiebreakP2Num) &&
     tiebreakP1Num >= 0 &&
     tiebreakP2Num >= 0;
+  const tbLoser = Math.min(tiebreakP1Num, tiebreakP2Num);
+  const tbWinner = Math.max(tiebreakP1Num, tiebreakP2Num);
+
+  const tiebreakImpossible =
+    hasTiebreak &&
+    hasValidTiebreak &&
+    isTiebreakScoreImpossible(tiebreakP1Num, tiebreakP2Num);
+
   const tiebreakComplete =
     hasTiebreak &&
     hasValidTiebreak &&
-    ((tiebreakP1Num >= 7 || tiebreakP2Num >= 7) && Math.abs(tiebreakP1Num - tiebreakP2Num) >= 2);
+    !tiebreakImpossible &&
+    (
+      (tbLoser < 6 && tbWinner === 7) ||
+      (tbLoser >= 6 && tbWinner === tbLoser + 2)
+    );
 
-  return { hasValidTiebreak, tiebreakComplete, tiebreakP1Num, tiebreakP2Num };
+  return { hasValidTiebreak, tiebreakComplete, tiebreakImpossible, tiebreakP1Num, tiebreakP2Num };
 }
 
 export function createSetEditData(input: CreateSetEditDataInput): SetEditData {

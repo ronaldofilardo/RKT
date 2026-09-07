@@ -1,5 +1,5 @@
-jest.mock('@/lib/prisma', () => ({
-  prisma: {
+jest.mock('@/lib/prisma', () => {
+  const prismaMock: any = {
     match: {
       findFirst: jest.fn(),
       update: jest.fn(),
@@ -11,9 +11,21 @@ jest.mock('@/lib/prisma', () => ({
     matchAnnotationSession: {
       deleteMany: jest.fn(),
     },
-    $transaction: jest.fn((ops) => Promise.all(ops)),
-  },
-}));
+    matchScoreEdit: {
+      create: jest.fn(),
+    },
+    // finishMatch (Bug 2026-09-06 fix) passa uma callback a $transaction para
+    // gravar o segmento de auditoria em MatchScoreEdit antes de finalizar a
+    // partida — o mesmo padrão já usado por transitionMatchState. deleteMatch
+    // (hard delete) continua usando a forma por array. Suportar ambas.
+    $transaction: jest.fn((opsOrCallback) =>
+      typeof opsOrCallback === 'function'
+        ? opsOrCallback(prismaMock)
+        : Promise.all(opsOrCallback)
+    ),
+  };
+  return { prisma: prismaMock };
+});
 
 import { prisma } from '@/lib/prisma';
 

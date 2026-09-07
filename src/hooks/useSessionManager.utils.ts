@@ -145,6 +145,7 @@ export function calculateSetsWon(setResults: SetEditData[], format: string): { p
     const isMatchTiebreak = isMatchTiebreakSet(i, setResults, format);
     
     if (isMatchTiebreak) {
+      if (set.isPartial) continue;
       const tbScore = set.tiebreakScore;
       const p1Score = tbScore ? tbScore.player1 : set.p1Games;
       const p2Score = tbScore ? tbScore.player2 : set.p2Games;
@@ -154,6 +155,7 @@ export function calculateSetsWon(setResults: SetEditData[], format: string): { p
       if (p1Won) p1Sets++;
       else if (p2Won) p2Sets++;
     } else if (set.tiebreakScore) {
+      if (set.isPartial) continue;
       const tb = set.tiebreakScore;
       const p1Won = tb.player1 >= 7 && tb.player1 - tb.player2 >= 2;
       const p2Won = tb.player2 >= 7 && tb.player2 - tb.player1 >= 2;

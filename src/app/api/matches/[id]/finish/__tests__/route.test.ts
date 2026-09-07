@@ -37,7 +37,7 @@ describe('POST /api/matches/[id]/finish', () => {
     expect(mockFinishMatch).toHaveBeenCalledWith(
       'match-1',
       undefined,
-      { reason: 'COMPLETED', note: undefined },
+      { reason: 'COMPLETED', note: undefined, expectedVersion: undefined, winnerId: undefined, isManualScoreEdit: undefined, editedByUserId: 'user-1' },
     );
   });
 
@@ -59,7 +59,7 @@ describe('POST /api/matches/[id]/finish', () => {
     expect(mockFinishMatch).toHaveBeenCalledWith(
       'match-2',
       scoreState,
-      { reason: 'WALKOVER', note: 'opponent withdrew' },
+      { reason: 'WALKOVER', note: 'opponent withdrew', expectedVersion: undefined, winnerId: undefined, isManualScoreEdit: undefined, editedByUserId: 'user-1' },
     );
   });
 

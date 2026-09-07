@@ -95,7 +95,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
               const isComplete = set && isSetCompleted(set, tennisFormat, i, setsWon);
               
               return (
-                <th key={i} scope="col" aria-label={`Set ${i + 1}`} className={`text-center px-1 py-1 w-7 sm:w-9 ${isCurrent ? 'font-bold text-green-600 dark:text-green-400' : ''}`}>
+                <th key={i} scope="col" aria-label={`Set ${i + 1}`} className={`text-right px-1 py-1 w-10 sm:w-12 ${isCurrent ? 'font-bold text-green-600 dark:text-green-400' : ''}`}>
                   {isCurrent ? 'atual' : (isComplete ? i + 1 : '')}
                 </th>
               );
@@ -115,25 +115,23 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
                const style = getSetCellStyle(set, i, 'player1', isCurrent);
                
                return (
-                 <td
-                   key={i}
-                   className={`text-center px-1 py-2 text-sm font-mono rounded-sm ${style}`}
-                 >
-                    {set ? (
-                      // Bug (2026-09-02): durante um tie-break de set normal
-                      // (games em 6x6, por ex.), este placar deve continuar
-                      // mostrando os games (6x6), não os pontos do tie-break
-                      // (que já aparecem nos cards grandes dos jogadores).
-                      // Só usamos tiebreakScore aqui para o set de Match
-                      // Tiebreak decisivo, que fica com games 0x0 (ou 1x0/0x1
-                      // ao concluir) e por isso precisa exibir os pontos.
-                      set.isTiebreak && set.tiebreakScore && set.player1 <= 1 && set.player2 <= 1 ? (
-                        set.tiebreakScore.player1
-                      ) : (
-                        set.player1
-                      )
-                    ) : '-'}
-                 </td>
+                  <td
+                    key={i}
+                    className={`text-right px-1 py-2 text-sm font-mono rounded-sm ${style}`}
+                  >
+                     {set ? (
+                       // Mostra placar do tie-break quando disponível:
+                       // - MT decisivo (games 0-0): mostra pontos do TB
+                       // - Set regular com TB (7-6/6-7): mostra "games [pontos TB]"
+                       set.tiebreakScore && set.player1 <= 1 && set.player2 <= 1 ? (
+                         set.tiebreakScore.player1
+                       ) : set.tiebreakScore && ((set.player1 === 7 && set.player2 === 6) || (set.player1 === 6 && set.player2 === 7)) ? (
+                         <span>{set.player1} <span className="opacity-70">[{set.tiebreakScore.player1}]</span></span>
+                       ) : (
+                         set.player1
+                       )
+                     ) : '-'}
+                  </td>
                );
              })}
             <td className="text-right px-2 py-2" aria-label="Espaço reservado"></td>
@@ -150,18 +148,20 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
                const style = getSetCellStyle(set, i, 'player2', isCurrent);
                
                return (
-                 <td
-                   key={i}
-                   className={`text-center px-1 py-2 text-sm font-mono rounded-sm ${style}`}
-                 >
-                    {set ? (
-                      set.isTiebreak && set.tiebreakScore && set.player1 <= 1 && set.player2 <= 1 ? (
-                        set.tiebreakScore.player2
-                      ) : (
-                        set.player2
-                      )
-                    ) : '-'}
-                 </td>
+                  <td
+                    key={i}
+                    className={`text-right px-1 py-2 text-sm font-mono rounded-sm ${style}`}
+                  >
+                     {set ? (
+                       set.tiebreakScore && set.player1 <= 1 && set.player2 <= 1 ? (
+                         set.tiebreakScore.player2
+                       ) : set.tiebreakScore && ((set.player1 === 7 && set.player2 === 6) || (set.player1 === 6 && set.player2 === 7)) ? (
+                         <span>{set.player2} <span className="opacity-70">[{set.tiebreakScore.player2}]</span></span>
+                       ) : (
+                         set.player2
+                       )
+                     ) : '-'}
+                  </td>
                );
              })}
             <td className="text-right px-2 py-2" aria-label="Espaço reservado"></td>
@@ -179,7 +179,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
               const p2Won = set && set.player2 > set.player1;
               
               return (
-                <td key={i} className="text-center px-1 py-2">
+                <td key={i} className="text-right px-1 py-2">
                   {isCurrent ? (
                     <span className="text-gray-300 dark:text-gray-600">-</span>
                   ) : isComplete ? (

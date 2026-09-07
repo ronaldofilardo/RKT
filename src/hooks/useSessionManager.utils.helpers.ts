@@ -77,9 +77,11 @@ export function getMatchTiebreakIndex(format: string, resultLength: number): num
 function countSetWinner(set: SetEditData, isMatch: boolean): 'player1' | 'player2' | null {
   const score = scorePair(set);
   if (isMatch) {
+    if (set.isPartial) return null;
     if (wonByTwo(score.player1, score.player2, 10)) return 'player1';
     if (wonByTwo(score.player2, score.player1, 10)) return 'player2';
   } else if (set.tiebreakScore) {
+    if (set.isPartial) return null;
     if (wonByTwo(score.player1, score.player2, 7)) return 'player1';
     if (wonByTwo(score.player2, score.player1, 7)) return 'player2';
   } else if (!set.isPartial) {

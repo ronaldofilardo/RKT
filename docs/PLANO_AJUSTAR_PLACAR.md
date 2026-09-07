@@ -8,6 +8,8 @@ Item 1: 6/6 → abrir tiebreak com números (1, 2, 3...) e confirmar
   c) `handleConfirm` deve exigir `tiebreakComplete` quando `tiebreakRequired` é true e `isSetTrulyCompleted` depende do tiebreak.
   d) Corrigir `canConfirmSet` / `canConfirm` para não bloquear quando `tiebreakComplete` é true.
 
+Premissa de produto: NÃO existe remoção de sets no sistema. Qualquer código/UI que sugira remoção de set está errado e deve ser eliminado.
+
 Item 2: Remover mensagem "jogador venceu set" abaixo dos números ao digitar 6
 - Arquivo: edit-score-form.tsx (`getStatusMessage`).
 - Passos:
@@ -40,7 +42,25 @@ Item 5: Bloquear placares inválidos (8/6, 8/5, 7/1) — sincronia com placar, e
   c) Em `edit-score-form.tsx`, garantir que `p1Input`/`p2Input` não aceitem valores que gerariam placares inválidos conforme o modo de jogo (`matchFormat`). Usar `max` de forma condicional (ex: para MT, max pode ser 30; para set regular, max 8 ou 9 conforme formato).
   d) Sincronizar `matchFormat` com `matchState` para que `maxSets` e `setsToWin` estejam consistentes ao bloquear placares.
 
+Item 6: Remover/deletar o botão "✕ Remover set" e todo o fluxo de remoção de sets
+- Contexto: o sistema não suporta remoção de sets. O botão "✕" expõe uma ação inexistente, gera divergência entre estado local (`editableCompletedSets`) e props (`completedSets`), e produz no-op silencioso para sets em `newSets` (índices combinados).
+- Arquivos: `edit-score-summary.tsx` (botão ✕ + prop `onRemoveSet`), `edit-score-summary.sets.tsx` (idem — arquivo duplicado, verificar qual está em uso e eliminar o morto), `EditScoreModal.tsx` (`onRemoveSet={handleRemoveCompletedSet}`), `useEditScoreModal.ts` (`handleRemoveCompletedSet`).
+- Passos:
+  a) Remover o botão "✕ Remover set" da UI (ambos os arquivos de summary, ou deletar o duplicado).
+  b) Remover a prop `onRemoveSet` de `EditableSetsSummary` e a prop `canRemove` de `EditableSetRow`.
+  c) Deletar `handleRemoveCompletedSet` de `useEditScoreModal.ts` e sua tipagem no `UseEditScoreModalReturn`.
+  d) Garantir que `editableCompletedSets` nunca encolhe em relação a `completedSets` (sem remoção, o fallback `length > 0 ? editable : completedSets` deixa de ser um risco, mas pode ser simplificado depois).
+  e) Atualizar/remover testes que cubram remoção de sets (grep por `handleRemoveCompletedSet`, `onRemoveSet`, "Remover set").
+- Antes de alterar: `@qa` adiciona teste de caracterização confirmando comportamento atual do modal sem remoção (Regra de Fronteira).
+
 Observações Gerais:
-- Arquivos tocados: `src/components/scoring/edit-score-form.tsx`, `src/components/scoring/edit-score-logic.ts`, `src/components/scoring/useEditScoreModal.ts`, `src/components/scoring/use-edit-score-calculator.ts`, `src/components/scoring/editScoreHelpers.ts`, `src/core/scoring/scoring-logic.ts`, `src/core/scoring/score-normalizer.ts`.
+- EXECUTADO em 2026-09-07:
+  - Item 6 concluído: botão "✕ Remover set", prop `onRemoveSet` e `handleRemoveCompletedSet` removidos; arquivo duplicado morto `edit-score-summary.sets.tsx` deletado.
+  - Item 5 concluído/complementado: em `validateStandardSet`, PRO_SET_8 agora rejeita placares com `tiebreakAt+1` games sem perdedor em `tiebreakAt` (ex.: 10-8 rejeitado; 10-9 exige tiebreak). Regra análoga à do 7-x já existente.
+  - Itens 1–4 já estavam implementados no WIP (commits até 0efba51 + alterações locais): inputs de TB numéricos, gating por `tiebreakRequired`, BO5 6-6 → MT com placar 0/0 e jogos 7x6/6x7 + `tiebreakScore`, separação set regular vs MT, bloqueio de 8/6-8/5-7/1 etc.
+  - Testes desatualizados alinhados ao comportamento intencional documentado no código: (a) `ScoreboardCard.test.tsx` — tie-break de set normal em 6-6 exibe GAMES (6x6), não pontos (fix 2026-09-02; pontos aparecem no PlayerCard); (b) PRO_SET_8 9-8 é parcial (tiebreak em 9-9, vide engine/`getTiebreakAtForFormat`), não set completo; (c) teste WIP que validava 10-8 foi corrigido para rejeitar (contradizia o Item 5).
+  - Validação: suítes `src/components/scoring` 5→2 falhando; total do repo 15→11 testes falhando, sem regressões.
+  - Update 2026-09-07 (rodada 2): as 5 falhas restantes de `EditScoreModal.no-auto-add`/`EditScoreModal.matchFinish` foram sanadas — detalhes em `docs/TECH_DEBT.md` (TD-030, update 2026-09-07). Repo agora com 6 testes falhando (todos fora do domínio scoring/placar, dívida pré-existente do WIP: hooks, matchService, route finish, rankingConstants).
+- Arquivos tocados: `src/components/scoring/edit-score-form.tsx`, `src/components/scoring/edit-score-logic.ts`, `src/components/scoring/useEditScoreModal.ts`, `src/components/scoring/use-edit-score-calculator.ts`, `src/components/scoring/editScoreHelpers.ts`, `src/core/scoring/scoring-logic.ts`, `src/core/scoring/score-normalizer.ts`, `src/components/scoring/edit-score-summary.tsx`, `src/components/scoring/edit-score-summary.sets.tsx` (Item 6).
 - Prioridade: Itens 3 e 4 são críticos (sincronia BO5 / MT). Item 1 é funcional (tiebreak confirma). Item 2 é UX. Item 5 é proteção.
 - Depois das mudanças, rodar `pnpm test:components` e `pnpm test` para validar.

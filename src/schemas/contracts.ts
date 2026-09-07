@@ -352,6 +352,18 @@ export const FinishMatchInputSchema = z.object({
   note: z.string().max(500).optional(),
   scoreState: MatchScoreStateSchema.optional(),
   version: z.number().int().optional(),
+  // Bug (2026-09-06): campo ausente do schema fazia o Zod descartar
+  // silenciosamente o `winnerId` enviado pelo cliente ao finalizar uma
+  // partida via "Editar Placar" — o vencedor nunca era persistido no banco
+  // (diferente do fluxo de pontuação ao vivo, que grava winnerId
+  // corretamente via POST /point). Ver também route.ts, que agora repassa
+  // este campo para matchService.finishMatch.
+  winnerId: flexibleIdValidator.optional(),
+  // true somente quando esta chamada de finalização vem do fluxo
+  // "Editar Placar" (retomada de partida interrompida) — instrui o backend
+  // a registrar o segmento anterior em MatchScoreEdit antes de sobrescrever
+  // o scoreState, para que /report reconstrua a timeline corretamente.
+  isManualScoreEdit: z.boolean().optional(),
 });
 export type FinishMatchInput = z.infer<typeof FinishMatchInputSchema>;
 
@@ -373,6 +385,7 @@ export const MatchStateInputSchema = z
      * já anotado antes da correção manual.
      */
     isManualScoreEdit: z.boolean().optional(),
+    note: z.string().max(500).optional(),
   })
   .refine((data) => data.state !== "SCHEDULED", {
     message: "Não é possível voltar para SCHEDULED via API",

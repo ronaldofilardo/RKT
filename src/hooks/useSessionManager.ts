@@ -213,19 +213,50 @@ export function useSessionManager(ctx: SessionManagerContext) {
       // PROTEÇÃO: Persistir ANTES de aplicar estado local.
       // Antes, o engine era atualizado antes da persistState — se ela falhasse,
       // a UI mostrava o placar editado enquanto o servidor ainda tinha o antigo.
-      logger.log("[handleEditScore] Calling persistState with currentGame:", newState.currentGame);
-      const result = await persistState(newState, "edit-score", { isManualScoreEdit: true });
-      if (result.success) {
-        logger.log("[handleEditScore] State persisted successfully");
-      } else if (result.needsResync) {
-        logger.warn("[handleEditScore] Needs resync due to version conflict — state re-synced from server");
-        await fetchMatch(true);
-        (ctx.closeAll ?? ctx.close)();
-        return;
+      //
+      // Bug (2026-09-06): quando a edição encerra a partida, este bloco
+      // chamava persistState (PATCH /state, já com state: "FINISHED") e,
+      // logo em seguida, finishMatch (POST /finish). Como o PATCH já
+      // marcava match.state = FINISHED, o POST /finish sempre falhava com
+      // ALREADY_FINISHED — e o winnerId nunca chegava a ser persistido.
+      // Agora, quando a edição finaliza a partida, persistimos e
+      // finalizamos em uma única chamada (POST /finish, que também grava
+      // o scoreState); PATCH /state continua sendo usado normalmente
+      // quando a partida permanece em andamento.
+      const winnerPlayerId = isFinished && winner
+        ? (winner === "player1" ? match?.player1.id : match?.player2.id)
+        : undefined;
+
+      if (isFinished && winner && winnerPlayerId && matchId) {
+        logger.log("[handleEditScore] Match finished by edit — calling finishMatch directly", newState.currentGame);
+        const finishResult = await finishMatch(
+          { matchId, tokenRef, matchVersion: match?.version },
+          winnerPlayerId,
+          newState,
+          { isManualScoreEdit: true }
+        );
+
+        if (finishResult.error === 'offline') {
+          toast({ type: 'info', message: 'Partida finalizada offline. Sincronização pendente.' });
+        } else if (!finishResult.success && finishResult.error) {
+          toast({ type: 'error', message: `${finishResult.error}\n\nA partida foi encerrada localmente, mas não foi possível sincronizar com o servidor.` });
+          return;
+        }
       } else {
-        logger.error("[handleEditScore] Failed to persist state");
-        toast({ type: 'error', message: 'Falha ao salvar placar editado. Tente novamente.' });
-        return;
+        logger.log("[handleEditScore] Calling persistState with currentGame:", newState.currentGame);
+        const result = await persistState(newState, "edit-score", { isManualScoreEdit: true });
+        if (result.success) {
+          logger.log("[handleEditScore] State persisted successfully");
+        } else if (result.needsResync) {
+          logger.warn("[handleEditScore] Needs resync due to version conflict — state re-synced from server");
+          await fetchMatch(true);
+          (ctx.closeAll ?? ctx.close)();
+          return;
+        } else {
+          logger.error("[handleEditScore] Failed to persist state");
+          toast({ type: 'error', message: 'Falha ao salvar placar editado. Tente novamente.' });
+          return;
+        }
       }
 
       // Aplicar estado local SOMENTE após persistência confirmada
@@ -250,21 +281,8 @@ export function useSessionManager(ctx: SessionManagerContext) {
       setSuspendedSession(null);
 
       if (isFinished && winner) {
-        const winnerPlayerId = winner === "player1" ? match?.player1.id : match?.player2.id;
-        if (winnerPlayerId && matchId) {
-          const result = await finishMatch(
-            { matchId, tokenRef, matchVersion: match?.version },
-            winnerPlayerId,
-            newState
-          );
-          
-          if (result.error === 'offline') {
-            toast({ type: 'info', message: 'Partida finalizada offline. Sincronização pendente.' });
-          } else if (!result.success && result.error) {
-            toast({ type: 'error', message: `${result.error}\n\nA partida foi encerrada localmente, mas não foi possível sincronizar com o servidor.` });
-          }
-        }
-        
+        // finishMatch já foi chamado acima (persistência + finalização em
+        // uma única requisição) — aqui só notificamos o callback da UI.
         if (onMatchFinished) {
           onMatchFinished(winner);
         }
@@ -288,6 +306,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
       ctx,
       tokenRef,
       fetchMatch,
+      toast,
     ],
   );
 

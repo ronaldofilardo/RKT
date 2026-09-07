@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-import { withRLSHandler } from '@/lib/auth';
+import { withRLSHandler, getRLSUser } from '@/lib/auth';
 import { finishMatch } from '@/services/matchService';
 import { FinishMatchInputSchema } from '@/schemas/contracts';
 
@@ -21,6 +21,13 @@ export async function POST(
         );
       }
 
+      const user = getRLSUser();
+
+      // Bug (2026-09-06): winnerId e isManualScoreEdit eram validados pelo
+      // schema (agora) mas nunca chegavam a matchService.finishMatch — toda
+      // partida encerrada via "Editar Placar" ficava com state: FINISHED
+      // porém sem winnerId gravado, e sem o segmento de auditoria em
+      // MatchScoreEdit que /report usa para reconstruir a timeline.
       const result = await finishMatch(
         id,
         parsed.data.scoreState,
@@ -28,6 +35,9 @@ export async function POST(
           reason: parsed.data.reason,
           note: parsed.data.note,
           expectedVersion: parsed.data.version,
+          winnerId: parsed.data.winnerId,
+          isManualScoreEdit: parsed.data.isManualScoreEdit,
+          editedByUserId: user?.id,
         }
       );
 

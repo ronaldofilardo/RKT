@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react';
 import type { TennisFormat } from '@/core/scoring/types';
 import { GAME_POINTS } from '@/core/scoring/point-utils';
+import { SCORING_LIMITS } from '@/lib/constants';
 
 export interface SetInputFormProps {
 
@@ -20,6 +21,7 @@ export interface SetInputFormProps {
   hasTiebreak: boolean;
   isSetTrulyCompleted: boolean;
   tiebreakComplete: boolean;
+  tiebreakImpossible: boolean;
   partial: boolean;
   p1Val: number;
   p2Val: number;
@@ -57,6 +59,7 @@ export function SetInputForm({
   hasTiebreak,
   isSetTrulyCompleted,
   tiebreakComplete,
+  tiebreakImpossible,
   partial,
   p1Val,
   p2Val,
@@ -69,7 +72,7 @@ export function SetInputForm({
   onTiebreakP2Change,
   matchAlreadyOver,
   matchWouldEnd,
-  p1SetsWon,
+   p1SetsWon,
   p2SetsWon,
   maxSets,
   showGamePointsAtZero,
@@ -196,11 +199,11 @@ export function SetInputForm({
               value={tiebreakP1}
               onChange={(e) => {
                 const v = parseInt(e.target.value, 10);
-                if (!isNaN(v) && v >= 0) onTiebreakP1Change(String(v));
+                if (!isNaN(v) && v >= 0) onTiebreakP1Change(String(Math.min(v, SCORING_LIMITS.TIEBREAK_INPUT_CAP)));
                 else if (e.target.value === '') onTiebreakP1Change('');
               }}
               min={0}
-              max={20}
+              max={SCORING_LIMITS.TIEBREAK_INPUT_CAP}
               placeholder="0"
             />
             <span className="text-gray-500 text-xs">×</span>
@@ -210,18 +213,18 @@ export function SetInputForm({
               value={tiebreakP2}
               onChange={(e) => {
                 const v = parseInt(e.target.value, 10);
-                if (!isNaN(v) && v >= 0) onTiebreakP2Change(String(v));
+                if (!isNaN(v) && v >= 0) onTiebreakP2Change(String(Math.min(v, SCORING_LIMITS.TIEBREAK_INPUT_CAP)));
                 else if (e.target.value === '') onTiebreakP2Change('');
               }}
               min={0}
-              max={20}
+              max={SCORING_LIMITS.TIEBREAK_INPUT_CAP}
               placeholder="0"
             />
             <span className="text-xs text-gray-400 w-16 truncate text-right">
               {playerNames.p2}
             </span>
           </div>
-          {!tiebreakComplete && (
+          {!tiebreakComplete && !tiebreakImpossible && (
             <p className="text-xs text-gray-500 mt-1">
               Informe o placar do tiebreak (ex.: 7x5).
             </p>

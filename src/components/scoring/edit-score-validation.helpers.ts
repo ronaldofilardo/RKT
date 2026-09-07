@@ -12,13 +12,6 @@ export interface ParsedGameScore {
   bothFilled: boolean;
 }
 
-export interface TiebreakValidationState {
-  hasValidTiebreak: boolean;
-  tiebreakComplete: boolean;
-  tiebreakP1Num: number;
-  tiebreakP2Num: number;
-}
-
 export function parseGameScore(p1Input: string, p2Input: string): ParsedGameScore {
   const p1Val = p1Input === '' ? NaN : parseInt(p1Input, 10);
   const p2Val = p2Input === '' ? NaN : parseInt(p2Input, 10);
@@ -76,28 +69,4 @@ export function resolveSetValidation(
     return validateMatchTiebreakInput({ p1Points: p1Val, p2Points: p2Val });
   }
   return validateSetResult({ p1Games: p1Val, p2Games: p2Val }, matchFormat);
-}
-
-export function calculateTiebreakState(
-  tiebreakP1: string | undefined,
-  tiebreakP2: string | undefined,
-  tiebreakRequired: boolean,
-): TiebreakValidationState {
-  // Bug (2026-09-02): campo de TB vazio representa 0x0 (tie-break ainda
-  // não começou), não um valor ausente/inválido — ver edit-score-logic.ts.
-  const tbP1Num = tiebreakP1 ? parseInt(tiebreakP1, 10) : 0;
-  const tbP2Num = tiebreakP2 ? parseInt(tiebreakP2, 10) : 0;
-  const hasValidTiebreak =
-    !isNaN(tbP1Num) && !isNaN(tbP2Num) && tbP1Num >= 0 && tbP2Num >= 0;
-  const tiebreakComplete =
-    tiebreakRequired &&
-    hasValidTiebreak &&
-    ((tbP1Num >= 7 || tbP2Num >= 7) && Math.abs(tbP1Num - tbP2Num) >= 2);
-
-  return {
-    hasValidTiebreak,
-    tiebreakComplete,
-    tiebreakP1Num: tbP1Num,
-    tiebreakP2Num: tbP2Num,
-  };
 }

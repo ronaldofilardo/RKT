@@ -41,6 +41,9 @@ jest.mock('react', () => ({
     const val = typeof init === 'function' ? init() : init;
     return [val, jest.fn()];
   }),
+  // useMatchScoring usa useRef (isProcessingRef) — sem mock, o useRef real
+  // falharia com "Invalid hook call", já que os testes invocam o hook diretamente.
+  useRef: jest.fn((init: any) => ({ current: init })),
 }));
 
 jest.mock('../useOfflineSync', () => ({

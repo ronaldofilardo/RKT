@@ -148,11 +148,13 @@ describe('editScoreHelpers (characterization)', () => {
       expect(result.winner).toBe('player1');
     });
 
-    it('deve validar set completo 9-8 com tiebreak', () => {
+    it('deve tratar 9-8 como set em andamento (tiebreak só em 9-9)', () => {
+      // Regra atual: tiebreak do PRO_SET_8 começa em 9-9, então 9-8 é
+      // placar parcial em andamento (sem vencedor/tiebreak).
       const result = validateSetResult({ p1Games: 9, p2Games: 8 }, 'PRO_SET_8');
       expect(result.isValid).toBe(true);
-      expect(result.winner).toBe('player1');
-      expect(result.hasTiebreak).toBe(true);
+      expect(result.isPartial).toBe(true);
+      expect(result.winner).toBeUndefined();
     });
 
     it('deve requerer tiebreak em 9-9', () => {
@@ -173,10 +175,10 @@ describe('editScoreHelpers (characterization)', () => {
       expect(result.isPartial).toBe(true);
     });
 
-    it('deve rejeitar 10-8 (máximo 9 games)', () => {
+    it('deve rejeitar 10-8 (10º game só existe saindo do tiebreak 9-9)', () => {
       const result = validateSetResult({ p1Games: 10, p2Games: 8 }, 'PRO_SET_8');
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain('Maximum');
+      expect(result.error).toContain('not possible');
     });
 
     it('deve aceitar 8-5 como set válido completo (8 games, margem 3)', () => {

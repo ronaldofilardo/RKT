@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useCallback } from "react";
-import { normalizeScoreState, isMatchTiebreakFormat, isCurrentSetMatchTiebreak, type TennisFormat, getSinglePointDisplay } from "./match-card-utils";
+import { normalizeScoreState, isMatchTiebreakFormat, isCurrentSetMatchTiebreak, type TennisFormat, getSinglePointDisplay, formatCompactSetScore } from "./match-card-utils";
 import { MatchStatusBadge, MatchActions, FormatLabel } from "./match-card-components";
 
 interface MatchCardProps {
@@ -52,19 +52,16 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
     ? isCurrentSetMatchTiebreak(scoreState.sets, match.format as TennisFormat)
     : false;
   const isFinished = match.state === 'FINISHED';
-  // Bug (2026-09-05): ao voltar de /scoring para /dashboard, o set atual em
-  // tiebreak (ex.: games 6x6, tiebreak 2x1) mostrava os PONTOS do tiebreak
-  // (2/1) na coluna do set em vez dos games (6/6), e a coluna "Pontos" ficava
-  // vazia (currentGame não guarda os pontos do tiebreak). O set em si sempre
-  // deve exibir games; os pontos do tiebreak em andamento aparecem na coluna
-  // "Pontos" — exceto no set decisivo de Match Tiebreak (isCurrentSetMT), que
-  // já é tratado à parte.
   const lastSet = scoreState?.sets && scoreState.sets.length > 0 ? scoreState.sets[scoreState.sets.length - 1] : null;
   const lastSetTiebreakScore = !isCurrentSetMT && lastSet?.isTiebreak && lastSet?.tiebreakScore ? lastSet.tiebreakScore : null;
 
+  const numSets = scoreState?.sets?.length ?? 0;
+  const nameColor = isSuspendedAnnotation ? 'text-amber-400' : 'text-gray-100';
+  const scoreColor = isSuspendedAnnotation ? 'text-amber-400' : 'text-gray-100';
+
   return (
     <div
-      className={`bg-white rounded-xl border shadow-sm p-4 transition-shadow ${onClick ? "cursor-pointer hover:shadow-md" : ""}`}
+      className={`bg-gray-800 rounded-xl border border-white/10 shadow-sm p-4 transition-shadow ${onClick ? "cursor-pointer hover:shadow-md" : ""}`}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
       aria-label={onClick ? `Abrir partida ${match.player1.name} vs ${match.player2.name}` : undefined}
@@ -84,143 +81,86 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
         </div>
       </div>
 
-      <div className="grid grid-cols-[1fr_auto] gap-x-4">
-        {hasScore ? (
-          <>
-            <div className="grid grid-rows-[1.5rem_2rem_2rem] text-sm">
-              <div className="text-[10px] text-gray-500 font-mono"></div>
-              <p className="font-semibold text-gray-900 truncate self-center">
-                {match.player1.name}
-              </p>
-              <p className="font-semibold text-gray-900 truncate self-center">
-                {match.player2.name}
-              </p>
-            </div>
-            <div className="text-right text-sm font-mono">
-              {scoreState?.sets && scoreState.sets.length > 0 ? (
-                <div className="grid" style={{
-                  gridTemplateColumns: isFinished
-                    ? `repeat(${scoreState.sets.length}, 1.5rem)`
-                    : `repeat(${scoreState.sets.length}, 1.5rem) 2.5rem`,
-                  gridTemplateRows: '1.5rem 2rem 2rem',
-                  rowGap: '0.125rem',
-                }}>
-                  {isFinished ? (
-                    <>
-                      <span className="text-[10px] text-gray-500 text-center" style={{ gridColumn: `1 / ${scoreState.sets.length + 1}` }}>
-                        Sets
-                      </span>
-                      {scoreState.sets.map((_: any, idx: number) => (
-                        <span key={`hdr-${idx}`} className="text-[10px] text-gray-500 text-center">
-                          {idx + 1}
-                        </span>
-                      ))}
-                      {scoreState.sets.map((s: any, idx: number) => {
-                        let displayScore = s.player1 ?? 0;
-                        if (s.isTiebreak && s.tiebreakScore) {
-                          displayScore = s.tiebreakScore.player1;
-                        } else if (isMatchTiebreak && idx === 0) {
-                          displayScore = s.player1 ?? 0;
-                        }
-                        return (
-                          <span key={`p1-${idx}`} className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
-                            {displayScore}
-                          </span>
-                        );
-                      })}
-                      {scoreState.sets.map((s: any, idx: number) => {
-                        let displayScore = s.player2 ?? 0;
-                        if (s.isTiebreak && s.tiebreakScore) {
-                          displayScore = s.tiebreakScore.player2;
-                        } else if (isMatchTiebreak && idx === 0) {
-                          displayScore = s.player2 ?? 0;
-                        }
-                        return (
-                          <span key={`p2-${idx}`} className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
-                            {displayScore}
-                          </span>
-                        );
-                      })}
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-[10px] text-gray-500 text-center" style={{ gridColumn: `1 / ${scoreState.sets.length + 1}` }}>
-                        Sets
-                      </span>
-                      <span></span>
-                      {scoreState.sets.map((_: any, idx: number) => (
-                        <span key={idx} className="text-[10px] text-gray-500 text-center">
-                          {idx + 1}
-                        </span>
-                      ))}
-                      <span className="text-[10px] text-gray-500 text-center">Pontos</span>
-                      {scoreState.sets.map((s: any, idx: number) => {
-                        // Só o set decisivo de Match Tiebreak (isCurrentSetMT) usa os
-                        // pontos do tiebreak como placar do "set" — sets normais em
-                        // tiebreak (ex.: 6x6) sempre mostram games aqui; os pontos do
-                        // tiebreak em andamento aparecem na coluna "Pontos" abaixo.
-                        const isLastSet = idx === scoreState.sets.length - 1;
-                        const displayScore = isLastSet && isCurrentSetMT && s.isTiebreak && s.tiebreakScore
-                          ? s.tiebreakScore.player1
-                          : (s.player1 ?? 0);
-                        return (
-                          <span key={idx} className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
-                            {displayScore}
-                          </span>
-                        );
-                      })}
-                      <span className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
-                        {isCurrentSetMT
-                          ? '-'
-                          : lastSetTiebreakScore
-                            ? lastSetTiebreakScore.player1
-                            : getSinglePointDisplay(scoreState?.currentGame, 'player1')}
-                      </span>
-                      {scoreState.sets.map((s: any, idx: number) => {
-                        const isLastSet = idx === scoreState.sets.length - 1;
-                        const displayScore = isLastSet && isCurrentSetMT && s.isTiebreak && s.tiebreakScore
-                          ? s.tiebreakScore.player2
-                          : (s.player2 ?? 0);
-                        return (
-                          <span key={idx} className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
-                            {displayScore}
-                          </span>
-                        );
-                      })}
-                      <span className={`text-sm flex items-center justify-center ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
-                        {isCurrentSetMT
-                          ? '-'
-                          : lastSetTiebreakScore
-                            ? lastSetTiebreakScore.player2
-                            : getSinglePointDisplay(scoreState?.currentGame, 'player2')}
-                      </span>
-                    </>
-                  )}
-                </div>
-              ) : scoreState?.currentGame ? (
-                <div className="grid grid-cols-1 gap-y-1" style={{ gridTemplateRows: '1.5rem 2rem 2rem' }}>
-                  <span className="text-[10px] text-gray-500 text-center">Pontos</span>
-                  <span className={`text-sm flex items-center justify-end ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
-                    {getSinglePointDisplay(scoreState.currentGame, 'player1')}
-                  </span>
-                  <span className={`text-sm flex items-center justify-end ${isSuspendedAnnotation ? 'text-amber-700' : 'text-gray-900'}`}>
-                    {getSinglePointDisplay(scoreState.currentGame, 'player2')}
-                  </span>
-                </div>
-              ) : (
-                <div className="grid grid-cols-[1.5rem_2.5rem] gap-x-1 text-[10px] text-gray-500">
-                  <span className="text-center">Pontos</span>
-                </div>
-              )}
-            </div>
-          </>
+      {hasScore ? (
+        scoreState?.sets && numSets > 0 ? (
+          <div className="font-mono text-sm" style={{
+            display: 'grid',
+            gridTemplateColumns: isFinished
+              ? `5rem repeat(${numSets}, 3.5rem)`
+              : `5rem repeat(${numSets}, 3.5rem) 2.5rem`,
+            gridTemplateRows: '1.25rem 1.75rem 1.75rem',
+            rowGap: '0.125rem',
+          }}>
+            <span className="text-[10px] text-gray-500"></span>
+            {scoreState.sets.map((_: any, idx: number) => (
+              <span key={idx} className="text-[10px] text-gray-500 text-right pr-1" style={{ gridColumn: idx + 2, gridRow: '1' }}>
+                {idx + 1}
+              </span>
+            ))}
+            {!isFinished && <span className="text-[10px] text-gray-500 text-right pr-1" style={{ gridColumn: numSets + 2, gridRow: '1' }}>Pontos</span>}
+
+            <span className={`font-semibold truncate ${nameColor}`} style={{ gridColumn: '1', gridRow: '2' }}>
+              {match.player1.name}
+            </span>
+            {scoreState.sets.map((s: any, idx: number) => (
+              <span key={idx} className={`text-right pr-1 ${scoreColor}`} style={{ gridColumn: idx + 2, gridRow: '2' }}>
+                {formatCompactSetScore(s, 'player1')}
+              </span>
+            ))}
+            {!isFinished && (
+              <span className={`text-right pr-1 ${scoreColor}`} style={{ gridColumn: numSets + 2, gridRow: '2' }}>
+                {isCurrentSetMT
+                  ? '-'
+                  : lastSetTiebreakScore
+                    ? lastSetTiebreakScore.player1
+                    : getSinglePointDisplay(scoreState?.currentGame, 'player1')}
+              </span>
+            )}
+
+            <span className={`font-semibold truncate ${nameColor}`} style={{ gridColumn: '1', gridRow: '3' }}>
+              {match.player2.name}
+            </span>
+            {scoreState.sets.map((s: any, idx: number) => (
+              <span key={idx} className={`text-right pr-1 ${scoreColor}`} style={{ gridColumn: idx + 2, gridRow: '3' }}>
+                {formatCompactSetScore(s, 'player2')}
+              </span>
+            ))}
+            {!isFinished && (
+              <span className={`text-right pr-1 ${scoreColor}`} style={{ gridColumn: numSets + 2, gridRow: '3' }}>
+                {isCurrentSetMT
+                  ? '-'
+                  : lastSetTiebreakScore
+                    ? lastSetTiebreakScore.player2
+                    : getSinglePointDisplay(scoreState?.currentGame, 'player2')}
+              </span>
+            )}
+          </div>
+        ) : scoreState?.currentGame ? (
+          <div className="font-mono text-sm" style={{
+            display: 'grid',
+            gridTemplateColumns: '5rem 2.5rem',
+            gridTemplateRows: '1rem 1.75rem 1.75rem',
+            rowGap: '0.125rem',
+          }}>
+            <span></span>
+            <span className="text-[10px] text-gray-500 text-center">Pontos</span>
+            <span className={`font-semibold truncate ${nameColor}`}>{match.player1.name}</span>
+            <span className={`text-center ${scoreColor}`}>{getSinglePointDisplay(scoreState.currentGame, 'player1')}</span>
+            <span className={`font-semibold truncate ${nameColor}`}>{match.player2.name}</span>
+            <span className={`text-center ${scoreColor}`}>{getSinglePointDisplay(scoreState.currentGame, 'player2')}</span>
+          </div>
         ) : (
           <div className="text-sm">
-            <p className="font-semibold text-gray-900 truncate">{match.player1.name}</p>
-            <p className="font-semibold text-gray-900 truncate">{match.player2.name}</p>
+            <p className={`font-semibold truncate ${nameColor}`}>{match.player1.name}</p>
+            <p className={`font-semibold truncate ${nameColor}`}>{match.player2.name}</p>
           </div>
-        )}
-      </div>
+        )
+      ) : (
+        <div className="text-sm">
+          <p className={`font-semibold truncate ${nameColor}`}>{match.player1.name}</p>
+          <p className={`font-semibold truncate ${nameColor}`}>{match.player2.name}</p>
+        </div>
+      )}
 
       {match.scheduledAt && (
         <p className="mt-3 text-xs text-gray-500">

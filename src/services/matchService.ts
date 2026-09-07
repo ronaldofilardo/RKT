@@ -221,6 +221,15 @@ export async function finishMatch(
     note?: string;
     winnerId?: string;
     expectedVersion?: number;
+    /**
+     * true quando esta finalização vem do fluxo "Editar Placar" (retomada
+     * de partida interrompida) — ver mesmo parâmetro em
+     * transitionMatchState. Grava o segmento anterior em MatchScoreEdit
+     * antes de sobrescrever match.scoreState, para /report reconstruir a
+     * timeline completa.
+     */
+    isManualScoreEdit?: boolean;
+    editedByUserId?: string;
   }
 ) {
   const match = await prisma.match.findFirst({
@@ -300,11 +309,31 @@ export async function finishMatch(
     whereClause.version = options.expectedVersion;
   }
 
+  // Mesma lógica de auditoria do transitionMatchState: quando a finalização
+  // vem de uma edição manual de placar, grava o scoreState anterior em
+  // MatchScoreEdit antes de sobrescrevê-lo, na mesma transação do update.
+  const shouldRecordSegment =
+    Boolean(options?.isManualScoreEdit) && Boolean(scoreState);
+
   try {
-    return await prisma.match.update({
-      where: whereClause,
-      data: updateData,
-      include: { player1: true, player2: true },
+    return await prisma.$transaction(async (tx) => {
+      if (shouldRecordSegment) {
+        await tx.matchScoreEdit.create({
+          data: {
+            matchId: id,
+            editedByUserId: options?.editedByUserId ?? 'system',
+            note: options?.note ?? null,
+            previousScoreState: match.scoreState as any,
+            newScoreState: scoreState as any,
+          },
+        });
+      }
+
+      return tx.match.update({
+        where: whereClause,
+        data: updateData,
+        include: { player1: true, player2: true },
+      });
     });
   } catch (error: any) {
     if (error?.code === 'P2025' && options?.expectedVersion !== undefined) {
@@ -332,6 +361,7 @@ export async function transitionMatchState(
      */
     isManualScoreEdit?: boolean;
     editedByUserId?: string;
+    note?: string;
   },
 ) {
   const match = await prisma.match.findFirst({
@@ -379,7 +409,8 @@ export async function transitionMatchState(
         await tx.matchScoreEdit.create({
           data: {
             matchId: id,
-            editedByUserId: options?.editedByUserId,
+            editedByUserId: options?.editedByUserId ?? 'system',
+            note: options?.note ?? null,
             previousScoreState: match.scoreState as any,
             newScoreState: scoreState as any,
           },

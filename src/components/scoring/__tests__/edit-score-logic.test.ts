@@ -391,11 +391,21 @@ describe('edit-score-logic - isMatchTiebreakSet', () => {
         expect(result.isPartial).toBe(true);
       });
 
-      it('deve validar 10-8 em PRO_SET_8 (vence por margem 2 antes do tiebreak em 9-9)', () => {
+      it('deve rejeitar 10-8 em PRO_SET_8 (10º game só sai do tiebreak em 9-9, terminando 10-9)', () => {
+        // Item 5 do plano Ajustar Placar: mesma regra do 7-x — o vencedor com
+        // tiebreakAt+1 games só é válido se o perdedor tem tiebreakAt games.
         const result = validateSetResult({ p1Games: 10, p2Games: 8 }, 'PRO_SET_8');
+        
+        expect(result.isValid).toBe(false);
+        expect(result.error).toContain('not possible');
+      });
+
+      it('deve validar 10-9 em PRO_SET_8 (set decidido no tiebreak em 9-9)', () => {
+        const result = validateSetResult({ p1Games: 10, p2Games: 9 }, 'PRO_SET_8');
         
         expect(result.isValid).toBe(true);
         expect(result.winner).toBe('player1');
+        expect(result.tiebreakRequired).toBe(true);
       });
     });
 
@@ -517,5 +527,73 @@ describe('edit-score-logic - isMatchTiebreakSet', () => {
     it('deve retornar false para NO_AD', () => {
       expect(isPotentialMTSet('NO_AD', 0)).toBe(false);
     });
+  });
+});
+
+describe('calculateValidation - tiebreakImpossible', () => {
+  it('deve retornar tiebreakImpossible=false para tiebreak 7x5 (válido)', () => {
+    const result = calculateValidation({
+      p1Input: '6', p2Input: '6',
+      matchFormat: 'BEST_OF_3',
+      totalEditedSets: 1,
+      tiebreakP1: '7', tiebreakP2: '5',
+    });
+    expect(result.tiebreakImpossible).toBe(false);
+    expect(result.isSetTrulyCompleted).toBe(true);
+  });
+
+  it('deve retornar tiebreakImpossible=true para tiebreak 7x10 (impossível)', () => {
+    const result = calculateValidation({
+      p1Input: '6', p2Input: '6',
+      matchFormat: 'BEST_OF_3',
+      totalEditedSets: 1,
+      tiebreakP1: '7', tiebreakP2: '10',
+    });
+    expect(result.tiebreakImpossible).toBe(true);
+    expect(result.isSetTrulyCompleted).toBe(false);
+    expect(result.setValidationError).toContain('impossível');
+  });
+
+  it('deve retornar tiebreakImpossible=true para tiebreak 13x8 (impossível)', () => {
+    const result = calculateValidation({
+      p1Input: '6', p2Input: '6',
+      matchFormat: 'BEST_OF_3',
+      totalEditedSets: 1,
+      tiebreakP1: '13', tiebreakP2: '8',
+    });
+    expect(result.tiebreakImpossible).toBe(true);
+    expect(result.isSetTrulyCompleted).toBe(false);
+  });
+
+  it('deve retornar tiebreakImpossible=false para tiebreak 8x6 (válido)', () => {
+    const result = calculateValidation({
+      p1Input: '6', p2Input: '6',
+      matchFormat: 'BEST_OF_3',
+      totalEditedSets: 1,
+      tiebreakP1: '8', tiebreakP2: '6',
+    });
+    expect(result.tiebreakImpossible).toBe(false);
+    expect(result.isSetTrulyCompleted).toBe(true);
+  });
+
+  it('deve retornar tiebreakImpossible=false para tiebreak 7x7 (incompleto)', () => {
+    const result = calculateValidation({
+      p1Input: '6', p2Input: '6',
+      matchFormat: 'BEST_OF_3',
+      totalEditedSets: 1,
+      tiebreakP1: '7', tiebreakP2: '7',
+    });
+    expect(result.tiebreakImpossible).toBe(false);
+    expect(result.isSetTrulyCompleted).toBe(false);
+  });
+
+  it('deve retornar tiebreakImpossible=false quando não há tiebreak obrigatório', () => {
+    const result = calculateValidation({
+      p1Input: '6', p2Input: '4',
+      matchFormat: 'BEST_OF_3',
+      totalEditedSets: 1,
+    });
+    expect(result.tiebreakImpossible).toBe(false);
+    expect(result.isSetTrulyCompleted).toBe(true);
   });
 });

@@ -61,12 +61,15 @@ describe('validateSetResult - Bug 7x7 inválido em formatos com tiebreak', () =>
       expect(result.isPartial).toBeUndefined();
     });
 
-    it('deve aceitar 9x8 como set com tiebreak (player1 vence)', () => {
+    it('deve tratar 9x8 como set em andamento (tiebreak só em 9x9)', () => {
+      // Regra atual (format-rules.getTiebreakAtForFormat + engine): no
+      // PRO_SET_8 o tiebreak começa em 9x9, então 9x8 não encerra o set —
+      // é placar parcial em andamento, sem vencedor nem tiebreak.
       const result = validateSetResult({ p1Games: 9, p2Games: 8 }, 'PRO_SET_8');
 
       expect(result.isValid).toBe(true);
-      expect(result.hasTiebreak).toBe(true);
-      expect(result.winner).toBe('player1');
+      expect(result.isPartial).toBe(true);
+      expect(result.winner).toBeUndefined();
     });
   });
 

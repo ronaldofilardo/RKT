@@ -67,7 +67,7 @@ export function EditScoreModal({
     handleCancel,
     handlePointsChange,
     handleEditCompletedSet,
-    handleRemoveCompletedSet,
+    handleFinishMatch,
     handleConfirmSet,
     canConfirmSet,
   } = useEditScoreModal(
@@ -91,7 +91,7 @@ export function EditScoreModal({
   const { validation, tiebreakValidation, matchState, canConfirm, partial } = calculations;
   const { tiebreakComplete } = tiebreakValidation;
   const { p1Val, p2Val, isSetTrulyCompleted, hasTiebreak, isMatchTiebreakSet } = validation;
-  const { matchWouldEnd, totalEditedSets, maxSets, setsToWin, p1SetsWon, p2SetsWon } = matchState;
+  const { matchWouldEnd, totalEditedSets, setsToWin, p1SetsWon, p2SetsWon } = matchState;
 
   const allCompletedSets = [
     ...(state.editableCompletedSets.length > 0
@@ -105,21 +105,37 @@ export function EditScoreModal({
     ...state.newSets,
   ];
 
-  const editableCompletedSets = allCompletedSets.map((s, idx) => ({
-    p1Games: s.p1Games,
-    p2Games: s.p2Games,
-    winner: s.p1Games > s.p2Games ? ('player1' as Player) : s.p2Games > s.p1Games ? ('player2' as Player) : null,
-    index: idx,
-    isPartial: s.isPartial,
-  }));
-
   // FIX #12: Calcular erros de validação para cada set completado editado
   const completedSetValidationErrors: Record<number, string> = {};
-  state.editableCompletedSets.forEach((s, idx) => {
+  allCompletedSets.forEach((s, idx) => {
     const v = validateSetResult({ p1Games: s.p1Games, p2Games: s.p2Games }, matchFormat);
     if (v.error && !v.isPartial) {
       completedSetValidationErrors[idx] = v.error;
     }
+  });
+
+  const editableCompletedSets = allCompletedSets.map((s, idx) => {
+    let winner: Player | null = null;
+    const hasValidationError = !!completedSetValidationErrors[idx];
+    const isValidSet = !s.isPartial && !hasValidationError;
+
+    if (isValidSet) {
+      if (s.p1Games > s.p2Games) {
+        winner = 'player1';
+      } else if (s.p2Games > s.p1Games) {
+        winner = 'player2';
+      } else if (s.tiebreakScore) {
+        winner = s.tiebreakScore.player1 > s.tiebreakScore.player2 ? 'player1' : 'player2';
+      }
+    }
+    return {
+      p1Games: s.p1Games,
+      p2Games: s.p2Games,
+      winner,
+      index: idx,
+      isPartial: s.isPartial,
+      hasValidationError,
+    };
   });
 
   if (!isOpen) return null;
@@ -157,7 +173,6 @@ export function EditScoreModal({
             playerNames={playerNames}
             startIndex={0}
             onEditSet={handleEditCompletedSet}
-            onRemoveSet={handleRemoveCompletedSet}
             validationErrors={completedSetValidationErrors}
           />
 
@@ -185,6 +200,7 @@ export function EditScoreModal({
             hasTiebreak={hasTiebreak}
             isSetTrulyCompleted={isSetTrulyCompleted}
             tiebreakComplete={tiebreakComplete}
+            tiebreakImpossible={tiebreakValidation.tiebreakImpossible}
             partial={!!partial}
             p1Val={p1Val}
             p2Val={p2Val}
@@ -193,7 +209,7 @@ export function EditScoreModal({
             matchWouldEnd={matchWouldEnd}
             p1SetsWon={p1SetsWon}
             p2SetsWon={p2SetsWon}
-            maxSets={maxSets}
+            maxSets={matchState.maxSets}
             showGamePointsAtZero={calculations.showGamePointsAtZero}
             canConfirmSet={canConfirmSet}
             onConfirmSet={handleConfirmSet}
@@ -207,21 +223,42 @@ export function EditScoreModal({
         </div>
 
         <div className="px-6 py-4 border-t border-gray-200 flex gap-3">
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={handleConfirm}
-            disabled={!canConfirm || !!confirmError || !!floorValidationError || isFinishingMatch}
-            className="flex-1 px-4 py-2.5 bg-sky-600 text-white font-medium rounded-lg hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
-          >
-            {isFinishingMatch ? "Finalizando..." : "Confirmar"}
-          </button>
+          {isFinishingMatch ? (
+            <>
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleFinishMatch}
+                className="flex-1 px-4 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm"
+              >
+                Registrar encerramento
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirm}
+                disabled={!canConfirm || !!confirmError || !!floorValidationError}
+                className="flex-1 px-4 py-2.5 bg-sky-600 text-white font-medium rounded-lg hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+              >
+                Confirmar
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
