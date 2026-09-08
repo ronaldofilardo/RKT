@@ -59,13 +59,13 @@ function isTiebreakRequired(props: SetInputFormProps): boolean {
 }
 
 export function TiebreakSection({ props }: { props: SetInputFormProps }) {
-  const { playerNames, tiebreakP1, tiebreakP2, tiebreakComplete, onTiebreakP1Change, onTiebreakP2Change } = props;
+  const { playerNames, tiebreakP1, tiebreakP2, tiebreakComplete, onTiebreakInputChange } = props;
   const setTiebreak = !props.isMatchTiebreakSet && props.hasTiebreak && props.p1Val === 6 && props.p2Val === 6;
   if (!isTiebreakRequired(props) || setTiebreak) return null;
   return (
     <div className="space-y-1 pt-1">
       <p className="text-xs font-semibold text-gray-400">Tie-Break</p>
-      <div className="flex items-center gap-2"><span className="text-xs text-gray-400 w-16 truncate">{playerNames.p1}</span><TiebreakInput value={tiebreakP1} onChange={onTiebreakP1Change} /><span className="text-gray-500 text-xs">×</span><TiebreakInput value={tiebreakP2} onChange={onTiebreakP2Change} /><span className="text-xs text-gray-400 w-16 truncate text-right">{playerNames.p2}</span></div>
+      <div className="flex items-center gap-2"><span className="text-xs text-gray-400 w-16 truncate">{playerNames.p1}</span><TiebreakInput value={tiebreakP1} onChange={(v) => onTiebreakInputChange(v, 'p1')} /><span className="text-gray-500 text-xs">×</span><TiebreakInput value={tiebreakP2} onChange={(v) => onTiebreakInputChange(v, 'p2')} /><span className="text-xs text-gray-400 w-16 truncate text-right">{playerNames.p2}</span></div>
       {!tiebreakComplete && <p className="text-xs text-gray-500 mt-1">Informe o placar do tiebreak (ex.: 7x5).</p>}
     </div>
   );
@@ -104,14 +104,14 @@ export function FloorWarning({ props }: { props: SetInputFormProps }) {
 }
 
 export function GamePointsSection({ props }: { props: SetInputFormProps }) {
-  const { partial, showGamePointsAtZero, isMatchTiebreakSet, hasTiebreak, p1Val, p2Val, playerNames, p1Points, p2Points, tiebreakP1, tiebreakP2, onP1PointsChange, onP2PointsChange, onTiebreakP1Change, onTiebreakP2Change } = props;
+  const { partial, showGamePointsAtZero, isMatchTiebreakSet, hasTiebreak, p1Val, p2Val, playerNames, p1Points, p2Points, tiebreakP1, tiebreakP2, onP1PointsChange, onP2PointsChange, onTiebreakInputChange } = props;
   const setTiebreak = !isMatchTiebreakSet && hasTiebreak && p1Val === 6 && p2Val === 6;
   if ((!partial && !showGamePointsAtZero && !setTiebreak) || isMatchTiebreakSet) return null;
   const options = setTiebreak ? Array.from({ length: 31 }, (_, index) => <option key={index} value={index}>{index}</option>) : <>{GAME_POINTS.map((pt) => <option key={pt} value={pt}>{pt}</option>)}{p2Points === '40' && <><option value="DEUCE">Deuce</option><option value="AD">Adv.</option></>}</>;
   const p1Value = setTiebreak ? tiebreakP1 : p1Points;
   const p2Value = setTiebreak ? tiebreakP2 : p2Points;
-  const updateP1 = setTiebreak ? onTiebreakP1Change : onP1PointsChange;
-  const updateP2 = setTiebreak ? onTiebreakP2Change : onP2PointsChange;
+  const updateP1 = setTiebreak ? (v: string) => onTiebreakInputChange(v, 'p1') : onP1PointsChange;
+  const updateP2 = setTiebreak ? (v: string) => onTiebreakInputChange(v, 'p2') : onP2PointsChange;
   return <div className="space-y-1 pt-1"><p className="text-xs font-semibold text-gray-400">{setTiebreak ? 'Pontos no Game Atual — Tiebreak' : 'Pontos no Game Atual'}</p><div className="flex items-center gap-2"><span className="text-xs text-gray-400 w-16 truncate">{playerNames.p1}</span><select className="w-20 text-center bg-gray-700 border border-white/10 rounded-lg px-1 py-1.5 text-white text-sm font-mono" value={p1Value} onChange={(e) => updateP1(e.target.value)}><option value="">Selecione...</option>{options}</select><span className="text-gray-500 text-xs">×</span><select className="w-20 text-center bg-gray-700 border border-white/10 rounded-lg px-1 py-1.5 text-white text-sm font-mono" value={p2Value} onChange={(e) => updateP2(e.target.value)}><option value="">Selecione...</option>{options}</select><span className="text-xs text-gray-400 w-16 truncate text-right">{playerNames.p2}</span></div></div>;
 }
 

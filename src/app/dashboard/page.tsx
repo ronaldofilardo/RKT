@@ -84,6 +84,17 @@ export default function DashboardPage() {
     [matches],
   );
 
+  // Bug fix (2026-09-08): /api/matches não sabe nada sobre sessões de anotação
+  // abandonadas, então uma partida com sessão suspensa (retornada também por
+  // /api/matches/suspended-sessions) aparecia duplicada no dashboard: uma vez
+  // no bloco "Anotações Suspensas" e outra na lista normal (como "Em Andamento").
+  // Removemos da lista normal qualquer partida já exibida como suspensa.
+  const visibleMatches = useMemo(() => {
+    if (suspendedFromApi.length === 0) return matches;
+    const suspendedIds = new Set(suspendedFromApi.map((m: any) => m.id));
+    return matches.filter((m: any) => !suspendedIds.has(m.id));
+  }, [matches, suspendedFromApi]);
+
   const handleMatchClick = useCallback(
     (match: any) => {
       logger.info("[DashboardPage] match click", match.id, match.state);
@@ -206,12 +217,12 @@ export default function DashboardPage() {
           </div>
         )}
         <div className="space-y-3">
-          {matches.length === 0 ? (
+          {visibleMatches.length === 0 ? (
             <p className="text-gray-500 text-center py-8">
               Nenhuma partida encontrada.
             </p>
           ) : (
-            matches.map((m: any) => (
+            visibleMatches.map((m: any) => (
               <MatchCard
                 key={m.id}
                 match={m}

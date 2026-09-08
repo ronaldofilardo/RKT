@@ -56,6 +56,7 @@ interface UseEditScoreModalReturn {
   isConfirming: boolean;
   calculations: any;
   handleGameInputChange: (value: string, setter: (v: string) => void, player: 'p1' | 'p2', otherInput?: string) => void;
+  handleTiebreakInputChange: (value: string, player: 'p1' | 'p2') => void;
   handleConfirm: () => Promise<void>;
   handleCancel: () => void;
   handleAddSet: () => void;
@@ -68,7 +69,7 @@ interface UseEditScoreModalReturn {
 
 export function useEditScoreModal(
   options: UseEditScoreModalOptions,
-  onConfirm: (setResults: SetEditData[], server: "player1" | "player2") => void,
+  onConfirm: (setResults: SetEditData[], server: "player1" | "player2") => void | Promise<void>,
   onCancel: () => void,
   onMatchFinished?: (winner: "player1" | "player2") => void
 ): UseEditScoreModalReturn {
@@ -125,6 +126,7 @@ export function useEditScoreModal(
     state,
     tiebreakP1: state.tiebreakP1,
     tiebreakP2: state.tiebreakP2,
+    currentSets,
   });
 
   const { validation, tiebreakValidation, matchState, canAddNextSet, canConfirmSet: canConfirmSetCalc, partial, isPotentialMTSet } = calculations;
@@ -262,9 +264,43 @@ export function useEditScoreModal(
     const maxGames = isMatchTiebreakSet
       ? SCORING_LIMITS.TIEBREAK_INPUT_CAP
       : getMaxValidGames(otherGames, matchFormat);
+
+    // Input-level blocking: prevent reducing below currentSets minimum.
+    // When the input is already at or above the floor (current input value >=
+    // currentSets for this player), block typing a lower number.
+    const currentInput = parseInt(player === 'p1' ? state.p1Input : state.p2Input, 10) || 0;
+    const minFromCurrent = player === 'p1' ? currentSets.player1 : currentSets.player2;
+    if (currentInput >= minFromCurrent && num < minFromCurrent) {
+      return;
+    }
+
     setter(num > maxGames ? String(maxGames) : num.toString());
     setState(prev => ({ ...prev, tiebreakP1: "", tiebreakP2: "" }));
-  }, [matchFormat, isMatchTiebreakSet]);
+  }, [matchFormat, isMatchTiebreakSet, currentSets]);
+
+  const handleTiebreakInputChange = useCallback((value: string, player: 'p1' | 'p2'): void => {
+    setConfirmError(null);
+    setFloorValidationError(null);
+    if (value === '') {
+      setState(prev => ({ ...prev, [player === 'p1' ? 'tiebreakP1' : 'tiebreakP2']: '' }));
+      return;
+    }
+    const v = parseInt(value, 10);
+    if (isNaN(v) || v < 0) return;
+
+    // Input-level blocking: prevent reducing below the current tiebreak score.
+    // currentGamePoints contains the tiebreak points at interruption when isTiebreak is true.
+    if (currentGamePoints) {
+      const currentTbInput = parseInt(player === 'p1' ? state.tiebreakP1 : state.tiebreakP2, 10) || 0;
+      const minFromCurrent = Number(player === 'p1' ? currentGamePoints.player1 : currentGamePoints.player2) || 0;
+      if (currentTbInput >= minFromCurrent && v < minFromCurrent) {
+        return;
+      }
+    }
+
+    const capped = Math.min(v, SCORING_LIMITS.TIEBREAK_INPUT_CAP);
+    setState(prev => ({ ...prev, [player === 'p1' ? 'tiebreakP1' : 'tiebreakP2']: String(capped) }));
+  }, [currentGamePoints]);
 
   const handleConfirm = useCallback(async () => {
     setConfirmError(null);
@@ -302,9 +338,34 @@ export function useEditScoreModal(
         tiebreakScore: lastExistingSet.tiebreakScore ?? null,
         completedSets: priorExistingSets,
       });
+
+      // Incluir o set parcial com pontos do game atual quando o usuário
+      // alterou os pontos mas não preencheu o set (0-0). Sem isso, os
+      // pontos editados (ex.: 30-0) são descartados no path de confirmação
+      // "somente sets existentes".
+      const hasGamePointsChanged = (Number(state.p1Points) || 0) > 0 || (Number(state.p2Points) || 0) > 0;
+      const lastNewSet = state.newSets[state.newSets.length - 1];
+      const partialSetAlreadyIncluded = lastNewSet?.isPartial;
+      if (scoresAreZero && hasGamePointsChanged && !partialSetAlreadyIncluded) {
+        existingSets.push({
+          p1Games: 0,
+          p2Games: 0,
+          isPartial: true,
+          currentGamePoints: { player1: state.p1Points, player2: state.p2Points },
+        });
+      }
+
       setIsConfirming(true);
       try {
-        onConfirm(existingSets, recalculatedServer || currentServer);
+        // Bug fix (2026-09-08): onConfirm (handleEditScore) é assíncrono
+        // (persiste no backend / atualiza a engine), mas não era aguardado
+        // aqui. setIsConfirming(true) e o finally(false) rodavam praticamente
+        // no mesmo tick, então o botão "Confirmar" reabilitava (e o modal
+        // ficava livre para clique) enquanto a persistência ainda estava em
+        // andamento em segundo plano — dando margem para o usuário clicar de
+        // novo por ansiedade/engano antes do /scoring realmente refletir o
+        // placar salvo.
+        await onConfirm(existingSets, recalculatedServer || currentServer);
       } finally {
         setIsConfirming(false);
       }
@@ -374,7 +435,7 @@ export function useEditScoreModal(
       }
     }
 
-    if (!isSetTrulyCompleted && initialGameRef.current) {
+    if (!isSetTrulyCompleted && initialGameRef.current && !hasTiebreak) {
       const sameSetScore = p1Val === currentSets.player1 && p2Val === currentSets.player2;
       if (sameSetScore) {
         const initial = initialGameRef.current;
@@ -450,7 +511,9 @@ export function useEditScoreModal(
     const allSets = [...getCompletedSets(state, completedSets, matchFormat), ...allNewSetsForConfirm];
     setIsConfirming(true);
     try {
-      onConfirm(allSets, nextServer);
+      // Bug fix (2026-09-08): mesma correção do outro branch acima — aguardar
+      // onConfirm antes de liberar o botão/modal novamente (ver comentário lá).
+      await onConfirm(allSets, nextServer);
 
       if (matchWouldEnd && isSetTrulyCompleted && onMatchFinished) {
         // Bug (2026-09-07) — CRÍTICO: `p1Val > p2Val` resolve incorretamente
@@ -543,6 +606,8 @@ export function useEditScoreModal(
   }, [canAddNextSet, state, currentServer, matchFormat, completedSets, isMatchTiebreakSet]);
 
   const handlePointsChange = useCallback((p1: string, p2: string) => {
+    setConfirmError(null);
+    setFloorValidationError(null);
     setState(prev => ({ ...prev, p1Points: p1, p2Points: p2 }));
   }, []);
 
@@ -554,6 +619,18 @@ export function useEditScoreModal(
       setConfirmError(validation.error);
       return;
     }
+
+    // Bloquear edição para placar inferior ao registrado no abandono/interrupção
+    const originalSet = completedSets[index];
+    if (originalSet) {
+      const originalP1 = originalSet.games.player1;
+      const originalP2 = originalSet.games.player2;
+      if (p1Games < originalP1 || p2Games < originalP2) {
+        setConfirmError("Placar não pode ser inferior ao registrado no momento do abandono");
+        return;
+      }
+    }
+
     editedCompletedSetIndicesRef.current.add(index);
     setState(prev => {
       const newEditable = [...prev.editableCompletedSets];
@@ -564,7 +641,7 @@ export function useEditScoreModal(
     });
     setConfirmError(null);
     setFloorValidationError(null);
-  }, [matchFormat]);
+  }, [matchFormat, completedSets]);
 
   const handleConfirmSet = useCallback(() => {
     if (!canConfirmSetCalc) return;
@@ -618,6 +695,7 @@ return {
     isConfirming,
     calculations,
     handleGameInputChange,
+    handleTiebreakInputChange,
     handleConfirm,
     handleCancel,
     handleAddSet,

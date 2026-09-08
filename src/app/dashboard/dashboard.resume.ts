@@ -1,5 +1,6 @@
 import type { TennisFormat } from "@/lib/matchConfig";
 import { isSetCompleted } from "@/app/match/[id]/scoring/scoringHelpers";
+import { isCurrentSetMatchTiebreak } from "@/components/dashboard/match-card-utils";
 
 interface ResumeSessionOptions {
   router: any;
@@ -36,14 +37,27 @@ export function useResumeSession(options: ResumeSessionOptions) {
             scoreState.setsWon
           );
           
-          // If the last set is a tiebreak in progress, use the game score (not tiebreak score)
-          // If last set is completed, return null (no floor needed for next set)
-          if (lastSet.isTiebreak && lastSet.tiebreakScore) {
-            // This is a tiebreak set in progress - the floor is the game score (6-6, 4-4, etc.)
-            // but we don't enforce a floor on tiebreak points since they start at 0-0
+          // Bug fix (2026-09-08): a checagem original `lastSet.isTiebreak && lastSet.tiebreakScore`
+          // tratava qualquer set em tiebreak (inclusive um tiebreak comum em 6x6) como se fosse o
+          // Match Tiebreak decisivo, retornando null e perdendo o floor de games (6-6) ao retomar
+          // a sessão suspensa. Só o Match Tiebreak decisivo real não tem floor de games (mesmo bug
+          // já corrigido em MatchCard.tsx via isCurrentSetMatchTiebreak).
+          const isDecisiveMatchTiebreak = isCurrentSetMatchTiebreak(
+            scoreState.sets,
+            match.format as TennisFormat
+          );
+
+          if (isDecisiveMatchTiebreak) {
+            // Match Tiebreak decisivo: não há floor de games a aplicar.
             return null;
           }
-          
+
+          if (lastSet.isTiebreak && lastSet.tiebreakScore) {
+            // Tiebreak comum de um set normal (ex.: 6x6) — o floor continua sendo os games do set,
+            // os pontos do tiebreak em si não têm floor (começam em 0-0).
+            return { player1: lastSet.player1, player2: lastSet.player2 };
+          }
+
           return lastSetIsCompleted
             ? null
             : { player1: lastSet.player1, player2: lastSet.player2 };

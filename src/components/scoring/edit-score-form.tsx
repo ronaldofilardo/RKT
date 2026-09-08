@@ -30,8 +30,7 @@ export interface SetInputFormProps {
   onP2InputChange: (value: string) => void;
   onP1PointsChange: (value: string) => void;
   onP2PointsChange: (value: string) => void;
-  onTiebreakP1Change: (value: string) => void;
-  onTiebreakP2Change: (value: string) => void;
+  onTiebreakInputChange: (value: string, player: 'p1' | 'p2') => void;
   matchAlreadyOver: boolean;
   matchWouldEnd: boolean;
   p1SetsWon: number;
@@ -40,6 +39,7 @@ export interface SetInputFormProps {
   showGamePointsAtZero: boolean;
   canConfirmSet: boolean;
   onConfirmSet: () => void;
+  currentScoreBelowOriginal?: boolean;
 }
 
 export function SetInputForm({
@@ -68,8 +68,7 @@ export function SetInputForm({
   onP2InputChange,
   onP1PointsChange,
   onP2PointsChange,
-  onTiebreakP1Change,
-  onTiebreakP2Change,
+  onTiebreakInputChange,
   matchAlreadyOver,
   matchWouldEnd,
    p1SetsWon,
@@ -78,6 +77,7 @@ export function SetInputForm({
   showGamePointsAtZero,
   canConfirmSet,
   onConfirmSet,
+  currentScoreBelowOriginal,
 }: SetInputFormProps) {
   const isMatchOver = matchAlreadyOver || totalEditedSets >= maxSets;
   const p1InputRef = useRef<HTMLInputElement>(null);
@@ -189,6 +189,12 @@ export function SetInputForm({
         <p className="text-xs text-red-400">{floorValidationError}</p>
       )}
 
+      {currentScoreBelowOriginal && (
+        <p className="text-xs text-red-400">
+          Placar não pode ser inferior ao registrado no momento do abandono
+        </p>
+      )}
+
       {!isMatchTiebreakSet && hasTiebreak && p1Input && p2Input && ((p1Val === 6 && p2Val === 6) || (matchFormat === 'SHORT_SET_2V2_NO_AD' && p1Val === 4 && p2Val === 4) || (matchFormat === 'PRO_SET_8' && p1Val === 9 && p2Val === 9)) && (
         <div className="space-y-1 pt-1">
           <p className="text-xs font-semibold text-gray-400">
@@ -202,11 +208,7 @@ export function SetInputForm({
               type="number"
               className="w-16 text-center bg-gray-700 border border-white/10 rounded-lg px-2 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={tiebreakP1}
-              onChange={(e) => {
-                const v = parseInt(e.target.value, 10);
-                if (!isNaN(v) && v >= 0) onTiebreakP1Change(String(Math.min(v, SCORING_LIMITS.TIEBREAK_INPUT_CAP)));
-                else if (e.target.value === '') onTiebreakP1Change('');
-              }}
+              onChange={(e) => onTiebreakInputChange(e.target.value, 'p1')}
               min={0}
               max={SCORING_LIMITS.TIEBREAK_INPUT_CAP}
               placeholder="0"
@@ -216,11 +218,7 @@ export function SetInputForm({
               type="number"
               className="w-16 text-center bg-gray-700 border border-white/10 rounded-lg px-2 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={tiebreakP2}
-              onChange={(e) => {
-                const v = parseInt(e.target.value, 10);
-                if (!isNaN(v) && v >= 0) onTiebreakP2Change(String(Math.min(v, SCORING_LIMITS.TIEBREAK_INPUT_CAP)));
-                else if (e.target.value === '') onTiebreakP2Change('');
-              }}
+              onChange={(e) => onTiebreakInputChange(e.target.value, 'p2')}
               min={0}
               max={SCORING_LIMITS.TIEBREAK_INPUT_CAP}
               placeholder="0"

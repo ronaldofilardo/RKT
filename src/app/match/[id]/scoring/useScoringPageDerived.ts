@@ -107,7 +107,11 @@ export function useScoringPageDerived(
       };
     }
 
-    return lastSetIsCompleted ? { player1: 0, player2: 0 } : { player1: lastSet.player1, player2: lastSet.player2 };
+    if (lastSetIsCompleted && !lastSet.isTiebreak) {
+      return { player1: 0, player2: 0 };
+    }
+
+    return { player1: lastSet.player1, player2: lastSet.player2 };
   })();
 
   const editScoreCompletedSets = effectiveScoreState

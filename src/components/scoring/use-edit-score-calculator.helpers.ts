@@ -12,8 +12,8 @@ export function canAddNextSet(
   return true;
 }
 
-type EditValidation = { bothFilled: boolean; isSetTrulyCompleted: boolean; hasTiebreak: boolean; setValidationError?: string | null; setValidation?: { tiebreakRequired?: boolean } | null };
-type EditMatchState = { totalEditedSets: number; maxSets: number; matchAlreadyOver: boolean; matchWouldEnd: boolean; isMatchTiebreakSet: boolean };
+type EditValidation = { bothFilled: boolean; isSetTrulyCompleted: boolean; hasTiebreak: boolean; setValidationError?: string | null; setValidation?: { tiebreakRequired?: boolean } | null; p1Val: number; p2Val: number };
+type EditMatchState = { totalEditedSets: number; maxSets: number; matchAlreadyOver: boolean; matchWouldEnd: boolean; isMatchTiebreakSet: boolean; currentSets?: { player1: number; player2: number } };
 type TiebreakValidation = { tiebreakComplete: boolean; hasValidTiebreak: boolean };
 
 export function canConfirmSet(validation: EditValidation, matchState: EditMatchState, tiebreakValidation: TiebreakValidation): boolean {
@@ -41,6 +41,12 @@ export function canConfirm(
   const hasSetsInProgress = bothFilled;
   if (!hasSetsInProgress && (hasNewSets || hasCompletedSets)) return true;
   if (!bothFilled) return false;
+
+  // Bloquear quando placar atual é inferior ao registrado no abandono/interrupção
+  if (matchState.currentSets && (validation.p1Val < matchState.currentSets.player1 || validation.p2Val < matchState.currentSets.player2)) {
+    return false;
+  }
+
   if (matchState.isMatchTiebreakSet) {
     return !validation.setValidationError || validation.isSetTrulyCompleted;
   }

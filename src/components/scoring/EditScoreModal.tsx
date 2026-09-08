@@ -24,7 +24,7 @@ interface EditScoreModalProps {
   // modal pré-preencha o campo "Tie-Break" em vez de "Pontos no Game Atual".
   isTiebreak?: boolean;
   floorCurrentSets?: { player1: number; player2: number } | null;
-  onConfirm: (setResults: SetEditData[], server: Player) => void;
+  onConfirm: (setResults: SetEditData[], server: Player) => void | Promise<void>;
   onCancel: () => void;
   onMatchFinished?: (winner: "player1" | "player2") => void;
   suspendedSession?: {
@@ -63,6 +63,7 @@ export function EditScoreModal({
     isConfirming,
     calculations,
     handleGameInputChange,
+    handleTiebreakInputChange,
     handleConfirm,
     handleCancel,
     handlePointsChange,
@@ -227,8 +228,8 @@ export function EditScoreModal({
             onP2InputChange={(v: string) => handleGameInputChange(v, (val: string) => setState(prev => ({ ...prev, p2Input: val })), 'p2', state.p1Input)}
             onP1PointsChange={(v: string) => handlePointsChange(v, state.p2Points)}
             onP2PointsChange={(v: string) => handlePointsChange(state.p1Points, v)}
-            onTiebreakP1Change={(v: string) => setState(prev => ({ ...prev, tiebreakP1: v }))}
-            onTiebreakP2Change={(v: string) => setState(prev => ({ ...prev, tiebreakP2: v }))}
+            onTiebreakInputChange={handleTiebreakInputChange}
+            currentScoreBelowOriginal={calculations.currentScoreBelowOriginal}
           />
         </div>
 

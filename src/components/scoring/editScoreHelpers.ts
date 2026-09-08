@@ -49,7 +49,7 @@ export function validateSetResult(
   }
 
   if (p1Games === 0 && p2Games === 0) {
-    return { isValid: false, error: 'Enter the set result' };
+    return { isValid: false, error: 'Informe o resultado do set' };
   }
 
   if (format === 'MATCH_TB_10') {
@@ -109,7 +109,7 @@ function validateStandardSet(
   }
 
   if (p1Games === 0 && p2Games === 0) {
-    return { isValid: false, error: 'Enter the set result' };
+    return { isValid: false, error: 'Informe o resultado do set' };
   }
 
   // Over-max: in tiebreak formats, max games for a single player is tiebreakAt+1

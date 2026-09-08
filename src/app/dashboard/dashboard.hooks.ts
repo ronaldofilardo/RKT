@@ -8,6 +8,7 @@ import {
   redirectToLogin,
 } from "@/lib/auth-client";
 import type { DashboardView, Match } from "./dashboard.types";
+import { flushPendingAbandons } from "@/hooks/useSessionManager.pending-abandon";
 
 export function useDashboardNavigation(router: any) {
   const handleNavigate = useCallback(
@@ -83,6 +84,14 @@ export function useDashboardData(router?: any) {
       logger.warn("[fetchDashboardData] timeout 15s");
       setLoading(false);
     }, TIMEOUTS.DASHBOARD_FETCH_TIMEOUT_MS);
+
+    // Bug fix (2026-09-08): reenvia, em segundo plano, qualquer abandono de sessão
+    // que falhou anteriormente (ex.: fechado o /scoring sem conexão). Não bloqueia
+    // o carregamento do dashboard — só garante que, assim que a rede voltar, a
+    // sessão pendente finalmente seja marcada como ABANDONED no backend.
+    flushPendingAbandons().catch((e) =>
+      logger.warn("[fetchDashboardData] flushPendingAbandons falhou:", e)
+    );
 
     logger.info("[fetchDashboardData] starting fetches");
 

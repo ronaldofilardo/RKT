@@ -89,10 +89,17 @@ export function isMatchTiebreakFormat(format: string): boolean {
 export function formatCompactSetScore(
   set: { player1: number; player2: number; isTiebreak?: boolean; tiebreakScore?: { player1: number; player2: number } | null },
   player: 'player1' | 'player2',
+  isDecisiveMatchTiebreak = false,
 ): string {
-  const isRegularTiebreak = (set.player1 === 7 && set.player2 === 6) || (set.player1 === 6 && set.player2 === 7);
-
-  if (isRegularTiebreak && set.tiebreakScore) {
+  // Bug fix (2026-09-08): a checagem original só reconhecia um tiebreak comum de
+  // set quando os games JÁ estavam resolvidos em 7-6/6-7. Enquanto o tiebreak
+  // ainda está em andamento (games empatados, ex.: 6x6, tiebreak 1x1), a
+  // condição era falsa e o código caía no ramo pensado para o Match Tiebreak
+  // decisivo, mostrando só os pontos do tiebreak (ex.: "1") e perdendo
+  // completamente o placar de games do set (6x6). Agora, sempre que NÃO for o
+  // Match Tiebreak decisivo, um set com tiebreakScore (em andamento ou já
+  // resolvido) mostra games + pontos diretos do tiebreak: "6[1]", "7[7]" etc.
+  if (!isDecisiveMatchTiebreak && set.tiebreakScore) {
     const gameScore = set[player] ?? 0;
     const tbScore = set.tiebreakScore[player] ?? 0;
     return `${gameScore} [${tbScore}]`;
@@ -110,17 +117,21 @@ export function formatCompactSetScore(
   return String(set[player] ?? 0);
 }
 
-export function isCurrentSetMatchTiebreak(
+/**
+ * Generaliza isCurrentSetMatchTiebreak para qualquer índice de set (não só o
+ * último), contando sets vencidos antes dele para saber se aquele índice é o
+ * set do Match Tiebreak decisivo do formato.
+ */
+export function isSetIndexMatchTiebreak(
   sets: Array<{ player1: number; player2: number; isTiebreak?: boolean; tiebreakScore?: { player1: number; player2: number } | null }>,
+  index: number,
   format: TennisFormat,
 ): boolean {
-  if (sets.length === 0) return false;
   if (!isMatchTiebreakFormat(format)) return false;
 
-  const lastSetIndex = sets.length - 1;
   let p1Won = 0;
   let p2Won = 0;
-  for (let i = 0; i < lastSetIndex; i++) {
+  for (let i = 0; i < index; i++) {
     const s = sets[i];
     if (s.tiebreakScore) {
       if (s.tiebreakScore.player1 > s.tiebreakScore.player2) p1Won++;
@@ -130,5 +141,13 @@ export function isCurrentSetMatchTiebreak(
       else if (s.player2 > s.player1) p2Won++;
     }
   }
-  return isMatchTiebreakSetIndex(lastSetIndex, sets.length, format, { p1Won, p2Won });
+  return isMatchTiebreakSetIndex(index, sets.length, format, { p1Won, p2Won });
+}
+
+export function isCurrentSetMatchTiebreak(
+  sets: Array<{ player1: number; player2: number; isTiebreak?: boolean; tiebreakScore?: { player1: number; player2: number } | null }>,
+  format: TennisFormat,
+): boolean {
+  if (sets.length === 0) return false;
+  return isSetIndexMatchTiebreak(sets, sets.length - 1, format);
 }

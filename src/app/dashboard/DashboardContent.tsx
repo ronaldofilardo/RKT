@@ -78,12 +78,13 @@ export function DashboardContent({ loading, view, finishedMatches, matches, susp
           </div>
         )}
         <div className="space-y-3">
-          {matches.length === 0 ? (
+          {/* Bug fix (2026-09-08): dedup contra suspendedFromApi — ver page.tsx */}
+          {matches.filter((m) => !suspendedFromApi.some((s) => s.id === m.id)).length === 0 ? (
             <p className="text-gray-500 text-center py-8">
               Nenhuma partida encontrada.
             </p>
           ) : (
-            matches.map((m: DashboardMatch) => (
+            matches.filter((m) => !suspendedFromApi.some((s) => s.id === m.id)).map((m: DashboardMatch) => (
               <MatchCard
                 key={m.id}
                 match={m}

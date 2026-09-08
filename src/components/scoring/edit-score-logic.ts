@@ -67,6 +67,7 @@ export interface EditScoreMatchState {
   isPotentialMTSet: boolean;
   maxSets: number;
   setsToWin: number;
+  currentSets?: { player1: number; player2: number };
 }
 
 export interface TiebreakInput {
@@ -103,7 +104,9 @@ export interface EditScoreMatchStateInput
   extends ValidationContext,
     CompletedSetsInput,
     NewSetsInput,
-    ValidationResultInput {}
+    ValidationResultInput {
+  currentSets?: { player1: number; player2: number };
+}
 
 export interface SetResultInput {
   p1Val: number;
@@ -398,7 +401,7 @@ function determineMatchTiebreakStatus(
 }
 
 export function calculateMatchState(input: EditScoreMatchStateInput): EditScoreMatchState {
-  const { matchFormat, completedSets, newSets, validation } = input;
+  const { matchFormat, completedSets, newSets, validation, currentSets } = input;
   const maxSets = totalSetsForFormat(matchFormat);
   const setsToWin = setsToWinForFormat(matchFormat);
   const totalEditedSets = completedSets.length + newSets.length;
@@ -437,6 +440,7 @@ export function calculateMatchState(input: EditScoreMatchStateInput): EditScoreM
     isPotentialMTSet: isPotentialMTSetResult,
     maxSets,
     setsToWin,
+    currentSets,
   };
 }
 

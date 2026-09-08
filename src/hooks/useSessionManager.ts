@@ -16,6 +16,7 @@ import { buildNewScoringState } from "./useSessionManager.state-builder";
 import { finishMatch } from "./useSessionManager.match-finish";
 import { useSuspendedSession } from "./useSuspendedSession";
 import { useToast } from "@/components/Toast";
+import { enqueuePendingAbandon } from "./useSessionManager.pending-abandon";
 
 export interface SuspendedSessionState {
   matchStateSnapshot: string | null;
@@ -84,11 +85,11 @@ export function useSessionManager(ctx: SessionManagerContext) {
   const { toast } = useToast();
 
   const abandonCurrentSession = useCallback(
-    async (snapshot?: string) => {
+    async (snapshot?: string): Promise<boolean> => {
       const sid = sessionIdRef.current;
       const mid = matchId;
-      if (!sid || !mid) return;
-      if (!engineRef.current) return;
+      if (!sid || !mid) return false;
+      if (!engineRef.current) return false;
 
       const state = engineRef.current.getState();
       const isFinished = state.isFinished;
@@ -113,7 +114,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
             logger.warn(
               "[abandonCurrentSession] Conflito de versão (409) ao finalizar — outro dispositivo já atualizou o placar. Match já FINISHED ou estado divergente; session não fechada.",
             );
-            return;
+            return false;
           }
 
           if (!stateResponse.ok) {
@@ -143,22 +144,55 @@ export function useSessionManager(ctx: SessionManagerContext) {
               sessionErr
             );
           }
+          return true;
         } else {
-          await fetch(`/api/matches/${mid}/sessions/${sid}/abandon`, {
-            method: "POST",
-            keepalive: true,
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${tokenRef.current}`,
-            },
-            body: JSON.stringify({ matchStateSnapshot: stateSnapshot }),
-          });
+          // Bug fix (2026-09-08): antes o resultado do fetch era ignorado (nem o status
+          // era checado), então uma falha de rede — o cenário típico é justamente durante
+          // a sincronização de pontos pendentes — deixava a sessão como ativa no banco sem
+          // qualquer aviso ou tentativa futura. Agora checamos o status e, em caso de falha,
+          // guardamos o pedido numa fila local para reenvio (flushPendingAbandons) e avisamos
+          // o usuário.
+          try {
+            const response = await fetch(`/api/matches/${mid}/sessions/${sid}/abandon`, {
+              method: "POST",
+              keepalive: true,
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${tokenRef.current}`,
+              },
+              body: JSON.stringify({ matchStateSnapshot: stateSnapshot }),
+            });
+
+            if (!response.ok) {
+              throw new Error(`abandon POST failed: ${response.status}`);
+            }
+            return true;
+          } catch (fetchErr) {
+            logger.warn(
+              "[abandonCurrentSession] falha ao marcar sessão como abandonada, agendando retry:",
+              fetchErr
+            );
+            enqueuePendingAbandon({
+              matchId: mid,
+              sessionId: sid,
+              matchStateSnapshot: stateSnapshot,
+              token: tokenRef.current,
+              createdAt: Date.now(),
+            });
+            toast({
+              type: "info",
+              message:
+                "Não foi possível confirmar o encerramento da anotação agora (sem conexão). Vamos tentar novamente automaticamente.",
+            });
+            return false;
+          }
         }
       } catch (e) {
         logger.error("[abandonCurrentSession] Error:", e);
+        return false;
       }
     },
-    [matchId, match, sessionIdRef, engineRef, tokenRef],
+    [matchId, match, sessionIdRef, engineRef, tokenRef, toast],
   );
 
   const handleEditScore = useCallback(

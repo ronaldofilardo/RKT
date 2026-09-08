@@ -21,6 +21,7 @@ export interface UseEditScoreCalculatorParams {
   state: EditScoreState;
   tiebreakP1: string;
   tiebreakP2: string;
+  currentSets?: { player1: number; player2: number };
 }
 
 export interface EditScoreCalculations {
@@ -39,6 +40,7 @@ export interface EditScoreCalculations {
   partial: boolean;
   showGamePointsAtZero: boolean;
   isPotentialMTSet: boolean;
+  currentScoreBelowOriginal: boolean;
 }
 
 export function useEditScoreCalculator({
@@ -48,6 +50,7 @@ export function useEditScoreCalculator({
   state,
   tiebreakP1,
   tiebreakP2,
+  currentSets,
 }: UseEditScoreCalculatorParams): EditScoreCalculations {
   // FIX #8: Usar editableCompletedSets (array editado pelo usuário) em vez
   // do prop completedSets para calcular totalEditedSets. Quando o usuário
@@ -82,7 +85,8 @@ export function useEditScoreCalculator({
     newSets: state.newSets,
     validation,
     totalEditedSets: state.newSets.length + effectiveCompletedCount,
-  }), [matchFormat, completedSets, state.newSets, validation, effectiveCompletedCount]);
+    currentSets,
+  }), [matchFormat, completedSets, state.newSets, validation, effectiveCompletedCount, currentSets]);
 
   const { p1Val, p2Val } = validation;
 
@@ -158,6 +162,11 @@ export function useEditScoreCalculator({
     // Precisa de ambos os inputs preenchidos
     if (!bothFilled) return false;
 
+    // Bloquear placar inferior ao registrado no abandono/interrupção
+    if (matchState.currentSets && (validation.p1Val < matchState.currentSets.player1 || validation.p2Val < matchState.currentSets.player2)) {
+      return false;
+    }
+
     // Bloquear tiebreak impossível (ex.: 7x10, 13x8)
     if (tiebreakImpossible) return false;
 
@@ -200,6 +209,11 @@ export function useEditScoreCalculator({
     return hasPreviousSets && isAtZero && prevSetCompleted;
   }, [validation, p1Val, p2Val, completedSets.length, state.newSets]);
 
+  const currentScoreBelowOriginal = useMemo(() => {
+    if (!currentSets) return false;
+    return validation.bothFilled && (validation.p1Val < currentSets.player1 || validation.p2Val < currentSets.player2);
+  }, [currentSets, validation.bothFilled, validation.p1Val, validation.p2Val]);
+
   return {
     validation,
     tiebreakValidation,
@@ -210,5 +224,6 @@ export function useEditScoreCalculator({
     partial,
     showGamePointsAtZero,
     isPotentialMTSet: matchState.isPotentialMTSet,
+    currentScoreBelowOriginal,
   };
 }
