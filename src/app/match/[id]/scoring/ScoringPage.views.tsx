@@ -74,7 +74,16 @@ function EditScoreModalView({ data }: { data: ModalViewData }) {
   const { state, match, derived, handleEditScore, handleEditScoreCancel, handleEditScoreRefreshFloor } = data;
   if (!derived.effectiveScoreState) return null;
   const score = derived.effectiveScoreState;
-  return <EditScoreModal isOpen={true} matchFormat={match.format as TennisFormat} playerNames={{ p1: match.player1.name, p2: match.player2.name }} currentSets={derived.editScoreCurrentSets} currentServer={score.server} completedSets={derived.editScoreCompletedSets} currentGamePoints={{ player1: derived.gamePointToDisplay(score.currentGame?.player1 ?? 0), player2: derived.gamePointToDisplay(score.currentGame?.player2 ?? 0) }} floorCurrentSets={state.floorCurrentSets} suspendedSession={state.suspendedSession} onConfirm={handleEditScore} onCancel={handleEditScoreCancel} onMatchFinished={() => undefined} onRefreshFloor={handleEditScoreRefreshFloor} />;
+  const lastSet = score.sets[score.sets.length - 1];
+  const isTiebreakActive = !!lastSet?.isTiebreak && lastSet.tiebreakScore;
+  return <EditScoreModal isOpen={true} matchFormat={match.format as TennisFormat} playerNames={{ p1: match.player1.name, p2: match.player2.name }} currentSets={derived.editScoreCurrentSets} currentServer={score.server} completedSets={derived.editScoreCompletedSets} currentGamePoints={{
+    player1: isTiebreakActive
+      ? (lastSet?.tiebreakScore?.player1 ?? 0)
+      : derived.gamePointToDisplay(score.currentGame?.player1 ?? 0),
+    player2: isTiebreakActive
+      ? (lastSet?.tiebreakScore?.player2 ?? 0)
+      : derived.gamePointToDisplay(score.currentGame?.player2 ?? 0),
+  }} floorCurrentSets={state.floorCurrentSets} suspendedSession={state.suspendedSession} onConfirm={handleEditScore} onCancel={handleEditScoreCancel} onMatchFinished={() => undefined} onRefreshFloor={handleEditScoreRefreshFloor} />;
 }
 
 function ServeEffectModalView({ data }: { data: ModalViewData }) {

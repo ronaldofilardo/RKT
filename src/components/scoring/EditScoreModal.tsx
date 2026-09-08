@@ -60,6 +60,7 @@ export function EditScoreModal({
     setState,
     confirmError,
     floorValidationError,
+    isConfirming,
     calculations,
     handleGameInputChange,
     handleConfirm,
@@ -145,12 +146,23 @@ export function EditScoreModal({
         role="button"
         tabIndex={-1}
         aria-label="Fechar modal"
-        onClick={handleCancel}
+        onClick={isConfirming ? undefined : handleCancel}
         onKeyDown={(e) => {
-          if (e.key === 'Escape' || e.key === 'Enter') handleCancel();
+          if (!isConfirming && (e.key === 'Escape' || e.key === 'Enter')) handleCancel();
         }}
       />
       <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+        {isConfirming && (
+          <div className="absolute inset-0 z-10 bg-white/60 flex items-center justify-center rounded-2xl">
+            <div className="flex items-center gap-3 px-6 py-3 bg-white rounded-xl shadow-lg border border-gray-200">
+              <svg className="animate-spin h-5 w-5 text-sky-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <span className="text-sm font-medium text-gray-700">Salvando placar...</span>
+            </div>
+          </div>
+        )}
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-900">Editar Placar</h2>
           <p className="text-sm text-gray-600 mt-1">
@@ -232,17 +244,26 @@ export function EditScoreModal({
           <button
             type="button"
             onClick={handleCancel}
-            className="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+            disabled={isConfirming}
+            className="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Cancelar
           </button>
           <button
             type="button"
             onClick={handleConfirm}
-            disabled={!canConfirm || !!confirmError || !!floorValidationError}
+            disabled={!canConfirm || !!confirmError || !!floorValidationError || isConfirming}
             className="flex-1 px-4 py-2.5 bg-sky-600 text-white font-medium rounded-lg hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
           >
-            Confirmar
+            {isConfirming ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Salvando...
+              </span>
+            ) : 'Confirmar'}
           </button>
         </div>
       </div>

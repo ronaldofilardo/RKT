@@ -53,6 +53,7 @@ interface UseEditScoreModalReturn {
   setState: React.Dispatch<React.SetStateAction<EditScoreModalState>>;
   confirmError: string | null;
   floorValidationError: string | null;
+  isConfirming: boolean;
   calculations: any;
   handleGameInputChange: (value: string, setter: (v: string) => void, player: 'p1' | 'p2', otherInput?: string) => void;
   handleConfirm: () => Promise<void>;
@@ -97,6 +98,7 @@ export function useEditScoreModal(
   });
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [floorValidationError, setFloorValidationError] = useState<string | null>(null);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const initializedRef = useRef(false);
   const initialGameRef = useRef<{ player1: string; player2: string } | null>(null);
@@ -154,6 +156,7 @@ export function useEditScoreModal(
       }));
       setConfirmError(null);
       setFloorValidationError(null);
+      setIsConfirming(false);
       initializedRef.current = false;
       initialGameRef.current = null;
       inputTouchedRef.current = { p1: false, p2: false };
@@ -211,6 +214,7 @@ export function useEditScoreModal(
           // em andamento: os "pontos de game" atuais SÃO os pontos do
           // tie-break, então pré-preenchemos o campo de Tie-Break em vez
           // de "Pontos no Game Atual" (que não é exibido neste caso).
+          initialGameRef.current = { player1: p1, player2: p2 };
           setState(prev => ({ ...prev, tiebreakP1: p1, tiebreakP2: p2 }));
         } else {
           initialGameRef.current = { player1: p1, player2: p2 };
@@ -298,7 +302,12 @@ export function useEditScoreModal(
         tiebreakScore: lastExistingSet.tiebreakScore ?? null,
         completedSets: priorExistingSets,
       });
-      onConfirm(existingSets, recalculatedServer || currentServer);
+      setIsConfirming(true);
+      try {
+        onConfirm(existingSets, recalculatedServer || currentServer);
+      } finally {
+        setIsConfirming(false);
+      }
       return;
     }
 
@@ -351,6 +360,20 @@ export function useEditScoreModal(
       }
     }
 
+    // Validar pontos do tiebreak contra o floor. Quando o set está em
+    // tiebreak (6x6), floorCurrentSets contém os pontos do tiebreak (ex.:
+    // 2-3). Comparar diretamente com os inputs de tiebreak.
+    if (bothFilled && hasTiebreak && floorCurrentSets && !isSetTrulyCompleted) {
+      const tbFloorP1 = floorCurrentSets.player1;
+      const tbFloorP2 = floorCurrentSets.player2;
+      const currentTbP1 = Number(state.tiebreakP1) || 0;
+      const currentTbP2 = Number(state.tiebreakP2) || 0;
+      if (currentTbP1 < tbFloorP1 || currentTbP2 < tbFloorP2) {
+        setConfirmError(`Placar do tiebreak não pode ser inferior ao ponto de parada (${tbFloorP1}x${tbFloorP2}).`);
+        return;
+      }
+    }
+
     if (!isSetTrulyCompleted && initialGameRef.current) {
       const sameSetScore = p1Val === currentSets.player1 && p2Val === currentSets.player2;
       if (sameSetScore) {
@@ -361,6 +384,24 @@ export function useEditScoreModal(
         const newP2 = pointToProgress(parsePointValue(state.p2Points));
         if ((newP1 < oldP1 && newP2 <= oldP2) || (newP2 < oldP2 && newP1 <= oldP1)) {
           setConfirmError("Placar não pode ser inferior ao estado atual");
+          return;
+        }
+      }
+    }
+
+    // Validar que pontos do tiebreak não sejam inferiores ao estado atual.
+    // Quando o set está em tiebreak (6x6), as "game points" iniciais são os
+    // pontos do tiebreak (ex.: 2-3). Se o usuário reduz o placar do
+    // tiebreak, bloquear.
+    if (!isSetTrulyCompleted && hasTiebreak && initialGameRef.current) {
+      const initialTbP1 = Number(initialGameRef.current.player1) || 0;
+      const initialTbP2 = Number(initialGameRef.current.player2) || 0;
+      const currentTbP1 = Number(state.tiebreakP1) || 0;
+      const currentTbP2 = Number(state.tiebreakP2) || 0;
+      if (p1Val === currentSets.player1 && p2Val === currentSets.player2) {
+        if ((currentTbP1 < initialTbP1 && currentTbP2 <= initialTbP2) ||
+            (currentTbP2 < initialTbP2 && currentTbP1 <= initialTbP1)) {
+          setConfirmError("Placar do tiebreak não pode ser inferior ao estado atual");
           return;
         }
       }
@@ -407,30 +448,35 @@ export function useEditScoreModal(
     // segunda etapa foi removido (ver também EditScoreModal.tsx).
     const allNewSetsForConfirm = [...state.newSets, setData];
     const allSets = [...getCompletedSets(state, completedSets, matchFormat), ...allNewSetsForConfirm];
-    onConfirm(allSets, nextServer);
+    setIsConfirming(true);
+    try {
+      onConfirm(allSets, nextServer);
 
-    if (matchWouldEnd && isSetTrulyCompleted && onMatchFinished) {
-      // Bug (2026-09-07) — CRÍTICO: `p1Val > p2Val` resolve incorretamente
-      // para "player2" quando o set termina 6-6 + tiebreak (p1Val===p2Val),
-      // atribuindo a vitória da partida ao jogador errado sempre que o
-      // player1 vencia o tiebreak decisivo. Usar getEffectiveSetWinner, que
-      // consulta o placar do tiebreak quando os games estão empatados.
-      const winner = getEffectiveSetWinner(validation) ?? (p1Val > p2Val ? "player1" : "player2");
-      onMatchFinished(winner);
+      if (matchWouldEnd && isSetTrulyCompleted && onMatchFinished) {
+        // Bug (2026-09-07) — CRÍTICO: `p1Val > p2Val` resolve incorretamente
+        // para "player2" quando o set termina 6-6 + tiebreak (p1Val===p2Val),
+        // atribuindo a vitória da partida ao jogador errado sempre que o
+        // player1 vencia o tiebreak decisivo. Usar getEffectiveSetWinner, que
+        // consulta o placar do tiebreak quando os games estão empatados.
+        const winner = getEffectiveSetWinner(validation) ?? (p1Val > p2Val ? "player1" : "player2");
+        onMatchFinished(winner);
+      }
+
+      setState(prev => ({
+        ...prev,
+        newSets: [...prev.newSets, setData],
+        p1Input: "",
+        p2Input: "",
+        tiebreakP1: "",
+        tiebreakP2: "",
+        p1Points: "0",
+        p2Points: "0",
+        nextServer: nextServer || prev.nextServer,
+      }));
+      inputTouchedRef.current = { p1: false, p2: false };
+    } finally {
+      setIsConfirming(false);
     }
-
-    setState(prev => ({
-      ...prev,
-      newSets: [...prev.newSets, setData],
-      p1Input: "",
-      p2Input: "",
-      tiebreakP1: "",
-      tiebreakP2: "",
-      p1Points: "0",
-      p2Points: "0",
-      nextServer: nextServer || prev.nextServer,
-    }));
-    inputTouchedRef.current = { p1: false, p2: false };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- stable deps: createSetEditData (module fn), matchState/playerNames (derived stable objects)
   }, [onRefreshFloor, floorCurrentSets, isSetTrulyCompleted, p1Val, p2Val,
     floorValidationError, validation, partial, hasTiebreak, tiebreakComplete, tiebreakImpossible,
@@ -440,8 +486,9 @@ export function useEditScoreModal(
     onConfirm, onMatchFinished]);
 
   const handleCancel = useCallback(() => {
+    if (isConfirming) return;
     onCancel();
-  }, [onCancel]);
+  }, [onCancel, isConfirming]);
 
   const handleAddSet = useCallback(() => {
     if (!canAddNextSet) return;
@@ -568,6 +615,7 @@ return {
     setState,
     confirmError,
     floorValidationError,
+    isConfirming,
     calculations,
     handleGameInputChange,
     handleConfirm,

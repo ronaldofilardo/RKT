@@ -19,4 +19,22 @@ export function useScoringPageLifecycle({ state, fetchMatch, fetchPointLogAudioM
   useEffect(() => { if (scoreState?.startedAt) { const startedAtMs = scoreState.startedAt; setElapsed(Math.max(0, Math.floor((Date.now() - startedAtMs) / 1000))); timerRef.current = setInterval(() => setElapsed((prev) => prev + 1), 1000); } else setElapsed(0); return () => { if (timerRef.current) clearInterval(timerRef.current); }; }, [scoreState?.startedAt, setElapsed, timerRef]);
   useEffect(() => { if (session.pendingEditScore) setPendingEditScore(session.pendingEditScore); }, [session.pendingEditScore, setPendingEditScore]);
   useEffect(() => { if (pendingEditScore) { setFloorCurrentSets(pendingEditScore.floorSets); open("edit-score"); } }, [pendingEditScore, open, setFloorCurrentSets]);
+
+  // Quando o modal "edit-score" é aberto (via botão Editar ou URL ?modal=edit-score),
+  // calcular o floor a partir do engine para validar que o usuário não insira
+  // um placar inferior ao registrado.
+  useEffect(() => {
+    if (state.activeModal === 'edit-score' && state.engineRef.current) {
+      const currentState = state.engineRef.current.getState();
+      const lastSet = currentState.sets[currentState.sets.length - 1];
+      if (lastSet) {
+        const isTiebreakActive = lastSet.isTiebreak && lastSet.tiebreakScore &&
+          (lastSet.player1 > 0 || lastSet.player2 > 0);
+        const floor = isTiebreakActive
+          ? { player1: lastSet.tiebreakScore!.player1, player2: lastSet.tiebreakScore!.player2 }
+          : { player1: lastSet.player1, player2: lastSet.player2 };
+        setFloorCurrentSets(floor);
+      }
+    }
+  }, [state.activeModal, state.engineRef, setFloorCurrentSets]);
 }
