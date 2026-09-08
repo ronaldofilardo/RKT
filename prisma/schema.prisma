@@ -85,9 +85,11 @@ model PointLog {
   audioNoteDuration Int?
   sequenceNumber   Int?
   clientEventId     String?
+  voidedAt         DateTime?
   match             Match     @relation(fields: [matchId], references: [id])
 
   @@index([matchId])
+  @@index([matchId, voidedAt])
   @@unique([matchId, clientEventId])
 }
 

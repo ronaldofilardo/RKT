@@ -354,6 +354,8 @@ describe('GET /api/matches/[id]/report — segmentos separados por MatchScoreEdi
       editedAt: editEditedAt.toISOString(),
       previousLabel: 'Set 1 · Game 6x4 · 40x30',
       newLabel: 'Set 1 · Game 0x0 · 0x0',
+      editedByUserId: 'p1',
+      note: 'placar corrigido: 6x4 no 1o set, início do novo game/set',
     });
     for (const p of others) {
       expect(p.segmentBreak).toBeUndefined();
@@ -430,11 +432,13 @@ describe('GET /api/matches/[id]/report — segmentos separados por MatchScoreEdi
       editedAt: e1.toISOString(),
       previousLabel: 'Set 1 · Game 0x0 · 0x0',
       newLabel: 'Set 1 · Game 0x0 · 0x0',
+      editedByUserId: 'p1',
     });
     expect(data.timelinePoints[4].segmentBreak).toEqual({
       editedAt: e2.toISOString(),
       previousLabel: 'Set 1 · Game 0x0 · 0x0',
       newLabel: 'Set 1 · Game 0x0 · 0x0',
+      editedByUserId: 'p1',
     });
     // Pontos que não iniciam um novo segmento permanecem sem marcador.
     expect(data.timelinePoints[0].segmentBreak).toBeUndefined();

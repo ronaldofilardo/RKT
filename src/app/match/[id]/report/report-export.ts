@@ -7,12 +7,26 @@ function csvValue(value: unknown): string {
   return `"${text.replaceAll('"', '""')}"`;
 }
 
+function safeScore(score: unknown): string {
+  if (
+    score &&
+    typeof score === 'object' &&
+    'player1' in score &&
+    'player2' in score &&
+    typeof (score as { player1: unknown }).player1 === 'number' &&
+    typeof (score as { player2: unknown }).player2 === 'number'
+  ) {
+    return `${(score as { player1: number }).player1}-${(score as { player2: number }).player2}`;
+  }
+  return '?-?';
+}
+
 export function buildReportCsv(report: ReportData): string {
   const rows = report.timelinePoints.map((point) => [
     point.pointNumber,
     point.setNumber,
-    `${point.gamesScore.player1}-${point.gamesScore.player2}`,
-    `${point.gameScore.player1}-${point.gameScore.player2}`,
+    safeScore(point.gamesScore),
+    safeScore(point.gameScore),
     point.winner,
     point.type,
     point.server,

@@ -7,6 +7,7 @@ import type {
 } from '@/core/scoring/types';
 import { ScoringEngine } from '@/core/scoring/engine';
 import { enrichPointsFromHistory } from '@/core/scoring/scoring-logic';
+import { pointLogToFlow } from './timeline-rebuild.helpers';
 
 /**
  * Estrutura mínima vinda do `prisma.pointLog.findMany` usada na reconstrução
@@ -150,33 +151,6 @@ function simulateScoreFromPointLogs(
 }
 
 /**
- * Converte um `PointLogRow` em `PointFlow` para alimentar o engine na
- * simulação. Mapeia `annotations` (rallyDetails, isFirstServe,
- * firstFaultDetail, etc.) para os campos correspondentes de PointFlow.
- *
- * Observação: quando o `type` do PointLog é `FAULT_FIRST` (1ª falta que
- * não encerra o ponto) ou `firstFaultDetail` está presente com tipo
- * `DOUBLE_FAULT`, é crucial sinalizar `firstFault: true` para que o
- * engine atualize apenas `secondServe` em vez de computar um ponto.
- */
-function pointLogToFlow(log: PointLogRow): import('@/core/scoring/types').PointFlow {
-  const ann = log.annotations;
-  const type = log.type;
-  return {
-    winnerId: log.winnerId,
-    type,
-    serverId: log.serverId,
-    timestamp: log.timestamp.getTime(),
-    isFirstServe: ann?.isFirstServe,
-    isSecondServe: ann?.isSecondServe,
-    firstFault: type === 'FAULT_FIRST',
-    firstFaultDetail: ann?.firstFaultDetail ?? null,
-    rallyDetails: ann?.rallyDetails ?? null,
-    rallyLength: ann?.rallyLength,
-  };
-}
-
-/**
  * Extrai o `PointDetails` do último ponto aplicado no engine, consultando
  * o histórico interno. Como `engine.applyPoint` sempre chama `saveToHistory`
  * antes de processar (ver `engine.ts:71,79,86`), a última entrada é o ponto
@@ -196,6 +170,9 @@ function extractLastPointDetailsFromEngine(engine: ScoringEngine): PointDetails 
  */
 function buildPointDetailsFromLog(log: PointLogRow): PointDetails {
   const ann = log.annotations;
+  const isServeFinish = log.type === 'ACE' || log.type === 'DOUBLE_FAULT';
+  const isDevolucao = ann?.rallyDetails?.situacao === 'devolucao';
+  const autoRallyLength = ann?.rallyLength ?? (isServeFinish ? 1 : isDevolucao ? 2 : 0);
   return {
     winnerId: log.winnerId,
     type: log.type as PointDetails['type'],
@@ -205,7 +182,7 @@ function buildPointDetailsFromLog(log: PointLogRow): PointDetails {
     serverId: log.serverId,
     timestamp: log.timestamp.getTime(),
     rallyDetails: ann?.rallyDetails ?? null,
-    rallyLength: ann?.rallyLength ?? 0,
+    rallyLength: autoRallyLength,
     firstFaultDetail: ann?.firstFaultDetail ?? null,
   };
 }

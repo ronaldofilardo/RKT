@@ -267,7 +267,46 @@ export function calculateValidation(input: EditScoreValidationInput): EditScoreV
     hasValidTiebreak,
     tiebreakComplete: tiebreakCompleteLocal,
     tiebreakImpossible: tiebreakImpossibleLocal,
+    // Bug (2026-09-07): expor os valores numéricos do tiebreak calculados
+    // acima. Antes ficavam presos no escopo local da função — a interface
+    // já os declarava opcionalmente, mas nunca eram preenchidos, então
+    // qualquer consumidor que dependesse deles (ex.: getEffectiveSetWinner
+    // abaixo) sempre via `undefined`.
+    tiebreakP1Num: tbP1Num,
+    tiebreakP2Num: tbP2Num,
   };
+}
+
+/**
+ * Bug (2026-09-07) — CRÍTICO: determina o vencedor "efetivo" do set que está
+ * sendo digitado (ainda não commitado em newSets).
+ *
+ * `setValidation.winner` só é preenchido quando o placar de games já define
+ * um vencedor por si só (ex.: 6-3, 7-5, ou mesmo 7-6 digitado diretamente).
+ * Para o fluxo normal de um set 6-6 decidido no tiebreak, o usuário digita
+ * os games como 6x6 (o motor NÃO reescreve para 7x6 — o games final fica
+ * 6x6 com um `tiebreakScore` anexado, como já acontece em todo o restante
+ * do código: computeSetsWon() para `newSets`, e a lista de "Sets
+ * Completados" em EditScoreModal.tsx, ambos resolvem o empate consultando
+ * o tiebreakScore). Nesse caso `setValidation.winner` fica `undefined`
+ * (a validação devolve `{ tiebreakRequired: true }` sem vencedor), e um
+ * cálculo ingênuo como `p1Val > p2Val` sempre resolve para `false` (6 não é
+ * maior que 6), atribuindo o set — e a partida — ao player2 mesmo quando
+ * quem venceu o tiebreak foi o player1. Esta função resolve o empate
+ * consultando o placar do tiebreak, na mesma lógica já usada para sets
+ * confirmados (newSets/completedSets).
+ */
+export function getEffectiveSetWinner(validation: EditScoreValidation): Player | undefined {
+  if (validation.setValidation?.winner) return validation.setValidation.winner;
+  if (
+    validation.p1Val === validation.p2Val &&
+    typeof validation.tiebreakP1Num === 'number' &&
+    typeof validation.tiebreakP2Num === 'number' &&
+    validation.tiebreakP1Num !== validation.tiebreakP2Num
+  ) {
+    return validation.tiebreakP1Num > validation.tiebreakP2Num ? 'player1' : 'player2';
+  }
+  return undefined;
 }
 
 function buildSetResultsForCheck(
@@ -307,14 +346,21 @@ function computeSetsWon(
     return s.p2Games > s.p1Games;
   }).length;
 
+  // Bug (2026-09-07) — CRÍTICO: usar getEffectiveSetWinner() em vez de
+  // `validation.setValidation?.winner` diretamente. Em um set decidido em
+  // 6-6 + tiebreak, `setValidation.winner` fica `undefined` (ver comentário
+  // em getEffectiveSetWinner), então o set vencedor da partida nunca era
+  // contado aqui — `matchWouldEnd` permanecia `false` mesmo quando a
+  // partida já deveria ter encerrado (ex.: 6-6 + TB 7-5 no set decisivo).
+  const currentSetWinner = getEffectiveSetWinner(validation);
   const p1SetsWon =
     p1SetsWonFromProp +
     newP1SetsWon +
-    (validation.isSetTrulyCompleted && validation.setValidation?.winner === 'player1' ? 1 : 0);
+    (validation.isSetTrulyCompleted && currentSetWinner === 'player1' ? 1 : 0);
   const p2SetsWon =
     p2SetsWonFromProp +
     newP2SetsWon +
-    (validation.isSetTrulyCompleted && validation.setValidation?.winner === 'player2' ? 1 : 0);
+    (validation.isSetTrulyCompleted && currentSetWinner === 'player2' ? 1 : 0);
 
   return {
     p1SetsWon,

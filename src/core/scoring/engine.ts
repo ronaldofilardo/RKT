@@ -46,6 +46,10 @@ export class ScoringEngine {
       throw new Error('INVALID_WINNER');
     }
 
+    const isServeFinish = flow.type === 'ACE' || flow.type === 'DOUBLE_FAULT';
+    const isDevolucao = flow.rallyDetails?.situacao === 'devolucao';
+    const autoRallyLength = flow.rallyLength ?? (isServeFinish ? 1 : isDevolucao ? 2 : 0);
+
     const details: PointDetails = {
       winnerId: flow.winnerId,
       type: (flow.type as PointDetails['type']) || 'WINNER',
@@ -55,7 +59,7 @@ export class ScoringEngine {
       serverId: flow.serverId,
       timestamp: flow.timestamp ?? Date.now(),
       rallyDetails: flow.rallyDetails ?? null,
-      rallyLength: flow.rallyLength ?? 0,
+      rallyLength: autoRallyLength,
       firstFaultDetail: flow.firstFaultDetail ?? null,
     };
 
@@ -98,7 +102,7 @@ export class ScoringEngine {
     this.state.currentGame.secondServe = false;
 
     if (isMatchTiebreakActive(this.state, this.config)) {
-      return processMatchTiebreakFlow(winner, this.state);
+      return processMatchTiebreakFlow(winner, this.state, this.config);
     }
 
     const currentSet = this.state.sets[this.state.sets.length - 1];

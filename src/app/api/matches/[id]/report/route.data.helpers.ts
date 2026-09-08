@@ -12,7 +12,7 @@ export async function buildReportTimeline(
   format: TennisFormat,
 ): Promise<{ pointLogs: PointLogRow[]; timelinePoints: TimelinePoint[] }> {
   const pointLogs = await prisma.pointLog.findMany({
-    where: { matchId },
+    where: { matchId, voidedAt: null },
     orderBy: [{ sequenceNumber: 'asc' }, { timestamp: 'asc' }, { id: 'asc' }],
     select: {
       id: true,

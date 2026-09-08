@@ -4,6 +4,7 @@ import { createEmptyGame } from './engine.state';
 export function processMatchTiebreak(
   winner: 'player1' | 'player2',
   state: ScoringState,
+  config?: ScoringEngineConfig,
 ): ScoringState {
   if (state.sets.length === 0) {
     state.sets.push({
@@ -27,7 +28,7 @@ export function processMatchTiebreak(
     : (state.server === 'player1' ? 'player2' : 'player1');
 
   if ((newTb.player1 >= 10 || newTb.player2 >= 10) && Math.abs(newTb.player1 - newTb.player2) >= 2) {
-    return completeMatchTiebreak(winner, newTb, newServer, state);
+    return completeMatchTiebreak(winner, newTb, newServer, state, config);
   }
 
   const newSet: SetScore = { ...set, tiebreakScore: newTb };
@@ -44,8 +45,15 @@ function completeMatchTiebreak(
   tbScore: { player1: number; player2: number },
   newServer: 'player1' | 'player2',
   state: ScoringState,
+  config?: ScoringEngineConfig,
 ): ScoringState {
-  if (state.sets.length <= 1) {
+  // Formatos de MT "puro" (o set inteiro nasce como tie-break, ex. MATCH_TB_10,
+  // BEST_OF_3_MATCH_TB) começam o set em 0x0 e o vencedor fecha em 1x0.
+  // Já o 5º set decisivo do BEST_OF_5 joga games normais até 6x6 antes do
+  // tie-break começar — o placar oficial do set deve ser 7x6 (games), não
+  // 1x0. baseGames vem do próprio set (6 ou 0, igual para os dois lados,
+  // pois só o tiebreakScore mudou até aqui).
+  if (state.sets.length <= 1 && config?.format !== 'BEST_OF_5') {
     const setWinnerGames = winner === 'player1' ? 1 : 0;
     const setLoserGames = winner === 'player1' ? 0 : 1;
     state.sets = [{
@@ -63,8 +71,11 @@ function completeMatchTiebreak(
 
   const currentSetIndex = state.sets.length - 1;
   const currentSet = state.sets[currentSetIndex];
+  const baseGames = currentSet.player1;
   const completedSet: SetScore = {
     ...currentSet,
+    player1: winner === 'player1' ? baseGames + 1 : baseGames,
+    player2: winner === 'player2' ? baseGames + 1 : baseGames,
     isTiebreak: true,
     tiebreakScore: tbScore,
   };
@@ -84,14 +95,11 @@ function completeMatchTiebreak(
 }
 
 export function shouldStartMatchTiebreak(state: ScoringState, config: ScoringEngineConfig): boolean {
-  if (config.format === 'BEST_OF_3_MATCH_TB') {
-    const setsWon = state.setsWon;
-    if (setsWon.player1 === 1 && setsWon.player2 === 1 && state.sets.length === 2) {
-      return true;
-    }
-  }
-
-  if (config.format === 'BEST_OF_3_NO_AD') {
+  if (
+    config.format === 'BEST_OF_3_MATCH_TB' ||
+    config.format === 'BEST_OF_3_NO_AD' ||
+    config.format === 'SHORT_SET_2V2_NO_AD'
+  ) {
     const setsWon = state.setsWon;
     if (setsWon.player1 === 1 && setsWon.player2 === 1 && state.sets.length === 2) {
       return true;

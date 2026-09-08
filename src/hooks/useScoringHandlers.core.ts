@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import type { ScoringHandlersContext } from "./useScoringHandlers.types";
 import { createServerHelpersService } from "./useScoringHandlers.server-helpers.service";
 import { createModalHandlersService } from "./useScoringHandlers.modals.service";
@@ -53,6 +53,8 @@ export function useScoringCore(ctx: ScoringHandlersContext) {
 
   // ─── Core point processing ─────────────────────────────────────────────────
 
+  const lastPointLogIdRef = useRef<string | null>(null);
+
   const processPoint = useMemo(
     () => createPointProcessor({
       engineRef,
@@ -68,9 +70,10 @@ export function useScoringCore(ctx: ScoringHandlersContext) {
       setError,
       setMatch: (update) => setMatch(update),
       fetchMatch,
+      lastPointLogIdRef,
     }),
     [engineRef, match, isProcessingRef, isOnline, enqueue, pointSync, pointSequenceRef, setScoreState, setPointsHistory, setShowFinishedBanner, setError, setMatch, fetchMatch],
   );
 
-  return { fetchMatch, persistState, serverHelpers, modalService, processPoint };
+  return { fetchMatch, persistState, serverHelpers, modalService, processPoint, lastPointLogIdRef };
 }

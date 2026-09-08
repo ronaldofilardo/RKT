@@ -21,7 +21,7 @@ export function useScoringHandlersController(ctx: ScoringHandlersContext) {
     };
   }, [debounceTimerRef, isProcessingRef]);
 
-  const { fetchMatch, persistState, serverHelpers, modalService, processPoint } = useScoringCore(ctx);
+  const { fetchMatch, persistState, serverHelpers, modalService, processPoint, lastPointLogIdRef } = useScoringCore(ctx);
 
   const handleSetupConfirm = useMemo(
     () => createSetupHandler({ matchId, match, tokenRef, setSetupLoading, close, fetchMatch, setError }),
@@ -37,6 +37,10 @@ export function useScoringHandlersController(ctx: ScoringHandlersContext) {
     persistState,
     closeAll,
     onUndoComplete,
+    matchId,
+    tokenRef,
+    pointSequenceRef: ctx.pointSequenceRef,
+    lastPointLogIdRef,
   });
 
   const handleCancelSecondServe = useCallback(() => {

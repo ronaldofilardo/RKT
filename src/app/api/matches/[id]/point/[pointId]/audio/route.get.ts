@@ -13,7 +13,7 @@ export async function handleGetAudio(
       const { id, pointId } = await params;
 
       const pointLog = await prisma.pointLog.findFirst({
-        where: { id: pointId, matchId: id },
+        where: { id: pointId, matchId: id, voidedAt: null },
         select: { audioNote: true, audioNoteMime: true, audioNoteDuration: true },
       });
 

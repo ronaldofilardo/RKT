@@ -3,6 +3,7 @@ import { logger } from '@/lib/logger';
 import { withRLSHandler, getRLSUser } from '@/lib/auth';
 import { finishMatch } from '@/services/matchService';
 import { FinishMatchInputSchema } from '@/schemas/contracts';
+import { emitMatchEvent } from '@/lib/match-events';
 
 export async function POST(
   request: NextRequest,
@@ -49,6 +50,8 @@ export async function POST(
         const status = result.error === 'VERSION_CONFLICT' ? 409 : 422;
         return NextResponse.json({ error: result.error }, { status });
       }
+
+      emitMatchEvent(id, 'state_changed', { action: 'match_finished', scoreState: parsed.data.scoreState });
 
       return NextResponse.json(result);
     } catch (error) {

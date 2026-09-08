@@ -151,12 +151,11 @@ describe('useScoringHandlers - handleServeErrorConfirm', () => {
       expect(closeAll).toHaveBeenCalled();
     });
 
-    it('deve chamar closeAll() quando serveStep é "second" (double fault)', () => {
+    it('deve chamar closeAll() quando serveStep é "second" (double fault)', async () => {
       const handleServeErrorClose = jest.fn();
       const handleFirstServeErrorClear = jest.fn();
       const setServeStep = jest.fn();
       const closeAll = jest.fn();
-      const processPoint = jest.fn().mockResolvedValue(undefined);
 
       const ctx = createMockContext({
         serveErrorState: {
@@ -175,7 +174,6 @@ describe('useScoringHandlers - handleServeErrorConfirm', () => {
         handleFirstServeErrorClear,
         setServeStep,
         closeAll,
-        processPoint,
       });
 
       const { result } = renderHook(() => useScoringHandlers(ctx));
@@ -187,7 +185,7 @@ describe('useScoringHandlers - handleServeErrorConfirm', () => {
 
       expect(closeAll).toHaveBeenCalled();
 
-      act(() => {
+      await act(async () => {
         jest.runAllTimers();
       });
 

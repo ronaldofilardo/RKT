@@ -59,18 +59,17 @@ export function shouldStartTiebreak(set: SetScore, state: ScoringState, config: 
   }
 
   if (config.format === 'BEST_OF_5') {
-    const setsWon = state.setsWon;
-    if (setsWon.player1 === 2 && setsWon.player2 === 2) {
-      return false;
-    }
+    // 5º set decisivo (2x2 em sets): joga games normais até 6x6, e SÓ ENTÃO
+    // inicia o tie-break — que processTiebreakPoint trata como Match Tiebreak
+    // de 10 pontos por já checar state.sets.length === 5. Antes retornava
+    // false aqui, o que impedia o tie-break de começar em 6x6 no 5º set,
+    // deixando o set seguir por vantagem indefinidamente (regra errada).
     return set.player1 === 6 && set.player2 === 6;
   }
 
   if (config.format === 'BEST_OF_3') {
-    const setsWon = state.setsWon;
-    if (state.sets.length >= 2 && setsWon.player1 === 1 && setsWon.player2 === 1) {
-      return false;
-    }
+    // BEST_OF_3 (com vantagem, sem Match Tiebreak) usa tie-break normal em
+    // TODOS os sets, incluindo o 3º/decisivo — não há MT para substituí-lo.
     return set.player1 === 6 && set.player2 === 6;
   }
 

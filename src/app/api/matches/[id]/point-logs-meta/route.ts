@@ -13,7 +13,7 @@ export async function GET(
       const { id } = await params;
 
       const pointLogs = await prisma.pointLog.findMany({
-        where: { matchId: id },
+        where: { matchId: id, voidedAt: null },
         select: {
           id: true,
           audioNote: true,

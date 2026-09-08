@@ -60,14 +60,12 @@ export function EditScoreModal({
     setState,
     confirmError,
     floorValidationError,
-    isFinishingMatch,
     calculations,
     handleGameInputChange,
     handleConfirm,
     handleCancel,
     handlePointsChange,
     handleEditCompletedSet,
-    handleFinishMatch,
     handleConfirmSet,
     canConfirmSet,
   } = useEditScoreModal(
@@ -223,42 +221,29 @@ export function EditScoreModal({
         </div>
 
         <div className="px-6 py-4 border-t border-gray-200 flex gap-3">
-          {isFinishingMatch ? (
-            <>
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleFinishMatch}
-                className="flex-1 px-4 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm"
-              >
-                Registrar encerramento
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirm}
-                disabled={!canConfirm || !!confirmError || !!floorValidationError}
-                className="flex-1 px-4 py-2.5 bg-sky-600 text-white font-medium rounded-lg hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
-              >
-                Confirmar
-              </button>
-            </>
-          )}
+          {/*
+            Bug (2026-09-07) — CRÍTICO: removido o fluxo de dois estágios
+            (botão "Registrar encerramento" exibido após isFinishingMatch).
+            handleConfirm já finaliza a partida (onConfirm + onMatchFinished)
+            em uma única chamada quando o set encerra a partida — manter um
+            segundo botão que repetia essas mesmas chamadas arriscava duplo
+            processamento (persistência/finalização duplicada no backend).
+          */}
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={!canConfirm || !!confirmError || !!floorValidationError}
+            className="flex-1 px-4 py-2.5 bg-sky-600 text-white font-medium rounded-lg hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+          >
+            Confirmar
+          </button>
         </div>
       </div>
     </div>

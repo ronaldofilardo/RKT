@@ -19,7 +19,7 @@ export async function handlePostAudio(
       const { file, rawMime, durationMs } = validation;
 
       const pointLog = await prisma.pointLog.findFirst({
-        where: { id: pointId, matchId: id },
+        where: { id: pointId, matchId: id, voidedAt: null },
         select: { id: true },
       });
 

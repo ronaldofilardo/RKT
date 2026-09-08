@@ -2,7 +2,7 @@
 import { logger } from "@/lib/logger";
 import { TIMEOUTS } from "@/lib/constants";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { ScoringEngine } from "@/core/scoring/engine";
 import type {
   ScoringState,
@@ -199,6 +199,9 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
   const modalService = createModalHandlersService({ serveErrorState, open });
   const pointSync = createPointSyncService({ matchId, match, tokenRef, pointSequenceRef, setError });
 
+  // ─── Track last pointLogId for undo voiding ────────────────────────────────
+  const lastPointLogIdRef = useRef<string | null>(null);
+
   // ─── Core point processing ─────────────────────────────────────────────────
 
   const processPoint = useCallback(
@@ -267,6 +270,10 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
               setMatch((prev) =>
                 prev ? { ...prev, version: result.serverResponse!.version } : prev,
               );
+            }
+
+            if (result.serverResponse.pointLogId) {
+              lastPointLogIdRef.current = result.serverResponse.pointLogId;
             }
 
             return result.serverResponse.pointLogId;
@@ -350,6 +357,17 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       const newState = engineRef.current.getState() as ScoringState;
       setScoreState(newState);
       setPointsHistory((prev) => prev.slice(0, -1));
+
+      const pointLogIdToVoid = lastPointLogIdRef.current;
+      if (pointLogIdToVoid) {
+        lastPointLogIdRef.current = null;
+        pointSequenceRef.current = Math.max(0, pointSequenceRef.current - 1);
+        fetch(`/api/matches/${matchId}/point/${pointLogIdToVoid}`, {
+          method: "DELETE",
+          headers: { authorization: `Bearer ${tokenRef.current}` },
+        }).catch((err) => logger.warn("[handleUndo] failed to void PointLog:", err));
+      }
+
       const result = await persistState(newState, "undo");
       if (result.success) {
         closeAll();
@@ -373,6 +391,9 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     setScoreState,
     setPointsHistory,
     onUndoComplete,
+    matchId,
+    tokenRef,
+    pointSequenceRef,
   ]);
 
   const handleRedo = useCallback(async () => {

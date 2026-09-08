@@ -126,7 +126,7 @@ function isWinner(p: TimelinePoint, playerIndex: 1 | 2): boolean {
 // ─── Serve Stats ─────────────────────────────────────────────────────────────
 
 function computeServeStats(points: TimelinePoint[], playerIndex: 1 | 2): ServeStats {
-  const servicePoints = points.filter(p => isServer(p, playerIndex));
+  const servicePoints = points.filter(p => isServer(p, playerIndex) && p.type !== 'FAULT_FIRST');
   const totalPoints = servicePoints.length;
 
   const firstServeIn = servicePoints.filter(p => p.isFirstServe && p.type !== 'FAULT_FIRST').length;
@@ -222,7 +222,7 @@ function computeServiceGames(points: TimelinePoint[], playerIndex: 1 | 2): Array
 // ─── Return Stats ────────────────────────────────────────────────────────────
 
 function computeReturnStats(points: TimelinePoint[], playerIndex: 1 | 2): ReturnStats {
-  const returnPoints = points.filter(p => !isServer(p, playerIndex));
+  const returnPoints = points.filter(p => !isServer(p, playerIndex) && p.type !== 'FAULT_FIRST');
   const totalPoints = returnPoints.length;
 
   const firstServeReturns = returnPoints.filter(p => p.isFirstServe);

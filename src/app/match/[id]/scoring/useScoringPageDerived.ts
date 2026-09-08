@@ -9,6 +9,7 @@ import {
   checkSetPoint,
   checkBreakPoint,
   isSetCompleted,
+  isMatchTiebreakSetIndex,
 } from "./scoringHelpers";
 
 export interface ScoringPageDerived {
@@ -60,7 +61,21 @@ export function useScoringPageDerived(
   const isTiebreak = effectiveScoreState
     ? (effectiveScoreState.sets[effectiveScoreState.sets.length - 1]?.isTiebreak ?? false)
     : false;
-  const isSuperTiebreak = match?.format === "MATCH_TB_10";
+  // Um "Super Tie-Break" (Match Tiebreak de 10 pontos) acontece não só no
+  // formato MATCH_TB_10 (partida inteira em 1 set), mas também:
+  // - no 5º set decisivo do BEST_OF_5 (Grand Slam), após 6x6 em games;
+  // - no 3º set "no lugar do set decisivo" de BEST_OF_3_MATCH_TB,
+  //   BEST_OF_3_NO_AD e SHORT_SET_2V2_NO_AD (1x1 em sets).
+  // Antes, isSuperTiebreak só considerava MATCH_TB_10, então esses outros
+  // formatos mostravam o badge genérico "Tie-Break!" (7 pontos) mesmo
+  // durante um desempate de 10 pontos que decide a partida.
+  const isSuperTiebreak = isTiebreak && !!effectiveScoreState
+    ? isMatchTiebreakSetIndex(
+        match?.format as TennisFormat | undefined,
+        effectiveScoreState.sets.length - 1,
+        effectiveScoreState.setsWon,
+      )
+    : false;
   const isFinished = effectiveScoreState?.isFinished ?? false;
   const winner = effectiveScoreState?.winner ?? null;
   const canUndo = engineRef.current

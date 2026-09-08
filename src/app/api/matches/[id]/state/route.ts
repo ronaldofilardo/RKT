@@ -4,6 +4,7 @@ import { MatchStateInputSchema } from '@/schemas/contracts';
 import { withRLSHandler, getRLSUser } from '@/lib/auth';
 import { transitionMatchState } from '@/services/matchService';
 import { prisma } from '@/lib/prisma';
+import { emitMatchEvent } from '@/lib/match-events';
 
 export async function PATCH(
   request: NextRequest,
@@ -58,6 +59,8 @@ export async function PATCH(
         }
         return NextResponse.json({ error: result.error }, { status: status });
       }
+
+      emitMatchEvent(id, 'state_changed', { action: 'state_patch', scoreState: parsed.data.scoreState });
 
       return NextResponse.json({
         ...result,

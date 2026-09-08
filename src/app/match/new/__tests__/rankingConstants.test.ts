@@ -12,7 +12,7 @@ import {
   isYouthCategory,
   YOUTH_CATEGORIES,
   HIGHER_CATEGORY,
-} from '../rankingConstants';
+} from '@/lib/ranking/rankingConstants';
 
 describe('rankingConstants - caracterização', () => {
   describe('getCategoriesForAge (comportamento atual)', () => {

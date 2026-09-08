@@ -80,7 +80,7 @@ export function PointDetailsModal({
     return () => document.removeEventListener('keydown', handleKey);
   }, [mounted]);
 
-  const canConfirm = form.golpe != null;
+  const canConfirm = form.situacao != null && form.tipo != null && form.golpe != null;
 
   const handleConfirm = useCallback(() => {
     if (!form.situacao || !form.tipo || !form.golpe) return;

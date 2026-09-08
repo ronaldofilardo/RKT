@@ -211,48 +211,51 @@ function SetBreakdownSection({ stats, player1Name, player2Name }: Props) {
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
-            <tr className="border-b border-gray-200">
-              <th className="text-left py-1 px-2">Set</th>
-              <th className="text-center py-1 px-2">{player1Name}</th>
-              <th className="text-center py-1 px-2">{player2Name}</th>
-              <th className="text-center py-1 px-2">Pontos</th>
-              <th className="text-center py-1 px-2">Aces</th>
-              <th className="text-center py-1 px-2">Winners</th>
-              <th className="text-center py-1 px-2">Erros</th>
-              <th className="text-center py-1 px-2">Duração</th>
+            <tr className="border-b-2 border-gray-300">
+              <th className="text-left py-2 px-2 font-bold text-gray-700">Set</th>
+              <th className="text-center py-2 px-2 font-bold text-blue-700">{player1Name}</th>
+              <th className="text-center py-2 px-2 font-bold text-red-700">{player2Name}</th>
+              <th className="text-center py-2 px-2 font-bold text-gray-700">Pontos</th>
+              <th className="text-center py-2 px-2 font-bold text-gray-700">Aces</th>
+              <th className="text-center py-2 px-2 font-bold text-gray-700">Winners</th>
+              <th className="text-center py-2 px-2 font-bold text-gray-700">Erros</th>
+              <th className="text-center py-2 px-2 font-bold text-gray-700">Duração</th>
             </tr>
           </thead>
           <tbody>
             {stats.setBreakdown.map(set => (
-              <tr key={set.setNumber} className="border-b border-gray-50 hover:bg-gray-50">
-                <td className="py-1 px-2 font-semibold">
+              <tr key={set.setNumber} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                <td className="py-2 px-2 font-bold text-gray-800">
                   Set {set.setNumber}
-                  {set.isTiebreak && <span className="text-amber-600 ml-1">TB</span>}
+                  {set.isTiebreak && <span className="text-amber-600 ml-1 font-bold">TB</span>}
                 </td>
-                <td className="text-center py-1 px-2 text-blue-700 font-mono">
+                <td className="text-center py-2 px-2 text-blue-700 font-mono font-bold text-sm">
                   {set.p1Games}x{set.p2Games}
                 </td>
-                <td className="text-center py-1 px-2 font-mono">
+                <td className="text-center py-2 px-2 font-mono font-bold text-sm">
                   {set.p1Games}x{set.p2Games}
                 </td>
-                <td className="text-center py-1 px-2 text-blue-700">{set.p1Points}</td>
-                <td className="text-center py-1 px-2 text-red-700">{set.p2Points}</td>
-                <td className="text-center py-1 px-2">
-                  <span className="text-blue-600">{set.p1Aces}</span>
-                  <span className="text-gray-400 mx-0.5">/</span>
-                  <span className="text-red-600">{set.p2Aces}</span>
+                <td className="text-center py-2 px-2">
+                  <span className="text-blue-700 font-bold">{set.p1Points}</span>
+                  <span className="text-gray-400 mx-1">/</span>
+                  <span className="text-red-700 font-bold">{set.p2Points}</span>
                 </td>
-                <td className="text-center py-1 px-2">
-                  <span className="text-blue-600">{set.p1Winners}</span>
-                  <span className="text-gray-400 mx-0.5">/</span>
-                  <span className="text-red-600">{set.p2Winners}</span>
+                <td className="text-center py-2 px-2">
+                  <span className="text-blue-600 font-bold">{set.p1Aces}</span>
+                  <span className="text-gray-400 mx-1">/</span>
+                  <span className="text-red-600 font-bold">{set.p2Aces}</span>
                 </td>
-                <td className="text-center py-1 px-2">
-                  <span className="text-blue-600">{set.p1Errors}</span>
-                  <span className="text-gray-400 mx-0.5">/</span>
-                  <span className="text-red-600">{set.p2Errors}</span>
+                <td className="text-center py-2 px-2">
+                  <span className="text-blue-600 font-bold">{set.p1Winners}</span>
+                  <span className="text-gray-400 mx-1">/</span>
+                  <span className="text-red-600 font-bold">{set.p2Winners}</span>
                 </td>
-                <td className="text-center py-1 px-2 text-gray-500">
+                <td className="text-center py-2 px-2">
+                  <span className="text-blue-600 font-bold">{set.p1Errors}</span>
+                  <span className="text-gray-400 mx-1">/</span>
+                  <span className="text-red-600 font-bold">{set.p2Errors}</span>
+                </td>
+                <td className="text-center py-2 px-2 text-gray-700 font-mono font-bold">
                   {set.duration != null ? `${set.duration}min` : '–'}
                 </td>
               </tr>

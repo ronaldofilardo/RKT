@@ -160,7 +160,12 @@ export function SetInputForm({
           onChange={(e) => onP1InputChange(e.target.value)}
           placeholder="0"
           ref={p1InputRef}
-          max={isMatchTiebreakSet ? 30 : (matchFormat === 'PRO_SET_8' ? 9 : 7)}
+          // Bug (2026-09-07) — MÉDIO: getMaxValidGames() (editScoreHelpers.ts)
+          // permite até 10 games em PRO_SET_8 (tiebreakAt=9, cap=tiebreakAt+1),
+          // pois um set pode terminar 10x9 via tiebreak. O atributo HTML
+          // `max` estava travado em 9, o que em alguns navegadores impede o
+          // usuário de digitar/incrementar até 10.
+          max={isMatchTiebreakSet ? 30 : (matchFormat === 'PRO_SET_8' ? 10 : 7)}
         />
         <span className="text-gray-500 text-xs">×</span>
         <input
@@ -173,7 +178,7 @@ export function SetInputForm({
           value={p2Input}
           onChange={(e) => onP2InputChange(e.target.value)}
           placeholder="0"
-          max={isMatchTiebreakSet ? 30 : (matchFormat === 'PRO_SET_8' ? 9 : 7)}
+          max={isMatchTiebreakSet ? 30 : (matchFormat === 'PRO_SET_8' ? 10 : 7)}
         />
         <span className="text-xs text-gray-400 w-16 truncate text-right">
           {playerNames.p2}

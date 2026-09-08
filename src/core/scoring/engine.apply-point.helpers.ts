@@ -18,7 +18,10 @@ function getPointTiming(flow: PointFlow) {
 }
 
 function getRallyData(flow: PointFlow) {
-  return { rallyDetails: flow.rallyDetails ?? null, rallyLength: flow.rallyLength ?? 0, firstFaultDetail: flow.firstFaultDetail ?? null };
+  const isServeFinish = flow.type === 'ACE' || flow.type === 'DOUBLE_FAULT';
+  const isDevolucao = flow.rallyDetails?.situacao === 'devolucao';
+  const autoRallyLength = flow.rallyLength ?? (isServeFinish ? 1 : isDevolucao ? 2 : 0);
+  return { rallyDetails: flow.rallyDetails ?? null, rallyLength: autoRallyLength, firstFaultDetail: flow.firstFaultDetail ?? null };
 }
 
 export function createPointDetails(flow: PointFlow): PointDetails {

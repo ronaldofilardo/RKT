@@ -92,7 +92,15 @@ export async function POST(
           throw new TransactionError('Defina o primeiro sacador antes de pontuar', 422, 'MATCH_NOT_STARTED');
         }
 
-                const pointLogCount = await tx.pointLog.count({ where: { matchId: id } });
+        if (parsed.data.type === 'DOUBLE_FAULT' && parsed.data.winnerId === parsed.data.serverId) {
+          throw new TransactionError(
+            'Em um double fault, o vencedor do ponto deve ser o receptor, não o sacador',
+            400,
+            'DF_WINNER_MUST_BE_RECEIVER'
+          );
+        }
+
+                const pointLogCount = await tx.pointLog.count({ where: { matchId: id, voidedAt: null } });
         const nextSequenceNumber = pointLogCount + 1;
         if (parsed.data.sequenceNumber !== undefined) {
           if (parsed.data.sequenceNumber !== nextSequenceNumber) {
@@ -173,12 +181,19 @@ export async function POST(
         };
 
         logger.point.updatingMatch({ version: match.version, isFinished: isMatchFinished });
+        const finishData = isMatchFinished
+          ? {
+              state: 'FINISHED' as const,
+              finishedAt: new Date(),
+              winnerId: newState.winner === 'player1' ? match.player1Id : match.player2Id,
+            }
+          : {};
         await tx.match.update({
           where: { id, version: expectedVersion },
           data: {
             scoreState: snapshot as any,
             version: { increment: 1 },
-            ...(isMatchFinished ? { state: 'FINISHED', finishedAt: new Date() } : {}),
+            ...finishData,
           },
         });
 

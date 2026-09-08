@@ -16,7 +16,8 @@ export async function fetchMatchSequence(matchId: string, accessToken: string): 
     });
     if (!response.ok) return 0;
     const matchData = await response.json();
-    return matchData.version || 0;
+    const pointCount = matchData._count?.pointLog;
+    return typeof pointCount === 'number' ? pointCount : (matchData.version || 0);
   } catch (err) {
     logger.error('[flush] Failed to fetch match sequence:', err);
     return 0;

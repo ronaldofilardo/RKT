@@ -9,11 +9,12 @@ import {
   createInitialEditScoreState,
   createSetEditData,
   calculateNextServer,
+  getEffectiveSetWinner,
 } from "./edit-score-logic";
 import { parsePointValue, pointToProgress } from "@/core/scoring/point-utils";
 import { SCORING_LIMITS } from "@/lib/constants";
 import { useEditScoreCalculator } from "./use-edit-score-calculator";
-import { getFinalSets, getFloorError, getFreshFloorError, getCompletedSets } from "./useEditScoreModal.confirm.helpers";
+import { getFloorError, getFreshFloorError, getCompletedSets, toCompletedSetsForServer } from "./useEditScoreModal.confirm.helpers";
 
 interface EditScoreModalState {
   p1Input: string;
@@ -52,7 +53,6 @@ interface UseEditScoreModalReturn {
   setState: React.Dispatch<React.SetStateAction<EditScoreModalState>>;
   confirmError: string | null;
   floorValidationError: string | null;
-  isFinishingMatch: boolean;
   calculations: any;
   handleGameInputChange: (value: string, setter: (v: string) => void, player: 'p1' | 'p2', otherInput?: string) => void;
   handleConfirm: () => Promise<void>;
@@ -62,7 +62,6 @@ interface UseEditScoreModalReturn {
   canConfirmSet: boolean;
   handlePointsChange: (p1: string, p2: string) => void;
   handleEditCompletedSet: (index: number, p1Games: number, p2Games: number) => void;
-  handleFinishMatch: () => void;
   resetState: () => void;
 }
 
@@ -98,7 +97,6 @@ export function useEditScoreModal(
   });
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [floorValidationError, setFloorValidationError] = useState<string | null>(null);
-  const [isFinishingMatch, setIsFinishingMatch] = useState(false);
 
   const initializedRef = useRef(false);
   const initialGameRef = useRef<{ player1: string; player2: string } | null>(null);
@@ -110,6 +108,12 @@ export function useEditScoreModal(
   // Track the serialized content of completedSets so we don't reset state
   // when only the array identity changes (but content stays the same).
   const lastCompletedSetsKeyRef = useRef<string>("");
+  // Bug (2026-09-07): indices of completed sets the user has manually edited
+  // via handleEditCompletedSet. Used below to avoid silently discarding an
+  // in-progress edit when the parent pushes a `completedSets` update (e.g.
+  // a live socket update from another device annotating the same match)
+  // while the modal is open.
+  const editedCompletedSetIndicesRef = useRef<Set<number>>(new Set());
 
   const calculations = useEditScoreCalculator({
     matchFormat,
@@ -152,20 +156,31 @@ export function useEditScoreModal(
       setFloorValidationError(null);
       initializedRef.current = false;
       initialGameRef.current = null;
-      setIsFinishingMatch(false);
       inputTouchedRef.current = { p1: false, p2: false };
       lastCompletedSetsKeyRef.current = completedSetsKey;
+      editedCompletedSetIndicesRef.current = new Set();
     } else if (isOpen && completedSetsChanged) {
       // Only the completed sets changed (new set added externally); sync the
       // editableCompletedSets without wiping the user's input/points/newSets.
+      // Bug (2026-09-07): if the user has already edited one or more
+      // completed sets in this session (handleEditCompletedSet), preserve
+      // those local edits instead of overwriting them with the incoming
+      // prop values — otherwise an external update arriving mid-edit
+      // (e.g. another device/socket) silently discards the user's
+      // in-progress correction.
       setState(prev => ({
         ...prev,
-        editableCompletedSets: completedSets.map((cs) => ({
-          p1Games: cs.games.player1,
-          p2Games: cs.games.player2,
-          isPartial: false,
-          tiebreakScore: cs.tiebreakScore,
-        })),
+        editableCompletedSets: completedSets.map((cs, index) => {
+          if (editedCompletedSetIndicesRef.current.has(index) && prev.editableCompletedSets[index]) {
+            return prev.editableCompletedSets[index];
+          }
+          return {
+            p1Games: cs.games.player1,
+            p2Games: cs.games.player2,
+            isPartial: false,
+            tiebreakScore: cs.tiebreakScore,
+          };
+        }),
       }));
       setConfirmError(null);
       setFloorValidationError(null);
@@ -173,7 +188,6 @@ export function useEditScoreModal(
     } else if (!isOpen) {
       initializedRef.current = false;
       initialGameRef.current = null;
-      setIsFinishingMatch(false);
       inputTouchedRef.current = { p1: false, p2: false };
     }
 
@@ -249,7 +263,6 @@ export function useEditScoreModal(
   }, [matchFormat, isMatchTiebreakSet]);
 
   const handleConfirm = useCallback(async () => {
-    if (isFinishingMatch) return;
     setConfirmError(null);
 
     if (tiebreakImpossible) {
@@ -262,9 +275,30 @@ export function useEditScoreModal(
     // the modal exists to edit the score, so confirming must not require a
     // new unfinished set.
     const scoresAreZero = bothFilled && p1Val === 0 && p2Val === 0;
-    const existingSets = [...getCompletedSets(state, completedSets), ...state.newSets];
+    const existingSets = [...getCompletedSets(state, completedSets, matchFormat), ...state.newSets];
     if ((!bothFilled || scoresAreZero) && existingSets.length > 0) {
-      onConfirm(existingSets, currentServer);
+      // Bug (2026-09-07): recalcular o sacador a partir do placar EDITADO
+      // (existingSets, que já reflete correções feitas via
+      // handleEditCompletedSet) em vez de repassar `currentServer` sem
+      // ajuste. Sem isso, corrigir o placar de um set já concluído (sem
+      // adicionar um set novo) salva o placar certo mas mantém o sacador
+      // calculado para o placar antigo, que pode estar errado se a
+      // correção mudou a paridade de games da partida.
+      const lastExistingSet = existingSets[existingSets.length - 1];
+      const priorExistingSets = existingSets.slice(0, -1).map((s) => ({
+        games: { player1: s.p1Games, player2: s.p2Games } as Record<'player1' | 'player2', number>,
+        winner: (s.p1Games > s.p2Games ? 'player1' : 'player2') as 'player1' | 'player2',
+        ...(s.tiebreakScore ? { tiebreakScore: s.tiebreakScore } : {}),
+      }));
+      const recalculatedServer = calculateNextServer({
+        currentServer,
+        p1Games: lastExistingSet.p1Games,
+        p2Games: lastExistingSet.p2Games,
+        matchFormat,
+        tiebreakScore: lastExistingSet.tiebreakScore ?? null,
+        completedSets: priorExistingSets,
+      });
+      onConfirm(existingSets, recalculatedServer || currentServer);
       return;
     }
 
@@ -291,7 +325,16 @@ export function useEditScoreModal(
       return;
     }
 
-    if (bothFilled && hasTiebreak && isSetTrulyCompleted && tiebreakComplete) {
+    // Bug (2026-09-07) — CRÍTICO: esta checagem só faz sentido quando o
+    // placar de games (p1Val/p2Val) já define um vencedor por si só (ex.:
+    // 7-6 digitado diretamente). No fluxo normal de um set decidido em
+    // 6-6 + tiebreak, p1Val === p2Val === 6 — não há "vencedor pelos games"
+    // para comparar. Antes, `setWinner = p1Val > p2Val ? ... : "player2"`
+    // resolvia SEMPRE para "player2" nesse caso (6 não é maior que 6),
+    // então sempre que o player1 vencia o tiebreak decisivo, esta
+    // validação disparava um erro falso e bloqueava a confirmação do set
+    // (e, se fosse o set da partida, o encerramento da partida inteiro).
+    if (bothFilled && hasTiebreak && isSetTrulyCompleted && tiebreakComplete && p1Val !== p2Val) {
       const setWinner = p1Val > p2Val ? "player1" : "player2";
       const tiebreakWinner = tiebreakP1Num > tiebreakP2Num ? "player1" : "player2";
       if (setWinner !== tiebreakWinner) {
@@ -330,8 +373,13 @@ export function useEditScoreModal(
       p2Points: state.p2Points, currentSets, matchFormat,
     });
 
+    // Bug (2026-09-07): usar toCompletedSetsForServer (que honra
+    // state.editableCompletedSets) em vez da prop `completedSets` crua —
+    // caso contrário, corrigir o placar de um set já concluído e depois
+    // confirmar um set novo salva o placar certo mas calcula o sacador com
+    // base no set NÃO editado.
     const allCompletedSetsForServer: CompletedSet[] = [
-      ...(completedSets as CompletedSet[]),
+      ...toCompletedSetsForServer(state, completedSets, matchFormat),
       ...state.newSets.map((ns) => ({
         games: { player1: ns.p1Games, player2: ns.p2Games } as Record<'player1' | 'player2', number>,
         winner: (ns.p1Games > ns.p2Games ? 'player1' : 'player2') as 'player1' | 'player2',
@@ -348,17 +396,26 @@ export function useEditScoreModal(
     });
     nextServer = nextServer || currentServer;
 
-    if (matchWouldEnd && isSetTrulyCompleted) {
-      setIsFinishingMatch(true);
-    }
-
-    // Build finalSets including the current set being confirmed
+    // Bug (2026-09-07) — CRÍTICO: handleConfirm já dispara onConfirm +
+    // onMatchFinished de uma vez só quando o set atual encerra a partida.
+    // Antes, o código também setava `isFinishingMatch(true)`, o que trocava
+    // o rodapé do modal para o botão "Registrar encerramento"
+    // (handleFinishMatch) — que, se clicado, disparava onConfirm +
+    // onMatchFinished NOVAMENTE (duplo processamento / possível
+    // persistência ou finalização duplicada no backend). Como este bloco já
+    // finaliza a partida por completo em uma única chamada, o fluxo de
+    // segunda etapa foi removido (ver também EditScoreModal.tsx).
     const allNewSetsForConfirm = [...state.newSets, setData];
-    const allSets = [...getCompletedSets(state, completedSets), ...allNewSetsForConfirm];
+    const allSets = [...getCompletedSets(state, completedSets, matchFormat), ...allNewSetsForConfirm];
     onConfirm(allSets, nextServer);
 
     if (matchWouldEnd && isSetTrulyCompleted && onMatchFinished) {
-      const winner = p1Val > p2Val ? "player1" : "player2";
+      // Bug (2026-09-07) — CRÍTICO: `p1Val > p2Val` resolve incorretamente
+      // para "player2" quando o set termina 6-6 + tiebreak (p1Val===p2Val),
+      // atribuindo a vitória da partida ao jogador errado sempre que o
+      // player1 vencia o tiebreak decisivo. Usar getEffectiveSetWinner, que
+      // consulta o placar do tiebreak quando os games estão empatados.
+      const winner = getEffectiveSetWinner(validation) ?? (p1Val > p2Val ? "player1" : "player2");
       onMatchFinished(winner);
     }
 
@@ -379,7 +436,7 @@ export function useEditScoreModal(
     floorValidationError, validation, partial, hasTiebreak, tiebreakComplete, tiebreakImpossible,
     tiebreakP1Num, tiebreakP2Num, matchWouldEnd, currentServer,
     state, completedSets, matchFormat,
-    isFinishingMatch, bothFilled, isMatchTiebreakSet, isPotentialMTSet,
+    bothFilled, isMatchTiebreakSet, isPotentialMTSet,
     onConfirm, onMatchFinished]);
 
   const handleCancel = useCallback(() => {
@@ -431,10 +488,12 @@ export function useEditScoreModal(
         p2Games,
         matchFormat,
         tiebreakScore: tiebreakForServer,
-        completedSets: completedSets as CompletedSet[],
+        // Bug (2026-09-07): idem handleConfirm — usar os sets já editados
+        // pelo usuário, não a prop crua.
+        completedSets: toCompletedSetsForServer(state, completedSets, matchFormat),
       }),
     }));
-  }, [canAddNextSet, state.p1Input, state.p2Input, state.tiebreakP1, state.tiebreakP2, currentServer, matchFormat, completedSets, isMatchTiebreakSet]);
+  }, [canAddNextSet, state, currentServer, matchFormat, completedSets, isMatchTiebreakSet]);
 
   const handlePointsChange = useCallback((p1: string, p2: string) => {
     setState(prev => ({ ...prev, p1Points: p1, p2Points: p2 }));
@@ -448,6 +507,7 @@ export function useEditScoreModal(
       setConfirmError(validation.error);
       return;
     }
+    editedCompletedSetIndicesRef.current.add(index);
     setState(prev => {
       const newEditable = [...prev.editableCompletedSets];
       if (newEditable[index]) {
@@ -492,45 +552,22 @@ export function useEditScoreModal(
     setConfirmError(null);
     setFloorValidationError(null);
     initializedRef.current = false;
-    setIsFinishingMatch(false);
   }, [currentServer, completedSets]);
 
-  const handleFinishMatch = useCallback(() => {
-    if (!isFinishingMatch) return;
-
-    const lastNewSet = state.newSets[state.newSets.length - 1];
-    const finalSets = getFinalSets({
-      state,
-      completedSets,
-      bothFilled: false,
-      p1Val: 0,
-      p2Val: 0,
-      isSetTrulyCompleted: false,
-      hasTiebreak: false,
-      tiebreakP1Num: 0,
-      tiebreakP2Num: 0,
-      isMatchTiebreakSet,
-      isPotentialMTSet,
-      currentSets,
-      createSetEditData,
-    });
-
-    const winner = lastNewSet && lastNewSet.p1Games > lastNewSet.p2Games ? 'player1' : 'player2';
-
-    onConfirm(finalSets, currentServer);
-
-    if (onMatchFinished) {
-      onMatchFinished(winner);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- createSetEditData is a stable module-level function, never changes between renders
-  }, [isFinishingMatch, completedSets, state, isMatchTiebreakSet, isPotentialMTSet, currentSets, onConfirm, currentServer, onMatchFinished]);
+  // Bug (2026-09-07) — CRÍTICO: o fluxo de segunda etapa (isFinishingMatch +
+  // handleFinishMatch + botão "Registrar encerramento") foi removido.
+  // handleConfirm já finaliza a partida completamente em uma única chamada
+  // (onConfirm + onMatchFinished) quando o set digitado encerra a partida;
+  // manter uma segunda etapa que repetia essas mesmas chamadas arriscava
+  // duplo processamento (persistência/finalização duplicada) caso o modal
+  // permanecesse aberto e o usuário clicasse em "Registrar encerramento"
+  // após o primeiro clique em "Confirmar" já ter concluído tudo.
 
 return {
     state,
     setState,
     confirmError,
     floorValidationError,
-    isFinishingMatch,
     calculations,
     handleGameInputChange,
     handleConfirm,
@@ -540,7 +577,6 @@ return {
     canConfirmSet: canConfirmSetCalc,
     handlePointsChange,
     handleEditCompletedSet,
-    handleFinishMatch,
     resetState,
   };
 }

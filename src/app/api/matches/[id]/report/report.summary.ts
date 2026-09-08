@@ -16,9 +16,9 @@ const emptyPlayerSummary = (): PlayerPointSummary => ({
 
 function incrementEvent(summary: PlayerPointSummary, point: TimelinePoint) {
   if (point.type === 'ACE') summary.aces += 1;
-  if (point.type === 'WINNER') summary.winners += 1;
-  if (point.type === 'FORCED_ERROR') summary.forcedErrors += 1;
-  if (point.type === 'UNFORCED_ERROR') summary.unforcedErrors += 1;
+  if (point.rallyDetails?.tipo === 'winner') summary.winners += 1;
+  if (point.rallyDetails?.tipo === 'erro_forcado') summary.forcedErrors += 1;
+  if (point.rallyDetails?.tipo === 'erro_nao_forcado') summary.unforcedErrors += 1;
   if (point.type === 'DOUBLE_FAULT') summary.doubleFaults += 1;
   if (point.isBreakPoint) summary.breakPoints += 1;
   if (point.isBreakPoint && point.winner === 'PLAYER_1') summary.breakPointsWon += 1;

@@ -35,7 +35,7 @@ export async function GET(
       const { id, pointId } = await params;
 
       const pointLog = await prisma.pointLog.findFirst({
-        where: { id: pointId, matchId: id },
+        where: { id: pointId, matchId: id, voidedAt: null },
         select: { audioNote: true, audioNoteMime: true, audioNoteDuration: true },
       });
 
@@ -126,7 +126,7 @@ export async function POST(
       }
 
       const pointLog = await prisma.pointLog.findFirst({
-        where: { id: pointId, matchId: id },
+        where: { id: pointId, matchId: id, voidedAt: null },
         select: { id: true },
       });
 
@@ -178,7 +178,7 @@ export async function DELETE(
       const { id, pointId } = await params;
 
       const pointLog = await prisma.pointLog.findFirst({
-        where: { id: pointId, matchId: id },
+        where: { id: pointId, matchId: id, voidedAt: null },
         select: { audioNote: true },
       });
 

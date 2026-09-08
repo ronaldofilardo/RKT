@@ -3,15 +3,16 @@ import { logger } from '@/lib/logger';
 import { withRLSHandler, getRLSUser } from '@/lib/auth';
 import type { Role } from '@/schemas/contracts';
 import type { TimelinePoint } from '@/core/scoring/types';
-import { getGameScoreLabel } from '@/components/scoring/timeline-utils';
 import {
   rebuildTimelineFromPointLogs,
   type PointLogRow,
 } from '@/components/scoring/timeline-rebuild';
 import { getMatch, findAbandonedSessionSnapshot, getMatchScoreEdits } from '@/services/matchService';
 import { prisma } from '@/lib/prisma';
-import type { ReportSummary, ReportIntegrity, PlayerPointSummary } from '@/core/report/report-types';
+import type { ReportSummary, PlayerPointSummary } from '@/core/report/report-types';
+import { buildReportIntegrity } from './report.integrity';
 import { computeAdvancedStats } from '@/core/report/compute-stats';
+import { addScoreEditBreaks } from './route.timeline.helpers';
 
 function buildPlayerSummary(
   points: TimelinePoint[],
@@ -70,65 +71,6 @@ function buildReportSummary(
   };
 }
 
-function buildReportIntegrity(
-  pointLogs: PointLogRow[],
-  timelinePoints: TimelinePoint[],
-): ReportIntegrity {
-  const warnings: string[] = [];
-  const missingSequence = pointLogs.filter((p, i) => {
-    if (p.sequenceNumber == null) return false;
-    return p.sequenceNumber !== i + 1;
-  }).length;
-
-  const withoutAnnotation = timelinePoints.filter(
-    p => !p.rallyDetails && !p.note && !p.hasAudioNote,
-  ).length;
-
-  if (missingSequence > 0) {
-    warnings.push(`${missingSequence} ponto(s) com sequência fora de ordem`);
-  }
-  if (withoutAnnotation > 0) {
-    warnings.push(`${withoutAnnotation} ponto(s) sem detalhes de anotação`);
-  }
-
-  return {
-    status: warnings.length === 0 ? 'OK' : missingSequence > 0 ? 'LEGACY_SEQUENCE' : 'INCOMPLETE_ANNOTATION',
-    pointLogCount: pointLogs.length,
-    timelinePointCount: timelinePoints.length,
-    missingSequenceCount: missingSequence,
-    pointsWithoutAnnotationDetails: withoutAnnotation,
-    warnings,
-  };
-}
-
-/**
- * Descreve um snapshot `{state, history}` (ou state puro) de forma legível
- * para exibir no marcador de interrupção do /report, ex.: "Set 2 · Game
- * 3x2 · 30x30". Best-effort: se o snapshot não tiver o formato esperado,
- * cai em um rótulo genérico em vez de quebrar o relatório.
- */
-function describeScoreSnapshotForDisplay(raw: unknown): string {
-  try {
-    const parsed = raw && typeof raw === 'object' && 'state' in (raw as any)
-      ? (raw as any).state
-      : raw;
-    const sets = parsed?.sets ?? [];
-    const setNumber = sets.length > 0 ? sets.length : 1;
-    const currentSet = sets[sets.length - 1];
-    const games = `${currentSet?.player1 ?? 0}x${currentSet?.player2 ?? 0}`;
-    const points = getGameScoreLabel(
-      parsed?.currentGame?.player1 ?? 0,
-      parsed?.currentGame?.player2 ?? 0,
-      parsed?.currentGame?.isDeuce,
-      parsed?.currentGame?.advantage,
-      currentSet?.isTiebreak,
-    );
-    return `Set ${setNumber} · Game ${games} · ${points}`;
-  } catch {
-    return '–';
-  }
-}
-
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -150,6 +92,10 @@ export async function GET(
         return NextResponse.json({ error: 'MATCH_NOT_FOUND' }, { status: 404 });
       }
 
+      if (match.state === 'CANCELLED') {
+        return NextResponse.json({ error: 'MATCH_CANCELLED', message: 'Partida cancelada ou removida' }, { status: 410 });
+      }
+
       const isPlayer = match.player1.id === user.id || match.player2.id === user.id;
       const isCreator = match.createdByUserId === user.id;
       if (!isPlayer && !isCreator && !isStaff) {
@@ -166,7 +112,7 @@ export async function GET(
       // para montar a timeline do relatório. Buscamos TODOS de uma vez,
       // em ordem cronológica.
       const pointLogs = await prisma.pointLog.findMany({
-        where: { matchId: id },
+        where: { matchId: id, voidedAt: null },
                 orderBy: [
           { sequenceNumber: 'asc' },
           { timestamp: 'asc' },
@@ -227,24 +173,7 @@ export async function GET(
       // correto, mostrando o que o placar era antes/depois da correção
       // manual, para dar contexto a quem está lendo o relatório.
       const scoreEdits = await getMatchScoreEdits(id);
-      if (scoreEdits.length > 0 && timelinePoints.length > 0) {
-        for (const edit of scoreEdits) {
-          const editTime = edit.editedAt.getTime();
-          // Primeiro ponto cujo timestamp de PointLog é POSTERIOR à
-          // edição — é ali que o aviso de interrupção deve aparecer.
-          const idx = pointLogs.findIndex(log => log.timestamp.getTime() > editTime);
-          if (idx !== -1 && timelinePoints[idx]) {
-            timelinePoints[idx] = {
-              ...timelinePoints[idx],
-              segmentBreak: {
-                editedAt: edit.editedAt.toISOString(),
-                previousLabel: describeScoreSnapshotForDisplay(edit.previousScoreState),
-                newLabel: describeScoreSnapshotForDisplay(edit.newScoreState),
-              },
-            };
-          }
-        }
-      }
+      timelinePoints = addScoreEditBreaks(timelinePoints, pointLogs, scoreEdits);
 
       // Snapshot "atual" devolvido no payload (usado pelo cliente para
       // continuar a anotação, se a partida ainda não tiver terminado).

@@ -23,6 +23,7 @@ type ProcessorDeps = {
   setError: (error: string | null) => void;
   setMatch: (update: (previous: MatchData | null) => MatchData | null) => void;
   fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
+  lastPointLogIdRef?: { current: string | null };
 };
 
 export function createPointProcessor(deps: ProcessorDeps) {
@@ -35,7 +36,13 @@ export function createPointProcessor(deps: ProcessorDeps) {
       const sequence = deps.pointSequenceRef.current;
       if (deps.isOnline) {
         const result = await deps.pointSync.syncPointToServer(flow, sequence);
-        if (result.success && result.serverResponse?.scoreState && deps.match) return reconcileServerState(result, deps.match, deps.engineRef, deps.setScoreState, deps.setMatch);
+        if (result.success && result.serverResponse?.scoreState && deps.match) {
+          const pointLogId = reconcileServerState(result, deps.match, deps.engineRef, deps.setScoreState, deps.setMatch);
+          if (pointLogId && deps.lastPointLogIdRef) {
+            deps.lastPointLogIdRef.current = pointLogId;
+          }
+          return pointLogId;
+        }
         if (result.needsResync) await deps.fetchMatch(true);
       } else {
         await deps.pointSync.queuePointForOffline(deps.enqueue, flow);

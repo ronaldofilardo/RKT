@@ -146,6 +146,15 @@ export function useEditScoreCalculator({
       return true;
     }
 
+    // Permitir confirmar ao retomar partida abandonada: quando o placar
+    // atual é 0x0 (set还没有 started) mas já existem pontos de game
+    // registrados (ex.: 30-30), o modal abre preenchido — habilitar
+    // confirmar para que o usuário possa voltar a anotar de onde parou.
+    const hasGamePoints = state.p1Points !== "0" || state.p2Points !== "0";
+    if (scoresAreZero && hasGamePoints) {
+      return true;
+    }
+
     // Precisa de ambos os inputs preenchidos
     if (!bothFilled) return false;
 
@@ -168,7 +177,7 @@ export function useEditScoreCalculator({
     }
 
     return true;
-  }, [validation, matchState, state.newSets.length, completedSets.length, tiebreakValidation]);
+  }, [validation, matchState, state.newSets.length, state.p1Points, state.p2Points, completedSets.length, tiebreakValidation]);
 
   const partial = validation.bothFilled && !validation.isSetTrulyCompleted;
 

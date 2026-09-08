@@ -2,7 +2,7 @@ import type { ScoringState } from "@/core/scoring/types";
 import { validateSetScore, getMatchFormatRules } from "@/lib/matchConfig";
 import type { TennisFormat } from "@/lib/matchConfig";
 
-function isMatchTiebreakSetIndex(format: TennisFormat | undefined, setIndex: number, setsWon?: { player1: number; player2: number }): boolean {
+export function isMatchTiebreakSetIndex(format: TennisFormat | undefined, setIndex: number, setsWon?: { player1: number; player2: number }): boolean {
   if (!format) return false;
   if (format === 'MATCH_TB_10') return true;
   if (format === 'BEST_OF_5' && setIndex === 4 && setsWon) {
