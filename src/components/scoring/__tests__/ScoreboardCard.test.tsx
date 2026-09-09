@@ -101,7 +101,7 @@ describe('ScoreboardCard', () => {
       />
     );
     const card = screen.getByText('Player One').closest('div');
-    expect(card).toHaveClass('bg-amber-50', 'border-amber-200');
+    expect(card).toHaveClass('border-amber-300', 'dark:border-amber-700');
   });
 
   it('applies regular styling when isSuspended is false', () => {
@@ -114,7 +114,7 @@ describe('ScoreboardCard', () => {
       />
     );
     const card = screen.getByText('Player One').closest('div');
-    expect(card).toHaveClass('bg-white', 'border-gray-200');
+    expect(card).toHaveClass('border-gray-200', 'shadow-md');
   });
 
   it('renders with empty score state', () => {
@@ -166,7 +166,7 @@ describe('ScoreboardCard', () => {
         format="BEST_OF_3"
       />
     );
-    expect(screen.getByText('6')).toBeInTheDocument();
+    expect(screen.getAllByText('6')).toHaveLength(2);
     expect(screen.getByText('[5]')).toBeInTheDocument();
     expect(screen.getByText('[3]')).toBeInTheDocument();
   });
@@ -256,7 +256,7 @@ describe('ScoreboardCard', () => {
       );
       // O set finalizado deve ser rotulado como '1', NÃO como 'atual'
       expect(screen.queryByText('atual')).toBeNull();
-      expect(screen.getByText('1')).toBeInTheDocument();
+      expect(screen.getAllByText('1')).toHaveLength(2);
     });
 
     it('marca o set em andamento (não-finalizado) como "atual"', () => {

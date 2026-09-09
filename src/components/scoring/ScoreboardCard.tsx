@@ -202,6 +202,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
               );
             })}
             <td className="text-center px-2 py-1.5 text-gray-400 dark:text-gray-500 font-mono text-[10px] bg-gray-50 dark:bg-gray-900 border-l border-white dark:border-gray-800">
+              {getSetsWon('player1')}-{getSetsWon('player2')}
             </td>
           </tr>
         </tfoot>

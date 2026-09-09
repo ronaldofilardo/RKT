@@ -10,7 +10,7 @@
  */
 import { useResumeSession } from "@/app/dashboard/dashboard.resume";
 
-function buildOptions() {
+function useBuildOptions() {
   const setSession = jest.fn();
   const setPendingEdit = jest.fn();
   const router = { push: jest.fn() };
@@ -24,7 +24,7 @@ describe("handleResumeSuspended — floor de retomada", () => {
   });
 
   it("BUG (2026-09-08): tiebreak comum de set em andamento (6x6) deve manter floor {6,6}, não null", () => {
-    const { handleResumeSuspended, setPendingEdit } = buildOptions();
+    const { handleResumeSuspended, setPendingEdit } = useBuildOptions();
 
     const match = {
       id: "match-1",
@@ -50,7 +50,7 @@ describe("handleResumeSuspended — floor de retomada", () => {
   });
 
   it("Match Tiebreak decisivo real continua sem floor (null)", () => {
-    const { handleResumeSuspended, setPendingEdit } = buildOptions();
+    const { handleResumeSuspended, setPendingEdit } = useBuildOptions();
 
     const match = {
       id: "match-2",
@@ -75,7 +75,7 @@ describe("handleResumeSuspended — floor de retomada", () => {
   });
 
   it("set normal (sem tiebreak) em andamento mantém o comportamento anterior (floor = games atuais)", () => {
-    const { handleResumeSuspended, setPendingEdit } = buildOptions();
+    const { handleResumeSuspended, setPendingEdit } = useBuildOptions();
 
     const match = {
       id: "match-3",

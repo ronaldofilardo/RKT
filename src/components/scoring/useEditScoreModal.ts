@@ -276,7 +276,7 @@ export function useEditScoreModal(
 
     setter(num > maxGames ? String(maxGames) : num.toString());
     setState(prev => ({ ...prev, tiebreakP1: "", tiebreakP2: "" }));
-  }, [matchFormat, isMatchTiebreakSet, currentSets]);
+  }, [matchFormat, isMatchTiebreakSet, currentSets, state.p1Input, state.p2Input]);
 
   const handleTiebreakInputChange = useCallback((value: string, player: 'p1' | 'p2'): void => {
     setConfirmError(null);
@@ -300,7 +300,7 @@ export function useEditScoreModal(
 
     const capped = Math.min(v, SCORING_LIMITS.TIEBREAK_INPUT_CAP);
     setState(prev => ({ ...prev, [player === 'p1' ? 'tiebreakP1' : 'tiebreakP2']: String(capped) }));
-  }, [currentGamePoints]);
+  }, [currentGamePoints, state.tiebreakP1, state.tiebreakP2]);
 
   const handleConfirm = useCallback(async () => {
     setConfirmError(null);
