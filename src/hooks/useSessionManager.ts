@@ -17,6 +17,7 @@ import { finishMatch } from "./useSessionManager.match-finish";
 import { useSuspendedSession } from "./useSuspendedSession";
 import { useToast } from "@/components/Toast";
 import { enqueuePendingAbandon } from "./useSessionManager.pending-abandon";
+import { abandonCurrentSession as abandonSession } from "./useSessionManager.abandon";
 
 export interface SuspendedSessionState {
   matchStateSnapshot: string | null;
@@ -86,111 +87,20 @@ export function useSessionManager(ctx: SessionManagerContext) {
 
   const abandonCurrentSession = useCallback(
     async (snapshot?: string): Promise<boolean> => {
-      const sid = sessionIdRef.current;
-      const mid = matchId;
-      if (!sid || !mid) return false;
+      if (!sessionIdRef.current || !matchId) return false;
       if (!engineRef.current) return false;
 
-      const state = engineRef.current.getState();
-      const isFinished = state.isFinished;
-      const stateSnapshot = snapshot ?? engineRef.current.serialize();
-
-      try {
-        if (isFinished) {
-          const stateResponse = await fetch(`/api/matches/${mid}/state`, {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${tokenRef.current}`,
-            },
-            body: JSON.stringify({
-              state: "FINISHED",
-              scoreState: state,
-              ...(match?.version !== undefined ? { version: match.version } : {}),
-            }),
-          });
-
-          if (stateResponse.status === 409) {
-            logger.warn(
-              "[abandonCurrentSession] Conflito de versão (409) ao finalizar — outro dispositivo já atualizou o placar. Match já FINISHED ou estado divergente; session não fechada.",
-            );
-            return false;
-          }
-
-          if (!stateResponse.ok) {
-            throw new Error(`state PATCH failed: ${stateResponse.status}`);
-          }
-
-          try {
-            const sessionResponse = await fetch(`/api/matches/${mid}/sessions/${sid}`, {
-              method: "PATCH",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${tokenRef.current}`,
-              },
-              body: JSON.stringify({
-                status: "COMPLETED",
-                finalState: state,
-              }),
-            });
-            if (!sessionResponse.ok) {
-              logger.warn(
-                `[abandonCurrentSession] session PATCH failed (${sessionResponse.status}); match already FINISHED — leaving session open`
-              );
-            }
-          } catch (sessionErr) {
-            logger.warn(
-              "[abandonCurrentSession] session PATCH exception; match already FINISHED — leaving session open",
-              sessionErr
-            );
-          }
-          return true;
-        } else {
-          // Bug fix (2026-09-08): antes o resultado do fetch era ignorado (nem o status
-          // era checado), então uma falha de rede — o cenário típico é justamente durante
-          // a sincronização de pontos pendentes — deixava a sessão como ativa no banco sem
-          // qualquer aviso ou tentativa futura. Agora checamos o status e, em caso de falha,
-          // guardamos o pedido numa fila local para reenvio (flushPendingAbandons) e avisamos
-          // o usuário.
-          try {
-            const response = await fetch(`/api/matches/${mid}/sessions/${sid}/abandon`, {
-              method: "POST",
-              keepalive: true,
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${tokenRef.current}`,
-              },
-              body: JSON.stringify({ matchStateSnapshot: stateSnapshot }),
-            });
-
-            if (!response.ok) {
-              throw new Error(`abandon POST failed: ${response.status}`);
-            }
-            return true;
-          } catch (fetchErr) {
-            logger.warn(
-              "[abandonCurrentSession] falha ao marcar sessão como abandonada, agendando retry:",
-              fetchErr
-            );
-            enqueuePendingAbandon({
-              matchId: mid,
-              sessionId: sid,
-              matchStateSnapshot: stateSnapshot,
-              token: tokenRef.current,
-              createdAt: Date.now(),
-            });
-            toast({
-              type: "info",
-              message:
-                "Não foi possível confirmar o encerramento da anotação agora (sem conexão). Vamos tentar novamente automaticamente.",
-            });
-            return false;
-          }
-        }
-      } catch (e) {
-        logger.error("[abandonCurrentSession] Error:", e);
-        return false;
-      }
+      return abandonSession(
+        {
+          sessionId: sessionIdRef.current,
+          matchId,
+          engine: engineRef.current,
+          token: tokenRef.current,
+          matchVersion: match?.version,
+        },
+        { enqueuePendingAbandon, toast },
+        snapshot,
+      );
     },
     [matchId, match, sessionIdRef, engineRef, tokenRef, toast],
   );
@@ -356,15 +266,11 @@ export function useSessionManager(ctx: SessionManagerContext) {
       const snapshot = engineRef.current?.serialize() ?? JSON.stringify(state);
       sessionStorage.setItem("last_abandon_timestamp", Date.now().toString());
       const token = tokenRef.current ?? sessionStorage.getItem("access_token");
-      fetch(`/api/matches/${matchId}/sessions/${sid}/abandon`, {
-        method: "POST",
-        keepalive: true,
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ matchStateSnapshot: snapshot }),
-      }).catch(() => {});
+      abandonSession(
+        { sessionId: sid, matchId, engine: engineRef.current!, token, matchVersion: match?.version },
+        { enqueuePendingAbandon, toast },
+        snapshot,
+      ).catch(() => {});
     };
     window.addEventListener("beforeunload", doAbandon);
     window.addEventListener("pagehide", doAbandon);
@@ -373,7 +279,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
       window.removeEventListener("pagehide", doAbandon);
       doAbandon();
     };
-  }, [matchId, sessionIdRef, engineRef, tokenRef]);
+  }, [matchId, sessionIdRef, engineRef, tokenRef, match?.version, toast]);
 
   // Hook de suspended session foi extraído para useSuspendedSession.ts
   useSuspendedSession({

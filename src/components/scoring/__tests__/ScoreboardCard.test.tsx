@@ -141,11 +141,10 @@ describe('ScoreboardCard', () => {
     expect(screen.getByText('Player Two')).toBeInTheDocument();
   });
 
-  it('renders games (6-6), not tiebreak points, for an in-progress regular tiebreak set', () => {
-    // Comportamento intencional (fix 2026-09-02 em ScoreboardCard): durante um
-    // tie-break de set normal (6-6), a célula do set exibe os GAMES (6x6);
-    // os pontos do tie-break aparecem apenas nos cards grandes (PlayerCard) e
-    // em sets de Match Tiebreak (games 0x0/1x0).
+  it('renders tiebreak points in bracket format for in-progress regular tiebreak set (fix 2026-09-09)', () => {
+    // Correção (2026-09-09): durante um tie-break de set normal (6-6), a
+    // célula agora exibe "6 [5]" / "6 [3]" indicando games e pontos do TB.
+    // Antes: mostrava só "6" sem indicar que havia tiebreak em andamento.
     const tiebreakInProgressState = {
       sets: [
         {
@@ -167,10 +166,9 @@ describe('ScoreboardCard', () => {
         format="BEST_OF_3"
       />
     );
-    const sixCells = screen.getAllByText('6');
-    expect(sixCells.length).toBe(2);
-    expect(screen.queryByText('5')).not.toBeInTheDocument();
-    expect(screen.queryByText('3')).not.toBeInTheDocument();
+    expect(screen.getByText('6')).toBeInTheDocument();
+    expect(screen.getByText('[5]')).toBeInTheDocument();
+    expect(screen.getByText('[3]')).toBeInTheDocument();
   });
 
   it('renders completed match tiebreak points (0-0 games) in player rows', () => {
