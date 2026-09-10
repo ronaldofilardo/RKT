@@ -298,6 +298,58 @@ describe('useScoringHandlers - handleUndo', () => {
 
     expect(mockEngine.getState).toHaveBeenCalled();
   });
+
+  it('deve enviar voidPointLogId no PATCH /state atomicamente e NAO fazer chamada avulsa a DELETE', async () => {
+    let capturedUrl = '';
+    let capturedMethod = '';
+    let capturedBody: any = null;
+
+    global.fetch = jest.fn().mockImplementation(async (url: string, init?: RequestInit) => {
+      capturedUrl = url;
+      capturedMethod = init?.method ?? 'GET';
+      capturedBody = init?.body ? JSON.parse(init.body as string) : null;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ version: 2 }),
+      };
+    });
+
+    const mockEngine = {
+      getState: jest.fn().mockReturnValue({
+        sets: [],
+        currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+        server: 'player1' as const,
+        isFinished: false,
+        winner: null,
+        setsWon: { player1: 0, player2: 0 },
+        startedAt: Date.now(),
+        secondServe: false,
+      }),
+      undoLastPoint: jest.fn().mockReturnValue({ point: { type: 'WINNER', winnerId: 'p1' } }),
+      getHistoryLength: jest.fn().mockReturnValue(1),
+    };
+
+    const ctx = createMockContext({
+      engineRef: { current: mockEngine as any },
+    });
+
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+    const handlers = result.current;
+
+    await handlers.handleUndo();
+
+    // Verifica que NÃO houve nenhuma chamada a DELETE /point/
+    const deleteCalls = (global.fetch as jest.Mock).mock.calls.filter(
+      ([, init]) => init?.method === 'DELETE',
+    );
+    expect(deleteCalls).toHaveLength(0);
+
+    // Verifica que o PATCH foi feito para a rota de state
+    expect(capturedUrl).toContain('/api/matches/match-1/state');
+    expect(capturedMethod).toBe('PATCH');
+    expect(capturedBody).toHaveProperty('allowScoreEdit', true);
+  });
 });
 
 describe('useScoringHandlers - handleRedo', () => {

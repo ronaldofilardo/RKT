@@ -42,6 +42,7 @@ export function createPointSyncService(config: PointSyncConfig) {
   const syncPointToServer = async (
     flow: PointFlow,
     sequenceNumber: number,
+    clientEventId?: string,
   ): Promise<PointSyncResult> => {
     if (!match) {
       return { success: false, needsResync: true };
@@ -53,7 +54,11 @@ export function createPointSyncService(config: PointSyncConfig) {
       serverId: flow.serverId,
       timestamp: flow.timestamp ?? Date.now(),
       sequenceNumber,
-      clientEventId: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      // Reaproveita o mesmo clientEventId em reenvios (ex.: retry após
+      // SEQUENCE_CONFLICT/timeout) para que o dedup por clientEventId no
+      // servidor evite registrar o mesmo ponto duas vezes caso a tentativa
+      // original já tenha sido persistida.
+      clientEventId: clientEventId ?? (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`),
       rallyDetails: flow.rallyDetails ?? undefined,
       rallyLength: flow.rallyLength ?? undefined,
       isFirstServe: flow.isFirstServe ?? undefined,

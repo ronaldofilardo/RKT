@@ -386,6 +386,12 @@ export const MatchStateInputSchema = z
      */
     isManualScoreEdit: z.boolean().optional(),
     note: z.string().max(500).optional(),
+    /**
+     * ID do PointLog a ser anulado atomicamente junto com a transição de
+     * estado (usado no fluxo de Undo para evitar discrepâncias entre
+     * pointLog e match.scoreState caso haja falha ou conflito de versão).
+     */
+    voidPointLogId: flexibleIdValidator.optional(),
   })
   .refine((data) => data.state !== "SCHEDULED", {
     message: "Não é possível voltar para SCHEDULED via API",

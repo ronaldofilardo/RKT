@@ -25,6 +25,10 @@ interface PersistStateOptions {
    * /report não perder o trecho já anotado antes da correção.
    */
   isManualScoreEdit?: boolean;
+  /**
+   * ID do PointLog a ser anulado atomicamente junto com a atualização de estado.
+   */
+  voidPointLogId?: string;
 }
 
 interface VersionConflictPayload {
@@ -81,6 +85,7 @@ export async function persistStateWithRetry(
           version: currentMatch.version,
           allowScoreEdit,
           isManualScoreEdit,
+          voidPointLogId: options.voidPointLogId,
         }),
       });
 

@@ -50,7 +50,7 @@ export async function GET(
           player1: { select: { id: true, name: true } },
           player2: { select: { id: true, name: true } },
           createdByUserId: true,
-          _count: { select: { pointLog: true } },
+          _count: { select: { pointLog: { where: { voidedAt: null } } } },
         },
       });
 

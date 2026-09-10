@@ -36,6 +36,7 @@ export async function PATCH(
           isManualScoreEdit: parsed.data.isManualScoreEdit,
           editedByUserId: user?.id,
           note: parsed.data.note,
+          voidPointLogId: parsed.data.voidPointLogId,
         },
       );
 
@@ -58,6 +59,13 @@ export async function PATCH(
           }, { status: 409 });
         }
         return NextResponse.json({ error: result.error }, { status: status });
+      }
+
+      if (parsed.data.voidPointLogId) {
+        emitMatchEvent(id, 'state_changed', {
+          action: 'point_voided',
+          pointId: parsed.data.voidPointLogId,
+        });
       }
 
       emitMatchEvent(id, 'state_changed', { action: 'state_patch', scoreState: parsed.data.scoreState });

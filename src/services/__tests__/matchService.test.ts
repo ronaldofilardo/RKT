@@ -1,5 +1,6 @@
 jest.mock('@/lib/prisma', () => {
   const matchUpdate = jest.fn();
+  const pointLogUpdateMany = jest.fn().mockResolvedValue({ count: 1 });
   const match = {
     findMany: jest.fn(),
     findFirst: jest.fn(),
@@ -10,13 +11,14 @@ jest.mock('@/lib/prisma', () => {
   return {
     prisma: {
       match,
-      pointLog: { deleteMany: jest.fn() },
+      pointLog: { deleteMany: jest.fn(), updateMany: pointLogUpdateMany },
       matchAnnotationSession: { findFirst: jest.fn(), deleteMany: jest.fn() },
       $transaction: jest.fn((operation: unknown) => {
         if (typeof operation === 'function') {
           return operation({
             match: { update: matchUpdate },
             matchScoreEdit: { create: jest.fn().mockResolvedValue({ id: 'edit-1' }) },
+            pointLog: { updateMany: pointLogUpdateMany },
           });
         }
         return Promise.all(operation as Promise<unknown>[]);
@@ -818,4 +820,96 @@ it('deve criar partida com scheduledAt', async () => {
         error: "SCORE_REGRESSION: Placar não pode ser inferior ao estado atual",
       });
     });
-  });
+  });
+
+  describe('transitionMatchState - voidPointLogId atomic undo', () => {
+    it('deve anular o pointLog atomicamente dentro da transacao junto com a atualizacao do scoreState', async () => {
+      const { transitionMatchState } = await import('@/services/matchService');
+
+      mockPrisma.match.findFirst.mockResolvedValue({
+        id: 'm1',
+        state: 'IN_PROGRESS',
+        player1Id: 'p1',
+        player2Id: 'p2',
+        format: 'BEST_OF_3',
+        initialServerId: 'p1',
+        version: 5,
+        scoreState: {
+          sets: [{ player1: 1, player2: 0, isTiebreak: false, tiebreakScore: null }],
+          setsWon: { player1: 0, player2: 0 },
+          currentGame: { player1: 1, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+          server: 'player1',
+          isFinished: false,
+          winner: null,
+          startedAt: null,
+          secondServe: false,
+        },
+      });
+
+      mockPrisma.match.update.mockResolvedValue({ id: 'm1', version: 6 });
+
+      const undoneState = {
+        sets: [{ player1: 0, player2: 0, isTiebreak: false, tiebreakScore: null }],
+        setsWon: { player1: 0, player2: 0 },
+        currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+        server: 'player1',
+        isFinished: false,
+        winner: null,
+        startedAt: null,
+        secondServe: false,
+      };
+
+      const result = await transitionMatchState(
+        'm1',
+        'IN_PROGRESS',
+        undefined,
+        undoneState,
+        {
+          allowScoreEdit: true,
+          expectedVersion: 5,
+          voidPointLogId: 'point-123',
+        },
+      );
+
+      expect(result).toEqual({ id: 'm1', version: 6 });
+      expect(mockPrisma.pointLog.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'point-123', matchId: 'm1', voidedAt: null },
+          data: expect.objectContaining({ voidedAt: expect.any(Date) }),
+        }),
+      );
+    });
+
+    it('deve retornar VERSION_CONFLICT se a versao esperada conflitar (transacao sofre rollback)', async () => {
+      const { transitionMatchState } = await import('@/services/matchService');
+
+      mockPrisma.match.findFirst.mockResolvedValue({
+        id: 'm1',
+        state: 'IN_PROGRESS',
+        player1Id: 'p1',
+        player2Id: 'p2',
+        format: 'BEST_OF_3',
+        initialServerId: 'p1',
+        version: 6,
+        scoreState: null,
+      });
+
+      const p2025Error: any = new Error('Record to update not found.');
+      p2025Error.code = 'P2025';
+      mockPrisma.match.update.mockRejectedValue(p2025Error);
+
+      const result = await transitionMatchState(
+        'm1',
+        'IN_PROGRESS',
+        undefined,
+        null,
+        {
+          allowScoreEdit: true,
+          expectedVersion: 5,
+          voidPointLogId: 'point-123',
+        },
+      );
+
+      expect(result).toEqual({ error: 'VERSION_CONFLICT' });
+    });
+  });

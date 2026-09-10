@@ -52,6 +52,14 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     debounceTimerRef,
   } = ctx;
 
+  const matchVersionRef = useRef<number | null>(match?.version ?? null);
+
+  useEffect(() => {
+    if (match?.version !== undefined && match?.version !== null) {
+      matchVersionRef.current = match.version;
+    }
+  }, [match?.version]);
+
   useEffect(() => {
     return () => {
       if (debounceTimerRef.current) {
@@ -76,6 +84,10 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         }
         const data: MatchData = await res.json();
         setMatch(data);
+
+        if (typeof data.version === "number") {
+          matchVersionRef.current = data.version;
+        }
 
         if (data._count && typeof data._count.pointLog === "number") {
           pointSequenceRef.current = data._count.pointLog;
@@ -158,7 +170,11 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     async (
       state: ScoringState,
       label: string,
-      persistOptions?: { allowScoreEdit?: boolean; isManualScoreEdit?: boolean }
+      persistOptions?: {
+        allowScoreEdit?: boolean;
+        isManualScoreEdit?: boolean;
+        voidPointLogId?: string;
+      }
     ): Promise<{ success: boolean; needsResync?: boolean; conflict?: boolean; version?: number }> => {
       // Tolerante a engines mockados sem getPointHistory (testes). Em produção
       // sempre existe; se ausente, history fica undefined e mantém o legado
@@ -168,14 +184,18 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         | null;
       const history = engineAny?.getPointHistory?.();
 
+      const currentVersion = matchVersionRef.current ?? match?.version;
+      const matchToUse = match ? { ...match, version: currentVersion } : null;
+
       const result = await persistStateWithRetry(state, label, {
         matchId,
-        match,
+        match: matchToUse,
         tokenRef,
         setError,
         fetchMatch,
         allowScoreEdit: persistOptions?.allowScoreEdit,
         isManualScoreEdit: persistOptions?.isManualScoreEdit,
+        voidPointLogId: persistOptions?.voidPointLogId,
         // Em undo/redo o engine mantém o histórico detalhado (com
         // rallyDetails/firstFaultDetail). Persisti-lo aqui evita que o
         // PATCH /state substitua o snapshot anterior e apague os dados do
@@ -186,6 +206,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       });
 
       if (result.success && result.version !== undefined) {
+        matchVersionRef.current = result.version;
         setMatch((prev) => prev ? { ...prev, version: result.version } : prev);
       }
 
@@ -230,59 +251,83 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         setPointsHistory((prev) => [...prev.slice(-19), flow.winnerId]);
         const seq = ++pointSequenceRef.current;
 
+        const applySuccessResult = (serverResponse: NonNullable<Awaited<ReturnType<typeof pointSync.syncPointToServer>>["serverResponse"]>) => {
+          const currentHistory = engineRef.current!.getPointHistory();
+          const localState = engineRef.current!.getState();
+          const serverState = serverResponse.scoreState!;
+
+          // Guard: if local state is in a tiebreak but server response lost
+          // the tiebreak info (corrupted snapshot), skip the overwrite to
+          // prevent the UI from switching from tiebreak to game scoring.
+          const localInTiebreak = localState.sets?.some(
+            (s: any) => s.isTiebreak && s.tiebreakScore
+          );
+          const serverHasTiebreak = serverState.sets?.some(
+            (s: any) => s.isTiebreak && s.tiebreakScore
+          );
+          if (localInTiebreak && !serverHasTiebreak) {
+            logger.warn("[processPoint] server response missing tiebreak info — keeping local state", {
+              localSets: localState.sets?.length,
+              serverSets: serverState.sets?.length,
+            });
+          } else {
+            setScoreState(serverState);
+            engineRef.current = ScoringEngine.fromSerialized(
+              {
+                format: match.format as any,
+                player1Id: match.player1.id,
+                player2Id: match.player2.id,
+                initialServerId: match.initialServerId || match.player1.id,
+              },
+              JSON.stringify(serverState),
+            );
+            engineRef.current.restorePointHistory(currentHistory);
+          }
+
+          if (serverResponse.version !== undefined) {
+            matchVersionRef.current = serverResponse.version;
+            setMatch((prev) =>
+              prev ? { ...prev, version: serverResponse.version } : prev,
+            );
+          }
+
+          if (serverResponse.pointLogId) {
+            lastPointLogIdRef.current = serverResponse.pointLogId;
+          }
+
+          return serverResponse.pointLogId;
+        };
+
         if (isOnline) {
-          const result = await pointSync.syncPointToServer(flow, seq);
-          
+          const clientEventId =
+            typeof crypto !== "undefined" && crypto.randomUUID
+              ? crypto.randomUUID()
+              : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+          const result = await pointSync.syncPointToServer(flow, seq, clientEventId);
+
           if (result.success && result.serverResponse?.scoreState) {
-            const currentHistory = engineRef.current.getPointHistory();
-            const localState = engineRef.current.getState();
-            const serverState = result.serverResponse.scoreState;
-
-            // Guard: if local state is in a tiebreak but server response lost
-            // the tiebreak info (corrupted snapshot), skip the overwrite to
-            // prevent the UI from switching from tiebreak to game scoring.
-            const localInTiebreak = localState.sets?.some(
-              (s: any) => s.isTiebreak && s.tiebreakScore
-            );
-            const serverHasTiebreak = serverState.sets?.some(
-              (s: any) => s.isTiebreak && s.tiebreakScore
-            );
-            if (localInTiebreak && !serverHasTiebreak) {
-              logger.warn("[processPoint] server response missing tiebreak info — keeping local state", {
-                localSets: localState.sets?.length,
-                serverSets: serverState.sets?.length,
-              });
-            } else {
-              setScoreState(serverState);
-              engineRef.current = ScoringEngine.fromSerialized(
-                {
-                  format: match.format as any,
-                  player1Id: match.player1.id,
-                  player2Id: match.player2.id,
-                  initialServerId: match.initialServerId || match.player1.id,
-                },
-                JSON.stringify(serverState),
-              );
-              engineRef.current.restorePointHistory(currentHistory);
-            }
-
-            if (result.serverResponse.version !== undefined) {
-              setMatch((prev) =>
-                prev ? { ...prev, version: result.serverResponse!.version } : prev,
-              );
-            }
-
-            if (result.serverResponse.pointLogId) {
-              lastPointLogIdRef.current = result.serverResponse.pointLogId;
-            }
-
-            return result.serverResponse.pointLogId;
+            return applySuccessResult(result.serverResponse);
           } else if (result.needsResync) {
+            // O ponto pode não ter sido persistido (timeout, conflito de
+            // sequência, erro de rede). Resincroniza a sequência/estado com
+            // o servidor e tenta reenviar este mesmo ponto UMA vez, para não
+            // perder silenciosamente o toque do usuário. Reaproveita o
+            // mesmo clientEventId: se a tentativa original já tiver sido
+            // salva no servidor (ex.: timeout só no cliente), o dedup por
+            // clientEventId evita duplicar o ponto.
             await fetchMatch(true);
-            // Clear the error after successful resync — the state is now
-            // reconciled with the server (the point may have been saved
-            // before the timeout/error occurred).
-            setError(null);
+            const retrySeq = ++pointSequenceRef.current;
+            const retryResult = await pointSync.syncPointToServer(flow, retrySeq, clientEventId);
+
+            if (retryResult.success && retryResult.serverResponse?.scoreState) {
+              setError(null);
+              return applySuccessResult(retryResult.serverResponse);
+            } else if (retryResult.needsResync) {
+              // Segunda falha seguida: desiste do reenvio automático e
+              // resincroniza mais uma vez para deixar a sequência consistente,
+              // mas mantém o erro visível — o ponto não foi salvo.
+              await fetchMatch(true);
+            }
           }
         } else {
           await pointSync.queuePointForOffline(enqueue, flow);
@@ -359,17 +404,18 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       setPointsHistory((prev) => prev.slice(0, -1));
 
       const pointLogIdToVoid = lastPointLogIdRef.current;
-      if (pointLogIdToVoid) {
+
+      // Anulação do PointLog e atualização de scoreState coordenadas atomicamente
+      // no backend via persistState (PATCH /state com voidPointLogId).
+      // Se houver conflito de versão (409) ou erro, o ponto NÃO fica anulado
+      // no banco e a resincronização mantém os dados consistentes.
+      const result = await persistState(newState, "undo", {
+        voidPointLogId: pointLogIdToVoid ?? undefined,
+      });
+
+      if (result.success) {
         lastPointLogIdRef.current = null;
         pointSequenceRef.current = Math.max(0, pointSequenceRef.current - 1);
-        fetch(`/api/matches/${matchId}/point/${pointLogIdToVoid}`, {
-          method: "DELETE",
-          headers: { authorization: `Bearer ${tokenRef.current}` },
-        }).catch((err) => logger.warn("[handleUndo] failed to void PointLog:", err));
-      }
-
-      const result = await persistState(newState, "undo");
-      if (result.success) {
         closeAll();
         onUndoComplete?.();
       } else if (result.needsResync) {
@@ -391,8 +437,6 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     setScoreState,
     setPointsHistory,
     onUndoComplete,
-    matchId,
-    tokenRef,
     pointSequenceRef,
   ]);
 

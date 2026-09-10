@@ -362,6 +362,12 @@ export async function transitionMatchState(
     isManualScoreEdit?: boolean;
     editedByUserId?: string;
     note?: string;
+    /**
+     * ID do PointLog a ser anulado atomicamente junto com a transição de
+     * estado dentro desta mesma transação Prisma. Se houver falha de versão
+     * ou de rede, a anulação do ponto sofre rollback junto com a transição.
+     */
+    voidPointLogId?: string;
   },
 ) {
   const match = await prisma.match.findFirst({
@@ -414,6 +420,13 @@ export async function transitionMatchState(
             previousScoreState: match.scoreState as any,
             newScoreState: scoreState as any,
           },
+        });
+      }
+
+      if (options?.voidPointLogId) {
+        await tx.pointLog.updateMany({
+          where: { id: options.voidPointLogId, matchId: id, voidedAt: null },
+          data: { voidedAt: new Date() },
         });
       }
 
