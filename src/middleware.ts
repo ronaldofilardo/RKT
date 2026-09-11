@@ -4,6 +4,7 @@ import { decodeJwtPayload } from '@/lib/jwt-client';
 
 const PUBLIC_ROUTES = [
   '/api/auth/login',
+  '/api/auth/logout',
   '/login',
   '/matches/locate',
 ];
@@ -26,8 +27,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
+  // Higieniza headers: remove quaisquer headers x-user-* forjados pelo cliente
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.delete('x-user-id');
+  requestHeaders.delete('x-user-role');
+
   const isPublic = PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
-  if (isPublic) return NextResponse.next();
+  if (isPublic) return NextResponse.next({ request: { headers: requestHeaders } });
 
   const isBypass = BYPASS_ROUTES.some((route) => pathname.startsWith(route));
   if (isBypass) return NextResponse.next();
@@ -56,7 +62,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-user-id', decoded.sub);
   requestHeaders.set('x-user-role', decoded.role);
 

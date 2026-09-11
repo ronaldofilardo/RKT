@@ -130,7 +130,7 @@ describe('editScoreHelpers (characterization)', () => {
     it('deve rejeitar 0-0', () => {
       const result = validateSetResult({ p1Games: 0, p2Games: 0 }, 'MATCH_TB_10');
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain('Enter');
+      expect(result.error).toContain('Informe o resultado do set');
     });
   });
 

@@ -135,7 +135,7 @@ describe('GET /api/matches', () => {
 
     expect(mockPrisma.match.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { state: 'IN_PROGRESS' },
+        where: expect.objectContaining({ state: 'IN_PROGRESS' }),
       })
     );
   });

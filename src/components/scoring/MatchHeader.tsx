@@ -1,8 +1,10 @@
 'use client';
+import { useState, useEffect } from 'react';
 import { getFormatLabel } from '@/core/scoring/format-labels';
 
 interface MatchHeaderProps {
-  elapsedSeconds: number;
+  elapsedSeconds?: number;
+  startedAt?: number | string | Date | null;
   onClose: () => void;
   onEditMatch?: () => void;
   onStats?: () => void;
@@ -22,7 +24,39 @@ function formatTime(elapsedSeconds: number): string {
   return `${mins}:${String(secs).padStart(2, '0')}`;
 }
 
-export function MatchHeader({ elapsedSeconds, onClose, onEditMatch, onStats, onTimeline, canEdit, isFinished, format }: MatchHeaderProps) {
+export function MatchHeader({
+  elapsedSeconds: initialElapsed = 0,
+  startedAt,
+  onClose,
+  onEditMatch,
+  onStats,
+  onTimeline,
+  canEdit,
+  isFinished,
+  format,
+}: MatchHeaderProps) {
+  const [localElapsed, setLocalElapsed] = useState(() => {
+    if (startedAt) {
+      const ms = typeof startedAt === 'number' ? startedAt : new Date(startedAt).getTime();
+      return Math.max(0, Math.floor((Date.now() - ms) / 1000));
+    }
+    return initialElapsed;
+  });
+
+  useEffect(() => {
+    if (!startedAt || isFinished) return;
+    const ms = typeof startedAt === 'number' ? startedAt : new Date(startedAt).getTime();
+    setLocalElapsed(Math.max(0, Math.floor((Date.now() - ms) / 1000)));
+
+    const timer = setInterval(() => {
+      setLocalElapsed(Math.max(0, Math.floor((Date.now() - ms) / 1000)));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [startedAt, isFinished]);
+
+  const displayElapsed = startedAt ? localElapsed : initialElapsed;
+
   return (
     <div className="bg-white border-b border-gray-200 px-2 sm:px-4 py-2 sm:py-3 dark:bg-slate-900 dark:border-slate-700">
       <div className="flex items-center justify-between gap-1 sm:gap-2">
@@ -41,7 +75,7 @@ export function MatchHeader({ elapsedSeconds, onClose, onEditMatch, onStats, onT
             </span>
           )}
           <span className="text-[10px] sm:text-xs font-mono font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">
-            {formatTime(elapsedSeconds)}
+            {formatTime(displayElapsed)}
           </span>
         </div>
 

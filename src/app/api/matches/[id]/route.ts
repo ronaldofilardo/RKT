@@ -22,7 +22,7 @@ export async function GET(
     try {
       const { id } = await params;
       const match = await prisma.match.findFirst({
-        where: { id },
+        where: { id, deletedAt: null },
         select: {
           id: true,
           state: true,
@@ -150,9 +150,11 @@ export async function DELETE(
         return NextResponse.json({ error: 'MATCH_NOT_FOUND' }, { status: 404 });
       }
 
-      if (match.createdByUserId !== currentUserId) {
+      const isAdmin = user.role === 'ADMIN';
+      const isCreator = match.createdByUserId && match.createdByUserId === currentUserId;
+      if (!isAdmin && !isCreator) {
         return NextResponse.json(
-          { error: 'FORBIDDEN', message: 'Apenas o criador da partida pode excluí-la' },
+          { error: 'FORBIDDEN', message: 'Apenas o criador da partida ou administradores podem excluí-la' },
           { status: 403 }
         );
       }

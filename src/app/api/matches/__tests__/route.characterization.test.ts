@@ -127,7 +127,7 @@ describe('GET /api/matches (characterization)', () => {
 
     expect(mockPrisma.match.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { state: 'IN_PROGRESS' },
+        where: expect.objectContaining({ state: 'IN_PROGRESS' }),
       }),
     );
     // Resolvido (TD-042): MatchStateSchema.safeParse valida state; 400 retornado se inválido

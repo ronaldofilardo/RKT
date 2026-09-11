@@ -10,6 +10,7 @@ export async function listMatches(
     take: limit,
     ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     where: {
+      deletedAt: null,
       ...(state ? { state: state as MatchState } : {}),
     },
     select: {
@@ -43,7 +44,7 @@ export async function listMatches(
 
 export async function getMatch(id: string) {
   return prisma.match.findFirst({
-    where: { id },
+    where: { id, deletedAt: null },
     select: {
       id: true,
       state: true,

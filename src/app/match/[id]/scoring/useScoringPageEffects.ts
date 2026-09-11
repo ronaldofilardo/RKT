@@ -70,7 +70,6 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     pendingEditScore,
     scoreState,
     setElapsed,
-    timerRef,
     session,
     setUndoTimestamp,
     setSyncStatus,
@@ -230,17 +229,10 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     if (scoreState?.startedAt) {
       const startedAtMs = scoreState.startedAt;
       setElapsed(Math.max(0, Math.floor((Date.now() - startedAtMs) / 1000)));
-      timerRef.current = setInterval(
-        () => setElapsed((prev) => prev + 1),
-        1000,
-      );
     } else {
       setElapsed(0);
     }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [scoreState?.startedAt, setElapsed, timerRef]);
+  }, [scoreState?.startedAt, setElapsed]);
 
   useEffect(() => {
     if (session.pendingEditScore) {

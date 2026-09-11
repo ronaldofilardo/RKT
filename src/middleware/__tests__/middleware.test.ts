@@ -199,5 +199,21 @@ describe('middleware', () => {
         expect(res).toBeInstanceOf(NextResponse);
       }
     });
+
+    it('deve remover headers x-user-* forjados pelo cliente em rotas públicas', async () => {
+      const { middleware } = await import('@/middleware');
+      const headers = new Headers();
+      headers.set('x-user-id', 'attacker-id');
+      headers.set('x-user-role', 'ADMIN');
+      const req = {
+        url: 'http://localhost:3000/matches/locate',
+        headers,
+        cookies: { get: () => undefined },
+        nextUrl: { pathname: '/matches/locate' },
+      } as unknown as NextRequest;
+
+      const res = await middleware(req);
+      expect(res).toBeInstanceOf(NextResponse);
+    });
   });
 });

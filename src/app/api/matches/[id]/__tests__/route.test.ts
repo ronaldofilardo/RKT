@@ -264,6 +264,27 @@ describe('DELETE /api/matches/[id]', () => {
     }));
   });
 
+  it('deve permitir delete se usuário é ADMIN mesmo não sendo o criador', async () => {
+    const token = await createToken('admin1', 'ADMIN');
+    mockPrisma.match.findFirst.mockResolvedValue({
+      id: 'test-id',
+      createdByUserId: 'other-user',
+    });
+    deleteMatch.mockResolvedValue({ success: true, type: 'soft' });
+
+    const req = new NextRequest('http://localhost:3000/api/matches/test-id?type=soft', {
+      method: 'DELETE',
+      headers: { authorization: `Bearer ${token}` },
+    });
+    const response = await DELETE(req, { params: Promise.resolve({ id: 'test-id' }) });
+
+    expect(response.status).toBe(200);
+    expect(deleteMatch).toHaveBeenCalledWith('test-id', expect.objectContaining({
+      type: 'soft',
+      deletedBy: 'admin1',
+    }));
+  });
+
   it('deve validar parâmetro type', async () => {
     const token = await createToken('user1', 'ATHLETE');
     mockPrisma.match.findFirst.mockResolvedValue({

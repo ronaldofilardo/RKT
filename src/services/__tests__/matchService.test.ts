@@ -91,7 +91,7 @@ describe('matchService', () => {
           take: 10,
           skip: 1,
           cursor: { id: 'cursor-abc' },
-          where: { state: 'IN_PROGRESS' },
+          where: { deletedAt: null, state: 'IN_PROGRESS' },
         }),
       );
     });
@@ -319,7 +319,7 @@ describe('matchService', () => {
       const result = await getMatch('m1');
 
       expect(mockPrisma.match.findFirst).toHaveBeenCalledWith({
-        where: { id: 'm1' },
+        where: { id: 'm1', deletedAt: null },
         select: {
           id: true,
           state: true,

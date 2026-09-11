@@ -43,6 +43,8 @@ describe("Bug (2026-09-07) — 6-6 + tiebreak vencido pelo player1 no set decisi
 
     expect(screen.queryByText(/Vencedor do tiebreak não corresponde/i)).not.toBeInTheDocument();
     expect(onConfirmMock).toHaveBeenCalled();
-    expect(onMatchFinishedMock).toHaveBeenCalledWith("player1");
+    await waitFor(() => {
+      expect(onMatchFinishedMock).toHaveBeenCalledWith("player1");
+    });
   });
 });

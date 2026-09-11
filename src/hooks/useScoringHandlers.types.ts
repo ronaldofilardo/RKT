@@ -13,6 +13,7 @@ export interface MatchData {
   state: string;
   sportType?: string;
   courtType?: string;
+  startedAt?: string | Date | null;
   version?: number;
   _count?: { pointLog: number };
 }

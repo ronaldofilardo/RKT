@@ -9,7 +9,7 @@ const customJestConfig = {
   testEnvironmentOptions: {
     customExportConditions: ['node', 'node-addons'],
   },
-  roots: ['<rootDir>/src'],
+  roots: ['<rootDir>/src/components'],
   testMatch: ['**/__tests__/**/*.test.ts', '**/__tests__/**/*.test.tsx'],
   clearMocks: true,
   restoreMocks: true,

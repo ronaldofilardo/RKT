@@ -63,4 +63,10 @@ describe('MatchHeader', () => {
     closeButton.click();
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('renders elapsed time calculated from startedAt prop', () => {
+    const startedAt = Date.now() - 75000; // 1 min 15 sec ago
+    render(<MatchHeader {...mockProps} startedAt={startedAt} />);
+    expect(screen.getByText('1:15')).toBeInTheDocument();
+  });
 });

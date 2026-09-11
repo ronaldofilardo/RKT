@@ -77,7 +77,9 @@ describe("EditScoreModal - Detecção de Partida Encerrada", () => {
       fireEvent.click(confirmButton);
 
       // Verifica que onMatchFinished foi chamado com winner correto
-      expect(onMatchFinishedMock).toHaveBeenCalledWith("player2");
+      await waitFor(() => {
+        expect(onMatchFinishedMock).toHaveBeenCalledWith("player2");
+      });
 
       // Verifica que onConfirm também foi chamado
       expect(onConfirmMock).toHaveBeenCalled();
@@ -156,7 +158,9 @@ describe("EditScoreModal - Detecção de Partida Encerrada", () => {
       fireEvent.click(confirmButton);
 
       // Verifica callback
-      expect(onMatchFinishedMock).toHaveBeenCalledWith("player1");
+      await waitFor(() => {
+        expect(onMatchFinishedMock).toHaveBeenCalledWith("player1");
+      });
     });
 
         it("deve alertar match tiebreak incompleto (9-8 diferença < 2)", async () => {
@@ -375,7 +379,9 @@ describe("EditScoreModal - Detecção de Partida Encerrada", () => {
 
       // Verifica callbacks
       expect(onConfirmMock).toHaveBeenCalled();
-      expect(onMatchFinishedMock).toHaveBeenCalledWith("player2");
+      await waitFor(() => {
+        expect(onMatchFinishedMock).toHaveBeenCalledWith("player2");
+      });
     });
   });
 });
