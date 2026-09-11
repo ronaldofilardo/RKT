@@ -87,10 +87,22 @@ export async function PUT(
     try {
       const { id } = await params;
       const body = await request.json();
-      const updated = await updateMatch(id, body);
+      const { version, ...data } = body;
+      const expectedVersion = typeof version === 'number' ? version : undefined;
+      const updated = await updateMatch(id, data, expectedVersion);
 
       if (!updated) {
         return NextResponse.json({ error: 'MATCH_NOT_FOUND' }, { status: 404 });
+      }
+
+      if ('error' in updated) {
+        if (updated.error === 'VERSION_CONFLICT') {
+          return NextResponse.json(
+            { error: 'VERSION_CONFLICT', message: 'A partida foi atualizada simultaneamente por outro usuário.' },
+            { status: 409 }
+          );
+        }
+        return NextResponse.json({ error: updated.error }, { status: 400 });
       }
 
       return NextResponse.json(updated);

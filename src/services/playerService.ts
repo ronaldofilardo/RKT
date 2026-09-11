@@ -69,7 +69,7 @@ export async function createPlayer(data: {
   return prisma.player.create({
     data: {
       name: data.name,
-      email: data.email ?? `temp_${Date.now()}@placeholder.local`,
+      email: data.email ?? `temp_${Date.now()}_${crypto.randomUUID()}@placeholder.local`,
       passwordHash: data.passwordHash ?? 'PLACEHOLDER',
       gender: data.gender,
       age,

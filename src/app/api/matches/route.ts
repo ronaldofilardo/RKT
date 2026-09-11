@@ -51,6 +51,16 @@ export async function POST(request: NextRequest) {
 
       if (!force) {
         const match = await prisma.$transaction(async (tx) => {
+          const [firstPlayer, secondPlayer] = [input.player1Id, input.player2Id].sort();
+          const lockKey = `match_create_${firstPlayer}_${secondPlayer}`;
+          if (typeof (tx as any).$executeRaw === 'function') {
+            try {
+              await (tx as any).$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
+            } catch {
+              // Ignora se dialeto do banco não suportar pg_advisory_xact_lock (ex.: testes)
+            }
+          }
+
           const duplicate = await findDuplicateMatch(
             input.player1Id,
             input.player2Id,

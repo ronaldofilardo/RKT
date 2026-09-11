@@ -136,9 +136,33 @@ export async function createEndorsement(sessionId: string, userId: string) {
 export async function reactivateOrCreateSession(
   matchId: string,
   userId: string,
-  existingSessions: Awaited<ReturnType<typeof getUserSessions>>,
+  _existingSessions?: Awaited<ReturnType<typeof getUserSessions>>,
 ) {
   return prisma.$transaction(async (tx) => {
+    const lockKey = `session_${matchId}_${userId}`;
+    if (typeof (tx as any).$executeRaw === 'function') {
+      try {
+        await (tx as any).$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
+      } catch {
+        // Ignora se dialeto não suportar pg_advisory_xact_lock (ex.: testes)
+      }
+    }
+
+    // Busca atômica dentro da transação após adquirir o lock da sessão (ou usa o parâmetro se fornecido explicitamente)
+    const existingSessions =
+      _existingSessions ??
+      (tx.matchAnnotationSession?.findMany
+        ? await tx.matchAnnotationSession.findMany({
+            where: { matchId, annotatorUserId: userId },
+            include: { annotator: { select: { id: true, name: true, email: true } } },
+            orderBy: { createdAt: "desc" },
+          })
+        : await prisma.matchAnnotationSession.findMany({
+            where: { matchId, annotatorUserId: userId },
+            include: { annotator: { select: { id: true, name: true, email: true } } },
+            orderBy: { createdAt: "desc" },
+          }));
+
     if (existingSessions.length > 1) {
       const olderIds = existingSessions.slice(1).map((s) => s.id);
       await tx.matchAnnotationSession.updateMany({

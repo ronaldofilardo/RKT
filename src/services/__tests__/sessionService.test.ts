@@ -34,6 +34,7 @@ const mockTx = {
     create: jest.fn(),
     update: jest.fn(),
     updateMany: jest.fn(),
+    findMany: jest.fn(),
   },
 };
 

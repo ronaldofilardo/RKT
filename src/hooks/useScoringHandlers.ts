@@ -70,6 +70,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     };
   }, [debounceTimerRef, isProcessingRef]);
 
+
   // ─── Match data fetch ──────────────────────────────────────────────────────
 
   const fetchMatch = useCallback(
@@ -160,6 +161,17 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       setPointsHistory,
     ],
   );
+
+  // Sincroniza a sequência e o placar quando a fila offline terminar de descarregar
+  useEffect(() => {
+    const handleSyncComplete = () => {
+      fetchMatch(true);
+    };
+    window.addEventListener("offline-sync-complete", handleSyncComplete);
+    return () => {
+      window.removeEventListener("offline-sync-complete", handleSyncComplete);
+    };
+  }, [fetchMatch]);
 
   // ─── State persistence ────────────────────────────────────────────────────
   // FIX Bug 1/4/6: unificado em uma única função. Não chamar de processPoint
@@ -394,6 +406,20 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
   // ─── Point action handlers ─────────────────────────────────────────────────
 
   const handleUndo = useCallback(async () => {
+    // Se houver timer de debounce pendente (ex.: Ace ou Dupla Falta agendado),
+    // cancela o timer para abortar o ponto agendado antes que seja processado,
+    // evitando que o ponto anterior seja desfeito e o novo ponto gravado por cima.
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+      isProcessingRef.current = false;
+      handleFirstServeErrorClear();
+      setServeStep("none");
+      handleServeErrorClose();
+      closeAll();
+      return;
+    }
+
     if (!engineRef.current || isProcessingRef.current) return;
     isProcessingRef.current = true;
     try {
@@ -438,6 +464,10 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     setPointsHistory,
     onUndoComplete,
     pointSequenceRef,
+    debounceTimerRef,
+    handleFirstServeErrorClear,
+    setServeStep,
+    handleServeErrorClose,
   ]);
 
   const handleRedo = useCallback(async () => {

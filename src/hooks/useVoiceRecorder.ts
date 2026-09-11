@@ -15,7 +15,7 @@ interface UseVoiceRecorderReturn {
   durationMs: number;
   error: string | null;
   startRecording: () => Promise<void>;
-  stopRecording: () => void;
+  stopRecording: () => Promise<{ blob: Blob; durationMs: number } | null>;
   playPreview: () => void;
   stopPreview: () => void;
   clear: () => void;
@@ -153,11 +153,34 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
     }
   }, [clear, cleanupStream, cleanupTimer]);
 
-  const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      mediaRecorderRef.current.stop();
-    }
-  }, []);
+  const stopRecording = useCallback((): Promise<{ blob: Blob; durationMs: number } | null> => {
+    return new Promise((resolve) => {
+      const recorder = mediaRecorderRef.current;
+      if (!recorder || recorder.state !== 'recording') {
+        if (audioBlob) {
+          resolve({ blob: audioBlob, durationMs });
+        } else {
+          resolve(null);
+        }
+        return;
+      }
+
+      cleanupTimer();
+      const origOnStop = recorder.onstop;
+      recorder.onstop = (e) => {
+        if (origOnStop) {
+          origOnStop.call(recorder, e);
+        }
+        const mime = recorder.mimeType || getSupportedMime() || PREFERRED_MIME;
+        const blob = new Blob(chunksRef.current, { type: mime });
+        const elapsed = Date.now() - startTimeRef.current;
+        const cappedMs = Math.min(elapsed, MAX_DURATION_MS);
+        resolve({ blob, durationMs: cappedMs });
+      };
+
+      recorder.stop();
+    });
+  }, [audioBlob, durationMs, cleanupTimer]);
 
   const playPreview = useCallback(() => {
     if (!audioBlob) return;

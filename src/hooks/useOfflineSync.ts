@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { openDB, IDBPDatabase } from 'idb';
 import type { QueuedAction } from '@/schemas/contracts';
 import { logger } from '@/lib/logger';
@@ -23,6 +23,8 @@ async function getDb(): Promise<IDBPDatabase> {
 
 export function useOfflineSync() {
   const [online, setOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const isFlushingRef = useRef(false);
 
   const enqueue = useCallback(async (action: Omit<QueuedAction, 'id' | 'status' | 'retries'>) => {
     const db = await getDb();
@@ -42,13 +44,21 @@ export function useOfflineSync() {
   }, []);
 
   const flush = useCallback(async (accessToken: string) => {
-    const db = await getDb();
-    const pending = await db.getAllFromIndex(STORE_NAME, 'status', 'PENDING');
-    pending.sort((a, b) => a.timestamp - b.timestamp);
+    if (isFlushingRef.current) {
+      logger.log('[flush] Sincronização offline já em andamento — ignorando chamada concorrente');
+      return;
+    }
+    isFlushingRef.current = true;
+    setIsSyncing(true);
 
-    // PROTEÇÃO #5: Recálculo de Sequência no Flush
-    // Buscar sequência atual do banco para cada partida antes de enviar
-    const matchSequences = new Map<string, number>();
+    try {
+      const db = await getDb();
+      const pending = await db.getAllFromIndex(STORE_NAME, 'status', 'PENDING');
+      pending.sort((a, b) => a.timestamp - b.timestamp);
+
+      // PROTEÇÃO #5: Recálculo de Sequência no Flush
+      // Buscar sequência atual do banco para cada partida antes de enviar
+      const matchSequences = new Map<string, number>();
 
     for (let i = 0; i < pending.length; i++) {
       const action = pending[i];
@@ -153,6 +163,10 @@ export function useOfflineSync() {
         });
       }
     }
+    } finally {
+      isFlushingRef.current = false;
+      setIsSyncing(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -175,5 +189,5 @@ export function useOfflineSync() {
     };
   }, [flush]);
 
-  return { enqueue, flush, isOnline: online };
+  return { enqueue, flush, isOnline: online, isSyncing };
 }

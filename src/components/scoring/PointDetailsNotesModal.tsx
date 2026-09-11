@@ -25,9 +25,20 @@ export function PointDetailsNotesModal({
     return `${min}:${String(sec).padStart(2, '0')}`;
   };
 
-  const handleSave = () => {
-    const audio = voiceRecorder.audioBlob
-      ? { blob: voiceRecorder.audioBlob, durationMs: voiceRecorder.durationMs }
+  const handleSave = async () => {
+    let audioBlob = voiceRecorder.audioBlob;
+    let durationMs = voiceRecorder.durationMs;
+
+    if (voiceRecorder.state === 'recording') {
+      const result = await voiceRecorder.stopRecording();
+      if (result) {
+        audioBlob = result.blob;
+        durationMs = result.durationMs;
+      }
+    }
+
+    const audio = audioBlob
+      ? { blob: audioBlob, durationMs }
       : undefined;
     onSave(noteText.trim(), audio);
     setNoteText('');

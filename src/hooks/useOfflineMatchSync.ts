@@ -1,4 +1,5 @@
 import { useEffect, useCallback, useRef } from "react";
+import { openDB } from "idb";
 import {
   withLocalStorageLock,
   readPendingMatchSyncs,
@@ -13,6 +14,19 @@ interface PendingMatchSync {
   finishedAt: string;
   timestamp: number;
   type: "MATCH_FINISH";
+}
+
+async function hasPendingPointsForMatch(matchId: string): Promise<boolean> {
+  if (typeof window === "undefined" || typeof indexedDB === "undefined") return false;
+  try {
+    const db = await openDB("racket-offline-db", 1);
+    if (!db.objectStoreNames.contains("optimistic-queue")) return false;
+    const pending = await db.getAllFromIndex("optimistic-queue", "status", "PENDING");
+    const syncing = await db.getAllFromIndex("optimistic-queue", "status", "SYNCING");
+    return [...pending, ...syncing].some((p: any) => p.matchId === matchId);
+  } catch {
+    return false;
+  }
 }
 
 export function useOfflineMatchSync() {
@@ -34,6 +48,16 @@ export function useOfflineMatchSync() {
 
         for (const sync of pendingSyncs) {
           try {
+            // Coordenação: se houver pontos desta partida ainda pendentes no
+            // IndexedDB, adia o finish para não encerrar a partida antes de
+            // processar os pontos restantes.
+            const hasPending = await hasPendingPointsForMatch(sync.matchId);
+            if (hasPending) {
+              logger.log(`[useOfflineMatchSync] Partida ${sync.matchId} ainda possui pontos pendentes no IndexedDB — adiando finish.`);
+              failedSyncs.push(sync);
+              continue;
+            }
+
             const response = await fetch(`/api/matches/${sync.matchId}/finish`, {
               method: "POST",
               headers: {
@@ -43,6 +67,7 @@ export function useOfflineMatchSync() {
               body: JSON.stringify({
                 winnerId: sync.winnerId,
                 finishedAt: sync.finishedAt,
+                reason: "COMPLETED",
               }),
             });
 

@@ -72,7 +72,11 @@ export async function createMatch(data: CreateMatchInput, createdByUserId?: stri
   });
 }
 
-export async function updateMatch(id: string, data: Record<string, unknown>) {
+export async function updateMatch(
+  id: string,
+  data: Record<string, unknown>,
+  expectedVersion?: number,
+) {
   const match = await prisma.match.findFirst({ where: { id } });
   if (!match) return null;
 
@@ -100,51 +104,64 @@ export async function updateMatch(id: string, data: Record<string, unknown>) {
     }
   }
 
-  return prisma.match.update({
-    where: { id },
-    data: {
-      ...(sanitized.nickname !== undefined
-        ? { nickname: sanitized.nickname as string }
-        : {}),
-      ...(sanitized.sportType !== undefined
-        ? { sportType: sanitized.sportType as string }
-        : {}),
-      ...(sanitized.courtType !== undefined
-        ? { courtType: sanitized.courtType as string | null }
-        : {}),
-      ...(sanitized.visibility !== undefined
-        ? { visibility: sanitized.visibility as string }
-        : {}),
-      ...(sanitized.openForAnnotation !== undefined
-        ? { openForAnnotation: sanitized.openForAnnotation as boolean }
-        : {}),
-      ...(sanitized.scheduledAt !== undefined
-        ? { scheduledAt: new Date(sanitized.scheduledAt as string) }
-        : {}),
-      ...(sanitized.initialServerId !== undefined
-        ? { initialServerId: sanitized.initialServerId as string }
-        : {}),
-      ...(sanitized.tournamentName !== undefined
-        ? { tournamentName: sanitized.tournamentName as string | null }
-        : {}),
-      ...(sanitized.category !== undefined
-        ? { category: sanitized.category as string | null }
-        : {}),
-      ...(sanitized.roundName !== undefined
-        ? { roundName: sanitized.roundName as string | null }
-        : {}),
-      ...(sanitized.bracketType !== undefined
-        ? { bracketType: sanitized.bracketType as string | null }
-        : {}),
-      ...(sanitized.temperature !== undefined
-        ? { temperature: sanitized.temperature as number | null }
-        : {}),
-      ...(sanitized.humidity !== undefined
-        ? { humidity: sanitized.humidity as number | null }
-        : {}),
-    },
-    include: { player1: true, player2: true },
-  });
+  const whereClause: { id: string; version?: number } = { id };
+  if (expectedVersion !== undefined) {
+    whereClause.version = expectedVersion;
+  }
+
+  try {
+    return await prisma.match.update({
+      where: whereClause,
+      data: {
+        ...(sanitized.nickname !== undefined
+          ? { nickname: sanitized.nickname as string }
+          : {}),
+        ...(sanitized.sportType !== undefined
+          ? { sportType: sanitized.sportType as string }
+          : {}),
+        ...(sanitized.courtType !== undefined
+          ? { courtType: sanitized.courtType as string | null }
+          : {}),
+        ...(sanitized.visibility !== undefined
+          ? { visibility: sanitized.visibility as string }
+          : {}),
+        ...(sanitized.openForAnnotation !== undefined
+          ? { openForAnnotation: sanitized.openForAnnotation as boolean }
+          : {}),
+        ...(sanitized.scheduledAt !== undefined
+          ? { scheduledAt: new Date(sanitized.scheduledAt as string) }
+          : {}),
+        ...(sanitized.initialServerId !== undefined
+          ? { initialServerId: sanitized.initialServerId as string }
+          : {}),
+        ...(sanitized.tournamentName !== undefined
+          ? { tournamentName: sanitized.tournamentName as string | null }
+          : {}),
+        ...(sanitized.category !== undefined
+          ? { category: sanitized.category as string | null }
+          : {}),
+        ...(sanitized.roundName !== undefined
+          ? { roundName: sanitized.roundName as string | null }
+          : {}),
+        ...(sanitized.bracketType !== undefined
+          ? { bracketType: sanitized.bracketType as string | null }
+          : {}),
+        ...(sanitized.temperature !== undefined
+          ? { temperature: sanitized.temperature as number | null }
+          : {}),
+        ...(sanitized.humidity !== undefined
+          ? { humidity: sanitized.humidity as number | null }
+          : {}),
+        version: { increment: 1 },
+      },
+      include: { player1: true, player2: true },
+    });
+  } catch (error: any) {
+    if (error?.code === 'P2025') {
+      return { error: 'VERSION_CONFLICT' } as const;
+    }
+    throw error;
+  }
 }
 
 export async function deleteMatch(

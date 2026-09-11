@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { withRLSHandler } from '@/lib/auth';
-import { subscribeMatch } from '@/lib/match-events';
+import { subscribeMatch, getMissedEvents } from '@/lib/match-events';
 
 export async function GET(
   request: NextRequest,
@@ -8,14 +8,25 @@ export async function GET(
 ) {
   return withRLSHandler(request, 'SPECTATOR', async () => {
     const { id } = await params;
+    const lastEventId =
+      request.headers.get('last-event-id') ??
+      request.nextUrl.searchParams.get('since') ??
+      null;
 
     const stream = new ReadableStream({
       start(controller) {
         controller.enqueue(`data: {"type":"connected","matchId":"${id}"}\n\n`);
 
+        if (lastEventId) {
+          const missed = getMissedEvents(id, lastEventId);
+          for (const ev of missed) {
+            controller.enqueue(`id: ${ev.id}\ndata: ${JSON.stringify(ev)}\n\n`);
+          }
+        }
+
         const cleanup = subscribeMatch(id, (event) => {
           try {
-            controller.enqueue(`data: ${JSON.stringify(event)}\n\n`);
+            controller.enqueue(`id: ${event.id}\ndata: ${JSON.stringify(event)}\n\n`);
           } catch {
             cleanup();
           }
