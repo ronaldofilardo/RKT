@@ -23,7 +23,7 @@ export async function DELETE(
 
       const updated = await prisma.pointLog.update({
         where: { id: pointId },
-        data: { voidedAt: new Date() },
+        data: { voidedAt: new Date(), sequenceNumber: null },
         select: { id: true, voidedAt: true },
       });
 

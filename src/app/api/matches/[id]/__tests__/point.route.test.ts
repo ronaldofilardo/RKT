@@ -7,6 +7,7 @@ const mockTx = {
     count: jest.fn(),
     create: jest.fn(),
     findFirst: jest.fn(),
+    updateMany: jest.fn(),
   },
 
 };

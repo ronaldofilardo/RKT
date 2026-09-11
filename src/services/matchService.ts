@@ -443,7 +443,7 @@ export async function transitionMatchState(
       if (options?.voidPointLogId) {
         await tx.pointLog.updateMany({
           where: { id: options.voidPointLogId, matchId: id, voidedAt: null },
-          data: { voidedAt: new Date() },
+          data: { voidedAt: new Date(), sequenceNumber: null },
         });
       }
 

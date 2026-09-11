@@ -100,7 +100,15 @@ export async function POST(
           );
         }
 
-                const pointLogCount = await tx.pointLog.count({ where: { matchId: id, voidedAt: null } });
+                // Garante que pontos anulados não retenham sequenceNumber colidindo na unique constraint
+        if (typeof tx.pointLog.updateMany === 'function') {
+          await tx.pointLog.updateMany({
+            where: { matchId: id, voidedAt: { not: null }, sequenceNumber: { not: null } },
+            data: { sequenceNumber: null },
+          });
+        }
+
+        const pointLogCount = await tx.pointLog.count({ where: { matchId: id, voidedAt: null } });
         const nextSequenceNumber = pointLogCount + 1;
         if (parsed.data.sequenceNumber !== undefined) {
           if (parsed.data.sequenceNumber !== nextSequenceNumber) {
@@ -251,26 +259,43 @@ export async function POST(
       }
             if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002' &&
-        requestClientEventId
+        error.code === 'P2002'
       ) {
-        const [existingPoint, currentMatch] = await Promise.all([
-          prisma.pointLog.findFirst({
-            where: { matchId: requestId, clientEventId: requestClientEventId },
-            select: { id: true },
-          }),
-          prisma.match.findUnique({ where: { id: requestId }, select: { scoreState: true, version: true } }),
-        ]);
-        if (existingPoint && currentMatch) {
-          return NextResponse.json({
-            scoreState: currentMatch.scoreState,
-            version: currentMatch.version,
-            pointLogId: existingPoint.id,
-          });
+        const target = (error.meta?.target as string[] | string | undefined) ?? [];
+        const isSequenceConflict = Array.isArray(target)
+          ? target.includes('sequenceNumber')
+          : typeof target === 'string' && target.includes('sequenceNumber');
+
+        if (isSequenceConflict) {
+          const pointCount = await prisma.pointLog.count({ where: { matchId: requestId, voidedAt: null } });
+          return NextResponse.json(
+            {
+              error: 'SEQUENCE_CONFLICT',
+              message: 'Conflito de sequência ao registrar ponto. Sincronize e tente novamente.',
+              expectedSequence: pointCount + 1,
+            },
+            { status: 409 }
+          );
+        }
+
+        if (requestClientEventId) {
+          const [existingPoint, currentMatch] = await Promise.all([
+            prisma.pointLog.findFirst({
+              where: { matchId: requestId, clientEventId: requestClientEventId },
+              select: { id: true },
+            }),
+            prisma.match.findUnique({ where: { id: requestId }, select: { scoreState: true, version: true } }),
+          ]);
+          if (existingPoint && currentMatch) {
+            return NextResponse.json({
+              scoreState: currentMatch.scoreState,
+              version: currentMatch.version,
+              pointLogId: existingPoint.id,
+            });
+          }
         }
       }
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-
         return NextResponse.json(
           {
             error: 'VERSION_CONFLICT',
@@ -280,7 +305,8 @@ export async function POST(
         );
       }
       logger.point.api.error(error);
-      return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });
+      const errorMessage = error instanceof Error ? error.message : 'Erro interno do servidor';
+      return NextResponse.json({ error: 'INTERNAL_ERROR', message: errorMessage }, { status: 500 });
     }
   });
 }

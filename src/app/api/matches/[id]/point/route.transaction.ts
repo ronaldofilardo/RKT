@@ -50,6 +50,12 @@ function getPointAnnotations(parsed: PointInput) {
 }
 
 async function getNextSequence(tx: Prisma.TransactionClient, id: string, received?: number) {
+  if (typeof tx.pointLog.updateMany === 'function') {
+    await tx.pointLog.updateMany({
+      where: { matchId: id, voidedAt: { not: null }, sequenceNumber: { not: null } },
+      data: { sequenceNumber: null },
+    });
+  }
   if (received !== undefined) return received;
   return (await tx.pointLog.count({ where: { matchId: id, voidedAt: null } })) + 1;
 }
