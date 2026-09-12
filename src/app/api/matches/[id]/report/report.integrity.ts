@@ -1,6 +1,6 @@
 import type { TimelinePoint } from '@/core/scoring/types';
 import type { ReportIntegrity } from '@/core/report/report-types';
-import type { PointLogRow } from '@/components/scoring/timeline-rebuild';
+import type { PointLogRow } from '@/core/scoring/timeline-rebuild';
 
 export type { ReportIntegrity } from '@/core/report/report-types';
 

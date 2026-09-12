@@ -156,12 +156,17 @@ describe('ScoringEngine - PRO_SET_8', () => {
 });
 
 describe('ScoringEngine - SHORT_SET_2V2_NO_AD', () => {
-  it('deve completar game no deuce com NO_AD (3-3 = game win)', () => {
+  it('deve completar game no deuce com NO_AD (ponto decisivo após 40-40)', () => {
     const engine = new ScoringEngine(makeConfig('SHORT_SET_2V2_NO_AD'));
 
     for (let i = 0; i < 3; i++) makePoint(engine, 'player-1-id');
     for (let i = 0; i < 2; i++) makePoint(engine, 'player-2-id');
 
+    // 40-40 (Deuce / Ponto Decisivo)
+    makePoint(engine, 'player-2-id');
+    expect(engine.getState().currentGame.isDeuce).toBe(true);
+
+    // Ponto decisivo do No-Ad (sudden death)
     makePoint(engine, 'player-2-id');
     const state = engine.getState();
     expect(state.sets[0].player2).toBe(3);

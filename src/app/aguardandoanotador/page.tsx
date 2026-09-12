@@ -31,7 +31,13 @@ export default function AguardandoAnotadorPage() {
         if (!res.ok) throw new Error('MATCH_NOT_FOUND');
         const match = await res.json();
         if (match.openForAnnotation || match.state === 'IN_PROGRESS') {
-          router.push(`/match/${matchId}/scoring`);
+          const userRole = sessionStorage.getItem('user_role');
+          const isScorerOrStaff = userRole === 'COACH' || userRole === 'ADMIN' || userRole === 'GESTOR';
+          if (isScorerOrStaff) {
+            router.push(`/match/${matchId}/scoring` as any);
+          } else {
+            router.push(`/match/${matchId}` as any);
+          }
         }
       } catch {
         setError('Erro ao verificar partida');

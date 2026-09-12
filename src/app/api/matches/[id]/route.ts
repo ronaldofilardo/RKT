@@ -59,10 +59,14 @@ export async function GET(
       }
 
       // Verifica se o usuário tem acesso à partida
-      const hasAccess =
+      const isStaff = ['ADMIN', 'GESTOR', 'COACH'].includes(user.role);
+      const isPublic = match.visibility === 'PUBLIC';
+      const isParticipant =
         match.player1Id === currentUserId ||
         match.player2Id === currentUserId ||
         match.createdByUserId === currentUserId;
+
+      const hasAccess = isParticipant || isStaff || isPublic;
 
       if (!hasAccess) {
         return NextResponse.json(

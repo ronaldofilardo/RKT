@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { MatchCard } from "@/components/dashboard/MatchCard";
 import { useToast } from "@/components/Toast";
@@ -12,6 +12,7 @@ import {
   useDashboardData,
   useModalState,
   useUserAuth,
+  useDashboardMatchFilters,
 } from "./dashboard.hooks";
 import { useResumeSession } from "./dashboard.resume";
 import { useDeleteMatch, useFinishMatch } from "./dashboard.actions";
@@ -79,21 +80,13 @@ export default function DashboardPage() {
     suspendedFromApi.length
   );
 
-  const finishedMatches = useMemo(
-    () => matches.filter((m: any) => m.state === "FINISHED"),
-    [matches],
-  );
-
-  // Bug fix (2026-09-08): /api/matches não sabe nada sobre sessões de anotação
-  // abandonadas, então uma partida com sessão suspensa (retornada também por
-  // /api/matches/suspended-sessions) aparecia duplicada no dashboard: uma vez
-  // no bloco "Anotações Suspensas" e outra na lista normal (como "Em Andamento").
-  // Removemos da lista normal qualquer partida já exibida como suspensa.
-  const visibleMatches = useMemo(() => {
-    if (suspendedFromApi.length === 0) return matches;
-    const suspendedIds = new Set(suspendedFromApi.map((m: any) => m.id));
-    return matches.filter((m: any) => !suspendedIds.has(m.id));
-  }, [matches, suspendedFromApi]);
+  const {
+    finishedMatches,
+    liveMatches,
+    pendingMatches,
+    historyMatches,
+    visibleMatches,
+  } = useDashboardMatchFilters(matches, suspendedFromApi);
 
   const handleMatchClick = useCallback(
     (match: any) => {
@@ -147,11 +140,11 @@ export default function DashboardPage() {
     if (loading) {
       return (
         <div
-          className="flex items-center justify-center py-12"
+          className="flex justify-center items-center h-64"
           role="status"
           aria-live="polite"
         >
-          <p className="text-gray-500">Carregando...</p>
+          <p className="text-gray-700 dark:text-gray-200 font-semibold">Carregando...</p>
         </div>
       );
     }
@@ -194,6 +187,122 @@ export default function DashboardPage() {
       );
     }
 
+    if (view === "live") {
+      return (
+        <section aria-labelledby="live-heading">
+          <div className="flex items-center justify-between mb-4">
+            <h2
+              id="live-heading"
+              className="text-xl font-bold text-gray-900"
+            >
+              Partidas Ao Vivo
+            </h2>
+            <button
+              type="button"
+              onClick={() => handleNavigate("dashboard")}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Voltar para Início
+            </button>
+          </div>
+          {liveMatches.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">
+              Nenhuma partida ao vivo no momento.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {liveMatches.map((m: any) => (
+                <MatchCard
+                  key={m.id}
+                  match={m}
+                  onClick={handleMatchClick}
+                  onReport={handleMatchReport}
+                  onFinish={handleMatchFinish}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      );
+    }
+
+    if (view === "pending") {
+      return (
+        <section aria-labelledby="pending-heading">
+          <div className="flex items-center justify-between mb-4">
+            <h2
+              id="pending-heading"
+              className="text-xl font-bold text-gray-900"
+            >
+              Partidas Aguardando
+            </h2>
+            <button
+              type="button"
+              onClick={() => handleNavigate("dashboard")}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Voltar para Início
+            </button>
+          </div>
+          {pendingMatches.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">
+              Nenhuma partida agendada aguardando no momento.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {pendingMatches.map((m: any) => (
+                <MatchCard
+                  key={m.id}
+                  match={m}
+                  onClick={handleMatchClick}
+                  onDelete={handleMatchDelete}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      );
+    }
+
+    if (view === "history") {
+      return (
+        <section aria-labelledby="history-heading">
+          <div className="flex items-center justify-between mb-4">
+            <h2
+              id="history-heading"
+              className="text-xl font-bold text-gray-900"
+            >
+              Histórico de Partidas
+            </h2>
+            <button
+              type="button"
+              onClick={() => handleNavigate("dashboard")}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Voltar para Início
+            </button>
+          </div>
+          {historyMatches.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">
+              Nenhuma partida no histórico.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {historyMatches.map((m: any) => (
+                <MatchCard
+                  key={m.id}
+                  match={m}
+                  onClick={handleMatchClick}
+                  onReport={handleMatchReport}
+                  onDelete={handleMatchDelete}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      );
+    }
+
     return (
       <section aria-labelledby="dashboard-heading">
         <h2 id="dashboard-heading" className="sr-only">
@@ -201,7 +310,7 @@ export default function DashboardPage() {
         </h2>
         {suspendedFromApi.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase mb-3">
               Anotações Suspensas
             </h3>
             <div className="space-y-3">
@@ -317,12 +426,12 @@ export default function DashboardPage() {
                   logger.info("[DashboardPage] new match click");
                   router.push("/match/new");
                 }}
-                className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white transition-colors"
+                className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-sky-700 hover:bg-sky-800 text-white transition-colors"
                 aria-label="Nova partida"
               >
                 + Nova Partida
               </button>
-              <span className="text-sm text-gray-500">{user.name}</span>
+              <span className="text-sm text-gray-700 font-medium">{user.name}</span>
               {user.role === "ADMIN" && (
                 <span className="text-xs px-2 py-1 rounded bg-amber-100 text-amber-800">
                   Admin
@@ -331,7 +440,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="text-sm text-gray-500 hover:text-gray-700"
+                className="text-sm text-gray-700 hover:text-gray-900 font-medium"
                 aria-label="Sair"
               >
                 Sair
@@ -353,7 +462,7 @@ export default function DashboardPage() {
             aria-label="Menu"
           >
             <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-semibold text-gray-500 uppercase">
+              <span className="text-sm font-semibold text-gray-700 uppercase">
                 Menu
               </span>
               <button

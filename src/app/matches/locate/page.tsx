@@ -26,7 +26,7 @@ export default function LocateMatchesPage() {
     fetch('/api/matches', { signal: controller.signal })
       .then(res => res.json())
       .then(data => {
-        setMatches(data.matches || []);
+        setMatches(data?.data?.matches ?? data?.matches ?? []);
         setLoading(false);
       })
       .catch(() => {
@@ -167,7 +167,7 @@ export default function LocateMatchesPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       {match.state === 'SCHEDULED' && (
-                        <button onClick={() => router.push(`/match/${match.id}/annotate` as any)}
+                        <button onClick={() => router.push(`/match/${match.id}/scoring` as any)}
                           className="px-4 py-2 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700 transition-colors">
                           Anotar
                         </button>

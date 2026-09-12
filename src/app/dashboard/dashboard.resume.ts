@@ -12,7 +12,8 @@ export function useResumeSession(options: ResumeSessionOptions) {
   const { router, setSession, setPendingEdit } = options;
 
   const handleResumeSuspended = (match: any) => {
-    const isRealSuspendedSession = Boolean(
+    try {
+      const isRealSuspendedSession = Boolean(
       match.matchStateSnapshot && match.suspendedSessionId
     );
 
@@ -110,6 +111,9 @@ export function useResumeSession(options: ResumeSessionOptions) {
       JSON.stringify(sessionStorageData)
     );
     router.push(`/match/${match.id}/scoring`);
+    } catch (err) {
+      console.error('[handleResumeSuspended] ERROR:', err);
+    }
   };
 
   return { handleResumeSuspended };

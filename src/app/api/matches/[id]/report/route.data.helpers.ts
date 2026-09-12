@@ -1,5 +1,5 @@
 import type { TimelinePoint } from '@/core/scoring/types';
-import { rebuildTimelineFromPointLogs, type PointLogRow } from '@/components/scoring/timeline-rebuild';
+import { rebuildTimelineFromPointLogs, type PointLogRow } from '@/core/scoring/timeline-rebuild';
 import { findAbandonedSessionSnapshot, getMatch } from '@/services/matchService';
 import type { TennisFormat } from '@/core/scoring/types';
 import { prisma } from '@/lib/prisma';

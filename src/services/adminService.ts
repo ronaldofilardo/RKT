@@ -39,16 +39,23 @@ export async function createUser(data: {
 
   const passwordHash = await bcrypt.hash(data.password, 10);
 
-  return prisma.player.create({
-    data: {
-      name: data.name,
-      email: data.email,
-      passwordHash,
-      role: data.role as any,
-      club: data.club || null,
-    },
-    select: { id: true, name: true, email: true, role: true, club: true, createdAt: true },
-  });
+  try {
+    return await prisma.player.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        passwordHash,
+        role: data.role as any,
+        club: data.club || null,
+      },
+      select: { id: true, name: true, email: true, role: true, club: true, createdAt: true },
+    });
+  } catch (err: any) {
+    if (err?.code === 'P2002') {
+      return { error: 'EMAIL_ALREADY_EXISTS' };
+    }
+    throw err;
+  }
 }
 
 export async function updateUser(id: string, data: { name?: string; role?: string; club?: string | null }) {

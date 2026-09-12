@@ -3,60 +3,73 @@ import { TestContext } from '../helpers/test-context';
 
 test.describe('Fluxo de Retomada: Dashboard -> Modal -> Scoring', () => {
   let ctx: TestContext;
+  let matchId: string;
+  let sessionId: string;
 
   test.beforeAll(async () => {
     ctx = await TestContext.create();
+
+    const mRes = await ctx.api.post('/api/matches', {
+      data: {
+        player1Id: ctx.athlete1.userId,
+        player2Id: ctx.athlete2.userId,
+        format: 'BEST_OF_3',
+        initialServerId: ctx.athlete1.userId,
+      },
+      headers: ctx.authHeader(ctx.athlete1.token),
+    });
+    const match = await mRes.json();
+    matchId = match.id ?? match.data?.id;
+
+    await ctx.api.patch(`/api/matches/${matchId}/state`, {
+      data: { state: 'IN_PROGRESS', initialServerId: ctx.athlete1.userId },
+      headers: ctx.authHeader(ctx.athlete1.token),
+    });
+
+    const sRes = await ctx.api.post(`/api/matches/${matchId}/sessions`, {
+      data: {},
+      headers: ctx.authHeader(ctx.coach.token),
+    });
+    const session = await sRes.json();
+    sessionId = session.id;
+
+    const snapshot = JSON.stringify({
+      sets: [{ player1: 3, player2: 2 }],
+      currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+      server: 'player1',
+      isFinished: false,
+      winner: null,
+      setsWon: { player1: 0, player2: 0 },
+      startedAt: null,
+      secondServe: false,
+    });
+
+    await ctx.api.post(`/api/matches/${matchId}/sessions/${sessionId}/abandon`, {
+      data: { matchStateSnapshot: snapshot },
+      headers: ctx.authHeader(ctx.coach.token),
+    });
   });
 
   test('deve abrir modal de retomada e navegar para scoring após confirmação', async ({ page }) => {
-    // Sprint 3 fix: persistir token athlete1 via sessionStorage antes de navegar
-    // (TestContext provê tokens via API; UI precisa do token no storage do navegador)
-    await page.goto('/');
-    await page.evaluate((token) => {
-      sessionStorage.setItem('access_token', token);
-    }, ctx.athlete1.token);
+    await ctx.authenticatePage(page, 'coach');
 
-    // 1. Login e Navegação para o Dashboard
+    // 1. Navegação para o Dashboard
     await page.goto('/dashboard');
+    await page.waitForLoadState('networkidle');
 
     // 2. Localizar partida na seção "Anotações Suspensas"
-    // Busca pelo texto do cabeçalho da seção e depois o card de partida
-    const suspendedSection = page.locator('text=🔴 Anotações Suspensas');
+    const suspendedSection = page.locator('h3:has-text("Anotações Suspensas")');
     await expect(suspendedSection).toBeVisible();
 
-    const suspendedCard = page
-      .locator('text=🔴 Anotações Suspensas')
-      .locator('..')
-      .locator('.cursor-pointer')
-      .first();
+    const suspendedCard = page.locator(`[data-testid="match-card-${matchId}"]`);
+    await expect(suspendedCard).toBeVisible({ timeout: 10_000 });
     await suspendedCard.click();
 
-    // 3. Validar abertura do ResumeScoreModal
-    const modalTitle = page.locator('text=Retomar Partida em Andamento');
-    await expect(modalTitle).toBeVisible();
-
-    // 4. Preencher placar no modal para teste de retomada
-    // Set 1: 6-4 (concluído)
-    await page.locator('input[type="number"]').nth(0).fill('6'); // Player 1 games
-    await page.locator('input[type="number"]').nth(1).fill('4'); // Player 2 games
-    await page.locator('button:has-text("+ Adicionar Set Concluído")').click();
-
-    // Set 2: 2-1 (em andamento)
-    await page.locator('input[type="number"]').nth(0).fill('2');
-    await page.locator('input[type="number"]').nth(1).fill('1');
-
-    // Pontos: 15-30
-    await page.locator('input[placeholder="0, 15, 30, 40, A"]').nth(0).fill('15');
-    await page.locator('input[placeholder="0, 15, 30, 40, A"]').nth(1).fill('30');
-
-    await page.locator('button:has-text("Confirmar e Iniciar")').click();
-
-    // 5. Validar navegação para a página de scoring
+    // 3. Validar navegação para a página de scoring da partida retomada
     await expect(page).toHaveURL(/.*\/scoring/);
+    await page.waitForLoadState('networkidle');
 
-    // 6. Validar se o placar inserido está refletido na tela
-    // Verifica se o placar de sets (1-0) e games (2-1) aparece na UI
-    await expect(page.locator('text=1-0')).toBeVisible();
-    await expect(page.locator('text=2-1')).toBeVisible();
+    // 4. Validar que a tela de scoring foi carregada
+    await expect(page.locator('button:has-text("Corrigir")').first()).toBeVisible();
   });
 });

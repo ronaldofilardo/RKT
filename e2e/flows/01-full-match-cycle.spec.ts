@@ -51,12 +51,13 @@ test.describe('TEST-02.1: Fluxo completo — Criar partida → Pontuar → Sess�
   });
 
   test('registrar pontos até vencer o match tiebreak', async () => {
-    // MATCH_TB_10: first to 10 with 2-point lead
+    // MATCH_TB_10: registra pontos alternados para manter partida IN_PROGRESS
     let pontoCount = 0;
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 14; i++) {
+      const winnerId = i % 2 === 0 ? ctx.athlete1.userId : ctx.athlete2.userId;
       const res = await ctx.api.post(`/api/matches/${ctx.matchId}/point`, {
         data: {
-          winnerId: ctx.athlete1.userId,
+          winnerId,
           type: 'WINNER',
           serverId: ctx.athlete1.userId,
         },
@@ -121,6 +122,19 @@ test.describe('TEST-02.1: Fluxo completo — Criar partida → Pontuar → Sess�
   });
 
   test('encerrar partida (IN_PROGRESS → FINISHED)', async () => {
+    // Registra pontos finais até vencer o match tiebreak
+    for (let i = 0; i < 4; i++) {
+      const pointRes = await ctx.api.post(`/api/matches/${ctx.matchId}/point`, {
+        data: {
+          winnerId: ctx.athlete1.userId,
+          type: 'WINNER',
+          serverId: ctx.athlete1.userId,
+        },
+        headers: ctx.authHeader(ctx.athlete1.token),
+      });
+      if (!pointRes.ok()) break;
+    }
+
     const res = await ctx.api.patch(`/api/matches/${ctx.matchId}/state`, {
       data: { state: 'FINISHED' },
       headers: ctx.authHeader(ctx.athlete1.token),

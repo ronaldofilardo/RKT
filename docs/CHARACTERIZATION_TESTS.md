@@ -428,6 +428,19 @@ Output:
 
 ---
 
+## Baseline de Handoff — Auditoria Técnica (2026-09-11)
+
+Estabelecida para blindar os módulos auditados antes do handoff de correções e evitar regressões cegas em pontuação, RBAC/RLS e rotas de API.
+
+| Arquivo de Teste | Módulo Protegido | Suspeitas / Dívidas Capturadas |
+|---|---|---|
+| `src/core/scoring/__tests__/scoring-formats.baseline.characterization.test.ts` | Scoring Engine (`game-processing.ts`, `tiebreak.ts`, `format-rules.ts`) | **TD-048**: No-Ad encerrando no 40-40 (3-3)<br>**TD-049**: Disparo de TB em 4x4 no `BEST_OF_3_NO_AD`<br>**TD-050**: `PRO_SET_8` com gatilho de TB em 9 |
+| `src/lib/__tests__/rbac-boundaries.baseline.characterization.test.ts` | Autenticação & Guards (`auth.ts`, `rls-context.ts`) | **TD-051**: Inconsistência de RBAC hierárquico linear (Coach herda Athlete em chamadas de API) |
+| `src/app/api/matches/__tests__/match-authorization.baseline.characterization.test.ts` | Route Handlers (`src/app/api/matches/[id]/route.ts`) | **TD-052**: `GET /api/matches/[id]` bloqueando Admin/Coach/Público em partidas com visibility `PUBLIC` |
+| `src/services/__tests__/annotation-session-lifecycle.baseline.characterization.test.ts` | Gestão de Sessões (`sessionService.ts`) | Expiração e limpeza de locks órfãos em sessões suspensas inativas |
+
+---
+
 ## Referências
 
 - `docs/TECH_DEBT.md` — Dívidas técnicas (priorizar characterization dos módulos com TD crítico)

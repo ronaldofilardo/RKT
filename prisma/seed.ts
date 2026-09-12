@@ -8,7 +8,7 @@ async function main() {
 
   const athlete1 = await prisma.player.upsert({
     where: { email: 'play@email.com' },
-    update: {},
+    update: { passwordHash },
     create: {
       name: 'Jogador Atleta',
       email: 'play@email.com',
@@ -20,7 +20,7 @@ async function main() {
 
   const athlete2 = await prisma.player.upsert({
     where: { email: 'player2@email.com' },
-    update: {},
+    update: { passwordHash },
     create: {
       name: 'Segundo Jogador',
       email: 'player2@email.com',
@@ -32,7 +32,7 @@ async function main() {
 
   const coach = await prisma.player.upsert({
     where: { email: 'coach@email.com' },
-    update: {},
+    update: { passwordHash },
     create: {
       name: 'Técnico',
       email: 'coach@email.com',
@@ -44,7 +44,7 @@ async function main() {
 
   const admin = await prisma.player.upsert({
     where: { email: 'admin@email.com' },
-    update: {},
+    update: { passwordHash },
     create: {
       name: 'Administrador',
       email: 'admin@email.com',

@@ -17,6 +17,7 @@ export default function CourtBackground({ courtType = 'HARD' }: { courtType?: Co
   return (
     <div
       className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl"
+      aria-hidden="true"
       style={{ backgroundColor: colors.bg }}
     >
       {/* Net */}
@@ -30,10 +31,6 @@ export default function CourtBackground({ courtType = 'HARD' }: { courtType?: Co
       {/* Right service box */}
       <div className="absolute right-0 top-1/4 w-1/3 h-1/2 border-2 border-white/30" />
 
-      {/* Court label */}
-      <div className="absolute bottom-2 right-3 text-white/40 text-[10px] font-medium uppercase tracking-wider">
-        {colors.label}
-      </div>
     </div>
   );
 }

@@ -209,6 +209,8 @@ describe('ScoringEngine', () => {
     for (let i = 0; i < 3; i++) {
       makePointNoAd('player-2-id');
     }
+    // Ponto decisivo (Sudden Death) no Deuce
+    makePointNoAd('player-2-id');
 
     const state = noAdEngine.getState();
     expect(state.sets[0].player2).toBe(3);

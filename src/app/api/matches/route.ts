@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CreateMatchInputSchema, MatchStateSchema } from '@/schemas/contracts';
-import { withRLSHandler, getRLSUser } from '@/lib/auth';
+import { withRLSHandler, withPermissionHandler, getRLSUser } from '@/lib/auth';
 import { listMatches, createMatch } from '@/services/matchService';
 import { findDuplicateMatch } from '@/services/matchSuggestionService';
 import { validatedRequest, handleApiError, extractPagination } from '@/lib/api-helpers';
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  return withRLSHandler(request, 'ATHLETE', async () => {
+  return withPermissionHandler(request, 'play:match', async () => {
     try {
       const { force, ...input } = await validatedRequest(request, CreateMatchInputSchema);
 
@@ -78,11 +78,11 @@ export async function POST(request: NextRequest) {
 
           return createMatch(input, currentUserId, tx);
         });
-        return NextResponse.json({ data: match }, { status: 201 });
+        return NextResponse.json({ data: match, ...match }, { status: 201 });
       }
 
       const match = await createMatch(input, currentUserId);
-      return NextResponse.json({ data: match }, { status: 201 });
+      return NextResponse.json({ data: match, ...match }, { status: 201 });
     } catch (error) {
       logger.error('[MATCHES POST]', error);
 

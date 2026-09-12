@@ -23,8 +23,8 @@ export interface SetValidation {
 }
 
 export function getMaxValidGames(otherGames: number, format: TennisFormat): number {
-  if (format === 'MATCH_TB_10') return 30;
-  if (!shouldHaveTiebreak(format)) return 30;
+  if (format === 'MATCH_TB_10') return SCORING_LIMITS.TIEBREAK_INPUT_CAP;
+  if (!shouldHaveTiebreak(format)) return SCORING_LIMITS.TIEBREAK_INPUT_CAP;
 
   const tiebreakAt = getTiebreakAtForFormat(format);
 

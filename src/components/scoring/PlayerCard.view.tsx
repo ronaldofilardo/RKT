@@ -34,7 +34,7 @@ export function PlayerCardView({player,side,score,progress,setsWon,isServing,isW
       </div>
 
       {!disabled && !isWinner && (
-        <span className="text-[9px] sm:text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">Toque para marcar ponto</span>
+        <span className="text-[9px] sm:text-[10px] text-gray-600 dark:text-gray-200 font-medium mt-0.5">Toque para marcar ponto</span>
       )}
     </button>
   );

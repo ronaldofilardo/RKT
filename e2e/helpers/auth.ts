@@ -18,9 +18,7 @@ export type UserRole = keyof typeof USERS;
 
 let cachedTokens: Partial<Record<UserRole, string>> = {};
 let cachedIds: Partial<Record<UserRole, string>> = {};
-
-import { findPlayerByEmail } from '@/services/playerService';
-import { SignJWT } from 'jose';
+import type { Page } from '@playwright/test';
 
 export async function loginAs(role: UserRole): Promise<{ token: string; userId: string; api: APIRequestContext }> {
   if (cachedTokens[role] && cachedIds[role]) {
@@ -30,22 +28,6 @@ export async function loginAs(role: UserRole): Promise<{ token: string; userId: 
 
   const user = USERS[role];
   const api = await request.newContext({ baseURL: 'http://127.0.0.1:3000' });
-
-  if (process.env.NODE_ENV === 'test') {
-    const player = await findPlayerByEmail(user.email);
-    if (!player) {
-      throw new Error(`User not found for ${user.email}`);
-    }
-    const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
-    const accessToken = await new SignJWT({ sub: player.id, role: player.role })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setIssuedAt()
-      .setExpirationTime('2h')
-      .sign(JWT_SECRET);
-    cachedTokens[role] = accessToken;
-    cachedIds[role] = player.id;
-    return { token: accessToken, userId: player.id, api };
-  }
 
   const res = await api.post('/api/auth/login', {
     data: { email: user.email, password: user.password },
@@ -63,7 +45,29 @@ export async function loginAs(role: UserRole): Promise<{ token: string; userId: 
   return { token: body.accessToken, userId: body.user.id, api };
 }
 
+export async function setBrowserAuth(
+  page: Page,
+  user: { token: string; userId?: string; role?: string }
+): Promise<void> {
+  const role = user.role ?? 'ATHLETE';
+  await page.context().addCookies([
+    { name: 'access_token', value: user.token, domain: 'localhost', path: '/' },
+    { name: 'rkt_access_token', value: user.token, domain: 'localhost', path: '/' },
+    { name: 'user_role', value: role, domain: 'localhost', path: '/' },
+  ]);
+  await page.goto('/login');
+  await page.evaluate((u) => {
+    sessionStorage.setItem('access_token', u.token);
+    if (u.userId) sessionStorage.setItem('user_id', u.userId);
+    sessionStorage.setItem('user_role', u.role);
+    localStorage.setItem('access_token', u.token);
+    if (u.userId) localStorage.setItem('user_id', u.userId);
+    localStorage.setItem('user_role', u.role);
+  }, { ...user, role });
+}
+
 export function clearCache() {
   cachedTokens = {};
   cachedIds = {};
 }
+

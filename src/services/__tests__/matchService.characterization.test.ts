@@ -531,7 +531,7 @@ describe('matchService (characterization)', () => {
 
       expect(result).toBeDefined();
       expect(result.state).toBe('IN_PROGRESS');
-      expect(result.startedAt).toBeDefined();
+      expect(result.startedAt).toBeInstanceOf(Date);
       expect(result.initialServerId).toBe(PLAYER_1.id);
     });
 
@@ -565,7 +565,7 @@ describe('matchService (characterization)', () => {
 
       expect(result).toBeDefined();
       expect(result.state).toBe('FINISHED');
-      expect(result.finishedAt).toBeDefined();
+      expect(result.finishedAt).toBeInstanceOf(Date);
       expect(result.scoreState).toEqual(scoreState);
       spy.mockRestore();
     });

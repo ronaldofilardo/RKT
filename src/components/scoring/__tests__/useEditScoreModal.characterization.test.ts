@@ -8,10 +8,6 @@ import { getFloorError, getFreshFloorError } from '../useEditScoreModal.confirm.
 import type { SetEditData } from '../editScoreHelpers';
 
 describe('useEditScoreModal - Caracterizacao', () => {
-  it('deve ser testavel', () => {
-    expect(true).toBe(true);
-  });
-
   describe('canConfirm - resume de partida', () => {
     it('deve permitir confirmar quando scoresAreZero e hasGamePoints', () => {
       const validation = calculateValidation({

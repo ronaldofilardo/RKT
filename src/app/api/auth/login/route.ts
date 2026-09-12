@@ -57,6 +57,13 @@ export async function POST(request: NextRequest) {
       maxAge: 60 * 60 * 2,
       path: '/',
     });
+    response.cookies.set('access_token', accessToken, {
+      httpOnly: false,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 2,
+      path: '/',
+    });
     return response;
   } catch (error) {
     logger.error('[LOGIN POST]', error);

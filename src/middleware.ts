@@ -15,6 +15,7 @@ export function getAuthToken(request: Pick<NextRequest, 'headers' | 'cookies'>) 
   const authHeader = request.headers.get('authorization');
   return (
     authHeader?.replace('Bearer ', '') ??
+    request.cookies.get('rkt_access_token')?.value ??
     request.cookies.get('access_token')?.value ??
     null
   );

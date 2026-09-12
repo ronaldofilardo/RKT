@@ -1,5 +1,5 @@
-import { APIRequestContext } from '@playwright/test';
-import { UserRole, loginAs } from './auth';
+import { APIRequestContext, Page } from '@playwright/test';
+import { UserRole, loginAs, setBrowserAuth, USERS } from './auth';
 
 /**
  * Shared context for a single E2E test — holds tokens, IDs,
@@ -52,4 +52,11 @@ export class TestContext {
   authHeader(token: string) {
     return { Authorization: `Bearer ${token}` };
   }
+
+  async authenticatePage(page: Page, roleKey: 'athlete1' | 'athlete2' | 'coach' | 'admin') {
+    const user = this[roleKey];
+    const role = USERS[roleKey].role;
+    await setBrowserAuth(page, { token: user.token, userId: user.userId, role });
+  }
 }
+

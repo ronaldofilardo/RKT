@@ -18,7 +18,12 @@ function processStandardPoint(
 
   if (usesNoAd(config)) {
     if (game.player1 >= 3 && game.player2 >= 3) {
-      return handleGameWon(winner, game, state, config);
+      // "No-ad": ao empatar em 3-3 (40-40), o game NÃO encerra.
+      // Entra em Ponto Decisivo (Deuce) para ser decidido no próximo ponto único.
+      game.isDeuce = true;
+      game.player1 = 3;
+      game.player2 = 3;
+      return { ...state, currentGame: game };
     }
     const needed = 4;
     if (game.player1 >= needed || game.player2 >= needed) {

@@ -24,6 +24,56 @@ export async function PATCH(
       }
 
       const user = getRLSUser();
+      const currentUserId = user?.id;
+
+      const match = await prisma.match.findFirst({
+        where: { id },
+        select: {
+          id: true,
+          player1Id: true,
+          player2Id: true,
+          createdByUserId: true,
+          openForAnnotation: true,
+          state: true,
+        },
+      });
+
+      if (!match) {
+        return NextResponse.json({ error: 'MATCH_NOT_FOUND', message: 'Partida não encontrada' }, { status: 404 });
+      }
+
+      const isStaff = user?.role === 'ADMIN' || user?.role === 'GESTOR' || user?.role === 'COACH';
+      const isParticipant =
+        match.player1Id === currentUserId ||
+        match.player2Id === currentUserId ||
+        match.createdByUserId === currentUserId;
+      const isOpenForAnnotation = match.openForAnnotation === true;
+
+      const hasSessionModel = typeof (prisma as any).matchAnnotationSession?.findFirst === 'function';
+      const activeSession = hasSessionModel
+        ? await (prisma as any).matchAnnotationSession.findFirst({
+            where: {
+              matchId: id,
+              isActive: true,
+              annotatorUserId: currentUserId,
+            },
+          })
+        : null;
+
+      if (!isStaff && !isParticipant && !isOpenForAnnotation && hasSessionModel && !activeSession) {
+        return NextResponse.json(
+          { error: 'FORBIDDEN', message: 'Sem permissão para alterar o estado desta partida' },
+          { status: 403 }
+        );
+      }
+
+      if (match.state === 'FINISHED' && parsed.data.state === 'FINISHED') {
+        const fullMatch = await prisma.match.findUnique({ where: { id } });
+        return NextResponse.json({
+          ...fullMatch,
+          version: fullMatch?.version,
+        });
+      }
 
       const result = await transitionMatchState(
         id,
@@ -80,3 +130,6 @@ export async function PATCH(
     }
   });
 }
+
+export const POST = PATCH;
+

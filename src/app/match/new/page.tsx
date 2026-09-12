@@ -1,10 +1,5 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { useToast } from '@/components/Toast';
-import { logger } from '@/lib/logger';
-import { ensureAuthCookie } from '@/lib/auth-client';
 import {
   MatchNewHeader,
   SportFormatSection,
@@ -16,308 +11,71 @@ import {
   DuplicateMatchModal,
   RoundSelector,
 } from './components';
-import type { Athlete } from './types';
+import { useNewMatchController } from './useNewMatchController';
 
 export default function NewMatchPage() {
-  const router = useRouter();
-  const { toast } = useToast();
-
-  const [loading, setLoading] = useState(false);
-  const submittingRef = useRef(false);
-  const [error, setError] = useState<string | null>(null);
-  const [missingFields, setMissingFields] = useState<string[]>([]);
-  const [athletes, setAthletes] = useState<Athlete[]>([]);
-
-  // Player dropdowns
-  const [player1DropdownOpen, setPlayer1DropdownOpen] = useState(false);
-  const [player2DropdownOpen, setPlayer2DropdownOpen] = useState(false);
-  const [showNewAthleteModal, setShowNewAthleteModal] = useState(false);
-  const [newAthleteFor, setNewAthleteFor] = useState<'p1' | 'p2' | null>(null);
-
-  const [selectedP1, setSelectedP1] = useState<Athlete | null>(null);
-  const [selectedP2, setSelectedP2] = useState<Athlete | null>(null);
-
-  // Match config
-  const [format, setFormat] = useState('BEST_OF_3');
-  const [courtType, setCourtType] = useState('CLAY');
-  const [sportType, setSportType] = useState('TENNIS');
-
-  // Date/time
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
-
-  useEffect(() => {
-    const today = new Date().toLocaleDateString('en-CA');
-    setDate(prev => prev || today);
-  }, []);
-
-  // Details
-  const [nickname] = useState('');
-  const [visibility, setVisibility] = useState('PLAYERS_ONLY');
-  const [anotadorEmail, setAnotadorEmail] = useState('');
-  const [tournamentName, setTournamentName] = useState('');
-  const [clubName, setClubName] = useState('');
-  const [category, setCategory] = useState<'INFANTIL' | 'JUVENIL' | 'ADULTO' | 'VETERANO' | ''>('');
-  const [roundName, setRoundName] = useState('');
-  const bracketType = '' as const;
-  const [venueId, setVenueId] = useState('');
-  const [publicMatchCode, setPublicMatchCode] = useState('');
-  const [temperature, setTemperature] = useState('');
-  const [humidity, setHumidity] = useState('');
-  const [tags, setTags] = useState('');
-  const [openForAnnotation, setOpenForAnnotation] = useState(false);
-
-  // Tournament suggestions
-  const [tournamentSuggestions, setTournamentSuggestions] = useState<string[]>([]);
-  const [showTournamentDropdown, setShowTournamentDropdown] = useState(false);
-
-  // Server selection modal
-  const [showServerModal, setShowServerModal] = useState(false);
-  const [createdMatchId, setCreatedMatchId] = useState<string | null>(null);
-  const [startingMatch, setStartingMatch] = useState(false);
-
-  const [pendingPayload, setPendingPayload] = useState<Record<string, unknown> | null>(null);
-
-  // Duplicate modal
-  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
-  const [duplicateInfo, setDuplicateInfo] = useState<{ id: string; playerP1?: string; playerP2?: string } | null>(null);
-
-  // ADMIN defaults
-  useEffect(() => {
-    const role = sessionStorage.getItem('user_role');
-    if (role === 'ADMIN') {
-      setVisibility('PUBLIC');
-      setOpenForAnnotation(true);
-    }
-    ensureAuthCookie();
-  }, []);
-
-  useEffect(() => {
-    const token = sessionStorage.getItem('access_token');
-    const userId = sessionStorage.getItem('user_id');
-
-    if (!userId || !token) return;
-
-    fetch(`/api/players?userId=${encodeURIComponent(userId)}`, {
-      headers: { authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
-      .then((json) => {
-        const players = json?.data?.players ?? json?.players ?? [];
-        setAthletes(Array.isArray(players) ? players : []);
-      })
-      .catch(() => {});
-  }, []);
-
-  // Tournament auto-complete
-  useEffect(() => {
-    if (!tournamentName.trim()) {
-      setTournamentSuggestions([]);
-      return;
-    }
-    let cancelled = false;
-    const timer = setTimeout(async () => {
-      try {
-        const res = await fetch(
-          `/api/matches/tournament-suggestions?tournamentName=${encodeURIComponent(tournamentName)}`,
-        );
-        if (res.ok && !cancelled) {
-          const data = await res.json();
-          setTournamentSuggestions(data.tournaments ?? []);
-        }
-      } catch {}
-    }, 300);
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [tournamentName]);
-
-  const handleSelectTournament = (name: string) => {
-    setTournamentName(name);
-    setShowTournamentDropdown(false);
-  };
-
-  const handleOpenNewAthleteModal = (player: 'p1' | 'p2') => {
-    setNewAthleteFor(player);
-    setShowNewAthleteModal(true);
-  };
-
-  const handleSelectAthlete = (player: 'p1' | 'p2', athlete: Athlete | null) => {
-    if (player === 'p1') {
-      setSelectedP1(athlete);
-      setPlayer1DropdownOpen(false);
-    } else {
-      setSelectedP2(athlete);
-      setPlayer2DropdownOpen(false);
-    }
-  };
-
-  const handleAthleteCreated = (athlete: Athlete) => {
-    if (newAthleteFor === 'p1') handleSelectAthlete('p1', athlete);
-    else handleSelectAthlete('p2', athlete);
-    setShowNewAthleteModal(false);
-    setNewAthleteFor(null);
-  };
-
-  const handleSelectServer = async (serverId: string) => {
-    if (!createdMatchId) return;
-    setStartingMatch(true);
-    try {
-      const accessToken = sessionStorage.getItem('access_token');
-      const res = await fetch(`/api/matches/${createdMatchId}/state`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ state: 'IN_PROGRESS', initialServerId: serverId }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        logger.error('[handleSelectServer] Error:', data);
-        throw new Error(data?.error || 'Erro ao iniciar partida');
-      }
-      router.push(`/match/${createdMatchId}/scoring`);
-    } catch (err) {
-      logger.error('[handleSelectServer] Exception:', err);
-      toast({ type: 'error', message: 'Erro ao iniciar partida' });
-      setStartingMatch(false);
-    }
-  };
-
-  const buildPayload = useCallback(
-    (overrides?: Record<string, unknown>) => ({
-      sportType,
-      format,
-      courtType: sportType === 'TENNIS' ? courtType : null,
-      player1Id: selectedP1?.id,
-      player2Id: selectedP2?.id,
-      nickname: nickname || null,
-      visibility: visibility || 'PLAYERS_ONLY',
-      openForAnnotation,
-      anotadorEmail: anotadorEmail || null,
-      scheduledAt: date && time ? new Date(`${date}T${time}`).toISOString() : undefined,
-      venueId: venueId || null,
-      publicMatchCode: publicMatchCode || null,
-      tournamentName: tournamentName || null,
-      clubName: clubName || null,
-      category: category || null,
-      roundName: roundName || null,
-      bracketType: bracketType || null,
-      temperature: temperature ? parseFloat(temperature) : null,
-      humidity: humidity ? parseFloat(humidity) : null,
-      tags: tags || null,
-      ...overrides,
-    }),
-    [
-      sportType, format, courtType, selectedP1, selectedP2, nickname, visibility,
-      openForAnnotation, anotadorEmail, date, time, venueId, publicMatchCode,
-      tournamentName, clubName, category, roundName, temperature, humidity, tags,
-    ],
-  );
-
-  const validateFields = useCallback((): string[] => {
-    const missing: string[] = [];
-    if (!sportType) missing.push('Esporte');
-    if (!format) missing.push('Modo de Jogo');
-    if (sportType === 'TENNIS' && !courtType) missing.push('Tipo de Quadra');
-    if (!selectedP1) missing.push('Jogador 1');
-    if (!selectedP2) missing.push('Jogador 2');
-    if (!date) missing.push('Data');
-    if (!time) missing.push('Horário');
-    return missing;
-  }, [sportType, format, courtType, selectedP1, selectedP2, date, time]);
-
-  const handleForceCreate = async () => {
-    if (!pendingPayload) return;
-    if (submittingRef.current) return;
-    submittingRef.current = true;
-    setShowDuplicateModal(false);
-    setLoading(true);
-    setError(null);
-    try {
-      const accessToken = sessionStorage.getItem('access_token');
-      const res = await fetch('/api/matches', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ ...pendingPayload, force: true }),
-      });
-      const match = await res.json();
-      if (!res.ok) throw new Error(match.message || 'Erro ao criar partida');
-      setCreatedMatchId(match.data.id);
-      setShowServerModal(true);
-      toast({ type: 'success', message: 'Partida criada! Escolha o primeiro sacador.' });
-    } catch (err) {
-      logger.error('[handleForceCreate] Error:', err);
-      setError('Erro ao criar partida');
-      toast({ type: 'error', message: 'Erro ao criar partida' });
-    } finally {
-      setLoading(false);
-      submittingRef.current = false;
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (submittingRef.current) return;
-    setError(null);
-    setMissingFields([]);
-
-    const missing = validateFields();
-    if (missing.length > 0) {
-      setMissingFields(missing);
-      setError(`Complete os campos obrigatórios: ${missing.join(', ')}`);
-      return;
-    }
-
-    submittingRef.current = true;
-
-    // Offline support
-    if (!navigator.onLine) {
-      const tempId = `offline_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      const { savePendingMatch } = await import('@/lib/offlineDb');
-      await savePendingMatch({
-        tempId,
-        matchData: buildPayload(),
-        syncStatus: 'PENDING',
-        createdAt: Date.now(),
-      });
-      toast({ type: 'success', message: 'Partida salva localmente. Será enviada ao reconectar.' });
-      router.push('/dashboard');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const accessToken = sessionStorage.getItem('access_token');
-      const payload = buildPayload();
-
-      const res = await fetch('/api/matches', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-
-      if (res.status === 409 && data.code === 'DUPLICATE_MATCH') {
-        setDuplicateInfo(data.details ?? null);
-        setPendingPayload(payload);
-        setShowDuplicateModal(true);
-        return;
-      }
-
-      if (!res.ok) throw new Error(data.message || 'Erro ao criar partida');
-
-      setCreatedMatchId(data.data.id);
-      setShowServerModal(true);
-      toast({ type: 'success', message: 'Partida criada! Escolha o primeiro sacador.' });
-    } catch (err) {
-      setError('Erro ao criar partida');
-      toast({ type: 'error', message: 'Erro ao criar partida' });
-    } finally {
-      setLoading(false);
-      submittingRef.current = false;
-    }
-  };
+  const {
+    router,
+    loading,
+    error,
+    missingFields,
+    athletes,
+    player1DropdownOpen,
+    player2DropdownOpen,
+    showNewAthleteModal,
+    selectedP1,
+    selectedP2,
+    format,
+    setFormat,
+    courtType,
+    setCourtType,
+    sportType,
+    setSportType,
+    date,
+    setDate,
+    time,
+    setTime,
+    visibility,
+    setVisibility,
+    anotadorEmail,
+    setAnotadorEmail,
+    tournamentName,
+    setTournamentName,
+    clubName,
+    setClubName,
+    category,
+    setCategory,
+    setRoundName,
+    venueId,
+    setVenueId,
+    publicMatchCode,
+    setPublicMatchCode,
+    temperature,
+    setTemperature,
+    humidity,
+    setHumidity,
+    tags,
+    setTags,
+    showTournamentDropdown,
+    setShowTournamentDropdown,
+    tournamentSuggestions,
+    showServerModal,
+    setShowServerModal,
+    startingMatch,
+    showDuplicateModal,
+    setShowDuplicateModal,
+    duplicateInfo,
+    setPlayer1DropdownOpen,
+    setPlayer2DropdownOpen,
+    setShowNewAthleteModal,
+    handleSelectTournament,
+    handleOpenNewAthleteModal,
+    handleSelectAthlete,
+    handleAthleteCreated,
+    handleSelectServer,
+    handleForceCreate,
+    handleSubmit,
+  } = useNewMatchController();
 
   return (
     <div className="min-h-screen bg-gray-50 safe-top safe-bottom">

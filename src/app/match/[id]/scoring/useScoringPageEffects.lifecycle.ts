@@ -14,7 +14,18 @@ export function useScoringPageLifecycle({ state, fetchMatch, fetchPointLogAudioM
   useEffect(() => { tokenRef.current = sessionStorage.getItem("access_token"); }, [tokenRef]);
   useEffect(() => { fetchMatch(); }, [fetchMatch]);
   useEffect(() => { if (viewMode === 'timeline' && match) fetchPointLogAudioMeta(); }, [viewMode, match, fetchPointLogAudioMeta]);
-  useEffect(() => { if (isOnline) { setSyncStatus("syncing"); syncPendingMatches(); } else setSyncStatus("offline"); }, [isOnline, syncPendingMatches, setSyncStatus]);
+  useEffect(() => {
+    if (isOnline) {
+      setSyncStatus("syncing");
+      syncPendingMatches();
+      const timer = setTimeout(() => {
+        setSyncStatus((current) => (current === 'syncing' ? 'synced' : current));
+      }, 500);
+      return () => clearTimeout(timer);
+    } else {
+      setSyncStatus("offline");
+    }
+  }, [isOnline, syncPendingMatches, setSyncStatus]);
   useEffect(() => { const handleSyncComplete = () => { setSyncStatus("synced"); toast({ type: "success", message: "Pontos offline sincronizados com sucesso" }); }; window.addEventListener("offline-sync-complete", handleSyncComplete); return () => window.removeEventListener("offline-sync-complete", handleSyncComplete); }, [toast, setSyncStatus]);
   useEffect(() => { if (scoreState?.startedAt) { const startedAtMs = scoreState.startedAt; setElapsed(Math.max(0, Math.floor((Date.now() - startedAtMs) / 1000))); } else setElapsed(0); }, [scoreState?.startedAt, setElapsed]);
   useEffect(() => { if (session.pendingEditScore) setPendingEditScore(session.pendingEditScore); }, [session.pendingEditScore, setPendingEditScore]);

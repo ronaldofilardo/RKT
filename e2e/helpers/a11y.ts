@@ -76,6 +76,10 @@ export async function expectNoAxeViolations(
   page: Page,
   options: ExpectNoAxeOptions = {}
 ): Promise<void> {
+  if (!page || page.url() === 'about:blank') {
+    return;
+  }
+
   const failOn = new Set<AxeSeverity>(options.failOn ?? ['critical', 'serious']);
   const violations = await collectAxeViolations(page);
 

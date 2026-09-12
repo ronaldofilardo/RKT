@@ -116,24 +116,30 @@ describe('engine.flow — Characterization Tests', () => {
     const configNoAd = createConfig('BEST_OF_3_NO_AD');
     const configShort = createConfig('SHORT_SET_2V2_NO_AD');
 
-    it('at 3-3 sets isDeuce=true then immediately completes game (last point scorer wins)', () => {
+    it('at 3-3 sets isDeuce=true (ponto decisivo), then next point completes game', () => {
       let state = createInitialState(configNoAd);
       for (let i = 0; i < 3; i++) state = processRegularPoint('player1', state, configNoAd);
       for (let i = 0; i < 3; i++) state = processRegularPoint('player2', state, configNoAd);
-      // At 3-3, the 6th point (by player2) triggers handleGameWon with winner='player2'
-      // Game awarded to player2 (last point scorer)
+      // At 3-3, game is at deuce (ponto decisivo)
+      expect(state.currentGame.isDeuce).toBe(true);
+      expect(state.sets.length).toBe(0);
+
+      // Next point (sudden death) wins the game
+      state = processRegularPoint('player2', state, configNoAd);
       expect(state.sets[0].player2).toBe(1);
       expect(state.currentGame.player1).toBe(0);
       expect(state.currentGame.player2).toBe(0);
     });
 
-    it('decides game at next point after 3-3 in No-Ad (last point scorer wins)', () => {
+    it('decides game at next point after 3-3 in No-Ad (sudden death)', () => {
       let state = createInitialState(configNoAd);
       for (let i = 0; i < 3; i++) state = processRegularPoint('player1', state, configNoAd);
       for (let i = 0; i < 3; i++) state = processRegularPoint('player2', state, configNoAd);
-      // The 3-3 point already completed the game (awarded to player2, the last scorer)
-      // So sets[0].player2 should be 1
-      expect(state.sets[0].player2).toBe(1);
+      // At 3-3 is deuce
+      expect(state.currentGame.isDeuce).toBe(true);
+      // Sudden death point
+      state = processRegularPoint('player1', state, configNoAd);
+      expect(state.sets[0].player1).toBe(1);
       expect(state.currentGame.player1).toBe(0);
     });
 
@@ -456,11 +462,20 @@ describe('engine.flow — Characterization Tests', () => {
   });
 
   describe('shouldStartTiebreak', () => {
-    it('returns true at 4-4 for No-Ad formats', () => {
-      const config = createConfig('BEST_OF_3_NO_AD');
+    it('returns true at 4-4 for SHORT_SET_2V2_NO_AD', () => {
+      const config = createConfig('SHORT_SET_2V2_NO_AD');
       const set = createSetScore(4, 4);
       const state = createInitialState(config);
       expect(shouldStartTiebreak(set, state, config)).toBe(true);
+    });
+
+    it('returns false at 4-4 and true at 6-6 for BEST_OF_3_NO_AD', () => {
+      const config = createConfig('BEST_OF_3_NO_AD');
+      const set44 = createSetScore(4, 4);
+      const set66 = createSetScore(6, 6);
+      const state = createInitialState(config);
+      expect(shouldStartTiebreak(set44, state, config)).toBe(false);
+      expect(shouldStartTiebreak(set66, state, config)).toBe(true);
     });
 
     it('returns true at 6-6 for regular formats (non-final set)', () => {

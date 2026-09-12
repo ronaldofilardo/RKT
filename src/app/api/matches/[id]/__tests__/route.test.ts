@@ -73,7 +73,7 @@ describe('GET /api/matches/[id]', () => {
       startedAt: null,
       finishedAt: null,
       nickname: null,
-      visibility: 'PUBLIC',
+      visibility: 'PRIVATE',
       isResuming: false,
       openForAnnotation: false,
       tournamentName: null,

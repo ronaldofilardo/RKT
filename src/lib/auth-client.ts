@@ -37,6 +37,7 @@ export function ensureAuthCookie(): boolean {
   const userRole = sessionStorage.getItem(USER_ROLE_KEY);
   if (!accessToken || !userRole) return false;
   document.cookie = buildCookie('access_token', accessToken);
+  document.cookie = buildCookie('rkt_access_token', accessToken);
   document.cookie = buildCookie('user_role', userRole);
   return true;
 }
@@ -71,6 +72,7 @@ export function clearAuthState(): void {
   sessionStorage.removeItem(USER_ID_KEY);
   sessionStorage.removeItem(USER_ROLE_KEY);
   document.cookie = 'access_token=; path=/; max-age=0; SameSite=Lax';
+  document.cookie = 'rkt_access_token=; path=/; max-age=0; SameSite=Lax';
   document.cookie = 'user_role=; path=/; max-age=0; SameSite=Lax';
 }
 

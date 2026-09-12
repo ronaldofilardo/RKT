@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { logger } from "@/lib/logger";
 import { isTokenExpired } from "@/lib/jwt-client";
 import { TIMEOUTS } from "@/lib/constants";
@@ -302,4 +302,40 @@ export function useVisibilityChange(callback: () => void) {
     return () =>
       document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [callback]);
+}
+
+export function useDashboardMatchFilters(matches: Match[], suspendedFromApi: any[]) {
+  const finishedMatches = useMemo(
+    () => matches.filter((m: any) => m.state === "FINISHED"),
+    [matches],
+  );
+
+  const liveMatches = useMemo(
+    () => matches.filter((m: any) => m.state === "IN_PROGRESS"),
+    [matches],
+  );
+
+  const pendingMatches = useMemo(
+    () => matches.filter((m: any) => m.state === "SCHEDULED"),
+    [matches],
+  );
+
+  const historyMatches = useMemo(
+    () => matches.filter((m: any) => m.state === "FINISHED" || m.state === "CANCELLED"),
+    [matches],
+  );
+
+  const visibleMatches = useMemo(() => {
+    if (suspendedFromApi.length === 0) return matches;
+    const suspendedIds = new Set(suspendedFromApi.map((m: any) => m.id));
+    return matches.filter((m: any) => !suspendedIds.has(m.id));
+  }, [matches, suspendedFromApi]);
+
+  return {
+    finishedMatches,
+    liveMatches,
+    pendingMatches,
+    historyMatches,
+    visibleMatches,
+  };
 }

@@ -1,106 +1,101 @@
-jest.mock('@/services/annotationSessionService', () => ({
-  listSessions: jest.fn(),
-  startSession: jest.fn(),
-  endSession: jest.fn(),
-  endorseSession: jest.fn(),
-  markSessionAbandoned: jest.fn(),
-}));
+/**
+ * @jest-environment jsdom
+ */
+import {
+  listSessions,
+  startSession,
+  endSession,
+  endorseSession,
+  markSessionAbandoned,
+} from '@/services/annotationSessionService';
 
-jest.mock('@/services/useAnnotationSession', () => ({
-  useAnnotationSession: jest.fn().mockReturnValue({
-    start: jest.fn(),
-    end: jest.fn(),
-    abandon: jest.fn(),
-    endorse: jest.fn(),
-  }),
-}));
-
-import * as annotationSessionService from '@/services/annotationSessionService';
-import { useAnnotationSession } from '@/services/useAnnotationSession';
-
-const mockService = annotationSessionService as jest.Mocked<typeof annotationSessionService>;
-const mockHook = useAnnotationSession as jest.MockedFunction<typeof useAnnotationSession>;
-
-describe('annotationSessionService', () => {
+describe('annotationSessionService (Real Service Calls)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => {
-      if (key === 'access_token') return 'mock-token';
-      return null;
-    });
+    sessionStorage.setItem('access_token', 'test-session-token');
+    global.fetch = jest.fn();
   });
 
   describe('listSessions', () => {
-    it('deve chamar fetch com token', async () => {
+    it('deve chamar GET /api/matches/:id/sessions com token', async () => {
       const mockSessions = [{ id: 's1', annotatorUserId: 'u1' }];
-      mockService.listSessions.mockResolvedValue(mockSessions as any);
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockSessions),
+      });
 
-      const result = await mockService.listSessions('match-1');
+      const result = await listSessions('match-1');
 
-      expect(mockService.listSessions).toHaveBeenCalledWith('match-1');
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/matches/match-1/sessions',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer test-session-token',
+          }),
+        })
+      );
       expect(result).toEqual(mockSessions);
     });
   });
 
   describe('startSession', () => {
-    it('deve iniciar sessão', async () => {
+    it('deve chamar POST /api/matches/:id/sessions com autoStarted', async () => {
       const mockSession = { id: 's1', matchId: 'match-1', isActive: true };
-      mockService.startSession.mockResolvedValue(mockSession as any);
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockSession),
+      });
 
-      const result = await mockService.startSession('match-1');
+      const result = await startSession('match-1', true);
 
-      expect(mockService.startSession).toHaveBeenCalledWith('match-1');
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/matches/match-1/sessions',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ autoStarted: true }),
+        })
+      );
       expect(result).toEqual(mockSession);
-    });
-
-    it('deve iniciar sessão com autoStarted=true', async () => {
-      const mockSession = { id: 's1', matchId: 'match-1', isActive: true };
-      mockService.startSession.mockResolvedValue(mockSession as any);
-
-      const result = await mockService.startSession('match-1', true);
-
-      expect(mockService.startSession).toHaveBeenCalledWith('match-1', true);
     });
   });
 
   describe('endSession', () => {
-    it('deve finalizar sessão com COMPLETED', async () => {
+    it('deve chamar PATCH /api/matches/:id/sessions/:id com status COMPLETED', async () => {
       const mockSession = { id: 's1', status: 'COMPLETED' };
-      mockService.endSession.mockResolvedValue(mockSession as any);
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockSession),
+      });
 
-      const result = await mockService.endSession('match-1', 's1', { score: {} }, 'COMPLETED');
+      const result = await endSession('match-1', 's1', { score: {} }, 'COMPLETED');
 
-      expect(mockService.endSession).toHaveBeenCalledWith('match-1', 's1', { score: {} }, 'COMPLETED');
-    });
-
-    it('deve finalizar sessão com ABANDONED', async () => {
-      const mockSession = { id: 's1', status: 'ABANDONED' };
-      mockService.endSession.mockResolvedValue(mockSession as any);
-
-      const result = await mockService.endSession('match-1', 's1', undefined, 'ABANDONED');
-
-      expect(mockService.endSession).toHaveBeenCalledWith('match-1', 's1', undefined, 'ABANDONED');
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/matches/match-1/sessions/s1',
+        expect.objectContaining({
+          method: 'PATCH',
+          body: JSON.stringify({ status: 'COMPLETED', finalState: { score: {} } }),
+        })
+      );
+      expect(result).toEqual(mockSession);
     });
   });
 
   describe('endorseSession', () => {
-    it('deve endorsar sessão', async () => {
-      mockService.endorseSession.mockResolvedValue({ success: true });
+    it('deve chamar POST /api/matches/:id/sessions/:id/endorse', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ success: true }),
+      });
 
-      const result = await mockService.endorseSession('match-1', 's1');
+      const result = await endorseSession('match-1', 's1');
 
-      expect(mockService.endorseSession).toHaveBeenCalledWith('match-1', 's1');
-    });
-  });
-
-  describe('useAnnotationSession (hook)', () => {
-    it('deve retornar hooks com métodos corretos', () => {
-      const { start, end, abandon, endorse } = mockHook();
-
-      expect(start).toBeDefined();
-      expect(end).toBeDefined();
-      expect(abandon).toBeDefined();
-      expect(endorse).toBeDefined();
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/matches/match-1/sessions/s1/endorse',
+        expect.objectContaining({
+          method: 'POST',
+        })
+      );
+      expect(result).toEqual({ success: true });
     });
   });
 });

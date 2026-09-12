@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-import { withRLSHandler } from '@/lib/auth';
+import { withRLSHandler, getRLSUser } from '@/lib/auth';
 import { getPlayerById, updatePlayer, deletePlayer, countPlayerActiveMatches } from '@/services/playerService';
 import { isRankingCategoryAllowed, isRankingTypeAllowedForProfile } from '@/lib/ranking/rankingConstants';
 
@@ -30,6 +30,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       const existing = await getPlayerById(id);
       if (!existing) {
         return NextResponse.json({ error: 'NOT_FOUND', message: 'Atleta não encontrado' }, { status: 404 });
+      }
+
+      const user = getRLSUser();
+      const isOwner = user?.id === id;
+      const isStaff = user?.role === 'ADMIN' || user?.role === 'GESTOR';
+      const isCreator = existing.createdByUserId && user?.id === existing.createdByUserId;
+
+      if (!isOwner && !isStaff && !isCreator) {
+        return NextResponse.json(
+          { error: 'FORBIDDEN', message: 'Sem permissão para alterar este atleta' },
+          { status: 403 }
+        );
       }
 
       if (name !== undefined && (typeof name !== 'string' || name.trim().length < 2)) {
@@ -113,6 +125,18 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       const existing = await getPlayerById(id);
       if (!existing) {
         return NextResponse.json({ error: 'NOT_FOUND', message: 'Atleta não encontrado' }, { status: 404 });
+      }
+
+      const user = getRLSUser();
+      const isOwner = user?.id === id;
+      const isStaff = user?.role === 'ADMIN' || user?.role === 'GESTOR';
+      const isCreator = existing.createdByUserId && user?.id === existing.createdByUserId;
+
+      if (!isOwner && !isStaff && !isCreator) {
+        return NextResponse.json(
+          { error: 'FORBIDDEN', message: 'Sem permissão para excluir este atleta' },
+          { status: 403 }
+        );
       }
 
       const matches = await countPlayerActiveMatches(id);

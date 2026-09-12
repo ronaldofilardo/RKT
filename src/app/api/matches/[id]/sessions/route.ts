@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withRLSHandler, getRLSUser } from '@/lib/auth';
+import { withRLSHandler, withPermissionHandler, getRLSUser } from '@/lib/auth';
 import {
   listSessions,
   checkMatchExists,
@@ -32,7 +32,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'ATHLETE', async () => {
+  return withPermissionHandler(request, 'annotate:session', async () => {
     try {
       const { id: matchId } = await params;
       const user = getRLSUser();
@@ -84,7 +84,7 @@ export async function POST(
       }
 
       const isNew = allSessions.length === 0;
-      const session = await reactivateOrCreateSession(matchId, user.id, allSessions);
+      const session = await reactivateOrCreateSession(matchId, user.id);
       const wasSuspended = !isNew && allSessions[0].isActive === false;
 
       let snapshotStatus: SnapshotStatus | undefined;

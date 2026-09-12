@@ -32,10 +32,6 @@ export function getState(state: ScoringState): Readonly<ScoringState> {
   return JSON.parse(JSON.stringify(state));
 }
 
-export function loadState(_state: ScoringState, newState: ScoringState): void {
-  _state = JSON.parse(JSON.stringify(newState));
-}
-
 export function serialize(state: ScoringState, history: HistoryEntry[]): string {
   return JSON.stringify({ state, history });
 }

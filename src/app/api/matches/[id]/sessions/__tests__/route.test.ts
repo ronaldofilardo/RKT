@@ -33,10 +33,12 @@ beforeEach(() => {
 const mockPrisma = prisma as any;
 
 let ATHLETE_HEADERS: Record<string, string> = {};
+let COACH_HEADERS: Record<string, string> = {};
 let SPECTATOR_HEADERS: Record<string, string> = {};
 
 beforeAll(async () => {
   ATHLETE_HEADERS = await makeAuthHeaders('user-1', 'ATHLETE');
+  COACH_HEADERS = await makeAuthHeaders('user-coach', 'COACH');
   SPECTATOR_HEADERS = await makeAuthHeaders('user-spect', 'SPECTATOR');
 });
 
@@ -102,16 +104,23 @@ describe('GET /api/matches/[id]/sessions', () => {
 });
 
 describe('POST /api/matches/[id]/sessions', () => {
-  it('deve retornar 403 se usuário não tem role COACH', async () => {
-    const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
+  it('deve retornar 403 se usuário não tem role com permissão annotate:session (ex: SPECTATOR ou ATHLETE)', async () => {
+    const reqSpectator = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...SPECTATOR_HEADERS },
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
     const POST = mod.POST;
 
-    const res = await POST(req, { params: Promise.resolve({ id: 'match-1' }) });
-    expect(res.status).toBe(403);
+    const resSpectator = await POST(reqSpectator, { params: Promise.resolve({ id: 'match-1' }) });
+    expect(resSpectator.status).toBe(403);
+
+    const reqAthlete = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+    });
+    const resAthlete = await POST(reqAthlete, { params: Promise.resolve({ id: 'match-1' }) });
+    expect(resAthlete.status).toBe(403);
   });
 
   it('deve retornar 404 se partida não existe', async () => {
@@ -119,7 +128,7 @@ describe('POST /api/matches/[id]/sessions', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
     const POST = mod.POST;
@@ -133,7 +142,7 @@ describe('POST /api/matches/[id]/sessions', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
     const POST = mod.POST;
@@ -150,15 +159,15 @@ describe('POST /api/matches/[id]/sessions', () => {
     mockPrisma.$transaction.mockImplementation((fn: any) => fn({ matchAnnotationSession: { create: jest.fn().mockResolvedValue({
       id: 'new-session',
       matchId: 'match-1',
-      annotatorUserId: 'user-1',
+      annotatorUserId: 'user-coach',
       isActive: true,
       status: 'IN_PROGRESS',
-      annotator: { id: 'user-1', name: 'Coach 1', email: 'coach@test.com' },
+      annotator: { id: 'user-coach', name: 'Coach 1', email: 'coach@test.com' },
     }) } }));
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
     const POST = mod.POST;
@@ -175,11 +184,11 @@ describe('POST /api/matches/[id]/sessions', () => {
     const previousSession = {
       id: 'old-session',
       matchId: 'match-1',
-      annotatorUserId: 'user-1',
+      annotatorUserId: 'user-coach',
       isActive: false,
       status: 'ABANDONED',
       matchStateSnapshot: JSON.stringify({ sets: [] }),
-      annotator: { id: 'user-1', name: 'Coach 1', email: 'coach@test.com' },
+      annotator: { id: 'user-coach', name: 'Coach 1', email: 'coach@test.com' },
     };
 
     mockPrisma.matchAnnotationSession.findMany.mockResolvedValue([previousSession] as any);
@@ -191,7 +200,7 @@ describe('POST /api/matches/[id]/sessions', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
       body: JSON.stringify({}),
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
@@ -209,18 +218,18 @@ describe('POST /api/matches/[id]/sessions', () => {
     const suspendedSession = {
       id: 'suspended-session',
       matchId: 'match-1',
-      annotatorUserId: 'user-1',
+      annotatorUserId: 'user-coach',
       isActive: false,
       status: 'ABANDONED',
       matchStateSnapshot: JSON.stringify({ state: 'IN_PROGRESS', history: [] }),
-      annotator: { id: 'user-1', name: 'Coach 1', email: 'coach@test.com' },
+      annotator: { id: 'user-coach', name: 'Coach 1', email: 'coach@test.com' },
     };
 
     mockPrisma.matchAnnotationSession.findMany.mockResolvedValue([suspendedSession] as any);
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
       body: JSON.stringify({ autoStarted: true }),
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
@@ -240,18 +249,18 @@ describe('POST /api/matches/[id]/sessions', () => {
     const suspendedSession = {
       id: 'suspended-session',
       matchId: 'match-1',
-      annotatorUserId: 'user-1',
+      annotatorUserId: 'user-coach',
       isActive: false,
       status: 'ABANDONED',
       matchStateSnapshot: null,
-      annotator: { id: 'user-1', name: 'Coach 1', email: 'coach@test.com' },
+      annotator: { id: 'user-coach', name: 'Coach 1', email: 'coach@test.com' },
     };
 
     mockPrisma.matchAnnotationSession.findMany.mockResolvedValue([suspendedSession] as any);
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
       body: JSON.stringify({ autoStarted: true }),
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
@@ -280,7 +289,7 @@ describe('POST /api/matches/[id]/sessions', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
     const POST = mod.POST;

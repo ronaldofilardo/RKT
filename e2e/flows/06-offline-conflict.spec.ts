@@ -45,13 +45,10 @@ test.describe('TEST-03.3: Offline Sync Conflict Reconciliation (TD-013 + seq rac
   test('flush reconcilia apos SEQUENCE_CONFLICT (backend retorna 409 + expectedSequence)', async ({
     page,
   }) => {
-    await page.goto('/');
-    await page.evaluate((token) => {
-      sessionStorage.setItem('access_token', token);
-    }, ctx.athlete1.token);
+    await ctx.authenticatePage(page, 'athlete1');
 
     await page.goto(`/match/${matchId}/scoring`);
-    await page.waitForLoadState('networkidle');
+    await page.locator('button:has-text("Corrigir")').first().waitFor({ state: 'visible', timeout: 20_000 });
 
     // 1. Backend recebe ponto concorrente enquanto ainda online (simula cliente paralelo)
     //    sequenceNumber=1 implicito (db tem 0 pontos persistidos).
@@ -67,13 +64,14 @@ test.describe('TEST-03.3: Offline Sync Conflict Reconciliation (TD-013 + seq rac
 
     // 2. Cliente vai offline e enfileira 2 pontos com sequenceNumber defasado (1)
     await page.context().setOffline(true);
+    await page.evaluate(() => window.dispatchEvent(new Event('offline')));
     const syncStatus = getByTestid(page, 'sync-status');
     await expect(syncStatus).toHaveAttribute('data-sync-state', 'offline', {
       timeout: 10_000,
     });
 
     await page.evaluate(
-      async ({ dbName, storeName, mid }) => {
+      async ({ dbName, storeName, mid, aid }) => {
         const db = await new Promise<any>((resolve, reject) => {
           const req = indexedDB.open(dbName, 1);
           req.onupgradeneeded = () => {
@@ -93,9 +91,9 @@ test.describe('TEST-03.3: Offline Sync Conflict Reconciliation (TD-013 + seq rac
             matchId: mid,
             type: 'POINT',
             payload: {
-              winnerId: 'athlete-1',
+              winnerId: aid,
               type: 'WINNER',
-              serverId: 'athlete-1',
+              serverId: aid,
             },
             status: 'PENDING',
             retries: 0,
@@ -110,13 +108,14 @@ test.describe('TEST-03.3: Offline Sync Conflict Reconciliation (TD-013 + seq rac
         }
         db.close();
       },
-      { dbName: DB_NAME, storeName: STORE_NAME, mid: matchId }
+      { dbName: DB_NAME, storeName: STORE_NAME, mid: matchId, aid: ctx.athlete1.userId }
     );
 
     // 3. Reconnect: flush vai PEgar sequenceNumber divergente, back-end
     //    responde 409 SEQUENCE_CONFLICT, e useOfflineSync.ts:104-126
     //    recalcula sequenceNumber + retry.
     await page.context().setOffline(false);
+    await page.evaluate(() => window.dispatchEvent(new Event('online')));
 
     await expect(syncStatus).toHaveCount(0, { timeout: 15_000 });
 

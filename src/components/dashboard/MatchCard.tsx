@@ -72,11 +72,9 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
 
   return (
     <div
+      data-testid={`match-card-${match.id}`}
       className={`rounded-xl border border-white/10 shadow-sm transition-shadow ${onClick ? "cursor-pointer hover:shadow-md" : ""}`}
       style={{ backgroundColor: '#1a1a2e' }}
-      role={onClick ? "button" : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      aria-label={onClick ? `Abrir partida ${match.player1.name} vs ${match.player2.name}` : undefined}
       onClick={handleClick}
       onKeyDown={(e) => {
         if (onClick && (e.key === 'Enter' || e.key === ' ')) {

@@ -81,7 +81,7 @@ interface FormatLabelProps {
 
 export function FormatLabel({ format }: FormatLabelProps) {
   return (
-    <span className="text-xs text-gray-500">
+    <span className="text-xs text-slate-300 font-medium">
       Modo de jogo: {getFormatLabel(format)}
     </span>
   );
@@ -95,11 +95,11 @@ interface ScoreDisplayProps {
 
 export function ScoreDisplay({ scoreState, format, isSuspended }: ScoreDisplayProps) {
   const isMatchTiebreak = format === 'MATCH_TB_10' || format === 'BEST_OF_3_MATCH_TB';
-  const textColor = isSuspended ? 'text-amber-700' : 'text-gray-900';
+  const textColor = isSuspended ? 'text-amber-300' : 'text-slate-100';
 
   if (!scoreState?.sets || scoreState.sets.length === 0) {
     return (
-      <div className="grid grid-cols-[1.5rem_2.5rem] gap-x-1 text-[10px] text-gray-500">
+      <div className="grid grid-cols-[1.5rem_2.5rem] gap-x-1 text-[10px] text-slate-300">
         <span></span>
         <span className="text-center">Pontos</span>
       </div>
@@ -115,17 +115,17 @@ export function ScoreDisplay({ scoreState, format, isSuspended }: ScoreDisplayPr
         rowGap: '0.125rem',
       }}
     >
-      <span className="text-[10px] text-gray-500 text-center" style={{ gridColumn: `1 / ${scoreState.sets.length + 1}` }}>
+      <span className="text-[10px] text-slate-300 text-center" style={{ gridColumn: `1 / ${scoreState.sets.length + 1}` }}>
         Sets
       </span>
       <span></span>
 
       {scoreState.sets.map((_: any, idx: number) => (
-        <span key={idx} className="text-[10px] text-gray-500 text-center">
+        <span key={idx} className="text-[10px] text-slate-300 text-center">
           {idx + 1}
         </span>
       ))}
-      <span className="text-[10px] text-gray-500 text-center">Pontos</span>
+      <span className="text-[10px] text-slate-300 text-center">Pontos</span>
 
       {scoreState.sets.map((s: any, idx: number) => {
         let displayScore = s.player1 ?? 0;

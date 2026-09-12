@@ -76,6 +76,20 @@ describe('adminService', () => {
       const { createUser } = await import('@/services/adminService');
       await expect(createUser({ name: 'Novo', email: 'novo@test.com', password: '12345678', role: 'ATHLETE' })).rejects.toThrow('Bcrypt error');
     });
+
+    it('deve retornar EMAIL_ALREADY_EXISTS se Prisma lançar erro P2002 (race condition)', async () => {
+      mockPrisma.player.findUnique.mockResolvedValue(null);
+      mockHash.mockResolvedValue('hashed-password' as never);
+      const p2002Error = new Error('Unique constraint failed');
+      (p2002Error as any).code = 'P2002';
+      mockPrisma.player.create.mockRejectedValue(p2002Error);
+
+      const { createUser } = await import('@/services/adminService');
+      const result = await createUser({ name: 'Novo', email: 'corrida@test.com', password: '12345678', role: 'ATHLETE' });
+
+      expect('error' in result).toBe(true);
+      expect((result as any).error).toBe('EMAIL_ALREADY_EXISTS');
+    });
   });
 
   describe('updateUser', () => {

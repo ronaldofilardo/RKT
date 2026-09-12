@@ -14,7 +14,7 @@ type PersistenceDeps = {
 };
 
 export function createStatePersistence(deps: PersistenceDeps) {
-  return async (state: ScoringState, label: string, options?: { allowScoreEdit?: boolean; isManualScoreEdit?: boolean }) => {
+  return async (state: ScoringState, label: string, options?: { allowScoreEdit?: boolean; isManualScoreEdit?: boolean; voidPointLogId?: string }) => {
     const engineWithHistory = deps.engineRef.current as (ScoringEngine & { getPointHistory?: () => HistoryEntry[] }) | null;
     const history = engineWithHistory?.getPointHistory?.();
     const result = await persistStateWithRetry(state, label, {
@@ -25,6 +25,7 @@ export function createStatePersistence(deps: PersistenceDeps) {
       fetchMatch: deps.fetchMatch,
       allowScoreEdit: options?.allowScoreEdit,
       isManualScoreEdit: options?.isManualScoreEdit,
+      voidPointLogId: options?.voidPointLogId,
       history,
     });
     if (result.success && result.version !== undefined) deps.setMatch((previous) => previous ? { ...previous, version: result.version } : previous);

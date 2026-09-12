@@ -57,6 +57,16 @@ describe('middleware', () => {
       expect(getAuthToken(request)).toBe('cookie-token');
     });
 
+    it('deve ler rkt_access_token do cookie com prioridade sobre access_token', async () => {
+      const { getAuthToken } = await import('@/middleware');
+      const request = makeRequest({
+        pathname: '/dashboard',
+        cookies: { rkt_access_token: 'rkt-token', access_token: 'cookie-token' },
+      });
+
+      expect(getAuthToken(request)).toBe('rkt-token');
+    });
+
     it('deve retornar null quando não houver header nem cookie', async () => {
       const { getAuthToken } = await import('@/middleware');
       const request = makeRequest({ pathname: '/dashboard' });

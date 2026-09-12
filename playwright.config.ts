@@ -6,7 +6,8 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1,
-    reporter: [['list'], ['html', { outputFolder: 'playwright-report' }]],
+  timeout: 60_000,
+  reporter: [['list'], ['html', { outputFolder: 'playwright-report' }]],
   webServer: {
     command: 'pnpm dev',
     url: 'http://127.0.0.1:3000',

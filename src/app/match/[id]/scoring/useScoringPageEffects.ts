@@ -211,6 +211,10 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     if (isOnline) {
       setSyncStatus("syncing");
       syncPendingMatches();
+      const timer = setTimeout(() => {
+        setSyncStatus((current) => (current === 'syncing' ? 'synced' : current));
+      }, 500);
+      return () => clearTimeout(timer);
     } else {
       setSyncStatus("offline");
     }

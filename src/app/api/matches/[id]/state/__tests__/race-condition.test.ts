@@ -19,6 +19,7 @@ jest.mock('@/lib/prisma', () => ({
   prisma: {
     match: {
       findUnique: jest.fn(),
+      findFirst: jest.fn(),
     },
   },
 }));
@@ -30,6 +31,7 @@ jest.mock('@/services/matchService', () => ({
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 const mockTransition = transitionMatchState as jest.MockedFunction<typeof transitionMatchState>;
 const mockFindUnique = mockPrisma.match.findUnique as jest.Mock;
+const mockFindFirst = mockPrisma.match.findFirst as jest.Mock;
 
 let ATHLETE_HEADERS: Record<string, string> = {};
 
@@ -55,6 +57,13 @@ async function params(id: string) {
 describe('PATCH /api/matches/[id]/state — race condition (optimistic locking)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFindFirst.mockResolvedValue({
+      id: 'm-1',
+      player1Id: 'user-123',
+      player2Id: 'p2',
+      createdByUserId: 'user-123',
+      openForAnnotation: false,
+    });
   });
 
   it('primeiro PATCH com version=1 completa com 200; segundo (mesma version) recebe 409', async () => {

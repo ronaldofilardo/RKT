@@ -18,7 +18,9 @@ const mockCountPlayerActiveMatches = countPlayerActiveMatches as jest.MockedFunc
 
 const PLAYER_ID = 'player-123';
 
-const ATHLETE = makeAuthHeadersSync('user-1', 'ATHLETE');
+const ATHLETE = makeAuthHeadersSync(PLAYER_ID, 'ATHLETE');
+const OTHER_ATHLETE = makeAuthHeadersSync('other-user', 'ATHLETE');
+const ADMIN = makeAuthHeadersSync('admin-1', 'ADMIN');
 const SPECTATOR = makeAuthHeadersSync('user-2', 'SPECTATOR');
 
 function getReq(headers: Record<string, string> = {}) {
@@ -91,6 +93,24 @@ describe('PUT /api/players/[id]', () => {
     jest.clearAllMocks();
     mockGetPlayer.mockResolvedValue({ id: PLAYER_ID, name: 'João' } as any);
     mockUpdatePlayer.mockImplementation(async (_id, data) => ({ id: PLAYER_ID, ...data } as any));
+  });
+
+  it('deve retornar 403 quando outro atleta tenta atualizar perfil de terceiro', async () => {
+    const res = await PUT(putReq({ name: 'Hacker' }, OTHER_ATHLETE), {
+      params: Promise.resolve({ id: PLAYER_ID }),
+    });
+    expect(res.status).toBe(403);
+    const body = await res.json();
+    expect(body.error).toBe('FORBIDDEN');
+    expect(mockUpdatePlayer).not.toHaveBeenCalled();
+  });
+
+  it('deve permitir ADMIN atualizar perfil de qualquer atleta', async () => {
+    const res = await PUT(putReq({ name: 'Admin Edit' }, ADMIN), {
+      params: Promise.resolve({ id: PLAYER_ID }),
+    });
+    expect(res.status).toBe(200);
+    expect(mockUpdatePlayer).toHaveBeenCalled();
   });
 
   it('deve atualizar nome válido', async () => {
@@ -257,7 +277,7 @@ describe('PUT /api/players/[id]', () => {
   });
 
   it('deve chamar com headers de auth (não bloqueia, mas exercita o path)', async () => {
-    const headers = makeAuthHeadersSync('user-1', 'ATHLETE');
+    const headers = makeAuthHeadersSync(PLAYER_ID, 'ATHLETE');
     const res = await PUT(putReq({ name: 'João' }, headers), {
       params: Promise.resolve({ id: PLAYER_ID }),
     });
@@ -271,6 +291,24 @@ describe('DELETE /api/players/[id]', () => {
     mockGetPlayer.mockResolvedValue({ id: PLAYER_ID, name: 'João' } as any);
     mockCountPlayerActiveMatches.mockResolvedValue([]);
     mockDeletePlayer.mockResolvedValue({ id: PLAYER_ID, name: 'João' } as any);
+  });
+
+  it('deve retornar 403 quando outro atleta tenta excluir perfil de terceiro', async () => {
+    const res = await DELETE(deleteReq(OTHER_ATHLETE), {
+      params: Promise.resolve({ id: PLAYER_ID }),
+    });
+    expect(res.status).toBe(403);
+    const body = await res.json();
+    expect(body.error).toBe('FORBIDDEN');
+    expect(mockDeletePlayer).not.toHaveBeenCalled();
+  });
+
+  it('deve permitir ADMIN excluir perfil de qualquer atleta', async () => {
+    const res = await DELETE(deleteReq(ADMIN), {
+      params: Promise.resolve({ id: PLAYER_ID }),
+    });
+    expect(res.status).toBe(200);
+    expect(mockDeletePlayer).toHaveBeenCalledWith(PLAYER_ID);
   });
 
   it('deve excluir atleta sem partidas ativas', async () => {

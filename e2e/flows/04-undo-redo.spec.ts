@@ -63,16 +63,7 @@ test.describe('TEST-03.1: Undo/Redo Annotation (regressão crítica de anotaçã
   test('undo reverte pontos + dispara PATCH /state para persistir no backend', async ({
     page,
   }) => {
-    await page.goto('/');
-    await page.evaluate((token) => {
-      sessionStorage.setItem('access_token', token);
-    }, ctx.athlete1.token);
-
-    // Captura PATCH /state que virá como efeito do undo persistido.
-    const patchPromise = waitForApiCall(
-      { page },
-      /\/api\/matches\/.*\/state/
-    );
+    await ctx.authenticatePage(page, 'athlete1');
 
     await page.goto(`/match/${matchId}/scoring`);
     await page.waitForLoadState('networkidle');
@@ -87,6 +78,13 @@ test.describe('TEST-03.1: Undo/Redo Annotation (regressão crítica de anotaçã
     const confirmTitle = page.locator('h2:has-text("Desfazer ponto")');
     await expect(confirmTitle).toBeVisible({ timeout: 5_000 });
 
+    // Captura PATCH /state que virá como efeito do undo persistido.
+    const patchPromise = waitForApiCall(
+      { page },
+      /\/api\/matches\/.*\/state/,
+      15_000
+    );
+
     await page.locator('button:has-text("Desfazer")').click();
 
     const response = await patchPromise;
@@ -98,10 +96,7 @@ test.describe('TEST-03.1: Undo/Redo Annotation (regressão crítica de anotaçã
   test('redo deve ter botão na UI — engine expõe replayCurrentPoint com wire-up', async ({
     page,
   }) => {
-    await page.goto('/');
-    await page.evaluate((token) => {
-      sessionStorage.setItem('access_token', token);
-    }, ctx.athlete1.token);
+    await ctx.authenticatePage(page, 'athlete1');
 
     await page.goto(`/match/${matchId}/scoring`);
     await page.waitForLoadState('networkidle');
@@ -110,6 +105,7 @@ test.describe('TEST-03.1: Undo/Redo Annotation (regressão crítica de anotaçã
       '[data-testid="redo-button"], button:has-text("Refazer")'
     );
 
+    await redoButton.first().waitFor({ state: 'attached', timeout: 10000 });
     const count = await redoButton.count();
     expect(count).toBeGreaterThan(0);
 

@@ -1033,3 +1033,106 @@ A configuração é setada em `src/lib/prisma.ts` no hook `$use` do Prisma, ante
 - **Modulos afetados:** src/schemas/__tests__/, src/services/__tests__/
 - **Status:** Parcialmente resolvido (MatchStateInputSchema + matchValidator envelope). Demais schemas pendentes.
 
+---
+
+## [TD-048] Scoring Engine: Encerramento Prematuro de Game em No-Ad no 40-40 (3-3)
+
+- **Origem:** Auditoria Técnica Master (2026-09-11)
+- **Impacto:** Crítico (regra esportiva corrompida em partidas oficiais sem vantagem)
+- **Esforço:** P
+- **Risco se ignorado:** Partidas no formato No-Ad premiam quem empata em 40-40 com a vitória do game, suprimindo o ponto decisivo (ponto de ouro).
+- **Proposta:** Integrar a correção documentada em `src/core/scoring/game-processing.fix.diff`: ao empatar em 3-3, marcar `game.isDeuce = true` e aguardar o ponto decisivo subsequente.
+- **Owner sugerido:** @backend
+- **Módulos afetados:** `src/core/scoring/game-processing.ts`
+- **Status:** ✅ Resolvido (2026-09-11 — Correções P0). Sudden death implementado no 40-40 (3-3) e testado em `scoring-formats.baseline.characterization.test.ts`.
+
+---
+
+## [TD-049] Scoring Engine: Disparo de Tiebreak em 4x4 no formato BEST_OF_3_NO_AD
+
+- **Origem:** Auditoria Técnica Master (2026-09-11)
+- **Impacto:** Alto (partida longa de 6 games entra em tiebreak precocemente)
+- **Esforço:** P
+- **Risco se ignorado:** Disputas oficiais em `BEST_OF_3_NO_AD` são truncadas no 4x4 por confusão com a regra de short set (`SHORT_SET_2V2_NO_AD`).
+- **Proposta:** Desacoplar `usesNoAd` de `getGamesToTiebreak` em `src/core/scoring/tiebreak.ts`. Somente `SHORT_SET_2V2_NO_AD` deve ter tiebreak em 4x4.
+- **Owner sugerido:** @backend
+- **Módulos afetados:** `src/core/scoring/tiebreak.ts`
+- **Status:** ✅ Resolvido (2026-09-11 — Correções P0). Tiebreak 4x4 isolado para `SHORT_SET_2V2_NO_AD`; `BEST_OF_3_NO_AD` joga até 6x6.
+
+---
+
+## [TD-050] Scoring Engine: PRO_SET_8 com Gatilho de Tiebreak em 9 Games
+
+- **Origem:** Auditoria Técnica Master (2026-09-11)
+- **Impacto:** Médio (inconsistência de formato)
+- **Esforço:** P
+- **Risco se ignorado:** Em Pro Set até 8 games, o tiebreak regulamentar internacional ocorre no 8x8 (para fechar 9x8). O valor 9 em `format-rules.ts` gera divergência.
+- **Proposta:** Ajustar `getTiebreakAtForFormat('PRO_SET_8')` para 8.
+- **Owner sugerido:** @backend
+- **Módulos afetados:** `src/core/scoring/format-rules.ts`
+- **Status:** 🟡 Analisado e Mantido. No ecossistema RKT, o formato foi intencionalmente projetado para 9x9 (fechando 10-9) e sua alteração quebra a lógica de edição de placar do frontend (`useEditScoreCalculator`). Mantido estável em 9 games.
+
+---
+
+## [TD-051] RBAC: Inconsistência Linear entre Hierarquia de Roles e Recursos de Negócio
+
+- **Origem:** Auditoria Técnica Master (2026-09-11)
+- **Impacto:** Médio (divergência entre testes E2E e implementação da API)
+- **Esforço:** M
+- **Risco se ignorado:** Testes E2E assumem que COACH não pode chamar rotas de criação de partida (escopo ATHLETE), mas o validador linear permite porque `ROLE_HIERARCHY[COACH] (3) >= ROLE_HIERARCHY[ATHLETE] (2)`.
+- **Proposta:** Evoluir de hierarquia puramente numérica para permissões granulares baseadas em capacidades (capabilities/ABAC).
+- **Owner sugerido:** @arquitetura
+- **Módulos afetados:** `src/lib/auth.ts`, `specs/security-matrix.md`
+- **Status:** ✅ Resolvido (2026-09-11 — Onda P1). Matriz de capabilities `AppAction` e `ROLE_PERMISSIONS` com `hasPermission`/`requirePermission` implementada (ADR-0005).
+
+---
+
+## [TD-052] API: Bloqueio Total de Leitura em GET /api/matches/[id] para Staff e Público
+
+- **Origem:** Auditoria Técnica Master (2026-09-11)
+- **Impacto:** Crítico (impede que árbitros, técnicos e espectadores acompanhem partidas públicas)
+- **Esforço:** P
+- **Risco se ignorado:** O endpoint rejeita qualquer usuário que não seja `player1Id`, `player2Id` ou `createdByUserId`, quebrando a tela de anotação de técnicos terceiros e telas de placar ao vivo.
+- **Proposta:** Permitir acesso quando `match.visibility === 'PUBLIC'` ou quando o requisitante tiver role `ADMIN`, `GESTOR` ou `COACH` (anotador escalado).
+- **Owner sugerido:** @backend
+- **Módulos afetados:** `src/app/api/matches/[id]/route.ts`
+- **Status:** ✅ Resolvido (2026-09-11 — Correções P0). Leitura liberada para Staff e partidas públicas em `src/app/api/matches/[id]/route.ts`.
+
+---
+
+## [TD-053] API: IDOR/BOLA em PATCH /api/matches/[id]/state e PUT/DELETE /api/players/[id]
+
+- **Origem:** Auditoria Técnica Master (2026-09-11)
+- **Impacto:** Crítico (Segurança P0)
+- **Esforço:** P
+- **Status:** ✅ Resolvido (2026-09-11 — Correções P0/P1). Validado ownership de jogador, criador e staff em todas as mutações com testes automatizados 100% verdes.
+
+---
+
+## [TD-054] Auth: Descasamento de Cookies no Middleware e Auth-Client
+
+- **Origem:** Auditoria Técnica Master (2026-09-11)
+- **Impacto:** Alto (Auth/Cookies P1)
+- **Esforço:** P
+- **Status:** ✅ Resolvido (2026-09-11). Middleware lê `rkt_access_token` preferencialmente ou `access_token`, e auth-client sincroniza e limpa ambos os nomes de cookie.
+
+---
+
+## [TD-055] Frontend: Rotas 404 e Envelopes em Localizar Partidas e Abas do Dashboard
+
+- **Origem:** Auditoria Técnica Master (2026-09-11)
+- **Impacto:** Alto (Frontend/UX P1)
+- **Esforço:** P
+- **Status:** ✅ Resolvido (2026-09-11). `/matches/locate` unwrap `data?.data?.matches` e redirecionamento `/scoring`, `/aguardandoanotador` direciona atleta/espectador para `/match/[id]`, e dashboard renderiza abas `live`, `pending` e `history`.
+
+---
+
+## [TD-056] Arquitetura: Modelos Conflitantes User/Player e Arquivos Mortos
+
+- **Origem:** Auditoria Técnica Master (2026-09-11)
+- **Impacto:** Médio (Clean Code & Arquitetura P2)
+- **Esforço:** P
+- **Status:** ✅ Resolvido (2026-09-11). Arquivos mortos `route.*.ts` excluídos e `ADR-0007-user-player-profile-separation.md` registrado.
+
+
+

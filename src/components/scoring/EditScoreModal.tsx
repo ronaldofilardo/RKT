@@ -254,7 +254,7 @@ export function EditScoreModal({
             type="button"
             onClick={handleConfirm}
             disabled={!canConfirm || !!confirmError || !!floorValidationError || isConfirming}
-            className="flex-1 px-4 py-2.5 bg-sky-600 text-white font-medium rounded-lg hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+            className="flex-1 px-4 py-2.5 bg-sky-700 text-white font-medium rounded-lg hover:bg-sky-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
           >
             {isConfirming ? (
               <span className="flex items-center justify-center gap-2">

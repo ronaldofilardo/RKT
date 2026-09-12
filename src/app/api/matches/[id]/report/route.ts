@@ -6,7 +6,7 @@ import type { TimelinePoint } from '@/core/scoring/types';
 import {
   rebuildTimelineFromPointLogs,
   type PointLogRow,
-} from '@/components/scoring/timeline-rebuild';
+} from '@/core/scoring/timeline-rebuild';
 import { getMatch, findAbandonedSessionSnapshot, getMatchScoreEdits } from '@/services/matchService';
 import { prisma } from '@/lib/prisma';
 import type { ReportSummary, PlayerPointSummary } from '@/core/report/report-types';

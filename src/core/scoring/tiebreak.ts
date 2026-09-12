@@ -1,7 +1,7 @@
 import type { ScoringEngineConfig, ScoringState, SetScore } from './types';
 import { createEmptyGame } from './engine.state';
 import { completeSetWithTiebreak } from './set-completion';
-import { usesNoAd, isFinalSet, getGamesToTiebreak } from './format-rules';
+import { isFinalSet, getGamesToTiebreak } from './format-rules';
 
 export function processTiebreakPoint(
   state: ScoringState,
@@ -48,10 +48,9 @@ export function processTiebreakPoint(
 }
 
 export function shouldStartTiebreak(set: SetScore, state: ScoringState, config: ScoringEngineConfig): boolean {
-  const noAd = usesNoAd(config);
   const isFinalSet_ = isFinalSet(config);
 
-  if (noAd) return set.player1 === 4 && set.player2 === 4;
+  if (config.format === 'SHORT_SET_2V2_NO_AD') return set.player1 === 4 && set.player2 === 4;
 
   if (isFinalSet_) {
     const games = getGamesToTiebreak(config);

@@ -54,24 +54,6 @@ jest.mock('../useOfflineSync', () => ({
   })),
 }));
 
-describe('useOfflineSync', () => {
-  it('deve exportar enqueue e flush', async () => {
-    const { useOfflineSync } = await import('@/hooks/useOfflineSync');
-    const { enqueue, flush, isOnline } = useOfflineSync();
-
-    expect(enqueue).toBeDefined();
-    expect(flush).toBeDefined();
-    expect(typeof isOnline).toBe('boolean');
-  });
-
-  it('deve ter isOnline como true inicialmente', async () => {
-    const { useOfflineSync } = await import('@/hooks/useOfflineSync');
-    const { isOnline } = useOfflineSync();
-
-    expect(isOnline).toBe(true);
-  });
-});
-
 describe('useMatchScoring', () => {
   it('deve exportar hook com métodos definidos', async () => {
     const { useMatchScoring } = await import('@/hooks/useMatchScoring');

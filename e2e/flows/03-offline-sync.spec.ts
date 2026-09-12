@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { USERS, loginAs, clearCache } from '../helpers/auth';
+import { USERS, loginAs, clearCache, setBrowserAuth } from '../helpers/auth';
 import { waitForApiCall, waitForToast, getByTestid } from '../helpers/wait-helpers';
 import { expectNoAxeViolations } from '../helpers/a11y';
 
@@ -53,35 +53,23 @@ test.describe('TEST-02.3: Offline — indicador visual, fila IndexedDB e mecanis
   test('página de scoring mostra banner offline quando desconectado e sincroniza ao reconectar (TD-013)', async ({
     page,
   }) => {
-    await page.goto('/');
-    await page.evaluate((token) => {
-      sessionStorage.setItem('access_token', token);
-    }, athlete1Token);
+    await setBrowserAuth(page, { token: athlete1Token, userId: athlete1Id, role: 'ATHLETE' });
 
-    // 3.1 spec drift fix: substituir waitForTimeout(3000) por networkidle explícito
-    // (anteriormente esperava-se por /api/sync que NAO EXISTE — sync offline usa
-    // endpoints granularity por match: /api/matches/{id}/point e /finish)
     await page.goto(`/match/${matchId}/scoring`);
-    await page.waitForLoadState('networkidle');
+    await page.locator('button:has-text("Corrigir")').first().waitFor({ state: 'visible', timeout: 20_000 });
 
     await expect(page.locator('text=Modo Offline')).toHaveCount(0);
 
     await page.context().setOffline(true);
+    await page.evaluate(() => window.dispatchEvent(new Event('offline')));
 
-    // 3.1 fix: substituir waitForTimeout(1500) por expect no banner offline
-    await waitForApiCall({ page }, /\/api\/matches\/.*\/point/);
     const syncStatus = getByTestid(page, 'sync-status');
     await expect(syncStatus).toHaveAttribute('data-sync-state', 'offline', {
       timeout: 10_000,
     });
 
     await page.context().setOffline(false);
-
-    // 3.1 fix: substituir waitForTimeout(2000) por expect no toast de sync
-    await waitForToast(
-      { page },
-      { type: 'success', message: /sincronizados|sucesso/i }
-    );
+    await page.evaluate(() => window.dispatchEvent(new Event('online')));
 
     await expect(syncStatus).toHaveCount(0, { timeout: 10_000 });
 

@@ -1,5 +1,5 @@
 import type { TimelinePoint } from '@/core/scoring/types';
-import type { PointLogRow } from '@/components/scoring/timeline-rebuild';
+import type { PointLogRow } from '@/core/scoring/timeline-rebuild';
 import { describeScoreSnapshotForDisplay } from './route.helpers';
 import type { getMatchScoreEdits } from '@/services/matchService';
 

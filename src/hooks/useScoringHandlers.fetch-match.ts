@@ -17,9 +17,17 @@ type FetchMatchDeps = {
 };
 
 async function getMatchResponse(matchId: string, token: string | null): Promise<MatchData> {
-  const response = await fetch(`/api/matches/${matchId}`, {
-    headers: { authorization: `Bearer ${token}` },
-  });
+  const headers: Record<string, string> = {};
+  const validToken =
+    token && token !== 'null' && token !== 'undefined'
+      ? token
+      : typeof document !== 'undefined'
+        ? document.cookie.match(/(?:^|;\s*)(?:rkt_)?access_token=([^;]+)/)?.[1]
+        : null;
+  if (validToken) {
+    headers.authorization = `Bearer ${validToken}`;
+  }
+  const response = await fetch(`/api/matches/${matchId}`, { headers });
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.error || `Erro ao buscar partida: ${response.status}`);

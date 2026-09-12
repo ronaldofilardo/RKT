@@ -62,7 +62,7 @@ export function DashboardContent({ loading, view, finishedMatches, matches, susp
         </h2>
         {suspendedFromApi.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase mb-3">
               Anotações Suspensas
             </h3>
             <div className="space-y-3">

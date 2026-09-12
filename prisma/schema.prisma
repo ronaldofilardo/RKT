@@ -91,6 +91,7 @@ model PointLog {
   @@index([matchId])
   @@index([matchId, voidedAt])
   @@unique([matchId, clientEventId])
+  @@unique([matchId, sequenceNumber])
 }
 
 /// Registra cada correção manual de placar ("Editar Placar"), usada

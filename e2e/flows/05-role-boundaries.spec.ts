@@ -89,13 +89,11 @@ test.describe('TEST-03.2: Role Boundaries — TD-003 anti-regression', () => {
   });
 
   test('UI: dashboard respeita role (a11y + visibilidade)', async ({ page }) => {
-    await page.goto('/');
-    await page.evaluate((token) => {
-      sessionStorage.setItem('access_token', token);
-    }, ctx.coach.token);
+    await ctx.authenticatePage(page, 'coach');
 
     await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
+    await page.locator('[role="status"]').waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
 
     await expectNoAxeViolations(page, { logLowerSeverity: true });
   });

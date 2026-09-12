@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { PointFlowInputSchema } from '@/schemas/contracts';
-import { withRLSHandler } from '@/lib/auth';
+import { withRLSHandler, getRLSUser } from '@/lib/auth';
 import { ScoringEngine } from '@/core/scoring/engine';
 import type { ScoringState } from '@/core/scoring/types';
 import { emitMatchEvent } from '@/lib/match-events';
@@ -65,6 +65,34 @@ export async function POST(
         if (!match) {
           logger.point.matchNotFound(id);
           throw new TransactionError('Partida não encontrada', 404, 'MATCH_NOT_FOUND');
+        }
+
+        const currentUser = getRLSUser();
+        const currentUserId = currentUser?.id;
+        const isPrivilegedStaff = currentUser?.role === 'ADMIN' || currentUser?.role === 'GESTOR';
+        const isPlayer = match.player1Id === currentUserId || match.player2Id === currentUserId || match.createdByUserId === currentUserId;
+
+        const isOpenForAnnotation = match.openForAnnotation === true;
+
+        if (!isPrivilegedStaff && !isPlayer && !isOpenForAnnotation) {
+          const hasSessionModel = typeof (tx as any).matchAnnotationSession?.findFirst === 'function';
+          const activeSession = hasSessionModel
+            ? await (tx as any).matchAnnotationSession.findFirst({
+                where: {
+                  matchId: id,
+                  isActive: true,
+                  annotatorUserId: currentUserId,
+                },
+              })
+            : null;
+
+          if (hasSessionModel && !activeSession) {
+            throw new TransactionError(
+              'Apenas os jogadores, equipe técnica ou o anotador da sessão ativa podem registrar pontos',
+              403,
+              'FORBIDDEN'
+            );
+          }
         }
 
                 if (parsed.data.clientEventId) {
