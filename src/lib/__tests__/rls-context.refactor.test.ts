@@ -9,7 +9,7 @@
  * - withRLSFilter
  * 
  * Owner: @qa
- * Data: 2026-07-20
+ * Data: 2026-07-20 / Atualizado 2026-09-12
  */
 
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
@@ -40,33 +40,24 @@ describe('rls-context (refactor tests)', () => {
       expect(getRLSUser()).toEqual(user);
     });
 
-    it('deve aceitar usuário válido com role GESTOR', () => {
-      const user: RLSUser = { id: 'user-123', role: 'GESTOR' };
+    it('deve aceitar usuário válido com role ANNOTATOR', () => {
+      const user: RLSUser = { id: 'user-123', role: 'ANNOTATOR' };
       expect(() => __setRLSUserForTesting(user)).not.toThrow();
+      expect(getRLSUser()).toEqual(user);
     });
 
-    it('deve aceitar usuário válido com role COACH', () => {
-      const user: RLSUser = { id: 'user-123', role: 'COACH' };
-      expect(() => __setRLSUserForTesting(user)).not.toThrow();
-    });
-
-    it('deve aceitar usuário válido com role ATHLETE', () => {
+    it('deve rejeitar role legada não mais suportada (ATHLETE)', () => {
       const user: RLSUser = { id: 'user-123', role: 'ATHLETE' };
-      expect(() => __setRLSUserForTesting(user)).not.toThrow();
-    });
-
-    it('deve aceitar usuário válido com role SPECTATOR', () => {
-      const user: RLSUser = { id: 'user-123', role: 'SPECTATOR' };
-      expect(() => __setRLSUserForTesting(user)).not.toThrow();
+      expect(() => __setRLSUserForTesting(user)).toThrow('Invalid RLS user');
     });
 
     it('deve lançar erro para id vazio', () => {
-      const user: RLSUser = { id: '', role: 'ATHLETE' };
+      const user: RLSUser = { id: '', role: 'ANNOTATOR' };
       expect(() => __setRLSUserForTesting(user)).toThrow('Invalid RLS user');
     });
 
     it('deve lançar erro para id com apenas espaços', () => {
-      const user: RLSUser = { id: '   ', role: 'ATHLETE' };
+      const user: RLSUser = { id: '   ', role: 'ANNOTATOR' };
       expect(() => __setRLSUserForTesting(user)).toThrow('Invalid RLS user');
     });
 
@@ -83,7 +74,7 @@ describe('rls-context (refactor tests)', () => {
 
   describe('runWithRLS', () => {
     it('deve executar função com contexto RLS ativo', async () => {
-      const user: RLSUser = { id: 'user-123', role: 'ATHLETE' };
+      const user: RLSUser = { id: 'user-123', role: 'ANNOTATOR' };
       
       const result = await runWithRLS(user, async () => {
         return getRLSUser();
@@ -93,7 +84,7 @@ describe('rls-context (refactor tests)', () => {
     });
 
     it('deve fazer cleanup após execução', async () => {
-      const user: RLSUser = { id: 'user-123', role: 'ATHLETE' };
+      const user: RLSUser = { id: 'user-123', role: 'ANNOTATOR' };
       
       await runWithRLS(user, async () => {
         // Dentro do contexto
@@ -105,7 +96,7 @@ describe('rls-context (refactor tests)', () => {
     });
 
     it('deve fazer cleanup mesmo em caso de erro', async () => {
-      const user: RLSUser = { id: 'user-123', role: 'ATHLETE' };
+      const user: RLSUser = { id: 'user-123', role: 'ANNOTATOR' };
       
       await expect(
         runWithRLS(user, async () => {
@@ -126,7 +117,7 @@ describe('rls-context (refactor tests)', () => {
     });
 
     it('deve lançar erro para usuário inválido', async () => {
-      const invalidUser: RLSUser = { id: '', role: 'ATHLETE' };
+      const invalidUser: RLSUser = { id: '', role: 'ANNOTATOR' };
       
       await expect(
         runWithRLS(invalidUser, async () => 'test')
@@ -134,8 +125,8 @@ describe('rls-context (refactor tests)', () => {
     });
 
     it('deve permitir execução em cascata (nested runWithRLS)', async () => {
-      const user1: RLSUser = { id: 'user-1', role: 'ATHLETE' };
-      const user2: RLSUser = { id: 'user-2', role: 'COACH' };
+      const user1: RLSUser = { id: 'user-1', role: 'ANNOTATOR' };
+      const user2: RLSUser = { id: 'user-2', role: 'ADMIN' };
       
       const result = await runWithRLS(user1, async () => {
         expect(getRLSUser()).toEqual(user1);
@@ -154,7 +145,7 @@ describe('rls-context (refactor tests)', () => {
 
   describe('runWithRLSSync', () => {
     it('deve executar função síncrona com contexto RLS', () => {
-      const user: RLSUser = { id: 'user-123', role: 'ATHLETE' };
+      const user: RLSUser = { id: 'user-123', role: 'ANNOTATOR' };
       
       const result = runWithRLSSync(user, () => {
         return getRLSUser();
@@ -164,7 +155,7 @@ describe('rls-context (refactor tests)', () => {
     });
 
     it('deve fazer cleanup após execução síncrona', () => {
-      const user: RLSUser = { id: 'user-123', role: 'ATHLETE' };
+      const user: RLSUser = { id: 'user-123', role: 'ANNOTATOR' };
       
       runWithRLSSync(user, () => {
         expect(getRLSUser()).toEqual(user);
@@ -182,7 +173,7 @@ describe('rls-context (refactor tests)', () => {
     });
 
     it('deve lançar erro para usuário inválido', () => {
-      const invalidUser: RLSUser = { id: '', role: 'ATHLETE' };
+      const invalidUser: RLSUser = { id: '', role: 'ANNOTATOR' };
       
       expect(() =>
         runWithRLSSync(invalidUser, () => 'test')
@@ -194,7 +185,7 @@ describe('rls-context (refactor tests)', () => {
     it('deve executar handler com contexto RLS ativo', async () => {
       const getUser = jest.fn<(ctx: any) => RLSUser | null>().mockReturnValue({
         id: 'user-123',
-        role: 'ATHLETE',
+        role: 'ANNOTATOR',
       });
 
       const handler = jest.fn<any>().mockResolvedValue('success');
@@ -206,14 +197,14 @@ describe('rls-context (refactor tests)', () => {
       expect(getUser).toHaveBeenCalledWith({ request: 'test' });
       expect(handler).toHaveBeenCalledWith({ request: 'test' }, expect.objectContaining({
         id: 'user-123',
-        role: 'ATHLETE',
+        role: 'ANNOTATOR',
       }));
     });
 
     it('deve fazer cleanup após execução do handler', async () => {
       const getUser = jest.fn<(ctx: any) => RLSUser | null>().mockReturnValue({
         id: 'user-123',
-        role: 'ATHLETE',
+        role: 'ANNOTATOR',
       });
 
       const handler = jest.fn<any>().mockImplementation(async (ctx, user) => {
@@ -261,11 +252,11 @@ describe('rls-context (refactor tests)', () => {
       }));
 
       expect(result).toEqual(query);
-      expect(result.where.createdByUserId).toBeUndefined();
+      expect((result.where as any).createdByUserId).toBeUndefined();
     });
 
     it('deve aplicar filtro para não-ADMIN', () => {
-      __setRLSUserForTesting({ id: 'user-123', role: 'ATHLETE' });
+      __setRLSUserForTesting({ id: 'user-123', role: 'ANNOTATOR' });
 
       const query = { where: { state: 'IN_PROGRESS' } };
       const result = withRLSFilter(query, (q) => ({
@@ -273,7 +264,7 @@ describe('rls-context (refactor tests)', () => {
         where: { ...q.where, createdByUserId: getRLSUser()?.id },
       }));
 
-      expect(result.where.createdByUserId).toBe('user-123');
+      expect((result.where as any).createdByUserId).toBe('user-123');
     });
 
     it('deve retornar query original quando user for null', () => {

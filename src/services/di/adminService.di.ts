@@ -19,18 +19,28 @@ export class AdminService {
     return this.deps.userRepository.listAll(options);
   }
 
-  async createUser(data: { name: string; email: string; password: string; role: string; club?: string }) {
-    const existing = await this.deps.userRepository.findByEmail(data.email);
-    if (existing) return { error: 'EMAIL_ALREADY_EXISTS' };
+  async createUser(data: { name: string; email: string; cpf: string; password: string; role: Role; club?: string }) {
+    const existingEmail = await this.deps.userRepository.findByEmail(data.email);
+    if (existingEmail) return { error: 'EMAIL_ALREADY_EXISTS' };
+
+    const existingCpf = await this.deps.userRepository.findByCpf(data.cpf);
+    if (existingCpf) return { error: 'CPF_ALREADY_EXISTS' };
 
     const passwordHash = await bcrypt.hash(data.password, 10);
-    return this.deps.userRepository.create({ name: data.name, email: data.email, passwordHash, role: data.role as Role, club: data.club });
+    return this.deps.userRepository.create({
+      name: data.name,
+      email: data.email,
+      cpf: data.cpf,
+      passwordHash,
+      role: data.role,
+      club: data.club,
+    });
   }
 
-  async updateUser(id: string, data: { name?: string; role?: string; club?: string | null }) {
+  async updateUser(id: string, data: { name?: string; email?: string; cpf?: string; role?: Role; club?: string | null; isActive?: boolean }) {
     const user = await this.deps.userRepository.findById(id);
     if (!user) return { error: 'USER_NOT_FOUND' };
-    return this.deps.userRepository.update(id, { name: data.name, role: data.role as Role, club: data.club });
+    return this.deps.userRepository.update(id, data);
   }
 
   async deleteUser(id: string) {

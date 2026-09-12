@@ -30,7 +30,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; pointId: string }> }
 ) {
-  return withRLSHandler(request, 'SPECTATOR', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       const { id, pointId } = await params;
 
@@ -73,7 +73,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; pointId: string }> }
 ) {
-  return withRLSHandler(request, 'ATHLETE', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       const { id, pointId } = await params;
 
@@ -173,7 +173,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; pointId: string }> }
 ) {
-  return withRLSHandler(request, 'ATHLETE', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       const { id, pointId } = await params;
 

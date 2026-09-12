@@ -4,11 +4,11 @@ import { listSuspendedSessions } from "@/services/sessionService";
 import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
-  return withRLSHandler(request, "SPECTATOR", async () => {
+  return withRLSHandler(request, "ANNOTATOR", async () => {
     try {
       const user = getRLSUser();
-      if (!user) {
-        return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+      if (!user || user.role !== "ANNOTATOR") {
+        return NextResponse.json({ matches: [] });
       }
 
       logger.info("[suspended-sessions] listing start", user.id);

@@ -9,13 +9,15 @@ export async function listAllUsers(options?: {
 }) {
   const { cursor, limit = 20, role } = options || {};
 
-  return prisma.player.findMany({
+  return prisma.user.findMany({
     select: {
       id: true,
       name: true,
       email: true,
+      cpf: true,
       role: true,
       club: true,
+      isActive: true,
       createdAt: true,
     },
     where: {
@@ -30,53 +32,90 @@ export async function listAllUsers(options?: {
 export async function createUser(data: {
   name: string;
   email: string;
+  cpf?: string;
   password: string;
-  role: string;
+  role: Role;
   club?: string;
 }) {
-  const existing = await prisma.player.findUnique({ where: { email: data.email } });
-  if (existing) return { error: 'EMAIL_ALREADY_EXISTS' };
+  const cleanEmail = data.email.trim().toLowerCase();
+  const cleanCpf = (data.cpf || `temp_${Date.now()}`).replace(/\D/g, '') || `cpf_${Date.now()}`;
+
+  const existingEmail = await prisma.user.findUnique({ where: { email: cleanEmail } });
+  if (existingEmail) return { error: 'EMAIL_ALREADY_EXISTS' };
+
+  if (data.cpf) {
+    const existingCpf = await prisma.user.findUnique({ where: { cpf: cleanCpf } });
+    if (existingCpf) return { error: 'CPF_ALREADY_EXISTS' };
+  }
 
   const passwordHash = await bcrypt.hash(data.password, 10);
 
   try {
-    return await prisma.player.create({
+    return await prisma.user.create({
       data: {
         name: data.name,
-        email: data.email,
+        email: cleanEmail,
+        cpf: cleanCpf,
         passwordHash,
-        role: data.role as any,
+        role: data.role,
         club: data.club || null,
       },
-      select: { id: true, name: true, email: true, role: true, club: true, createdAt: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        cpf: true,
+        role: true,
+        club: true,
+        isActive: true,
+        createdAt: true,
+      },
     });
   } catch (err: any) {
     if (err?.code === 'P2002') {
+      const target = err?.meta?.target;
+      if (Array.isArray(target) && target.includes('cpf')) {
+        return { error: 'CPF_ALREADY_EXISTS' };
+      }
       return { error: 'EMAIL_ALREADY_EXISTS' };
     }
     throw err;
   }
 }
 
-export async function updateUser(id: string, data: { name?: string; role?: string; club?: string | null }) {
-  const user = await prisma.player.findUnique({ where: { id } });
+export async function updateUser(
+  id: string,
+  data: { name?: string; email?: string; cpf?: string; role?: Role; club?: string | null; isActive?: boolean }
+) {
+  const user = await prisma.user.findUnique({ where: { id } });
   if (!user) return { error: 'USER_NOT_FOUND' };
 
-  return prisma.player.update({
-    where: { id },
-    data: {
-      ...(data.name !== undefined ? { name: data.name } : {}),
-      ...(data.role !== undefined ? { role: data.role as any } : {}),
-      ...(data.club !== undefined ? { club: data.club } : {}),
-    },
-    select: { id: true, name: true, email: true, role: true, club: true },
-  });
+  const updateData: Record<string, any> = {};
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.email !== undefined) updateData.email = data.email.trim().toLowerCase();
+  if (data.cpf !== undefined) updateData.cpf = data.cpf.replace(/\D/g, '');
+  if (data.role !== undefined) updateData.role = data.role;
+  if (data.club !== undefined) updateData.club = data.club;
+  if (data.isActive !== undefined) updateData.isActive = data.isActive;
+
+  try {
+    return await prisma.user.update({
+      where: { id },
+      data: updateData,
+      select: { id: true, name: true, email: true, cpf: true, role: true, club: true, isActive: true },
+    });
+  } catch (err: any) {
+    if (err?.code === 'P2002') {
+      return { error: 'DUPLICATE_ENTRY' };
+    }
+    throw err;
+  }
 }
 
 export async function deleteUser(id: string) {
-  const user = await prisma.player.findUnique({ where: { id } });
+  const user = await prisma.user.findUnique({ where: { id } });
   if (!user) return { error: 'USER_NOT_FOUND' };
 
-  await prisma.player.delete({ where: { id } });
+  await prisma.user.delete({ where: { id } });
   return { success: true };
 }

@@ -9,7 +9,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'ATHLETE', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       const { id } = await params;
       const body = await request.json();

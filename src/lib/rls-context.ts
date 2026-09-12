@@ -8,7 +8,7 @@ export interface RLSUser {
 
 const rlsStorage = new AsyncLocalStorage<RLSUser>();
 
-const VALID_ROLES = ['ADMIN', 'GESTOR', 'COACH', 'ATHLETE', 'SPECTATOR'] as const;
+const VALID_ROLES = ['ADMIN', 'ANNOTATOR'] as const;
 
 function isValidRole(role: string): role is typeof VALID_ROLES[number] {
   return VALID_ROLES.includes(role as any);

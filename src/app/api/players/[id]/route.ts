@@ -5,7 +5,7 @@ import { getPlayerById, updatePlayer, deletePlayer, countPlayerActiveMatches } f
 import { isRankingCategoryAllowed, isRankingTypeAllowedForProfile } from '@/lib/ranking/rankingConstants';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  return withRLSHandler(request, 'SPECTATOR', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       const { id } = await params;
       const player = await getPlayerById(id);
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  return withRLSHandler(request, 'ATHLETE', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       const { id } = await params;
       const body = await request.json();
@@ -118,7 +118,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  return withRLSHandler(request, 'ATHLETE', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       const { id } = await params;
 
@@ -128,11 +128,10 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       }
 
       const user = getRLSUser();
-      const isOwner = user?.id === id;
-      const isStaff = user?.role === 'ADMIN' || user?.role === 'GESTOR';
+      const isStaff = user?.role === 'ADMIN';
       const isCreator = existing.createdByUserId && user?.id === existing.createdByUserId;
 
-      if (!isOwner && !isStaff && !isCreator) {
+      if (!isStaff && !isCreator) {
         return NextResponse.json(
           { error: 'FORBIDDEN', message: 'Sem permissão para excluir este atleta' },
           { status: 403 }

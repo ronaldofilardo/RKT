@@ -10,7 +10,7 @@ import type { Rankings } from '@/schemas/contracts';
 export type PlayerUpsertInput = {
   name: string;
   email?: string;
-  passwordHash?: string;
+  club?: string;
   gender?: string;
   age?: number;
   birthDate?: Date;
@@ -23,6 +23,8 @@ export type PlayerUpsertInput = {
 
 export type PlayerUpdateInput = {
   name?: string;
+  email?: string;
+  club?: string;
   gender?: string;
   age?: number;
   birthDate?: Date;
@@ -34,7 +36,6 @@ export type PlayerUpdateInput = {
 
 export interface IPlayerRepository {
   list(cursor?: string | null, limit?: number, userId?: string | null): Promise<Partial<Player>[]>;
-  findByEmail(email: string): Promise<{ id: string; name: string; email: string; role: string; passwordHash: string } | null>;
   findById(id: string): Promise<Partial<Player> | null>;
   update(id: string, data: PlayerUpdateInput): Promise<Partial<Player>>;
   create(data: PlayerUpsertInput): Promise<Partial<Player>>;

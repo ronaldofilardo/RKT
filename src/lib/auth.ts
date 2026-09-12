@@ -4,14 +4,11 @@ import { runWithRLS, getRLSUser, type RLSUser } from './rls-context';
 import { decodeJwtPayload } from './jwt-client';
 
 const ROLE_HIERARCHY: Record<Role, number> = {
-  ADMIN: 5,
-  GESTOR: 4,
-  COACH: 3,
-  ATHLETE: 2,
-  SPECTATOR: 1,
+  ADMIN: 2,
+  ANNOTATOR: 1,
 };
 
-const VALID_ROLES = new Set<Role>(['ADMIN', 'GESTOR', 'COACH', 'ATHLETE', 'SPECTATOR']);
+const VALID_ROLES = new Set<Role>(['ADMIN', 'ANNOTATOR']);
 
 function isRole(value: string): value is Role {
   return VALID_ROLES.has(value as Role);
@@ -66,7 +63,7 @@ export async function requireRole(request: NextRequest, minRole: Role): Promise<
     return NextResponse.json(
       {
         error: 'FORBIDDEN',
-        message: `Requer role ${minRole} ou superior. Role atual: ${user.role}`,
+        message: `Requer role ${minRole}. Role atual: ${user.role}`,
       },
       { status: 403 },
     );
@@ -102,39 +99,14 @@ export const ROLE_PERMISSIONS: Record<Role, readonly AppAction[]> = {
   ADMIN: [
     'manage:users',
     'manage:clubs',
-    'view:all_matches',
+  ],
+  ANNOTATOR: [
     'score:match',
-    'view:tactical_stats',
     'annotate:session',
     'play:match',
     'view:own_stats',
     'view:public_matches',
-  ],
-  GESTOR: [
-    'manage:clubs',
-    'view:all_matches',
-    'score:match',
     'view:tactical_stats',
-    'annotate:session',
-    'play:match',
-    'view:own_stats',
-    'view:public_matches',
-  ],
-  COACH: [
-    'score:match',
-    'view:tactical_stats',
-    'annotate:session',
-    'view:all_matches',
-    'view:public_matches',
-  ],
-  ATHLETE: [
-    'play:match',
-    'score:match',
-    'view:own_stats',
-    'view:public_matches',
-  ],
-  SPECTATOR: [
-    'view:public_matches',
   ],
 };
 

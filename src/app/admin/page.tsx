@@ -4,16 +4,16 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 export interface User {
-
   id: string;
   name: string;
   email: string;
+  cpf?: string;
   role: string;
   club: string | null;
   createdAt: string;
 }
 
-const ROLES = ['ADMIN', 'GESTOR', 'COACH', 'ATHLETE', 'SPECTATOR'];
+const ROLES = ['ADMIN', 'ANNOTATOR'];
 
 export default function AdminPage() {
   const router = useRouter();
@@ -59,7 +59,7 @@ export default function AdminPage() {
       });
       if (!res.ok) throw new Error('Erro ao carregar usuários');
       const data = await res.json();
-      setUsers(data.users);
+      setUsers(data.data?.users ?? data.users ?? []);
     } catch {
       setError('Erro ao carregar usuários');
     }
@@ -126,7 +126,7 @@ export default function AdminPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
             <h3 className="text-lg font-semibold mb-2">Gerenciar Usuários</h3>
-            <p className="text-gray-600 mb-4 text-sm sm:text-base">Administrar usuários e permissões</p>
+            <p className="text-gray-600 mb-4 text-sm sm:text-base">Administrar anotadores e administradores</p>
             <button
               onClick={() => { setShowUsers(!showUsers); if (!showUsers) loadUsers(); }}
               className="w-full bg-sky-600 text-white py-3 rounded-lg hover:bg-sky-700 active:scale-[0.98] transition-transform"
@@ -136,8 +136,8 @@ export default function AdminPage() {
           </div>
 
           <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
-            <h3 className="text-lg font-semibold mb-2">Configurações</h3>
-            <p className="text-gray-600 mb-4 text-sm sm:text-base">Configurações do sistema</p>
+            <h3 className="text-lg font-semibold mb-2">Configurações Operacionais</h3>
+            <p className="text-gray-600 mb-4 text-sm sm:text-base">Configurações globais do sistema</p>
             <button className="w-full bg-gray-300 text-gray-500 py-3 rounded-lg cursor-not-allowed">
               Em breve
             </button>
@@ -155,7 +155,8 @@ export default function AdminPage() {
                   <tr>
                     <th className="text-left px-4 sm:px-6 py-3 font-medium">Nome</th>
                     <th className="text-left px-4 sm:px-6 py-3 font-medium">Email</th>
-                    <th className="text-left px-4 sm:px-6 py-3 font-medium">Role</th>
+                    <th className="text-left px-4 sm:px-6 py-3 font-medium">CPF</th>
+                    <th className="text-left px-4 sm:px-6 py-3 font-medium">Perfil</th>
                     <th className="text-left px-4 sm:px-6 py-3 font-medium">Clube</th>
                     <th className="text-right px-4 sm:px-6 py-3 font-medium">Ações</th>
                   </tr>
@@ -163,8 +164,9 @@ export default function AdminPage() {
                 <tbody className="divide-y">
                   {users.map((u) => (
                     <tr key={u.id} className="hover:bg-gray-50">
-                      <td className="px-4 sm:px-6 py-3">{u.name}</td>
+                      <td className="px-4 sm:px-6 py-3 font-medium">{u.name}</td>
                       <td className="px-4 sm:px-6 py-3 text-gray-500">{u.email}</td>
+                      <td className="px-4 sm:px-6 py-3 text-gray-500">{u.cpf || '-'}</td>
                       <td className="px-4 sm:px-6 py-3">
                         {editingUser === u.id ? (
                           <select
@@ -176,11 +178,8 @@ export default function AdminPage() {
                           </select>
                         ) : (
                           <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                            u.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
-                            u.role === 'COACH' ? 'bg-blue-100 text-blue-700' :
-                            u.role === 'GESTOR' ? 'bg-orange-100 text-orange-700' :
-                            'bg-gray-100 text-gray-700'
-                          }`}>{u.role}</span>
+                            u.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700'
+                          }`}>{u.role === 'ANNOTATOR' ? 'ANOTADOR' : u.role}</span>
                         )}
                       </td>
                       <td className="px-4 sm:px-6 py-3 text-gray-500">{u.club || '-'}</td>
@@ -196,7 +195,7 @@ export default function AdminPage() {
                               onClick={() => { setEditingUser(u.id); setNewRole(u.role); }}
                               className="text-xs text-sky-600 hover:underline"
                             >
-                              Alterar Role
+                              Alterar Perfil
                             </button>
                             <button
                               onClick={() => handleDeleteUser(u.id)}

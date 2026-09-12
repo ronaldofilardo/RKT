@@ -9,8 +9,13 @@ import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
-  return withRLSHandler(request, 'SPECTATOR', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
+      const user = getRLSUser();
+      if (!user || user.role !== 'ANNOTATOR') {
+        return NextResponse.json({ data: { matches: [], nextCursor: null } });
+      }
+
       const { searchParams } = request.nextUrl;
       const stateParam = searchParams.get('state');
       const { cursor, limit } = extractPagination(searchParams);
@@ -30,7 +35,7 @@ export async function GET(request: NextRequest) {
         state = parsed.data;
       }
 
-      const matches = await listMatches(state, cursor, limit);
+      const matches = await listMatches(state, cursor, limit, user.id);
       const nextCursor = matches.length === limit ? matches[matches.length - 1].id : null;
 
       return NextResponse.json({ data: { matches, nextCursor } });

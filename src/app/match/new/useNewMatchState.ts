@@ -58,10 +58,13 @@ export function useNewMatchState() {
   }, []);
 
   useEffect(() => {
-    const token = sessionStorage.getItem('access_token');
-    const userId = sessionStorage.getItem('user_id');
-    if (!userId || !token) return;
-    fetch(`/api/players?userId=${encodeURIComponent(userId)}`, { headers: { authorization: `Bearer ${token}` } })
+    if (typeof fetch !== 'function') return;
+    const token = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers.authorization = `Bearer ${token}`;
+    }
+    fetch('/api/players?limit=100', { headers })
       .then((response) => response.json())
       .then((json: { data?: { players?: Athlete[] }; players?: Athlete[] }) => {
         const players = json?.data?.players ?? json?.players ?? [];
@@ -71,7 +74,7 @@ export function useNewMatchState() {
   }, []);
 
   return {
-    loading, setLoading, submittingRef, error, setError, missingFields, setMissingFields, athletes,
+    loading, setLoading, submittingRef, error, setError, missingFields, setMissingFields, athletes, setAthletes,
     player1DropdownOpen, setPlayer1DropdownOpen, player2DropdownOpen, setPlayer2DropdownOpen,
     showNewAthleteModal, setShowNewAthleteModal, newAthleteFor, setNewAthleteFor,
     selectedP1, setSelectedP1, selectedP2, setSelectedP2, format, setFormat, courtType, setCourtType,

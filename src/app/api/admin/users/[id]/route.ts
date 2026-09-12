@@ -12,7 +12,7 @@ export async function PATCH(
       const { id } = await params;
       const body = await request.json();
 
-      const validRoles = ['ADMIN', 'GESTOR', 'COACH', 'ATHLETE', 'SPECTATOR'];
+      const validRoles = ['ADMIN', 'ANNOTATOR'];
       if (body.role && !validRoles.includes(body.role)) {
         return NextResponse.json(
           { error: 'VALIDATION_ERROR', message: `Role inválida. Use: ${validRoles.join(', ')}` },

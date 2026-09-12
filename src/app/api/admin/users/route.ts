@@ -51,6 +51,12 @@ export async function POST(request: NextRequest) {
             { status: 409 }
           );
         }
+        if (result.error === 'CPF_ALREADY_EXISTS') {
+          return NextResponse.json(
+            { error: 'CPF_ALREADY_EXISTS', message: 'CPF já cadastrado' },
+            { status: 409 }
+          );
+        }
         return NextResponse.json({ error: result.error }, { status: 500 });
       }
 

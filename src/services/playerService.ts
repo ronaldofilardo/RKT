@@ -7,27 +7,29 @@ export async function listPlayers(cursor?: string | null, limit = 20, userId?: s
     take: limit,
     ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     where: userId ? { createdByUserId: userId } : {},
-    select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true },
+    select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true },
     orderBy: { name: 'asc' },
   });
 }
 
 export async function findPlayerByEmail(email: string) {
-  return prisma.player.findUnique({
+  return prisma.player.findFirst({
     where: { email },
-    select: { id: true, name: true, email: true, role: true, passwordHash: true },
+    select: { id: true, name: true, email: true },
   });
 }
 
 export async function getPlayerById(id: string) {
   return prisma.player.findUnique({
     where: { id },
-    select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, createdByUserId: true },
+    select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, createdByUserId: true },
   });
 }
 
 export async function updatePlayer(id: string, data: {
   name?: string;
+  email?: string;
+  club?: string;
   gender?: string;
   age?: number;
   birthDate?: Date;
@@ -40,6 +42,8 @@ export async function updatePlayer(id: string, data: {
     where: { id },
     data: {
       ...(data.name !== undefined && { name: data.name }),
+      ...(data.email !== undefined && { email: data.email }),
+      ...(data.club !== undefined && { club: data.club }),
       ...(data.gender !== undefined && { gender: data.gender }),
       ...(data.age !== undefined && { age: data.age }),
       ...(data.birthDate !== undefined && { birthDate: data.birthDate }),
@@ -48,14 +52,14 @@ export async function updatePlayer(id: string, data: {
       ...(data.ranking !== undefined && { ranking: data.ranking }),
       ...(data.rankings !== undefined && { rankings: data.rankings as unknown as Prisma.InputJsonValue }),
     },
-    select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true },
+    select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true },
   });
 }
 
 export async function createPlayer(data: {
   name: string;
   email?: string;
-  passwordHash?: string;
+  club?: string;
   gender?: string;
   age?: number;
   birthDate?: Date;
@@ -69,8 +73,8 @@ export async function createPlayer(data: {
   return prisma.player.create({
     data: {
       name: data.name,
-      email: data.email ?? `temp_${Date.now()}_${crypto.randomUUID()}@placeholder.local`,
-      passwordHash: data.passwordHash ?? 'PLACEHOLDER',
+      email: data.email || null,
+      club: data.club || null,
       gender: data.gender,
       age,
       birthDate: data.birthDate,
@@ -80,7 +84,7 @@ export async function createPlayer(data: {
       rankings: data.rankings as unknown as Prisma.InputJsonValue,
       createdByUserId: data.createdByUserId,
     },
-    select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true },
+    select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true },
   });
 }
 
@@ -99,6 +103,5 @@ export async function countPlayerActiveMatches(playerId: string) {
 export async function deletePlayer(id: string) {
   return prisma.player.delete({
     where: { id },
-    select: { id: true, name: true },
   });
 }

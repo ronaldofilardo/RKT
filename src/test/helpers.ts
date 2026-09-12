@@ -12,7 +12,6 @@ export async function createTestPlayer(data?: Partial<Prisma.PlayerCreateInput>)
     data: {
       name: `Test Player ${Date.now()}`,
       email: `test_${Date.now()}@test.com`,
-      passwordHash: 'hashed_password',
       gender: 'M',
       age: 25,
       ...data,

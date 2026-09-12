@@ -1,11 +1,19 @@
 import bcrypt from 'bcryptjs';
-import { findPlayerByEmail } from '@/services/playerService';
+import { prisma } from '@/lib/prisma';
 
-type AuthenticatedPlayer = Awaited<ReturnType<typeof findPlayerByEmail>>;
+export async function authenticateUser(identifier: string, password: string) {
+  const trimmed = identifier.trim();
+  if (!trimmed) return null;
 
-export async function authenticatePlayer(email: string, password: string): Promise<AuthenticatedPlayer> {
-  const player = await findPlayerByEmail(email);
-  if (!player) return null;
-  const validPassword = await bcrypt.compare(password, player.passwordHash);
-  return validPassword ? player : null;
+  const isEmail = trimmed.includes('@');
+  const user = await prisma.user.findUnique({
+    where: isEmail
+      ? { email: trimmed.toLowerCase() }
+      : { cpf: trimmed.replace(/\D/g, '') },
+  });
+
+  if (!user || !user.isActive) return null;
+
+  const validPassword = await bcrypt.compare(password, user.passwordHash);
+  return validPassword ? user : null;
 }

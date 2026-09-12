@@ -17,13 +17,13 @@ export default function LoginPage() {
 
     const formData = new FormData(e.currentTarget);
     const raw = {
-      email: formData.get("email"),
-      password: formData.get("password"),
+      identifier: (formData.get("identifier") as string || "").trim(),
+      password: (formData.get("password") as string || "").trim(),
     };
 
     const parsed = LoginPayloadSchema.safeParse(raw);
     if (!parsed.success) {
-      setError("Dados inválidos. Verifique o formulário.");
+      setError("Dados inválidos. Informe seu e-mail ou CPF e a senha.");
       setIsLoading(false);
       return;
     }
@@ -37,7 +37,7 @@ export default function LoginPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Erro ao fazer login");
+        setError(data.message || data.error || "Erro ao fazer login");
         setIsLoading(false);
         return;
       }
@@ -53,9 +53,13 @@ export default function LoginPage() {
       document.cookie = `access_token=${data.accessToken}; path=/; max-age=${2 * 60 * 60}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
       document.cookie = `user_role=${data.user.role}; path=/; max-age=${2 * 60 * 60}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
 
-      router.push("/dashboard");
+      if (data.user.role === "ADMIN") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     } catch {
-      setError("Erro de conexão");
+      setError("Erro de conexão com o servidor");
       setIsLoading(false);
     }
   }
@@ -63,13 +67,19 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <div className="bg-white rounded-2xl shadow-lg border p-8 w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center text-gray-900 mb-6">
-          Entrar
+        <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">
+          RKT Tennis
         </h1>
+        <p className="text-sm text-center text-gray-500 mb-6">
+          Acesse com seu e-mail ou CPF
+        </p>
 
         <p className="text-xs text-center text-gray-400 mb-4">
-          Demo: <code className="text-gray-600">play@email.com</code> /{" "}
-          <code className="text-gray-600">12345678</code>
+          Anotador: <code className="text-gray-600">anotador@rkt.com</code> ou <code className="text-gray-600">04703084945</code>
+          <br />
+          Admin: <code className="text-gray-600">admin@rkt.com</code> ou <code className="text-gray-600">87545772920</code>
+          <br />
+          Senha padrão: <code className="text-gray-600">123456</code>
         </p>
 
         {error && (
@@ -82,16 +92,16 @@ export default function LoginPage() {
           <div>
             <label
               className="block text-sm font-medium text-gray-700 mb-1"
-              htmlFor="email"
+              htmlFor="identifier"
             >
-              Email
+              E-mail ou CPF
             </label>
             <input
-              id="email"
-              name="email"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
+              id="identifier"
+              name="identifier"
+              type="text"
+              autoComplete="username"
+              placeholder="ex: usuario@email.com ou 123.456.789-00"
               required
               className="w-full px-3 py-3 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
             />
@@ -110,7 +120,6 @@ export default function LoginPage() {
               type="password"
               autoComplete="current-password"
               required
-              minLength={8}
               className="w-full px-3 py-3 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
             />
           </div>

@@ -9,7 +9,8 @@ type SelectionDependencies = Pick<NewMatchState,
   'setTournamentName' | 'setShowTournamentDropdown' | 'setNewAthleteFor' |
   'setShowNewAthleteModal' | 'setSelectedP1' | 'setPlayer1DropdownOpen' |
   'setSelectedP2' | 'setPlayer2DropdownOpen' | 'newAthleteFor' |
-  'setShowServerModal' | 'createdMatchId' | 'setStartingMatch' | 'setCreatedMatchId'
+  'setShowServerModal' | 'createdMatchId' | 'setStartingMatch' | 'setCreatedMatchId' |
+  'setAthletes'
 >;
 
 export function useNewMatchSelectionActions(
@@ -34,6 +35,10 @@ export function useNewMatchSelectionActions(
   };
 
   const handleAthleteCreated = (athlete: Athlete) => {
+    state.setAthletes((prev) => {
+      if (prev.some((a) => a.id === athlete.id)) return prev;
+      return [...prev, athlete];
+    });
     handleSelectAthlete(state.newAthleteFor === 'p1' ? 'p1' : 'p2', athlete);
     state.setShowNewAthleteModal(false);
     state.setNewAthleteFor(null);

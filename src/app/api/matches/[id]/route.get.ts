@@ -7,7 +7,7 @@ export async function handleGetMatch(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'SPECTATOR', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     const user = getRLSUser();
     if (!user) {
       return NextResponse.json(

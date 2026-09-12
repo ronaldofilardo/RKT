@@ -73,10 +73,7 @@ export type RallyDetails = z.infer<typeof RallyDetailsSchema>;
 
 export const RoleSchema = z.enum([
   "ADMIN",
-  "GESTOR",
-  "COACH",
-  "ATHLETE",
-  "SPECTATOR",
+  "ANNOTATOR",
 ]);
 export type Role = z.infer<typeof RoleSchema>;
 
@@ -120,11 +117,13 @@ export const PointTypeSchema = z.enum([
 export type PointType = z.infer<typeof PointTypeSchema>;
 
 // Accept CUID, UUID, or prefixed UUID formats for ID fields
+// Accept CUID, UUID, prefixed UUID, or seed/test ID formats for ID fields
 // CUID: 24-25 chars, no hyphens (e.g., cjs5nqpr7000001l29u6qr9f1)
 // UUID: 36 chars, 5 segments 8-4-4-4-12, hex only (e.g., 550e8400-e29b-41d4-a716-446655440000)
 // Prefixed UUID: 5 segments where first segment is an alphanumeric prefix
 // followed by standard UUID body segments 4-4-4-12
 // (e.g., pa2da1636-d6c4-4184-8fca-8dd8d5d8f3f9 or pac07fc77-ffd3-466e-af56-0ffc079d158a)
+// Seed / Test IDs: e.g. seed_player_alcaraz, seed_player_sinner
 const flexibleIdValidator = z
   .string()
   .refine(
@@ -135,16 +134,29 @@ const flexibleIdValidator = z
       ) ||
       /^[a-z0-9]{2,20}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
         id,
-      ),
+      ) ||
+      /^(seed|test)_[a-zA-Z0-9_-]{1,64}$/.test(id),
     "Must be a valid CUID, UUID or prefixed UUID",
   );
 
 export const PlayerSchema = z.object({
   id: flexibleIdValidator,
   name: z.string().min(2).max(100),
-  role: RoleSchema,
+  club: z.string().optional(),
 });
 export type Player = z.infer<typeof PlayerSchema>;
+
+export const UserSchema = z.object({
+  id: flexibleIdValidator,
+  name: z.string().min(2).max(100),
+  email: z.string().email(),
+  cpf: z.string(),
+  role: RoleSchema,
+  club: z.string().nullish(),
+  isActive: z.boolean().default(true),
+  createdAt: z.coerce.date().optional(),
+});
+export type User = z.infer<typeof UserSchema>;
 
 export const PointFlowInputSchema = z.object({
   winnerId: flexibleIdValidator,
@@ -294,14 +306,15 @@ export type CreatePlayerInput = z.infer<typeof CreatePlayerInputSchema>;
 export const CreateUserInputSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   email: z.string().email('Email inválido'),
-  password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
-  role: z.enum(['ADMIN', 'GESTOR', 'COACH', 'ATHLETE', 'SPECTATOR']),
+  cpf: z.string().min(11, 'CPF deve ter pelo menos 11 dígitos'),
+  password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+  role: RoleSchema,
   club: z.string().optional(),
 });
 export type CreateUserInput = z.infer<typeof CreateUserInputSchema>;
 
 export const ListPlayersInputSchema = z.object({
-  userId: z.string().min(1, 'userId é obrigatório'),
+  userId: z.string().optional(),
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
@@ -310,7 +323,7 @@ export type ListPlayersInput = z.infer<typeof ListPlayersInputSchema>;
 export const ListUsersInputSchema = z.object({
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-  role: z.enum(['ADMIN', 'GESTOR', 'COACH', 'ATHLETE', 'SPECTATOR']).optional(),
+  role: RoleSchema.optional(),
 });
 export type ListUsersInput = z.infer<typeof ListUsersInputSchema>;
 
@@ -398,10 +411,16 @@ export const MatchStateInputSchema = z
   });
 export type MatchStateInput = z.infer<typeof MatchStateInputSchema>;
 
-export const LoginPayloadSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-});
+export const LoginPayloadSchema = z
+  .object({
+    identifier: z.string().min(3, 'Informe seu e-mail ou CPF').optional(),
+    email: z.string().optional(),
+    password: z.string().min(1, 'Informe a senha'),
+  })
+  .refine((data) => Boolean(data.identifier || data.email), {
+    message: 'Informe seu e-mail ou CPF',
+    path: ['identifier'],
+  });
 export type LoginPayload = z.infer<typeof LoginPayloadSchema>;
 
 export const QueuedActionSchema = z.object({

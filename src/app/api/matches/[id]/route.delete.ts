@@ -9,7 +9,7 @@ export async function handleDeleteMatch(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'ATHLETE', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     const user = getRLSUser();
     if (!user) {
       return NextResponse.json(

@@ -67,6 +67,28 @@ describe('GET /api/players', () => {
     expect(data.data.players).toHaveLength(3);
     expect(data.data.nextCursor).toBeNull();
   });
+
+  it('deve retornar lista de jogadores quando userId não for fornecido', async () => {
+    const mockPlayers = [
+      { id: 'p1', name: 'Atleta' },
+      { id: 'p2', name: 'Segundo Jogador' },
+    ];
+
+    mockListPlayers.mockResolvedValue(mockPlayers as any);
+
+    const req = new NextRequest('http://localhost:3000/api/players?limit=100', {
+      headers: SPECTATOR_HEADERS,
+    });
+    const mod = await import('@/app/api/players/route');
+    const GET = mod.GET;
+
+    const res = await GET(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(mockListPlayers).toHaveBeenCalledWith(undefined, 100, undefined);
+    expect(data.data.players).toHaveLength(2);
+  });
 });
 
 describe('POST /api/players', () => {

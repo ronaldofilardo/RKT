@@ -9,7 +9,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'SPECTATOR', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     const user = getRLSUser();
     if (!user) {
       return NextResponse.json(
@@ -17,6 +17,14 @@ export async function GET(
         { status: 401 }
       );
     }
+
+    if (user.role === 'ADMIN') {
+      return NextResponse.json(
+        { error: 'FORBIDDEN', message: 'Administradores não têm acesso às partidas de anotadores' },
+        { status: 403 }
+      );
+    }
+
     const currentUserId = user.id;
 
     try {
@@ -58,17 +66,7 @@ export async function GET(
         return NextResponse.json({ error: 'MATCH_NOT_FOUND' }, { status: 404 });
       }
 
-      // Verifica se o usuário tem acesso à partida
-      const isStaff = ['ADMIN', 'GESTOR', 'COACH'].includes(user.role);
-      const isPublic = match.visibility === 'PUBLIC';
-      const isParticipant =
-        match.player1Id === currentUserId ||
-        match.player2Id === currentUserId ||
-        match.createdByUserId === currentUserId;
-
-      const hasAccess = isParticipant || isStaff || isPublic;
-
-      if (!hasAccess) {
+      if (match.createdByUserId !== currentUserId) {
         return NextResponse.json(
           { error: 'FORBIDDEN', message: 'Você não tem acesso a esta partida' },
           { status: 403 }
@@ -87,9 +85,43 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'GESTOR', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
+    const user = getRLSUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: 'UNAUTHORIZED', message: 'Contexto RLS ausente' },
+        { status: 401 }
+      );
+    }
+
+    if (user.role === 'ADMIN') {
+      return NextResponse.json(
+        { error: 'FORBIDDEN', message: 'Administradores não têm acesso às partidas de anotadores' },
+        { status: 403 }
+      );
+    }
+
+    const currentUserId = user.id;
+
     try {
       const { id } = await params;
+
+      const match = await prisma.match.findFirst({
+        where: { id },
+        select: { createdByUserId: true },
+      });
+
+      if (!match) {
+        return NextResponse.json({ error: 'MATCH_NOT_FOUND' }, { status: 404 });
+      }
+
+      if (match.createdByUserId !== currentUserId) {
+        return NextResponse.json(
+          { error: 'FORBIDDEN', message: 'Apenas o anotador criador pode editar sua partida' },
+          { status: 403 }
+        );
+      }
+
       const body = await request.json();
       const { version, ...data } = body;
       const expectedVersion = typeof version === 'number' ? version : undefined;
@@ -121,7 +153,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'ATHLETE', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     const user = getRLSUser();
     if (!user) {
       return NextResponse.json(
@@ -129,6 +161,14 @@ export async function DELETE(
         { status: 401 }
       );
     }
+
+    if (user.role === 'ADMIN') {
+      return NextResponse.json(
+        { error: 'FORBIDDEN', message: 'Administradores não têm acesso às partidas de anotadores' },
+        { status: 403 }
+      );
+    }
+
     const currentUserId = user.id;
 
     try {
@@ -154,11 +194,9 @@ export async function DELETE(
         return NextResponse.json({ error: 'MATCH_NOT_FOUND' }, { status: 404 });
       }
 
-      const isAdmin = user.role === 'ADMIN';
-      const isCreator = match.createdByUserId && match.createdByUserId === currentUserId;
-      if (!isAdmin && !isCreator) {
+      if (match.createdByUserId !== currentUserId) {
         return NextResponse.json(
-          { error: 'FORBIDDEN', message: 'Apenas o criador da partida ou administradores podem excluí-la' },
+          { error: 'FORBIDDEN', message: 'Apenas o anotador criador pode excluir sua partida' },
           { status: 403 }
         );
       }

@@ -27,7 +27,7 @@ import { logger } from '@/lib/logger';
 // ============================================================================
 
 export async function GET(request: NextRequest) {
-  return withRLSHandler(request, 'SPECTATOR', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       const { searchParams } = request.nextUrl;
       void extractPagination(searchParams);
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
 // ============================================================================
 
 export async function POST(request: NextRequest) {
-  return withRLSHandler(request, 'ATHLETE', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       // const body = await validatedRequest(request, [Resource]Schema);
       // const resource = await [resourceService].create(body);
@@ -72,7 +72,7 @@ export async function PUT(
   request: NextRequest,
   { params: _params }: { params: { id: string } }
 ) {
-  return withRLSHandler(request, 'GESTOR', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       // const body = await validatedRequest(request, [Resource]Schema.partial());
       // const resource = await [resourceService].update(params.id, body);
@@ -97,7 +97,7 @@ export async function DELETE(
   request: NextRequest,
   { params: _params }: { params: { id: string } }
 ) {
-  return withRLSHandler(request, 'GESTOR', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       // await [resourceService].delete(params.id);
       // return new NextResponse(null, { status: 204 });

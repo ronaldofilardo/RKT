@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 
 const mockPrisma = {
-  player: {
+  user: {
     findMany: jest.fn(),
     findUnique: jest.fn(),
     create: jest.fn(),
@@ -27,14 +27,16 @@ describe('adminService', () => {
 
   describe('listAllUsers', () => {
     it('deve retornar lista de usuários', async () => {
-      mockPrisma.player.findMany.mockResolvedValue([{ id: 'u1', name: 'Admin', email: 'admin@test.com', role: 'ADMIN', club: null, createdAt: new Date() }]);
+      mockPrisma.user.findMany.mockResolvedValue([
+        { id: 'u1', name: 'Admin', email: 'admin@test.com', cpf: '00000000000', role: 'ADMIN', club: null, createdAt: new Date() },
+      ]);
 
       const { listAllUsers } = await import('@/services/adminService');
       const result = await listAllUsers();
 
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe('Admin');
-      expect(mockPrisma.player.findMany).toHaveBeenCalledWith(
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ orderBy: { createdAt: 'desc' } })
       );
     });
@@ -42,16 +44,31 @@ describe('adminService', () => {
 
   describe('createUser', () => {
     it('deve criar usuário com sucesso', async () => {
-      mockPrisma.player.findUnique.mockResolvedValue(null);
+      mockPrisma.user.findUnique.mockResolvedValue(null);
       mockHash.mockResolvedValue('hashed-password' as never);
-      mockPrisma.player.create.mockResolvedValue({ id: 'u1', name: 'Novo', email: 'novo@test.com', role: 'ATHLETE', club: 'Clube A', createdAt: new Date() });
+      mockPrisma.user.create.mockResolvedValue({
+        id: 'u1',
+        name: 'Novo',
+        email: 'novo@test.com',
+        cpf: '11111111111',
+        role: 'ANNOTATOR',
+        club: 'Clube A',
+        createdAt: new Date(),
+      });
 
       const { createUser } = await import('@/services/adminService');
-      const result = await createUser({ name: 'Novo', email: 'novo@test.com', password: '12345678', role: 'ATHLETE', club: 'Clube A' });
+      const result = await createUser({
+        name: 'Novo',
+        email: 'novo@test.com',
+        cpf: '11111111111',
+        password: '12345678',
+        role: 'ANNOTATOR',
+        club: 'Clube A',
+      });
 
       expect('error' in result).toBe(false);
-      expect(result.id).toBe('u1');
-      expect(mockPrisma.player.create).toHaveBeenCalledWith(
+      expect((result as any).id).toBe('u1');
+      expect(mockPrisma.user.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ email: 'novo@test.com', passwordHash: 'hashed-password' }),
         })
@@ -59,33 +76,53 @@ describe('adminService', () => {
     });
 
     it('deve retornar erro se email já existe', async () => {
-      mockPrisma.player.findUnique.mockResolvedValue({ id: 'existing' } as any);
+      mockPrisma.user.findUnique.mockResolvedValueOnce({ id: 'existing' } as any);
 
       const { createUser } = await import('@/services/adminService');
-      const result = await createUser({ name: 'Novo', email: 'duplicado@test.com', password: '12345678', role: 'ATHLETE' });
+      const result = await createUser({
+        name: 'Novo',
+        email: 'duplicado@test.com',
+        cpf: '11111111111',
+        password: '12345678',
+        role: 'ANNOTATOR',
+      });
 
       expect('error' in result).toBe(true);
       expect((result as any).error).toBe('EMAIL_ALREADY_EXISTS');
-      expect(mockPrisma.player.create).not.toHaveBeenCalled();
+      expect(mockPrisma.user.create).not.toHaveBeenCalled();
     });
 
     it('deve lançar erro se bcrypt falhar', async () => {
-      mockPrisma.player.findUnique.mockResolvedValue(null);
+      mockPrisma.user.findUnique.mockResolvedValue(null);
       mockHash.mockRejectedValue(new Error('Bcrypt error'));
 
       const { createUser } = await import('@/services/adminService');
-      await expect(createUser({ name: 'Novo', email: 'novo@test.com', password: '12345678', role: 'ATHLETE' })).rejects.toThrow('Bcrypt error');
+      await expect(
+        createUser({
+          name: 'Novo',
+          email: 'novo@test.com',
+          cpf: '11111111111',
+          password: '12345678',
+          role: 'ANNOTATOR',
+        })
+      ).rejects.toThrow('Bcrypt error');
     });
 
     it('deve retornar EMAIL_ALREADY_EXISTS se Prisma lançar erro P2002 (race condition)', async () => {
-      mockPrisma.player.findUnique.mockResolvedValue(null);
+      mockPrisma.user.findUnique.mockResolvedValue(null);
       mockHash.mockResolvedValue('hashed-password' as never);
       const p2002Error = new Error('Unique constraint failed');
       (p2002Error as any).code = 'P2002';
-      mockPrisma.player.create.mockRejectedValue(p2002Error);
+      mockPrisma.user.create.mockRejectedValue(p2002Error);
 
       const { createUser } = await import('@/services/adminService');
-      const result = await createUser({ name: 'Novo', email: 'corrida@test.com', password: '12345678', role: 'ATHLETE' });
+      const result = await createUser({
+        name: 'Novo',
+        email: 'corrida@test.com',
+        cpf: '11111111111',
+        password: '12345678',
+        role: 'ANNOTATOR',
+      });
 
       expect('error' in result).toBe(true);
       expect((result as any).error).toBe('EMAIL_ALREADY_EXISTS');
@@ -94,50 +131,62 @@ describe('adminService', () => {
 
   describe('updateUser', () => {
     it('deve atualizar usuário com sucesso', async () => {
-      mockPrisma.player.findUnique.mockResolvedValue({ id: 'u1' } as any);
-      mockPrisma.player.update.mockResolvedValue({ id: 'u1', name: 'Editado', email: 'edit@test.com', role: 'COACH', club: null });
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'u1' } as any);
+      mockPrisma.user.update.mockResolvedValue({
+        id: 'u1',
+        name: 'Editado',
+        email: 'edit@test.com',
+        role: 'ANNOTATOR',
+        club: null,
+      });
 
       const { updateUser } = await import('@/services/adminService');
-      const result = await updateUser('u1', { name: 'Editado', role: 'COACH' });
+      const result = await updateUser('u1', { name: 'Editado', role: 'ANNOTATOR' });
 
       expect('error' in result).toBe(false);
-      expect(result.name).toBe('Editado');
-      expect(mockPrisma.player.update).toHaveBeenCalledWith(
+      expect((result as any).name).toBe('Editado');
+      expect(mockPrisma.user.update).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: 'u1' },
-          data: expect.objectContaining({ name: 'Editado', role: 'COACH' }),
+          data: expect.objectContaining({ name: 'Editado', role: 'ANNOTATOR' }),
         })
       );
     });
 
     it('deve retornar erro se usuário não existe', async () => {
-      mockPrisma.player.findUnique.mockResolvedValue(null);
+      mockPrisma.user.findUnique.mockResolvedValue(null);
 
       const { updateUser } = await import('@/services/adminService');
       const result = await updateUser('not-found', { name: 'Ninguém' });
 
       expect('error' in result).toBe(true);
       expect((result as any).error).toBe('USER_NOT_FOUND');
-      expect(mockPrisma.player.update).not.toHaveBeenCalled();
+      expect(mockPrisma.user.update).not.toHaveBeenCalled();
     });
 
     it('deve ignorar campos undefined', async () => {
-      mockPrisma.player.findUnique.mockResolvedValue({ id: 'u1' } as any);
-      mockPrisma.player.update.mockResolvedValue({ id: 'u1', name: 'Original', email: 'a@b.com', role: 'ATHLETE', club: null });
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'u1' } as any);
+      mockPrisma.user.update.mockResolvedValue({
+        id: 'u1',
+        name: 'Original',
+        email: 'a@b.com',
+        role: 'ANNOTATOR',
+        club: null,
+      });
 
       const { updateUser } = await import('@/services/adminService');
-      await updateUser('u1', { role: 'ATHLETE' });
+      await updateUser('u1', { role: 'ANNOTATOR' });
 
-      expect(mockPrisma.player.update).toHaveBeenCalledWith(
+      expect(mockPrisma.user.update).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: { role: 'ATHLETE' },
+          data: { role: 'ANNOTATOR' },
         })
       );
     });
 
     it('deve lançar erro se Prisma update falhar com erro desconhecido', async () => {
-      mockPrisma.player.findUnique.mockResolvedValue({ id: 'u1' } as any);
-      mockPrisma.player.update.mockRejectedValue(new Error('Prisma unknown error'));
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'u1' } as any);
+      mockPrisma.user.update.mockRejectedValue(new Error('Prisma unknown error'));
 
       const { updateUser } = await import('@/services/adminService');
       await expect(updateUser('u1', { name: 'Edit' })).rejects.toThrow('Prisma unknown error');
@@ -146,25 +195,25 @@ describe('adminService', () => {
 
   describe('deleteUser', () => {
     it('deve deletar usuário com sucesso', async () => {
-      mockPrisma.player.findUnique.mockResolvedValue({ id: 'u1' } as any);
-      mockPrisma.player.delete.mockResolvedValue({} as any);
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'u1' } as any);
+      mockPrisma.user.delete.mockResolvedValue({} as any);
 
       const { deleteUser } = await import('@/services/adminService');
       const result = await deleteUser('u1');
 
       expect((result as any).success).toBe(true);
-      expect(mockPrisma.player.delete).toHaveBeenCalledWith({ where: { id: 'u1' } });
+      expect(mockPrisma.user.delete).toHaveBeenCalledWith({ where: { id: 'u1' } });
     });
 
     it('deve retornar erro se usuário não existe', async () => {
-      mockPrisma.player.findUnique.mockResolvedValue(null);
+      mockPrisma.user.findUnique.mockResolvedValue(null);
 
       const { deleteUser } = await import('@/services/adminService');
       const result = await deleteUser('not-found');
 
       expect('error' in result).toBe(true);
       expect((result as any).error).toBe('USER_NOT_FOUND');
-      expect(mockPrisma.player.delete).not.toHaveBeenCalled();
+      expect(mockPrisma.user.delete).not.toHaveBeenCalled();
     });
   });
 });

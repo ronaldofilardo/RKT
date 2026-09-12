@@ -7,7 +7,7 @@ export async function handlePutMatch(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'GESTOR', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       const { id } = await params;
       const body = await request.json();

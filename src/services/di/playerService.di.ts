@@ -18,19 +18,15 @@ export class PlayerService {
     return this.deps.playerRepository.list(cursor, limit, userId);
   }
 
-  async findPlayerByEmail(email: string) {
-    return this.deps.playerRepository.findByEmail(email);
-  }
-
   async getPlayerById(id: string) {
     return this.deps.playerRepository.findById(id);
   }
 
-  async updatePlayer(id: string, data: { name?: string; gender?: string; age?: number; birthDate?: Date; dominance?: string; backhand?: string; ranking?: number; rankings?: Rankings }) {
+  async updatePlayer(id: string, data: { name?: string; email?: string; club?: string; gender?: string; age?: number; birthDate?: Date; dominance?: string; backhand?: string; ranking?: number; rankings?: Rankings }) {
     return this.deps.playerRepository.update(id, data);
   }
 
-  async createPlayer(data: { name: string; email?: string; passwordHash?: string; gender?: string; age?: number; birthDate?: Date; dominance?: string; backhand?: string; ranking?: number; rankings?: Rankings; createdByUserId?: string }) {
+  async createPlayer(data: { name: string; email?: string; club?: string; gender?: string; age?: number; birthDate?: Date; dominance?: string; backhand?: string; ranking?: number; rankings?: Rankings; createdByUserId?: string }) {
     return this.deps.playerRepository.create(data);
   }
 }

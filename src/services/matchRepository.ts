@@ -5,12 +5,20 @@ export async function listMatches(
   state?: string | null,
   cursor?: string | null,
   limit = 20,
+  createdByUserId?: string | null,
 ) {
+  // Isolamento estrito: partidas pertencem ao anotador que as criou.
+  // Se createdByUserId não for fornecido (ex: admin), retorna lista vazia.
+  if (!createdByUserId) {
+    return [];
+  }
+
   return prisma.match.findMany({
     take: limit,
     ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     where: {
       deletedAt: null,
+      createdByUserId,
       ...(state ? { state: state as MatchState } : {}),
     },
     select: {
@@ -37,6 +45,7 @@ export async function listMatches(
       initialServerId: true,
       player1: { select: { id: true, name: true } },
       player2: { select: { id: true, name: true } },
+      createdByUserId: true,
     },
     orderBy: { createdAt: "desc" },
   });

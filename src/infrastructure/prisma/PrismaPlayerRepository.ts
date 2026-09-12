@@ -13,6 +13,8 @@ import type { IPlayerRepository, PlayerUpsertInput, PlayerUpdateInput } from '..
 const LIST_SELECT = {
   id: true,
   name: true,
+  email: true,
+  club: true,
   gender: true,
   age: true,
   birthDate: true,
@@ -35,13 +37,6 @@ export class PrismaPlayerRepository implements IPlayerRepository {
     }) as unknown as Promise<Partial<Player>[]>;
   }
 
-  async findByEmail(email: string): Promise<{ id: string; name: string; email: string; role: string; passwordHash: string } | null> {
-    return prisma.player.findUnique({
-      where: { email },
-      select: { id: true, name: true, email: true, role: true, passwordHash: true },
-    });
-  }
-
   async findById(id: string): Promise<Partial<Player> | null> {
     return prisma.player.findUnique({ where: { id }, select: DETAIL_SELECT }) as unknown as Promise<Partial<Player> | null>;
   }
@@ -51,6 +46,8 @@ export class PrismaPlayerRepository implements IPlayerRepository {
       where: { id },
       data: {
         ...(data.name !== undefined && { name: data.name }),
+        ...(data.email !== undefined && { email: data.email }),
+        ...(data.club !== undefined && { club: data.club }),
         ...(data.gender !== undefined && { gender: data.gender }),
         ...(data.age !== undefined && { age: data.age }),
         ...(data.birthDate !== undefined && { birthDate: data.birthDate }),
@@ -67,8 +64,8 @@ export class PrismaPlayerRepository implements IPlayerRepository {
     return prisma.player.create({
       data: {
         name: data.name,
-        email: data.email ?? `temp_${Date.now()}@placeholder.local`,
-        passwordHash: data.passwordHash ?? 'PLACEHOLDER',
+        email: data.email || null,
+        club: data.club || null,
         gender: data.gender,
         age: data.age,
         birthDate: data.birthDate,

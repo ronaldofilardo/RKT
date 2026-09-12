@@ -8,7 +8,7 @@ export async function handleGetAudio(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; pointId: string }> }
 ) {
-  return withRLSHandler(request, 'SPECTATOR', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       const { id, pointId } = await params;
 

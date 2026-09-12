@@ -6,12 +6,12 @@ import { listPlayers, createPlayer } from '@/services/playerService';
 import { jsonResponse, validatedRequest, handleApiError, extractPagination } from '@/lib/api-helpers';
 
 export async function GET(request: NextRequest) {
-  return withRLSHandler(request, 'SPECTATOR', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       const { searchParams } = request.nextUrl;
-      const userId = searchParams.get('userId');
+      const userId = searchParams.get('userId') || undefined;
 
-      // Validar userId com Zod
+      // Validar input com Zod
       const parsed = ListPlayersInputSchema.safeParse({
         userId,
         cursor: searchParams.get('cursor') ?? undefined,
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  return withRLSHandler(request, 'ATHLETE', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       // Validar body com Zod
       const body = await validatedRequest(request, CreatePlayerInputSchema);

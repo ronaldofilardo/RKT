@@ -8,7 +8,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; sessionId: string }> }
 ) {
-  return withRLSHandler(request, 'COACH', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       const { id: matchId, sessionId } = await params;
       const user = getRLSUser();

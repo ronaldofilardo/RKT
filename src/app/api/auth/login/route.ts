@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT } from 'jose';
-import bcrypt from 'bcryptjs';
 import { LoginPayloadSchema } from '@/schemas/contracts';
 import { validatedRequest, handleApiError } from '@/lib/api-helpers';
-import { findPlayerByEmail } from '@/services/playerService';
+import { authenticateUser } from './authenticate';
 import { logger } from '@/lib/logger';
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -26,30 +25,33 @@ async function generateToken(
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await validatedRequest(request, LoginPayloadSchema);
+    const payload = await validatedRequest(request, LoginPayloadSchema);
+    const identifier = (payload.identifier || payload.email || '').trim();
 
-    const player = await findPlayerByEmail(email);
+    const user = await authenticateUser(identifier, payload.password);
 
-    if (!player || !(await bcrypt.compare(password, player.passwordHash))) {
+    if (!user) {
       logger.warn('[LOGIN POST] credenciais inválidas');
       return NextResponse.json(
-        { error: 'UNAUTHORIZED', message: 'Email ou senha inválidos' },
+        { error: 'UNAUTHORIZED', message: 'E-mail, CPF ou senha inválidos' },
         { status: 401 },
       );
     }
 
-    const accessToken = await generateToken(player.id, player.role);
+    const accessToken = await generateToken(user.id, user.role);
 
     const response = NextResponse.json({
       accessToken,
       refreshToken: 'hardcoded-refresh',
       user: {
-        id: player.id,
-        name: player.name,
-        email: player.email,
-        role: player.role,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        cpf: user.cpf,
+        role: user.role,
       },
     });
+
     response.cookies.set('rkt_access_token', accessToken, {
       httpOnly: true,
       sameSite: 'lax',
@@ -64,6 +66,7 @@ export async function POST(request: NextRequest) {
       maxAge: 60 * 60 * 2,
       path: '/',
     });
+
     return response;
   } catch (error) {
     logger.error('[LOGIN POST]', error);

@@ -1,37 +1,45 @@
--- RLS: Row-Level Security por ownership + role (sem clubId)
+-- RLS: Row-Level Security por ownership + role
 -- As session variables `app.current_user_id` e `app.current_user_role`
 -- são setadas pelo middleware Prisma em src/lib/prisma.ts
 
--- Player
-ALTER TABLE "Player" ENABLE ROW LEVEL SECURITY;
+-- 1. users
+ALTER TABLE "users" ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY player_own ON "Player"
-  FOR ALL
-  USING (id = current_setting('app.current_user_id', true)::text);
-
-CREATE POLICY player_admin ON "Player"
-  FOR ALL
-  USING (current_setting('app.current_user_role', true) IN ('ADMIN', 'GESTOR'));
-
--- Match
-ALTER TABLE "Match" ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY match_own ON "Match"
-  FOR ALL
+CREATE POLICY user_read_own ON "users"
+  FOR SELECT
   USING (
-    player1Id = current_setting('app.current_user_id', true)::text
-    OR player2Id = current_setting('app.current_user_id', true)::text
+    id = current_setting('app.current_user_id', true)::text
+    OR current_setting('app.current_user_role', true) = 'ADMIN'
   );
 
-CREATE POLICY match_public ON "Match"
-  FOR SELECT
-  USING (visibility = 'PUBLIC');
-
-CREATE POLICY match_staff ON "Match"
+CREATE POLICY user_admin_manage ON "users"
   FOR ALL
-  USING (current_setting('app.current_user_role', true) IN ('ADMIN', 'GESTOR', 'COACH'));
+  USING (current_setting('app.current_user_role', true) = 'ADMIN');
 
--- PointLog
+-- 2. Player (Catálogo compartilhado de atletas)
+ALTER TABLE "Player" ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY player_read_all ON "Player"
+  FOR SELECT
+  USING (true);
+
+CREATE POLICY player_write_authorized ON "Player"
+  FOR ALL
+  USING (current_setting('app.current_user_role', true) IN ('ADMIN', 'ANNOTATOR'));
+
+-- 3. Match (Isolamento total: apenas o Anotador criador acessa suas partidas. ADMIN NÃO tem acesso!)
+ALTER TABLE "Match" ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY match_annotator_own ON "Match"
+  FOR ALL
+  USING (
+    "createdByUserId" = current_setting('app.current_user_id', true)::text
+  )
+  WITH CHECK (
+    "createdByUserId" = current_setting('app.current_user_id', true)::text
+  );
+
+-- 4. PointLog
 ALTER TABLE "PointLog" ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY pointlog_match_access ON "PointLog"
@@ -40,42 +48,20 @@ CREATE POLICY pointlog_match_access ON "PointLog"
     EXISTS (
       SELECT 1 FROM "Match"
       WHERE "Match".id = "PointLog"."matchId"
-      AND (
-        "Match".player1Id = current_setting('app.current_user_id', true)::text
-        OR "Match".player2Id = current_setting('app.current_user_id', true)::text
-        OR "Match".visibility = 'PUBLIC'
-        OR current_setting('app.current_user_role', true) IN ('ADMIN', 'GESTOR', 'COACH')
-      )
+      AND "Match"."createdByUserId" = current_setting('app.current_user_id', true)::text
     )
   );
 
--- match_annotation_sessions
+-- 5. match_annotation_sessions
 ALTER TABLE "match_annotation_sessions" ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY session_own ON "match_annotation_sessions"
+CREATE POLICY session_annotator_own ON "match_annotation_sessions"
   FOR ALL
   USING ("annotatorUserId" = current_setting('app.current_user_id', true)::text);
 
-CREATE POLICY session_staff ON "match_annotation_sessions"
-  FOR ALL
-  USING (current_setting('app.current_user_role', true) IN ('ADMIN', 'GESTOR', 'COACH'));
-
--- annotation_endorsements
+-- 6. annotation_endorsements
 ALTER TABLE "annotation_endorsements" ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY endorsement_own ON "annotation_endorsements"
   FOR ALL
   USING ("endorsedByUserId" = current_setting('app.current_user_id', true)::text);
-
-CREATE POLICY endorsement_session_access ON "annotation_endorsements"
-  FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM "match_annotation_sessions"
-      WHERE "match_annotation_sessions".id = "annotation_endorsements"."sessionId"
-      AND (
-        "match_annotation_sessions"."annotatorUserId" = current_setting('app.current_user_id', true)::text
-        OR current_setting('app.current_user_role', true) IN ('ADMIN', 'GESTOR', 'COACH')
-      )
-    )
-  );
