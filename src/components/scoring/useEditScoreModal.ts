@@ -435,7 +435,10 @@ export function useEditScoreModal(
       }
     }
 
-    if (!isSetTrulyCompleted && initialGameRef.current && !hasTiebreak) {
+    // Bug fix: !isMatchTiebreakSet é necessário porque no MT os pontos ficam
+    // em p1Input/p2Input (não em p1Points/p2Points). p1Points fica em "0" e
+    // produzia um falso erro de regressão ao confirmar sem alterar nada.
+    if (!isSetTrulyCompleted && initialGameRef.current && !hasTiebreak && !isMatchTiebreakSet) {
       const sameSetScore = p1Val === currentSets.player1 && p2Val === currentSets.player2;
       if (sameSetScore) {
         const initial = initialGameRef.current;
@@ -454,7 +457,10 @@ export function useEditScoreModal(
     // Quando o set está em tiebreak (6x6), as "game points" iniciais são os
     // pontos do tiebreak (ex.: 2-3). Se o usuário reduz o placar do
     // tiebreak, bloquear.
-    if (!isSetTrulyCompleted && hasTiebreak && initialGameRef.current) {
+    // Bug fix: !isMatchTiebreakSet porque no MT os campos tiebreakP1/tiebreakP2
+    // ficam vazios (pontos do MT ficam em p1Input/p2Input). Compará-los ao
+    // initialGameRef produziria erro falso ao confirmar sem alterar nada.
+    if (!isSetTrulyCompleted && hasTiebreak && initialGameRef.current && !isMatchTiebreakSet) {
       const initialTbP1 = Number(initialGameRef.current.player1) || 0;
       const initialTbP2 = Number(initialGameRef.current.player2) || 0;
       const currentTbP1 = Number(state.tiebreakP1) || 0;

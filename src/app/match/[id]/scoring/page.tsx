@@ -1,6 +1,7 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useRef } from "react";
 import type { TennisFormat } from "@/core/scoring/types";
 import { MatchHeader } from "@/components/scoring/MatchHeader";
 import { PlayerCard } from "@/components/scoring/PlayerCard";
@@ -19,10 +20,16 @@ import { useScoringPageState } from "./useScoringPageState";
 import { useScoringPageEffects } from "./useScoringPageEffects";
 import { useScoringPageDerived } from "./useScoringPageDerived";
 
-export default function ScoringPage() {
+function ScoringPageInner() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const matchId = params.id as string;
+
+  // Detectar se o usuário chegou aqui vindo do dashboard via ?modal=edit-score
+  // (handleMatchClick em useDashboardPageActions.ts). Usar ref para capturar
+  // apenas o valor inicial e não reagir a mudanças de URL posteriores.
+  const cameFromDashboardRef = useRef(searchParams.get('modal') === 'edit-score');
 
   const state = useScoringPageState(matchId);
   const handlers = useScoringPageEffects(state);
@@ -369,7 +376,16 @@ export default function ScoringPage() {
           floorCurrentSets={state.floorCurrentSets}
           suspendedSession={state.suspendedSession}
           onConfirm={handleEditScore}
-          onCancel={handleEditScoreCancel}
+          onCancel={() => {
+            handleEditScoreCancel();
+            // Se o usuário veio do dashboard via ?modal=edit-score (partida em
+            // andamento normal), cancelar deve retornar ao dashboard. Quando
+            // o modal foi aberto pelo botão "Editar" dentro do próprio
+            // scoring, cameFromDashboardRef.current é false e apenas fecha.
+            if (cameFromDashboardRef.current) {
+              router.push('/dashboard');
+            }
+          }}
           onMatchFinished={(_winner) => {
             // Não redirecionar automaticamente - usuário vê o banner e decide quando navegar
           }}
@@ -411,5 +427,16 @@ export default function ScoringPage() {
         />
       )}
     </div>
+  );
+}
+
+// useSearchParams requer Suspense boundary no Next.js App Router (App Dir).
+// Envolvemos ScoringPageInner para satisfazer esse requisito sem alterar a
+// estrutura do componente principal.
+export default function ScoringPage() {
+  return (
+    <Suspense>
+      <ScoringPageInner />
+    </Suspense>
   );
 }
