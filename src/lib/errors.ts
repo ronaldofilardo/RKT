@@ -75,7 +75,12 @@ export class UnauthorizedError extends ApiError {
  */
 export class ConflictError extends ApiError {
   constructor(message: string, existing?: unknown) {
-    super('CONFLICT', { message, existing }, 409);
+    // `details` fica com o objeto `existing` "cru" (ex.: { id, playerP1, playerP2 }),
+    // sem embrulhar em { message, existing }: o front-end (online-match-submit.helpers.ts /
+    // useNewMatchSubmissionActions.ts) espera `data.details` já no formato plano usado
+    // para popular o modal de partida duplicada (duplicateInfo: { id, playerP1, playerP2 }).
+    // A mensagem já viaja separadamente em `error.message` / `data.message`.
+    super('CONFLICT', existing, 409);
     this.name = 'ConflictError';
   }
 }

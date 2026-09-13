@@ -60,8 +60,19 @@ let ATHLETE_HEADERS: Record<string, string> = {};
 let SPECTATOR_HEADERS: Record<string, string> = {};
 
 beforeAll(async () => {
-  ATHLETE_HEADERS = await makeAuthHeaders('user-ath', 'ATHLETE');
-  SPECTATOR_HEADERS = await makeAuthHeaders('user-spect', 'SPECTATOR');
+  // FIX: `RoleSchema` (src/schemas/contracts.ts) só define os papéis
+  // 'ADMIN' e 'ANNOTATOR' — 'ATHLETE' e 'SPECTATOR' não existem mais no
+  // sistema (drift: a suíte ficou presa a um modelo de roles antigo).
+  // `isRole()` em src/lib/auth.ts rejeita qualquer role fora de
+  // VALID_ROLES, então getUserFromRequestScoped() retornava null para
+  // esses headers e TODA rota respondia 401, mesmo em cenários que devia
+  // ser 200/201/403. ATHLETE_HEADERS agora autentica como 'ANNOTATOR'
+  // (role que tem a permissão 'play:match', usada por POST /api/matches,
+  // e é o único role que a rota GET realmente consulta via listMatches),
+  // e SPECTATOR_HEADERS como 'ADMIN' (autenticado, mas sem 'play:match' —
+  // mantém o cenário de "usuário logado sem permissão" no teste 403 do POST).
+  ATHLETE_HEADERS = await makeAuthHeaders('user-ath', 'ANNOTATOR');
+  SPECTATOR_HEADERS = await makeAuthHeaders('user-spect', 'ADMIN');
 });
 
 describe('GET /api/matches (characterization)', () => {
@@ -73,7 +84,7 @@ describe('GET /api/matches (characterization)', () => {
     mockPrisma.match.findMany.mockResolvedValue([]);
 
     const req = new NextRequest('http://localhost:3000/api/matches', {
-      headers: SPECTATOR_HEADERS,
+      headers: ATHLETE_HEADERS,
     });
     const mod = await import('@/app/api/matches/route');
     const res = await mod.GET(req);
@@ -104,7 +115,7 @@ describe('GET /api/matches (characterization)', () => {
     ]);
 
     const req = new NextRequest('http://localhost:3000/api/matches', {
-      headers: SPECTATOR_HEADERS,
+      headers: ATHLETE_HEADERS,
     });
     const mod = await import('@/app/api/matches/route');
     const res = await mod.GET(req);
@@ -120,7 +131,7 @@ describe('GET /api/matches (characterization)', () => {
 
     const req = new NextRequest(
       'http://localhost:3000/api/matches?state=IN_PROGRESS',
-      { headers: SPECTATOR_HEADERS },
+      { headers: ATHLETE_HEADERS },
     );
     const mod = await import('@/app/api/matches/route');
     await mod.GET(req);
@@ -138,7 +149,7 @@ describe('GET /api/matches (characterization)', () => {
 
     const req = new NextRequest(
       'http://localhost:3000/api/matches?cursor=abc123&limit=10',
-      { headers: SPECTATOR_HEADERS },
+      { headers: ATHLETE_HEADERS },
     );
     const mod = await import('@/app/api/matches/route');
     await mod.GET(req);
@@ -159,7 +170,7 @@ describe('GET /api/matches (characterization)', () => {
     mockPrisma.match.findMany.mockResolvedValue(matches);
 
     const req = new NextRequest('http://localhost:3000/api/matches?limit=20', {
-      headers: SPECTATOR_HEADERS,
+      headers: ATHLETE_HEADERS,
     });
     const mod = await import('@/app/api/matches/route');
     const res = await mod.GET(req);
@@ -227,7 +238,7 @@ describe('POST /api/matches (characterization)', () => {
     expect(res.status).toBe(401);
   });
 
-  it('deve retornar 403 com role SPECTATOR', async () => {
+  it('deve retornar 403 com role sem permissão play:match (ADMIN)', async () => {
     const req = new NextRequest('http://localhost:3000/api/matches', {
       method: 'POST',
       body: JSON.stringify({
@@ -284,8 +295,10 @@ describe('POST /api/matches (characterization)', () => {
 
   it('deve detectar partida duplicada e retornar 409 (CONFLICT)', async () => {
     // Caracterização do contrato: a route lança ConflictError cujo código
-    // é 'CONFLICT' (não 'DUPLICATE_MATCH' — drift histórico). O body inclui
-    // `details.existing` com a partida duplicada.
+    // é 'CONFLICT' (não 'DUPLICATE_MATCH' — drift histórico, corrigido no
+    // client em online-match-submit.helpers.ts). O body inclui `details`
+    // no formato plano { id, playerP1, playerP2 } (usado direto pelo modal
+    // de partida duplicada), sem embrulhar em `details.existing`.
     mockFindDuplicateMatch.mockResolvedValue({
       id: 'dup-match',
       player1: { name: 'P1' },
@@ -310,6 +323,7 @@ describe('POST /api/matches (characterization)', () => {
     expect(res.status).toBe(409);
     expect(json.error).toBe('CONFLICT');
     expect(json.details).toBeDefined();
+    expect(json.details).toEqual({ id: 'dup-match', playerP1: 'P1', playerP2: 'P2' });
   });
 
   it('deve permitir partida duplicada com force=true', async () => {

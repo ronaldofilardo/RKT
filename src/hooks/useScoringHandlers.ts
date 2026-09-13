@@ -751,41 +751,43 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
 
   const handleServeCancel = useCallback(() => {
     if (isProcessingRef.current) return;
+    // Cancelar no "2o saque" só deve anular a marcação local do erro de 1o
+    // saque (voltando para o estado de 1o saque). Nenhum ponto chega a ser
+    // registrado no engine até a falta do 2o saque (DOUBLE_FAULT) ser
+    // confirmada, então NÃO existe ponto para desfazer aqui — chamar
+    // undoLastPoint() neste ponto desfazia indevidamente o último ponto já
+    // persistido no placar (bug reportado: "cancelar" no 2o saque alterava
+    // o placar).
     handleServeErrorClose();
-    if (serveErrorState.firstServeError && engineRef.current) {
-      engineRef.current.undoLastPoint();
-      setScoreState(engineRef.current.getState() as ScoringState);
-    }
     handleFirstServeErrorClear();
+    setServeStep("none");
   }, [
     handleServeErrorClose,
-    serveErrorState.firstServeError,
-    engineRef,
-    setScoreState,
     handleFirstServeErrorClear,
+    setServeStep,
     isProcessingRef,
   ]);
 
   const handleServeErrorCancel = useCallback(() => {
     if (isProcessingRef.current) return;
+    // Assim como em handleServeCancel: nenhum ponto é registrado no engine
+    // antes da falta do 2o saque (DOUBLE_FAULT) ser efetivamente confirmada,
+    // então cancelar aqui (em qualquer step, 'first' ou 'second') nunca deve
+    // chamar undoLastPoint() — isso desfazia o último ponto já persistido no
+    // placar em vez de apenas limpar a marcação local do erro de 1o saque.
+    // Também corrigido para sempre limpar o estado local e voltar o
+    // serveStep para 'none', mesmo quando serveStep === 'second' (antes o
+    // early-return deixava firstServeError/serveStep "presos", fazendo o
+    // sistema parecer ignorar o cancelar minutos depois).
     closeAll();
     handleServeErrorClose();
-    if (serveErrorState.serveStep !== "second") {
-      if (serveErrorState.firstServeError && engineRef.current) {
-        engineRef.current.undoLastPoint();
-        setScoreState(engineRef.current.getState() as ScoringState);
-      }
-      handleFirstServeErrorClear();
-      setServeStep("none");
-    }
+    handleFirstServeErrorClear();
+    setServeStep("none");
   }, [
-    serveErrorState,
     closeAll,
     handleServeErrorClose,
     handleFirstServeErrorClear,
     setServeStep,
-    engineRef,
-    setScoreState,
     isProcessingRef,
   ]);
 

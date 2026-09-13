@@ -552,3 +552,110 @@ describe('useScoringHandlers - handlePointDetailsConfirm (regressão uploadAudio
     expect(pointCalls).toHaveLength(1);
   });
 });
+
+// ─── Regressão: cancelar no 2º saque não pode alterar o placar (bug reportado) ─
+// Antes do fix, handleServeCancel/handleServeErrorCancel chamavam
+// engineRef.current.undoLastPoint() sempre que havia um firstServeError
+// marcado. Mas nenhum ponto é registrado no engine antes da falta do 2º
+// saque (DOUBLE_FAULT) ser confirmada — a falta do 1º saque é só estado
+// local (firstServeError/serveStep). Isso fazia o "Cancelar" no 2º saque
+// desfazer o ÚLTIMO PONTO JÁ PERSISTIDO no placar (ex.: 4x2 virava 2x1)
+// em vez de apenas voltar para o estado de 1º saque.
+describe('useScoringHandlers - cancelar no 2º saque não deve mexer no placar', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  function makeCancelCtx(overrides: Partial<any> = {}) {
+    const undoLastPoint = jest.fn();
+    const setScoreState = jest.fn();
+    const handleFirstServeErrorClear = jest.fn();
+    const handleServeErrorClose = jest.fn();
+    const setServeStep = jest.fn();
+    const closeAll = jest.fn();
+
+    const ctx = createMockContext({
+      serveErrorState: {
+        serveStep: 'second' as const,
+        pendingServeError: null,
+        firstServeError: {
+          errorType: 'out' as const,
+          serveEffect: undefined,
+          direction: undefined,
+        },
+        firstFaultDetail: null,
+        isServeEffectModalOpen: false,
+      },
+      engineRef: {
+        current: {
+          undoLastPoint,
+          getState: jest.fn().mockReturnValue({ sets: [], setsWon: { player1: 4, player2: 2 } }),
+        } as any,
+      },
+      setScoreState,
+      handleFirstServeErrorClear,
+      handleServeErrorClose,
+      setServeStep,
+      closeAll,
+      ...overrides,
+    });
+
+    return { ctx, undoLastPoint, setScoreState, handleFirstServeErrorClear, handleServeErrorClose, setServeStep, closeAll };
+  }
+
+  it('handleServeCancel: NUNCA chama undoLastPoint(), mesmo com firstServeError setado', () => {
+    const { ctx, undoLastPoint, setScoreState, handleFirstServeErrorClear, setServeStep } = makeCancelCtx();
+
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+    result.current.handleServeCancel();
+
+    expect(undoLastPoint).not.toHaveBeenCalled();
+    expect(setScoreState).not.toHaveBeenCalled();
+    expect(handleFirstServeErrorClear).toHaveBeenCalled();
+    expect(setServeStep).toHaveBeenCalledWith('none');
+  });
+
+  it('handleServeErrorCancel: NUNCA chama undoLastPoint(), tanto em serveStep "second" quanto "first"', () => {
+    const second = makeCancelCtx();
+    const { result: r1 } = renderHook(() => useScoringHandlers(second.ctx));
+    r1.current.handleServeErrorCancel();
+
+    expect(second.undoLastPoint).not.toHaveBeenCalled();
+    expect(second.setScoreState).not.toHaveBeenCalled();
+    // Antes do fix, o early-return para serveStep==='second' deixava o
+    // estado "preso" (sem limpar firstServeError/serveStep) — corrigido
+    // para sempre limpar, independente do step.
+    expect(second.handleFirstServeErrorClear).toHaveBeenCalled();
+    expect(second.setServeStep).toHaveBeenCalledWith('none');
+
+    const first = makeCancelCtx({
+      serveErrorState: {
+        serveStep: 'first' as const,
+        pendingServeError: null,
+        firstServeError: { errorType: 'net' as const, serveEffect: undefined, direction: undefined },
+        firstFaultDetail: null,
+        isServeEffectModalOpen: false,
+      },
+    });
+    const { result: r2 } = renderHook(() => useScoringHandlers(first.ctx));
+    r2.current.handleServeErrorCancel();
+
+    expect(first.undoLastPoint).not.toHaveBeenCalled();
+    expect(first.setScoreState).not.toHaveBeenCalled();
+    expect(first.handleFirstServeErrorClear).toHaveBeenCalled();
+    expect(first.setServeStep).toHaveBeenCalledWith('none');
+  });
+
+  it('handleServeCancel: não faz nada além de fechar/limpar quando isProcessingRef.current é true', () => {
+    const { ctx, undoLastPoint, handleFirstServeErrorClear, setServeStep } = makeCancelCtx({
+      isProcessingRef: { current: true },
+    });
+
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+    result.current.handleServeCancel();
+
+    expect(undoLastPoint).not.toHaveBeenCalled();
+    expect(handleFirstServeErrorClear).not.toHaveBeenCalled();
+    expect(setServeStep).not.toHaveBeenCalled();
+  });
+});
