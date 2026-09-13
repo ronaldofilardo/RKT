@@ -74,7 +74,7 @@ export class UnauthorizedError extends ApiError {
  * throw new ConflictError('Partida já existe', { existing: duplicate });
  */
 export class ConflictError extends ApiError {
-  constructor(message: string, existing?: unknown) {
+  constructor(_message: string, existing?: unknown) {
     // `details` fica com o objeto `existing` "cru" (ex.: { id, playerP1, playerP2 }),
     // sem embrulhar em { message, existing }: o front-end (online-match-submit.helpers.ts /
     // useNewMatchSubmissionActions.ts) espera `data.details` já no formato plano usado
