@@ -124,6 +124,8 @@ export interface TimelinePoint {
   serveEffect?: string;
   serveDirection?: string;
   firstFault?: { errorType?: string; serveEffect?: string; direction?: string } | null;
+  firstServeOutcome?: 'ace' | 'out' | 'net' | null;
+  secondServeOutcome?: 'ace' | 'out' | 'net' | null;
   pointDetails: PointDetails;
   /**
    * Presente somente no primeiro ponto de um segmento de anotação que

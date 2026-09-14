@@ -64,13 +64,13 @@ export function FilterBar({ activeFilters, onToggleFilter, onClearFilters, count
   return (
     <div className="flex flex-wrap gap-2 mb-4" role="group" aria-label="Filtros da timeline">
       <Chip
-        label={`${playerNames.p1} (${counts.p1})`}
+        label={`P1 · ${playerNames.p1} (${counts.p1})`}
         active={activeFilters.has('p1')}
         color="blue"
         onClick={() => onToggleFilter('p1')}
       />
       <Chip
-        label={`${playerNames.p2} (${counts.p2})`}
+        label={`P2 · ${playerNames.p2} (${counts.p2})`}
         active={activeFilters.has('p2')}
         color="rose"
         onClick={() => onToggleFilter('p2')}

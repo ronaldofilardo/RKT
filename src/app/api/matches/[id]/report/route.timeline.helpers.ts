@@ -1,6 +1,6 @@
 import type { TimelinePoint } from '@/core/scoring/types';
 import type { PointLogRow } from '@/core/scoring/timeline-rebuild';
-import { describeScoreSnapshotForDisplay } from './route.helpers';
+import { describeTimelinePoint } from './route.helpers';
 import type { getMatchScoreEdits } from '@/services/matchService';
 
 type ScoreEdit = Awaited<ReturnType<typeof getMatchScoreEdits>>[number];
@@ -24,35 +24,23 @@ export function addScoreEditBreaks(
   }
 
   for (const [pointIndex, edits] of editsByPoint) {
-    if (edits.length === 1) {
-      const edit = edits[0];
-      timelinePoints[pointIndex] = {
-        ...timelinePoints[pointIndex],
-        segmentBreak: {
-          editedAt: edit.editedAt.toISOString(),
-          previousLabel: describeScoreSnapshotForDisplay(edit.previousScoreState),
-          newLabel: describeScoreSnapshotForDisplay(edit.newScoreState),
-          editedByUserId: edit.editedByUserId ?? undefined,
-          note: edit.note ?? undefined,
-        },
-      };
-    } else {
-      const first = edits[0];
-      const last = edits[edits.length - 1];
-      const notes = edits
-        .map(e => e.note)
-        .filter((n): n is string => !!n);
-      timelinePoints[pointIndex] = {
-        ...timelinePoints[pointIndex],
-        segmentBreak: {
-          editedAt: last.editedAt.toISOString(),
-          previousLabel: describeScoreSnapshotForDisplay(first.previousScoreState),
-          newLabel: describeScoreSnapshotForDisplay(last.newScoreState),
-          editedByUserId: last.editedByUserId ?? undefined,
-          note: notes.length > 0 ? notes.join(' → ') : undefined,
-        },
-      };
-    }
+    const prevPoint = pointIndex > 0 ? timelinePoints[pointIndex - 1] : null;
+    const currentPoint = timelinePoints[pointIndex];
+    const lastEdit = edits[edits.length - 1];
+    const notes = edits
+      .map(e => e.note)
+      .filter((n): n is string => !!n);
+
+    timelinePoints[pointIndex] = {
+      ...currentPoint,
+      segmentBreak: {
+        editedAt: lastEdit.editedAt.toISOString(),
+        previousLabel: prevPoint ? describeTimelinePoint(prevPoint) : '–',
+        newLabel: describeTimelinePoint(currentPoint),
+        editedByUserId: lastEdit.editedByUserId ?? undefined,
+        note: notes.length > 0 ? notes.join(' → ') : undefined,
+      },
+    };
   }
 
   return timelinePoints;

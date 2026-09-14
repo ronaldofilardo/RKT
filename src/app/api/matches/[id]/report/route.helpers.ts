@@ -1,4 +1,5 @@
 import { getGameScoreLabel } from '@/core/scoring/scoring-logic';
+import type { TimelinePoint } from '@/core/scoring/types';
 
 type SnapshotRecord = Record<string, unknown>;
 type SnapshotSet = { player1?: number; player2?: number; isTiebreak?: boolean };
@@ -36,4 +37,16 @@ export function describeScoreSnapshotForDisplay(raw: unknown): string {
   } catch {
     return '–';
   }
+}
+
+export function describeTimelinePoint(p: TimelinePoint): string {
+  const games = `${p.gamesScore.player1}x${p.gamesScore.player2}`;
+  const points = getGameScoreLabel(
+    p.gameScore.player1,
+    p.gameScore.player2,
+    p.gameIsDeuce ?? false,
+    p.gameAdvantage ?? null,
+    p.isTiebreak,
+  );
+  return `Set ${p.setNumber} · Game ${games} · ${points}`;
 }

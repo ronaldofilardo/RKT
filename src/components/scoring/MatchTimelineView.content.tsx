@@ -32,50 +32,86 @@ export function MatchTimelineContent({ points, player1Name, player2Name, matchId
 
       <div className="mb-3 text-[10px] text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 space-y-1">
         <p className="font-semibold text-gray-700 mb-1">Como ler esta tabela</p>
-        <p>Cada linha é um ponto disputado, na ordem em que aconteceu. <strong>SET</strong> identifica o set e o sacador ([S] = sacador) quando o sacador é fixo no set; <strong>VENCEDOR</strong> mostra quem ganhou o ponto (nome destacado em azul = {player1Name}, em vermelho = {player2Name}).</p>
-        <p><strong>GAMES</strong> = placar de games/set no momento do ponto (mostrado só no 1º ponto de cada game para reduzir repetição) · <strong>PONTOS</strong> = placar de pontos dentro daquele game (ex: 15-0, Deuce, Adv. P1).</p>
-        <p><strong>BP</strong> = Break Point · <strong>GB</strong> = Game Ball (bola de game) · <strong>SB</strong> = Set Ball (bola de set)</p>
+        <p>Cada linha é um ponto disputado, na ordem em que aconteceu. <strong>SET</strong> identifica o set; <strong>no.</strong> = número do ponto; <strong>P/</strong> = ganhador do ponto (1 = {player1Name}, 2 = {player2Name}); <strong>SAC</strong> = sacador (1 = {player1Name}, 2 = {player2Name}).</p>
+        <p><strong>GAMES</strong> = placar de games/set (mostrado só no 1º ponto de cada game) · <strong>PONTOS</strong> = placar de pontos (15-0, Deuce, Adv. P1).</p>
+        <p><strong>1º / 2º Saque</strong>: mostra ACE, OUT ou NET conforme o resultado de cada saque, além de efeito e direção. Apenas um dos saques é preenchido por ponto.</p>
         <p><strong>TIPO</strong>: <strong>ACe</strong> = Ace · <strong>DF</strong> = Dupla Falta · <strong>Winner</strong> = ponto vencedor direto · <strong>ENF</strong> = Erro Não Forçado · <strong>EF</strong> = Erro Forçado</p>
-        <p><strong>SITUAÇÃO / GOLPE / EFEITO / DIREÇÃO / ONDE ERROU / SUBTIPO</strong> descrevem como o ponto terminou (que golpe, com que efeito, para onde, e onde foi o erro, se houver).</p>
-        <p><strong>TROCAS</strong> = quantidade de bolas trocadas no ponto, agrupada em faixas (1-2, 3-6, 7-10, 11+) · <strong>ESPECIAL</strong> = golpe especial usado (lob, drop shot, bate-pronto, etc.), quando aplicável.</p>
+        <p><strong>ERRO</strong> = tipo de erro na rede (Passing Shot, Devolução). <strong>ONDE</strong> = onde errou (Out, Net). <strong>SITUAÇÃO / GOLPE / EFEITO / DIREÇÃO</strong> descrevem como o ponto terminou. <strong>ESPECIAL</strong> = golpe especial (lob, drop shot, etc.). <strong>RALLY</strong> = faixa de bolas trocadas conforme duração marcada (3-6, 7-10, 11+).</p>
       </div>
 
       <div className="overflow-hidden border border-gray-200 rounded-lg">
         <div className="overflow-x-auto">
           <table className="w-full text-[11px]" style={{ tableLayout: 'fixed', borderCollapse: 'collapse' }}>
             <colgroup>
-              <col style={{ width: '10%' }} />
+              <col style={{ width: '3%' }} />
+              <col style={{ width: '3%' }} />
               <col style={{ width: '5%' }} />
-              <col style={{ width: '6%' }} />
-              <col style={{ width: '8%' }} />
-              <col style={{ width: '6%' }} />
-              <col style={{ width: '6%' }} />
+              <col style={{ width: '3%' }} />
+              <col style={{ width: '4%' }} />
               <col style={{ width: '5%' }} />
+              <col style={{ width: '3%' }} />
+              <col style={{ width: '3%' }} />
+              <col style={{ width: '3%' }} />
+              <col style={{ width: '4%' }} />
+              <col style={{ width: '4%' }} />
+              <col style={{ width: '3%' }} />
+              <col style={{ width: '3%' }} />
+              <col style={{ width: '3%' }} />
+              <col style={{ width: '4%' }} />
+              <col style={{ width: '4%' }} />
               <col style={{ width: '5%' }} />
-              <col style={{ width: '6%' }} />
-              <col style={{ width: '8%' }} />
-              <col style={{ width: '7%' }} />
-              <col style={{ width: '7%' }} />
-              <col style={{ width: '7%' }} />
+              <col style={{ width: '4%' }} />
+              <col style={{ width: '4%' }} />
+              <col style={{ width: '4%' }} />
+              <col style={{ width: '4%' }} />
+              <col style={{ width: '4%' }} />
+              <col style={{ width: '4%' }} />
               <col style={{ width: '5%' }} />
-              <col style={{ width: '6%' }} />
-              <col style={{ width: '9%' }} />
+              <col style={{ width: '4%' }} />
             </colgroup>
             <thead>
+              <tr className="bg-gray-100 border-b border-gray-300">
+                <th colSpan={3} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide sticky left-0 bg-gray-100 z-20 border-r border-gray-300">SET</th>
+                <th colSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide border-r border-gray-200">PLACAR</th>
+                <th colSpan={5} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide border-r border-gray-200">1º Saque</th>
+                <th colSpan={5} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide border-r border-gray-200">2º Saque</th>
+                <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">SITUAÇÃO</th>
+                <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide border-l border-gray-200">
+                  <div className="flex flex-col leading-tight">
+                    <span>TIPO</span>
+                    <span className="text-[7px] font-normal text-gray-400 normal-case">ENF, EF, W</span>
+                  </div>
+                </th>
+                <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">ERRO</th>
+                <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">ONDE</th>
+                <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">GOLPE</th>
+                <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">EFEITO</th>
+                <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">DIREÇÃO</th>
+                <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">ESPECIAL</th>
+                <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">RALLY</th>
+                <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">OBS</th>
+              </tr>
               <tr className="bg-gray-50 border-b border-gray-200">
-                {['SET', 'GAMES', 'PONTOS', 'VENCEDOR', 'TIPO', 'SITUAÇÃO', 'GOLPE', 'EFEITO', 'DIREÇÃO', 'ONDE ERROU', 'SUBTIPO', '1ª FALTA', '2ª FALTA', 'TROCAS', 'ESPECIAL', 'OBSERVAÇÃO'].map((h, idx) => (
-                  <th
-                    key={h}
-                    className={`px-1.5 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wide whitespace-normal ${idx === 0 ? 'sticky left-0 bg-gray-50 z-20 border-r border-gray-200' : ''}`}
-                  >
-                    {h}
-                  </th>
-                ))}
+                <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">no.</th>
+                <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">P/</th>
+                <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase border-r border-gray-200">SAC</th>
+                <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">GAMES</th>
+                <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase border-r border-gray-200">PONTOS</th>
+                <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">ACE</th>
+                <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">OUT</th>
+                <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">NET</th>
+                <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">EFE</th>
+                <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase border-r border-gray-200">DIR</th>
+                <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">ACE</th>
+                <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">OUT</th>
+                <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">NET</th>
+                <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">EFE</th>
+                <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase border-r border-gray-200">DIR</th>
               </tr>
             </thead>
             <tbody>
               {hasActiveFilters && filteredPoints.length === 0 && (
-                <tr><td colSpan={16} className="text-center py-6 text-gray-400 text-xs">Nenhum ponto corresponde aos filtros selecionados.</td></tr>
+                <tr><td colSpan={26} className="text-center py-6 text-gray-400 text-xs">Nenhum ponto corresponde aos filtros selecionados.</td></tr>
               )}
               {groupedBySet.map((group, gi) => (
                 <SetGroup
@@ -84,8 +120,6 @@ export function MatchTimelineContent({ points, player1Name, player2Name, matchId
                   points={group.points}
                   allPoints={points}
                   hasActiveFilters={hasActiveFilters}
-                  player1Name={player1Name}
-                  player2Name={player2Name}
                   isLast={gi === groupedBySet.length - 1}
                   matchId={matchId}
                 />

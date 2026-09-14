@@ -1,6 +1,12 @@
 import type { ReportData } from './report.types';
 
-const columns = ['ponto', 'set', 'games', 'pontos', 'vencedor', 'tipo', 'sacador', 'situacao', 'golpe', 'efeito', 'direcao', 'zona', 'stroke', 'rally_length', 'rally_duration', 'preview_balls', 'nota', 'audio', 'audio_duration', 'audio_mime', 'anotacoes_json'];
+const columns = [
+  'no', 'ponto_para', 'sacador', 'games', 'pontos',
+  '1s_ace', '1s_out', '1s_net', '1s_efeito', '1s_direcao',
+  '2s_ace', '2s_out', '2s_net', '2s_efeito', '2s_direcao',
+  'tipo', 'erro', 'onde_errou', 'situacao', 'golpe', 'efeito', 'direcao',
+  'especial', 'rally', 'nota', 'audio', 'audio_duration', 'audio_mime', 'anotacoes_json',
+];
 
 function csvValue(value: unknown): string {
   const text = value === null || value === undefined ? '' : String(value);
@@ -24,21 +30,29 @@ function safeScore(score: unknown): string {
 export function buildReportCsv(report: ReportData): string {
   const rows = report.timelinePoints.map((point) => [
     point.pointNumber,
-    point.setNumber,
+    point.server,
+    point.server,
     safeScore(point.gamesScore),
     safeScore(point.gameScore),
-    point.winner,
+    point.firstServeOutcome === 'ace' ? 'ACE' : '',
+    point.firstServeOutcome === 'out' ? 'OUT' : '',
+    point.firstServeOutcome === 'net' ? 'NET' : '',
+    point.firstFault?.serveEffect ?? point.serveEffect ?? '',
+    point.firstFault?.direction ?? point.serveDirection ?? '',
+    point.secondServeOutcome === 'ace' ? 'ACE' : '',
+    point.secondServeOutcome === 'out' ? 'OUT' : '',
+    point.secondServeOutcome === 'net' ? 'NET' : '',
+    point.rallyDetails?.efeito ?? '',
+    point.rallyDetails?.direcao ?? '',
     point.type,
-    point.server,
+    point.rallyDetails?.subtipo1 ?? '',
+    point.rallyDetails?.subtipo2 ?? '',
     point.rallyDetails?.situacao,
     point.rallyDetails?.golpe,
     point.rallyDetails?.efeito,
     point.rallyDetails?.direcao,
-    point.zone,
-    point.stroke,
-    point.rallyLength,
-    point.rallyDetails?.duracao,
-    point.rallyDetails?.previewBalls,
+    point.rallyDetails?.golpe_esp,
+    point.rallyDetails?.duracao ?? '',
     point.note,
     point.hasAudioNote ? 'sim' : 'não',
     point.audioNoteDuration,

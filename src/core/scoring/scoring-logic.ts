@@ -75,15 +75,23 @@ export function enrichPointsFromHistory(
 
     const setNumber = stateBefore.sets.length > 0 ? stateBefore.sets.length : 1;
     const currentSet = stateBefore.sets[stateBefore.sets.length - 1];
-    const gamesScore = {
-      player1: currentSet?.player1 ?? 0,
-      player2: currentSet?.player2 ?? 0,
-    };
+    const isTiebreak = currentSet?.isTiebreak ?? false;
 
-    const gameScore = {
-      player1: stateBefore.currentGame.player1,
-      player2: stateBefore.currentGame.player2,
-    };
+    const tiebreakScore = isTiebreak ? currentSet?.tiebreakScore : undefined;
+
+    const gamesScore = isTiebreak && tiebreakScore
+      ? { player1: tiebreakScore.player1, player2: tiebreakScore.player2 }
+      : {
+          player1: currentSet?.player1 ?? 0,
+          player2: currentSet?.player2 ?? 0,
+        };
+
+    const gameScore = isTiebreak && tiebreakScore
+      ? { player1: tiebreakScore.player1, player2: tiebreakScore.player2 }
+      : {
+          player1: stateBefore.currentGame.player1,
+          player2: stateBefore.currentGame.player2,
+        };
 
     const bp = isBreakPoint(stateBefore);
     const gb = isGameBall(stateBefore);
@@ -92,11 +100,28 @@ export function enrichPointsFromHistory(
     const isServeFinish = pt.type === 'ACE' || pt.type === 'DOUBLE_FAULT';
     const isDevolucao = pt.rallyDetails?.situacao === 'devolucao';
     const rallyLength = pt.rallyLength ?? (isServeFinish ? 1 : isDevolucao ? 2 : 0);
-    const isTiebreak = currentSet?.isTiebreak ?? false;
 
     const firstFault = pt.type === 'DOUBLE_FAULT' && pt.firstFaultDetail
       ? pt.firstFaultDetail
       : undefined;
+
+    const firstServeOutcome: 'ace' | 'out' | 'net' | null =
+      pt.type === 'ACE' && pt.isFirstServe
+        ? 'ace'
+        : pt.firstFaultDetail?.errorType === 'out'
+          ? 'out'
+          : pt.firstFaultDetail?.errorType === 'net'
+            ? 'net'
+            : null;
+
+    const secondServeOutcome: 'ace' | 'out' | 'net' | null =
+      pt.type === 'ACE' && pt.isSecondServe
+        ? 'ace'
+        : pt.type === 'DOUBLE_FAULT'
+          ? (pt.rallyDetails?.subtipo2 as 'out' | 'net' | undefined) ?? null
+          : pt.isSecondServe
+            ? null
+            : null;
 
     points.push({
       pointNumber: i + 1,
@@ -119,6 +144,8 @@ export function enrichPointsFromHistory(
       gameIsDeuce: stateBefore.currentGame.isDeuce,
       gameAdvantage: stateBefore.currentGame.advantage,
       firstFault,
+      firstServeOutcome,
+      secondServeOutcome,
     });
   }
 

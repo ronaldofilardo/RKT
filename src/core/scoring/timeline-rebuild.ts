@@ -173,17 +173,20 @@ function buildPointDetailsFromLog(log: PointLogRow): PointDetails {
   const isServeFinish = log.type === 'ACE' || log.type === 'DOUBLE_FAULT';
   const isDevolucao = ann?.rallyDetails?.situacao === 'devolucao';
   const autoRallyLength = ann?.rallyLength ?? (isServeFinish ? 1 : isDevolucao ? 2 : 0);
+  const isFirstServe = ann?.isFirstServe ?? true;
+  const isSecondServe = ann?.isSecondServe ?? false;
+  const firstFaultDetail = ann?.firstFaultDetail ?? null;
   return {
     winnerId: log.winnerId,
     type: log.type as PointDetails['type'],
-    isFirstServe: ann?.isFirstServe ?? true,
-    isSecondServe: ann?.isSecondServe ?? false,
+    isFirstServe,
+    isSecondServe,
     isLet: false,
     serverId: log.serverId,
     timestamp: log.timestamp.getTime(),
     rallyDetails: ann?.rallyDetails ?? null,
     rallyLength: autoRallyLength,
-    firstFaultDetail: ann?.firstFaultDetail ?? null,
+    firstFaultDetail,
   };
 }
 
@@ -203,6 +206,7 @@ function mergeWithPointLog(p: TimelinePoint, log: PointLogRow, pointNumber: numb
     zone: ann?.zone,
     stroke: ann?.stroke,
     pointId: log.id,
+    rawAnnotations: ann ? { ...ann } : p.rawAnnotations,
 
     rallyDetails,
     rallyLength,

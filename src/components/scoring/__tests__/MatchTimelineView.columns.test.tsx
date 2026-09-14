@@ -32,8 +32,8 @@ function makePoint(overrides: Partial<TimelinePoint>): TimelinePoint {
   } as TimelinePoint;
 }
 
-describe('MatchTimelineView — cabeçalhos e legenda (itens 4, 5 e reorganização C)', () => {
-  it('cabeçalhos renomeados: SET lateral, GAMES, PONTOS; sem coluna SAQUE', () => {
+describe('MatchTimelineView — cabeçalhos e legenda (novo layout 23 colunas)', () => {
+  it('cabeçalhos de nível 1: SET, PLACAR, 1º Saque, 2º Saque, SITUAÇÃO, TIPO', () => {
     render(
       <MatchTimelineView
         points={[makePoint({})]}
@@ -43,22 +43,62 @@ describe('MatchTimelineView — cabeçalhos e legenda (itens 4, 5 e reorganizaç
       />
     );
 
-    // Cabeçalhos de coluna (escopo: <th> dentro de <thead>)
     expect(screen.getByText('SET', { selector: 'th' })).toBeInTheDocument();
-    expect(screen.getByText('GAMES', { selector: 'th' })).toBeInTheDocument();
-    expect(screen.getByText('PONTOS', { selector: 'th' })).toBeInTheDocument();
-    expect(screen.getByText('VENCEDOR', { selector: 'th' })).toBeInTheDocument();
-    expect(screen.getByText('ONDE ERROU', { selector: 'th' })).toBeInTheDocument();
-    expect(screen.getByText('SUBTIPO', { selector: 'th' })).toBeInTheDocument();
-    expect(screen.getByText('OBSERVAÇÃO', { selector: 'th' })).toBeInTheDocument();
-
-    expect(screen.queryByText('SAQUE', { selector: 'th' })).not.toBeInTheDocument();
-    expect(screen.queryByText('PLACAR GAMES')).not.toBeInTheDocument();
-    expect(screen.queryByText('PLACAR GAME')).not.toBeInTheDocument();
-    expect(screen.queryByText('ACE', { selector: 'th' })).not.toBeInTheDocument();
+    expect(screen.getByText('PLACAR', { selector: 'th' })).toBeInTheDocument();
+    expect(screen.getByText('1º Saque', { selector: 'th' })).toBeInTheDocument();
+    expect(screen.getByText('2º Saque', { selector: 'th' })).toBeInTheDocument();
+    expect(screen.getByText('SITUAÇÃO', { selector: 'th' })).toBeInTheDocument();
+    expect(screen.getByText('ENF, EF, W')).toBeInTheDocument();
   });
 
-  it('reorganização (C): legenda explica os códigos para leitor que não assistiu a partida', () => {
+  it('cabeçalhos de nível 2: no., P/, SAC, GAMES, PONTOS, ACE, OUT, NET, EFE, DIR', () => {
+    render(
+      <MatchTimelineView
+        points={[makePoint({})]}
+        player1Name="Ronaldo"
+        player2Name="Mateus"
+        matchId="match-1"
+      />
+    );
+
+    expect(screen.getByText('no.', { selector: 'th' })).toBeInTheDocument();
+    expect(screen.getByText('P/', { selector: 'th' })).toBeInTheDocument();
+    expect(screen.getByText('SAC', { selector: 'th' })).toBeInTheDocument();
+    expect(screen.getByText('GAMES', { selector: 'th' })).toBeInTheDocument();
+    expect(screen.getByText('PONTOS', { selector: 'th' })).toBeInTheDocument();
+    // ACE, OUT, NET aparecem nos headers de saque
+    const aceHeaders = screen.getAllByText('ACE', { selector: 'th' });
+    expect(aceHeaders.length).toBe(2); // 1º e 2º saque
+    const outHeaders = screen.getAllByText('OUT', { selector: 'th' });
+    expect(outHeaders.length).toBe(2);
+    const netHeaders = screen.getAllByText('NET', { selector: 'th' });
+    expect(netHeaders.length).toBe(2);
+    const efeHeaders = screen.getAllByText('EFE', { selector: 'th' });
+    expect(efeHeaders.length).toBe(2);
+    const dirHeaders = screen.getAllByText('DIR', { selector: 'th' });
+    expect(dirHeaders.length).toBe(2);
+  });
+
+  it('colunas antigas (SEQ, ZONA, STROKE, ONDE ERROU, SUBTIPO) não existem', () => {
+    render(
+      <MatchTimelineView
+        points={[makePoint({})]}
+        player1Name="Ronaldo"
+        player2Name="Mateus"
+        matchId="match-1"
+      />
+    );
+
+    expect(screen.queryByText('SEQ', { selector: 'th' })).not.toBeInTheDocument();
+    expect(screen.queryByText('ZONA', { selector: 'th' })).not.toBeInTheDocument();
+    expect(screen.queryByText('STROKE', { selector: 'th' })).not.toBeInTheDocument();
+    expect(screen.queryByText('ONDE ERROU', { selector: 'th' })).not.toBeInTheDocument();
+    expect(screen.queryByText('SUBTIPO', { selector: 'th' })).not.toBeInTheDocument();
+    expect(screen.queryByText('1ª FALTA', { selector: 'th' })).not.toBeInTheDocument();
+    expect(screen.queryByText('2ª FALTA', { selector: 'th' })).not.toBeInTheDocument();
+  });
+
+  it('reorganização: legenda explica os códigos para leitor', () => {
     render(
       <MatchTimelineView
         points={[makePoint({})]}
@@ -69,8 +109,7 @@ describe('MatchTimelineView — cabeçalhos e legenda (itens 4, 5 e reorganizaç
     );
 
     expect(screen.getByText(/Como ler esta tabela/)).toBeInTheDocument();
-    expect(screen.getByText(/Break Point/)).toBeInTheDocument();
-    expect(screen.getByText(/Dupla Falta/)).toBeInTheDocument();
-    expect(screen.getByText(/faixas \(1-2, 3-6, 7-10, 11\+\)/)).toBeInTheDocument();
+    expect(screen.getByText(/1º \/ 2º Saque/)).toBeInTheDocument();
+    expect(screen.getByText(/ACE, OUT ou NET/)).toBeInTheDocument();
   });
 });

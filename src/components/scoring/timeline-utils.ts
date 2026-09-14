@@ -113,6 +113,12 @@ export function subtipo2Label(s?: string): string {
   return map[s] ?? s;
 }
 
+export function duracaoLabel(s?: string): string {
+  if (!s) return '–';
+  const map: Record<string, string> = { opcao_1: '3-6', opcao_2: '7-10', opcao_3: '11+' };
+  return map[s] ?? s;
+}
+
 export function trocasFaixaLabel(rallyLength?: number): string {
   const n = rallyLength ?? 1;
   if (n <= 2) return '1-2';

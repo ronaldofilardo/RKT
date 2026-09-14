@@ -7,9 +7,9 @@ import {
   direcaoLabel,
   efeitoLabel,
   golpeEspLabel,
+  duracaoLabel,
   subtipo1Label,
   subtipo2Label,
-  trocasFaixaLabel,
   getPointDetailSummary,
 } from './timeline-utils';
 
@@ -18,14 +18,8 @@ interface PointRowProps {
   hasGap: boolean;
   isLast: boolean;
   matchId: string;
-  player1Name: string;
-  player2Name: string;
   /** Rótulo "SET N" exibido na primeira linha do set. */
   setLabel?: string;
-  /** Nome do jogador que saca no set (apenas quando fixo). */
-  serverLabel?: string;
-  /** Quando true, o set tem um sacador único (sem alternância). */
-  serverHasFixed: boolean;
   /** Quando true, esta linha é o primeiro ponto do game atual. */
   isFirstPointOfGame: boolean;
   /** Quando true, esta linha é o primeiro ponto do set. */
@@ -50,7 +44,7 @@ function getPointBadge(p: TimelinePoint): { label: string; color: 'green' | 'red
   return getPointDetailSummary(p.rallyDetails);
 }
 
-export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, player1Name, player2Name, setLabel, serverLabel, serverHasFixed, isFirstPointOfGame, isFirstPointOfSet }: PointRowProps) {
+export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, setLabel, isFirstPointOfGame, isFirstPointOfSet }: PointRowProps) {
   const rd = p.rallyDetails;
   const badge = getPointBadge(p);
   const isDoubleFault = p.type === 'DOUBLE_FAULT';
@@ -62,77 +56,103 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, player1Na
     p.isBreakPoint ? 'bg-amber-50/40' : '',
   ].join(' ');
 
-  const serverName = p.server === 'player1' ? player1Name : player2Name;
-  const winnerName = p.winner === 'PLAYER_1' ? player1Name : player2Name;
+  const serverNumber = p.server === 'player1' ? 1 : 2;
+  const winnerNumber = p.winner === 'PLAYER_1' ? 1 : 2;
+
+  const firstOutcome = p.firstServeOutcome;
+  const secondOutcome = p.secondServeOutcome;
 
   const cells = (
     <>
-      {/* SET (lateral) — identifica o set e o sacador. Quando o sacador é fixo
-          no set (sem alternância), mostramos "SET N" + nome do sacador + [S]
-          no primeiro ponto do set e replicamos o nome nos demais pontos. */}
+      {/* SET — label "SET N" apenas na primeira linha do set */}
       <td className="px-1.5 py-1.5 align-middle sticky left-0 bg-white z-10 border-r border-gray-200">
         {isFirstPointOfSet && setLabel ? (
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[9px] font-black uppercase text-blue-600" style={{ letterSpacing: '0.12em' }}>{setLabel}</span>
-            {serverHasFixed && serverLabel ? (
-              <span className="text-[10px] text-gray-700 font-semibold truncate">{serverLabel} <span className="text-[9px] font-bold text-green-700">[S]</span></span>
-            ) : (
-              <span className="text-[10px] text-gray-500 italic truncate">sacador alterna</span>
-            )}
-          </div>
-        ) : serverHasFixed && serverLabel ? (
-          <span className="text-[10px] text-gray-500 truncate">{serverLabel}</span>
-        ) : (
-          <span className="text-[10px] text-gray-500 truncate">{serverName}</span>
-        )}
+          <span className="text-[9px] font-black uppercase text-blue-600" style={{ letterSpacing: '0.12em' }}>{setLabel}</span>
+        ) : null}
       </td>
-      {/* GAMES — placar de games/set, exibido apenas no 1º ponto de cada game
-          para evitar a repetição visual (0-0 em todos os pontos do game). */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-700 font-semibold">
-        {isFirstPointOfGame ? `${p.gamesScore.player1}-${p.gamesScore.player2}` : '–'}
+      {/* no. — pointNumber */}
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-700 font-semibold sticky left-[calc(var(--set-w,5%))] bg-white z-10 border-r border-gray-200">
+        {p.pointNumber}
       </td>
-      {/* PONTOS — placar de pontos dentro do game (15-0, Deuce, Adv. P1, etc.) */}
+      {/* P/ — ganhador do ponto (1 ou 2) */}
+      <td className={`px-1.5 py-1.5 text-[10px] text-center font-bold ${winnerNumber === 1 ? 'text-blue-600' : 'text-red-600'}`}>
+        {winnerNumber}
+      </td>
+      {/* SAC — sacador (1 ou 2) */}
+      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${serverNumber === 1 ? 'text-blue-600' : 'text-red-600'}`}>
+        {serverNumber}
+      </td>
+      {/* GAMES — placar de games (ou tiebreak score quando isTiebreak) */}
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-700 font-semibold text-center">
+        {p.isTiebreak
+          ? `${p.gamesScore.player1}x${p.gamesScore.player2}`
+          : isFirstPointOfGame ? p.gamesScore.player1 + p.gamesScore.player2 + 1 : '–'}
+      </td>
+      {/* PONTOS — placar de pontos dentro do game */}
       <td className="px-1.5 py-1.5 text-[10px] font-bold text-gray-800">{getGameScoreLabelForPoint(p)}</td>
-            {/* SEQUÊNCIA */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-500">{p.sequenceNumber ?? p.pointNumber}</td>
-      {/* VENCEDOR DO PONTO */}
-      <td className={`px-1.5 py-1.5 text-[10px] font-semibold truncate ${p.winner === 'PLAYER_1' ? 'text-blue-600' : 'text-red-600'}`}>
-
-        {winnerName}
+      {/* 1º Saque — ACE */}
+      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${firstOutcome === 'ace' ? 'text-green-600' : 'text-gray-400'}`}>
+        {firstOutcome === 'ace' ? 'ACE' : '–'}
       </td>
-      {/* TIPO */}
-      <td className="px-1.5 py-1.5 text-[10px]">
+      {/* 1º Saque — OUT */}
+      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${firstOutcome === 'out' ? 'text-red-600' : 'text-gray-400'}`}>
+        {firstOutcome === 'out' ? 'OUT' : '–'}
+      </td>
+      {/* 1º Saque — NET */}
+      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${firstOutcome === 'net' ? 'text-amber-600' : 'text-gray-400'}`}>
+        {firstOutcome === 'net' ? 'NET' : '–'}
+      </td>
+      {/* 1º Saque — Efeito */}
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
+        {firstOutcome ? efeitoLabel(p.firstFault?.serveEffect ?? p.serveEffect) : '–'}
+      </td>
+      {/* 1º Saque — Direção */}
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
+        {firstOutcome ? direcaoLabel(p.firstFault?.direction ?? p.serveDirection) : '–'}
+      </td>
+      {/* 2º Saque — ACE */}
+      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${secondOutcome === 'ace' ? 'text-green-600' : 'text-gray-400'}`}>
+        {secondOutcome === 'ace' ? 'ACE' : '–'}
+      </td>
+      {/* 2º Saque — OUT */}
+      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${secondOutcome === 'out' ? 'text-red-600' : 'text-gray-400'}`}>
+        {secondOutcome === 'out' ? 'OUT' : '–'}
+      </td>
+      {/* 2º Saque — NET */}
+      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${secondOutcome === 'net' ? 'text-amber-600' : 'text-gray-400'}`}>
+        {secondOutcome === 'net' ? 'NET' : '–'}
+      </td>
+      {/* 2º Saque — Efeito */}
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
+        {secondOutcome ? efeitoLabel(rd?.efeito) : '–'}
+      </td>
+      {/* 2º Saque — Direção */}
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
+        {secondOutcome ? direcaoLabel(rd?.direcao) : '–'}
+      </td>
+      {/* SITUAÇÃO */}
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : situacaoLabel(rd?.situacao)}</td>
+      {/* TIPO badge (ENF/EF/W) */}
+      <td className="px-1.5 py-1.5 text-[10px] border-l border-gray-200">
         <span className={`px-1.5 py-0.5 rounded-full font-semibold ${BADGE_COLORS[badge.color]}`}>
           {badge.label}
         </span>
       </td>
-      {/* SITUAÇÃO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : situacaoLabel(rd?.situacao)}</td>
-            {/* ZONA / STROKE BRUTOS DO SCOUT */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{p.zone ?? '–'}</td>
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{p.stroke ?? '–'}</td>
+      {/* SUBTIPO1 — Tipo de Erro (Rede) */}
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : subtipo1Label(rd?.subtipo1)}</td>
+      {/* SUBTIPO2 — Onde Errou? */}
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : subtipo2Label(rd?.subtipo2)}</td>
       {/* GOLPE */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : golpeLabel(rd?.golpe)}</td>
-
       {/* EFEITO */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : efeitoLabel(rd?.efeito)}</td>
       {/* DIREÇÃO */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : direcaoLabel(rd?.direcao)}</td>
-      {/* ONDE ERROU (subtipo2) */}
-      <td className={`px-1.5 py-1.5 text-[10px] ${!isFaultPoint && rd?.subtipo2 === 'out' ? 'text-red-600 font-semibold' : !isFaultPoint && rd?.subtipo2 === 'net' ? 'text-amber-600 font-semibold' : ''}`}>
-        {isFaultPoint ? '–' : subtipo2Label(rd?.subtipo2)}
-      </td>
-      {/* SUBTIPO 1 */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : subtipo1Label(rd?.subtipo1)}</td>
-      {/* 1ª FALTA (firstFault) */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{formatFirstFault(p)}</td>
-      {/* 2ª FALTA — detalhe compacto da 2ª falta do DF */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isDoubleFault ? formatSecondFault(p) : (p.isSecondServe && p.type !== 'ACE' ? formatSecondFault(p) : '–')}</td>
-      {/* TROCAS */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-500">{trocasFaixaLabel(p.rallyLength)}</td>
-      {/* ESPECIAL */}
+      {/* GOLPES ESPECIAIS */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : golpeEspLabel(rd?.golpe_esp)}</td>
-      {/* OBS */}
+      {/* RALLY */}
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-500">{isFaultPoint ? '–' : duracaoLabel(rd?.duracao)}</td>
+      {/* OBSERVAÇÃO */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-600 whitespace-normal break-words">
         <div className="flex flex-col gap-1">
           {p.note ? <span>📝 {p.note}</span> : null}
@@ -159,8 +179,7 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, player1Na
     return (
       <>
         <tr>
-                    <td colSpan={19} className="text-center py-2 bg-amber-50/60 border-y border-dashed border-amber-300">
-
+          <td colSpan={26} className="text-center py-2 bg-amber-50/60 border-y border-dashed border-amber-300">
             <span className="text-[10px] text-amber-800">
               ⏸ Partida interrompida em <strong>{p.segmentBreak.previousLabel}</strong> · placar ajustado para <strong>{p.segmentBreak.newLabel}</strong> em {editedAtLabel}
             </span>
@@ -177,8 +196,7 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, player1Na
     return (
       <>
         <tr>
-                    <td colSpan={19} className="text-center py-1.5">
-
+          <td colSpan={26} className="text-center py-1.5">
             <span className="text-[10px] italic text-gray-400 border-t border-dashed border-b border-dashed border-gray-300 px-2">marcação interrompida</span>
           </td>
         </tr>
@@ -196,45 +214,17 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, player1Na
   );
 }
 
-function formatFirstFault(p: TimelinePoint): string {
-  const ff = p.firstFault;
-  if (!ff) return '–';
-  const parts: string[] = [];
-  if (ff.errorType) parts.push(ff.errorType);
-  if (ff.serveEffect) parts.push(ff.serveEffect);
-  if (ff.direction) parts.push(ff.direction);
-  return parts.length > 0 ? parts.join(' • ') : '–';
-}
-
-function formatSecondFault(p: TimelinePoint): string {
-  const rd = p.rallyDetails;
-  if (!rd) return '–';
-  const parts: string[] = [];
-  if (rd.subtipo2) parts.push(rd.subtipo2);
-  if (rd.efeito) parts.push(rd.efeito);
-  if (rd.direcao) parts.push(rd.direcao);
-  return parts.length > 0 ? parts.join(' • ') : '–';
-}
-
 interface SetGroupProps {
   setNumber: number;
   points: TimelinePoint[];
   allPoints: TimelinePoint[];
   hasActiveFilters: boolean;
-  player1Name: string;
-  player2Name: string;
   isLast: boolean;
   matchId: string;
 }
 
-export function SetGroup({ setNumber, points, hasActiveFilters, player1Name, player2Name, isLast, matchId }: SetGroupProps) {
-  const firstPoint = points[0];
+export function SetGroup({ setNumber, points, hasActiveFilters, isLast, matchId }: SetGroupProps) {
   const setLabel = `SET ${setNumber}`;
-
-  const servers = new Set(points.map(p => p.server));
-  const serverHasFixed = servers.size === 1;
-  const fixedServer = serverHasFixed ? firstPoint.server : null;
-  const serverLabel = fixedServer === 'player1' ? player1Name : player2Name;
 
   return (
     <>
@@ -257,11 +247,7 @@ export function SetGroup({ setNumber, points, hasActiveFilters, player1Name, pla
             hasGap={!!hasGap}
             isLast={isLast && i === points.length - 1}
             matchId={matchId}
-            player1Name={player1Name}
-            player2Name={player2Name}
             setLabel={setLabel}
-            serverLabel={serverLabel}
-            serverHasFixed={serverHasFixed}
             isFirstPointOfGame={isFirstPointOfGame}
             isFirstPointOfSet={isFirstPointOfSet}
           />
@@ -272,6 +258,9 @@ export function SetGroup({ setNumber, points, hasActiveFilters, player1Name, pla
 }
 
 function getGameScoreLabelForPoint(p: TimelinePoint): string {
+  if (p.isTiebreak) {
+    return `${p.gameScore.player1}x${p.gameScore.player2}`;
+  }
   if (p.gameIsDeuce) return 'Deuce';
   if (p.gameAdvantage === 'player1') return 'Adv. P1';
   if (p.gameAdvantage === 'player2') return 'Adv. P2';

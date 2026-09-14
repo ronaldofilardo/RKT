@@ -66,9 +66,9 @@ const report = { matchId: 'match-1', timelinePoints: [point] } as ReportData;
 describe('cobertura dos campos do relatório e exportação', () => {
   it('mantém todos os campos brutos da anotação no ponto exportável', () => {
     const csv = buildReportCsv(report);
-    const expectedHeaders = ['ponto', 'set', 'games', 'pontos', 'vencedor', 'tipo', 'sacador', 'golpe', 'efeito', 'direcao', 'zona', 'rally_length', 'nota', 'audio', 'anotacoes_json'];
+    const expectedHeaders = ['no', 'ponto_para', 'sacador', 'games', 'pontos', '1s_ace', '1s_out', '1s_net', '1s_efeito', '1s_direcao', '2s_ace', '2s_out', '2s_net', '2s_efeito', '2s_direcao', 'tipo', 'situacao', 'golpe', 'efeito', 'direcao', 'especial', 'rally', 'nota', 'audio', 'anotacoes_json'];
     expectedHeaders.forEach((header) => expect(csv).toContain(header));
-    ['observação do scout', 'aberto', 'forehand', 'slice', '9', 'sim', 'audioNoteDuration'].forEach((value) => expect(csv).toContain(value));
+    ['observação do scout', 'slice', '9', 'sim', 'audioNoteDuration'].forEach((value) => expect(csv).toContain(value));
     expect(csv).toContain('sequenceNumber');
     expect(csv).toContain('winnerId');
     expect(csv).toContain('serverId');

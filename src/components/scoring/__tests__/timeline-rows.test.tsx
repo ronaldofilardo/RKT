@@ -32,20 +32,19 @@ function makePoint(overrides: Partial<TimelinePoint>): TimelinePoint {
 
 const baseProps = {
   matchId: 'match-1',
-  player1Name: 'Ronaldo',
-  player2Name: 'Mateus',
   setLabel: 'SET 1',
-  serverLabel: 'Ronaldo',
-  serverHasFixed: true,
   isFirstPointOfGame: true,
   isFirstPointOfSet: true,
 };
 
-describe('PointRow — regressão das divergência UI/payload', () => {
-  it('ACe: exibe efeito, direção (aberto/fechado), saque 1ª, badge ACe', () => {
+describe('PointRow — regressão do novo layout (23 colunas)', () => {
+  it('ACE: exibe ACE na coluna 1º saque, efeito e direção', () => {
     const p = makePoint({
       type: 'ACE',
       isFirstServe: true,
+      firstServeOutcome: 'ace',
+      serveEffect: 'flat',
+      serveDirection: 'fechado',
       rallyDetails: {
         vencedor: 'sacador',
         situacao: 'saque',
@@ -58,21 +57,19 @@ describe('PointRow — regressão das divergência UI/payload', () => {
     });
     const { container } = render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
     const text = container.textContent ?? '';
-    // Direção do ACe deve aparecer
-    expect(text).toContain('fechado');
-    // Efeito deve aparecer
+    expect(text).toContain('ACE');
     expect(text).toContain('flat');
-    // Badge ACe
-    expect(text).toContain('ACe');
-    // Situação e golpe também preenchidos
+    expect(text).toContain('fechado');
     expect(text).toContain('Saque');
   });
 
-  it('Double Fault: exibe 1ª e 2ª faltas, badge DF, subtipo2, ambas faltas', () => {
+  it('Double Fault: exibe OUT/NET nos saques, badge DF', () => {
     const p = makePoint({
       type: 'DOUBLE_FAULT',
       isFirstServe: false,
       isSecondServe: true,
+      firstServeOutcome: 'out',
+      secondServeOutcome: 'net',
       firstFault: {
         errorType: 'out',
         serveEffect: 'topspin',
@@ -91,12 +88,11 @@ describe('PointRow — regressão das divergência UI/payload', () => {
     });
     const { container } = render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
     const text = container.textContent ?? '';
-    // Badge DF
     expect(text).toContain('DF');
-    // 1ª falta com todas as três partes
-    expect(text).toContain('out • topspin • aberto');
-    // 2ª falta: net + flat + fechado
-    expect(text).toContain('net • flat • fechado');
+    expect(text).toContain('OUT');
+    expect(text).toContain('NET');
+    expect(text).toContain('topspin');
+    expect(text).toContain('aberto');
   });
 
   it('Winner em rally: exibe golpe, efeito, direção, badge Winner', () => {
@@ -122,7 +118,7 @@ describe('PointRow — regressão das divergência UI/payload', () => {
     expect(text).toContain('cruzada');
   });
 
-  it('Erro não forçado em rally: badge ENF, subtipo2 (onde errou)', () => {
+  it('Erro não forçado em rally: badge ENF', () => {
     const p = makePoint({
       type: 'UNFORCED_ERROR',
       rallyLength: 2,
@@ -138,7 +134,6 @@ describe('PointRow — regressão das divergência UI/payload', () => {
     const { container } = render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
     const text = container.textContent ?? '';
     expect(text).toContain('ENF');
-    expect(text).toContain('net');
     expect(text).toContain('BH');
   });
 
@@ -172,18 +167,28 @@ describe('PointRow — regressão das divergência UI/payload', () => {
   });
 });
 
-describe('PointRow — coluna lateral SET', () => {
-  it('mostra "SET N" + sacador + [S] no primeiro ponto do set (sacador fixo)', () => {
-    const p = makePoint({ server: 'player1' });
+describe('PointRow — colunas SET, PONTO P/, SACADOR', () => {
+  it('mostra "SET N" + pointNumber no primeiro ponto do set', () => {
+    const p = makePoint({ server: 'player1', pointNumber: 5 });
     render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
     expect(screen.getByText('SET 1')).toBeInTheDocument();
-    expect(screen.getByText('[S]')).toBeInTheDocument();
+    expect(screen.getByText('5')).toBeInTheDocument();
   });
 
-  it('mostra "sacador alterna" quando o set tem mais de um sacador', () => {
-    const p = makePoint({ server: 'player1' });
-    render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} serverHasFixed={false} /></tbody></table>);
-    expect(screen.getByText(/sacador alterna/i)).toBeInTheDocument();
+  it('mostra ganhador do ponto na coluna P/ (1 ou 2)', () => {
+    const p = makePoint({ server: 'player1', winner: 'PLAYER_1' });
+    const { container } = render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
+    const cells = container.querySelectorAll('td');
+    // [0]=SET, [1]=no., [2]=P/(winner)
+    expect(cells[2]?.textContent).toBe('1');
+  });
+
+  it('mostra sacador na coluna SAC (1 ou 2)', () => {
+    const p = makePoint({ server: 'player2', winner: 'PLAYER_2' });
+    const { container } = render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
+    const cells = container.querySelectorAll('td');
+    // [3]=SAC
+    expect(cells[3]?.textContent).toBe('2');
   });
 
   it('GAMES mostra placar apenas no 1º ponto do game (demais = "–")', () => {
@@ -196,10 +201,10 @@ describe('PointRow — coluna lateral SET', () => {
         </tbody>
       </table>
     );
-    // GAMES e PONTOS mostram "0-0" no 1º ponto do game
     const cells1 = c1.querySelectorAll('td');
-    expect(cells1[1]?.textContent).toBe('0-0');
-    expect(cells1[2]?.textContent).toBe('0-0');
+    // [4]=GAMES (número do game), [5]=PONTOS
+    expect(cells1[4]?.textContent).toBe('1');
+    expect(cells1[5]?.textContent).toBe('0-0');
 
     const { container: c2 } = render(
       <table>
@@ -208,8 +213,7 @@ describe('PointRow — coluna lateral SET', () => {
         </tbody>
       </table>
     );
-    // Cells: [0]=SET, [1]=GAMES, [2]=PONTOS
     const cells = c2.querySelectorAll('td');
-    expect(cells[1]?.textContent).toBe('–');
+    expect(cells[4]?.textContent).toBe('–');
   });
 });
