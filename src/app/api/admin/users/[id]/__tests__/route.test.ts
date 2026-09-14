@@ -11,11 +11,11 @@ const mockUpdateUser = updateUser as jest.MockedFunction<typeof updateUser>;
 const mockDeleteUser = deleteUser as jest.MockedFunction<typeof deleteUser>;
 
 let ADMIN_HEADERS: Record<string, string> = {};
-let ATHLETE_HEADERS: Record<string, string> = {};
+let ANNOTATOR_HEADERS: Record<string, string> = {};
 
 beforeAll(async () => {
   ADMIN_HEADERS = await makeAuthHeaders('user-admin', 'ADMIN');
-  ATHLETE_HEADERS = await makeAuthHeaders('user-ath', 'ATHLETE');
+  ANNOTATOR_HEADERS = await makeAuthHeaders('user-ath', 'ANNOTATOR');
 });
 
 describe('Admin User [id] API', () => {
@@ -29,7 +29,7 @@ describe('Admin User [id] API', () => {
       const req = new NextRequest('http://localhost:3000/api/admin/users/u1', {
         method: 'PATCH',
         body: JSON.stringify({ name: 'Edit' }),
-        headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+        headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
       });
       const res = await PATCH(req, { params: Promise.resolve({ id: 'u1' }) });
       expect(res.status).toBe(403);
@@ -75,18 +75,18 @@ describe('Admin User [id] API', () => {
     });
 
     it('deve atualizar usuário com sucesso', async () => {
-      mockUpdateUser.mockResolvedValue({ id: 'u1', name: 'Editado', email: 'a@b.com', role: 'COACH', club: null });
+      mockUpdateUser.mockResolvedValue({ id: 'u1', name: 'Editado', email: 'a@b.com', role: 'ANNOTATOR', club: null });
 
       const { PATCH } = await import('../route');
       const req = new NextRequest('http://localhost:3000/api/admin/users/u1', {
         method: 'PATCH',
-        body: JSON.stringify({ name: 'Editado', role: 'COACH' }),
+        body: JSON.stringify({ name: 'Editado', role: 'ANNOTATOR' }),
         headers: { 'Content-Type': 'application/json', ...ADMIN_HEADERS },
       });
       const res = await PATCH(req, { params: Promise.resolve({ id: 'u1' }) });
       const data = await res.json();
       expect(data.name).toBe('Editado');
-      expect(mockUpdateUser).toHaveBeenCalledWith('u1', { name: 'Editado', role: 'COACH' });
+      expect(mockUpdateUser).toHaveBeenCalledWith('u1', { name: 'Editado', role: 'ANNOTATOR' });
     });
 
     it('deve retornar 500 em caso de erro inesperado', async () => {
@@ -108,7 +108,7 @@ describe('Admin User [id] API', () => {
       const { DELETE } = await import('../route');
       const req = new NextRequest('http://localhost:3000/api/admin/users/u1', {
         method: 'DELETE',
-        headers: ATHLETE_HEADERS,
+        headers: ANNOTATOR_HEADERS,
       });
       const res = await DELETE(req, { params: Promise.resolve({ id: 'u1' }) });
       expect(res.status).toBe(403);

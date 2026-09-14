@@ -44,7 +44,7 @@ describe('matchService', () => {
         { id: 'm1', state: 'SCHEDULED', player1: { id: 'p1', name: 'P1' }, player2: { id: 'p2', name: 'P2' } },
       ]);
 
-      const result = await listMatches(null, null, 20);
+      const result = await listMatches(null, null, 20, 'user-1');
 
       expect(mockPrisma.match.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -73,6 +73,7 @@ describe('matchService', () => {
             initialServerId: true,
             player1: { select: { id: true, name: true } },
             player2: { select: { id: true, name: true } },
+            createdByUserId: true,
           },
           orderBy: { createdAt: 'desc' },
         }),
@@ -84,14 +85,14 @@ describe('matchService', () => {
 
       mockPrisma.match.findMany.mockResolvedValue([]);
 
-      await listMatches('IN_PROGRESS', 'cursor-abc', 10);
+      await listMatches('IN_PROGRESS', 'cursor-abc', 10, 'user-1');
 
       expect(mockPrisma.match.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           take: 10,
           skip: 1,
           cursor: { id: 'cursor-abc' },
-          where: { deletedAt: null, state: 'IN_PROGRESS' },
+          where: { deletedAt: null, createdByUserId: 'user-1', state: 'IN_PROGRESS' },
         }),
       );
     });

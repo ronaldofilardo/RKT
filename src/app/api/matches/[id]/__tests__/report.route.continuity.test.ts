@@ -53,7 +53,7 @@ function makeReq() {
     headers: {
       authorization: 'Bearer fake-token',
       'x-user-id': 'p1',
-      'x-user-role': 'ATHLETE',
+      'x-user-role': 'ANNOTATOR',
     },
   });
 }
@@ -80,7 +80,7 @@ describe('GET /api/matches/[id]/report — regressão: sem duplicar sets, sem pe
   beforeEach(() => {
     jest.clearAllMocks();
     mockJwtVerify.mockImplementation(async () => ({
-      payload: { sub: 'p1', role: 'ATHLETE' },
+      payload: { sub: 'p1', role: 'ANNOTATOR' },
     } as any));
   });
 

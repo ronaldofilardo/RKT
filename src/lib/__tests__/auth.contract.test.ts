@@ -10,7 +10,7 @@
  * documentação como ADR ou PR que migra todos os consumers.
  *
  * Owner: @qa
- * Atualizado em: 2026-07-25
+ * Atualizado em: 2026-09-13 — Role enum: ADMIN | ANNOTATOR
  */
 
 import { describe, it, expect, beforeEach } from '@jest/globals';
@@ -28,7 +28,7 @@ describe('CONTRACT: withRLSHandler — Auth/RLS drift detection', () => {
   let validToken: string;
 
   beforeEach(async () => {
-    validToken = await makeToken('jwt-user', 'ATHLETE');
+    validToken = await makeToken('jwt-user', 'ANNOTATOR');
   });
 
   describe('Resolução de usuário (precedência)', () => {
@@ -37,9 +37,9 @@ describe('CONTRACT: withRLSHandler — Auth/RLS drift detection', () => {
         makeRequest({
           authorization: `Bearer ${validToken}`,
           'x-user-id': 'middleware-user',
-          'x-user-role': 'ATHLETE',
+          'x-user-role': 'ANNOTATOR',
         }),
-        'ATHLETE',
+        'ANNOTATOR',
         async () => {
           const user = getRLSUser();
           return Response.json({ userId: user?.id, source: 'headers' });
@@ -54,7 +54,7 @@ describe('CONTRACT: withRLSHandler — Auth/RLS drift detection', () => {
     it('Faz fallback ao JWT quando headers x-user-* ausentes', async () => {
       const result = await withRLSHandler(
         makeRequest({ authorization: `Bearer ${validToken}` }),
-        'ATHLETE',
+        'ANNOTATOR',
         async () => {
           const user = getRLSUser();
           return Response.json({ userId: user?.id, source: 'jwt' });
@@ -69,7 +69,7 @@ describe('CONTRACT: withRLSHandler — Auth/RLS drift detection', () => {
     it('Rejeita (401) quando token é inválido', async () => {
       const result = await withRLSHandler(
         makeRequest({ authorization: 'Bearer invalid-token' }),
-        'ATHLETE',
+        'ANNOTATOR',
         async () => 'should-not-reach',
       );
 
@@ -79,7 +79,7 @@ describe('CONTRACT: withRLSHandler — Auth/RLS drift detection', () => {
     it('Rejeita (401) quando não há token nem headers', async () => {
       const result = await withRLSHandler(
         makeRequest(),
-        'ATHLETE',
+        'ANNOTATOR',
         async () => 'should-not-reach',
       );
 
@@ -96,10 +96,7 @@ describe('CONTRACT: withRLSHandler — Auth/RLS drift detection', () => {
         rlsRoleHeader: 'x-user-role',
         rlsRoleHeaderValues: [
           'ADMIN',
-          'GESTOR',
-          'COACH',
-          'ATHLETE',
-          'SPECTATOR',
+          'ANNOTATOR',
         ],
         precedenceOrder: ['middleware-headers', 'jwt-fallback'],
         errorResponses: {
@@ -112,26 +109,7 @@ describe('CONTRACT: withRLSHandler — Auth/RLS drift detection', () => {
 
       // Snapshot — qualquer mudança no contrato exige atualizar este
       // snapshot e revisão manual dos consumers.
-      expect(contract).toMatchInlineSnapshot({
-  authHeader: 'authorization',
-  authScheme: 'Bearer',
-  rlsIdHeader: 'x-user-id',
-  rlsRoleHeader: 'x-user-role',
-  rlsRoleHeaderValues: [
-  'ADMIN',
-  'GESTOR',
-  'COACH',
-  'ATHLETE',
-  'SPECTATOR'],
-
-  precedenceOrder: ['middleware-headers', 'jwt-fallback'],
-  errorResponses: {
-    missingToken: { status: 401, code: 'FORBIDDEN' },
-    invalidToken: { status: 401, code: 'UNAUTHORIZED' },
-    insufficientRole: { status: 403, code: 'FORBIDDEN' },
-    noRlsContext: { status: 401, code: 'UNAUTHORIZED' }
-  }
-}, `
+      expect(contract).toMatchInlineSnapshot(`
 {
   "authHeader": "authorization",
   "authScheme": "Bearer",
@@ -161,10 +139,7 @@ describe('CONTRACT: withRLSHandler — Auth/RLS drift detection', () => {
   "rlsRoleHeader": "x-user-role",
   "rlsRoleHeaderValues": [
     "ADMIN",
-    "GESTOR",
-    "COACH",
-    "ATHLETE",
-    "SPECTATOR",
+    "ANNOTATOR",
   ],
 }
 `);
@@ -175,7 +150,7 @@ describe('CONTRACT: withRLSHandler — Auth/RLS drift detection', () => {
     it('Dentro de handler, getRLSUser reflete o usuário autenticado', async () => {
       await withRLSHandler(
         makeRequest({ authorization: `Bearer ${validToken}` }),
-        'ATHLETE',
+        'ANNOTATOR',
         async () => {
           expect(getRLSUser()?.id).toBe('jwt-user');
           return new Response('ok');
@@ -186,7 +161,7 @@ describe('CONTRACT: withRLSHandler — Auth/RLS drift detection', () => {
     it('Fora do handler, getRLSUser é null (sem vazamento de contexto)', async () => {
       await withRLSHandler(
         makeRequest({ authorization: `Bearer ${validToken}` }),
-        'ATHLETE',
+        'ANNOTATOR',
         async () => new Response('ok'),
       );
 

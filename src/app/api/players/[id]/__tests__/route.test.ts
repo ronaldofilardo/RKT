@@ -18,15 +18,15 @@ const mockCountPlayerActiveMatches = countPlayerActiveMatches as jest.MockedFunc
 
 const PLAYER_ID = 'player-123';
 
-const ATHLETE = makeAuthHeadersSync(PLAYER_ID, 'ATHLETE');
-const OTHER_ATHLETE = makeAuthHeadersSync('other-user', 'ATHLETE');
+const ANNOTATOR = makeAuthHeadersSync(PLAYER_ID, 'ANNOTATOR');
+const OTHER_ANNOTATOR = makeAuthHeadersSync('other-user', 'ANNOTATOR');
 const ADMIN = makeAuthHeadersSync('admin-1', 'ADMIN');
-const SPECTATOR = makeAuthHeadersSync('user-2', 'SPECTATOR');
+const ANNOTATOR_2 = makeAuthHeadersSync('user-2', 'ANNOTATOR');
 
 function getReq(headers: Record<string, string> = {}) {
   return new NextRequest(`http://localhost:3000/api/players/${PLAYER_ID}`, {
     method: 'GET',
-    headers: { ...SPECTATOR, ...headers },
+    headers: { ...ANNOTATOR_2, ...headers },
   });
 }
 
@@ -34,14 +34,14 @@ function putReq(body: unknown, headers: Record<string, string> = {}) {
   return new NextRequest(`http://localhost:3000/api/players/${PLAYER_ID}`, {
     method: 'PUT',
     body: JSON.stringify(body),
-    headers: { 'Content-Type': 'application/json', ...ATHLETE, ...headers },
+    headers: { 'Content-Type': 'application/json', ...ANNOTATOR, ...headers },
   });
 }
 
 function deleteReq(headers: Record<string, string> = {}) {
   return new NextRequest(`http://localhost:3000/api/players/${PLAYER_ID}`, {
     method: 'DELETE',
-    headers: { ...ATHLETE, ...headers },
+    headers: { ...ANNOTATOR, ...headers },
   });
 }
 
@@ -96,7 +96,7 @@ describe('PUT /api/players/[id]', () => {
   });
 
   it('deve retornar 403 quando outro atleta tenta atualizar perfil de terceiro', async () => {
-    const res = await PUT(putReq({ name: 'Hacker' }, OTHER_ATHLETE), {
+    const res = await PUT(putReq({ name: 'Hacker' }, OTHER_ANNOTATOR), {
       params: Promise.resolve({ id: PLAYER_ID }),
     });
     expect(res.status).toBe(403);
@@ -277,7 +277,7 @@ describe('PUT /api/players/[id]', () => {
   });
 
   it('deve chamar com headers de auth (não bloqueia, mas exercita o path)', async () => {
-    const headers = makeAuthHeadersSync(PLAYER_ID, 'ATHLETE');
+    const headers = makeAuthHeadersSync(PLAYER_ID, 'ANNOTATOR');
     const res = await PUT(putReq({ name: 'João' }, headers), {
       params: Promise.resolve({ id: PLAYER_ID }),
     });
@@ -288,13 +288,13 @@ describe('PUT /api/players/[id]', () => {
 describe('DELETE /api/players/[id]', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetPlayer.mockResolvedValue({ id: PLAYER_ID, name: 'João' } as any);
+    mockGetPlayer.mockResolvedValue({ id: PLAYER_ID, name: 'João', createdByUserId: PLAYER_ID } as any);
     mockCountPlayerActiveMatches.mockResolvedValue([]);
     mockDeletePlayer.mockResolvedValue({ id: PLAYER_ID, name: 'João' } as any);
   });
 
   it('deve retornar 403 quando outro atleta tenta excluir perfil de terceiro', async () => {
-    const res = await DELETE(deleteReq(OTHER_ATHLETE), {
+    const res = await DELETE(deleteReq(OTHER_ANNOTATOR), {
       params: Promise.resolve({ id: PLAYER_ID }),
     });
     expect(res.status).toBe(403);

@@ -12,10 +12,10 @@ import { makeAuthHeaders } from '@/test-helpers/auth';
 
 const mockPrisma = prisma as any;
 
-let SPECTATOR_HEADERS: Record<string, string> = {};
+let ANNOTATOR_HEADERS: Record<string, string> = {};
 
 beforeAll(async () => {
-  SPECTATOR_HEADERS = await makeAuthHeaders('user-1', 'SPECTATOR');
+  ANNOTATOR_HEADERS = await makeAuthHeaders('user-1', 'ANNOTATOR');
 });
 
 describe('GET /api/matches/suspended-sessions', () => {
@@ -38,7 +38,7 @@ describe('GET /api/matches/suspended-sessions', () => {
     mockPrisma.matchAnnotationSession.findMany.mockResolvedValue([]);
 
     const req = new NextRequest('http://localhost:3000/api/matches/suspended-sessions', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
     const mod = await import('@/app/api/matches/suspended-sessions/route');
     const GET = mod.GET;
@@ -74,7 +74,7 @@ describe('GET /api/matches/suspended-sessions', () => {
     ]);
 
     const req = new NextRequest('http://localhost:3000/api/matches/suspended-sessions', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
     const mod = await import('@/app/api/matches/suspended-sessions/route');
     const GET = mod.GET;
@@ -95,7 +95,7 @@ describe('GET /api/matches/suspended-sessions', () => {
     mockPrisma.matchAnnotationSession.findMany.mockResolvedValue([]);
 
     const req = new NextRequest('http://localhost:3000/api/matches/suspended-sessions', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
     const mod = await import('@/app/api/matches/suspended-sessions/route');
     const GET = mod.GET;
@@ -131,7 +131,7 @@ describe('GET /api/matches/suspended-sessions', () => {
     ]);
 
     const req = new NextRequest('http://localhost:3000/api/matches/suspended-sessions', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
     const mod = await import('@/app/api/matches/suspended-sessions/route');
     const GET = mod.GET;
@@ -168,7 +168,7 @@ describe('GET /api/matches/suspended-sessions', () => {
     ]);
 
     const req = new NextRequest('http://localhost:3000/api/matches/suspended-sessions', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
     const mod = await import('@/app/api/matches/suspended-sessions/route');
     const GET = mod.GET;
@@ -186,7 +186,7 @@ describe('GET /api/matches/suspended-sessions', () => {
     mockPrisma.matchAnnotationSession.findMany.mockResolvedValue([]);
 
     const req = new NextRequest('http://localhost:3000/api/matches/suspended-sessions', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
     const mod = await import('@/app/api/matches/suspended-sessions/route');
     const GET = mod.GET;
@@ -202,7 +202,7 @@ describe('GET /api/matches/suspended-sessions', () => {
     mockPrisma.matchAnnotationSession.findMany.mockRejectedValue(new Error('DB Error'));
 
     const req = new NextRequest('http://localhost:3000/api/matches/suspended-sessions', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
     const mod = await import('@/app/api/matches/suspended-sessions/route');
     const GET = mod.GET;

@@ -35,12 +35,10 @@ const mockPrisma = prisma as any;
 const txMock = (mockPrisma as any).__txMock;
 const mockFindDuplicateMatch = findDuplicateMatch as jest.MockedFunction<typeof findDuplicateMatch>;
 
-let ATHLETE_HEADERS: Record<string, string> = {};
-let SPECTATOR_HEADERS: Record<string, string> = {};
+let ANNOTATOR_HEADERS: Record<string, string> = {};
 
 beforeAll(async () => {
-  ATHLETE_HEADERS = await makeAuthHeaders('user-ath', 'ATHLETE');
-  SPECTATOR_HEADERS = await makeAuthHeaders('user-spect', 'SPECTATOR');
+  ANNOTATOR_HEADERS = await makeAuthHeaders('user-ath', 'ANNOTATOR');
 });
 
 describe('GET /api/matches', () => {
@@ -50,7 +48,7 @@ describe('GET /api/matches', () => {
 
   it('deve retornar 403 se usuário não tem permissão', async () => {
     // Sem headers de auth, requireRole rejeita com 401 (ausência de token).
-    // Não há role abaixo de SPECTATOR para simular role insuficiente.
+    // Não há role abaixo de ANNOTATOR para simular role insuficiente.
     const req = new NextRequest('http://localhost:3000/api/matches');
     const mod = await import('@/app/api/matches/route');
     const GET = mod.GET;
@@ -80,7 +78,7 @@ describe('GET /api/matches', () => {
     mockPrisma.match.findMany.mockResolvedValue(mockMatches as any);
 
     const req = new NextRequest('http://localhost:3000/api/matches', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
     const mod = await import('@/app/api/matches/route');
     const GET = mod.GET;
@@ -116,6 +114,7 @@ describe('GET /api/matches', () => {
           initialServerId: true,
           player1: { select: { id: true, name: true } },
           player2: { select: { id: true, name: true } },
+          createdByUserId: true,
         },
         orderBy: { createdAt: 'desc' },
       })
@@ -126,7 +125,7 @@ describe('GET /api/matches', () => {
     mockPrisma.match.findMany.mockResolvedValue([]);
 
     const req = new NextRequest('http://localhost:3000/api/matches?state=IN_PROGRESS', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
     const mod = await import('@/app/api/matches/route');
     const GET = mod.GET;
@@ -149,7 +148,7 @@ describe('GET /api/matches', () => {
     mockPrisma.match.findMany.mockResolvedValue(mockMatches as any);
 
     const req = new NextRequest('http://localhost:3000/api/matches?limit=2', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
     const mod = await import('@/app/api/matches/route');
     const GET = mod.GET;
@@ -170,7 +169,7 @@ describe('GET /api/matches', () => {
     mockPrisma.match.findMany.mockResolvedValue(mockMatches as any);
 
     const req = new NextRequest('http://localhost:3000/api/matches?limit=10', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
     const mod = await import('@/app/api/matches/route');
     const GET = mod.GET;
@@ -209,7 +208,7 @@ describe('POST /api/matches', () => {
         format: 'BEST_OF_3',
         sportType: 'TENNIS',
       }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
 
     const mod = await import('@/app/api/matches/route');
@@ -246,7 +245,7 @@ describe('POST /api/matches', () => {
         sportType: 'TENNIS',
         category: 'ADULTO',
       }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
 
     const mod = await import('@/app/api/matches/route');
@@ -289,7 +288,7 @@ describe('POST /api/matches', () => {
         sportType: 'TENNIS',
         category: 'INFANTIL',
       }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
 
     const mod = await import('@/app/api/matches/route');
@@ -317,7 +316,7 @@ describe('POST /api/matches', () => {
         format: 'BEST_OF_3',
         scheduledAt: '2025-01-01T10:00:00Z',
       }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
 
     const mod = await import('@/app/api/matches/route');
@@ -328,7 +327,7 @@ describe('POST /api/matches', () => {
 
     expect(res.status).toBe(409);
     expect(data.error).toBe('CONFLICT');
-    expect(data.details.existing.id).toBe('dup-match');
+    expect(data.details.id).toBe('dup-match');
   });
 
   it('deve ignorar duplicata quando force=true', async () => {
@@ -349,7 +348,7 @@ describe('POST /api/matches', () => {
         scheduledAt: '2025-01-01T10:00:00Z',
         force: true,
       }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
 
     const mod = await import('@/app/api/matches/route');
@@ -365,7 +364,7 @@ describe('POST /api/matches', () => {
     mockPrisma.match.findMany.mockRejectedValue(new Error('DB Error'));
 
     const req = new NextRequest('http://localhost:3000/api/matches', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
     const mod = await import('@/app/api/matches/route');
     const GET = mod.GET;
@@ -385,7 +384,7 @@ describe('POST /api/matches', () => {
         player2Id: 'player-2',
         format: 'BEST_OF_3',
       }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
 
     const mod = await import('@/app/api/matches/route');

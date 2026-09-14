@@ -3,6 +3,7 @@ jest.mock('@/lib/prisma', () => ({
     player: {
       findMany: jest.fn(),
       findUnique: jest.fn(),
+      findFirst: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
@@ -27,15 +28,15 @@ describe('playerService', () => {
       const { listPlayers } = await import('@/services/playerService');
 
       mockPrisma.player.findMany.mockResolvedValue([
-        { id: 'p1', name: 'Ana', gender: null, age: null, birthDate: null, dominance: null, backhand: null, ranking: null, rankings: null },
-        { id: 'p2', name: 'Bruno', gender: null, age: null, birthDate: null, dominance: null, backhand: null, ranking: null, rankings: null },
+        { id: 'p1', name: 'Ana', gender: null, age: null, birthDate: null, dominance: null, backhand: null, ranking: null, rankings: null, club: null },
+        { id: 'p2', name: 'Bruno', gender: null, age: null, birthDate: null, dominance: null, backhand: null, ranking: null, rankings: null, club: null },
       ]);
 
       const result = await listPlayers(null, 20);
 
       expect(mockPrisma.player.findMany).toHaveBeenCalledWith({
         take: 20,
-        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true },
+        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true },
         orderBy: { name: 'asc' },
         where: {},
       });
@@ -111,7 +112,6 @@ describe('playerService', () => {
       const result = await createPlayer({
         name: 'Novo',
         email: 'novo@test.com',
-        passwordHash: 'hash123',
         gender: 'MALE',
         age: 25,
         birthDate: mockBirthDate,
@@ -125,7 +125,6 @@ describe('playerService', () => {
         data: expect.objectContaining({
           name: 'Novo',
           email: 'novo@test.com',
-          passwordHash: 'hash123',
           gender: 'MALE',
           age: 25,
           birthDate: mockBirthDate,
@@ -134,7 +133,7 @@ describe('playerService', () => {
           ranking: 10,
           rankings: { ESTADUAL: { category: '15-16', class: '4ªMA', position: 5 } },
         }),
-        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true },
+        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true },
       });
       expect(result.birthDate).toEqual(mockBirthDate);
     });
@@ -165,19 +164,17 @@ describe('playerService', () => {
     it('deve buscar jogador por email', async () => {
       const { findPlayerByEmail } = await import('@/services/playerService');
 
-      mockPrisma.player.findUnique.mockResolvedValue({
+      mockPrisma.player.findFirst.mockResolvedValue({
         id: 'p1',
         name: 'Player',
         email: 'player@test.com',
-        role: 'COACH',
-        passwordHash: 'hash',
       });
 
       const result = await findPlayerByEmail('player@test.com');
 
-      expect(mockPrisma.player.findUnique).toHaveBeenCalledWith({
+      expect(mockPrisma.player.findFirst).toHaveBeenCalledWith({
         where: { email: 'player@test.com' },
-        select: { id: true, name: true, email: true, role: true, passwordHash: true },
+        select: { id: true, name: true, email: true },
       });
       expect(result?.name).toBe('Player');
     });
@@ -185,7 +182,7 @@ describe('playerService', () => {
     it('deve retornar null quando jogador não existe', async () => {
       const { findPlayerByEmail } = await import('@/services/playerService');
 
-      mockPrisma.player.findUnique.mockResolvedValue(null);
+      mockPrisma.player.findFirst.mockResolvedValue(null);
 
       const result = await findPlayerByEmail('nobody@test.com');
 
@@ -209,13 +206,13 @@ describe('playerService', () => {
         rankings: null,
       });
 
-      const result = await createPlayer({ name: 'Novo', email: 'novo@test.com', passwordHash: 'hash123' });
+      const result = await createPlayer({ name: 'Novo', email: 'novo@test.com' });
 
       expect(mockPrisma.player.create).toHaveBeenCalledWith({
         data: {
           name: 'Novo',
           email: 'novo@test.com',
-          passwordHash: 'hash123',
+          club: null,
           gender: undefined,
           age: undefined,
           birthDate: undefined,
@@ -225,11 +222,11 @@ describe('playerService', () => {
           rankings: undefined,
           createdByUserId: undefined,
         },
-        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true },
+        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true },
       });
     });
 
-    it('deve usar email placeholder quando não fornecido', async () => {
+    it('deve definir null no email quando não fornecido', async () => {
       const { createPlayer } = await import('@/services/playerService');
 
       mockPrisma.player.create.mockResolvedValue({
@@ -248,13 +245,10 @@ describe('playerService', () => {
         expect.objectContaining({
           data: expect.objectContaining({
             name: 'Sem Email',
-            passwordHash: 'PLACEHOLDER',
+            email: null,
           }),
         }),
       );
-
-      const callArgs = mockPrisma.player.create.mock.calls[0][0];
-      expect(callArgs.data.email).toMatch(/^temp_.*@placeholder\.local$/);
     });
   });
 
@@ -272,6 +266,7 @@ describe('playerService', () => {
         backhand: '1H',
         ranking: 10,
         rankings: null,
+        club: null,
         createdByUserId: 'user-1',
       });
 
@@ -279,7 +274,7 @@ describe('playerService', () => {
 
       expect(mockPrisma.player.findUnique).toHaveBeenCalledWith({
         where: { id: 'p1' },
-        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, createdByUserId: true },
+        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, createdByUserId: true },
       });
       expect(result?.name).toBe('Player');
     });
@@ -330,7 +325,7 @@ describe('playerService', () => {
           backhand: '2H',
           ranking: 5,
         },
-        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true },
+        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true },
       });
       expect(result.name).toBe('Updated');
     });
@@ -440,7 +435,6 @@ describe('playerService', () => {
 
       expect(mockPrisma.player.delete).toHaveBeenCalledWith({
         where: { id: 'p1' },
-        select: { id: true, name: true },
       });
       expect(result.name).toBe('Fulano');
     });

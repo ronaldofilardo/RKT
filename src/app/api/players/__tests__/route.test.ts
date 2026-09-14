@@ -19,12 +19,12 @@ import { makeAuthHeaders } from '@/test-helpers/auth';
 const mockListPlayers = listPlayers as jest.MockedFunction<typeof listPlayers>;
 const mockCreatePlayer = createPlayer as jest.MockedFunction<typeof createPlayer>;
 
-let ATHLETE_HEADERS: Record<string, string> = {};
-let SPECTATOR_HEADERS: Record<string, string> = {};
+let ANNOTATOR_HEADERS: Record<string, string> = {};
+let ADMIN_HEADERS: Record<string, string> = {};
 
 beforeAll(async () => {
-  ATHLETE_HEADERS = await makeAuthHeaders('user-athlete', 'ATHLETE');
-  SPECTATOR_HEADERS = await makeAuthHeaders('user-spect', 'SPECTATOR');
+  ANNOTATOR_HEADERS = await makeAuthHeaders('user-athlete', 'ANNOTATOR');
+  ADMIN_HEADERS = await makeAuthHeaders('user-admin', 'ADMIN');
 });
 
 describe('GET /api/players', () => {
@@ -55,7 +55,7 @@ describe('GET /api/players', () => {
     mockListPlayers.mockResolvedValue(mockPlayers as any);
 
     const req = new NextRequest('http://localhost:3000/api/players?userId=user-123', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
     const mod = await import('@/app/api/players/route');
     const GET = mod.GET;
@@ -77,7 +77,7 @@ describe('GET /api/players', () => {
     mockListPlayers.mockResolvedValue(mockPlayers as any);
 
     const req = new NextRequest('http://localhost:3000/api/players?limit=100', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
     const mod = await import('@/app/api/players/route');
     const GET = mod.GET;
@@ -100,7 +100,7 @@ describe('POST /api/players', () => {
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({ name: 'A' }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
@@ -115,7 +115,7 @@ describe('POST /api/players', () => {
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({}),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
@@ -128,7 +128,7 @@ describe('POST /api/players', () => {
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({ name: 'Test', gender: 'INVALID' }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
@@ -144,7 +144,7 @@ describe('POST /api/players', () => {
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({ name: 'Test', age: 0 }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
@@ -160,7 +160,7 @@ describe('POST /api/players', () => {
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({ name: 'Test', age: 121 }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
@@ -175,7 +175,7 @@ describe('POST /api/players', () => {
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({ name: 'Test', dominance: 'INVALID' }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
@@ -191,7 +191,7 @@ describe('POST /api/players', () => {
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({ name: 'Test', backhand: 'INVALID' }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
@@ -207,7 +207,7 @@ describe('POST /api/players', () => {
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({ name: 'Test', rankings: ['ESTADUAL'] }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
@@ -223,7 +223,7 @@ describe('POST /api/players', () => {
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({ name: 'Test', rankings: { INVALID: { position: 1 } } }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
@@ -239,7 +239,7 @@ describe('POST /api/players', () => {
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({ name: 'Test', rankings: { ESTADUAL: { position: 0 } } }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
@@ -255,7 +255,7 @@ describe('POST /api/players', () => {
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({ name: 'Test', rankings: { ESTADUAL: 5 } }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
@@ -288,7 +288,7 @@ describe('POST /api/players', () => {
         backhand: 'ONE_HANDED',
         rankings: { ESTADUAL: { category: '15-16', class: '4ªMA', position: 5 } },
       }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
@@ -300,18 +300,31 @@ describe('POST /api/players', () => {
     expect(data.data.rankings).toEqual({ ESTADUAL: { category: '15-16', class: '4ªMA', position: 5 } });
   });
 
-  it('deve retornar 403 se usuário não tem role ATHLETE', async () => {
-    // SPECTATOR é role insuficiente para POST /api/players (exige ATHLETE)
+  it('deve aceitar POST de ADMIN (ADMIN >= ANNOTATOR)', async () => {
+    // ADMIN tem role superior a ANNOTATOR, então pode acessar endpoints de ANNOTATOR
+    mockCreatePlayer.mockResolvedValue({
+      id: 'p1',
+      name: 'Teste',
+      gender: null,
+      age: null,
+      birthDate: null,
+      dominance: null,
+      backhand: null,
+      ranking: null,
+      rankings: null,
+      club: null,
+    });
+
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({ name: 'Teste' }),
-      headers: { 'Content-Type': 'application/json', ...SPECTATOR_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ADMIN_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
 
     const res = await POST(req);
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(201);
   });
 
   it('deve retornar 500 se ocorrer erro interno', async () => {
@@ -320,7 +333,7 @@ describe('POST /api/players', () => {
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({ name: 'Jogador' }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
@@ -333,7 +346,7 @@ describe('POST /api/players', () => {
     mockListPlayers.mockRejectedValue(new Error('DB Error'));
 
     const req = new NextRequest('http://localhost:3000/api/players?userId=user-123', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
     const mod = await import('@/app/api/players/route');
     const GET = mod.GET;
@@ -363,7 +376,7 @@ describe('POST /api/players - birthDate validation', () => {
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({ name: 'Test', birthDate: 'invalid-date' }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
@@ -391,7 +404,7 @@ describe('POST /api/players - birthDate validation', () => {
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({ name: 'Test', birthDate: '1999-01-01' }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
@@ -410,7 +423,7 @@ describe('POST /api/players - birthDate validation', () => {
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({ name: 'Test', birthDate: 'not-a-date' }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
@@ -427,7 +440,7 @@ describe('POST /api/players - birthDate validation', () => {
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({ name: 'Test', birthDate: futureDateStr }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
@@ -453,7 +466,7 @@ describe('POST /api/players - birthDate validation', () => {
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({ name: 'Test', age: 30, birthDate: '1999-01-01' }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;
@@ -483,7 +496,7 @@ describe('POST /api/players - birthDate validation', () => {
     const req = new NextRequest('http://localhost:3000/api/players', {
       method: 'POST',
       body: JSON.stringify({ name: 'Test', birthDate: '1999-03-15' }),
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/players/route');
     const POST = mod.POST;

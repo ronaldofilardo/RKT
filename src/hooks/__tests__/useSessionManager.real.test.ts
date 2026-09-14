@@ -22,7 +22,6 @@ describe('useSessionManager - Regressoes Reais', () => {
       setScoreState: jest.fn(),
       setSessionActive: jest.fn(),
       setFloorCurrentSets: jest.fn(),
-      setPendingEditScore: jest.fn(),
       setSuspendedSession: jest.fn(),
     };
 

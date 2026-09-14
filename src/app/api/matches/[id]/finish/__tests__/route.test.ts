@@ -9,13 +9,13 @@ import { finishMatch } from '@/services/matchService';
 import { makeAuthHeadersSync } from '@/test-helpers/auth';
 
 const mockFinishMatch = finishMatch as jest.MockedFunction<typeof finishMatch>;
-const ATHLETE = makeAuthHeadersSync('user-1', 'ATHLETE');
+const ANNOTATOR = makeAuthHeadersSync('user-1', 'ANNOTATOR');
 
 function finishReq(body: unknown, headers: Record<string, string> = {}) {
   return new NextRequest('http://localhost:3000/api/matches/match-1/finish', {
     method: 'POST',
     body: JSON.stringify(body),
-    headers: { 'Content-Type': 'application/json', ...ATHLETE, ...headers },
+    headers: { 'Content-Type': 'application/json', ...ANNOTATOR, ...headers },
   });
 }
 

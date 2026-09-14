@@ -36,7 +36,7 @@ const mockFindFirst = mockPrisma.match.findFirst as jest.Mock;
 let ATHLETE_HEADERS: Record<string, string> = {};
 
 beforeAll(async () => {
-  ATHLETE_HEADERS = await makeAuthHeaders('user-123', 'ATHLETE');
+  ATHLETE_HEADERS = await makeAuthHeaders('user-123', 'ANNOTATOR');
 });
 
 function makeRequest(id: string, body: any) {

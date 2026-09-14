@@ -124,9 +124,10 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
           } else {
             openRef.current("setup");
           }
-          setScoreState(
-            (engineRef.current?.getState() as ScoringState) ?? null,
-          );
+          setScoreState({
+            type: "RESYNCED_FROM_SERVER",
+            payload: (engineRef.current?.getState() as ScoringState) ?? null,
+          });
 
           if (forceEngineReset && engineRef.current) {
             const serverHistory = engineRef.current.getPointHistory();
@@ -259,7 +260,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         
         engineRef.current.applyPoint(flow);
         const newState = engineRef.current.getState() as ScoringState;
-        setScoreState(newState);
+        setScoreState({ type: "POINT_APPLIED", payload: newState });
         setPointsHistory((prev) => [...prev.slice(-19), flow.winnerId]);
         const seq = ++pointSequenceRef.current;
 
@@ -283,7 +284,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
               serverSets: serverState.sets?.length,
             });
           } else {
-            setScoreState(serverState);
+            setScoreState({ type: "POINT_APPLIED", payload: serverState });
             engineRef.current = ScoringEngine.fromSerialized(
               {
                 format: match.format as any,
@@ -426,7 +427,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       const undone = engineRef.current.undoLastPoint();
       if (!undone) return;
       const newState = engineRef.current.getState() as ScoringState;
-      setScoreState(newState);
+      setScoreState({ type: "UNDO", payload: newState });
       setPointsHistory((prev) => prev.slice(0, -1));
 
       const pointLogIdToVoid = lastPointLogIdRef.current;
@@ -448,7 +449,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         const restored =
           (engineRef.current?.getState() as ScoringState | undefined) ?? null;
         if (restored) {
-          setScoreState(restored);
+          setScoreState({ type: "RESYNCED_FROM_SERVER", payload: restored });
         }
         closeAll();
       }
@@ -478,7 +479,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       const redone = engineRef.current.replayCurrentPoint();
       if (!redone) return;
       const newState = engineRef.current.getState() as ScoringState;
-      setScoreState(newState);
+      setScoreState({ type: "REDO", payload: newState });
       setPointsHistory((prev) => [...prev, redone.point.winnerId]);
       const result = await persistState(newState, "redo");
       if (result.success) {
@@ -487,7 +488,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         const restored =
           (engineRef.current?.getState() as ScoringState | undefined) ?? null;
         if (restored) {
-          setScoreState(restored);
+          setScoreState({ type: "RESYNCED_FROM_SERVER", payload: restored });
         }
         closeAll();
       }

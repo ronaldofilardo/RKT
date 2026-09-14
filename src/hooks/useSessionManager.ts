@@ -8,6 +8,7 @@ import type { ScoringState } from "@/core/scoring/types";
 import type { SetEditData } from "@/components/scoring/editScoreHelpers";
 import type { TennisFormat } from "@/core/scoring/types";
 import { startSession } from "@/services/annotationSessionService";
+import type { ScoreAction } from "@/hooks/useScoreReducer";
 import type { MatchData } from "@/hooks/useScoringHandlers";
 import {
   validateMatchTiebreakComplete,
@@ -42,17 +43,11 @@ export interface SessionManagerContext {
   fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
   persistState: (state: ScoringState, label: string, persistOptions?: { allowScoreEdit?: boolean; isManualScoreEdit?: boolean }) => Promise<{ success: boolean; needsResync?: boolean }>;
 
-  setScoreState: Dispatch<SetStateAction<ScoringState | null>>;
+  setScoreState: Dispatch<ScoreAction>;
   setSessionActive: Dispatch<SetStateAction<boolean>>;
   setSuspendedSession: Dispatch<SetStateAction<SuspendedSessionState | null>>;
   setFloorCurrentSets: Dispatch<
     SetStateAction<{ player1: number; player2: number } | null>
-  >;
-  setPendingEditScore: Dispatch<
-    SetStateAction<{
-      scoreState: ScoringState;
-      floorSets: { player1: number; player2: number } | null;
-    } | null>
   >;
   clearPendingEdit?: () => void;
   updateScoreContext?: (score: ScoringState) => void;
@@ -80,7 +75,6 @@ export function useSessionManager(ctx: SessionManagerContext) {
     setSuspendedSession,
     suspendedSession,
     setFloorCurrentSets,
-    setPendingEditScore,
   } = ctx;
 
   const { toast } = useToast();
@@ -206,7 +200,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
       // Aplicar estado local SOMENTE após persistência confirmada
       if (engineRef.current) {
         engineRef.current.loadState(newState);
-        setScoreState(newState);
+        setScoreState({ type: "EDIT_CONFIRMED", payload: newState });
         logger.log("[handleEditScore] Engine loaded with state:", JSON.stringify(newState, null, 2));
         logger.log("[handleEditScore] setScoreState called - currentGame:", newState.currentGame);
         logger.log("[handleEditScore] setScoreState called - sets:", JSON.stringify(newState.sets));
@@ -220,7 +214,6 @@ export function useSessionManager(ctx: SessionManagerContext) {
       }
 
       // Limpar snapshots pendentes
-      setPendingEditScore(null);
       ctx.clearPendingEdit?.();
       setSuspendedSession(null);
 
@@ -242,7 +235,6 @@ export function useSessionManager(ctx: SessionManagerContext) {
       engineRef,
       setScoreState,
       setSessionActive,
-      setPendingEditScore,
       setSuspendedSession,
       suspendedSession,
       persistState,
@@ -294,7 +286,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
     setSessionActive,
     setSuspendedSession,
     setFloorCurrentSets,
-    setPendingEditScore,
+    clearPendingEdit: ctx.clearPendingEdit ?? (() => {}),
     startSession,
   });
 

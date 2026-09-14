@@ -107,7 +107,7 @@ const mockMatch = (overrides: Partial<any> = {}) => ({
   ...overrides,
 });
 
-function makeReq(userId: string = 'current-user', role: string = 'ATHLETE') {
+function makeReq(userId: string = 'current-user', role: string = 'ANNOTATOR') {
   return new NextRequest('http://localhost:3000/api/matches/match-1/report', {
     headers: {
       authorization: 'Bearer fake-token',
@@ -122,7 +122,7 @@ describe('GET /api/matches/[id]/report — autorização (regressão: anotador �
     jest.clearAllMocks();
     // JWT válido por default; cada teste sobrepõe o payload se precisar
     mockJwtVerify.mockImplementation(async (token, secret) => ({
-      payload: { sub: 'current-user', role: 'ATHLETE' },
+      payload: { sub: 'current-user', role: 'ANNOTATOR' },
     } as any));
     // Partidas sem edições manuais de placar seguem o caminho nominal
     // (sem segmentos). Cada teste que precisar de scoreEdits sobrepõe este mock.
@@ -155,7 +155,7 @@ describe('GET /api/matches/[id]/report — autorização (regressão: anotador �
     expect(res.status).toBe(200);
   });
 
-  it('permite acesso quando usuário é staff (ADMIN/GESTOR/COACH)', async () => {
+  it('permite acesso quando usuário é staff (ADMIN)', async () => {
     mockGetMatch.mockResolvedValue(mockMatch({
       player1: { id: 'p1', name: 'P1' },
       player2: { id: 'p2', name: 'P2' },
@@ -173,7 +173,7 @@ describe('GET /api/matches/[id]/report — autorização (regressão: anotador �
       createdByUserId: 'creator-1',
     }) as any);
 
-    const res = await GET(makeReq('random-user', 'ATHLETE'), { params: Promise.resolve({ id: 'match-1' }) });
+    const res = await GET(makeReq('random-user', 'ANNOTATOR'), { params: Promise.resolve({ id: 'match-1' }) });
     expect(res.status).toBe(403);
   });
 
@@ -189,7 +189,7 @@ describe('GET /api/matches/[id]/report — regressão: PointLog como fonte de ve
   beforeEach(() => {
     jest.clearAllMocks();
     mockJwtVerify.mockImplementation(async () => ({
-      payload: { sub: 'p1', role: 'ATHLETE' },
+      payload: { sub: 'p1', role: 'ANNOTATOR' },
     } as any));
     mockGetMatchScoreEdits.mockResolvedValue([]);
   });
@@ -221,7 +221,7 @@ describe('GET /api/matches/[id]/report — regressão: PointLog como fonte de ve
       player2: { id: 'p2', name: 'Player 2' },
     }) as any);
 
-    const res = await GET(makeReq('p1', 'ATHLETE'), { params: Promise.resolve({ id: 'match-1' }) });
+    const res = await GET(makeReq('p1', 'ANNOTATOR'), { params: Promise.resolve({ id: 'match-1' }) });
     expect(res.status).toBe(200);
 
     const data = await res.json();
@@ -238,7 +238,7 @@ describe('GET /api/matches/[id]/report — segmentos separados por MatchScoreEdi
   beforeEach(() => {
     jest.clearAllMocks();
     mockJwtVerify.mockImplementation(async () => ({
-      payload: { sub: 'p1', role: 'ATHLETE' },
+      payload: { sub: 'p1', role: 'ANNOTATOR' },
     } as any));
   });
 
@@ -319,7 +319,7 @@ describe('GET /api/matches/[id]/report — segmentos separados por MatchScoreEdi
       scoreState: newScoreState,
     }) as any);
 
-    const res = await GET(makeReq('p1', 'ATHLETE'), { params: Promise.resolve({ id: 'match-1' }) });
+    const res = await GET(makeReq('p1', 'ANNOTATOR'), { params: Promise.resolve({ id: 'match-1' }) });
     expect(res.status).toBe(200);
 
     const data = await res.json();
@@ -418,7 +418,7 @@ describe('GET /api/matches/[id]/report — segmentos separados por MatchScoreEdi
       scoreState: snap,
     }) as any);
 
-    const res = await GET(makeReq('p1', 'ATHLETE'), { params: Promise.resolve({ id: 'match-1' }) });
+    const res = await GET(makeReq('p1', 'ANNOTATOR'), { params: Promise.resolve({ id: 'match-1' }) });
     expect(res.status).toBe(200);
 
     const data = await res.json();
@@ -470,7 +470,7 @@ describe('GET /api/matches/[id]/report — segmentos separados por MatchScoreEdi
       player2: { id: 'p2', name: 'Player 2' },
     }) as any);
 
-    const res = await GET(makeReq('p1', 'ATHLETE'), { params: Promise.resolve({ id: 'match-1' }) });
+    const res = await GET(makeReq('p1', 'ANNOTATOR'), { params: Promise.resolve({ id: 'match-1' }) });
     expect(res.status).toBe(200);
 
     const data = await res.json();

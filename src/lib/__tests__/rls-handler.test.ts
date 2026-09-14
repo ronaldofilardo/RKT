@@ -12,6 +12,8 @@
  *   1. Execução sequencial (request A termina, request B começa).
  *   2. Execução concorrente via Promise.all (race real de microtasks).
  *   3. Handlers que rodam setTimeout/Promise.then em callbacks deferidas.
+ *
+ * Atualizado em: 2026-09-13 — Role enum: ADMIN | ANNOTATOR
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -35,16 +37,16 @@ describe('withRLSHandler — isolamento de contexto RLS entre requests', () => {
   });
 
   it('execução sequencial: request B não vê o user de A após A terminar', async () => {
-    const tokenA = await createToken('user-A', 'ATHLETE');
-    const tokenB = await createToken('user-B', 'ATHLETE');
+    const tokenA = await createToken('user-A', 'ANNOTATOR');
+    const tokenB = await createToken('user-B', 'ANNOTATOR');
 
     let observedA: string | null = null;
     let observedB: string | null = null;
     let observedAfterA: string | null = null;
 
     // Request A
-    const reqA = makeRequest(tokenA, 'user-A', 'ATHLETE');
-    await withRLSHandler(reqA, 'SPECTATOR', async () => {
+    const reqA = makeRequest(tokenA, 'user-A', 'ANNOTATOR');
+    await withRLSHandler(reqA, 'ANNOTATOR', async () => {
       observedA = getRLSUser()?.id ?? null;
       return NextResponse.json({ ok: true });
     });
@@ -54,8 +56,8 @@ describe('withRLSHandler — isolamento de contexto RLS entre requests', () => {
     expect(observedAfterA).toBeNull();
 
     // Request B (mesmo pool, mas depois de A)
-    const reqB = makeRequest(tokenB, 'user-B', 'ATHLETE');
-    await withRLSHandler(reqB, 'SPECTATOR', async () => {
+    const reqB = makeRequest(tokenB, 'user-B', 'ANNOTATOR');
+    await withRLSHandler(reqB, 'ANNOTATOR', async () => {
       observedB = getRLSUser()?.id ?? null;
       return NextResponse.json({ ok: true });
     });
@@ -67,8 +69,8 @@ describe('withRLSHandler — isolamento de contexto RLS entre requests', () => {
   });
 
   it('execução concorrente (Promise.all): A e B rodam ao mesmo tempo e cada um vê o seu próprio user', async () => {
-    const tokenA = await createToken('user-A', 'ATHLETE');
-    const tokenB = await createToken('user-B', 'ATHLETE');
+    const tokenA = await createToken('user-A', 'ANNOTATOR');
+    const tokenB = await createToken('user-B', 'ANNOTATOR');
 
     // Guarda uma sequência de samples de getRLSUser() durante a execução de
     // cada handler. Cada handler é strumentado para fazer um await aleatório
@@ -76,7 +78,7 @@ describe('withRLSHandler — isolamento de contexto RLS entre requests', () => {
     const samplesA: (string | null)[] = [];
     const samplesB: (string | null)[] = [];
 
-    const reqA = makeRequest(tokenA, 'user-A', 'ATHLETE');
+    const reqA = makeRequest(tokenA, 'user-A', 'ANNOTATOR');
     const handlerA = async () => {
       samplesA.push(getRLSUser()?.id ?? null);
       await new Promise((r) => setTimeout(r, 5));
@@ -86,7 +88,7 @@ describe('withRLSHandler — isolamento de contexto RLS entre requests', () => {
       return NextResponse.json({ ok: true });
     };
 
-    const reqB = makeRequest(tokenB, 'user-B', 'ATHLETE');
+    const reqB = makeRequest(tokenB, 'user-B', 'ANNOTATOR');
     const handlerB = async () => {
       samplesB.push(getRLSUser()?.id ?? null);
       await new Promise((r) => setTimeout(r, 3));
@@ -97,8 +99,8 @@ describe('withRLSHandler — isolamento de contexto RLS entre requests', () => {
     };
 
     await Promise.all([
-      withRLSHandler(reqA, 'SPECTATOR', handlerA),
-      withRLSHandler(reqB, 'SPECTATOR', handlerB),
+      withRLSHandler(reqA, 'ANNOTATOR', handlerA),
+      withRLSHandler(reqB, 'ANNOTATOR', handlerB),
     ]);
 
     // Cada handler precisa ver exclusivamente o seu próprio user em todos os
@@ -112,12 +114,12 @@ describe('withRLSHandler — isolamento de contexto RLS entre requests', () => {
   });
 
   it('callback after `await`: getRLSUser() continua válido dentro do callback', async () => {
-    const token = await createToken('user-persist', 'ATHLETE');
-    const req = makeRequest(token, 'user-persist', 'ATHLETE');
+    const token = await createToken('user-persist', 'ANNOTATOR');
+    const req = makeRequest(token, 'user-persist', 'ANNOTATOR');
 
     let observedAfterAwait: string | null = null;
 
-    await withRLSHandler(req, 'SPECTATOR', async () => {
+    await withRLSHandler(req, 'ANNOTATOR', async () => {
       await new Promise((r) => setTimeout(r, 20));
       observedAfterAwait = getRLSUser()?.id ?? null;
       return NextResponse.json({ ok: true });
@@ -129,8 +131,8 @@ describe('withRLSHandler — isolamento de contexto RLS entre requests', () => {
   });
 
   it('role insuficiente retorna 403 antes de estabelecer contexto (curto-circuito)', async () => {
-    const token = await createToken('user-low', 'SPECTATOR');
-    const req = makeRequest(token, 'user-low', 'SPECTATOR');
+    const token = await createToken('user-low', 'ANNOTATOR');
+    const req = makeRequest(token, 'user-low', 'ANNOTATOR');
 
     const handler = jest.fn(async () => NextResponse.json({ ok: true }));
 
@@ -143,7 +145,7 @@ describe('withRLSHandler — isolamento de contexto RLS entre requests', () => {
   });
 
   it('sem headers x-user-id/x-user-role: fallback ao JWT retorna 200 e estabelece contexto', async () => {
-    const token = await createToken('user-X', 'ATHLETE');
+    const token = await createToken('user-X', 'ANNOTATOR');
     // request sem os headers do middleware (simula bypass)
     const req = new NextRequest('http://localhost:3000/api/matches', {
       method: 'GET',
@@ -154,7 +156,7 @@ describe('withRLSHandler — isolamento de contexto RLS entre requests', () => {
 
     const handler = jest.fn(async () => NextResponse.json({ ok: true }));
 
-    const res = await withRLSHandler(req, 'ATHLETE', handler);
+    const res = await withRLSHandler(req, 'ANNOTATOR', handler);
 
     expect(res.status).toBe(200);
     expect(handler).toHaveBeenCalled();
@@ -164,8 +166,8 @@ describe('withRLSHandler — isolamento de contexto RLS entre requests', () => {
     const n = 10;
     const requests = await Promise.all(
       Array.from({ length: n }, async (_, i) => {
-        const token = await createToken(`user-${i}`, 'ATHLETE');
-        const req = makeRequest(token, `user-${i}`, 'ATHLETE');
+        const token = await createToken(`user-${i}`, 'ANNOTATOR');
+        const req = makeRequest(token, `user-${i}`, 'ANNOTATOR');
         return { req, idx: i };
       }),
     );
@@ -173,7 +175,7 @@ describe('withRLSHandler — isolamento de contexto RLS entre requests', () => {
     const observed = new Map<number, Set<string | null>>();
 
     const handlers = requests.map(({ req, idx }) => {
-      return withRLSHandler(req, 'SPECTATOR', async () => {
+      return withRLSHandler(req, 'ANNOTATOR', async () => {
         // vários awaits intercalados
         for (let k = 0; k < 3; k++) {
           await new Promise((r) => setTimeout(r, Math.random() * 5));
@@ -200,13 +202,13 @@ describe('withRLSHandler — isolamento de contexto RLS entre requests', () => {
   });
 
   it('throw dentro do handler não vaza o contexto para o catch externo', async () => {
-    const token = await createToken('user-throwing', 'ATHLETE');
-    const req = makeRequest(token, 'user-throwing', 'ATHLETE');
+    const token = await createToken('user-throwing', 'ANNOTATOR');
+    const req = makeRequest(token, 'user-throwing', 'ANNOTATOR');
 
     let userInCatch: string | null = null;
 
     await expect(
-      withRLSHandler(req, 'SPECTATOR', async () => {
+      withRLSHandler(req, 'ANNOTATOR', async () => {
         expect(getRLSUser()?.id).toBe('user-throwing');
         throw new Error('handler-threw');
       }),

@@ -15,10 +15,10 @@ import { makeAuthHeaders } from '@/test-helpers/auth';
 
 const mockPrisma = prisma as any;
 
-let COACH_HEADERS: Record<string, string> = {};
+let ANNOTATOR_HEADERS: Record<string, string> = {};
 
 beforeAll(async () => {
-  COACH_HEADERS = await makeAuthHeaders('user-1', 'COACH');
+  ANNOTATOR_HEADERS = await makeAuthHeaders('user-1', 'ANNOTATOR');
 });
 
 describe('POST /api/matches/[id]/sessions/[sessionId]/endorse', () => {
@@ -42,7 +42,7 @@ describe('POST /api/matches/[id]/sessions/[sessionId]/endorse', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions/session-1/endorse', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
 
     const mod = await import('@/app/api/matches/[id]/sessions/[sessionId]/endorse/route');
@@ -57,7 +57,7 @@ describe('POST /api/matches/[id]/sessions/[sessionId]/endorse', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions/session-1/endorse', {
       method: 'POST',
-      headers: COACH_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
 
     const mod = await import('@/app/api/matches/[id]/sessions/[sessionId]/endorse/route');
@@ -76,7 +76,7 @@ describe('POST /api/matches/[id]/sessions/[sessionId]/endorse', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions/session-1/endorse', {
       method: 'POST',
-      headers: COACH_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
 
     const mod = await import('@/app/api/matches/[id]/sessions/[sessionId]/endorse/route');
@@ -97,7 +97,7 @@ describe('POST /api/matches/[id]/sessions/[sessionId]/endorse', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions/session-1/endorse', {
       method: 'POST',
-      headers: COACH_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
 
     const mod = await import('@/app/api/matches/[id]/sessions/[sessionId]/endorse/route');
@@ -117,7 +117,7 @@ describe('POST /api/matches/[id]/sessions/[sessionId]/endorse', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions/session-1/endorse', {
       method: 'POST',
-      headers: COACH_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
 
     const mod = await import('@/app/api/matches/[id]/sessions/[sessionId]/endorse/route');
@@ -146,7 +146,7 @@ describe('POST /api/matches/[id]/sessions/[sessionId]/endorse', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions/session-1/endorse', {
       method: 'POST',
-      headers: COACH_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
 
     const mod = await import('@/app/api/matches/[id]/sessions/[sessionId]/endorse/route');

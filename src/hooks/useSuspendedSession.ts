@@ -6,6 +6,7 @@ import { ScoringEngine } from "@/core/scoring/engine";
 import type { SuspendedSessionState } from "./useSessionManager";
 import type { MatchData } from "@/hooks/useScoringHandlers";
 import { normalizeMatchTiebreakState } from "./useSessionManager.utils";
+import type { ScoreAction } from "@/hooks/useScoreReducer";
 
 interface SuspendedSessionConfig {
   suspendedSession: SuspendedSessionState | null;
@@ -15,11 +16,11 @@ interface SuspendedSessionConfig {
   sessionIdRef: React.MutableRefObject<string | null>;
   tokenRef: React.MutableRefObject<string | null>;
   engineRef: React.MutableRefObject<any>;
-  setScoreState: (state: any) => void;
+  setScoreState: (action: ScoreAction) => void;
   setSessionActive: (active: boolean) => void;
   setSuspendedSession: (state: SuspendedSessionState | null) => void;
   setFloorCurrentSets: (sets: { player1: number; player2: number } | null) => void;
-  setPendingEditScore: (state: any) => void;
+  clearPendingEdit: () => void;
   startSession: (matchId: string, createNew: boolean) => Promise<{ id: string }>;
 }
 
@@ -36,7 +37,7 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
     setSessionActive,
     setSuspendedSession,
     setFloorCurrentSets,
-    setPendingEditScore,
+    clearPendingEdit,
     startSession,
   } = config;
 
@@ -130,7 +131,7 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
               engineConfig,
               JSON.stringify(freshData.scoreState),
             );
-            setScoreState(engineRef.current.getState() as any);
+            setScoreState({ type: "RESYNCED_FROM_SERVER", payload: engineRef.current.getState() as any });
           }
         }
       }
@@ -151,10 +152,10 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
         const canonicalVersion = suspendedSession.bankPointCount;
         if (canonicalState) {
           engineRef.current.reconcileWithCanonicalState(canonicalState, canonicalVersion);
-          setScoreState(canonicalState);
+          setScoreState({ type: "RESYNCED_FROM_SERVER", payload: canonicalState });
         } else {
           const restored = engineRef.current.getState() as any;
-          setScoreState(restored);
+          setScoreState({ type: "RESYNCED_FROM_SERVER", payload: restored });
         }
       } else if (suspendedSession?.bankScoreState && match) {
         const normalizedBankState = normalizeMatchTiebreakState(suspendedSession.bankScoreState, match.format);
@@ -162,7 +163,7 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
           engineConfig,
           JSON.stringify(normalizedBankState),
         );
-        setScoreState(engineRef.current.getState() as any);
+        setScoreState({ type: "RESYNCED_FROM_SERVER", payload: engineRef.current.getState() as any });
       }
     }
 
@@ -214,7 +215,7 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
     setSessionActive,
     setSuspendedSession,
     setFloorCurrentSets,
-    setPendingEditScore,
+    clearPendingEdit,
     startSession,
   ]);
 }

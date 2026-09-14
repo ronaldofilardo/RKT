@@ -2,6 +2,7 @@ import type { MutableRefObject, Dispatch, SetStateAction } from "react";
 import { ScoringEngine } from "@/core/scoring/engine";
 import type { ScoringState } from "@/core/scoring/types";
 import type { ScoreboardUIState } from "@/hooks/useScoreboardUIState";
+import type { ScoreAction } from "@/hooks/useScoreReducer";
 
 export interface MatchData {
   id: string;
@@ -40,7 +41,7 @@ export interface ScoringHandlersContext {
   serveErrorState: ScoreboardUIState;
 
   setMatch: Dispatch<SetStateAction<MatchData | null>>;
-  setScoreState: Dispatch<SetStateAction<ScoringState | null>>;
+  setScoreState: Dispatch<ScoreAction>;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
   setError: Dispatch<SetStateAction<string | null>>;
   setSetupLoading: Dispatch<SetStateAction<boolean>>;

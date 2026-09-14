@@ -24,7 +24,7 @@ describe('useSuspendedSession - Regressoes Reais', () => {
         setSessionActive,
         setSuspendedSession: jest.fn(),
         setFloorCurrentSets: jest.fn(),
-        setPendingEditScore: jest.fn(),
+        clearPendingEdit: jest.fn(),
         startSession: jest.fn(),
       })
     );

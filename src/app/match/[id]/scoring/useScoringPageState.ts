@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useReducer } from "react";
 import { useRouter } from "next/navigation";
 import { ScoringEngine } from "@/core/scoring/engine";
 import type { ScoringState, TimelinePoint } from "@/core/scoring/types";
@@ -14,6 +14,7 @@ import type { SessionData } from "@/contexts/SessionContext";
 import type { MatchData } from "@/hooks/useScoringHandlers";
 import type { SuspendedSessionState } from "@/hooks/useSessionManager";
 import type { QueuedAction } from "@/schemas/contracts";
+import { scoreReducer, type ScoreAction } from "@/hooks/useScoreReducer";
 import { enrichPointsFromHistory } from "@/components/scoring/timeline-utils";
 import { enrichTimelineWithAudio, type PointLogAudioMeta } from "@/components/scoring/timeline-utils";
 
@@ -27,7 +28,7 @@ export interface ScoringPageState {
   error: string | null;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
   scoreState: ScoringState | null;
-  setScoreState: React.Dispatch<React.SetStateAction<ScoringState | null>>;
+  setScoreState: React.Dispatch<ScoreAction>;
   elapsed: number;
   setElapsed: React.Dispatch<React.SetStateAction<number>>;
   timerRef: React.MutableRefObject<ReturnType<typeof setInterval> | null>;
@@ -53,10 +54,7 @@ export interface ScoringPageState {
     scoreState: ScoringState;
     floorSets: { player1: number; player2: number } | null;
   } | null;
-  setPendingEditScore: React.Dispatch<React.SetStateAction<{
-    scoreState: ScoringState;
-    floorSets: { player1: number; player2: number } | null;
-  } | null>>;
+  setPendingEdit: (scoreState: ScoringState, floorSets: { player1: number; player2: number } | null) => void;
   floorCurrentSets: { player1: number; player2: number } | null;
   setFloorCurrentSets: React.Dispatch<React.SetStateAction<{ player1: number; player2: number } | null>>;
   viewMode: "scoring" | "timeline";
@@ -106,7 +104,7 @@ export function useScoringPageState(matchId: string): ScoringPageState {
   const [error, setError] = useState<string | null>(null);
 
   const engineRef = useRef<ReturnType<typeof ScoringEngine.fromSerialized> | null>(null);
-  const [scoreState, setScoreState] = useState<ScoringState | null>(null);
+  const [scoreState, setScoreState] = useReducer(scoreReducer, null as ScoringState | null);
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -127,10 +125,6 @@ export function useScoringPageState(matchId: string): ScoringPageState {
   const sessionIdRef = useRef<string | null>(null);
   const [suspendedSession, setSuspendedSession] =
     useState<SuspendedSessionState | null>(null);
-  const [pendingEditScore, setPendingEditScore] = useState<{
-    scoreState: ScoringState;
-    floorSets: { player1: number; player2: number } | null;
-  } | null>(null);
   const [floorCurrentSets, setFloorCurrentSets] = useState<{
     player1: number;
     player2: number;
@@ -146,7 +140,7 @@ export function useScoringPageState(matchId: string): ScoringPageState {
 
   const { activeModal, modalParams, open, close, closeAll } =
     useModalStack({ mode: 'internal' });
-  const { session, clearPendingEdit, updateScore } = useSession();
+  const { session, clearPendingEdit, updateScore, setPendingEdit } = useSession();
   const modalParamsRef = useRef(modalParams);
   modalParamsRef.current = modalParams;
   const openRef = useRef(open);
@@ -223,8 +217,8 @@ export function useScoringPageState(matchId: string): ScoringPageState {
     sessionIdRef,
     suspendedSession,
     setSuspendedSession,
-    pendingEditScore,
-    setPendingEditScore,
+    pendingEditScore: session.pendingEditScore,
+    setPendingEdit,
     floorCurrentSets,
     setFloorCurrentSets,
     viewMode,

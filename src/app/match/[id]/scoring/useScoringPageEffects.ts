@@ -64,10 +64,8 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     setSessionActive,
     setSuspendedSession,
     setFloorCurrentSets,
-    setPendingEditScore,
     clearPendingEdit,
     updateScore,
-    pendingEditScore,
     scoreState,
     setElapsed,
     session,
@@ -148,7 +146,6 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
       setSessionActive,
       setSuspendedSession,
       setFloorCurrentSets,
-      setPendingEditScore,
       clearPendingEdit,
       updateScoreContext: updateScore,
       close,
@@ -184,10 +181,9 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
   );
 
   const handleEditScoreCancel = useCallback(() => {
-    setPendingEditScore(null);
     clearPendingEdit();
     close();
-  }, [setPendingEditScore, clearPendingEdit, close]);
+  }, [clearPendingEdit, close]);
 
   const handleEditScoreRefreshFloor = useCallback(async () => {
     if (!engineRef.current || !match) return null;
@@ -240,16 +236,10 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
 
   useEffect(() => {
     if (session.pendingEditScore) {
-      setPendingEditScore(session.pendingEditScore);
-    }
-  }, [session.pendingEditScore, setPendingEditScore]);
-
-  useEffect(() => {
-    if (pendingEditScore) {
-      setFloorCurrentSets(pendingEditScore.floorSets);
+      setFloorCurrentSets(session.pendingEditScore.floorSets);
       open("edit-score");
     }
-  }, [pendingEditScore, open, setFloorCurrentSets]);
+  }, [session.pendingEditScore, open, setFloorCurrentSets]);
 
   return {
     persistState,

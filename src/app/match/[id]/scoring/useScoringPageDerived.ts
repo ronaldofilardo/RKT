@@ -11,6 +11,7 @@ import {
   isSetCompleted,
   isMatchTiebreakSetIndex,
 } from "./scoringHelpers";
+import { resolveDisplayScore } from "./resolveDisplayScore";
 
 export interface ScoringPageDerived {
   effectiveScoreState: ScoringState | null;
@@ -45,13 +46,15 @@ export function useScoringPageDerived(
   const { match, scoreState, engineRef, activeModal, gamePointToDisplay, timelinePoints } =
     state;
   const { isProcessing } = handlers;
-  const { pendingEditScore, suspendedSession, session } = state;
+  const { suspendedSession, session } = state;
+  const pendingEditScore = session.pendingEditScore;
 
-  const effectiveScoreState = pendingEditScore?.scoreState
-    ?? session.pendingEditScore?.scoreState
-    ?? scoreState
-    ?? suspendedSession?.bankScoreState
-    ?? null;
+  const effectiveScoreState = resolveDisplayScore(
+    activeModal,
+    scoreState,
+    pendingEditScore,
+    suspendedSession,
+  );
 
   const p1IsServing = effectiveScoreState?.server === "player1";
   const p2IsServing = effectiveScoreState?.server === "player2";

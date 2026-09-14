@@ -72,7 +72,7 @@ function makeRequest(token: string) {
       // getUserFromRequest caso a route opte por chamar;
       // a route POST apenas chama getRLSUser().
       'x-user-id': token ? 'user-123' : '',
-      'x-user-role': 'ATHLETE',
+      'x-user-role': 'ANNOTATOR',
     },
     body: JSON.stringify({
       player1Id: 'p1',
@@ -97,7 +97,7 @@ describe('POST /api/matches — race condition (TOCTOU)', () => {
     // Simula: findDuplicateMatch sempre retorna null (deveria permitir criar),
     // mas o createMatch é serializado pela transação — verificamos que
     // apenas 1 findFirst + 1 create rodam, sem overlapping.
-    const token = await createToken('user-123', 'ATHLETE');
+    const token = await createToken('user-123', 'ANNOTATOR');
 
     // O mockFindDuplicate aqui vai retornar null em ambas as chamadas.
     // Mas na segunda transação (serialized), fará um segundo findFirst;
@@ -127,7 +127,7 @@ describe('POST /api/matches — race condition (TOCTOU)', () => {
   });
 
   it('cria NÃO-duplicada quando force=true ignora o lock de duplicata (#force)', async () => {
-    const token = await createToken('user-123', 'ATHLETE');
+    const token = await createToken('user-123', 'ANNOTATOR');
 
     const req = new NextRequest('http://localhost:3000/api/matches?force=true', {
       method: 'POST',
@@ -135,7 +135,7 @@ describe('POST /api/matches — race condition (TOCTOU)', () => {
         authorization: `Bearer ${token}`,
         'content-type': 'application/json',
         'x-user-id': 'user-123',
-        'x-user-role': 'ATHLETE',
+        'x-user-role': 'ANNOTATOR',
       },
       body: JSON.stringify({
         player1Id: 'p1',
@@ -159,7 +159,7 @@ describe('POST /api/matches — race condition (TOCTOU)', () => {
     const txSpy = (prisma as any).$transaction as jest.Mock;
     txSpy.mockClear();
 
-    const token = await createToken('user-123', 'ATHLETE');
+    const token = await createToken('user-123', 'ANNOTATOR');
     mockFindDuplicate.mockReset();
     mockFindDuplicate
       .mockResolvedValueOnce(null)

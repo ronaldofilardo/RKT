@@ -16,11 +16,11 @@ import { makeAuthHeaders } from '@/test-helpers/auth';
 
 const mockPrisma = prisma as any;
 
-let COACH_HEADERS: Record<string, string> = {};
+let ANNOTATOR_HEADERS: Record<string, string> = {};
 let ADMIN_HEADERS: Record<string, string> = {};
 
 beforeAll(async () => {
-  COACH_HEADERS = await makeAuthHeaders('user-1', 'COACH');
+  ANNOTATOR_HEADERS = await makeAuthHeaders('user-1', 'ANNOTATOR');
   ADMIN_HEADERS = await makeAuthHeaders('admin-1', 'ADMIN');
 });
 
@@ -52,7 +52,7 @@ describe('POST /api/matches/[id]/sessions/[sessionId]/abandon', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions/session-1/abandon', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
       body: JSON.stringify({}),
     });
 
@@ -68,7 +68,7 @@ describe('POST /api/matches/[id]/sessions/[sessionId]/abandon', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions/session-1/abandon', {
       method: 'POST',
-      headers: COACH_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
 
     const mod = await import('@/app/api/matches/[id]/sessions/[sessionId]/abandon/route');
@@ -89,7 +89,7 @@ describe('POST /api/matches/[id]/sessions/[sessionId]/abandon', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions/session-1/abandon', {
       method: 'POST',
-      headers: COACH_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
 
     const mod = await import('@/app/api/matches/[id]/sessions/[sessionId]/abandon/route');
@@ -144,7 +144,7 @@ describe('POST /api/matches/[id]/sessions/[sessionId]/abandon', () => {
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions/session-1/abandon', {
       method: 'POST',
       body: JSON.stringify({}),
-      headers: COACH_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
 
     const mod = await import('@/app/api/matches/[id]/sessions/[sessionId]/abandon/route');
@@ -180,7 +180,7 @@ describe('POST /api/matches/[id]/sessions/[sessionId]/abandon', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions/session-1/abandon', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
       body: JSON.stringify({ matchStateSnapshot: '{"sets":[{"player1":1,"player2":0}]}' }),
     });
 
@@ -203,7 +203,7 @@ describe('POST /api/matches/[id]/sessions/[sessionId]/abandon', () => {
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions/session-1/abandon', {
       method: 'POST',
       body: JSON.stringify({}),
-      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
 
     const mod = await import('@/app/api/matches/[id]/sessions/[sessionId]/abandon/route');
@@ -238,7 +238,7 @@ describe('POST /api/matches/[id]/sessions/[sessionId]/abandon', () => {
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions/session-1/abandon', {
       method: 'POST',
       body: JSON.stringify({}),
-      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
 
     const mod = await import('@/app/api/matches/[id]/sessions/[sessionId]/abandon/route');
@@ -280,7 +280,7 @@ describe('POST /api/matches/[id]/sessions/[sessionId]/abandon', () => {
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions/session-1/abandon', {
       method: 'POST',
       body: JSON.stringify({}),
-      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
 
     const mod = await import('@/app/api/matches/[id]/sessions/[sessionId]/abandon/route');
@@ -322,7 +322,7 @@ describe('POST /api/matches/[id]/sessions/[sessionId]/abandon', () => {
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions/session-1/abandon', {
       method: 'POST',
       body: JSON.stringify({ matchStateSnapshot: 12345 }),
-      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
 
     const mod = await import('@/app/api/matches/[id]/sessions/[sessionId]/abandon/route');
@@ -338,7 +338,7 @@ describe('POST /api/matches/[id]/sessions/[sessionId]/abandon', () => {
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions/session-1/abandon', {
       method: 'POST',
       body: JSON.stringify({}),
-      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
 
     const mod = await import('@/app/api/matches/[id]/sessions/[sessionId]/abandon/route');

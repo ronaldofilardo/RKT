@@ -32,14 +32,12 @@ beforeEach(() => {
 
 const mockPrisma = prisma as any;
 
-let ATHLETE_HEADERS: Record<string, string> = {};
-let COACH_HEADERS: Record<string, string> = {};
-let SPECTATOR_HEADERS: Record<string, string> = {};
+let ANNOTATOR_HEADERS: Record<string, string> = {};
+let ADMIN_HEADERS: Record<string, string> = {};
 
 beforeAll(async () => {
-  ATHLETE_HEADERS = await makeAuthHeaders('user-1', 'ATHLETE');
-  COACH_HEADERS = await makeAuthHeaders('user-coach', 'COACH');
-  SPECTATOR_HEADERS = await makeAuthHeaders('user-spect', 'SPECTATOR');
+  ANNOTATOR_HEADERS = await makeAuthHeaders('user-1', 'ANNOTATOR');
+  ADMIN_HEADERS = await makeAuthHeaders('user-admin', 'ADMIN');
 });
 
 describe('GET /api/matches/[id]/sessions', () => {
@@ -69,7 +67,7 @@ describe('GET /api/matches/[id]/sessions', () => {
     mockPrisma.matchAnnotationSession.findMany.mockResolvedValue(mockSessions as any);
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
     const GET = mod.GET;
@@ -91,7 +89,7 @@ describe('GET /api/matches/[id]/sessions', () => {
     mockPrisma.matchAnnotationSession.findMany.mockRejectedValue(new Error('DB Error'));
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
     const GET = mod.GET;
@@ -104,10 +102,10 @@ describe('GET /api/matches/[id]/sessions', () => {
 });
 
 describe('POST /api/matches/[id]/sessions', () => {
-  it('deve retornar 403 se usuário não tem role com permissão annotate:session (ex: SPECTATOR ou ATHLETE)', async () => {
+  it('deve retornar 403 se usuário não tem role com permissão annotate:session (ex: ADMIN)', async () => {
     const reqSpectator = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...SPECTATOR_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ADMIN_HEADERS },
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
     const POST = mod.POST;
@@ -117,7 +115,7 @@ describe('POST /api/matches/[id]/sessions', () => {
 
     const reqAthlete = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...ATHLETE_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ADMIN_HEADERS },
     });
     const resAthlete = await POST(reqAthlete, { params: Promise.resolve({ id: 'match-1' }) });
     expect(resAthlete.status).toBe(403);
@@ -128,7 +126,7 @@ describe('POST /api/matches/[id]/sessions', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
     const POST = mod.POST;
@@ -142,7 +140,7 @@ describe('POST /api/matches/[id]/sessions', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
     const POST = mod.POST;
@@ -167,7 +165,7 @@ describe('POST /api/matches/[id]/sessions', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
     const POST = mod.POST;
@@ -200,7 +198,7 @@ describe('POST /api/matches/[id]/sessions', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
       body: JSON.stringify({}),
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
@@ -229,7 +227,7 @@ describe('POST /api/matches/[id]/sessions', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
       body: JSON.stringify({ autoStarted: true }),
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
@@ -260,7 +258,7 @@ describe('POST /api/matches/[id]/sessions', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
       body: JSON.stringify({ autoStarted: true }),
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
@@ -289,7 +287,7 @@ describe('POST /api/matches/[id]/sessions', () => {
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...COACH_HEADERS },
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
     const POST = mod.POST;

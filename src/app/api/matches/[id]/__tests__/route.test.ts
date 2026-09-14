@@ -45,7 +45,7 @@ describe('GET /api/matches/[id]', () => {
   });
 
   it('deve retornar 404 para partida inexistente', async () => {
-    const token = await createToken('user1', 'ATHLETE');
+    const token = await createToken('user1', 'ANNOTATOR');
     mockPrisma.match.findFirst.mockResolvedValue(null);
 
     const req = new NextRequest('http://localhost:3000/api/matches/test-id', {
@@ -59,7 +59,7 @@ describe('GET /api/matches/[id]', () => {
   });
 
   it('deve retornar 403 se usuário não tem acesso à partida', async () => {
-    const token = await createToken('user1', 'ATHLETE');
+    const token = await createToken('user1', 'ANNOTATOR');
     mockPrisma.match.findFirst.mockResolvedValue({
       id: 'test-id',
       player1Id: 'user2',
@@ -100,7 +100,7 @@ describe('GET /api/matches/[id]', () => {
   });
 
   it('deve retornar partida se usuário é player1', async () => {
-    const token = await createToken('user1', 'ATHLETE');
+    const token = await createToken('user1', 'ANNOTATOR');
     const matchData = {
       id: 'test-id',
       player1Id: 'user1',
@@ -141,8 +141,8 @@ category: null,
     expect(data.id).toBe('test-id');
   });
 
-  it('deve retornar partida se usuário é player2', async () => {
-    const token = await createToken('user2', 'ATHLETE');
+  it('deve retornar 403 se player2 não é o criador da partida', async () => {
+    const token = await createToken('user2', 'ANNOTATOR');
     mockPrisma.match.findFirst.mockResolvedValue({
       id: 'test-id',
       player1Id: 'user1',
@@ -160,11 +160,11 @@ category: null,
     });
     const response = await GET(req, { params: Promise.resolve({ id: 'test-id' }) });
     
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(403);
   });
 
   it('deve retornar partida se usuário é o criador', async () => {
-    const token = await createToken('user1', 'ATHLETE');
+    const token = await createToken('user1', 'ANNOTATOR');
     mockPrisma.match.findFirst.mockResolvedValue({
       id: 'test-id',
       player1Id: 'user2',
@@ -212,7 +212,7 @@ describe('DELETE /api/matches/[id]', () => {
   });
 
   it('deve retornar 404 para partida inexistente', async () => {
-    const token = await createToken('user1', 'ATHLETE');
+    const token = await createToken('user1', 'ANNOTATOR');
     mockPrisma.match.findFirst.mockResolvedValue(null);
 
     const req = new NextRequest('http://localhost:3000/api/matches/test-id?type=soft', {
@@ -225,7 +225,7 @@ describe('DELETE /api/matches/[id]', () => {
   });
 
   it('deve retornar 403 se usuário não é o criador', async () => {
-    const token = await createToken('user1', 'ATHLETE');
+    const token = await createToken('user1', 'ANNOTATOR');
     mockPrisma.match.findFirst.mockResolvedValue({
       id: 'test-id',
       createdByUserId: 'user2',
@@ -240,11 +240,11 @@ describe('DELETE /api/matches/[id]', () => {
     expect(response.status).toBe(403);
     const data = await response.json();
     expect(data.error).toBe('FORBIDDEN');
-    expect(data.message).toContain('Apenas o criador');
+    expect(data.message).toContain('Apenas o anotador criador');
   });
 
   it('deve permitir soft delete se usuário é o criador', async () => {
-    const token = await createToken('user1', 'ATHLETE');
+    const token = await createToken('user1', 'ANNOTATOR');
     mockPrisma.match.findFirst.mockResolvedValue({
       id: 'test-id',
       createdByUserId: 'user1',
@@ -264,12 +264,8 @@ describe('DELETE /api/matches/[id]', () => {
     }));
   });
 
-  it('deve permitir delete se usuário é ADMIN mesmo não sendo o criador', async () => {
+  it('deve retornar 403 para ADMIN em DELETE (bloqueado de acessar partidas)', async () => {
     const token = await createToken('admin1', 'ADMIN');
-    mockPrisma.match.findFirst.mockResolvedValue({
-      id: 'test-id',
-      createdByUserId: 'other-user',
-    });
     deleteMatch.mockResolvedValue({ success: true, type: 'soft' });
 
     const req = new NextRequest('http://localhost:3000/api/matches/test-id?type=soft', {
@@ -278,15 +274,12 @@ describe('DELETE /api/matches/[id]', () => {
     });
     const response = await DELETE(req, { params: Promise.resolve({ id: 'test-id' }) });
 
-    expect(response.status).toBe(200);
-    expect(deleteMatch).toHaveBeenCalledWith('test-id', expect.objectContaining({
-      type: 'soft',
-      deletedBy: 'admin1',
-    }));
+    expect(response.status).toBe(403);
+    expect(deleteMatch).not.toHaveBeenCalled();
   });
 
   it('deve validar parâmetro type', async () => {
-    const token = await createToken('user1', 'ATHLETE');
+    const token = await createToken('user1', 'ANNOTATOR');
     mockPrisma.match.findFirst.mockResolvedValue({
       id: 'test-id',
       createdByUserId: 'user1',

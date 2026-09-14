@@ -49,12 +49,12 @@ function makeStateReq(body: any, authHeaders: Record<string, string> = {}) {
   });
 }
 
-const ATHLETE_HEADERS: Record<string, string> = {};
-const SPECTATOR_HEADERS: Record<string, string> = {};
+const ANNOTATOR_HEADERS: Record<string, string> = {};
+const ADMIN_HEADERS: Record<string, string> = {};
 
 beforeAll(async () => {
-  Object.assign(ATHLETE_HEADERS, await makeAuthHeaders('user-ath', 'ATHLETE'));
-  Object.assign(SPECTATOR_HEADERS, await makeAuthHeaders('user-spect', 'SPECTATOR'));
+  Object.assign(ANNOTATOR_HEADERS, await makeAuthHeaders('user-ath', 'ANNOTATOR'));
+  Object.assign(ADMIN_HEADERS, await makeAuthHeaders('user-admin', 'ADMIN'));
 });
 
 describe('PATCH /api/matches/[id]/state', () => {
@@ -62,21 +62,24 @@ describe('PATCH /api/matches/[id]/state', () => {
     jest.clearAllMocks();
   });
 
-  it('deve retornar 403 se usuário não tem role ATHLETE', async () => {
-    // SPECTATOR é role insuficiente para ATHLETE (escopo PATCH state)
-    const req = makeStateReq({ state: 'IN_PROGRESS' }, SPECTATOR_HEADERS);
+  it('deve permitir ADMIN acessar estado de partida (ADMIN >= ANNOTATOR)', async () => {
+    // ADMIN tem privileges >= ANNOTATOR, portanto passa na verificação de role
+    mockPrisma.match.findFirst.mockResolvedValue(null);
+
+    const req = makeStateReq({ state: 'IN_PROGRESS' }, ADMIN_HEADERS);
 
     const mod = await import('@/app/api/matches/[id]/state/route');
     const PATCH = mod.PATCH;
 
     const res = await PATCH(req, { params: Promise.resolve({ id: 'match-1' }) });
-    expect(res.status).toBe(403);
+    // Passa role check mas partida não existe → 404
+    expect(res.status).toBe(404);
   });
 
   it('deve retornar 404 se partida não existe', async () => {
     mockPrisma.match.findFirst.mockResolvedValue(null);
 
-    const req = makeStateReq({ state: 'IN_PROGRESS' }, ATHLETE_HEADERS);
+    const req = makeStateReq({ state: 'IN_PROGRESS' }, ANNOTATOR_HEADERS);
 
     const mod = await import('@/app/api/matches/[id]/state/route');
     const PATCH = mod.PATCH;
@@ -101,7 +104,7 @@ describe('PATCH /api/matches/[id]/state', () => {
       startedAt: new Date(),
     } as any);
 
-    const req = makeStateReq({ state: 'IN_PROGRESS' }, ATHLETE_HEADERS);
+    const req = makeStateReq({ state: 'IN_PROGRESS' }, ANNOTATOR_HEADERS);
 
     const mod = await import('@/app/api/matches/[id]/state/route');
     const PATCH = mod.PATCH;
@@ -143,7 +146,7 @@ describe('PATCH /api/matches/[id]/state', () => {
       finishedAt: new Date(),
     } as any);
 
-    const req = makeStateReq({ state: 'FINISHED' }, ATHLETE_HEADERS);
+    const req = makeStateReq({ state: 'FINISHED' }, ANNOTATOR_HEADERS);
 
     const mod = await import('@/app/api/matches/[id]/state/route');
     const PATCH = mod.PATCH;
@@ -171,7 +174,7 @@ describe('PATCH /api/matches/[id]/state', () => {
       scoreState: null,
     } as any);
 
-    const req = makeStateReq({ state: 'FINISHED' }, ATHLETE_HEADERS);
+    const req = makeStateReq({ state: 'FINISHED' }, ANNOTATOR_HEADERS);
 
     const mod = await import('@/app/api/matches/[id]/state/route');
     const PATCH = mod.PATCH;
@@ -206,7 +209,7 @@ describe('PATCH /api/matches/[id]/state', () => {
       scoreState,
     } as any);
 
-    const req = makeStateReq({ state: 'IN_PROGRESS', scoreState }, ATHLETE_HEADERS);
+    const req = makeStateReq({ state: 'IN_PROGRESS', scoreState }, ANNOTATOR_HEADERS);
 
     const mod = await import('@/app/api/matches/[id]/state/route');
     const PATCH = mod.PATCH;
@@ -224,7 +227,7 @@ describe('PATCH /api/matches/[id]/state', () => {
   });
 
   it('deve retornar 400 para payload inválido', async () => {
-    const req = makeStateReq({ invalid: 'payload' }, ATHLETE_HEADERS);
+    const req = makeStateReq({ invalid: 'payload' }, ANNOTATOR_HEADERS);
 
     const mod = await import('@/app/api/matches/[id]/state/route');
     const PATCH = mod.PATCH;
@@ -236,7 +239,7 @@ describe('PATCH /api/matches/[id]/state', () => {
   it('deve retornar 500 quando ocorre erro inesperado', async () => {
     mockPrisma.match.findFirst.mockRejectedValue(new Error('Unexpected DB error'));
 
-    const req = makeStateReq({ state: 'IN_PROGRESS' }, ATHLETE_HEADERS);
+    const req = makeStateReq({ state: 'IN_PROGRESS' }, ANNOTATOR_HEADERS);
 
     const mod = await import('@/app/api/matches/[id]/state/route');
     const PATCH = mod.PATCH;

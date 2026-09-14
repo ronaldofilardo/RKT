@@ -8,10 +8,10 @@ import { makeAuthHeaders } from '@/test-helpers/auth';
 
 const mockSubscribe = subscribeMatch as jest.MockedFunction<typeof subscribeMatch>;
 
-let SPECTATOR_HEADERS: Record<string, string> = {};
+let ANNOTATOR_HEADERS: Record<string, string> = {};
 
 beforeAll(async () => {
-  SPECTATOR_HEADERS = await makeAuthHeaders('user-spect', 'SPECTATOR');
+  ANNOTATOR_HEADERS = await makeAuthHeaders('user-spect', 'ANNOTATOR');
 });
 
 describe('GET /api/matches/[id]/events', () => {
@@ -31,7 +31,7 @@ describe('GET /api/matches/[id]/events', () => {
   it('deve retornar SSE headers', async () => {
     const { GET } = await import('../events/route');
     const req = new NextRequest('http://localhost:3000/api/matches/m-1/events', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
       signal: new AbortController().signal,
     });
 
@@ -43,7 +43,7 @@ describe('GET /api/matches/[id]/events', () => {
   it('deve inscrever no matchId correto', async () => {
     const { GET } = await import('../events/route');
     const req = new NextRequest('http://localhost:3000/api/matches/m-1/events', {
-      headers: SPECTATOR_HEADERS,
+      headers: ANNOTATOR_HEADERS,
       signal: new AbortController().signal,
     });
 

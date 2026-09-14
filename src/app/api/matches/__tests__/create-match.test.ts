@@ -48,7 +48,7 @@ describe('POST /api/matches', () => {
 
   it('deve criar partida com createdByUserId do usuário logado', async () => {
     const userId = 'user-123';
-    const token = await createToken(userId, 'ATHLETE');
+    const token = await createToken(userId, 'ANNOTATOR');
     
     const matchData = {
       player1Id: 'p1',
@@ -90,7 +90,7 @@ describe('POST /api/matches', () => {
   });
 
   it('deve retornar 401 se token tiver sub vazio (RLS validation)', async () => {
-    const token = await createToken('', 'ATHLETE');
+    const token = await createToken('', 'ANNOTATOR');
     
     const matchData = {
       player1Id: 'p1',
@@ -114,7 +114,7 @@ describe('POST /api/matches', () => {
   });
 
   it('deve retornar 400 se dados inválidos', async () => {
-    const token = await createToken('user-123', 'ATHLETE');
+    const token = await createToken('user-123', 'ANNOTATOR');
 
     const req = new NextRequest('http://localhost:3000/api/matches', {
       method: 'POST',
@@ -131,7 +131,7 @@ describe('POST /api/matches', () => {
   });
 
   it('deve retornar 409 se partida duplicada', async () => {
-    const token = await createToken('user-123', 'ATHLETE');
+    const token = await createToken('user-123', 'ANNOTATOR');
     
     const { findDuplicateMatch } = await import('@/services/matchSuggestionService');
     (findDuplicateMatch as jest.Mock).mockResolvedValue({
