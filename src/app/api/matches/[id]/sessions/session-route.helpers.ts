@@ -18,7 +18,7 @@ export function parseSnapshot(snapshot: string | null | undefined) {
 
 export function getSuspendedResponse(session: Session, match: Match) {
   const snapshotStr = session.matchStateSnapshot ?? null;
-  const { snapshotStatus, snapshotPointCount } = computeSnapshotStatus(snapshotStr, match.version ?? 0);
+  const { snapshotStatus, snapshotPointCount } = computeSnapshotStatus(snapshotStr, match.version ?? 0, (match as any)._count?.pointLog);
   return {
     ...session,
     suspended: true,

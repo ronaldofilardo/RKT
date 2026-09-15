@@ -202,6 +202,13 @@ export function calculateValidation(input: EditScoreValidationInput): EditScoreV
 
   const potentialMT = isPotentialMTSet(matchFormat, totalEditedSets, setResults);
 
+  // Nota: esta detecção de MTB é intencionalmente separada de
+  // isMatchTiebreakSet (useSessionManager.utils.ts) porque precisa lidar
+  // com o caso "potencial" (inputs em 6-6 que ainda não foram confirmados
+  // como set). isMatchTiebreakSet espera o set já existir em setResults,
+  // mas aqui o set atual ainda está sendo validado (não está no array).
+  // isPotentialMTSet detecta o caso 6-6 do input; o branch setResults
+  // delega para isMatchTiebreakSet quando o set já existe.
   let isMatchTiebreakSet: boolean;
   if (potentialMT) {
     isMatchTiebreakSet = bothFilled && p1Val === 6 && p2Val === 6;

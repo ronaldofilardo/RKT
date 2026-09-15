@@ -178,11 +178,27 @@ export function toCompletedSetsForServer(
   completedSets: CompletedSet[],
   matchFormat: TennisFormat,
 ): CompletedSet[] {
-  return getCompletedSets(state, completedSets, matchFormat).map((set) => ({
-    games: { player1: set.p1Games, player2: set.p2Games },
-    winner: (set.p1Games > set.p2Games ? 'player1' : 'player2') as 'player1' | 'player2',
-    ...(set.tiebreakScore ? { tiebreakScore: set.tiebreakScore } : {}),
-  }));
+  return getCompletedSets(state, completedSets, matchFormat).map((set) => {
+    // Determinar vencedor consultando tiebreakScore quando games estão
+    // empatados (6-6 em set regular, ou 1-0/0-1 em MTB puro). Sem isso,
+    // p1Games > p2Games resolvia incorretamente para 'player2' em sets
+    // decididos por tiebreak com games empatados.
+    let winner: 'player1' | 'player2';
+    if (set.p1Games > set.p2Games) {
+      winner = 'player1';
+    } else if (set.p2Games > set.p1Games) {
+      winner = 'player2';
+    } else if (set.tiebreakScore) {
+      winner = set.tiebreakScore.player1 > set.tiebreakScore.player2 ? 'player1' : 'player2';
+    } else {
+      winner = 'player2';
+    }
+    return {
+      games: { player1: set.p1Games, player2: set.p2Games },
+      winner,
+      ...(set.tiebreakScore ? { tiebreakScore: set.tiebreakScore } : {}),
+    };
+  });
 }
 
 export function getSetWinner(validation: ValidationData): PlayerSide {

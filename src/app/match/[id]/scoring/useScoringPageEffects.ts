@@ -74,6 +74,7 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     syncPendingMatches,
     toast,
     fetchPointLogAudioMeta,
+    clearQueueForMatch,
   } = state;
 
   useEffect(() => {
@@ -151,6 +152,7 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
       close,
       closeAll,
       isProcessingRef,
+      clearQueueForMatch,
     });
 
   const handleEditScore = useCallback(

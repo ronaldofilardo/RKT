@@ -34,7 +34,7 @@ export function buildNewScoringState(options: BuildNewStateOptions): ScoringStat
         player1: 0,
         player2: 0,
         isTiebreak: true,
-        tiebreakScore: { player1: set.p1Games, player2: set.p2Games },
+        tiebreakScore: set.tiebreakScore ?? { player1: set.p1Games, player2: set.p2Games },
       };
     }
     
@@ -58,8 +58,9 @@ export function buildNewScoringState(options: BuildNewStateOptions): ScoringStat
   // Solução: se `!isFinished` E o último setResults é finalizado (não
   // parcial e com vencedor determinável), empurrar novo set vazio.
   if (!isFinished && builtSets.length > 0) {
-    const lastEditSet = setResults[setResults.length - 1];
-    const lastIsFinalized = isLastSetEditFinalized(lastEditSet, format);
+    const lastIdx = setResults.length - 1;
+    const lastEditSet = setResults[lastIdx];
+    const lastIsFinalized = isLastSetEditFinalized(lastEditSet, format, setResults, lastIdx);
     if (lastIsFinalized) {
       builtSets.push({
         player1: 0,
@@ -89,14 +90,17 @@ export function buildNewScoringState(options: BuildNewStateOptions): ScoringStat
 function isLastSetEditFinalized(
   set: SetEditData,
   format: string,
+  setResults: SetEditData[],
+  index: number,
 ): boolean {
   if (!set) return false;
   // Set parcial (em andamento) nunca é finalizado
   if (set.isPartial) return false;
 
-  // Match Tie-Break: usa tiebreakScore (mín 10+2)
-  const lastIdxMatchTiebreak = format === 'MATCH_TB_10';
-  if (lastIdxMatchTiebreak) {
+  // Match Tie-Break (todos os formatos): detectar via isMatchTiebreakSet
+  // e aplicar regra mínima de 10 pontos com diferença de 2.
+  // Antes só detectava MATCH_TB_10 — agora cobre BEST_OF_5, BEST_OF_3_MATCH_TB, etc.
+  if (isMatchTiebreakSet(index, setResults, format)) {
     const tb = set.tiebreakScore;
     const p1 = tb ? tb.player1 : set.p1Games;
     const p2 = tb ? tb.player2 : set.p2Games;

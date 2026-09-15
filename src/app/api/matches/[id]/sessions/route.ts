@@ -70,7 +70,7 @@ export async function POST(
           logger.warn('[POST /api/matches/:id/sessions] snapshot parse failed:', e);
         }
 
-        const { snapshotStatus, snapshotPointCount } = computeSnapshotStatus(snapshotStr, match.version ?? 0);
+        const { snapshotStatus, snapshotPointCount } = computeSnapshotStatus(snapshotStr, match.version ?? 0, match._count?.pointLog);
 
         return NextResponse.json({
           ...allSessions[0],
@@ -90,7 +90,7 @@ export async function POST(
       let snapshotStatus: SnapshotStatus | undefined;
       let snapshotPointCount: number | undefined;
       if (wasSuspended && allSessions[0]?.matchStateSnapshot) {
-        const result = computeSnapshotStatus(allSessions[0].matchStateSnapshot, match.version ?? 0);
+        const result = computeSnapshotStatus(allSessions[0].matchStateSnapshot, match.version ?? 0, match._count?.pointLog);
         snapshotStatus = result.snapshotStatus;
         snapshotPointCount = result.snapshotPointCount;
       }

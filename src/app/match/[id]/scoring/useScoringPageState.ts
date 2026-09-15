@@ -80,6 +80,7 @@ export interface ScoringPageState {
   engineRef: React.MutableRefObject<ReturnType<typeof ScoringEngine.fromSerialized> | null>;
   isOnline: boolean;
   enqueue: (action: Omit<QueuedAction, "id" | "status" | "retries">) => Promise<QueuedAction>;
+  clearQueueForMatch: (matchId: string) => Promise<void>;
   syncPendingMatches: () => Promise<void>;
   syncStatus: "offline" | "syncing" | "synced";
   setSyncStatus: React.Dispatch<React.SetStateAction<"offline" | "syncing" | "synced">>;
@@ -91,7 +92,7 @@ export interface ScoringPageState {
 
 export function useScoringPageState(matchId: string): ScoringPageState {
   const router = useRouter();
-  const { enqueue, isOnline } = useOfflineSync();
+  const { enqueue, clearQueueForMatch, isOnline } = useOfflineSync();
   const { syncPendingMatches } = useOfflineMatchSync();
   const { toast } = useToast();
 
@@ -244,6 +245,7 @@ export function useScoringPageState(matchId: string): ScoringPageState {
     engineRef,
     isOnline,
     enqueue,
+    clearQueueForMatch,
     syncPendingMatches,
     syncStatus,
     setSyncStatus,

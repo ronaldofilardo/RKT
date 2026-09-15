@@ -246,13 +246,13 @@ describe('sessionService', () => {
     it('deve verificar se partida existe', async () => {
       const { checkMatchExists } = await import('@/services/sessionService');
 
-      mockPrisma.match.findUnique.mockResolvedValue({ state: 'IN_PROGRESS', openForAnnotation: true });
+      mockPrisma.match.findUnique.mockResolvedValue({ state: 'IN_PROGRESS', openForAnnotation: true, _count: { pointLog: 5 } });
 
       const result = await checkMatchExists('m1');
 
       expect(mockPrisma.match.findUnique).toHaveBeenCalledWith({
         where: { id: 'm1' },
-        select: { state: true, openForAnnotation: true, version: true, scoreState: true },
+        select: { state: true, openForAnnotation: true, version: true, scoreState: true, _count: { select: { pointLog: true } } },
       });
     });
   });

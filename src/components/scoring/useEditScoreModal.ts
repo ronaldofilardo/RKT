@@ -528,7 +528,7 @@ export function useEditScoreModal(
         // player1 vencia o tiebreak decisivo. Usar getEffectiveSetWinner, que
         // consulta o placar do tiebreak quando os games estão empatados.
         const winner = getEffectiveSetWinner(validation) ?? (p1Val > p2Val ? "player1" : "player2");
-        onMatchFinished(winner);
+        await onMatchFinished(winner);
       }
 
       setState(prev => ({
@@ -637,6 +637,16 @@ export function useEditScoreModal(
       }
     }
 
+    // Bloquear edição para placar inferior ao floor (ponto de parada).
+    // O floor reflete o estado salvo no backend — placares abaixo seriam
+    // rejeitados na persistência ou produziriam inconsistência.
+    if (floorCurrentSets) {
+      if (p1Games < floorCurrentSets.player1 || p2Games < floorCurrentSets.player2) {
+        setConfirmError(`Placar não pode ser inferior ao ponto de parada (${floorCurrentSets.player1}x${floorCurrentSets.player2}).`);
+        return;
+      }
+    }
+
     editedCompletedSetIndicesRef.current.add(index);
     setState(prev => {
       const newEditable = [...prev.editableCompletedSets];
@@ -647,7 +657,7 @@ export function useEditScoreModal(
     });
     setConfirmError(null);
     setFloorValidationError(null);
-  }, [matchFormat, completedSets]);
+  }, [matchFormat, completedSets, floorCurrentSets]);
 
   const handleConfirmSet = useCallback(() => {
     if (!canConfirmSetCalc) return;

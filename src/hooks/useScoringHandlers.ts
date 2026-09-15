@@ -340,6 +340,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
               // resincroniza mais uma vez para deixar a sequência consistente,
               // mas mantém o erro visível — o ponto não foi salvo.
               await fetchMatch(true);
+              setError("Ponto não registrado — o placar foi sincronizado com o servidor. Tente novamente.");
             }
           }
         } else {
@@ -446,10 +447,19 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         closeAll();
         onUndoComplete?.();
       } else if (result.needsResync) {
-        const restored =
-          (engineRef.current?.getState() as ScoringState | undefined) ?? null;
-        if (restored) {
-          setScoreState({ type: "RESYNCED_FROM_SERVER", payload: restored });
+        // Após 409 + fetchMatch(true), o engine foi resincronizado com o
+        // estado do servidor. Retry do persist para aplicar a anulação
+        // (voidPointLogId) com a versão correta — sem isso, o PointLog
+        // permanece válido no banco mas o placar local mostra o estado
+        // sem o ponto, criando inconsistência.
+        const retryResult = await persistState(
+          engineRef.current?.getState() as ScoringState,
+          "undo-retry",
+          { voidPointLogId: pointLogIdToVoid ?? undefined },
+        );
+        if (retryResult.success) {
+          lastPointLogIdRef.current = null;
+          pointSequenceRef.current = Math.max(0, pointSequenceRef.current - 1);
         }
         closeAll();
       }

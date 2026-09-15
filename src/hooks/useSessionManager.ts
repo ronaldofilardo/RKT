@@ -59,6 +59,12 @@ export interface SessionManagerContext {
    * enquanto um POST /point está em andamento (race condition #1).
    */
   isProcessingRef?: MutableRefObject<boolean>;
+  /**
+   * Remove pontos pendentes da fila offline para a partida.
+   * Usado após edit-score para evitar que pontos antigos (que referenciam
+   * o estado anterior) sejam aplicados ao estado editado durante o flush.
+   */
+  clearQueueForMatch?: (matchId: string) => Promise<void>;
 }
 
 export function useSessionManager(ctx: SessionManagerContext) {
@@ -175,6 +181,12 @@ export function useSessionManager(ctx: SessionManagerContext) {
         );
 
         if (finishResult.error === 'offline') {
+          // Aplicar estado local mesmo offline para manter a UI consistente.
+          // Quando a conexão voltar, useOfflineMatchSync fará o POST /finish.
+          if (engineRef.current) {
+            engineRef.current.loadState(newState);
+            setScoreState({ type: "EDIT_CONFIRMED", payload: newState });
+          }
           toast({ type: 'info', message: 'Partida finalizada offline. Sincronização pendente.' });
         } else if (!finishResult.success && finishResult.error) {
           toast({ type: 'error', message: `${finishResult.error}\n\nA partida foi encerrada localmente, mas não foi possível sincronizar com o servidor.` });
@@ -216,6 +228,11 @@ export function useSessionManager(ctx: SessionManagerContext) {
       // Limpar snapshots pendentes
       ctx.clearPendingEdit?.();
       setSuspendedSession(null);
+
+      // Invalidar pontos offline pendentes para esta partida após
+      // edição bem-sucedida. Pontos antigos referenciam o estado
+      // anterior e seriam aplicados incorretamente durante o flush.
+      ctx.clearQueueForMatch?.(matchId);
 
       if (isFinished && winner) {
         // finishMatch já foi chamado acima (persistência + finalização em

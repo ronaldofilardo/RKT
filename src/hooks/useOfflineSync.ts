@@ -43,6 +43,24 @@ export function useOfflineSync() {
     return queuedAction;
   }, []);
 
+  // Remove pontos pendentes da fila offline para uma partida específica.
+  // Usado após edit-score: quando o placar é editado, pontos offline
+  // antigos referenciam o estado anterior e seriam aplicados incorretamente
+  // se o flush os enviasse ao servidor.
+  const clearQueueForMatch = useCallback(async (targetMatchId: string) => {
+    try {
+      const db = await getDb();
+      const pending = await db.getAllFromIndex(STORE_NAME, 'status', 'PENDING');
+      for (const action of pending) {
+        if (action.matchId === targetMatchId) {
+          await db.delete(STORE_NAME, action.id);
+        }
+      }
+    } catch (err) {
+      logger.error('[clearQueueForMatch] Failed to clear queue:', err);
+    }
+  }, []);
+
   const flush = useCallback(async (accessToken: string) => {
     if (isFlushingRef.current) {
       logger.log('[flush] Sincronização offline já em andamento — ignorando chamada concorrente');
@@ -189,5 +207,5 @@ export function useOfflineSync() {
     };
   }, [flush]);
 
-  return { enqueue, flush, isOnline: online, isSyncing };
+  return { enqueue, flush, clearQueueForMatch, isOnline: online, isSyncing };
 }

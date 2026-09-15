@@ -52,6 +52,9 @@ export async function checkMatchExists(matchId: string) {
       openForAnnotation: true,
       version: true,
       scoreState: true,
+      _count: {
+        select: { pointLog: true },
+      },
     },
   });
 }

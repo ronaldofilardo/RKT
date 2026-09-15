@@ -88,12 +88,31 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
         const history: any[] = Array.isArray(parsed?.history) ? parsed.history : [];
         const offlinePoints = history.slice(suspendedSession.bankPointCount);
         
-        for (const entry of offlinePoints) {
+        // Buscar sequência atual do servidor antes de replayar pontos.
+        // Cada ponto offline precisa de um sequenceNumber válido e um
+        // clientEventId para dedup (evitar duplicação em caso de retry).
+        let serverSequence = 0;
+        try {
+          const seqRes = await fetch(`/api/matches/${matchId}`, {
+            headers: { authorization: `Bearer ${tokenRef.current}` },
+            signal,
+          });
+          if (seqRes.ok) {
+            const seqData = await seqRes.json();
+            serverSequence = seqData._count?.pointLog ?? seqData.version ?? 0;
+          }
+        } catch {}
+
+        for (let i = 0; i < offlinePoints.length; i++) {
+          const entry = offlinePoints[i];
           try {
             if (!entry?.point?.winnerId || !entry?.point?.type || !entry?.point?.serverId) {
               logger.warn('[suspended session resume] Skipping invalid offline point:', entry);
               continue;
             }
+
+            const sequenceNumber = serverSequence + i + 1;
+            const clientEventId = `resume-${matchId}-${suspendedSession.bankPointCount + i}`;
             
             await fetch(`/api/matches/${matchId}/point`, {
               method: "POST",
@@ -108,6 +127,8 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
                 isFirstServe: entry.point.isFirstServe ?? true,
                 isSecondServe: entry.point.isSecondServe ?? false,
                 timestamp: entry.point.timestamp ?? Date.now(),
+                sequenceNumber,
+                clientEventId,
                 ...(entry.point.rallyDetails != null ? { rallyDetails: entry.point.rallyDetails } : {}),
                 ...(entry.point.rallyLength != null ? { rallyLength: entry.point.rallyLength } : {}),
               }),
