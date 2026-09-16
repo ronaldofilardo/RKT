@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import { render, screen } from '@testing-library/react';
-import { PointRow } from '../timeline-rows';
+import { PointRow, getPlayerInitials } from '../timeline-rows';
 import type { TimelinePoint } from '@/core/scoring/types';
 
 function makePoint(overrides: Partial<TimelinePoint>): TimelinePoint {
@@ -32,19 +32,37 @@ function makePoint(overrides: Partial<TimelinePoint>): TimelinePoint {
 
 const baseProps = {
   matchId: 'match-1',
-  setLabel: 'SET 1',
   isFirstPointOfGame: true,
-  isFirstPointOfSet: true,
+  player1Name: 'Rafael Nadal',
+  player2Name: 'Djokovic',
 };
 
-describe('PointRow — regressão do novo layout (23 colunas)', () => {
-  it('ACE: exibe ACE na coluna 1º saque, efeito e direção', () => {
+// ─── getPlayerInitials — regra de formatação das colunas P/ e SAC ───────────
+describe('getPlayerInitials', () => {
+  it('nome + sobrenome: usa a inicial de cada um, ex. "Rafael Nadal" → "R.N."', () => {
+    expect(getPlayerInitials('Rafael Nadal')).toBe('R.N.');
+  });
+
+  it('nome com mais de 2 palavras: usa a inicial da primeira e da última', () => {
+    expect(getPlayerInitials('Roger Federer Junior')).toBe('R.J.');
+  });
+
+  it('nome único: usa as 3 primeiras letras capitalizadas, ex. "Djokovic" → "Djo"', () => {
+    expect(getPlayerInitials('Djokovic')).toBe('Djo');
+  });
+
+  it('nome único curto: mantém como está, capitalizado', () => {
+    expect(getPlayerInitials('Ana')).toBe('Ana');
+  });
+});
+
+describe('PointRow — regressão do novo layout (25 colunas, sem coluna SET)', () => {
+  it('ACE no 1º saque: mostra ACE + efeito/direção do próprio ace na seção 1º saque; cascata (GOLPE/EFEITO/DIREÇÃO/SITUAÇÃO) fica em branco', () => {
     const p = makePoint({
       type: 'ACE',
       isFirstServe: true,
+      isSecondServe: false,
       firstServeOutcome: 'ace',
-      serveEffect: 'flat',
-      serveDirection: 'fechado',
       rallyDetails: {
         vencedor: 'sacador',
         situacao: 'saque',
@@ -56,14 +74,62 @@ describe('PointRow — regressão do novo layout (23 colunas)', () => {
       } as any,
     });
     const { container } = render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
-    const text = container.textContent ?? '';
-    expect(text).toContain('ACE');
-    expect(text).toContain('flat');
-    expect(text).toContain('fechado');
-    expect(text).toContain('Saque');
+    const cells = Array.from(container.querySelectorAll('td')).map((td) => td.textContent);
+    // [0]=no., [1]=P/, [2]=SAC, [3]=GAMES, [4]=PONTOS,
+    // [5]=1oSaque-ACE, [6]=OUT, [7]=NET, [8]=EFE, [9]=DIR,
+    // [10]=2oSaque-ACE, [11]=OUT, [12]=NET, [13]=EFE, [14]=DIR,
+    // [15]=SITUAÇÃO, [16]=TIPO, [17]=SUBTIPO1, [18]=SUBTIPO2, [19]=GOLPE, [20]=EFEITO, [21]=DIREÇÃO
+    expect(cells[5]).toBe('ACE');
+    expect(cells[8]).toBe('flat');
+    expect(cells[9]).toBe('fechado');
+    // 2o saque inteiramente vazio (o ace foi no 1o)
+    expect(cells[10]).toBe('–');
+    expect(cells[13]).toBe('–');
+    expect(cells[14]).toBe('–');
+    // cascata (SITUAÇÃO em diante) não deve repetir os detalhes do saque
+    expect(cells[15]).toBe('–'); // SITUAÇÃO
+    expect(cells[19]).toBe('–'); // GOLPE
+    expect(cells[20]).toBe('–'); // EFEITO
+    expect(cells[21]).toBe('–'); // DIREÇÃO
   });
 
-  it('Double Fault: exibe OUT/NET nos saques, badge DF', () => {
+  it('Erro no 1º saque + ACE no 2º saque: seção 1º saque mostra o erro (com EFE/DIR do erro), seção 2º saque mostra o ACE (com EFE/DIR do próprio ace)', () => {
+    const p = makePoint({
+      type: 'ACE',
+      isFirstServe: false,
+      isSecondServe: true,
+      firstServeOutcome: 'out',
+      secondServeOutcome: 'ace',
+      firstFault: {
+        errorType: 'out',
+        serveEffect: 'topspin',
+        direction: 'aberto',
+      },
+      rallyDetails: {
+        vencedor: 'sacador',
+        situacao: 'saque',
+        tipo: 'winner',
+        golpe: 'saque',
+        efeito: 'flat',
+        direcao: 'centro',
+        previewBalls: 1,
+      } as any,
+    });
+    const { container } = render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
+    const cells = Array.from(container.querySelectorAll('td')).map((td) => td.textContent);
+    // 1o saque: OUT + efeito/direção do ERRO (não do ace)
+    expect(cells[6]).toBe('OUT');
+    expect(cells[8]).toBe('topspin');
+    expect(cells[9]).toBe('aberto');
+    // 2o saque: ACE + efeito/direção do próprio ace
+    expect(cells[10]).toBe('ACE');
+    expect(cells[13]).toBe('flat');
+    expect(cells[14]).toBe('centro');
+    // cascata continua vazia (o 2o saque decidiu o ponto)
+    expect(cells[19]).toBe('–'); // GOLPE
+  });
+
+  it('Dupla Falta: seção 1º saque mostra o 1o erro, seção 2º saque mostra o 2o erro (OUT/NET + EFE/DIR do 2o); cascata em branco', () => {
     const p = makePoint({
       type: 'DOUBLE_FAULT',
       isFirstServe: false,
@@ -87,15 +153,60 @@ describe('PointRow — regressão do novo layout (23 colunas)', () => {
       } as any,
     });
     const { container } = render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
-    const text = container.textContent ?? '';
-    expect(text).toContain('DF');
-    expect(text).toContain('OUT');
-    expect(text).toContain('NET');
-    expect(text).toContain('topspin');
-    expect(text).toContain('aberto');
+    const cells = Array.from(container.querySelectorAll('td')).map((td) => td.textContent);
+    expect(cells[6]).toBe('OUT'); // 1o saque
+    expect(cells[8]).toBe('topspin');
+    expect(cells[9]).toBe('aberto');
+    expect(cells[12]).toBe('NET'); // 2o saque
+    expect(cells[13]).toBe('flat');
+    expect(cells[14]).toBe('fechado');
+    expect(cells[15]).toBe('–'); // SITUAÇÃO
+    expect(cells[19]).toBe('–'); // GOLPE
   });
 
-  it('Winner em rally: exibe golpe, efeito, direção, badge Winner', () => {
+  it('Erro no 1º saque + acerto no 2º (rally comum): seção 1º saque mostra o erro, seção 2º fica vazia, cascata mostra os detalhes do rally', () => {
+    const p = makePoint({
+      type: 'WINNER',
+      isFirstServe: false,
+      isSecondServe: true,
+      firstServeOutcome: 'out',
+      secondServeOutcome: null,
+      firstFault: {
+        errorType: 'out',
+        serveEffect: 'topspin',
+        direction: 'aberto',
+      },
+      rallyLength: 4,
+      rallyDetails: {
+        vencedor: 'sacador',
+        situacao: 'fundo',
+        tipo: 'winner',
+        golpe: 'fh',
+        efeito: 'topspin',
+        direcao: 'cruzada',
+        previewBalls: 4,
+      } as any,
+    });
+    const { container } = render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
+    const cells = Array.from(container.querySelectorAll('td')).map((td) => td.textContent);
+    // 1o saque: mostra só o erro
+    expect(cells[6]).toBe('OUT');
+    expect(cells[8]).toBe('topspin');
+    expect(cells[9]).toBe('aberto');
+    // 2o saque: nenhum ACE/OUT/NET (o 2o saque foi bom)
+    expect(cells[10]).toBe('–');
+    expect(cells[11]).toBe('–');
+    expect(cells[12]).toBe('–');
+    expect(cells[13]).toBe('–');
+    expect(cells[14]).toBe('–');
+    // cascata mostra o rally normalmente
+    expect(cells[15]).toBe('Fundo'); // SITUAÇÃO
+    expect(cells[19]).toBe('FH'); // GOLPE
+    expect(cells[20]).toBe('topspin'); // EFEITO
+    expect(cells[21]).toBe('cruzada'); // DIREÇÃO
+  });
+
+  it('Winner em rally comum (sem nenhum erro de saque): cascata mostra golpe/efeito/direção normalmente', () => {
     const p = makePoint({
       type: 'WINNER',
       rallyLength: 4,
@@ -167,28 +278,30 @@ describe('PointRow — regressão do novo layout (23 colunas)', () => {
   });
 });
 
-describe('PointRow — colunas SET, PONTO P/, SACADOR', () => {
-  it('mostra "SET N" + pointNumber no primeiro ponto do set', () => {
+describe('PointRow — colunas no., P/, SAC (sem coluna SET)', () => {
+  it('não renderiza mais nenhuma coluna/label "SET N" — no. é a 1a coluna', () => {
     const p = makePoint({ server: 'player1', pointNumber: 5 });
-    render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
-    expect(screen.getByText('SET 1')).toBeInTheDocument();
-    expect(screen.getByText('5')).toBeInTheDocument();
+    const { container } = render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
+    expect(screen.queryByText('SET 1')).not.toBeInTheDocument();
+    const cells = container.querySelectorAll('td');
+    // [0] agora é "no." (antes era a célula do rótulo SET)
+    expect(cells[0]?.textContent).toBe('5');
   });
 
-  it('mostra ganhador do ponto na coluna P/ (1 ou 2)', () => {
+  it('mostra as iniciais do ganhador do ponto na coluna P/ (não mais "1"/"2")', () => {
     const p = makePoint({ server: 'player1', winner: 'PLAYER_1' });
     const { container } = render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
     const cells = container.querySelectorAll('td');
-    // [0]=SET, [1]=no., [2]=P/(winner)
-    expect(cells[2]?.textContent).toBe('1');
+    // [0]=no., [1]=P/(winner)
+    expect(cells[1]?.textContent).toBe(getPlayerInitials(baseProps.player1Name));
   });
 
-  it('mostra sacador na coluna SAC (1 ou 2)', () => {
+  it('mostra as iniciais do sacador na coluna SAC (não mais "1"/"2")', () => {
     const p = makePoint({ server: 'player2', winner: 'PLAYER_2' });
     const { container } = render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
     const cells = container.querySelectorAll('td');
-    // [3]=SAC
-    expect(cells[3]?.textContent).toBe('2');
+    // [2]=SAC
+    expect(cells[2]?.textContent).toBe(getPlayerInitials(baseProps.player2Name));
   });
 
   it('GAMES mostra placar apenas no 1º ponto do game (demais = "–")', () => {
@@ -202,9 +315,9 @@ describe('PointRow — colunas SET, PONTO P/, SACADOR', () => {
       </table>
     );
     const cells1 = c1.querySelectorAll('td');
-    // [4]=GAMES (número do game), [5]=PONTOS
-    expect(cells1[4]?.textContent).toBe('1');
-    expect(cells1[5]?.textContent).toBe('0-0');
+    // [3]=GAMES (número do game), [4]=PONTOS
+    expect(cells1[3]?.textContent).toBe('1');
+    expect(cells1[4]?.textContent).toBe('0-0');
 
     const { container: c2 } = render(
       <table>
@@ -214,6 +327,6 @@ describe('PointRow — colunas SET, PONTO P/, SACADOR', () => {
       </table>
     );
     const cells = c2.querySelectorAll('td');
-    expect(cells[4]?.textContent).toBe('–');
+    expect(cells[3]?.textContent).toBe('–');
   });
 });

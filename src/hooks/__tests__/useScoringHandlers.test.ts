@@ -18,11 +18,18 @@ jest.mock('@/core/scoring/engine', () => {
     getPointHistory: jest.fn().mockReturnValue([]),
     restorePointHistory: jest.fn(),
   });
+  const MockScoringEngine: any = jest.fn().mockImplementation(function (this: any) {
+    Object.assign(this, makeInstance());
+  });
+  // fromSerialized é um método ESTÁTICO de ScoringEngine (chamado como
+  // `ScoringEngine.fromSerialized(...)` em useScoringHandlers.ts, dentro de
+  // applySuccessResult) — precisa estar no próprio mock da classe, não só
+  // como export nomeado solto, senão vira TypeError em qualquer teste cujo
+  // fluxo passe pelo caminho "online" real (fetch bem-sucedido).
+  MockScoringEngine.fromSerialized = jest.fn(() => makeInstance());
   return {
-    ScoringEngine: jest.fn().mockImplementation(function (this: any) {
-      Object.assign(this, makeInstance());
-    }),
-    fromSerialized: jest.fn(() => makeInstance()),
+    ScoringEngine: MockScoringEngine,
+    fromSerialized: MockScoringEngine.fromSerialized,
   };
 });
 
@@ -168,6 +175,8 @@ describe('useScoringHandlers - handleServeErrorConfirm', () => {
           current: {
             getState: jest.fn().mockReturnValue({ server: 'player1', isFinished: false }),
             applyPoint: jest.fn(),
+            getPointHistory: jest.fn().mockReturnValue([]),
+            restorePointHistory: jest.fn(),
           },
         },
         handleServeErrorClose,
@@ -657,5 +666,318 @@ describe('useScoringHandlers - cancelar no 2º saque não deve mexer no placar',
     expect(undoLastPoint).not.toHaveBeenCalled();
     expect(handleFirstServeErrorClear).not.toHaveBeenCalled();
     expect(setServeStep).not.toHaveBeenCalled();
+  });
+});
+
+// ─── Regressão: cancelar não pode deixar o Ace/DF agendado (debounce) disparar ──
+// Bug reportado: handleServerEffectConfirm/handleServeErrorConfirm agendam o
+// processPoint real dentro de um setTimeout (debounce). isProcessingRef só
+// vira true DENTRO desse timeout, não no agendamento. Antes do fix,
+// handleServeCancel/handleServeErrorCancel/handleCancelSecondServe não
+// cancelavam esse timer pendente (diferente de handleUndo, que já fazia
+// isso) — resetavam a UI local (parecendo cancelado), mas o ponto
+// "fantasma" ainda era enviado ao engine/servidor alguns ms depois,
+// avançando o placar/sequência sem o usuário perceber e desalinhando a
+// timeline a partir dali.
+describe('useScoringHandlers - cancelar aborta ponto fantasma (Ace/DF agendado via debounce)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  function makeGhostCtx(overrides: Partial<any> = {}) {
+    const applyPoint = jest.fn();
+    const debounceTimerRef = { current: null as ReturnType<typeof setTimeout> | null };
+    const ctx = createMockContext({
+      isOnline: false,
+      debounceTimerRef,
+      serveErrorState: {
+        serveStep: 'second' as const,
+        pendingServeError: { errorType: 'net' as const, serveStep: 'second' as const },
+        firstServeError: null,
+        firstFaultDetail: null,
+        isServeEffectModalOpen: true,
+      },
+      engineRef: {
+        current: {
+          getState: jest.fn().mockReturnValue({
+            server: 'player1',
+            isFinished: false,
+            sets: [],
+            currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+            winner: null,
+            setsWon: { player1: 0, player2: 0 },
+            startedAt: null,
+            secondServe: false,
+          }),
+          applyPoint,
+          getPointHistory: jest.fn().mockReturnValue([]),
+        } as any,
+      },
+      ...overrides,
+    });
+    return { ctx, applyPoint, debounceTimerRef };
+  }
+
+  it('handleServeErrorCancel cancela o timer de um Ace agendado (handleServerEffectConfirm) antes de disparar', () => {
+    const { ctx, applyPoint, debounceTimerRef } = makeGhostCtx();
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+
+    act(() => {
+      result.current.handleServerEffectConfirm('flat', 'centro');
+    });
+
+    // O ponto ainda está "na fila": timer agendado, mas isProcessingRef
+    // ainda não virou true (só vira dentro do setTimeout).
+    expect(debounceTimerRef.current).not.toBeNull();
+    expect(ctx.isProcessingRef.current).toBe(false);
+    expect(applyPoint).not.toHaveBeenCalled();
+
+    act(() => {
+      result.current.handleServeErrorCancel();
+    });
+
+    expect(debounceTimerRef.current).toBeNull();
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    // O Ace "fantasma" NUNCA deve ser aplicado depois do cancelar.
+    expect(applyPoint).not.toHaveBeenCalled();
+  });
+
+  it('handleServeCancel cancela o timer de uma Dupla Falta agendada (handleServeErrorConfirm) antes de disparar', () => {
+    const { ctx, applyPoint, debounceTimerRef } = makeGhostCtx({
+      serveErrorState: {
+        serveStep: 'none' as const,
+        pendingServeError: { errorType: 'net' as const, serveStep: 'second' as const },
+        firstServeError: { errorType: 'out' as const, serveEffect: 'topspin', direction: 'aberto' },
+        firstFaultDetail: null,
+        isServeEffectModalOpen: true,
+      },
+    });
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+
+    act(() => {
+      result.current.handleServeErrorConfirm('flat', 'centro');
+    });
+
+    expect(debounceTimerRef.current).not.toBeNull();
+    expect(ctx.isProcessingRef.current).toBe(false);
+
+    act(() => {
+      result.current.handleServeCancel();
+    });
+
+    expect(debounceTimerRef.current).toBeNull();
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    expect(applyPoint).not.toHaveBeenCalled();
+  });
+
+  it('handleCancelSecondServe também cancela o timer pendente', () => {
+    const { ctx, applyPoint, debounceTimerRef } = makeGhostCtx();
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+
+    act(() => {
+      result.current.handleServerEffectConfirm('flat', 'centro');
+    });
+
+    expect(debounceTimerRef.current).not.toBeNull();
+
+    act(() => {
+      result.current.handleCancelSecondServe();
+    });
+
+    expect(debounceTimerRef.current).toBeNull();
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    expect(applyPoint).not.toHaveBeenCalled();
+  });
+});
+
+// ─── Regressão: firstFaultDetail perdido quando o ponto NÃO termina em DF ────
+// Bug reportado: handleAceDirect, handleServerEffectConfirm (Ace com
+// detalhes) e handlePointDetailsConfirm (rally comum) nunca incluíam
+// firstFaultDetail no payload do processPoint — só os handlers de
+// DOUBLE_FAULT faziam isso. Resultado: o erro do 1º saque era perdido
+// sempre que o ponto terminava em Ace no 2º saque ou em rally após acerto
+// do 2º saque, e a coluna "1º Saque" da timeline ficava sem OUT/NET/EFE/DIR.
+describe('useScoringHandlers - firstFaultDetail propagado quando o ponto NÃO é Dupla Falta (regressão)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  const firstServeError = {
+    errorType: 'out' as const,
+    serveEffect: 'topspin',
+    direction: 'aberto',
+  };
+
+  function makeEngineCtx(overrides: Partial<any> = {}) {
+    const applyPoint = jest.fn();
+    const ctx = createMockContext({
+      isOnline: false,
+      engineRef: {
+        current: {
+          getState: jest.fn().mockReturnValue({
+            server: 'player1',
+            isFinished: false,
+            sets: [],
+            currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+            winner: null,
+            setsWon: { player1: 0, player2: 0 },
+            startedAt: null,
+            secondServe: false,
+          }),
+          applyPoint,
+          getPointHistory: jest.fn().mockReturnValue([]),
+        } as any,
+      },
+      ...overrides,
+    });
+    return { ctx, applyPoint };
+  }
+
+  it('handleAceDirect (Ace direto, sem modal) inclui firstFaultDetail quando há erro de 1º saque', () => {
+    const { ctx, applyPoint } = makeEngineCtx({
+      serveErrorState: {
+        serveStep: 'second' as const,
+        pendingServeError: null,
+        firstServeError,
+        firstFaultDetail: null,
+        isServeEffectModalOpen: false,
+      },
+    });
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+
+    act(() => {
+      result.current.handleAceDirect();
+    });
+
+    expect(applyPoint).toHaveBeenCalledTimes(1);
+    const flow = applyPoint.mock.calls[0][0];
+    expect(flow.type).toBe('ACE');
+    expect(flow.isSecondServe).toBe(true);
+    expect(flow.firstFaultDetail).toEqual(firstServeError);
+  });
+
+  it('handleServerEffectConfirm (Ace com detalhes) inclui firstFaultDetail quando há erro de 1º saque', () => {
+    const { ctx, applyPoint } = makeEngineCtx({
+      serveErrorState: {
+        serveStep: 'second' as const,
+        pendingServeError: null,
+        firstServeError,
+        firstFaultDetail: null,
+        isServeEffectModalOpen: true,
+      },
+    });
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+
+    act(() => {
+      result.current.handleServerEffectConfirm('flat', 'centro');
+    });
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    expect(applyPoint).toHaveBeenCalledTimes(1);
+    const flow = applyPoint.mock.calls[0][0];
+    expect(flow.type).toBe('ACE');
+    expect(flow.isSecondServe).toBe(true);
+    expect(flow.firstFaultDetail).toEqual(firstServeError);
+    expect(flow.rallyDetails.efeito).toBe('flat');
+  });
+
+  it('handleAceDirect não inclui firstFaultDetail quando não há erro de 1º saque (ace direto no 1º)', () => {
+    const { ctx, applyPoint } = makeEngineCtx({
+      serveErrorState: {
+        serveStep: 'none' as const,
+        pendingServeError: null,
+        firstServeError: null,
+        firstFaultDetail: null,
+        isServeEffectModalOpen: false,
+      },
+    });
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+
+    act(() => {
+      result.current.handleAceDirect();
+    });
+
+    expect(applyPoint).toHaveBeenCalledTimes(1);
+    const flow = applyPoint.mock.calls[0][0];
+    expect(flow.type).toBe('ACE');
+    expect(flow.isSecondServe).toBe(false);
+    expect(flow.firstFaultDetail).toBeUndefined();
+  });
+
+  it('handlePointDetailsConfirm (rally comum) inclui firstFaultDetail quando há erro de 1º saque', async () => {
+    const { ctx, applyPoint } = makeEngineCtx({
+      modalParamsRef: { current: { winner: 'player1', rallyLength: '6' } },
+      serveErrorState: {
+        serveStep: 'second' as const,
+        pendingServeError: null,
+        firstServeError,
+        firstFaultDetail: null,
+        isServeEffectModalOpen: false,
+      },
+    });
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+
+    act(() => {
+      result.current.handlePointDetailsConfirm({
+        tipo: 'winner' as const,
+        previewBalls: 5,
+      });
+    });
+
+    expect(applyPoint).toHaveBeenCalledTimes(1);
+    const flow = applyPoint.mock.calls[0][0];
+    expect(flow.type).toBe('WINNER');
+    expect(flow.isSecondServe).toBe(true);
+    expect(flow.firstFaultDetail).toEqual(firstServeError);
+  });
+
+  it('handlePointDetailsConfirm não inclui firstFaultDetail quando o ponto termina direto no 1º saque', () => {
+    const { ctx, applyPoint } = makeEngineCtx({
+      modalParamsRef: { current: { winner: 'player1', rallyLength: '6' } },
+      serveErrorState: {
+        serveStep: 'none' as const,
+        pendingServeError: null,
+        firstServeError: null,
+        firstFaultDetail: null,
+        isServeEffectModalOpen: false,
+      },
+    });
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+
+    act(() => {
+      result.current.handlePointDetailsConfirm({
+        tipo: 'winner' as const,
+        previewBalls: 5,
+      });
+    });
+
+    expect(applyPoint).toHaveBeenCalledTimes(1);
+    const flow = applyPoint.mock.calls[0][0];
+    expect(flow.firstFaultDetail).toBeUndefined();
   });
 });

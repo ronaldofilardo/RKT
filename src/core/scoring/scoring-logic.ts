@@ -101,9 +101,10 @@ export function enrichPointsFromHistory(
     const isDevolucao = pt.rallyDetails?.situacao === 'devolucao';
     const rallyLength = pt.rallyLength ?? (isServeFinish ? 1 : isDevolucao ? 2 : 0);
 
-    const firstFault = pt.type === 'DOUBLE_FAULT' && pt.firstFaultDetail
-      ? pt.firstFaultDetail
-      : undefined;
+    // firstFault representa o erro do 1o saque independente de como o
+    // ponto terminou (dupla falta, ace no 2o saque, ou rally comum após
+    // acerto do 2o saque) — a única condição é ter sido registrado.
+    const firstFault = pt.firstFaultDetail ? pt.firstFaultDetail : undefined;
 
     const firstServeOutcome: 'ace' | 'out' | 'net' | null =
       pt.type === 'ACE' && pt.isFirstServe

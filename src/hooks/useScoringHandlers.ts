@@ -516,8 +516,19 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
   ]);
 
   const handleCancelSecondServe = useCallback(() => {
+    // Mesmo cuidado do handleUndo: se houver um Ace ou Dupla Falta agendado
+    // via debounce (handleServerEffectConfirm/handleServeErrorConfirm), ele
+    // precisa ser abortado aqui. Sem isso, o ponto "fantasma" ainda é
+    // enviado ao servidor após o timeout mesmo com a UI já mostrando "1º
+    // SAQUE" novamente, avançando o placar/sequência sem o anotador
+    // perceber e desalinhando todos os pontos seguintes na timeline.
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+      isProcessingRef.current = false;
+    }
     setServeStep("none");
-  }, [setServeStep]);
+  }, [setServeStep, debounceTimerRef, isProcessingRef]);
 
 // ─── Modal openers ─────────────────────────────────────────────────────────
 
@@ -532,6 +543,16 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       serveErrorState.firstServeError !== null;
     closeAll();
     const rallyDetails = modalService.createAceRallyDetails();
+    // Quando o Ace acontece no 2o saque (após erro no 1o), o detalhe do
+    // erro do 1o saque precisa ir junto, senão a coluna "1o Saque" fica
+    // sem OUT/NET/EFE/DIR na timeline para este ponto.
+    const firstFaultDetail = serveErrorState.firstServeError
+      ? {
+          errorType: serveErrorState.firstServeError.errorType,
+          serveEffect: serveErrorState.firstServeError.serveEffect,
+          direction: serveErrorState.firstServeError.direction,
+        }
+      : undefined;
     processPoint({
       winnerId: serverHelpers.getWinnerId(true),
       type: "ACE",
@@ -541,6 +562,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
       timestamp: Date.now(),
       rallyDetails,
       rallyLength: 1,
+      firstFaultDetail,
     }).finally(() => {
       handleFirstServeErrorClear();
       setServeStep("none");
@@ -583,6 +605,15 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         serveErrorState.firstServeError !== null;
 
       const rallyDetails = modalService.createAceRallyDetails(effect, direction);
+      // Mesmo motivo do handleAceDirect: preserva o detalhe do erro do 1o
+      // saque quando o Ace sai no 2o saque.
+      const firstFaultDetail = serveErrorState.firstServeError
+        ? {
+            errorType: serveErrorState.firstServeError.errorType,
+            serveEffect: serveErrorState.firstServeError.serveEffect,
+            direction: serveErrorState.firstServeError.direction,
+          }
+        : undefined;
 
         debounceTimerRef.current = setTimeout(() => {
         processPoint({
@@ -594,6 +625,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
           timestamp: Date.now(),
           rallyDetails,
           rallyLength: 1,
+          firstFaultDetail,
         }).finally(() => {
           handleFirstServeErrorClear();
           setServeStep("none");
@@ -761,7 +793,6 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
   );
 
   const handleServeCancel = useCallback(() => {
-    if (isProcessingRef.current) return;
     // Cancelar no "2o saque" só deve anular a marcação local do erro de 1o
     // saque (voltando para o estado de 1o saque). Nenhum ponto chega a ser
     // registrado no engine até a falta do 2o saque (DOUBLE_FAULT) ser
@@ -769,6 +800,21 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     // undoLastPoint() neste ponto desfazia indevidamente o último ponto já
     // persistido no placar (bug reportado: "cancelar" no 2o saque alterava
     // o placar).
+    //
+    // IMPORTANTE: isProcessingRef só fica true DEPOIS que o debounce do
+    // Ace/Dupla Falta agendado dispara (dentro do setTimeout). Enquanto o
+    // ponto está "na fila" (debounceTimerRef setado, isProcessingRef ainda
+    // false), um early-return aqui deixava esse ponto seguir e ser enviado
+    // ao servidor mesmo com o usuário cancelando a tela — um ponto
+    // "fantasma" que avançava o placar/sequência sem o anotador perceber
+    // e desalinhava a timeline a partir daí. Por isso o timer é cancelado
+    // ANTES de qualquer verificação de isProcessingRef.
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+      isProcessingRef.current = false;
+    }
+    if (isProcessingRef.current) return;
     handleServeErrorClose();
     handleFirstServeErrorClear();
     setServeStep("none");
@@ -777,9 +823,22 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     handleFirstServeErrorClear,
     setServeStep,
     isProcessingRef,
+    debounceTimerRef,
   ]);
 
   const handleServeErrorCancel = useCallback(() => {
+    // Mesmo cuidado de handleServeCancel/handleUndo: um Ace ou Dupla Falta
+    // agendado via debounce (handleServerEffectConfirm/handleServeErrorConfirm)
+    // ainda não passou por isProcessingRef=true enquanto está "na fila" —
+    // então é preciso abortar o timer ANTES do early-return de
+    // isProcessingRef, senão o ponto fantasma é enviado ao servidor mesmo
+    // com o modal fechado pelo cancelar, desalinhando a timeline a partir
+    // daquele ponto.
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+      isProcessingRef.current = false;
+    }
     if (isProcessingRef.current) return;
     // Assim como em handleServeCancel: nenhum ponto é registrado no engine
     // antes da falta do 2o saque (DOUBLE_FAULT) ser efetivamente confirmada,
@@ -800,6 +859,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
     handleFirstServeErrorClear,
     setServeStep,
     isProcessingRef,
+    debounceTimerRef,
   ]);
 
   // ─── Audio note upload ────────────────────────────────────────────────────
@@ -842,9 +902,19 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
             ? "FORCED_ERROR"
             : "UNFORCED_ERROR";
       const id = winnerSide === "player1" ? match.player1.id : match.player2.id;
-      
+      // Erro no 1o saque + acerto no 2o (rally comum): o detalhe do erro do
+      // 1o saque também precisa ir junto aqui, senão a coluna "1o Saque"
+      // fica sem OUT/NET/EFE/DIR quando o ponto termina em rally.
+      const firstFaultDetail = serveErrorState.firstServeError
+        ? {
+            errorType: serveErrorState.firstServeError.errorType,
+            serveEffect: serveErrorState.firstServeError.serveEffect,
+            direction: serveErrorState.firstServeError.direction,
+          }
+        : undefined;
+
       closeAll();
-      
+
       processPoint({
         winnerId: id,
         type: flowType,
@@ -858,6 +928,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext) {
         timestamp: Date.now(),
         rallyDetails: details,
         rallyLength: rallyLengthToUse,
+        firstFaultDetail,
       }).then((pointLogId) => {
         if (audio && pointLogId) {
           uploadAudioNote(match.id, pointLogId, audio.blob, audio.durationMs, tokenRef.current);

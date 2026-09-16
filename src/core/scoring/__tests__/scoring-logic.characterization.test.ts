@@ -566,9 +566,33 @@ describe('scoring-logic — Characterization Tests', () => {
       expect(result[0].firstFault).toBe('WIDE');
     });
 
-    it('sets firstFault undefined for non-DOUBLE_FAULT', () => {
+    // Regressão: antes do fix, firstFault só era preenchido para
+    // type === 'DOUBLE_FAULT'. Isso perdia o detalhe do erro de 1º saque
+    // sempre que o ponto terminava em Ace no 2º saque (ou em rally comum
+    // após acerto do 2º saque) — a coluna "1º Saque" da timeline ficava
+    // sem OUT/NET/EFE/DIR nesses casos. Agora firstFault depende só de
+    // existir firstFaultDetail, independente do type do ponto.
+    it('sets firstFault from point.firstFaultDetail for ACE on 2nd serve (regressão)', () => {
       const history = [createHistoryEntry({
-        point: createPointLog({ type: 'ACE', firstFaultDetail: 'WIDE' }),
+        point: createPointLog({ type: 'ACE', isSecondServe: true, isFirstServe: false, firstFaultDetail: 'WIDE' }),
+      })];
+
+      const result = enrichPointsFromHistory(history, 'p1', 'p2');
+      expect(result[0].firstFault).toBe('WIDE');
+    });
+
+    it('sets firstFault from point.firstFaultDetail for a common rally point after a good 2nd serve (regressão)', () => {
+      const history = [createHistoryEntry({
+        point: createPointLog({ type: 'WINNER', isSecondServe: true, isFirstServe: false, firstFaultDetail: 'WIDE' }),
+      })];
+
+      const result = enrichPointsFromHistory(history, 'p1', 'p2');
+      expect(result[0].firstFault).toBe('WIDE');
+    });
+
+    it('sets firstFault undefined when there is no firstFaultDetail, regardless of type', () => {
+      const history = [createHistoryEntry({
+        point: createPointLog({ type: 'ACE', firstFaultDetail: null }),
       })];
 
       const result = enrichPointsFromHistory(history, 'p1', 'p2');

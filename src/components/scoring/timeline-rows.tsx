@@ -18,12 +18,28 @@ interface PointRowProps {
   hasGap: boolean;
   isLast: boolean;
   matchId: string;
-  /** Rótulo "SET N" exibido na primeira linha do set. */
-  setLabel?: string;
   /** Quando true, esta linha é o primeiro ponto do game atual. */
   isFirstPointOfGame: boolean;
-  /** Quando true, esta linha é o primeiro ponto do set. */
-  isFirstPointOfSet: boolean;
+  player1Name: string;
+  player2Name: string;
+}
+
+/**
+ * Iniciais do atleta para as colunas "P/" e "SAC":
+ * - Nome + sobrenome (2+ palavras): iniciais de cada um, ex. "Rafael Nadal" → "R.N.".
+ * - Um único nome: as 3 primeiras letras, ex. "Djokovic" → "Djo".
+ */
+export function getPlayerInitials(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '–';
+  if (parts.length >= 2) {
+    const first = parts[0].charAt(0).toUpperCase();
+    const last = parts[parts.length - 1].charAt(0).toUpperCase();
+    return `${first}.${last}.`;
+  }
+  const single = parts[0];
+  const letters = single.slice(0, 3);
+  return letters.charAt(0).toUpperCase() + letters.slice(1).toLowerCase();
 }
 
 const BADGE_COLORS = {
@@ -44,11 +60,10 @@ function getPointBadge(p: TimelinePoint): { label: string; color: 'green' | 'red
   return getPointDetailSummary(p.rallyDetails);
 }
 
-export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, setLabel, isFirstPointOfGame, isFirstPointOfSet }: PointRowProps) {
+export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPointOfGame, player1Name, player2Name }: PointRowProps) {
   const rd = p.rallyDetails;
   const badge = getPointBadge(p);
-  const isDoubleFault = p.type === 'DOUBLE_FAULT';
-  const isFaultPoint = p.type === 'FAULT_FIRST' || isDoubleFault || p.isSecondServe === true;
+  const isServeDecidedPoint = p.type === 'ACE' || p.type === 'DOUBLE_FAULT' || p.type === 'FAULT_FIRST';
 
   const rowClass = [
     'border-b border-gray-100 hover:bg-gray-50 transition-colors',
@@ -58,29 +73,25 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, setLabel,
 
   const serverNumber = p.server === 'player1' ? 1 : 2;
   const winnerNumber = p.winner === 'PLAYER_1' ? 1 : 2;
+  const winnerInitials = getPlayerInitials(winnerNumber === 1 ? player1Name : player2Name);
+  const serverInitials = getPlayerInitials(serverNumber === 1 ? player1Name : player2Name);
 
   const firstOutcome = p.firstServeOutcome;
   const secondOutcome = p.secondServeOutcome;
 
   const cells = (
     <>
-      {/* SET — label "SET N" apenas na primeira linha do set */}
-      <td className="px-1.5 py-1.5 align-middle sticky left-0 bg-white z-10 border-r border-gray-200">
-        {isFirstPointOfSet && setLabel ? (
-          <span className="text-[9px] font-black uppercase text-blue-600" style={{ letterSpacing: '0.12em' }}>{setLabel}</span>
-        ) : null}
-      </td>
       {/* no. — pointNumber */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-700 font-semibold sticky left-[calc(var(--set-w,5%))] bg-white z-10 border-r border-gray-200">
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-700 font-semibold sticky left-0 bg-white z-10 border-r border-gray-200">
         {p.pointNumber}
       </td>
-      {/* P/ — ganhador do ponto (1 ou 2) */}
+      {/* P/ — ganhador do ponto (iniciais do atleta) */}
       <td className={`px-1.5 py-1.5 text-[10px] text-center font-bold ${winnerNumber === 1 ? 'text-blue-600' : 'text-red-600'}`}>
-        {winnerNumber}
+        {winnerInitials}
       </td>
-      {/* SAC — sacador (1 ou 2) */}
+      {/* SAC — sacador (iniciais do atleta) */}
       <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${serverNumber === 1 ? 'text-blue-600' : 'text-red-600'}`}>
-        {serverNumber}
+        {serverInitials}
       </td>
       {/* GAMES — placar de games (ou tiebreak score quando isTiebreak) */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-700 font-semibold text-center">
@@ -104,11 +115,11 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, setLabel,
       </td>
       {/* 1º Saque — Efeito */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
-        {firstOutcome ? efeitoLabel(p.firstFault?.serveEffect ?? p.serveEffect) : '–'}
+        {firstOutcome === 'ace' ? efeitoLabel(rd?.efeito) : firstOutcome ? efeitoLabel(p.firstFault?.serveEffect) : '–'}
       </td>
       {/* 1º Saque — Direção */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
-        {firstOutcome ? direcaoLabel(p.firstFault?.direction ?? p.serveDirection) : '–'}
+        {firstOutcome === 'ace' ? direcaoLabel(rd?.direcao) : firstOutcome ? direcaoLabel(p.firstFault?.direction) : '–'}
       </td>
       {/* 2º Saque — ACE */}
       <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${secondOutcome === 'ace' ? 'text-green-600' : 'text-gray-400'}`}>
@@ -131,7 +142,7 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, setLabel,
         {secondOutcome ? direcaoLabel(rd?.direcao) : '–'}
       </td>
       {/* SITUAÇÃO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : situacaoLabel(rd?.situacao)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : situacaoLabel(rd?.situacao)}</td>
       {/* TIPO badge (ENF/EF/W) */}
       <td className="px-1.5 py-1.5 text-[10px] border-l border-gray-200">
         <span className={`px-1.5 py-0.5 rounded-full font-semibold ${BADGE_COLORS[badge.color]}`}>
@@ -139,23 +150,23 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, setLabel,
         </span>
       </td>
       {/* SUBTIPO1 — Tipo de Erro (Rede) */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : subtipo1Label(rd?.subtipo1)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : subtipo1Label(rd?.subtipo1)}</td>
       {/* SUBTIPO2 — Onde Errou? */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : subtipo2Label(rd?.subtipo2)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : subtipo2Label(rd?.subtipo2)}</td>
       {/* GOLPE */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : golpeLabel(rd?.golpe)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : golpeLabel(rd?.golpe)}</td>
       {/* EFEITO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : efeitoLabel(rd?.efeito)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : efeitoLabel(rd?.efeito)}</td>
       {/* DIREÇÃO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : direcaoLabel(rd?.direcao)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : direcaoLabel(rd?.direcao)}</td>
       {/* GOLPES ESPECIAIS */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isFaultPoint ? '–' : golpeEspLabel(rd?.golpe_esp)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : golpeEspLabel(rd?.golpe_esp)}</td>
       {/* RALLY */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-500">{isFaultPoint ? '–' : duracaoLabel(rd?.duracao)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-gray-500">{isServeDecidedPoint ? '–' : duracaoLabel(rd?.duracao)}</td>
       {/* OBSERVAÇÃO */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-600 whitespace-normal break-words">
         <div className="flex flex-col gap-1">
-          {p.note ? <span>📝 {p.note}</span> : null}
+          {p.note && !/^SET\s+\d+$/i.test(p.note) ? <span>📝 {p.note}</span> : null}
           {p.hasAudioNote && p.pointId ? (
             <AudioNotePlayer
               matchId={matchId}
@@ -163,7 +174,7 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, setLabel,
               durationMs={p.audioNoteDuration}
             />
           ) : null}
-          {!p.note && !p.hasAudioNote ? '–' : null}
+          {( (!p.note || /^SET\s+\d+$/i.test(p.note)) && !p.hasAudioNote ) ? '–' : null}
         </div>
       </td>
     </>
@@ -179,7 +190,7 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, setLabel,
     return (
       <>
         <tr>
-          <td colSpan={26} className="text-center py-2 bg-amber-50/60 border-y border-dashed border-amber-300">
+          <td colSpan={25} className="text-center py-2 bg-amber-50/60 border-y border-dashed border-amber-300">
             <span className="text-[10px] text-amber-800">
               ⏸ Partida interrompida em <strong>{p.segmentBreak.previousLabel}</strong> · placar ajustado para <strong>{p.segmentBreak.newLabel}</strong> em {editedAtLabel}
             </span>
@@ -196,7 +207,7 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, setLabel,
     return (
       <>
         <tr>
-          <td colSpan={26} className="text-center py-1.5">
+          <td colSpan={25} className="text-center py-1.5">
             <span className="text-[10px] italic text-gray-400 border-t border-dashed border-b border-dashed border-gray-300 px-2">marcação interrompida</span>
           </td>
         </tr>
@@ -221,11 +232,11 @@ interface SetGroupProps {
   hasActiveFilters: boolean;
   isLast: boolean;
   matchId: string;
+  player1Name: string;
+  player2Name: string;
 }
 
-export function SetGroup({ setNumber, points, hasActiveFilters, isLast, matchId }: SetGroupProps) {
-  const setLabel = `SET ${setNumber}`;
-
+export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLast, matchId, player1Name, player2Name }: SetGroupProps) {
   return (
     <>
       {points.map((p, i) => {
@@ -239,7 +250,6 @@ export function SetGroup({ setNumber, points, hasActiveFilters, isLast, matchId 
           prevPoint!.gamesScore.player1 !== p.gamesScore.player1 ||
           prevPoint!.gamesScore.player2 !== p.gamesScore.player2 ||
           (prevPoint!.gameScore.player1 === 0 && prevPoint!.gameScore.player2 === 0);
-        const isFirstPointOfSet = i === 0;
         return (
           <PointRow
             key={`${p.setNumber}-${p.pointNumber}`}
@@ -247,9 +257,9 @@ export function SetGroup({ setNumber, points, hasActiveFilters, isLast, matchId 
             hasGap={!!hasGap}
             isLast={isLast && i === points.length - 1}
             matchId={matchId}
-            setLabel={setLabel}
             isFirstPointOfGame={isFirstPointOfGame}
-            isFirstPointOfSet={isFirstPointOfSet}
+            player1Name={player1Name}
+            player2Name={player2Name}
           />
         );
       })}

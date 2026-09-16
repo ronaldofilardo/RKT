@@ -39,9 +39,9 @@ function renderRow(p: TimelinePoint, overrides: Partial<React.ComponentProps<typ
           hasGap={false}
           isLast={true}
           matchId="match-1"
-          setLabel="SET 1"
           isFirstPointOfGame={true}
-          isFirstPointOfSet={true}
+          player1Name="Rafael Nadal"
+          player2Name="Djokovic"
           {...overrides}
         />
       </tbody>
@@ -49,28 +49,7 @@ function renderRow(p: TimelinePoint, overrides: Partial<React.ComponentProps<typ
   );
 }
 
-describe('PointRow — novo layout (23 colunas)', () => {
-  it('ACE na coluna 1º saque: exibe ACE, efeito e direção', () => {
-    const p = makePoint({
-      type: 'ACE',
-      firstServeOutcome: 'ace',
-      serveEffect: 'topspin',
-      serveDirection: 'aberto',
-      rallyDetails: {
-        vencedor: 'sacador',
-        situacao: 'saque',
-        golpe: 'saque',
-        efeito: 'topspin',
-        direcao: 'aberto',
-      } as any,
-    });
-    renderRow(p);
-    const text = (document.querySelector('tbody') as HTMLElement).textContent ?? '';
-    expect(text).toContain('ACE');
-    expect(text).toContain('topspin');
-    expect(text).toContain('aberto');
-  });
-
+describe('PointRow — novo layout (25 colunas, sem coluna SET)', () => {
   it('coluna RALLY mostra a faixa de duração (enum duracao), não o número cru', () => {
     const p = makePoint({
       rallyLength: 8,
@@ -81,25 +60,19 @@ describe('PointRow — novo layout (23 colunas)', () => {
     expect(screen.queryByText('8')).not.toBeInTheDocument();
   });
 
+  it('OBSERVAÇÃO não exibe rótulos de set (SET 1, SET 2, etc.)', () => {
+    const p = makePoint({ note: 'SET 1' });
+    const { container } = renderRow(p);
+    expect(screen.queryByText(/SET 1/)).not.toBeInTheDocument();
+    const obsCell = container.querySelectorAll('td')[24];
+    expect(obsCell?.textContent).toBe('–');
+  });
+
   it('OBSERVAÇÃO exibe a nota completa, sem truncar', () => {
     const longNote = 'Ronaldo hesitou no segundo saque, mudou o efeito de topspin para slice e perdeu confiança no restante do game.';
     const p = makePoint({ note: longNote });
     renderRow(p);
     expect(screen.getByText(new RegExp(longNote))).toBeInTheDocument();
-  });
-
-  it('coluna SET exibe o pointNumber no primeiro ponto do set', () => {
-    const p = makePoint({ server: 'player1', pointNumber: 3 });
-    renderRow(p);
-    expect(screen.getByText('SET 1')).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument();
-  });
-
-  it('coluna P/ mostra o ganhador do ponto (1 ou 2)', () => {
-    const p = makePoint({ server: 'player1', winner: 'PLAYER_2' });
-    renderRow(p);
-    const text = (document.querySelector('tbody') as HTMLElement).textContent ?? '';
-    expect(text).toContain('2'); // PLAYER_2 ganhou
   });
 
   it('coluna GAMES só mostra o placar no 1º ponto do game (demais = –)', () => {
@@ -109,9 +82,10 @@ describe('PointRow — novo layout (23 colunas)', () => {
       gamesScore: { player1: 0, player2: 0 },
       gameScore: { player1: 0, player2: 0 },
     });
-    renderRow(p, { isFirstPointOfGame: true });
-    const text = (document.querySelector('tbody') as HTMLElement).textContent ?? '';
-    expect(text).toContain('1'); // game number
+    const { container: c1 } = renderRow(p, { isFirstPointOfGame: true });
+    const cells1 = c1.querySelectorAll('td');
+    // [0]=no., [1]=P/, [2]=SAC, [3]=GAMES, [4]=PONTOS
+    expect(cells1[3]?.textContent).toBe('1');
 
     const p2 = makePoint({
       setNumber: 1,
@@ -121,8 +95,7 @@ describe('PointRow — novo layout (23 colunas)', () => {
     });
     const { container } = renderRow(p2, { isFirstPointOfGame: false });
     const cells = container.querySelectorAll('td');
-    // [4]=GAMES, [5]=PONTOS
-    expect(cells[4]?.textContent).toBe('–');
-    expect(cells[5]?.textContent).toBe('15-0');
+    expect(cells[3]?.textContent).toBe('–');
+    expect(cells[4]?.textContent).toBe('15-0');
   });
 });

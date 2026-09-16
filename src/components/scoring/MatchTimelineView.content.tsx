@@ -32,7 +32,7 @@ export function MatchTimelineContent({ points, player1Name, player2Name, matchId
 
       <div className="mb-3 text-[10px] text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 space-y-1">
         <p className="font-semibold text-gray-700 mb-1">Como ler esta tabela</p>
-        <p>Cada linha é um ponto disputado, na ordem em que aconteceu. <strong>SET</strong> identifica o set; <strong>no.</strong> = número do ponto; <strong>P/</strong> = ganhador do ponto (1 = {player1Name}, 2 = {player2Name}); <strong>SAC</strong> = sacador (1 = {player1Name}, 2 = {player2Name}).</p>
+        <p>Cada linha é um ponto disputado, na ordem em que aconteceu. <strong>no.</strong> = número do ponto; <strong>P/</strong> = ganhador do ponto ({player1Name}/{player2Name}); <strong>SAC</strong> = sacador ({player1Name}/{player2Name}).</p>
         <p><strong>GAMES</strong> = placar de games/set (mostrado só no 1º ponto de cada game) · <strong>PONTOS</strong> = placar de pontos (15-0, Deuce, Adv. P1).</p>
         <p><strong>1º / 2º Saque</strong>: mostra ACE, OUT ou NET conforme o resultado de cada saque, além de efeito e direção. Apenas um dos saques é preenchido por ponto.</p>
         <p><strong>TIPO</strong>: <strong>ACe</strong> = Ace · <strong>DF</strong> = Dupla Falta · <strong>Winner</strong> = ponto vencedor direto · <strong>ENF</strong> = Erro Não Forçado · <strong>EF</strong> = Erro Forçado</p>
@@ -111,7 +111,7 @@ export function MatchTimelineContent({ points, player1Name, player2Name, matchId
             </thead>
             <tbody>
               {hasActiveFilters && filteredPoints.length === 0 && (
-                <tr><td colSpan={26} className="text-center py-6 text-gray-400 text-xs">Nenhum ponto corresponde aos filtros selecionados.</td></tr>
+                <tr><td colSpan={25} className="text-center py-6 text-gray-400 text-xs">Nenhum ponto corresponde aos filtros selecionados.</td></tr>
               )}
               {groupedBySet.map((group, gi) => (
                 <SetGroup
@@ -122,6 +122,8 @@ export function MatchTimelineContent({ points, player1Name, player2Name, matchId
                   hasActiveFilters={hasActiveFilters}
                   isLast={gi === groupedBySet.length - 1}
                   matchId={matchId}
+                  player1Name={player1Name}
+                  player2Name={player2Name}
                 />
               ))}
             </tbody>
