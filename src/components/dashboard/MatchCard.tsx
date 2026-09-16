@@ -76,6 +76,8 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
       className={`rounded-xl border border-white/10 shadow-sm transition-shadow ${onClick ? "cursor-pointer hover:shadow-md" : ""}`}
       style={{ backgroundColor: '#1a1a2e' }}
       onClick={handleClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
       onKeyDown={(e) => {
         if (onClick && (e.key === 'Enter' || e.key === ' ')) {
           e.preventDefault();

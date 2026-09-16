@@ -142,7 +142,7 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId }:
                 <th colSpan={5} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide border-r border-gray-200">1º Saque</th>
                 <th colSpan={5} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide border-r border-gray-200">2º Saque</th>
                 <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">SITUAÇÃO</th>
-                <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide border-l border-gray-200">
+                <th rowSpan={2} aria-label="TIPO (ENF, EF, W)" className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide border-l border-gray-200">
                   <div className="flex flex-col leading-tight">
                     <span>TIPO</span>
                     <span className="text-[7px] font-normal text-gray-400 normal-case">ENF, EF, W</span>

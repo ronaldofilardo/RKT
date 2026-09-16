@@ -112,4 +112,21 @@ describe('MatchTimelineView — cabeçalhos e legenda (novo layout 23 colunas)',
     expect(screen.getByText(/1º \/ 2º Saque/)).toBeInTheDocument();
     expect(screen.getByText(/ACE, OUT ou NET/)).toBeInTheDocument();
   });
+
+  // ─── Regressão: correção do warning jsx-a11y/control-has-associated-label ──
+  // O <th> "TIPO" tem filhos aninhados (<div><span>TIPO</span><span>ENF, EF,
+  // W</span></div>), sem texto direto associável ao elemento — corrigido com
+  // aria-label="TIPO (ENF, EF, W)".
+  it('cabeçalho TIPO tem aria-label associado (regressão a11y)', () => {
+    render(
+      <MatchTimelineView
+        points={[makePoint({})]}
+        player1Name="Ronaldo"
+        player2Name="Mateus"
+        matchId="match-1"
+      />
+    );
+
+    expect(screen.getByLabelText('TIPO (ENF, EF, W)', { selector: 'th' })).toBeInTheDocument();
+  });
 });
