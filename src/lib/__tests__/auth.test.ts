@@ -13,7 +13,7 @@
 
 import { describe, it, expect } from '@jest/globals';
 import { NextRequest } from 'next/server';
-import { getUserFromRequestScoped, requireRole } from '@/lib/auth';
+import { getUserFromRequestScoped, getUserFromRequest, requireRole } from '@/lib/auth';
 import { createToken as makeToken } from '@tests/helpers/auth';
 
 describe('getUserFromRequestScoped — Auth drift detection', () => {
@@ -118,6 +118,27 @@ describe('requireRole — Role guard drift detection', () => {
     const result = await requireRole(req, 'ANNOTATOR');
 
     // ANNOTATOR >= ANNOTATOR, so this should succeed
+    expect(result).toBeNull();
+  });
+});
+
+describe('getUserFromRequest — legacy wrapper', () => {
+  it('delegates to getUserFromRequestScoped', async () => {
+    const token = await makeToken('legacy-user', 'ADMIN');
+    const req = new NextRequest('http://localhost/api/test', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const result = await getUserFromRequest(req);
+
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe('legacy-user');
+    expect(result?.role).toBe('ADMIN');
+  });
+
+  it('returns null when no auth', async () => {
+    const req = new NextRequest('http://localhost/api/test');
+    const result = await getUserFromRequest(req);
     expect(result).toBeNull();
   });
 });

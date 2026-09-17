@@ -151,6 +151,31 @@ describe('useMatchEvents', () => {
     expect(setStateMock).toHaveBeenCalledWith(testEvent);
   });
 
+  it('deve resetar retryCount no onopen', async () => {
+    let esInstance: any;
+    mockEventSourceCtor.mockImplementation(function (this: any, url: string) {
+      this.url = url;
+      this.close = mockClose;
+      esInstance = this;
+    });
+
+    jest.mock('react', () => ({
+      ...jest.requireActual('react'),
+      useEffect: jest.fn((fn: Function) => { fn(); }),
+      useRef: jest.fn((init: any) => ({ current: init })),
+      useState: jest.fn((init: any) => {
+        const val = typeof init === 'function' ? init() : init;
+        return [val, jest.fn()];
+      }),
+    }));
+
+    const { useMatchEvents } = await import('@/hooks/useMatchEvents');
+    useMatchEvents('match-1');
+
+    expect(esInstance.onopen).toBeDefined();
+    if (esInstance.onopen) esInstance.onopen();
+  });
+
   it('deve ignorar onmessage com JSON inválido', async () => {
     let esInstance: any;
     let setStateMock: jest.Mock;

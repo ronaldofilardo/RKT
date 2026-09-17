@@ -1,0 +1,1 @@
+SELECT jsonb_pretty("previousScoreState") AS "previousScoreState", jsonb_pretty("newScoreState") AS "newScoreState" FROM "match_score_edits" WHERE "matchId" = 'cmtyiva2i000210t43n1z2i7l' ORDER BY "editedAt" ASC;
