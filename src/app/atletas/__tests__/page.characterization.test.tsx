@@ -318,5 +318,35 @@ describe('AtletasPage (characterization)', () => {
     });
   });
 
-  
+  describe('Delete Athlete Modal', () => {
+    beforeEach(async () => {
+      render(<AtletasPage />);
+      await waitFor(() => {
+        expect(screen.getByText('Eduardo')).toBeInTheDocument();
+      });
+    });
+
+    it('deve fechar a modal de exclusão ao pressionar Enter no backdrop', async () => {
+      const deleteButtons = screen.getAllByRole('button', { name: /excluir/i });
+      // Clica no botão "Excluir" do primeiro atleta
+      fireEvent.click(deleteButtons[0]);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Tem certeza que deseja excluir/)).toBeInTheDocument();
+      });
+
+      // Busca o backdrop pela role de botão e aria-label (a11y fix)
+      const backdrop = screen.getByRole('button', { name: /fechar modal/i });
+      expect(backdrop).toBeInTheDocument();
+
+      // Dispara o evento de teclado
+      fireEvent.keyDown(backdrop, { key: 'Enter', code: 'Enter' });
+
+      // Modal deve sumir
+      await waitFor(() => {
+        expect(screen.queryByText(/Tem certeza que deseja excluir/)).not.toBeInTheDocument();
+      });
+    });
+  });
+
 });

@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { PointFlowInputSchema } from '@/schemas/contracts';
 import { withRLSHandler, getRLSUser } from '@/lib/auth';
-import { ScoringEngine } from '@/core/scoring/engine';
 import type { ScoringState } from '@/core/scoring/types';
 import { emitMatchEvent } from '@/lib/match-events';
 import { logger } from '@/lib/logger';
-import { normalizeScoreState } from '@/core/scoring/score-normalizer';
+import {
+  TransactionError,
+  validateMatchAnnotatorPermission,
+  restoreEngineFromMatch,
+  buildAnnotationsPayload,
+  handlePointRouteError,
+} from './route.helpers';
 
 export async function POST(
   request: NextRequest,
@@ -39,7 +43,6 @@ export async function POST(
       }
 
       logger.point.received(body);
-
       const parsed = PointFlowInputSchema.safeParse(body);
 
       if (!parsed.success) {
@@ -54,9 +57,9 @@ export async function POST(
         );
       }
 
-            requestClientEventId = parsed.data.clientEventId;
-      const result: { scoreState: ScoringState; version: number; pointLogId: string } | null = await prisma.$transaction(async (tx) => {
+      requestClientEventId = parsed.data.clientEventId;
 
+      const result: { scoreState: ScoringState; version: number; pointLogId: string } | null = await prisma.$transaction(async (tx) => {
         const match = await tx.match.findFirst({
           where: { id },
           include: { player1: true, player2: true },
@@ -68,34 +71,9 @@ export async function POST(
         }
 
         const currentUser = getRLSUser();
-        const currentUserId = currentUser?.id;
-        const isPrivilegedStaff = currentUser?.role === 'ADMIN' || currentUser?.role === 'GESTOR';
-        const isPlayer = match.player1Id === currentUserId || match.player2Id === currentUserId || match.createdByUserId === currentUserId;
+        await validateMatchAnnotatorPermission(match, id, currentUser?.id, currentUser?.role, tx);
 
-        const isOpenForAnnotation = match.openForAnnotation === true;
-
-        if (!isPrivilegedStaff && !isPlayer && !isOpenForAnnotation) {
-          const hasSessionModel = typeof (tx as any).matchAnnotationSession?.findFirst === 'function';
-          const activeSession = hasSessionModel
-            ? await (tx as any).matchAnnotationSession.findFirst({
-                where: {
-                  matchId: id,
-                  isActive: true,
-                  annotatorUserId: currentUserId,
-                },
-              })
-            : null;
-
-          if (hasSessionModel && !activeSession) {
-            throw new TransactionError(
-              'Apenas os jogadores, equipe técnica ou o anotador da sessão ativa podem registrar pontos',
-              403,
-              'FORBIDDEN'
-            );
-          }
-        }
-
-                if (parsed.data.clientEventId) {
+        if (parsed.data.clientEventId) {
           const existingPoint = await tx.pointLog.findFirst({
             where: { matchId: id, clientEventId: parsed.data.clientEventId },
             select: { id: true },
@@ -110,7 +88,6 @@ export async function POST(
         }
 
         if (match.state !== 'IN_PROGRESS') {
-
           logger.point.matchNotInProgress(match.state);
           throw new TransactionError('Partida não está em andamento', 422, 'MATCH_NOT_IN_PROGRESS');
         }
@@ -128,7 +105,6 @@ export async function POST(
           );
         }
 
-                // Garante que pontos anulados não retenham sequenceNumber colidindo na unique constraint
         if (typeof tx.pointLog.updateMany === 'function') {
           await tx.pointLog.updateMany({
             where: { matchId: id, voidedAt: { not: null }, sequenceNumber: { not: null } },
@@ -138,61 +114,25 @@ export async function POST(
 
         const pointLogCount = await tx.pointLog.count({ where: { matchId: id, voidedAt: null } });
         const nextSequenceNumber = pointLogCount + 1;
-        if (parsed.data.sequenceNumber !== undefined) {
-          if (parsed.data.sequenceNumber !== nextSequenceNumber) {
 
-            logger.point.sequenceConflict({
-              expected: pointLogCount + 1,
-              received: parsed.data.sequenceNumber,
-            });
-            throw new TransactionError(
-              `Conflito de sequência: esperado ${pointLogCount + 1}, recebido ${parsed.data.sequenceNumber}`,
-              409,
-              'SEQUENCE_CONFLICT',
-                            { expectedSequence: nextSequenceNumber }
-
-            );
-          }
+        if (parsed.data.sequenceNumber !== undefined && parsed.data.sequenceNumber !== nextSequenceNumber) {
+          logger.point.sequenceConflict({
+            expected: nextSequenceNumber,
+            received: parsed.data.sequenceNumber,
+          });
+          throw new TransactionError(
+            `Conflito de sequência: esperado ${nextSequenceNumber}, recebido ${parsed.data.sequenceNumber}`,
+            409,
+            'SEQUENCE_CONFLICT',
+            { expectedSequence: nextSequenceNumber }
+          );
         }
 
         const expectedVersion = match.version;
         const nextVersion = match.version + 1;
 
         logger.point.engineCreated();
-
-        let scoreStateToUse = match.scoreState;
-        if (scoreStateToUse && typeof scoreStateToUse === 'object') {
-          const normalized = normalizeScoreState(scoreStateToUse, match.format as any);
-          if (normalized) {
-            scoreStateToUse = normalized as any;
-          }
-        }
-
-        if (scoreStateToUse && typeof scoreStateToUse === 'object') {
-          const ss = scoreStateToUse as any;
-          const innerState = ss.state ?? ss;
-          if (innerState?.isFinished === true) {
-            logger.point.matchAlreadyFinished(innerState?.winner);
-            throw new TransactionError('Partida já finalizada', 422, 'MATCH_ALREADY_FINISHED');
-          }
-        }
-
-        const engine = scoreStateToUse
-          ? ScoringEngine.fromSerialized(
-              {
-                format: match.format as any,
-                player1Id: match.player1Id,
-                player2Id: match.player2Id,
-                initialServerId: match.initialServerId,
-              },
-              JSON.stringify(scoreStateToUse)
-            )
-          : new ScoringEngine({
-              format: match.format as any,
-              player1Id: match.player1Id,
-              player2Id: match.player2Id,
-              initialServerId: match.initialServerId,
-            });
+        const engine = restoreEngineFromMatch(match as any);
 
         logger.point.applying(parsed.data);
         let newState: ScoringState;
@@ -210,7 +150,6 @@ export async function POST(
         }
 
         const isMatchFinished = newState.isFinished;
-
         const snapshot = JSON.parse(engine.serialize()) as {
           state: ScoringState;
           history: unknown[];
@@ -224,6 +163,7 @@ export async function POST(
               winnerId: newState.winner === 'player1' ? match.player1Id : match.player2Id,
             }
           : {};
+
         await tx.match.update({
           where: { id, version: expectedVersion },
           data: {
@@ -233,34 +173,23 @@ export async function POST(
           },
         });
 
-        const annotations =
-          parsed.data.annotations ??
-          (parsed.data.rallyDetails
-            ? {
-                rallyDetails: parsed.data.rallyDetails,
-                rallyLength: parsed.data.rallyLength,
-                isFirstServe: parsed.data.isFirstServe,
-                isSecondServe: parsed.data.isSecondServe,
-                firstFaultDetail: parsed.data.firstFaultDetail,
-                note: parsed.data.rallyDetails.note,
-              }
-            : undefined);
+        const annotations = buildAnnotationsPayload(parsed.data);
 
         logger.point.creatingPointLog({
           winnerId: parsed.data.winnerId,
           type: parsed.data.type,
           rallyLength: parsed.data.rallyLength,
         });
+
         const pointLog = await tx.pointLog.create({
           data: {
             matchId: match.id,
             winnerId: parsed.data.winnerId,
             type: parsed.data.type,
             serverId: parsed.data.serverId,
-                        annotations,
+            annotations,
             sequenceNumber: nextSequenceNumber,
             clientEventId: parsed.data.clientEventId,
-
           },
         });
 
@@ -279,75 +208,7 @@ export async function POST(
         pointLogId: result?.pointLogId,
       });
     } catch (error) {
-      if (error instanceof TransactionError) {
-        return NextResponse.json(
-          { error: error.code, message: error.message, ...(error.extra ?? {}) },
-          { status: error.status }
-        );
-      }
-            if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
-        const target = (error.meta?.target as string[] | string | undefined) ?? [];
-        const isSequenceConflict = Array.isArray(target)
-          ? target.includes('sequenceNumber')
-          : typeof target === 'string' && target.includes('sequenceNumber');
-
-        if (isSequenceConflict) {
-          const pointCount = await prisma.pointLog.count({ where: { matchId: requestId, voidedAt: null } });
-          return NextResponse.json(
-            {
-              error: 'SEQUENCE_CONFLICT',
-              message: 'Conflito de sequência ao registrar ponto. Sincronize e tente novamente.',
-              expectedSequence: pointCount + 1,
-            },
-            { status: 409 }
-          );
-        }
-
-        if (requestClientEventId) {
-          const [existingPoint, currentMatch] = await Promise.all([
-            prisma.pointLog.findFirst({
-              where: { matchId: requestId, clientEventId: requestClientEventId },
-              select: { id: true },
-            }),
-            prisma.match.findUnique({ where: { id: requestId }, select: { scoreState: true, version: true } }),
-          ]);
-          if (existingPoint && currentMatch) {
-            return NextResponse.json({
-              scoreState: currentMatch.scoreState,
-              version: currentMatch.version,
-              pointLogId: existingPoint.id,
-            });
-          }
-        }
-      }
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-        return NextResponse.json(
-          {
-            error: 'VERSION_CONFLICT',
-            message: 'Conflito de concorrência: outro anotador registrou um ponto antes. Recarregue e tente novamente.',
-          },
-          { status: 409 }
-        );
-      }
-      logger.point.api.error(error);
-      const errorMessage = error instanceof Error ? error.message : 'Erro interno do servidor';
-      return NextResponse.json({ error: 'INTERNAL_ERROR', message: errorMessage }, { status: 500 });
+      return handlePointRouteError(error, requestId, requestClientEventId);
     }
   });
-}
-
-class TransactionError extends Error {
-  status: number;
-  code: string;
-  extra?: Record<string, unknown>;
-
-  constructor(message: string, status: number, code?: string, extra?: Record<string, unknown>) {
-    super(message);
-    this.status = status;
-    this.code = code || status.toString();
-    this.extra = extra;
-  }
 }

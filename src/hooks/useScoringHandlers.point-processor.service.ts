@@ -1,0 +1,219 @@
+import { ScoringEngine } from "@/core/scoring/engine";
+import { logger } from "@/lib/logger";
+import type { PointFlow, ScoringState, RallyDetails } from "@/core/scoring/types";
+import type { MatchData } from "./useScoringHandlers.types";
+import type { createPointSyncService } from "./useScoringHandlers.point-sync";
+
+export interface PointProcessorDeps {
+  match: MatchData | null;
+  isOnline: boolean;
+  enqueue: (action: {
+    matchId: string;
+    type: "POINT";
+    payload: any;
+    timestamp: number;
+  }) => Promise<any>;
+  engineRef: React.MutableRefObject<ScoringEngine | null>;
+  tokenRef: React.MutableRefObject<string | null>;
+  modalParamsRef: React.MutableRefObject<Record<string, string>>;
+  pointSequenceRef: React.MutableRefObject<number>;
+  matchVersionRef: React.MutableRefObject<number | null>;
+  lastPointLogIdRef: React.MutableRefObject<string | null>;
+  isProcessingRef: React.MutableRefObject<boolean>;
+  serveErrorState: any;
+  serverHelpers: {
+    getServerId: () => string;
+  };
+  pointSync: ReturnType<typeof createPointSyncService>;
+  closeAll: () => void;
+  setScoreState: (action: any) => void;
+  setPointsHistory: React.Dispatch<React.SetStateAction<string[]>>;
+  setMatch: React.Dispatch<React.SetStateAction<MatchData | null>>;
+  setShowFinishedBanner: React.Dispatch<React.SetStateAction<boolean>>;
+  setError: React.Dispatch<React.SetStateAction<string | null>>;
+  fetchMatch: (forceReset?: boolean) => Promise<void>;
+  uploadAudioNote?: (
+    matchId: string,
+    pointLogId: string,
+    blob: Blob,
+    durationMs: number,
+    token: string | null,
+  ) => void;
+}
+
+export function createPointProcessorService(deps: PointProcessorDeps) {
+  const {
+    match,
+    isOnline,
+    enqueue,
+    engineRef,
+    tokenRef,
+    modalParamsRef,
+    pointSequenceRef,
+    matchVersionRef,
+    lastPointLogIdRef,
+    isProcessingRef,
+    serveErrorState,
+    serverHelpers,
+    pointSync,
+    closeAll,
+    setScoreState,
+    setPointsHistory,
+    setMatch,
+    setShowFinishedBanner,
+    setError,
+    fetchMatch,
+    uploadAudioNote,
+  } = deps;
+
+  const applySuccessResult = (
+    serverResponse: NonNullable<Awaited<ReturnType<typeof pointSync.syncPointToServer>>["serverResponse"]>,
+  ) => {
+    const currentHistory = engineRef.current!.getPointHistory();
+    const localState = engineRef.current!.getState();
+    const serverState = serverResponse.scoreState!;
+
+    const localInTiebreak = localState.sets?.some((s: any) => s.isTiebreak && s.tiebreakScore);
+    const serverHasTiebreak = serverState.sets?.some((s: any) => s.isTiebreak && s.tiebreakScore);
+
+    if (localInTiebreak && !serverHasTiebreak) {
+      logger.warn("[processPoint] server response missing tiebreak info — keeping local state", {
+        localSets: localState.sets?.length,
+        serverSets: serverState.sets?.length,
+      });
+    } else {
+      setScoreState({ type: "POINT_APPLIED", payload: serverState });
+      engineRef.current = ScoringEngine.fromSerialized(
+        {
+          format: match!.format as any,
+          player1Id: match!.player1.id,
+          player2Id: match!.player2.id,
+          initialServerId: match!.initialServerId || match!.player1.id,
+        },
+        JSON.stringify(serverState),
+      );
+      engineRef.current.restorePointHistory(currentHistory);
+    }
+
+    if (serverResponse.version !== undefined) {
+      matchVersionRef.current = serverResponse.version;
+      setMatch((prev) => (prev ? { ...prev, version: serverResponse.version } : prev));
+    }
+
+    if (serverResponse.pointLogId) {
+      lastPointLogIdRef.current = serverResponse.pointLogId;
+    }
+
+    return serverResponse.pointLogId;
+  };
+
+  const processPoint = async (flow: PointFlow): Promise<string | undefined> => {
+    if (!engineRef.current || !match || isProcessingRef.current) return undefined;
+    if (match.state !== "IN_PROGRESS") {
+      logger.warn("[processPoint] match.state não é IN_PROGRESS — abortando antes de applyPoint", {
+        matchState: match.state,
+        matchId: match.id,
+      });
+      return undefined;
+    }
+
+    isProcessingRef.current = true;
+
+    try {
+      const state = engineRef.current.getState();
+      if (state.isFinished) {
+        isProcessingRef.current = false;
+        return undefined;
+      }
+
+      engineRef.current.applyPoint(flow);
+      const newState = engineRef.current.getState() as ScoringState;
+      setScoreState({ type: "POINT_APPLIED", payload: newState });
+      setPointsHistory((prev) => [...prev.slice(-19), flow.winnerId]);
+      const seq = ++pointSequenceRef.current;
+
+      if (isOnline) {
+        const clientEventId =
+          typeof crypto !== "undefined" && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const result = await pointSync.syncPointToServer(flow, seq, clientEventId);
+
+        if (result.success && result.serverResponse?.scoreState) {
+          return applySuccessResult(result.serverResponse);
+        } else if (result.needsResync) {
+          await fetchMatch(true);
+          const retrySeq = ++pointSequenceRef.current;
+          const retryResult = await pointSync.syncPointToServer(flow, retrySeq, clientEventId);
+
+          if (retryResult.success && retryResult.serverResponse?.scoreState) {
+            setError(null);
+            return applySuccessResult(retryResult.serverResponse);
+          } else if (retryResult.needsResync) {
+            await fetchMatch(true);
+            setError("Ponto não registrado — o placar foi sincronizado com o servidor. Tente novamente.");
+          }
+        }
+      } else {
+        await pointSync.queuePointForOffline(enqueue, flow);
+      }
+
+      if (newState.isFinished) setShowFinishedBanner(true);
+      return undefined;
+    } catch (err) {
+      logger.error("[processPoint]", err);
+      setError("Erro ao registrar ponto");
+      return undefined;
+    } finally {
+      isProcessingRef.current = false;
+    }
+  };
+
+  const handlePointDetailsConfirm = (
+    details: RallyDetails,
+    audio?: { blob: Blob; durationMs: number },
+  ) => {
+    const winnerSide = modalParamsRef.current.winner as "player1" | "player2";
+    const rallyLengthFromModal = modalParamsRef.current.rallyLength;
+    if (!match || !winnerSide || isProcessingRef.current) return;
+
+    const rallyLengthToUse = rallyLengthFromModal
+      ? parseInt(rallyLengthFromModal, 10) || details.previewBalls
+      : details.previewBalls;
+
+    const flowType =
+      details.tipo === "winner"
+        ? "WINNER"
+        : details.tipo === "erro_forcado"
+          ? "FORCED_ERROR"
+          : "UNFORCED_ERROR";
+    const id = winnerSide === "player1" ? match.player1.id : match.player2.id;
+    const firstFaultDetail = serveErrorState.firstServeError
+      ? {
+          errorType: serveErrorState.firstServeError.errorType,
+          serveEffect: serveErrorState.firstServeError.serveEffect,
+          direction: serveErrorState.firstServeError.direction,
+        }
+      : undefined;
+
+    closeAll();
+
+    processPoint({
+      winnerId: id,
+      type: flowType,
+      serverId: serverHelpers.getServerId(),
+      isFirstServe: serveErrorState.serveStep !== "second" && !serveErrorState.firstServeError,
+      isSecondServe: serveErrorState.serveStep === "second" || serveErrorState.firstServeError !== null,
+      timestamp: Date.now(),
+      rallyDetails: details,
+      rallyLength: rallyLengthToUse,
+      firstFaultDetail,
+    }).then((pointLogId) => {
+      if (audio && pointLogId && uploadAudioNote) {
+        uploadAudioNote(match.id, pointLogId, audio.blob, audio.durationMs, tokenRef.current);
+      }
+    });
+  };
+
+  return { processPoint, handlePointDetailsConfirm };
+}

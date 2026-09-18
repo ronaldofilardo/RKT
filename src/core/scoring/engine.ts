@@ -9,6 +9,48 @@ import {
   isMatchTiebreakActive,
 } from './engine.flow';
 
+function resolveWinner(
+  flow: PointFlow,
+  config: ScoringEngineConfig,
+  isFaultFirst: boolean,
+): 'player1' | 'player2' {
+  if (isFaultFirst) {
+    return 'player1';
+  }
+  if (flow.winnerId === config.player1Id) return 'player1';
+  if (flow.winnerId === config.player2Id) return 'player2';
+
+  logger.error('[ScoringEngine] applyPoint: invalid winnerId', {
+    winnerId: flow.winnerId,
+    player1Id: config.player1Id,
+    player2Id: config.player2Id,
+    type: flow.type,
+  });
+  throw new Error('INVALID_WINNER');
+}
+
+function computeRallyLength(flow: PointFlow): number {
+  if (flow.rallyLength !== undefined) return flow.rallyLength;
+  if (flow.type === 'ACE' || flow.type === 'DOUBLE_FAULT') return 1;
+  if (flow.rallyDetails?.situacao === 'devolucao') return 2;
+  return 0;
+}
+
+function buildPointDetails(flow: PointFlow): PointDetails {
+  return {
+    winnerId: flow.winnerId,
+    type: (flow.type as PointDetails['type']) || 'WINNER',
+    isFirstServe: flow.isFirstServe ?? true,
+    isSecondServe: flow.isSecondServe ?? false,
+    isLet: false,
+    serverId: flow.serverId,
+    timestamp: flow.timestamp ?? Date.now(),
+    rallyDetails: flow.rallyDetails ?? null,
+    rallyLength: computeRallyLength(flow),
+    firstFaultDetail: flow.firstFaultDetail ?? null,
+  };
+}
+
 export class ScoringEngine {
   private state: ScoringState;
   private config: ScoringEngineConfig;
@@ -29,55 +71,23 @@ export class ScoringEngine {
       throw new Error('MATCH_ALREADY_FINISHED');
     }
 
-    const isFaultFirst = flow.type === 'FAULT_FIRST' || flow.firstFault;
-
-    const winner: 'player1' | 'player2' | null =
-      isFaultFirst ? null :
-      (flow.winnerId === this.config.player1Id ? 'player1' :
-       flow.winnerId === this.config.player2Id ? 'player2' : null);
-
-    if (!isFaultFirst && winner === null) {
-      logger.error('[ScoringEngine] applyPoint: invalid winnerId', {
-        winnerId: flow.winnerId,
-        player1Id: this.config.player1Id,
-        player2Id: this.config.player2Id,
-        type: flow.type,
-      });
-      throw new Error('INVALID_WINNER');
-    }
-
-    const isServeFinish = flow.type === 'ACE' || flow.type === 'DOUBLE_FAULT';
-    const isDevolucao = flow.rallyDetails?.situacao === 'devolucao';
-    const autoRallyLength = flow.rallyLength ?? (isServeFinish ? 1 : isDevolucao ? 2 : 0);
-
-    const details: PointDetails = {
-      winnerId: flow.winnerId,
-      type: (flow.type as PointDetails['type']) || 'WINNER',
-      isFirstServe: flow.isFirstServe ?? true,
-      isSecondServe: flow.isSecondServe ?? false,
-      isLet: false,
-      serverId: flow.serverId,
-      timestamp: flow.timestamp ?? Date.now(),
-      rallyDetails: flow.rallyDetails ?? null,
-      rallyLength: autoRallyLength,
-      firstFaultDetail: flow.firstFaultDetail ?? null,
-    };
+    const isFaultFirst = Boolean(flow.type === 'FAULT_FIRST' || flow.firstFault);
+    const winner = resolveWinner(flow, this.config, isFaultFirst);
+    const details = buildPointDetails(flow);
 
     if (flow.type === 'DOUBLE_FAULT') {
-      const newState = this.handleDoubleFault(winner!, details);
-      this.state = newState;
+      this.state = this.handleDoubleFault(winner, details);
       return getState(this.state);
     }
 
     if (isFaultFirst) {
-      return this.handleFirstServeFault(winner ?? this.state.server, details);
+      return this.handleFirstServeFault(this.state.server, details);
     }
 
     saveToHistory(this.history, this.state, details);
     clearRedoHistory(this.redoStack);
 
-    const newState = this.processPoint(winner!);
-    this.state = newState;
+    this.state = this.processPoint(winner);
     return getState(this.state);
   }
 

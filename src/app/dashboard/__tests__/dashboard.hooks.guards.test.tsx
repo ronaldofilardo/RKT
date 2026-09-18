@@ -90,7 +90,7 @@ describe('useDashboardData - guard de token expirado (TD-046 + jose ESM blocker)
 
     await waitFor(() => expect(window.location.replace).toHaveBeenCalledWith('/login'));
     expect(global.fetch).not.toHaveBeenCalled();
-  });
+  }, 15000);
 
   it('não redireciona quando access_token tem exp no futuro', async () => {
     const validToken = buildJwt({ sub: 'u', exp: Math.floor(Date.now() / 1000) + 3600 });

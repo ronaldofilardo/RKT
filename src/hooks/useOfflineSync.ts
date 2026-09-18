@@ -5,6 +5,15 @@ import { openDB, IDBPDatabase } from 'idb';
 import type { QueuedAction } from '@/schemas/contracts';
 import { logger } from '@/lib/logger';
 
+import {
+  ensureMatchSequence,
+  createPointRequest,
+  markActionSynced,
+  retrySequenceConflict,
+  markActionPendingOrFailed,
+  markActionPending,
+} from './useOfflineSync.helpers';
+
 const DB_NAME = 'racket-offline-db';
 const STORE_NAME = 'optimistic-queue';
 const DB_VERSION = 1;
@@ -28,7 +37,7 @@ export function useOfflineSync() {
 
   const enqueue = useCallback(async (action: Omit<QueuedAction, 'id' | 'status' | 'retries'>) => {
     const db = await getDb();
-        const queuedAction: QueuedAction = {
+    const queuedAction: QueuedAction = {
       ...action,
       payload: {
         ...action.payload,
@@ -43,10 +52,6 @@ export function useOfflineSync() {
     return queuedAction;
   }, []);
 
-  // Remove pontos pendentes da fila offline para uma partida específica.
-  // Usado após edit-score: quando o placar é editado, pontos offline
-  // antigos referenciam o estado anterior e seriam aplicados incorretamente
-  // se o flush os enviasse ao servidor.
   const clearQueueForMatch = useCallback(async (targetMatchId: string) => {
     try {
       const db = await getDb();
@@ -74,113 +79,33 @@ export function useOfflineSync() {
       const pending = await db.getAllFromIndex(STORE_NAME, 'status', 'PENDING');
       pending.sort((a, b) => a.timestamp - b.timestamp);
 
-      // PROTEÇÃO #5: Recálculo de Sequência no Flush
-      // Buscar sequência atual do banco para cada partida antes de enviar
       const matchSequences = new Map<string, number>();
 
-    for (let i = 0; i < pending.length; i++) {
-      const action = pending[i];
-      
-      try {
-        // Obter sequência atual da partida se ainda não buscamos
-        if (!matchSequences.has(action.matchId)) {
-          try {
-            const matchRes = await fetch(`/api/matches/${action.matchId}`, {
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${accessToken}`,
-              },
-            });
-            
-            if (matchRes.ok) {
-              const matchData = await matchRes.json();
-              // Use pointLog count as the source of truth for sequence.
-              // version is incremented on every mutation (point, undo,
-              // edit-score), not just on point creation, so it can be
-              // higher than the actual point count after undo/edit.
-              const pointCount = matchData._count?.pointLog;
-              matchSequences.set(
-                action.matchId,
-                typeof pointCount === 'number' ? pointCount : (matchData.version || 0),
-              );
-            } else {
-              // Se não conseguiu buscar, usa 0 como fallback
-              matchSequences.set(action.matchId, 0);
-            }
-          } catch (err) {
-            logger.error('[flush] Failed to fetch match sequence:', err);
-            matchSequences.set(action.matchId, 0);
-          }
-        }
-        
-        const currentSequence = matchSequences.get(action.matchId) || 0;
-        const nextSequence = currentSequence + 1;
-        
-        // Atualizar payload com sequência correta
-        const payloadWithSequence = {
-          ...action.payload,
-          sequenceNumber: nextSequence,
-        };
-        
-        await db.put(STORE_NAME, { ...action, status: 'SYNCING' });
+      for (const action of pending) {
+        try {
+          const currentSequence = await ensureMatchSequence(action.matchId, accessToken, matchSequences);
+          const nextSequence = currentSequence + 1;
 
-        const response = await fetch(`/api/matches/${action.matchId}/point`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify(payloadWithSequence),
-        });
+          await db.put(STORE_NAME, { ...action, status: 'SYNCING' });
 
-        if (response.ok) {
-          await db.delete(STORE_NAME, action.id);
-          window.dispatchEvent(new CustomEvent('offline-sync-complete'));
-          // Atualizar sequência para o próximo ponto desta partida
-          matchSequences.set(action.matchId, nextSequence);
-        } else {
-          const errorData = await response.json().catch(() => ({}));
-          
-          // Se for SEQUENCE_CONFLICT, atualizar sequência e retry
-          if (errorData.error === 'SEQUENCE_CONFLICT' && errorData.expectedSequence) {
-            matchSequences.set(action.matchId, errorData.expectedSequence - 1);
-            // Retry imediato com sequência corrigida
-            const correctedPayload = {
-              ...action.payload,
-              sequenceNumber: errorData.expectedSequence,
-            };
-            
-            const retryResponse = await fetch(`/api/matches/${action.matchId}/point`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${accessToken}`,
-              },
-              body: JSON.stringify(correctedPayload),
-            });
-            
-            if (retryResponse.ok) {
-              await db.delete(STORE_NAME, action.id);
-              window.dispatchEvent(new CustomEvent('offline-sync-complete'));
-              matchSequences.set(action.matchId, errorData.expectedSequence);
-              continue;
-            }
+          const response = await fetch(
+            `/api/matches/${action.matchId}/point`,
+            createPointRequest(action, accessToken, nextSequence),
+          );
+
+          if (response.ok) {
+            await markActionSynced(db, action, nextSequence, matchSequences);
+            continue;
           }
-          
-          await db.put(STORE_NAME, {
-            ...action,
-            status: action.retries >= 3 ? 'FAILED' : 'PENDING',
-            retries: action.retries + 1,
-          });
+
+          const retried = await retrySequenceConflict(db, action, accessToken, response, matchSequences);
+          if (!retried) {
+            await markActionPendingOrFailed(db, action);
+          }
+        } catch {
+          await markActionPending(db, action);
         }
-      } catch {
-        await db.put(STORE_NAME, {
-          ...action,
-          status: 'PENDING',
-          retries: action.retries + 1,
-        });
       }
-    }
     } finally {
       isFlushingRef.current = false;
       setIsSyncing(false);

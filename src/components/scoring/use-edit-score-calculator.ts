@@ -1,23 +1,22 @@
 import { useMemo } from 'react';
 import type { TennisFormat } from '@/core/scoring/types';
-import type { EditScoreState, EditScoreValidation, EditScoreMatchState, CompletedSet } from './edit-score-logic';
-import type { SetEditData } from './editScoreHelpers';
+import type {
+  CompletedSet,
+  EditScoreState,
+  EditScoreValidation,
+  EditScoreMatchState,
+} from './edit-score-logic';
 import {
   calculateValidation,
   calculateMatchState,
   calculateTiebreakValidation,
 } from './edit-score-logic';
+import type { SetEditData } from './editScoreHelpers';
 
 export interface UseEditScoreCalculatorParams {
   matchFormat: TennisFormat;
   completedSets: CompletedSet[];
-  editableCompletedSets?: Array<{
-    p1Games: number;
-    p2Games: number;
-    isPartial: boolean;
-    tiebreakScore?: { player1: number; player2: number } | null;
-  }>;
-  currentServer: 'player1' | 'player2';
+  editableCompletedSets?: SetEditData[];
   state: EditScoreState;
   tiebreakP1: string;
   tiebreakP2: string;
@@ -43,6 +42,164 @@ export interface EditScoreCalculations {
   currentScoreBelowOriginal: boolean;
 }
 
+export function evaluateCanAddNextSet(
+  validation: EditScoreValidation,
+  matchState: EditScoreMatchState,
+  tiebreakValidation: { tiebreakComplete: boolean },
+): boolean {
+  if (!validation.isSetTrulyCompleted) return false;
+  if (matchState.totalEditedSets >= matchState.maxSets - 1) return false;
+  if (matchState.matchAlreadyOver || matchState.matchWouldEnd) return false;
+  if (matchState.isMatchTiebreakSet) return false;
+  if (validation.hasTiebreak && !tiebreakValidation.tiebreakComplete) return false;
+  return true;
+}
+
+export function evaluateCanConfirmSet(
+  validation: EditScoreValidation,
+  tiebreakValidation: { tiebreakImpossible: boolean; hasValidTiebreak: boolean },
+  matchState: EditScoreMatchState,
+): boolean {
+  if (!validation.bothFilled || tiebreakValidation.tiebreakImpossible) return false;
+
+  if (matchState.isMatchTiebreakSet) {
+    return !validation.setValidationError || validation.isSetTrulyCompleted;
+  }
+
+  if (!validation.isSetTrulyCompleted) return false;
+
+  const tiebreakRequired = validation.setValidation?.tiebreakRequired ?? false;
+  if (validation.hasTiebreak && tiebreakRequired && !tiebreakValidation.hasValidTiebreak) {
+    return false;
+  }
+
+  return true;
+}
+
+function checkUnfilledAllowed(
+  bothFilled: boolean,
+  hasNewSets: boolean,
+  hasCompletedSets: boolean,
+): boolean | null {
+  if (!bothFilled) {
+    return hasNewSets || hasCompletedSets;
+  }
+  return null;
+}
+
+function checkZeroScoreAllowed(
+  p1Val: number,
+  p2Val: number,
+  hasNewSets: boolean,
+  hasCompletedSets: boolean,
+  hasGamePoints: boolean,
+): boolean {
+  const scoresAreZero = p1Val === 0 && p2Val === 0;
+  if (!scoresAreZero) return false;
+  if (hasCompletedSets || hasNewSets) return true;
+  return hasGamePoints;
+}
+
+function checkZeroOrEmptyAllowed(
+  bothFilled: boolean,
+  p1Val: number,
+  p2Val: number,
+  hasNewSets: boolean,
+  hasCompletedSets: boolean,
+  hasGamePoints: boolean,
+): boolean | null {
+  const unfilledResult = checkUnfilledAllowed(bothFilled, hasNewSets, hasCompletedSets);
+  if (unfilledResult !== null) return unfilledResult;
+  if (checkZeroScoreAllowed(p1Val, p2Val, hasNewSets, hasCompletedSets, hasGamePoints)) {
+    return true;
+  }
+  return null;
+}
+
+function checkScoreBoundsAndTiebreak(
+  p1Val: number,
+  p2Val: number,
+  currentSets: { player1: number; player2: number } | undefined,
+  tiebreakImpossible: boolean,
+): boolean {
+  if (currentSets && (p1Val < currentSets.player1 || p2Val < currentSets.player2)) {
+    return false;
+  }
+  if (tiebreakImpossible) {
+    return false;
+  }
+  return true;
+}
+
+function checkSetErrorValidity(
+  isMatchTiebreakSet: boolean,
+  setValidationError: string | undefined,
+  isSetTrulyCompleted: boolean,
+  tiebreakRequired: boolean,
+): boolean {
+  if (isMatchTiebreakSet) {
+    return !setValidationError || isSetTrulyCompleted;
+  }
+  if (setValidationError && !tiebreakRequired) {
+    return false;
+  }
+  return true;
+}
+
+export function evaluateCanConfirm(params: {
+  validation: EditScoreValidation;
+  matchState: EditScoreMatchState;
+  newSetsCount: number;
+  p1Points: string;
+  p2Points: string;
+  completedSetsCount: number;
+  tiebreakImpossible: boolean;
+}): boolean {
+  const { validation, matchState, newSetsCount, p1Points, p2Points, completedSetsCount, tiebreakImpossible } = params;
+  const hasNewSets = newSetsCount > 0;
+  const hasCompletedSets = completedSetsCount > 0;
+  const hasGamePoints = p1Points !== "0" || p2Points !== "0";
+
+  const emptyOrZeroResult = checkZeroOrEmptyAllowed(
+    validation.bothFilled,
+    validation.p1Val,
+    validation.p2Val,
+    hasNewSets,
+    hasCompletedSets,
+    hasGamePoints,
+  );
+  if (emptyOrZeroResult !== null) return emptyOrZeroResult;
+
+  if (!checkScoreBoundsAndTiebreak(validation.p1Val, validation.p2Val, matchState.currentSets, tiebreakImpossible)) {
+    return false;
+  }
+
+  const isMatchTiebreakSet = matchState.isMatchTiebreakSet;
+  const tiebreakRequired = validation.setValidation?.tiebreakRequired ?? false;
+  return checkSetErrorValidity(
+    isMatchTiebreakSet,
+    validation.setValidationError,
+    validation.isSetTrulyCompleted,
+    tiebreakRequired,
+  );
+}
+
+export function evaluateShowGamePointsAtZero(
+  validation: EditScoreValidation,
+  completedSetsCount: number,
+  newSets: SetEditData[],
+): boolean {
+  const hasPreviousSets = completedSetsCount > 0 || newSets.length > 0 || validation.isSetTrulyCompleted;
+  const isAtZero =
+    !validation.bothFilled ||
+    (validation.p1Val === 0 && validation.p2Val === 0) ||
+    validation.isSetTrulyCompleted;
+  const prevSetCompleted = newSets.length > 0
+    ? newSets[newSets.length - 1].isPartial === false
+    : completedSetsCount > 0 || validation.isSetTrulyCompleted;
+  return hasPreviousSets && isAtZero && prevSetCompleted;
+}
+
 export function useEditScoreCalculator({
   matchFormat,
   completedSets,
@@ -52,15 +209,11 @@ export function useEditScoreCalculator({
   tiebreakP2,
   currentSets,
 }: UseEditScoreCalculatorParams): EditScoreCalculations {
-  // FIX #8: Usar editableCompletedSets (array editado pelo usuário) em vez
-  // do prop completedSets para calcular totalEditedSets. Quando o usuário
-  // remove ou edita sets completados, o prop original não muda — mas o
-  // editableCompletedSets reflete as remoções/edições do usuário.
   const effectiveCompletedCount = editableCompletedSets?.length ?? completedSets.length;
 
   const validation = useMemo(() => {
     const setResults: SetEditData[] = [
-      ...completedSets.map(cs => ({ p1Games: cs.games.player1, p2Games: cs.games.player2, isPartial: false })),
+      ...completedSets.map((cs) => ({ p1Games: cs.games.player1, p2Games: cs.games.player2, isPartial: false })),
       ...state.newSets,
     ];
     return calculateValidation({
@@ -69,8 +222,8 @@ export function useEditScoreCalculator({
       matchFormat,
       totalEditedSets: state.newSets.length + effectiveCompletedCount,
       setResults,
-      tiebreakP1: tiebreakP1,
-      tiebreakP2: tiebreakP2,
+      tiebreakP1,
+      tiebreakP2,
     });
   }, [state.p1Input, state.p2Input, matchFormat, state.newSets, effectiveCompletedCount, completedSets, tiebreakP1, tiebreakP2]);
 
@@ -88,126 +241,35 @@ export function useEditScoreCalculator({
     currentSets,
   }), [matchFormat, completedSets, state.newSets, validation, effectiveCompletedCount, currentSets]);
 
-  const { p1Val, p2Val } = validation;
+  const canAddNextSet = useMemo(
+    () => evaluateCanAddNextSet(validation, matchState, tiebreakValidation),
+    [validation, matchState, tiebreakValidation],
+  );
 
-  const canAddNextSet = useMemo(() => {
-    if (!validation.isSetTrulyCompleted) return false;
-    if (matchState.totalEditedSets >= matchState.maxSets - 1) return false;
-    if (matchState.matchAlreadyOver) return false;
-    if (matchState.matchWouldEnd) return false;
-    // Only block next set for active MT (not potential MT that hasn't reached 6-6)
-    if (matchState.isMatchTiebreakSet) return false;
-    if (validation.hasTiebreak && !tiebreakValidation.tiebreakComplete) return false;
-    return true;
-  }, [validation, matchState, tiebreakValidation]);
+  const canConfirmSet = useMemo(
+    () => evaluateCanConfirmSet(validation, tiebreakValidation, matchState),
+    [validation, tiebreakValidation, matchState],
+  );
 
-  // canConfirmSet: enables the "Confirmar Set" button. Unlike canAddNextSet,
-  // this also allows confirming MT sets (where no next set follows).
-  const canConfirmSet = useMemo(() => {
-    const bothFilled = validation.bothFilled;
-    const isMatchTiebreakSet = matchState.isMatchTiebreakSet;
-    const hasTiebreak = validation.hasTiebreak;
-    const isSetTrulyCompleted = validation.isSetTrulyCompleted;
-    const setValidationError = validation.setValidationError;
-    const tiebreakRequired = validation.setValidation?.tiebreakRequired ?? false;
-    const tiebreakImpossible = tiebreakValidation.tiebreakImpossible;
-
-    if (!bothFilled) return false;
-    if (tiebreakImpossible) return false;
-
-    if (isMatchTiebreakSet) {
-      // Active MT: allow confirm if no validation error, OR if the set is truly completed
-      return !setValidationError || isSetTrulyCompleted;
-    }
-
-    // Potential MT set that hasn't reached 6-6: treat as regular set
-    if (!isSetTrulyCompleted) return false;
-
-    // Regular set (or potential MT not yet at 6-6): need tiebreak if required
-    if (hasTiebreak && tiebreakRequired && !tiebreakValidation.hasValidTiebreak) return false;
-
-    return true;
-  }, [validation, tiebreakValidation, matchState]);
-
-  const canConfirm = useMemo(() => {
-    const bothFilled = validation.bothFilled;
-    const isMatchTiebreakSet = matchState.isMatchTiebreakSet;
-    const setValidationError = validation.setValidationError;
-    const tiebreakRequired = validation.setValidation?.tiebreakRequired ?? false;
-    const tiebreakImpossible = tiebreakValidation.tiebreakImpossible;
-
-    // Se já existem newSets pendentes e não há input atual, permitir confirmar (envia newSets existentes)
-    if (!bothFilled && state.newSets.length > 0) {
-      return true;
-    }
-
-    // Sem placar novo (inputs vazios ou pre-fill 0x0) mas com sets já
-    // completados/editados: permite confirmar para persistir as edições dos
-    // sets existentes — o propósito do modal é editar o placar, e exigir um
-    // novo set para poder salvar bloqueava essa edição.
-    const scoresAreZero = bothFilled && validation.p1Val === 0 && validation.p2Val === 0;
-    if ((!bothFilled || scoresAreZero) && (completedSets.length > 0 || state.newSets.length > 0)) {
-      return true;
-    }
-
-    // Permitir confirmar ao retomar partida abandonada: quando o placar
-    // atual é 0x0 (set还没有 started) mas já existem pontos de game
-    // registrados (ex.: 30-30), o modal abre preenchido — habilitar
-    // confirmar para que o usuário possa voltar a anotar de onde parou.
-    const hasGamePoints = state.p1Points !== "0" || state.p2Points !== "0";
-    if (scoresAreZero && hasGamePoints) {
-      return true;
-    }
-
-    // Precisa de ambos os inputs preenchidos
-    if (!bothFilled) return false;
-
-    // Bloquear placar inferior ao registrado no abandono/interrupção
-    if (matchState.currentSets && (validation.p1Val < matchState.currentSets.player1 || validation.p2Val < matchState.currentSets.player2)) {
-      return false;
-    }
-
-    // Bloquear tiebreak impossível (ex.: 7x10, 13x8)
-    if (tiebreakImpossible) return false;
-
-    // Para match tiebreak, lógica existente
-    if (isMatchTiebreakSet) {
-      return !setValidationError || validation.isSetTrulyCompleted;
-    }
-
-    // Bloquear para erros genuínos (não "Tiebreak required")
-    if (setValidationError && !tiebreakRequired) return false;
-
-    // Para sets com tiebreak obrigatório (6x6): precisa de tiebreak completo
-    // para auto-avanço, mas permite confirmar parcial se tiebreak não completo
-    if (tiebreakRequired) {
-      // Permite confirmar mesmo com tiebreak incompleto (salva 6x6 como parcial)
-      return true;
-    }
-
-    return true;
-  }, [validation, matchState, state.newSets.length, state.p1Points, state.p2Points, completedSets.length, tiebreakValidation]);
+  const canConfirm = useMemo(
+    () => evaluateCanConfirm({
+      validation,
+      matchState,
+      newSetsCount: state.newSets.length,
+      p1Points: state.p1Points,
+      p2Points: state.p2Points,
+      completedSetsCount: completedSets.length,
+      tiebreakImpossible: tiebreakValidation.tiebreakImpossible,
+    }),
+    [validation, matchState, state.newSets.length, state.p1Points, state.p2Points, completedSets.length, tiebreakValidation.tiebreakImpossible],
+  );
 
   const partial = validation.bothFilled && !validation.isSetTrulyCompleted;
 
-  const showGamePointsAtZero = useMemo(() => {
-    // Bug #10 (2026-08-07): assim que o set atual se completa (ainda sem
-    // handleAddSet ter pushado para newSets), a seção "Pontos no Game Atual"
-    // do próximo set deve aparecer em 0x0. Antes dependia só de
-    // completedSets/newSets, que fica vazio no primeiro set recém-fechado.
-    // Bug sutil: o auto-add às vezes não dispara (ex.: matchWouldEnd=false
-    // mas isMatchTiebreakSet=true), deixando inputs em 6x4. O "próximo game"
-    // ainda é 0x0, então must treat o set já fechado como at-zero também.
-    const hasPreviousSets = completedSets.length > 0 || state.newSets.length > 0 || validation.isSetTrulyCompleted;
-    const isAtZero =
-      !validation.bothFilled ||
-      (p1Val === 0 && p2Val === 0) ||
-      validation.isSetTrulyCompleted;
-    const prevSetCompleted = state.newSets.length > 0
-      ? state.newSets[state.newSets.length - 1].isPartial === false
-      : completedSets.length > 0 || validation.isSetTrulyCompleted;
-    return hasPreviousSets && isAtZero && prevSetCompleted;
-  }, [validation, p1Val, p2Val, completedSets.length, state.newSets]);
+  const showGamePointsAtZero = useMemo(
+    () => evaluateShowGamePointsAtZero(validation, completedSets.length, state.newSets),
+    [validation, completedSets.length, state.newSets],
+  );
 
   const currentScoreBelowOriginal = useMemo(() => {
     if (!currentSets) return false;

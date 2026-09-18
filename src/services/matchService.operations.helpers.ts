@@ -51,3 +51,74 @@ export function buildFinishUpdateData(
   if (winnerId) updateData.winnerId = winnerId;
   return updateData;
 }
+
+export function resolvePersistedScoreState(
+  incomingScoreState: unknown,
+  existingScoreState: unknown,
+): unknown | undefined {
+  const receivedHasHistory =
+    incomingScoreState && typeof incomingScoreState === 'object' &&
+    Array.isArray((incomingScoreState as any).history) &&
+    (incomingScoreState as any).state;
+
+  const existingHasHistory =
+    existingScoreState && typeof existingScoreState === 'object' &&
+    Array.isArray((existingScoreState as any).history) &&
+    (existingScoreState as any).state;
+
+  if (receivedHasHistory) {
+    return incomingScoreState;
+  }
+  if (incomingScoreState && !existingScoreState) {
+    return incomingScoreState;
+  }
+  if (incomingScoreState && existingScoreState && !receivedHasHistory && existingHasHistory) {
+    return {
+      state: incomingScoreState,
+      history: (existingScoreState as any).history,
+    };
+  }
+  return undefined;
+}
+
+export async function recordScoreEditSegment(
+  tx: any,
+  matchId: string,
+  options?: {
+    isManualScoreEdit?: boolean;
+    editedByUserId?: string;
+    note?: string;
+  },
+  previousScoreState?: unknown,
+  newScoreState?: unknown,
+): Promise<void> {
+  const shouldRecordSegment = Boolean(options?.isManualScoreEdit) && Boolean(newScoreState);
+  if (!shouldRecordSegment) return;
+
+  await tx.matchScoreEdit.create({
+    data: {
+      matchId,
+      editedByUserId: options?.editedByUserId ?? 'system',
+      note: options?.note ?? null,
+      previousScoreState: previousScoreState as any,
+      newScoreState: newScoreState as any,
+    },
+  });
+}
+
+export function buildTransitionUpdateData(
+  newState: string,
+  initialServerId?: string,
+  scoreState?: unknown,
+): Record<string, unknown> {
+  const updateData: Record<string, unknown> = {
+    state: newState,
+    version: { increment: 1 },
+  };
+  if (newState === 'IN_PROGRESS') updateData.startedAt = new Date();
+  if (newState === 'FINISHED') updateData.finishedAt = new Date();
+  if (initialServerId) updateData.initialServerId = initialServerId;
+  if (scoreState) updateData.scoreState = scoreState as any;
+  return updateData;
+}
+

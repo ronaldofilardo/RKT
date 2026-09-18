@@ -2,12 +2,17 @@
 
 import type { TennisFormat } from "@/core/scoring/types";
 import type { SetEditData } from "./editScoreHelpers";
-import { validateSetResult } from "./editScoreHelpers";
 import { totalSetsForFormat } from "@/core/scoring/format-rules";
 import type { CompletedSet } from "./edit-score-logic";
 import { useEditScoreModal } from "./useEditScoreModal";
 import { MatchSummary, EditableSetsSummary } from "./edit-score-summary";
 import { SetInputForm } from "./edit-score-form";
+import {
+  getAllCompletedSets,
+  computeCompletedSetValidationErrors,
+  buildEditableCompletedSets,
+} from "./edit-score-modal.helpers";
+import { EditScoreModalFooter } from "./EditScoreModalFooter";
 
 type Player = "player1" | "player2";
 
@@ -93,52 +98,23 @@ export function EditScoreModal({
   const { p1Val, p2Val, isSetTrulyCompleted, hasTiebreak, isMatchTiebreakSet } = validation;
   const { matchWouldEnd, totalEditedSets, setsToWin, p1SetsWon, p2SetsWon } = matchState;
 
-  const allCompletedSets = [
-    ...(state.editableCompletedSets.length > 0
-      ? state.editableCompletedSets
-      : completedSets.map((cs) => ({
-          p1Games: cs.games.player1,
-          p2Games: cs.games.player2,
-          isPartial: false,
-          tiebreakScore: cs.tiebreakScore,
-        }))),
-    ...state.newSets,
-  ];
-
-  // FIX #12: Calcular erros de validação para cada set completado editado
-  const completedSetValidationErrors: Record<number, string> = {};
-  allCompletedSets.forEach((s, idx) => {
-    const v = validateSetResult({ p1Games: s.p1Games, p2Games: s.p2Games }, matchFormat);
-    if (v.error && !v.isPartial) {
-      completedSetValidationErrors[idx] = v.error;
-    }
-  });
-
-  const editableCompletedSets = allCompletedSets.map((s, idx) => {
-    let winner: Player | null = null;
-    const hasValidationError = !!completedSetValidationErrors[idx];
-    const isValidSet = !s.isPartial && !hasValidationError;
-
-    if (isValidSet) {
-      if (s.p1Games > s.p2Games) {
-        winner = 'player1';
-      } else if (s.p2Games > s.p1Games) {
-        winner = 'player2';
-      } else if (s.tiebreakScore) {
-        winner = s.tiebreakScore.player1 > s.tiebreakScore.player2 ? 'player1' : 'player2';
-      }
-    }
-    return {
-      p1Games: s.p1Games,
-      p2Games: s.p2Games,
-      winner,
-      index: idx,
-      isPartial: s.isPartial,
-      hasValidationError,
-    };
-  });
+  const allCompletedSets = getAllCompletedSets(
+    state.editableCompletedSets,
+    completedSets,
+    state.newSets
+  );
+  const completedSetValidationErrors = computeCompletedSetValidationErrors(
+    allCompletedSets,
+    matchFormat
+  );
+  const editableCompletedSets = buildEditableCompletedSets(
+    allCompletedSets,
+    completedSetValidationErrors
+  );
 
   if (!isOpen) return null;
+
+  const hasErrors = Boolean(confirmError || floorValidationError);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -172,7 +148,7 @@ export function EditScoreModal({
         </div>
 
         <div className="p-6 overflow-y-auto flex-1 space-y-5">
-          {(confirmError || floorValidationError) && (
+          {hasErrors && (
             <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
               {confirmError || floorValidationError}
             </div>
@@ -233,40 +209,13 @@ export function EditScoreModal({
           />
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-200 flex gap-3">
-          {/*
-            Bug (2026-09-07) — CRÍTICO: removido o fluxo de dois estágios
-            (botão "Registrar encerramento" exibido após isFinishingMatch).
-            handleConfirm já finaliza a partida (onConfirm + onMatchFinished)
-            em uma única chamada quando o set encerra a partida — manter um
-            segundo botão que repetia essas mesmas chamadas arriscava duplo
-            processamento (persistência/finalização duplicada no backend).
-          */}
-          <button
-            type="button"
-            onClick={handleCancel}
-            disabled={isConfirming}
-            className="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={handleConfirm}
-            disabled={!canConfirm || !!confirmError || !!floorValidationError || isConfirming}
-            className="flex-1 px-4 py-2.5 bg-sky-700 text-white font-medium rounded-lg hover:bg-sky-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
-          >
-            {isConfirming ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                Salvando...
-              </span>
-            ) : 'Confirmar'}
-          </button>
-        </div>
+        <EditScoreModalFooter
+          isConfirming={isConfirming}
+          canConfirm={canConfirm}
+          hasErrors={hasErrors}
+          onCancel={handleCancel}
+          onConfirm={handleConfirm}
+        />
       </div>
     </div>
   );

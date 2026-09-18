@@ -6,8 +6,12 @@ import type { RallyDetails } from '@/core/scoring/types';
 import {
   formReducer,
   initialForm,
-  type Vencedor,
 } from './point-details-logic';
+import {
+  getPointWinnerDetails,
+  buildRallyDetails,
+  usePointDetailsKeyboard,
+} from './point-details-modal.helpers';
 import { WinnerInfo } from './WinnerInfo';
 import { ModalActions } from './ModalActions';
 import { SectionRenderer } from './SectionRenderer';
@@ -52,8 +56,12 @@ export function PointDetailsModal({
     setMounted(true);
   }, []);
 
-  const vencedor: Vencedor = winnerPlayerSide === currentServer ? 'sacador' : 'devolvedor';
-  const winnerName = winnerPlayerSide === 'player1' ? player1Name : player2Name;
+  const { vencedor, winnerName } = getPointWinnerDetails(
+    winnerPlayerSide,
+    currentServer,
+    player1Name,
+    player2Name
+  );
 
   usePointDetailsScroll({
     form,
@@ -68,43 +76,19 @@ export function PointDetailsModal({
     efeitoRef,
   });
 
-  useEffect(() => {
-    if (!mounted) return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        setShowCloseDialog(true);
-      }
-    };
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
-  }, [mounted]);
-
-  const canConfirm = form.situacao != null && form.tipo != null && form.golpe != null;
-
-  const handleConfirm = useCallback(() => {
-    if (!form.situacao || !form.tipo || !form.golpe) return;
-    const isDevolucao = form.situacao === 'devolucao';
-    const textNote = noteText.trim() || undefined;
-    onConfirm({
-      vencedor,
-      situacao: form.situacao,
-      tipo: form.tipo,
-      golpe: form.golpe,
-      subtipo1: form.subtipo1 ?? undefined,
-      subtipo2: form.subtipo2 ?? undefined,
-      duracao: form.duracao ?? undefined,
-      efeito: form.efeito ?? undefined,
-      direcao: form.direcao ?? undefined,
-      golpe_esp: form.golpeEsp ?? undefined,
-      previewBalls: isDevolucao ? 2 : 1,
-      note: textNote,
-    }, undefined);
-  }, [form, onConfirm, vencedor, noteText]);
-
   const handleCancel = useCallback(() => {
     setShowCloseDialog(true);
   }, []);
+
+  usePointDetailsKeyboard(mounted, handleCancel);
+
+  const canConfirm = Boolean(form.situacao && form.tipo && form.golpe);
+
+  const handleConfirm = useCallback(() => {
+    const details = buildRallyDetails(form, vencedor, noteText);
+    if (!details) return;
+    onConfirm(details, undefined);
+  }, [form, onConfirm, vencedor, noteText]);
 
   const handleDiscard = useCallback(() => {
     onCancel();

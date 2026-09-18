@@ -271,39 +271,4 @@ export function getConfirmValidationError(args: ValidationArgs): string | null {
   return blocks.find((block) => block !== null) ?? null;
 }
 
-
-type FreshFloorArgs = {
-  onRefreshFloor?: (() => Promise<FloorSets | null>) | undefined;
-  floorCurrentSets?: FloorSets | null;
-  isSetTrulyCompleted: boolean;
-  p1Val: number;
-  p2Val: number;
-};
-
-export async function getConfirmationError(
-  freshFloorArgs: FreshFloorArgs,
-  validationArgs: ValidationArgs,
-): Promise<string | null> {
-  if (freshFloorArgs.onRefreshFloor && freshFloorArgs.floorCurrentSets && !freshFloorArgs.isSetTrulyCompleted) {
-    const freshError = await getFreshFloorError(
-      freshFloorArgs.onRefreshFloor,
-      freshFloorArgs.floorCurrentSets,
-      freshFloorArgs.isSetTrulyCompleted,
-      freshFloorArgs.p1Val,
-      freshFloorArgs.p2Val,
-    );
-    if (freshError) return freshError;
-  }
-  return getConfirmValidationError(validationArgs);
-}
-
 export type { ValidationArgs };
-
-
-export function shouldRefreshFloor(
-  onRefreshFloor: (() => Promise<FloorSets | null>) | undefined,
-  floorCurrentSets: FloorSets | null | undefined,
-  isSetTrulyCompleted: boolean,
-): boolean {
-  return Boolean(onRefreshFloor && floorCurrentSets && !isSetTrulyCompleted);
-}
