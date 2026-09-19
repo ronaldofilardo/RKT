@@ -62,12 +62,24 @@ function createContext(): ScoringHandlersContext {
 }
 
 describe('useScoringHandlers — regressão real do ACE direto', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('registra ACE para o sacador e encerra o fluxo sem detalhes', async () => {
     const context = createContext();
     const { result } = renderHook(() => useScoringHandlers(context));
 
     act(() => {
       result.current.handleAceDirect();
+    });
+
+    act(() => {
+      jest.runAllTimers();
     });
 
     await act(async () => {

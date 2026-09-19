@@ -105,6 +105,14 @@ export async function POST(
           );
         }
 
+        if (parsed.data.type === 'ACE' && parsed.data.winnerId !== parsed.data.serverId) {
+          throw new TransactionError(
+            'Em um ace, o vencedor do ponto deve ser o sacador',
+            400,
+            'ACE_WINNER_MUST_BE_SERVER'
+          );
+        }
+
         if (typeof tx.pointLog.updateMany === 'function') {
           await tx.pointLog.updateMany({
             where: { matchId: id, voidedAt: { not: null }, sequenceNumber: { not: null } },

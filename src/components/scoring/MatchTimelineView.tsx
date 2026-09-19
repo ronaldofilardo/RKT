@@ -10,14 +10,38 @@ import type { FilterKey, FilterCriteria } from './timeline-types';
 import { FilterBar } from './timeline-filters';
 import { SetGroup } from './timeline-rows';
 
+function getSetResults(points: TimelinePoint[]): { setNumber: number; p1: number; p2: number; tiebreak?: { p1: number; p2: number } }[] {
+  const results: { setNumber: number; p1: number; p2: number; tiebreak?: { p1: number; p2: number } }[] = [];
+  for (const p of points) {
+    const existing = results.find(r => r.setNumber === p.setNumber);
+    if (existing) {
+      existing.p1 = p.gamesScore.player1;
+      existing.p2 = p.gamesScore.player2;
+      if (p.isTiebreak) {
+        existing.tiebreak = { p1: p.gameScore.player1, p2: p.gameScore.player2 };
+      }
+    } else {
+      results.push({
+        setNumber: p.setNumber,
+        p1: p.gamesScore.player1,
+        p2: p.gamesScore.player2,
+        tiebreak: p.isTiebreak ? { p1: p.gameScore.player1, p2: p.gameScore.player2 } : undefined,
+      });
+    }
+  }
+  return results;
+}
+
 interface MatchTimelineViewProps {
   points: TimelinePoint[];
   player1Name: string;
   player2Name: string;
   matchId: string;
+  hideFilters?: boolean;
+  showFinalResult?: boolean;
 }
 
-export function MatchTimelineView({ points, player1Name, player2Name, matchId }: MatchTimelineViewProps) {
+export function MatchTimelineView({ points, player1Name, player2Name, matchId, hideFilters, showFinalResult }: MatchTimelineViewProps) {
   const [activeFilters, setActiveFilters] = useState<Set<FilterKey>>(new Set());
 
   const toggleFilter = (key: FilterKey) => {
@@ -81,28 +105,23 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId }:
 
   return (
     <div>
-      <FilterBar
-        activeFilters={activeFilters}
-        onToggleFilter={toggleFilter}
-        onClearFilters={clearFilters}
-        counts={counts}
-        playerNames={{ p1: player1Name, p2: player2Name }}
-      />
+      {!hideFilters && (
+        <>
+          <FilterBar
+            activeFilters={activeFilters}
+            onToggleFilter={toggleFilter}
+            onClearFilters={clearFilters}
+            counts={counts}
+            playerNames={{ p1: player1Name, p2: player2Name }}
+          />
 
-      <p className="text-xs text-gray-500 mb-3">
-        {hasActiveFilters
-          ? `${filteredPoints.length} de ${points.length} pontos`
-          : `${points.length} pontos`}
-      </p>
-
-      <div className="mb-3 text-[10px] text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 space-y-1">
-        <p className="font-semibold text-gray-700 mb-1">Como ler esta tabela</p>
-        <p>Cada linha é um ponto disputado, na ordem em que aconteceu. <strong>no.</strong> = número do ponto; <strong>P/</strong> = ganhador do ponto ({player1Name}/{player2Name}); <strong>SAC</strong> = sacador ({player1Name}/{player2Name}).</p>
-        <p><strong>GAMES</strong> = placar de games/set (mostrado só no 1º ponto de cada game) · <strong>PONTOS</strong> = placar de pontos (15-0, Deuce, Adv. P1).</p>
-        <p><strong>1º / 2º Saque</strong>: mostra ACE, OUT ou NET conforme o resultado de cada saque, além de efeito e direção. Apenas um dos saques é preenchido por ponto.</p>
-        <p><strong>TIPO</strong>: <strong>ACe</strong> = Ace · <strong>DF</strong> = Dupla Falta · <strong>Winner</strong> = ponto vencedor direto · <strong>ENF</strong> = Erro Não Forçado · <strong>EF</strong> = Erro Forçado</p>
-        <p><strong>ERRO</strong> = tipo de erro na rede (Passing Shot, Devolução). <strong>ONDE</strong> = onde errou (Out, Net). <strong>SITUAÇÃO / GOLPE / EFEITO / DIREÇÃO</strong> descrevem como o ponto terminou. <strong>ESPECIAL</strong> = golpe especial (lob, drop shot, etc.). <strong>RALLY</strong> = faixa de bolas trocadas conforme duração marcada (3-6, 7-10, 11+).</p>
-      </div>
+          <p className="text-xs text-gray-500 mb-3">
+            {hasActiveFilters
+              ? `${filteredPoints.length} de ${points.length} pontos`
+              : `${points.length} pontos`}
+          </p>
+        </>
+      )}
 
       <div className="overflow-hidden border border-gray-200 rounded-lg">
         <div className="overflow-x-auto">
@@ -192,9 +211,43 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId }:
                   player2Name={player2Name}
                 />
               ))}
+              {showFinalResult && (() => {
+                const setResults = getSetResults(points);
+                return (
+                  <tr className="bg-gray-100 border-t-2 border-gray-300 font-bold">
+                    <td colSpan={3} className="px-1.5 py-2 text-[10px] text-gray-700 sticky left-0 bg-gray-100 z-10 border-r border-gray-300 text-right pr-3">
+                      Resultado
+                    </td>
+                    <td colSpan={2} className="px-1.5 py-2 text-[10px] border-r border-gray-200">
+                      <div className="flex flex-col leading-tight">
+                        {setResults.map((sr) => (
+                          <span key={sr.setNumber} className="text-gray-700">
+                            {sr.p1}x{sr.p2}
+                            {sr.tiebreak ? ` (${sr.tiebreak.p1}x${sr.tiebreak.p2})` : ''}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td colSpan={20} />
+                  </tr>
+                );
+              })()}
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="mt-3 text-[10px] text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 space-y-1">
+        <p className="font-semibold text-gray-700 mb-1">Como ler esta tabela</p>
+        <p>Cada linha é um ponto disputado, na ordem em que aconteceu. <strong>no.</strong> = número do ponto; <strong>P/</strong> = ganhador do ponto ({player1Name}/{player2Name}); <strong>SAC</strong> = sacador ({player1Name}/{player2Name}).</p>
+        <p><strong>GAMES</strong> = placar de games/set (mostrado só no 1º ponto de cada game).</p>
+        <p><strong>PONTOS</strong> = placar de pontos (15-0, Deuce, Adv. P1).</p>
+        <p><strong>1º / 2º Saque</strong>: mostra ACE, OUT ou NET conforme o resultado de cada saque, além de efeito e direção. Apenas um dos saques é preenchido por ponto.</p>
+        <p><strong>TIPO</strong>: <strong>ACe</strong> = Ace · <strong>DF</strong> = Dupla Falta · <strong>Winner</strong> = ponto vencedor direto · <strong>ENF</strong> = Erro Não Forçado · <strong>EF</strong> = Erro Forçado</p>
+        <p><strong>ERRO</strong> = tipo de erro na rede (Passing Shot, Devolução). <strong>ONDE</strong> = onde errou (Out, Net).</p>
+        <p><strong>SITUAÇÃO / GOLPE / EFEITO / DIREÇÃO</strong> descrevem como o ponto terminou.</p>
+        <p><strong>ESPECIAL</strong> = golpe especial (lob, drop shot, etc.).</p>
+        <p><strong>RALLY</strong> = faixa de bolas trocadas conforme duração marcada (3-6, 7-10, 11+).</p>
       </div>
     </div>
   );

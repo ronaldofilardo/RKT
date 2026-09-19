@@ -42,7 +42,7 @@ function buildPointDetails(flow: PointFlow): PointDetails {
     type: (flow.type as PointDetails['type']) || 'WINNER',
     isFirstServe: flow.isFirstServe ?? true,
     isSecondServe: flow.isSecondServe ?? false,
-    isLet: false,
+    isLet: flow.isLet ?? false,
     serverId: flow.serverId,
     timestamp: flow.timestamp ?? Date.now(),
     rallyDetails: flow.rallyDetails ?? null,

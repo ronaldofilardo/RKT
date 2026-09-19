@@ -72,14 +72,36 @@ function TabBar({ activeTab, onTabChange, hasAdvancedStats }: { activeTab: Tab; 
 
 function ReportHeader({ report, onContinue, onDashboard, onExport }: { report: ReportData; onContinue: () => void; onDashboard: () => void; onExport: () => void }) {
   const stateLabel = report.state === 'FINISHED' ? 'Finalizada' : report.state === 'IN_PROGRESS' ? 'Em andamento' : 'Aguardando';
+
+  const courtTypeMap: Record<string, string> = {
+    GRASS: 'Saibro',
+    CLAY: 'Saibro',
+    HARD: 'Piso duro',
+    CARPET: 'Carpete',
+    INDOOR: 'Indoor',
+  };
+
+  const metaItems = [report.tournamentName, report.round, report.category]
+    .filter(Boolean)
+    .filter((v, i, arr) => i === 0 || v !== arr[i - 1]);
+
+  const courtLabel = report.courtType ? courtTypeMap[report.courtType.toUpperCase()] ?? report.courtType : null;
+  if (courtLabel) metaItems.push(courtLabel);
+
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Relatório da Partida</h1>
-          <p className="text-sm text-gray-500">{report.player1.name} vs {report.player2.name} · {report.format.replace(/_/g, ' ')} · {stateLabel}</p>
-          <p className="text-xs text-gray-400 mt-1">Início: {formatDate(report.startedAt)} · Fim: {formatDate(report.finishedAt)} · {report.scoreEditsCount ?? 0} correções</p>
-          <p className="text-xs text-gray-400 mt-1">{[report.tournamentName, report.round, report.category, report.courtType].filter(Boolean).join(' · ') || 'Sem metadados adicionais'}{report.temperature != null ? ` · ${report.temperature}°` : ''}{report.humidity != null ? ` · ${report.humidity}% umidade` : ''}</p>
+          <p className="text-sm text-gray-500">
+            <span className="font-semibold text-blue-600">P1</span> {report.player1.name} vs <span className="font-semibold text-red-600">P2</span> {report.player2.name} · {report.format.replace(/_/g, ' ')} · {stateLabel}
+          </p>
+          <p className="text-xs text-gray-400 mt-1">Início: {formatDate(report.startedAt)} · Fim: {formatDate(report.finishedAt)}</p>
+          <p className="text-xs text-gray-400 mt-1">
+            {metaItems.length > 0 ? metaItems.join(' · ') : 'Sem metadados adicionais'}
+            {report.temperature != null ? ` · ${report.temperature}°` : ''}
+            {report.humidity != null ? ` · ${report.humidity}% umidade` : ''}
+          </p>
           {report.finishNote ? <p className="text-xs text-amber-700 mt-1">Nota de encerramento: {report.finishNote}</p> : null}
         </div>
         <div className="flex gap-3">
@@ -133,5 +155,5 @@ function MiniStat({ label, p1, p2, names }: { label: string; p1: number; p2: num
 
 function ReportTimeline({ report, matchId, onContinue }: { report: ReportData; matchId: string; onContinue: () => void }) {
   if (!report.timelinePoints.length) return <div className="bg-white rounded-xl border border-gray-200 p-12 text-center"><p className="text-gray-500">Nenhum ponto registrado nesta partida.</p>{report.state !== 'FINISHED' && <button onClick={onContinue} className="mt-4 text-sky-600 font-semibold underline">Iniciar anotação</button>}</div>;
-  return <div className="bg-white rounded-xl border border-gray-200 p-4"><MatchTimelineView points={report.timelinePoints} player1Name={report.player1.name} player2Name={report.player2.name} matchId={matchId} /></div>;
+  return <div className="bg-white rounded-xl border border-gray-200 p-4"><MatchTimelineView points={report.timelinePoints} player1Name={report.player1.name} player2Name={report.player2.name} matchId={matchId} hideFilters showFinalResult /></div>;
 }

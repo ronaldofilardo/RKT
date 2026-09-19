@@ -84,11 +84,10 @@ export function useScoringPageDerived(
   const canUndo = engineRef.current
     ? engineRef.current.getHistoryLength() > 0
     : false;
-  // @deprecated Redo feature disabled (TD-032) — canRedo is always false in practice;
+  // @deprecated Redo feature disabled (TD-032) — canRedo is always false;
   // engine.redoStack is cleared on every applyPoint, so getRedoLength() is always 0.
-  const canRedo = engineRef.current
-    ? engineRef.current.getRedoLength() > 0
-    : false;
+  // Hardcoded to false to prevent future issues if redo is re-enabled without updating this flag.
+  const canRedo = false;
   const isSetupNeeded = activeModal === "setup" && !match?.initialServerId;
   const isProcessingPoint = isProcessing === true;
 

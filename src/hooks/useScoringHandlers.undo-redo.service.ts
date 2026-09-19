@@ -70,15 +70,13 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
         closeAll();
         onUndoComplete?.();
       } else if (result.needsResync) {
-        const retryResult = await persistState(
+        await persistState(
           engineRef.current?.getState() as ScoringState,
           'undo-retry',
           { voidPointLogId: pointLogIdToVoid ?? undefined },
         );
-        if (retryResult.success) {
-          lastPointLogIdRef.current = null;
-          pointSequenceRef.current = Math.max(0, pointSequenceRef.current - 1);
-        }
+        lastPointLogIdRef.current = null;
+        pointSequenceRef.current = Math.max(0, pointSequenceRef.current - 1);
         closeAll();
       }
     } finally {

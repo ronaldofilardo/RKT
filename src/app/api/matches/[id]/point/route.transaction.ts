@@ -4,6 +4,7 @@ import type { ScoringState, TennisFormat } from '@/core/scoring/types';
 import { normalizeScoreState } from '@/core/scoring/score-normalizer';
 import { logger } from '@/lib/logger';
 import { PointFlowInputSchema } from '@/schemas/contracts';
+import { buildAnnotationsPayload } from './route.helpers';
 
 type PointInput = ReturnType<typeof PointFlowInputSchema.parse>;
 type TransactionResult = { scoreState: ScoringState; version: number; pointLogId: string };
@@ -37,7 +38,7 @@ export async function processPointTransaction(tx: Prisma.TransactionClient, id: 
   if (updatedMatch.version !== undefined && updatedMatch.version !== nextVersion) {
     throw new TransactionError('Conflito de versão ao persistir o placar', 409, 'VERSION_CONFLICT');
   }
-  const annotations = getPointAnnotations(parsed);
+  const annotations = buildAnnotationsPayload(parsed);
   const sequenceNumber = await getNextSequence(tx, id, parsed.sequenceNumber);
   const pointLog = await createPointLog(tx, match.id, parsed, sequenceNumber, annotations);
   logger.point.transactionCompleted();
@@ -45,9 +46,7 @@ export async function processPointTransaction(tx: Prisma.TransactionClient, id: 
   return { scoreState: newState, version: nextVersion, pointLogId: pointLog.id };
 }
 
-function getPointAnnotations(parsed: PointInput) {
-  return parsed.annotations ?? (parsed.rallyDetails ? { rallyDetails: parsed.rallyDetails, rallyLength: parsed.rallyLength, isFirstServe: parsed.isFirstServe, isSecondServe: parsed.isSecondServe, firstFaultDetail: parsed.firstFaultDetail, note: parsed.rallyDetails.note } : undefined);
-}
+
 
 async function getNextSequence(tx: Prisma.TransactionClient, id: string, received?: number) {
   if (typeof tx.pointLog.updateMany === 'function') {
@@ -67,6 +66,12 @@ async function createPointLog(tx: Prisma.TransactionClient, matchId: string, par
 
 async function validateSequence(tx: Prisma.TransactionClient, id: string, parsed: PointInput) {
   if (!parsed.sequenceNumber) return;
+  if (typeof tx.pointLog.updateMany === 'function') {
+    await tx.pointLog.updateMany({
+      where: { matchId: id, voidedAt: { not: null }, sequenceNumber: { not: null } },
+      data: { sequenceNumber: null },
+    });
+  }
   const count = await tx.pointLog.count({ where: { matchId: id, voidedAt: null } });
   if (parsed.sequenceNumber !== count + 1) { logger.point.sequenceConflict({ expected: count + 1, received: parsed.sequenceNumber }); throw new TransactionError(`Conflito de sequência: esperado ${count + 1}, recebido ${parsed.sequenceNumber}`, 409, 'SEQUENCE_CONFLICT', { expectedSequence: count + 1 }); }
 }

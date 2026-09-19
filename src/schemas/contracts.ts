@@ -167,6 +167,7 @@ export const PointFlowInputSchema = z.object({
   clientEventId: z.string().min(1).max(128).optional(),
   isFirstServe: z.boolean().optional(),
   isSecondServe: z.boolean().optional(),
+  isLet: z.boolean().optional(),
   firstFaultDetail: z
     .object({
       errorType: z.string().optional(),

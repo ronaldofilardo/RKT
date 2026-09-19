@@ -43,7 +43,8 @@ export function getGameScoreLabelForPoint(p: TimelinePoint): string {
 
 export function formatAceOrDf(p: TimelinePoint): string {
   if (p.type === 'ACE') {
-    const parts = ['ACE'];
+    const servePrefix = p.isSecondServe ? '2º' : '1º';
+    const parts = [`${servePrefix} ACE`];
     const rd = p.rallyDetails;
     if (rd?.efeito) {
       const efeitoMap: Record<string, string> = { topspin: 'TOP', slice: 'SLI', flat: 'FLA' };

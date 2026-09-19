@@ -109,11 +109,13 @@ export function enrichPointsFromHistory(
     const firstServeOutcome: 'ace' | 'out' | 'net' | null =
       pt.type === 'ACE' && pt.isFirstServe
         ? 'ace'
-        : pt.firstFaultDetail?.errorType === 'out'
-          ? 'out'
-          : pt.firstFaultDetail?.errorType === 'net'
-            ? 'net'
-            : null;
+        : pt.type === 'DOUBLE_FAULT'
+          ? null
+          : pt.firstFaultDetail?.errorType === 'out'
+            ? 'out'
+            : pt.firstFaultDetail?.errorType === 'net'
+              ? 'net'
+              : null;
 
     const secondServeOutcome: 'ace' | 'out' | 'net' | null =
       pt.type === 'ACE' && pt.isSecondServe

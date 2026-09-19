@@ -85,6 +85,7 @@ export interface PointFlow {
   timestamp?: number;
   isFirstServe?: boolean;
   isSecondServe?: boolean;
+  isLet?: boolean;
   firstFault?: boolean;
   rallyDetails?: ContractRallyDetails | null;
   rallyLength?: number;

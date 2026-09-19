@@ -871,6 +871,10 @@ describe('useScoringHandlers - firstFaultDetail propagado quando o ponto NÃO é
       result.current.handleAceDirect();
     });
 
+    act(() => {
+      jest.runAllTimers();
+    });
+
     expect(applyPoint).toHaveBeenCalledTimes(1);
     const flow = applyPoint.mock.calls[0][0];
     expect(flow.type).toBe('ACE');
@@ -922,6 +926,10 @@ describe('useScoringHandlers - firstFaultDetail propagado quando o ponto NÃO é
       result.current.handleAceDirect();
     });
 
+    act(() => {
+      jest.runAllTimers();
+    });
+
     expect(applyPoint).toHaveBeenCalledTimes(1);
     const flow = applyPoint.mock.calls[0][0];
     expect(flow.type).toBe('ACE');
@@ -951,7 +959,7 @@ describe('useScoringHandlers - firstFaultDetail propagado quando o ponto NÃO é
 
     expect(applyPoint).toHaveBeenCalledTimes(1);
     const flow = applyPoint.mock.calls[0][0];
-    expect(flow.type).toBe('WINNER');
+    expect(flow.type).toBe('ACE');
     expect(flow.isSecondServe).toBe(true);
     expect(flow.firstFaultDetail).toEqual(firstServeError);
   });

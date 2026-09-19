@@ -56,6 +56,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
 
   const handleAceDirect = () => {
     if (!match || isProcessingRef.current) return;
+    cancelPendingDebounce();
     const isSecond =
       serveErrorState.serveStep === 'second' ||
       serveErrorState.firstServeError !== null;
@@ -69,24 +70,26 @@ export function createServeActionsService(deps: ServeActionsDeps) {
         }
       : undefined;
 
-    processPoint({
-      winnerId: serverHelpers.getWinnerId(true),
-      type: 'ACE',
-      serverId: serverHelpers.getServerId(),
-      isFirstServe: !isSecond,
-      isSecondServe: isSecond,
-      timestamp: Date.now(),
-      rallyDetails,
-      rallyLength: 1,
-      firstFaultDetail,
-    })
-      .finally(() => {
-        handleFirstServeErrorClear();
-        setServeStep('none');
+    debounceTimerRef.current = setTimeout(() => {
+      processPoint({
+        winnerId: serverHelpers.getWinnerId(true),
+        type: 'ACE',
+        serverId: serverHelpers.getServerId(),
+        isFirstServe: !isSecond,
+        isSecondServe: isSecond,
+        timestamp: Date.now(),
+        rallyDetails,
+        rallyLength: 1,
+        firstFaultDetail,
       })
-      .catch((err: unknown) =>
-        logger.error('[handleAceDirect] Error processing ACE:', err),
-      );
+        .finally(() => {
+          handleFirstServeErrorClear();
+          setServeStep('none');
+        })
+        .catch((err: unknown) =>
+          logger.error('[handleAceDirect] Error processing ACE:', err),
+        );
+    }, TIMEOUTS.DEBOUNCE_MS);
   };
 
   const handleServerEffectConfirm = (effect?: string, direction?: string) => {

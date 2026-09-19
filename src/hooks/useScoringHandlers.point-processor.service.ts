@@ -183,7 +183,9 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
 
     const flowType =
       details.tipo === "winner"
-        ? "WINNER"
+        ? serveErrorState.firstServeError
+          ? "ACE"
+          : "WINNER"
         : details.tipo === "erro_forcado"
           ? "FORCED_ERROR"
           : "UNFORCED_ERROR";
