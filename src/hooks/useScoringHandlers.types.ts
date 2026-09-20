@@ -62,6 +62,8 @@ export interface ScoringHandlersContext {
   close: () => void;
   closeAll: () => void;
   onUndoComplete?: () => void;
+  onPointProcessed?: () => void;
+  onAudioUploaded?: () => void;
   isProcessingRef: MutableRefObject<boolean>;
   debounceTimerRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
 }
@@ -77,8 +79,7 @@ export interface ScoringHandlersReturn {
   fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
   handleSetupConfirm: (serverId: string) => Promise<void>;
   handleUndo: () => void;
-  handleRedo: () => void;
-  handleCancelSecondServe: () => void;
+  handleVoltar: (serveStep: 'none' | 'second') => void;
     openAceModal: () => void;
   handleAceDirect: () => void;
 
@@ -95,7 +96,6 @@ export interface ScoringHandlersReturn {
     errorType: "out" | "net",
     step: "first" | "second"
   ) => void;
-  handleServeCancel: () => void;
   handleServeErrorCancel: () => void;
   handlePointDetailsConfirm: (details: any, audio?: { blob: Blob; durationMs: number }) => void;
   isProcessing: boolean;

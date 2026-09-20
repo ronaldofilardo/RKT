@@ -1,6 +1,6 @@
 import type { TimelinePoint } from '@/core/scoring/types';
 import type { PointLogRow } from '@/core/scoring/timeline-rebuild';
-import { describeTimelinePoint } from './route.helpers';
+import { describeTimelinePoint, describeScoreSnapshotForDisplay } from './route.helpers';
 import type { getMatchScoreEdits } from '@/services/matchService';
 
 type ScoreEdit = Awaited<ReturnType<typeof getMatchScoreEdits>>[number];
@@ -35,8 +35,12 @@ export function addScoreEditBreaks(
       ...currentPoint,
       segmentBreak: {
         editedAt: lastEdit.editedAt.toISOString(),
-        previousLabel: prevPoint ? describeTimelinePoint(prevPoint) : '–',
-        newLabel: describeTimelinePoint(currentPoint),
+        previousLabel: lastEdit.previousScoreState
+          ? describeScoreSnapshotForDisplay(lastEdit.previousScoreState)
+          : (prevPoint ? describeTimelinePoint(prevPoint) : '–'),
+        newLabel: lastEdit.newScoreState
+          ? describeScoreSnapshotForDisplay(lastEdit.newScoreState)
+          : describeTimelinePoint(currentPoint),
         editedByUserId: lastEdit.editedByUserId ?? undefined,
         note: notes.length > 0 ? notes.join(' → ') : undefined,
       },

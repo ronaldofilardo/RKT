@@ -108,7 +108,7 @@ export async function PATCH(
         );
       }
 
-      if (match.state === 'FINISHED' && parsed.data.state === 'FINISHED') {
+      if (match.state === 'FINISHED' && parsed.data.state === 'FINISHED' && !parsed.data.allowScoreEdit) {
         const fullMatch = await prisma.match.findUnique({ where: { id } });
         return NextResponse.json({
           ...fullMatch,

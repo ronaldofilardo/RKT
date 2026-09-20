@@ -193,6 +193,12 @@ export async function GET(
       const integrity = buildReportIntegrity(pointLogs, timelinePoints);
       const advancedStats = computeAdvancedStats(timelinePoints);
 
+      const comments = await prisma.matchComment.findMany({
+        where: { matchId: id, deletedAt: null },
+        include: { author: { select: { name: true } } },
+        orderBy: { createdAt: 'asc' },
+      });
+
       return NextResponse.json({
         matchId: id,
         player1: { id: match.player1.id, name: match.player1.name },
@@ -211,6 +217,15 @@ export async function GET(
         finishNote: match.finishNote ?? null,
         scoreState: responseScoreState,
         timelinePoints,
+        comments: comments.map((c) => ({
+          id: c.id,
+          content: c.content,
+          category: c.category,
+          authorName: c.author.name,
+          createdAt: c.createdAt.toISOString(),
+          hasAudioNote: c.audioNote !== null,
+          audioNoteDuration: c.audioNoteDuration,
+        })),
         summary,
         integrity,
         advancedStats,

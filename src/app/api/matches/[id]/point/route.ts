@@ -120,8 +120,13 @@ export async function POST(
           });
         }
 
-        const pointLogCount = await tx.pointLog.count({ where: { matchId: id, voidedAt: null } });
-        const nextSequenceNumber = pointLogCount + 1;
+        // P2-12 FIX: Usar MAX(sequenceNumber) + 1 em vez de count + 1
+        // para evitar conflito de unique constraint após anulação de pontos.
+        const maxRow = await tx.pointLog.aggregate({
+          where: { matchId: id, voidedAt: null, sequenceNumber: { not: null } },
+          _max: { sequenceNumber: true },
+        });
+        const nextSequenceNumber = (maxRow._max.sequenceNumber ?? 0) + 1;
 
         if (parsed.data.sequenceNumber !== undefined && parsed.data.sequenceNumber !== nextSequenceNumber) {
           logger.point.sequenceConflict({

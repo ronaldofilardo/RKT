@@ -25,7 +25,6 @@ export interface ScoringPageDerived {
   isFinished: boolean;
   winner: string | null;
   canUndo: boolean;
-  canRedo: boolean;
   isSetupNeeded: boolean;
   isProcessingPoint: boolean;
   gamePointToDisplay: (p: number) => string;
@@ -43,7 +42,7 @@ export function useScoringPageDerived(
   state: ScoringPageState,
   handlers: ScoringPageHandlers,
 ): ScoringPageDerived {
-  const { match, scoreState, engineRef, activeModal, gamePointToDisplay, timelinePoints } =
+  const { match, scoreState, engineRef, activeModal, gamePointToDisplay, timelinePoints, serveErrorState } =
     state;
   const { isProcessing } = handlers;
   const { suspendedSession, session } = state;
@@ -62,7 +61,17 @@ export function useScoringPageDerived(
   const isSetPoint = effectiveScoreState && !checkMatchPoint(effectiveScoreState, match?.format) ? checkSetPoint(effectiveScoreState) : false;
   const isBreakPoint = effectiveScoreState && !checkMatchPoint(effectiveScoreState, match?.format) && !isSetPoint ? checkBreakPoint(effectiveScoreState) : false;
   const isTiebreak = effectiveScoreState
-    ? (effectiveScoreState.sets[effectiveScoreState.sets.length - 1]?.isTiebreak ?? false)
+    ? (() => {
+        const lastSet = effectiveScoreState.sets[effectiveScoreState.sets.length - 1];
+        if (!lastSet) return false;
+        if (lastSet.isTiebreak) return true;
+        // Se o último set é vazio (auto-added 0-0), verificar o set anterior
+        if (lastSet.player1 === 0 && lastSet.player2 === 0 && effectiveScoreState.sets.length > 1) {
+          const prevSet = effectiveScoreState.sets[effectiveScoreState.sets.length - 2];
+          return prevSet?.isTiebreak ?? false;
+        }
+        return false;
+      })()
     : false;
   // Um "Super Tie-Break" (Match Tiebreak de 10 pontos) acontece não só no
   // formato MATCH_TB_10 (partida inteira em 1 set), mas também:
@@ -81,13 +90,12 @@ export function useScoringPageDerived(
     : false;
   const isFinished = effectiveScoreState?.isFinished ?? false;
   const winner = effectiveScoreState?.winner ?? null;
-  const canUndo = engineRef.current
-    ? engineRef.current.getHistoryLength() > 0
-    : false;
-  // @deprecated Redo feature disabled (TD-032) — canRedo is always false;
-  // engine.redoStack is cleared on every applyPoint, so getRedoLength() is always 0.
-  // Hardcoded to false to prevent future issues if redo is re-enabled without updating this flag.
-  const canRedo = false;
+  // Voltar button: enabled quando há ponto no histórico OU quando estamos
+  // aguardando o 2º saque (nesse caso Voltar cancela o 2º saque diretamente,
+  // sem modal e sem impacto no banco).
+  const canUndo =
+    (engineRef.current ? engineRef.current.getHistoryLength() > 0 : false) ||
+    serveErrorState?.serveStep === 'second';
   const isSetupNeeded = activeModal === "setup" && !match?.initialServerId;
   const isProcessingPoint = isProcessing === true;
 
@@ -110,7 +118,8 @@ export function useScoringPageDerived(
     }
 
     if (lastSetIsCompleted && !lastSet.isTiebreak) {
-      return { player1: 0, player2: 0 };
+      // Retornar os games do set completo para que o modal mostre o placar atual
+      return { player1: lastSet.player1, player2: lastSet.player2 };
     }
 
     return { player1: lastSet.player1, player2: lastSet.player2 };
@@ -154,7 +163,6 @@ export function useScoringPageDerived(
     isFinished,
     winner,
     canUndo,
-    canRedo,
     isSetupNeeded,
     isProcessingPoint,
     gamePointToDisplay,

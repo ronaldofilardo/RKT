@@ -3,6 +3,7 @@ import {
   shouldHaveTiebreak,
   getTiebreakAtForFormat,
 } from '@/core/scoring/format-rules';
+import { isMatchTiebreakSetIndex as isMatchTiebreakSetIndexCanonical } from '@/lib/matchConfig';
 import { SCORING_LIMITS, TIEBREAK } from '@/lib/constants';
 
 export interface SetEditData {
@@ -22,19 +23,15 @@ export interface SetValidation {
   tiebreakRequired?: boolean;
 }
 
-export function getMaxValidGames(otherGames: number, format: TennisFormat): number {
+export function getMaxValidGames(_otherGames: number, format: TennisFormat): number {
   if (format === 'MATCH_TB_10') return SCORING_LIMITS.TIEBREAK_INPUT_CAP;
   if (!shouldHaveTiebreak(format)) return SCORING_LIMITS.TIEBREAK_INPUT_CAP;
 
   const tiebreakAt = getTiebreakAtForFormat(format);
 
-  // Cap dinâmico por "otherGames" removido: ele impedia digitar 7-x/7-6
-  // (o 7 era truncado para 6 quando o adversário tinha <6 games) e impedia
-  // digitar 10+ em sets de Match Tiebreak de formatos melhor-de-3. O cap fixo
-  // (tiebreakAt + 1) permite qualquer placar válido no input; placares
-  // impossíveis (ex.: 10-8 em PRO_SET_8) são bloqueados por validateSetResult
+  // Cap fixo (tiebreakAt + 1) permite qualquer placar válido no input.
+  // Placares impossíveis (ex.: 10-8 em PRO_SET_8) são bloqueados por validateSetResult
   // com mensagem clara (Item 5 do PLANO_AJUSTAR_PLACAR).
-  void otherGames;
   return tiebreakAt + 1;
 }
 
@@ -249,21 +246,17 @@ export function getNextServerAfterSet(params: {
 }): 'player1' | 'player2' {
   const { currentServer, p1Games, p2Games, format, tiebreakPoints, completedSets = [] } = params;
 
-  // Check if this is a Match Tiebreak set
-  // For BEST_OF_5: 5th set is MT only when series is 2-2 (the MT activation
-  // at 6-6 is handled elsewhere; during MT editing, games are 0-0).
-  // For other formats: 3rd set is always MT when series is 1-1.
-  const isMatchTiebreakSet = 
-    format === 'MATCH_TB_10' ||
-    (format === 'BEST_OF_5' && completedSets.length === 4 && 
-     completedSets.filter(s => s.player1 > s.player2).length === 2 &&
-     completedSets.filter(s => s.player2 > s.player1).length === 2) ||
-    (format === 'BEST_OF_3_MATCH_TB' && completedSets.length === 2 &&
-     completedSets.filter(s => s.player1 > s.player2).length === 1 &&
-     completedSets.filter(s => s.player2 > s.player1).length === 1) ||
-    ((format === 'SHORT_SET_2V2_NO_AD' || format === 'BEST_OF_3_NO_AD') && completedSets.length === 2 &&
-     completedSets.filter(s => s.player1 > s.player2).length === 1 &&
-     completedSets.filter(s => s.player2 > s.player1).length === 1);
+  // Calcular setsWon a partir dos completedSets
+  const p1Sets = completedSets.filter(s => s.player1 > s.player2).length;
+  const p2Sets = completedSets.filter(s => s.player2 > s.player1).length;
+  
+  // Usar função canônica para determinar se é MT
+  const lastSetIndex = completedSets.length;
+  const isMatchTiebreakSet = isMatchTiebreakSetIndexCanonical(
+    lastSetIndex,
+    { player1: p1Sets, player2: p2Sets },
+    format as any,
+  );
 
   const winnerGames = Math.max(p1Games, p2Games);
   const loserGames = Math.min(p1Games, p2Games);

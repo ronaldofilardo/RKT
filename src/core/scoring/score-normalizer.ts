@@ -1,5 +1,6 @@
 // TODO: Remove this file after data migration window closes. It normalizes corrupted data from a historical bug (Bug #4, 2026-08-07).
 import type { TennisFormat } from './types';
+import { isMatchTiebreakSetIndex as isMatchTiebreakSetIndexCanonical } from '@/lib/matchConfig';
 
 /**
  * Sanea um scoreState legado/corrompido para o formato canonical.
@@ -36,7 +37,7 @@ export interface NormalizedScoreState {
 /**
  * Determina se um índice de set em um formato dado deve ser tratado como
  * Match Tiebreak decisivo (5º set no BO5, 3º set em BO3 MT, etc.).
- * Unifica a heurística espalhada pelo código — ver docs/fix-tasks/scoring-edit-score-2026-08-07.md.
+ * Delega à função canônica em lib/matchConfig.ts.
  */
 export function isMatchTiebreakSetIndex(
   setIndex: number,
@@ -44,24 +45,11 @@ export function isMatchTiebreakSetIndex(
   format: TennisFormat,
   completedSetsBefore: { p1Won: number; p2Won: number } = { p1Won: 0, p2Won: 0 },
 ): boolean {
-  const setNum = setIndex + 1;
-
-  if (format === 'MATCH_TB_10') return setNum === 1;
-
-  if (format === 'BEST_OF_5' && setNum === 5) {
-    return completedSetsBefore.p1Won === 2 && completedSetsBefore.p2Won === 2;
-  }
-
-  if (
-    (format === 'BEST_OF_3_MATCH_TB' ||
-      format === 'BEST_OF_3_NO_AD' ||
-      format === 'SHORT_SET_2V2_NO_AD') &&
-    setNum === 3
-  ) {
-    return completedSetsBefore.p1Won === 1 && completedSetsBefore.p2Won === 1;
-  }
-
-  return false;
+  return isMatchTiebreakSetIndexCanonical(
+    setIndex,
+    { player1: completedSetsBefore.p1Won, player2: completedSetsBefore.p2Won },
+    format,
+  );
 }
 
 function parseRawScoreState(rawScoreState: any): any | null {

@@ -16,6 +16,7 @@ import { EditScoreModal } from "@/components/scoring/EditScoreModal";
 import { MatchTimelineView } from "@/components/scoring/MatchTimelineView";
 import CourtBackground from "@/components/scoring/CourtBackground";
 import { AnnotationSessionPanel } from "@/components/scoring/AnnotationSessionPanel";
+import { CommentModal } from "@/components/scoring/CommentModal";
 import { useScoringPageState } from "./useScoringPageState";
 import { useScoringPageEffects } from "./useScoringPageEffects";
 import { useScoringPageDerived } from "./useScoringPageDerived";
@@ -81,13 +82,11 @@ function ScoringPageInner() {
 
   const {
     handleUndo,
-    handleRedo,
-    handleCancelSecondServe,
+    handleVoltar,
     openAceModal,
     handleAceDirect,
     handleServerEffectConfirm,
     handleServeErrorConfirm,
-    handleServeCancel,
     handleServeErrorCancel,
     handleServeErrorDirect,
     handlePointDetailsConfirm,
@@ -98,6 +97,7 @@ function ScoringPageInner() {
     abandonCurrentSession,
     handleEditScore,
     handleSetupConfirm,
+    handleCommentCreate,
   } = handlers;
 
   const {
@@ -112,7 +112,6 @@ function ScoringPageInner() {
     isFinished,
     winner,
     canUndo,
-    canRedo,
     isSetupNeeded,
     isProcessingPoint,
     gamePointToDisplay,
@@ -161,6 +160,7 @@ function ScoringPageInner() {
               player1Name={match.player1.name}
               player2Name={match.player2.name}
               matchId={matchId}
+              comments={state.comments}
             />
           </div>
         </div>
@@ -297,7 +297,6 @@ function ScoringPageInner() {
         secondServe={false}
         serveStep={serveErrorState.serveStep}
         canUndo={canUndo}
-        canRedo={canRedo}
         canEdit={!isFinished}
         fontScale={fontScale}
         isFinished={isFinished}
@@ -308,13 +307,11 @@ function ScoringPageInner() {
         onNet={(step) => handleServeErrorWithModal("net", step)}
         onOutDirect={(step) => handleServeErrorDirect("out", step)}
         onNetDirect={(step) => handleServeErrorDirect("net", step)}
-        onCancelSecondServe={handleCancelSecondServe}
-        onServeCancel={handleServeCancel}
-        onUndo={() => state.open("undo")}
-        onRedo={() => handleRedo()}
+        onVoltar={handleVoltar}
         onFontSmaller={() => setFontScale((f) => Math.max(0.6, f - 0.1))}
         onFontBigger={() => setFontScale((f) => Math.min(2, f + 0.1))}
         onEditScore={() => state.open("edit-score")}
+        onComment={process.env.NEXT_PUBLIC_COMMENT_FEATURE === 'true' ? () => state.open("comment") : undefined}
       />
 
       {sessionIdRef.current && (
@@ -424,6 +421,14 @@ function ScoringPageInner() {
           fontScale={fontScale}
           onConfirm={handlePointDetailsConfirm}
           onCancel={state.close}
+        />
+      )}
+
+      {activeModal === "comment" && process.env.NEXT_PUBLIC_COMMENT_FEATURE === 'true' && (
+        <CommentModal
+          isOpen={true}
+          onClose={state.close}
+          onSave={handleCommentCreate}
         />
       )}
     </div>

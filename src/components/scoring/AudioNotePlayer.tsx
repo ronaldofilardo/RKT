@@ -4,7 +4,8 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 
 interface AudioNotePlayerProps {
   matchId: string;
-  pointId: string;
+  pointId?: string;
+  commentId?: string;
   durationMs?: number;
   token?: string | null;
 }
@@ -16,7 +17,7 @@ function formatDuration(ms: number): string {
   return `${min}:${String(sec).padStart(2, '0')}`;
 }
 
-export function AudioNotePlayer({ matchId, pointId, durationMs, token }: AudioNotePlayerProps) {
+export function AudioNotePlayer({ matchId, pointId, commentId, durationMs, token }: AudioNotePlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -63,7 +64,10 @@ export function AudioNotePlayer({ matchId, pointId, durationMs, token }: AudioNo
     setIsLoading(true);
 
     try {
-      const res = await fetch(`/api/matches/${matchId}/point/${pointId}/audio`, {
+      const audioUrl = commentId
+        ? `/api/matches/${matchId}/comments/${commentId}/audio`
+        : `/api/matches/${matchId}/point/${pointId}/audio`;
+      const res = await fetch(audioUrl, {
         headers: token ? { authorization: `Bearer ${token}` } : {},
         signal: controller.signal,
       });
@@ -98,7 +102,7 @@ export function AudioNotePlayer({ matchId, pointId, durationMs, token }: AudioNo
         setIsLoading(false);
       }
     }
-  }, [matchId, pointId, token, isPlaying, stopPlayback]);
+  }, [matchId, pointId, commentId, token, isPlaying, stopPlayback]);
 
   return (
     <button

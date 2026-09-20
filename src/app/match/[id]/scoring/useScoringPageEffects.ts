@@ -3,6 +3,7 @@
 import { useEffect, useCallback } from "react";
 import { useScoringHandlers } from "@/hooks/useScoringHandlers";
 import { useSessionManager } from "@/hooks/useSessionManager";
+import { useCommentOfflineSync } from "@/hooks/useCommentOfflineSync";
 import type { SetEditData } from "@/components/scoring/editScoreHelpers";
 import type { ScoringPageState } from "./useScoringPageState";
 
@@ -11,15 +12,13 @@ export interface ScoringPageHandlers {
   fetchMatch: ReturnType<typeof useScoringHandlers>["fetchMatch"];
   handleSetupConfirm: ReturnType<typeof useScoringHandlers>["handleSetupConfirm"];
   handleUndo: ReturnType<typeof useScoringHandlers>["handleUndo"];
-  handleRedo: ReturnType<typeof useScoringHandlers>["handleRedo"];
-  handleCancelSecondServe: ReturnType<typeof useScoringHandlers>["handleCancelSecondServe"];
+  handleVoltar: ReturnType<typeof useScoringHandlers>["handleVoltar"];
     openAceModal: ReturnType<typeof useScoringHandlers>["openAceModal"];
   handleAceDirect: ReturnType<typeof useScoringHandlers>["handleAceDirect"];
 
   handleServerEffectConfirm: ReturnType<typeof useScoringHandlers>["handleServerEffectConfirm"];
   handleServeErrorConfirm: ReturnType<typeof useScoringHandlers>["handleServeErrorConfirm"];
   handleServeErrorDirect: ReturnType<typeof useScoringHandlers>["handleServeErrorDirect"];
-  handleServeCancel: ReturnType<typeof useScoringHandlers>["handleServeCancel"];
   handleServeErrorCancel: ReturnType<typeof useScoringHandlers>["handleServeErrorCancel"];
   handlePointDetailsConfirm: ReturnType<typeof useScoringHandlers>["handlePointDetailsConfirm"];
   handlePointFromCard: (winnerSide: "player1" | "player2") => void;
@@ -29,6 +28,7 @@ export interface ScoringPageHandlers {
   isProcessing: boolean;
   abandonCurrentSession: ReturnType<typeof useSessionManager>["abandonCurrentSession"];
   handleEditScore: (setResults: SetEditData[], server: "player1" | "player2") => Promise<void>;
+  handleCommentCreate: (content: string, audio?: { blob: Blob; durationMs: number }, category?: string) => Promise<void>;
 }
 
 export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandlers {
@@ -69,13 +69,17 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     scoreState,
     setElapsed,
     session,
-    setUndoTimestamp,
+    setEngineTick,
     setSyncStatus,
     syncPendingMatches,
     toast,
     fetchPointLogAudioMeta,
     clearQueueForMatch,
+    setComments,
+    fetchComments,
   } = state;
+
+  const { enqueueComment } = useCommentOfflineSync();
 
   useEffect(() => {
     const freshToken = sessionStorage.getItem("access_token");
@@ -89,14 +93,12 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     fetchMatch,
     handleSetupConfirm,
     handleUndo,
-    handleRedo,
-    handleCancelSecondServe,
+    handleVoltar,
     openAceModal,
     handleAceDirect,
     handleServerEffectConfirm,
     handleServeErrorConfirm,
     handleServeErrorDirect,
-    handleServeCancel,
     handleServeErrorCancel,
     handlePointDetailsConfirm,
     isProcessing,
@@ -126,7 +128,9 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     open,
     close,
     closeAll,
-    onUndoComplete: () => setUndoTimestamp(Date.now()),
+    onUndoComplete: () => setEngineTick(Date.now()),
+    onPointProcessed: () => setEngineTick(Date.now()),
+    onAudioUploaded: fetchPointLogAudioMeta,
     isProcessingRef,
     debounceTimerRef,
   });
@@ -162,6 +166,72 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     [originalHandleEditScore]
   );
 
+  const handleCommentCreate = useCallback(
+    async (content: string, audio?: { blob: Blob; durationMs: number }, category?: string) => {
+      const finalContent = content?.trim() || (audio ? '(Nota de voz)' : '');
+
+      // Offline: enqueue for later sync
+      if (!isOnline) {
+        await enqueueComment({
+          matchId,
+          type: 'COMMENT',
+          payload: { content: finalContent, category, audioBlob: audio?.blob, audioDurationMs: audio?.durationMs },
+          timestamp: Date.now(),
+        });
+        toast({ type: 'success', message: 'Comentário salvo localmente, sincronizando ao reconectar' });
+        return;
+      }
+
+      try {
+        const token = tokenRef.current;
+        const res = await fetch(`/api/matches/${matchId}/comments`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ content: finalContent, category }),
+        });
+
+        if (!res.ok) {
+          toast({ type: 'error', message: 'Erro ao criar comentário' });
+          return;
+        }
+
+        const comment = await res.json();
+
+        if (audio && comment.id) {
+          const formData = new FormData();
+          formData.append('file', audio.blob);
+          formData.append('durationMs', String(audio.durationMs));
+          await fetch(`/api/matches/${matchId}/comments/${comment.id}/audio`, {
+            method: 'POST',
+            headers: token ? { authorization: `Bearer ${token}` } : {},
+            body: formData,
+          });
+        }
+
+        setComments((prev) => [
+          {
+            id: comment.id,
+            content: comment.content,
+            category: comment.category,
+            authorName: comment.authorName,
+            createdAt: comment.createdAt,
+            hasAudioNote: Boolean(audio),
+            audioNoteDuration: audio?.durationMs ?? null,
+          },
+          ...prev,
+        ]);
+
+        toast({ type: 'success', message: 'Comentário registrado' });
+      } catch {
+        toast({ type: 'error', message: 'Erro ao criar comentário' });
+      }
+    },
+    [matchId, tokenRef, setComments, toast, isOnline, enqueueComment]
+  );
+
   const handlePointFromCard = useCallback(
     (winnerSide: "player1" | "player2") => {
       open("point-details", { winner: winnerSide });
@@ -190,9 +260,24 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
   const handleEditScoreRefreshFloor = useCallback(async () => {
     if (!engineRef.current || !match) return null;
     const currentState = engineRef.current.getState();
-    const lastSet = currentState.sets[currentState.sets.length - 1];
-    if (!lastSet) return null;
-    return { player1: lastSet.player1, player2: lastSet.player2 };
+    const sets = currentState.sets;
+    if (sets.length === 0) return null;
+
+    // P2-10 FIX: Se o último set é vazio (auto-added 0-0), olhar para
+    // o set anterior completo como floor. O set vazio não representa
+    // progresso real — usar seu placar como floor inutiliza a proteção.
+    for (let i = sets.length - 1; i >= 0; i--) {
+      const set = sets[i];
+      const isLastSet = i === sets.length - 1;
+      // Para o último set, só usar como floor se tiver progresso real
+      if (isLastSet && set.player1 === 0 && set.player2 === 0) continue;
+      // Para qualquer set com progresso, usar como floor
+      if (set.player1 > 0 || set.player2 > 0) {
+        return { player1: set.player1, player2: set.player2 };
+      }
+    }
+
+    return null;
   }, [engineRef, match]);
 
   useEffect(() => {
@@ -202,8 +287,9 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
   useEffect(() => {
     if (state.viewMode === 'timeline' && match) {
       fetchPointLogAudioMeta();
+      fetchComments();
     }
-  }, [state.viewMode, match, fetchPointLogAudioMeta]);
+  }, [state.viewMode, match, fetchPointLogAudioMeta, fetchComments]);
 
   useEffect(() => {
     if (isOnline) {
@@ -248,14 +334,12 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     fetchMatch,
     handleSetupConfirm,
     handleUndo,
-    handleRedo,
-    handleCancelSecondServe,
+    handleVoltar,
     openAceModal,
     handleAceDirect,
     handleServerEffectConfirm,
     handleServeErrorConfirm,
     handleServeErrorDirect,
-    handleServeCancel,
     handleServeErrorCancel,
     handlePointDetailsConfirm,
     handlePointFromCard,
@@ -265,5 +349,6 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     isProcessing,
     abandonCurrentSession,
     handleEditScore,
+    handleCommentCreate,
   };
 }

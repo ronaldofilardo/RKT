@@ -1,8 +1,16 @@
 "use client";
 import { logger } from "@/lib/logger";
-import { useCallback, useEffect, useRef } from "react";
-import type { ScoringState, PointFlow, HistoryEntry } from "@/core/scoring/types";
-import type { MatchData, ScoringHandlersContext, ScoringHandlersReturn } from "./useScoringHandlers.types";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import type {
+  ScoringState,
+  PointFlow,
+  HistoryEntry,
+} from "@/core/scoring/types";
+import type {
+  MatchData,
+  ScoringHandlersContext,
+  ScoringHandlersReturn,
+} from "./useScoringHandlers.types";
 import { persistStateWithRetry } from "./useScoringHandlers.persistence";
 import { createServerHelpersService } from "./useScoringHandlers.server-helpers.service";
 import { createModalHandlersService } from "./useScoringHandlers.modals.service";
@@ -12,7 +20,9 @@ import { createUndoRedoService } from "./useScoringHandlers.undo-redo.service";
 import { createMatchFetchService } from "./useScoringHandlers.match-fetch";
 import { createPointProcessorService } from "./useScoringHandlers.point-processor.service";
 
-export function useScoringHandlers(ctx: ScoringHandlersContext): ScoringHandlersReturn {
+export function useScoringHandlers(
+  ctx: ScoringHandlersContext,
+): ScoringHandlersReturn {
   const {
     matchId,
     match,
@@ -40,6 +50,8 @@ export function useScoringHandlers(ctx: ScoringHandlersContext): ScoringHandlers
     close,
     closeAll,
     onUndoComplete,
+    onPointProcessed,
+    onAudioUploaded,
     isProcessingRef,
     debounceTimerRef,
   } = ctx;
@@ -64,19 +76,35 @@ export function useScoringHandlers(ctx: ScoringHandlersContext): ScoringHandlers
   }, [debounceTimerRef, isProcessingRef]);
 
   // ─── Fetch Match & Engine Setup ───────────────────────────────────────────
-  const matchFetchService = createMatchFetchService({
-    matchId,
-    tokenRef,
-    matchVersionRef,
-    pointSequenceRef,
-    engineRef,
-    openRef,
-    setMatch,
-    setScoreState,
-    setPointsHistory,
-    setIsLoading,
-    setError,
-  });
+  const matchFetchService = useMemo(
+    () =>
+      createMatchFetchService({
+        matchId,
+        tokenRef,
+        matchVersionRef,
+        pointSequenceRef,
+        engineRef,
+        openRef,
+        setMatch,
+        setScoreState,
+        setPointsHistory,
+        setIsLoading,
+        setError,
+      }),
+    [
+      matchId,
+      tokenRef,
+      matchVersionRef,
+      pointSequenceRef,
+      engineRef,
+      openRef,
+      setMatch,
+      setScoreState,
+      setPointsHistory,
+      setIsLoading,
+      setError,
+    ],
+  );
 
   const fetchMatch = useCallback(
     async (forceEngineReset = false) => {
@@ -105,9 +133,16 @@ export function useScoringHandlers(ctx: ScoringHandlersContext): ScoringHandlers
         isManualScoreEdit?: boolean;
         voidPointLogId?: string;
       },
-    ): Promise<{ success: boolean; needsResync?: boolean; conflict?: boolean; version?: number }> => {
+    ): Promise<{
+      success: boolean;
+      needsResync?: boolean;
+      conflict?: boolean;
+      version?: number;
+    }> => {
       const engineAny = engineRef.current as
-        | ({ getPointHistory?: () => HistoryEntry[] } & typeof engineRef.current)
+        | ({
+            getPointHistory?: () => HistoryEntry[];
+          } & typeof engineRef.current)
         | null;
       const history = engineAny?.getPointHistory?.();
 
@@ -128,7 +163,9 @@ export function useScoringHandlers(ctx: ScoringHandlersContext): ScoringHandlers
 
       if (result.success && result.version !== undefined) {
         matchVersionRef.current = result.version;
-        setMatch((prev) => (prev ? { ...prev, version: result.version } : prev));
+        setMatch((prev) =>
+          prev ? { ...prev, version: result.version } : prev,
+        );
       }
 
       return result;
@@ -139,7 +176,13 @@ export function useScoringHandlers(ctx: ScoringHandlersContext): ScoringHandlers
   // ─── Services ─────────────────────────────────────────────────────────────
   const serverHelpers = createServerHelpersService({ engineRef, match });
   const modalService = createModalHandlersService({ serveErrorState, open });
-  const pointSync = createPointSyncService({ matchId, match, tokenRef, pointSequenceRef, setError });
+  const pointSync = createPointSyncService({
+    matchId,
+    match,
+    tokenRef,
+    pointSequenceRef,
+    setError,
+  });
 
   const undoRedoService = createUndoRedoService({
     engineRef,
@@ -155,6 +198,7 @@ export function useScoringHandlers(ctx: ScoringHandlersContext): ScoringHandlers
     setServeStep,
     handleServeErrorClose,
     onUndoComplete,
+    open,
   });
 
   const pointProcessorService = createPointProcessorService({
@@ -178,6 +222,8 @@ export function useScoringHandlers(ctx: ScoringHandlersContext): ScoringHandlers
     setShowFinishedBanner,
     setError,
     fetchMatch,
+    onPointProcessed,
+    onAudioUploaded,
     uploadAudioNote: undoRedoService.uploadAudioNote,
   });
 
@@ -252,15 +298,13 @@ export function useScoringHandlers(ctx: ScoringHandlersContext): ScoringHandlers
     fetchMatch,
     handleSetupConfirm,
     handleUndo: undoRedoService.handleUndo,
-    handleRedo: undoRedoService.handleRedo,
-    handleCancelSecondServe: serveActionsService.handleCancelSecondServe,
+    handleVoltar: undoRedoService.handleVoltar,
     openAceModal: modalService.openAceModal,
     handleAceDirect: serveActionsService.handleAceDirect,
     openPointDetails: modalService.openPointDetails,
     handleServerEffectConfirm: serveActionsService.handleServerEffectConfirm,
     handleServeErrorConfirm: serveActionsService.handleServeErrorConfirm,
     handleServeErrorDirect: serveActionsService.handleServeErrorDirect,
-    handleServeCancel: serveActionsService.handleServeCancel,
     handleServeErrorCancel: serveActionsService.handleServeErrorCancel,
     handlePointDetailsConfirm,
     isProcessing: isProcessingRef.current,

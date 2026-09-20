@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act, within } from '@testing-library/react';
 import { PointDetailsModal } from '@/components/scoring/PointDetailsModal';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import { formReducer, initialForm } from '@/components/scoring/point-details-logic';
@@ -212,8 +212,8 @@ describe('PointDetailsModal — Characterization Tests', () => {
     });
   });
 
-  describe('Subtipo2 (Onde Errou?) - shown for passada + non-winner + voleio/smash', () => {
-    it('shows subtipo2 for passada + non-winner + vbh', async () => {
+  describe('Subtipo2 (Onde Errou?) - removido da cascata de passada + non-winner', () => {
+    it('does not show "Onde Errou?" for passada + non-winner + vbh (cascata continua)', async () => {
       renderModal({ winnerPlayerSide: 'player1', currentServer: 'player1' });
       await waitFor(() => expect(screen.getByText(/Situa\u00e7\u00e3o do Ponto/i)).toBeInTheDocument());
       fireEvent.click(screen.getByRole('button', { name: 'Passada' }));
@@ -221,10 +221,15 @@ describe('PointDetailsModal — Characterization Tests', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Erro Não Forçado' }));
       await waitFor(() => expect(screen.getByText(/Golpe/i)).toBeInTheDocument());
       fireEvent.click(screen.getByRole('button', { name: 'Voleio BH' }));
-      await waitFor(() => expect(screen.getByText(/Onde Errou\?/i)).toBeInTheDocument());
+      await waitFor(() => {
+        expect(screen.queryByText(/Onde Errou\?/i)).not.toBeInTheDocument();
+      });
+      // Restante da cascata continua (Direção + Golpe Especial)
+      await waitFor(() => expect(screen.getByText(/Dire\u00e7\u00e3o/i)).toBeInTheDocument());
+      expect(screen.getByText(/Golpe Especial/i)).toBeInTheDocument();
     });
 
-    it('shows subtipo2 for passada + non-winner + vfh', async () => {
+    it('does not show "Onde Errou?" for passada + non-winner + vfh', async () => {
       renderModal({ winnerPlayerSide: 'player1', currentServer: 'player1' });
       await waitFor(() => expect(screen.getByText(/Situa\u00e7\u00e3o do Ponto/i)).toBeInTheDocument());
       fireEvent.click(screen.getByRole('button', { name: 'Passada' }));
@@ -232,7 +237,9 @@ describe('PointDetailsModal — Characterization Tests', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Erro Não Forçado' }));
       await waitFor(() => expect(screen.getByText(/Golpe/i)).toBeInTheDocument());
       fireEvent.click(screen.getByRole('button', { name: 'Voleio FH' }));
-      await waitFor(() => expect(screen.getByText(/Onde Errou\?/i)).toBeInTheDocument());
+      await waitFor(() => {
+        expect(screen.queryByText(/Onde Errou\?/i)).not.toBeInTheDocument();
+      });
     });
 
     it('does not show subtipo2 for winner', async () => {
@@ -402,6 +409,36 @@ describe('PointDetailsModal — Characterization Tests', () => {
       await waitFor(() => {
         expect(screen.queryByText(/Dura\u00e7\u00e3o do Rallye/i)).not.toBeInTheDocument();
       });
+    });
+
+    it('does not show duracao for rede + erro + "Devolução de Saque" no Tipo de Erro (subtipo1)', async () => {
+      renderModal({ winnerPlayerSide: 'player1', currentServer: 'player1' });
+      await waitFor(() => expect(screen.getByText(/Situa\u00e7\u00e3o do Ponto/i)).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Rede' }));
+      await waitFor(() => expect(screen.getByText(/Resultado do Ponto/i)).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Erro Não Forçado' }));
+      await waitFor(() => expect(screen.getByText(/Golpe/i)).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Forehand (FH)' }));
+      await waitFor(() => expect(screen.getByText(/Tipo de Erro \(Rede\)/i)).toBeInTheDocument());
+      // "Devolução de Saque" também existe na seção 1 (Situação) — escopar à seção 4
+      const subtipo1Section = screen.getByText(/Tipo de Erro \(Rede\)/i).closest('div')!;
+      fireEvent.click(within(subtipo1Section).getByRole('button', { name: 'Devolução de Saque' }));
+      await waitFor(() => {
+        expect(screen.queryByText(/Dura\u00e7\u00e3o do Rallye/i)).not.toBeInTheDocument();
+      });
+    });
+
+    it('shows duracao for rede + erro + "Passing Shot" no Tipo de Erro (subtipo1)', async () => {
+      renderModal({ winnerPlayerSide: 'player1', currentServer: 'player1' });
+      await waitFor(() => expect(screen.getByText(/Situa\u00e7\u00e3o do Ponto/i)).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Rede' }));
+      await waitFor(() => expect(screen.getByText(/Resultado do Ponto/i)).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Erro Não Forçado' }));
+      await waitFor(() => expect(screen.getByText(/Golpe/i)).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Forehand (FH)' }));
+      await waitFor(() => expect(screen.getByText(/Tipo de Erro \(Rede\)/i)).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Passing Shot' }));
+      await waitFor(() => expect(screen.getByText(/Dura\u00e7\u00e3o do Rallye/i)).toBeInTheDocument());
     });
   });
 
@@ -616,20 +653,17 @@ describe('PointDetailsModal — Characterization Tests', () => {
       expect(shouldShowSubtipo1('devolvedor', 'rede', 'erro_nao_forcado')).toBe(false);
     });
 
-    it('shouldShowSubtipo2 returns true for passada + non-winner + voleio/smash', () => {
-      const { shouldShowSubtipo2 } = require('@/components/scoring/point-details-logic');
-      expect(shouldShowSubtipo2('passada', 'erro_nao_forcado', 'vbh')).toBe(true);
-      expect(shouldShowSubtipo2('passada', 'erro_nao_forcado', 'vfh')).toBe(true);
-      expect(shouldShowSubtipo2('passada', 'erro_nao_forcado', 'smash')).toBe(true);
-      expect(shouldShowSubtipo2('passada', 'erro_nao_forcado', 'fh')).toBe(false);
-      expect(shouldShowSubtipo2('passada', 'winner', 'vbh')).toBe(false);
-    });
-
     it('shouldShowDuracao returns false for devolucao', () => {
       const { shouldShowDuracao } = require('@/components/scoring/point-details-logic');
       expect(shouldShowDuracao('devolucao', 'fh')).toBe(false);
       expect(shouldShowDuracao('devolucao', 'bh')).toBe(false);
       expect(shouldShowDuracao('fundo', 'fh')).toBe(true);
+    });
+
+    it('shouldShowDuracao returns false when subtipo1 is devolucao_saque (rede + erro)', () => {
+      const { shouldShowDuracao } = require('@/components/scoring/point-details-logic');
+      expect(shouldShowDuracao('rede', 'fh', 'devolucao_saque')).toBe(false);
+      expect(shouldShowDuracao('rede', 'fh', 'passing_shot')).toBe(true);
     });
 
     it('shouldShowEfeito returns false for passada + non-winner', () => {

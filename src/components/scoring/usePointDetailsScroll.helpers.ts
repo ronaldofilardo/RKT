@@ -4,7 +4,6 @@ import { shouldShowDuracao } from './point-details-logic';
 interface ScrollRefs {
   tipoRef: React.RefObject<HTMLDivElement>;
   subtipo1Ref: React.RefObject<HTMLDivElement>;
-  subtipo2Ref: React.RefObject<HTMLDivElement>;
   duracaoRef: React.RefObject<HTMLDivElement>;
   efeitoRef: React.RefObject<HTMLDivElement>;
 }
@@ -12,7 +11,6 @@ interface ScrollRefs {
 interface ScrollNeeds {
   needsEfeito: boolean;
   needsSubtipo1: boolean;
-  needsSubtipo2: boolean;
 }
 
 function getTypeTarget(current: PointDetailsForm, previous: PointDetailsForm, refs: ScrollRefs) {
@@ -21,20 +19,18 @@ function getTypeTarget(current: PointDetailsForm, previous: PointDetailsForm, re
 
 function getGolpeTarget(needs: ScrollNeeds, refs: ScrollRefs) {
   if (needs.needsSubtipo1 && refs.subtipo1Ref.current) return refs.subtipo1Ref.current;
-  if (needs.needsSubtipo2 && refs.subtipo2Ref.current) return refs.subtipo2Ref.current;
   if (needs.needsEfeito && refs.efeitoRef.current) return refs.efeitoRef.current;
   return null;
 }
 
 function getAfterEfeitoTarget(current: PointDetailsForm, previous: PointDetailsForm, refs: ScrollRefs) {
   if (!current.efeito || previous.efeito) return null;
-  if (!shouldShowDuracao(current.situacao, current.golpe)) return null;
+  if (!shouldShowDuracao(current.situacao, current.golpe, current.subtipo1)) return null;
   return refs.duracaoRef.current;
 }
 
 function getSubtypeTarget(current: PointDetailsForm, previous: PointDetailsForm, refs: ScrollRefs) {
   if (current.subtipo1 && !previous.subtipo1) return refs.subtipo1Ref.current;
-  if (current.subtipo2 && !previous.subtipo2) return refs.subtipo2Ref.current;
   return null;
 }
 

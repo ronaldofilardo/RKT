@@ -3,6 +3,7 @@
 interface ModalActionsProps {
   canConfirm: boolean;
   noteText: string;
+  hasNoteAudio?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
   onOpenNotes: () => void;
@@ -11,6 +12,7 @@ interface ModalActionsProps {
 export function ModalActions({
   canConfirm,
   noteText,
+  hasNoteAudio,
   onConfirm,
   onCancel,
   onOpenNotes,
@@ -25,7 +27,7 @@ export function ModalActions({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
         Observações
-        {noteText.trim() && <span className="text-blue-400">📝</span>}
+        {(noteText.trim() || hasNoteAudio) && <span className="text-blue-400">📝</span>}
       </button>
       <button
         onClick={onConfirm}

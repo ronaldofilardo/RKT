@@ -11,7 +11,6 @@ function renderActionBar(onAceDirect: () => void, onAceWithDetails: () => void) 
       secondServe={false}
       serveStep="none"
       canUndo={false}
-      canRedo={false}
       canEdit={false}
       fontScale={1}
       isFinished={false}
@@ -23,9 +22,7 @@ function renderActionBar(onAceDirect: () => void, onAceWithDetails: () => void) 
       onNetDirect={() => undefined}
       dfDetailsEnabled={false}
       onDfDetailsToggle={() => undefined}
-      onServeCancel={() => undefined}
-      onUndo={() => undefined}
-      onRedo={() => undefined}
+      onVoltar={() => undefined}
       onFontSmaller={() => undefined}
       onFontBigger={() => undefined}
       onEditScore={() => undefined}
@@ -68,7 +65,6 @@ describe('ActionBar - Detalhes da DF', () => {
         secondServe={false}
         serveStep="none"
         canUndo={false}
-        canRedo={false}
         canEdit={false}
         fontScale={1}
         isFinished={false}
@@ -78,9 +74,7 @@ describe('ActionBar - Detalhes da DF', () => {
         onNet={() => undefined}
         onOutDirect={onOutDirect}
         onNetDirect={() => undefined}
-        onServeCancel={() => undefined}
-        onUndo={() => undefined}
-        onRedo={() => undefined}
+        onVoltar={() => undefined}
         onFontSmaller={() => undefined}
         onFontBigger={() => undefined}
         onEditScore={() => undefined}
@@ -101,7 +95,6 @@ describe('ActionBar - Detalhes da DF', () => {
         secondServe={false}
         serveStep="none"
         canUndo={false}
-        canRedo={false}
         canEdit={false}
         fontScale={1}
         isFinished={false}
@@ -111,9 +104,7 @@ describe('ActionBar - Detalhes da DF', () => {
         onNet={onNet}
         onOutDirect={() => undefined}
         onNetDirect={onNetDirect}
-        onServeCancel={() => undefined}
-        onUndo={() => undefined}
-        onRedo={() => undefined}
+        onVoltar={() => undefined}
         onFontSmaller={() => undefined}
         onFontBigger={() => undefined}
         onEditScore={() => undefined}
@@ -134,7 +125,6 @@ describe('ActionBar - Detalhes da DF', () => {
         secondServe={false}
         serveStep="none"
         canUndo={false}
-        canRedo={false}
         canEdit={false}
         fontScale={1}
         isFinished={false}
@@ -144,9 +134,7 @@ describe('ActionBar - Detalhes da DF', () => {
         onNet={() => undefined}
         onOutDirect={onOutDirect}
         onNetDirect={() => undefined}
-        onServeCancel={() => undefined}
-        onUndo={() => undefined}
-        onRedo={() => undefined}
+        onVoltar={() => undefined}
         onFontSmaller={() => undefined}
         onFontBigger={() => undefined}
         onEditScore={() => undefined}
@@ -168,7 +156,6 @@ describe('ActionBar - Detalhes da DF', () => {
         secondServe={false}
         serveStep="none"
         canUndo={false}
-        canRedo={false}
         canEdit={false}
         fontScale={1}
         isFinished={false}
@@ -178,9 +165,7 @@ describe('ActionBar - Detalhes da DF', () => {
         onNet={onNet}
         onOutDirect={() => undefined}
         onNetDirect={onNetDirect}
-        onServeCancel={() => undefined}
-        onUndo={() => undefined}
-        onRedo={() => undefined}
+        onVoltar={() => undefined}
         onFontSmaller={() => undefined}
         onFontBigger={() => undefined}
         onEditScore={() => undefined}
@@ -200,7 +185,6 @@ describe('ActionBar - Detalhes da DF', () => {
         secondServe={false}
         serveStep="none"
         canUndo={false}
-        canRedo={false}
         canEdit={false}
         fontScale={1}
         isFinished={false}
@@ -210,9 +194,7 @@ describe('ActionBar - Detalhes da DF', () => {
         onNet={() => undefined}
         onOutDirect={() => undefined}
         onNetDirect={() => undefined}
-        onServeCancel={() => undefined}
-        onUndo={() => undefined}
-        onRedo={() => undefined}
+        onVoltar={() => undefined}
         onFontSmaller={() => undefined}
         onFontBigger={() => undefined}
         onEditScore={() => undefined}

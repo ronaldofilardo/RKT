@@ -7,6 +7,7 @@ export interface SetInputFormProps {
 
   matchFormat: TennisFormat;
   totalEditedSets: number;
+  currentServer: 'player1' | 'player2';
   playerNames: { p1: string; p2: string };
   p1Input: string;
   p2Input: string;
@@ -45,6 +46,7 @@ export interface SetInputFormProps {
 export function SetInputForm({
   matchFormat,
   totalEditedSets,
+  currentServer,
   playerNames,
   p1Input,
   p2Input,
@@ -146,7 +148,8 @@ export function SetInputForm({
       )}
 
       <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-400 w-16 truncate">
+        <span className="text-xs text-gray-400 w-16 truncate flex items-center gap-1">
+          {currentServer === 'player1' && <span className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" aria-label="Sacando" />}
           {playerNames.p1}
         </span>
         <input
@@ -180,8 +183,9 @@ export function SetInputForm({
           placeholder="0"
           max={isMatchTiebreakSet ? 30 : (matchFormat === 'PRO_SET_8' ? 10 : 7)}
         />
-        <span className="text-xs text-gray-400 w-16 truncate text-right">
+        <span className="text-xs text-gray-400 w-16 truncate text-right flex items-center justify-end gap-1">
           {playerNames.p2}
+          {currentServer === 'player2' && <span className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" aria-label="Sacando" />}
         </span>
       </div>
 
@@ -201,7 +205,8 @@ export function SetInputForm({
             Tie-Break
           </p>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400 w-16 truncate">
+            <span className="text-xs text-gray-400 w-16 truncate flex items-center gap-1">
+              {currentServer === 'player1' && <span className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" aria-label="Sacando" />}
               {playerNames.p1}
             </span>
             <input
@@ -223,8 +228,9 @@ export function SetInputForm({
               max={SCORING_LIMITS.TIEBREAK_INPUT_CAP}
               placeholder="0"
             />
-            <span className="text-xs text-gray-400 w-16 truncate text-right">
+            <span className="text-xs text-gray-400 w-16 truncate text-right flex items-center justify-end gap-1">
               {playerNames.p2}
+              {currentServer === 'player2' && <span className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" aria-label="Sacando" />}
             </span>
           </div>
           {!tiebreakComplete && !tiebreakImpossible && (
@@ -296,7 +302,8 @@ export function SetInputForm({
             Pontos no Game Atual
           </p>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400 w-16 truncate">
+            <span className="text-xs text-gray-400 w-16 truncate flex items-center gap-1">
+              {currentServer === 'player1' && <span className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" aria-label="Sacando" />}
               {playerNames.p1}
             </span>
             <select
@@ -334,8 +341,9 @@ export function SetInputForm({
                 </>
               )}
             </select>
-            <span className="text-xs text-gray-400 w-16 truncate text-right">
+            <span className="text-xs text-gray-400 w-16 truncate text-right flex items-center justify-end gap-1">
               {playerNames.p2}
+              {currentServer === 'player2' && <span className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" aria-label="Sacando" />}
             </span>
           </div>
         </div>

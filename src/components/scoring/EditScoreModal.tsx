@@ -173,6 +173,7 @@ export function EditScoreModal({
           <SetInputForm
             matchFormat={matchFormat}
             totalEditedSets={totalEditedSets}
+            currentServer={currentServer}
             playerNames={playerNames}
             p1Input={state.p1Input}
             p2Input={state.p2Input}

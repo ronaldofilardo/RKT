@@ -4,7 +4,6 @@ import {
   getTipoOptions,
   getGolpeOptions,
   shouldShowSubtipo1,
-  shouldShowSubtipo2,
   shouldShowEfeito,
   shouldShowDuracao,
   getDirecaoOptions,
@@ -14,7 +13,6 @@ import {
   TIPO_DESCRIPTIONS,
   GOLPE_LABELS,
   SUBTIPO1_OPTIONS,
-  SUBTIPO2_OPTIONS,
   EFEITO_OPTIONS,
   DURACAO_OPTIONS,
   DIRECAO_LABELS,
@@ -75,6 +73,34 @@ describe('point-details-logic', () => {
       expect(next.direcao).toBe('cruzada');
       expect(next.golpeEsp).toBe('lob');
     });
+
+    it('deve limpar duracao ao trocar subtipo1 para devolucao_saque (seção escondida, valor stale)', () => {
+      const state: PointDetailsForm = {
+        ...initialForm,
+        situacao: 'rede',
+        tipo: 'erro_nao_forcado',
+        golpe: 'fh',
+        subtipo1: 'passing_shot',
+        duracao: 'opcao_1',
+      };
+      const next = formReducer(state, { type: 'SET_SUBTIPO1', value: 'devolucao_saque' });
+      expect(next.subtipo1).toBe('devolucao_saque');
+      expect(next.duracao).toBeNull();
+    });
+
+    it('deve preservar duracao ao trocar subtipo1 para passing_shot (rally pode ter qualquer duração)', () => {
+      const state: PointDetailsForm = {
+        ...initialForm,
+        situacao: 'rede',
+        tipo: 'erro_nao_forcado',
+        golpe: 'fh',
+        subtipo1: 'devolucao_saque',
+        duracao: 'opcao_2',
+      };
+      const next = formReducer(state, { type: 'SET_SUBTIPO1', value: 'passing_shot' });
+      expect(next.subtipo1).toBe('passing_shot');
+      expect(next.duracao).toBe('opcao_2');
+    });
   });
 
   describe('getTipoOptions', () => {
@@ -125,17 +151,6 @@ describe('point-details-logic', () => {
     });
   });
 
-  describe('shouldShowSubtipo2', () => {
-    it('somente quando passada, erro e golpe de aproximacao/smash', () => {
-      expect(shouldShowSubtipo2('passada', 'erro_forcado', 'vbh')).toBe(true);
-      expect(shouldShowSubtipo2('passada', 'erro_forcado', 'vfh')).toBe(true);
-      expect(shouldShowSubtipo2('passada', 'erro_forcado', 'smash')).toBe(true);
-      expect(shouldShowSubtipo2('passada', 'winner', 'vbh')).toBe(false);
-      expect(shouldShowSubtipo2('fundo', 'erro_forcado', 'vbh')).toBe(false);
-      expect(shouldShowSubtipo2('passada', 'erro_forcado', 'fh')).toBe(false);
-    });
-  });
-
   describe('shouldShowEfeito', () => {
     it('esconde efeito em passada erro e rede winner', () => {
       expect(shouldShowEfeito('sacador', 'passada', 'erro_forcado', false, false)).toBe(false);
@@ -166,6 +181,15 @@ describe('point-details-logic', () => {
       expect(shouldShowDuracao('fundo', 'fh')).toBe(true);
       expect(shouldShowDuracao('rede', 'vfh')).toBe(true);
       expect(shouldShowDuracao('passada', 'fh')).toBe(true);
+    });
+
+    it('retorna false quando subtipo1 é devolucao_saque (ponto terminou na devolução do saque)', () => {
+      expect(shouldShowDuracao('rede', 'fh', 'devolucao_saque')).toBe(false);
+      expect(shouldShowDuracao('rede', 'vbh', 'devolucao_saque')).toBe(false);
+    });
+
+    it('retorna true quando subtipo1 é passing_shot (rally pode ter qualquer duração)', () => {
+      expect(shouldShowDuracao('rede', 'fh', 'passing_shot')).toBe(true);
     });
   });
 
@@ -225,6 +249,28 @@ describe('point-details-logic', () => {
       ]);
     });
 
+    it('sacador em passada + erro tem 3 opcoes de voleio (sem lob) — comportamento final da cascata antiga', () => {
+      expect(getGolpeEspOptions('vbh', null, 'sacador', 'passada', 'erro_forcado', null, null)).toEqual([
+        'drop_shot',
+        'bate_pronto',
+        'swing_volley',
+      ]);
+      expect(getGolpeEspOptions('vfh', null, 'sacador', 'passada', 'erro_nao_forcado', null, 'cruzada')).toEqual([
+        'drop_shot',
+        'bate_pronto',
+        'swing_volley',
+      ]);
+    });
+
+    it('sacador em rede + winner mantem 4 opcoes (com lob)', () => {
+      expect(getGolpeEspOptions('vbh', null, 'sacador', 'rede', 'winner', null, null)).toEqual([
+        'lob',
+        'drop_shot',
+        'bate_pronto',
+        'swing_volley',
+      ]);
+    });
+
     it('topspin winner tem apenas lob', () => {
       expect(getGolpeEspOptions('fh', 'topspin', 'sacador', 'fundo', 'winner', null, null)).toEqual(['lob']);
     });
@@ -271,10 +317,6 @@ describe('point-details-logic', () => {
 
     it('SUBTIPO1_OPTIONS deve ter 2 opcoes', () => {
       expect(SUBTIPO1_OPTIONS).toHaveLength(2);
-    });
-
-    it('SUBTIPO2_OPTIONS deve ter 2 opcoes', () => {
-      expect(SUBTIPO2_OPTIONS).toHaveLength(2);
     });
 
     it('EFEITO_OPTIONS deve ter 3 opcoes', () => {

@@ -62,6 +62,14 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
           initialServerId: data.initialServerId || data.player1.id,
         };
 
+        // BUG FIX (Voltar inativo): o scoreState do servidor não inclui o
+        // array `history`, então o engine recriado nasce com histórico vazio
+        // → getHistoryLength() === 0 → botão "Voltar" desabilitado mesmo com
+        // pontos registrados (ex.: após offline-sync-complete ou resync).
+        // Capturar o histórico do engine anterior antes de substituí-lo,
+        // no mesmo padrão de applySuccessResult (point-processor.service).
+        const previousHistory = engineRef.current?.getPointHistory?.() ?? [];
+
         let scoreStateToUse: any = data.scoreState;
 
         if (scoreStateToUse) {
@@ -80,14 +88,20 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
           openRef.current('setup');
         }
 
+        if (engineRef.current && previousHistory.length > 0) {
+          engineRef.current.restorePointHistory(previousHistory);
+        }
+
         setScoreState({
           type: 'RESYNCED_FROM_SERVER',
           payload: (engineRef.current?.getState() as ScoringState) ?? null,
         });
 
         if (forceEngineReset && engineRef.current) {
-          const serverHistory = engineRef.current.getPointHistory();
-          const synced = serverHistory.slice(-20).map((entry: any) => entry.point.winnerId);
+          // Lê do engine com histórico restaurado — antes lia do engine
+          // recém-criado (sempre vazio) e zerava os badges de pontos.
+          const engineHistory = engineRef.current.getPointHistory();
+          const synced = engineHistory.slice(-20).map((entry: any) => entry.point.winnerId);
           setPointsHistory(synced.length > 0 ? synced : []);
         }
       }

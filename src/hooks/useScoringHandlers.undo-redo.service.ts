@@ -1,5 +1,5 @@
-import { logger } from '@/lib/logger';
-import type { ScoringState } from '@/core/scoring/types';
+import { logger } from "@/lib/logger";
+import type { ScoringState } from "@/core/scoring/types";
 
 export interface UndoRedoDeps {
   engineRef: React.MutableRefObject<any>;
@@ -12,13 +12,18 @@ export interface UndoRedoDeps {
   persistState: (
     state: ScoringState,
     label: string,
-    options?: { allowScoreEdit?: boolean; isManualScoreEdit?: boolean; voidPointLogId?: string },
+    options?: {
+      allowScoreEdit?: boolean;
+      isManualScoreEdit?: boolean;
+      voidPointLogId?: string;
+    },
   ) => Promise<{ success: boolean; needsResync?: boolean }>;
   closeAll: () => void;
   handleFirstServeErrorClear: () => void;
-  setServeStep: (step: 'none' | 'second') => void;
+  setServeStep: (step: "none" | "second") => void;
   handleServeErrorClose: () => void;
   onUndoComplete?: () => void;
+  open: (modal: string, params?: Record<string, string>) => void;
 }
 
 export function createUndoRedoService(deps: UndoRedoDeps) {
@@ -36,6 +41,7 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
     setServeStep,
     handleServeErrorClose,
     onUndoComplete,
+    open,
   } = deps;
 
   const handleUndo = async () => {
@@ -44,7 +50,7 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
       debounceTimerRef.current = null;
       isProcessingRef.current = false;
       handleFirstServeErrorClear();
-      setServeStep('none');
+      setServeStep("none");
       handleServeErrorClose();
       closeAll();
       return;
@@ -55,12 +61,20 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
     try {
       const undone = engineRef.current.undoLastPoint();
       if (!undone) return;
+
+          const undonePoint = undone.point ?? undone;
+          const requestedUndoCount = undonePoint.type === "DOUBLE_FAULT" ? 2 : 1;
+          let undoCount = 1;
+          for (let index = 1; index < requestedUndoCount; index += 1) {
+            if (!engineRef.current.undoLastPoint()) break;
+            undoCount += 1;
+      }
       const newState = engineRef.current.getState() as ScoringState;
-      setScoreState({ type: 'UNDO', payload: newState });
-      setPointsHistory((prev) => prev.slice(0, -1));
+      setScoreState({ type: "UNDO", payload: newState });
+      setPointsHistory((prev) => prev.slice(0, -undoCount));
 
       const pointLogIdToVoid = lastPointLogIdRef.current;
-      const result = await persistState(newState, 'undo', {
+      const result = await persistState(newState, "undo", {
         voidPointLogId: pointLogIdToVoid ?? undefined,
       });
 
@@ -72,7 +86,7 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
       } else if (result.needsResync) {
         await persistState(
           engineRef.current?.getState() as ScoringState,
-          'undo-retry',
+          "undo-retry",
           { voidPointLogId: pointLogIdToVoid ?? undefined },
         );
         lastPointLogIdRef.current = null;
@@ -84,29 +98,21 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
     }
   };
 
-  const handleRedo = async () => {
-    if (!engineRef.current || isProcessingRef.current) return;
-    if (debounceTimerRef.current) return;
-    isProcessingRef.current = true;
-    try {
-      const redone = engineRef.current.replayCurrentPoint();
-      if (!redone) return;
-      const newState = engineRef.current.getState() as ScoringState;
-      setScoreState({ type: 'REDO', payload: newState });
-      setPointsHistory((prev) => [...prev, redone.point.winnerId]);
-      const result = await persistState(newState, 'redo');
-      if (result.success) {
-        closeAll();
-      } else if (result.needsResync) {
-        const restored = (engineRef.current?.getState() as ScoringState | undefined) ?? null;
-        if (restored) {
-          setScoreState({ type: 'RESYNCED_FROM_SERVER', payload: restored });
-        }
-        closeAll();
+  const handleVoltar = (serveStep: "none" | "second") => {
+    if (serveStep === "second") {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+        isProcessingRef.current = false;
       }
-    } finally {
-      isProcessingRef.current = false;
+      if (isProcessingRef.current) return;
+      handleServeErrorClose();
+      handleFirstServeErrorClear();
+      setServeStep("none");
+      closeAll();
+      return;
     }
+    open("undo");
   };
 
   const uploadAudioNote = async (
@@ -118,22 +124,22 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
   ) => {
     try {
       const formData = new FormData();
-      formData.append('file', blob);
-      formData.append('durationMs', String(durationMs));
+      formData.append("file", blob);
+      formData.append("durationMs", String(durationMs));
 
       await fetch(`/api/matches/${matchId}/point/${pointLogId}/audio`, {
-        method: 'POST',
+        method: "POST",
         headers: { authorization: `Bearer ${token}` },
         body: formData,
       });
     } catch (err) {
-      logger.error('[uploadAudioNote]', err);
+      logger.error("[uploadAudioNote]", err);
     }
   };
 
   return {
     handleUndo,
-    handleRedo,
+    handleVoltar,
     uploadAudioNote,
   };
 }

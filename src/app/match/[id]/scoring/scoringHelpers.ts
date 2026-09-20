@@ -1,17 +1,10 @@
 import type { ScoringState } from "@/core/scoring/types";
-import { validateSetScore, getMatchFormatRules } from "@/lib/matchConfig";
+import { validateSetScore, getMatchFormatRules, isMatchTiebreakSetIndex as isMatchTiebreakSetIndexCanonical } from "@/lib/matchConfig";
 import type { TennisFormat } from "@/lib/matchConfig";
 
 export function isMatchTiebreakSetIndex(format: TennisFormat | undefined, setIndex: number, setsWon?: { player1: number; player2: number }): boolean {
-  if (!format) return false;
-  if (format === 'MATCH_TB_10') return true;
-  if (format === 'BEST_OF_5' && setIndex === 4 && setsWon) {
-    return setsWon.player1 === 2 && setsWon.player2 === 2;
-  }
-  if ((format === 'BEST_OF_3_MATCH_TB' || format === 'BEST_OF_3_NO_AD' || format === 'SHORT_SET_2V2_NO_AD') && setIndex === 2 && setsWon) {
-    return setsWon.player1 === 1 && setsWon.player2 === 1;
-  }
-  return false;
+  if (!format || !setsWon) return false;
+  return isMatchTiebreakSetIndexCanonical(setIndex, setsWon, format);
 }
 
 function getTiebreakMinimumForSet(format: TennisFormat | undefined, setIndex: number, setsWon?: { player1: number; player2: number }): number {

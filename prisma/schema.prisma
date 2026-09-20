@@ -24,6 +24,7 @@ model User {
   endorsements       AnnotationEndorsement[]  @relation("Endorsements")
   scoreEdits         MatchScoreEdit[]         @relation("ScoreEdits")
   createdPlayers     Player[]                 @relation("CreatedPlayers")
+  authoredComments   MatchComment[]           @relation("AuthoredComments")
 
   @@map("users")
 }
@@ -89,6 +90,7 @@ model Match {
   pointLog           PointLog[]
   annotationSessions MatchAnnotationSession[]
   scoreEdits         MatchScoreEdit[]
+  comments           MatchComment[]
 
   @@index([state])
   @@index([deletedAt])
@@ -109,6 +111,7 @@ model PointLog {
   clientEventId     String?
   voidedAt         DateTime?
   match             Match     @relation(fields: [matchId], references: [id])
+  comments          MatchComment[]
 
   @@index([matchId])
   @@index([matchId, voidedAt])
@@ -143,6 +146,27 @@ model MatchScoreEdit {
   @@index([matchId])
   @@index([matchId, editedAt])
   @@map("match_score_edits")
+}
+
+model MatchComment {
+  id                String    @id @default(cuid())
+  matchId           String
+  match             Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  content           String    @db.Text
+  category          String?
+  authorId          String
+  author            User      @relation("AuthoredComments", fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+  pointId           String?
+  pointLog          PointLog? @relation(fields: [pointId], references: [id], onDelete: SetNull)
+  audioNote         Bytes?
+  audioNoteMime     String?
+  audioNoteDuration Int?
+
+  @@index([matchId, createdAt])
+  @@map("match_comments")
 }
 
 model MatchAnnotationSession {

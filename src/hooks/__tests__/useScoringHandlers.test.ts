@@ -562,15 +562,15 @@ describe('useScoringHandlers - handlePointDetailsConfirm (regressão uploadAudio
   });
 });
 
-// ─── Regressão: cancelar no 2º saque não pode alterar o placar (bug reportado) ─
-// Antes do fix, handleServeCancel/handleServeErrorCancel chamavam
-// engineRef.current.undoLastPoint() sempre que havia um firstServeError
-// marcado. Mas nenhum ponto é registrado no engine antes da falta do 2º
-// saque (DOUBLE_FAULT) ser confirmada — a falta do 1º saque é só estado
-// local (firstServeError/serveStep). Isso fazia o "Cancelar" no 2º saque
-// desfazer o ÚLTIMO PONTO JÁ PERSISTIDO no placar (ex.: 4x2 virava 2x1)
+// ─── Regressão: voltar no 2º saque não pode alterar o placar (bug reportado) ─
+// Antes do merge no handleVoltar, os handlers de cancelamento (handleServeCancel/
+// handleCancelSecondServe) precisavam NUNCA chamar engineRef.current.undoLastPoint()
+// quando havia um firstServeError marcado. Nenhum ponto é registrado no engine
+// antes da falta do 2º saque (DOUBLE_FAULT) ser confirmada — a falta do 1º
+// saque é só estado local (firstServeError/serveStep). Chamar undoLastPoint
+// desfazia o ÚLTIMO PONTO JÁ PERSISTIDO no placar (ex.: 4x2 virava 2x1)
 // em vez de apenas voltar para o estado de 1º saque.
-describe('useScoringHandlers - cancelar no 2º saque não deve mexer no placar', () => {
+describe('useScoringHandlers - voltar no 2º saque não deve mexer no placar', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -612,16 +612,30 @@ describe('useScoringHandlers - cancelar no 2º saque não deve mexer no placar',
     return { ctx, undoLastPoint, setScoreState, handleFirstServeErrorClear, handleServeErrorClose, setServeStep, closeAll };
   }
 
-  it('handleServeCancel: NUNCA chama undoLastPoint(), mesmo com firstServeError setado', () => {
-    const { ctx, undoLastPoint, setScoreState, handleFirstServeErrorClear, setServeStep } = makeCancelCtx();
+  it('handleVoltar("second"): NUNCA chama undoLastPoint(), mesmo com firstServeError setado', () => {
+    const { ctx, undoLastPoint, setScoreState, handleFirstServeErrorClear, setServeStep, closeAll } = makeCancelCtx();
 
     const { result } = renderHook(() => useScoringHandlers(ctx));
-    result.current.handleServeCancel();
+    result.current.handleVoltar('second');
 
     expect(undoLastPoint).not.toHaveBeenCalled();
     expect(setScoreState).not.toHaveBeenCalled();
     expect(handleFirstServeErrorClear).toHaveBeenCalled();
     expect(setServeStep).toHaveBeenCalledWith('none');
+    expect(closeAll).toHaveBeenCalled();
+  });
+
+  it('handleVoltar("none"): abre o modal de undo sem mexer no estado de saque', () => {
+    const { ctx, undoLastPoint, setScoreState, handleFirstServeErrorClear, setServeStep } = makeCancelCtx();
+
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+    result.current.handleVoltar('none');
+
+    expect(undoLastPoint).not.toHaveBeenCalled();
+    expect(setScoreState).not.toHaveBeenCalled();
+    expect(handleFirstServeErrorClear).not.toHaveBeenCalled();
+    expect(setServeStep).not.toHaveBeenCalled();
+    expect(ctx.open).toHaveBeenCalledWith('undo');
   });
 
   it('handleServeErrorCancel: NUNCA chama undoLastPoint(), tanto em serveStep "second" quanto "first"', () => {
@@ -655,13 +669,13 @@ describe('useScoringHandlers - cancelar no 2º saque não deve mexer no placar',
     expect(first.setServeStep).toHaveBeenCalledWith('none');
   });
 
-  it('handleServeCancel: não faz nada além de fechar/limpar quando isProcessingRef.current é true', () => {
+  it('handleVoltar("second"): não faz nada além de fechar/limpar quando isProcessingRef.current é true', () => {
     const { ctx, undoLastPoint, handleFirstServeErrorClear, setServeStep } = makeCancelCtx({
       isProcessingRef: { current: true },
     });
 
     const { result } = renderHook(() => useScoringHandlers(ctx));
-    result.current.handleServeCancel();
+    result.current.handleVoltar('second');
 
     expect(undoLastPoint).not.toHaveBeenCalled();
     expect(handleFirstServeErrorClear).not.toHaveBeenCalled();
@@ -669,14 +683,14 @@ describe('useScoringHandlers - cancelar no 2º saque não deve mexer no placar',
   });
 });
 
-// ─── Regressão: cancelar não pode deixar o Ace/DF agendado (debounce) disparar ──
+// ─── Regressão: voltar não pode deixar o Ace/DF agendado (debounce) disparar ──
 // Bug reportado: handleServerEffectConfirm/handleServeErrorConfirm agendam o
 // processPoint real dentro de um setTimeout (debounce). isProcessingRef só
-// vira true DENTRO desse timeout, não no agendamento. Antes do fix,
-// handleServeCancel/handleServeErrorCancel/handleCancelSecondServe não
-// cancelavam esse timer pendente (diferente de handleUndo, que já fazia
-// isso) — resetavam a UI local (parecendo cancelado), mas o ponto
-// "fantasma" ainda era enviado ao engine/servidor alguns ms depois,
+// vira true DENTRO desse timeout, não no agendamento. Os handlers de
+// cancelamento (agora unificados no handleVoltar) precisam cancelar esse
+// timer pendente (diferente de handleUndo, que já fazia isso) — senão
+// resetam a UI local (parecendo cancelado), mas o ponto "fantasma" ainda é
+// enviado ao engine/servidor alguns ms depois,
 // avançando o placar/sequência sem o usuário perceber e desalinhando a
 // timeline a partir dali.
 describe('useScoringHandlers - cancelar aborta ponto fantasma (Ace/DF agendado via debounce)', () => {
@@ -751,10 +765,10 @@ describe('useScoringHandlers - cancelar aborta ponto fantasma (Ace/DF agendado v
     expect(applyPoint).not.toHaveBeenCalled();
   });
 
-  it('handleServeCancel cancela o timer de uma Dupla Falta agendada (handleServeErrorConfirm) antes de disparar', () => {
+  it('handleVoltar("second") cancela o timer de uma Dupla Falta agendada (handleServeErrorConfirm) antes de disparar', () => {
     const { ctx, applyPoint, debounceTimerRef } = makeGhostCtx({
       serveErrorState: {
-        serveStep: 'none' as const,
+        serveStep: 'second' as const,
         pendingServeError: { errorType: 'net' as const, serveStep: 'second' as const },
         firstServeError: { errorType: 'out' as const, serveEffect: 'topspin', direction: 'aberto' },
         firstFaultDetail: null,
@@ -771,7 +785,7 @@ describe('useScoringHandlers - cancelar aborta ponto fantasma (Ace/DF agendado v
     expect(ctx.isProcessingRef.current).toBe(false);
 
     act(() => {
-      result.current.handleServeCancel();
+      result.current.handleVoltar('second');
     });
 
     expect(debounceTimerRef.current).toBeNull();
@@ -783,7 +797,7 @@ describe('useScoringHandlers - cancelar aborta ponto fantasma (Ace/DF agendado v
     expect(applyPoint).not.toHaveBeenCalled();
   });
 
-  it('handleCancelSecondServe também cancela o timer pendente', () => {
+  it('handleVoltar("second") também cancela o timer pendente de um Ace agendado', () => {
     const { ctx, applyPoint, debounceTimerRef } = makeGhostCtx();
     const { result } = renderHook(() => useScoringHandlers(ctx));
 
@@ -794,7 +808,7 @@ describe('useScoringHandlers - cancelar aborta ponto fantasma (Ace/DF agendado v
     expect(debounceTimerRef.current).not.toBeNull();
 
     act(() => {
-      result.current.handleCancelSecondServe();
+      result.current.handleVoltar('second');
     });
 
     expect(debounceTimerRef.current).toBeNull();
@@ -987,5 +1001,101 @@ describe('useScoringHandlers - firstFaultDetail propagado quando o ponto NÃO é
     expect(applyPoint).toHaveBeenCalledTimes(1);
     const flow = applyPoint.mock.calls[0][0];
     expect(flow.firstFaultDetail).toBeUndefined();
+  });
+});
+
+// ─── Regressão: botão "Voltar" travado após registrar um ponto ───────────────
+// isProcessingRef é um ref — mutar para false no finally de processPoint não
+// re-renderiza. Nos caminhos sem setState após o await (fila offline, resposta
+// sem scoreState, tiebreak mismatch), o último render commitado aconteceu com
+// isProcessing=true e a ActionBar inteira ficava travada em ⏳. O callback
+// onPointProcessed (bumpado para engineTick) força o re-render final.
+describe('useScoringHandlers - onPointProcessed (re-render pós-ponto)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  function makeTickCtx(overrides: Partial<any> = {}) {
+    const applyPoint = jest.fn();
+    const onPointProcessed = jest.fn();
+    const ctx = createMockContext({
+      isOnline: false,
+      onPointProcessed,
+      engineRef: {
+        current: {
+          getState: jest.fn().mockReturnValue({
+            server: 'player1',
+            isFinished: false,
+            sets: [],
+            currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+            winner: null,
+            setsWon: { player1: 0, player2: 0 },
+            startedAt: null,
+            secondServe: false,
+          }),
+          applyPoint,
+          getPointHistory: jest.fn().mockReturnValue([]),
+        } as any,
+      },
+      ...overrides,
+    });
+    return { ctx, applyPoint, onPointProcessed };
+  }
+
+  it('processPoint (fila offline, sem setState pós-await) chama onPointProcessed no finally', async () => {
+    const { ctx, onPointProcessed } = makeTickCtx();
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+
+    await act(async () => {
+      await result.current.processPoint({
+        winnerId: 'p1',
+        type: 'WINNER',
+        serverId: 'p1',
+        timestamp: Date.now(),
+      });
+    });
+
+    expect(onPointProcessed).toHaveBeenCalledTimes(1);
+    expect(ctx.isProcessingRef.current).toBe(false);
+  });
+
+  it('processPoint chama onPointProcessed mesmo quando applyPoint lança erro', async () => {
+    const { ctx, onPointProcessed } = makeTickCtx();
+    (ctx.engineRef.current as any).applyPoint = jest.fn(() => {
+      throw new Error('boom');
+    });
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+
+    await act(async () => {
+      await result.current.processPoint({
+        winnerId: 'p1',
+        type: 'WINNER',
+        serverId: 'p1',
+        timestamp: Date.now(),
+      });
+    });
+
+    expect(onPointProcessed).toHaveBeenCalledTimes(1);
+    expect(ctx.isProcessingRef.current).toBe(false);
+  });
+
+  it('processPoint não chama onPointProcessed quando aborta antes de processar (match não IN_PROGRESS)', async () => {
+    const { ctx, onPointProcessed } = makeTickCtx({ match: undefined });
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+
+    await act(async () => {
+      await result.current.processPoint({
+        winnerId: 'p1',
+        type: 'WINNER',
+        serverId: 'p1',
+        timestamp: Date.now(),
+      });
+    });
+
+    expect(onPointProcessed).not.toHaveBeenCalled();
   });
 });

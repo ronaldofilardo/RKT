@@ -60,7 +60,19 @@ export function formReducer(state: PointDetailsForm, action: Action): PointDetai
     case 'SET_DURACAO':
       return { ...state, duracao: action.value };
     case 'SET_SUBTIPO1':
-      return { ...state, subtipo1: action.value, subtipo2: null, efeito: null, direcao: null, golpeEsp: null };
+      // BUG FIX (Duração fantasma): o ponto terminou na devolução do saque —
+      // se o usuário voltar e trocar o subtipo1 para devolucao_saque depois de
+      // ter escolhido uma duração, o valor ficava stale no form e era enviado
+      // no payload mesmo com a seção escondida.
+      return {
+        ...state,
+        subtipo1: action.value,
+        subtipo2: null,
+        efeito: null,
+        direcao: null,
+        golpeEsp: null,
+        duracao: action.value === 'devolucao_saque' ? null : state.duracao,
+      };
     case 'SET_SUBTIPO2':
       return { ...state, subtipo2: action.value, efeito: null, direcao: null, golpeEsp: null };
     case 'SET_EFEITO':
@@ -135,12 +147,20 @@ export const SUBTIPO1_OPTIONS: { value: RallySubtipo1; label: string }[] = [
   { value: 'devolucao_saque', label: 'Devolução de Saque' },
 ];
 
-export function shouldShowSubtipo2(situacao: RallySituacao, tipo: RallyTipo, golpe: RallyGolpe): boolean {
-  return situacao === 'passada' && tipo !== 'winner' && (golpe === 'vbh' || golpe === 'vfh' || golpe === 'smash');
-}
+// "Onde Errou?" (subtipo2) foi removido da cascata de passada + erro:
+// pergunta redundante — o tipo de erro já indica onde a bola parou. O campo
+// subtipo2 permanece no form/payload porque a Dupla Falta o preenche via
+// createDoubleFaultRallyDetails.
 
-export function shouldShowDuracao(situacao: RallySituacao | null, golpe: RallyGolpe | null): boolean {
+export function shouldShowDuracao(
+  situacao: RallySituacao | null,
+  golpe: RallyGolpe | null,
+  subtipo1: RallySubtipo1 | null = null,
+): boolean {
   if (situacao === 'devolucao' || situacao === 'saque') return false;
+  // Ponto terminou na devolução do saque (falta na rede indicada via
+  // subtipo1="Devolução de Saque") — rally trivial, não perguntar duração.
+  if (subtipo1 === 'devolucao_saque') return false;
   return golpe != null;
 }
 
@@ -148,11 +168,6 @@ export const DURACAO_OPTIONS: { value: RallyDuration; label: string }[] = [
   { value: 'opcao_1', label: '3 a 6 bolas' },
   { value: 'opcao_2', label: '7 a 10 bolas' },
   { value: 'opcao_3', label: 'Mais de 11 bolas' },
-];
-
-export const SUBTIPO2_OPTIONS: { value: RallySubtipo2; label: string }[] = [
-  { value: 'out', label: 'Fora (Out)' },
-  { value: 'net', label: 'Na Rede (Net)' },
 ];
 
 export function shouldShowEfeito(
@@ -196,18 +211,21 @@ export function getGolpeEspOptions(
   vencedor: Vencedor,
   situacao: RallySituacao,
   tipo: RallyTipo,
-  subtipo2: RallySubtipo2 | null,
-  direcao: RallyDirecao | null,
+  _subtipo2: RallySubtipo2 | null,
+  _direcao: RallyDirecao | null,
 ): RallyGolpeEsp[] {
   if (golpe === 'smash') return [];
   if (efeito === 'flat') return [];
   if (efeito === 'slice') return ['lob', 'drop_shot'];
   if ((golpe === 'vbh' || golpe === 'vfh') && !efeito) {
     if (vencedor === 'devolvedor') return ['drop_shot', 'bate_pronto', 'swing_volley'];
-    if (vencedor === 'sacador' && subtipo2 && (subtipo2 === 'out' || subtipo2 === 'net') && direcao && ['cruzada', 'paralela', 'centro'].includes(direcao)) {
+    // passada + erro: o perdedor errou o voleio — lob não é voleio. Sem o
+    // "Onde Errou?" (subtipo2), mantém o comportamento final da cascata
+    // antiga (3 opções), independentemente de direção já escolhida.
+    if (vencedor === 'sacador' && situacao === 'passada' && tipo !== 'winner') {
       return ['drop_shot', 'bate_pronto', 'swing_volley'];
     }
-    if (vencedor === 'sacador' && ((situacao === 'rede' && tipo === 'winner') || (situacao === 'passada' && tipo !== 'winner'))) {
+    if (vencedor === 'sacador' && situacao === 'rede' && tipo === 'winner') {
       return ['lob', 'drop_shot', 'bate_pronto', 'swing_volley'];
     }
   }

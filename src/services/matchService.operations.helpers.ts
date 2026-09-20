@@ -78,7 +78,11 @@ export function resolvePersistedScoreState(
       history: (existingScoreState as any).history,
     };
   }
-  return undefined;
+  // Se incoming não existe mas existing existe, manter existing
+  if (!incomingScoreState && existingScoreState) {
+    return existingScoreState;
+  }
+  return incomingScoreState ?? undefined;
 }
 
 export async function recordScoreEditSegment(

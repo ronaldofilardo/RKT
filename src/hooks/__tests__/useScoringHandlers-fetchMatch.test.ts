@@ -1,9 +1,10 @@
 /**
  * @jest-environment jsdom
  */
-jest.mock('@/core/scoring/engine', () => ({
-  ScoringEngine: jest.fn().mockImplementation(function(this: any) {
-    this.getState = jest.fn().mockReturnValue({
+jest.mock('@/core/scoring/engine', () => {
+  const makeInstance = () => {
+    const instance: any = {};
+    instance.getState = jest.fn().mockReturnValue({
       sets: [],
       currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
       server: 'player1',
@@ -13,10 +14,26 @@ jest.mock('@/core/scoring/engine', () => ({
       startedAt: null,
       secondServe: false,
     });
-    this.applyPoint = jest.fn();
-    this.isFinished = jest.fn().mockReturnValue(false);
-  }),
-}));
+    instance.applyPoint = jest.fn();
+    instance.isFinished = jest.fn().mockReturnValue(false);
+    instance.getPointHistory = jest.fn().mockReturnValue([]);
+    instance.restorePointHistory = jest.fn();
+    return instance;
+  };
+  const MockScoringEngine: any = jest.fn().mockImplementation(function (this: any) {
+    Object.assign(this, makeInstance());
+  });
+  // restorePointHistory do mock se comporta como o engine real: popula
+  // o retorno de getPointHistory (necessário para o slice de pointsHistory).
+  MockScoringEngine.fromSerialized = jest.fn(() => {
+    const instance = makeInstance();
+    instance.restorePointHistory.mockImplementation((history: any[]) => {
+      instance.getPointHistory.mockReturnValue(history);
+    });
+    return instance;
+  });
+  return { ScoringEngine: MockScoringEngine };
+});
 
 import { renderHook } from '@testing-library/react';
 import { act } from 'react';
@@ -237,5 +254,122 @@ describe('useScoringHandlers - fetchMatch error handling', () => {
     });
 
     expect(pointSequenceRef.current).toBe(5);
+  });
+});
+
+describe('useScoringHandlers - fetchMatch(true) preserva histórico do engine (bug do Voltar inativo)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  const matchData = {
+    id: 'match-1',
+    format: 'BEST_OF_3',
+    player1: { id: 'p1', name: 'Player 1' },
+    player2: { id: 'p2', name: 'Player 2' },
+    initialServerId: 'p1',
+    scoreState: {
+      sets: [{ player1: 1, player2: 0, isTiebreak: false, tiebreakScore: null }],
+      currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+      server: 'player1',
+      isFinished: false,
+      winner: null,
+      setsWon: { player1: 1, player2: 0 },
+    },
+    state: 'IN_PROGRESS',
+    version: 3,
+  };
+
+  it('deve restaurar o histórico do engine anterior no engine recriado — botão Voltar continua ativo', async () => {
+    const previousHistory = [
+      { stateBefore: {}, point: { winnerId: 'p1', type: 'WINNER' } },
+      { stateBefore: {}, point: { winnerId: 'p2', type: 'WINNER' } },
+    ];
+    const getPointHistory = jest.fn().mockReturnValue(previousHistory);
+
+    const oldEngine = { getPointHistory } as any;
+
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => matchData,
+    });
+
+    const ctx = createMockContext({ engineRef: { current: oldEngine } });
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+
+    await act(async () => {
+      await result.current.fetchMatch(true);
+    });
+
+    // Histórico capturado do engine ANTIGO...
+    expect(getPointHistory).toHaveBeenCalled();
+    // ...e restaurado no engine NOVO (fromSerialized do servidor não
+    // inclui history — sem isso getHistoryLength() ficaria 0 e o botão
+    // "Voltar" desabilitaria mesmo com pontos registrados).
+    expect(ctx.engineRef.current.restorePointHistory).toHaveBeenCalledWith(previousHistory);
+  });
+
+  it('deve popular pointsHistory a partir do histórico restaurado (antes era zerado)', async () => {
+    const setPointsHistory = jest.fn();
+    const previousHistory = [
+      { stateBefore: {}, point: { winnerId: 'p1', type: 'WINNER' } },
+      { stateBefore: {}, point: { winnerId: 'p2', type: 'WINNER' } },
+    ];
+    const oldEngine = { getPointHistory: jest.fn().mockReturnValue(previousHistory) } as any;
+
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => matchData,
+    });
+
+    const ctx = createMockContext({
+      engineRef: { current: oldEngine },
+      setPointsHistory,
+    });
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+
+    await act(async () => {
+      await result.current.fetchMatch(true);
+    });
+
+    expect(setPointsHistory).toHaveBeenCalledWith(['p1', 'p2']);
+  });
+
+  it('não deve substituir o engine quando forceEngineReset=false e engine já existe', async () => {
+    const existingEngine = { getPointHistory: jest.fn().mockReturnValue([]) } as any;
+
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => matchData,
+    });
+
+    const ctx = createMockContext({ engineRef: { current: existingEngine } });
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+
+    await act(async () => {
+      await result.current.fetchMatch(false);
+    });
+
+    expect(ctx.engineRef.current).toBe(existingEngine);
+  });
+
+  it('não deve quebrar quando engine anterior não existe (primeira carga)', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => matchData,
+    });
+
+    const ctx = createMockContext({ engineRef: { current: null } });
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+
+    await act(async () => {
+      await result.current.fetchMatch(true);
+    });
+
+    expect(ctx.engineRef.current).not.toBeNull();
   });
 });

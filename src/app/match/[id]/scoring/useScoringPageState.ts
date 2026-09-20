@@ -59,8 +59,13 @@ export interface ScoringPageState {
   setFloorCurrentSets: React.Dispatch<React.SetStateAction<{ player1: number; player2: number } | null>>;
   viewMode: "scoring" | "timeline";
   setViewMode: React.Dispatch<React.SetStateAction<"scoring" | "timeline">>;
-  undoTimestamp: number | null;
-  setUndoTimestamp: React.Dispatch<React.SetStateAction<number | null>>;
+  // Render tick para valores derivados de refs mutáveis (getHistoryLength do
+  // engine, isProcessingRef). Bumpado após undo (onUndoComplete) e após
+  // processPoint (onPointProcessed) — sem isso o último render commitado
+  // continuava com isProcessing=true/canUndo stale e o botão "Voltar" ficava
+  // travado/desabilitado após registrar um ponto.
+  engineTick: number | null;
+  setEngineTick: React.Dispatch<React.SetStateAction<number | null>>;
   isProcessingRef: React.MutableRefObject<boolean>;
   debounceTimerRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
   tokenRef: React.MutableRefObject<string | null>;
@@ -88,6 +93,19 @@ export interface ScoringPageState {
   gamePointToDisplay: (p: number) => string;
   timelinePoints: TimelinePoint[];
   fetchPointLogAudioMeta: () => Promise<void>;
+  comments: MatchCommentData[];
+  setComments: React.Dispatch<React.SetStateAction<MatchCommentData[]>>;
+  fetchComments: () => Promise<void>;
+}
+
+export interface MatchCommentData {
+  id: string;
+  content: string;
+  category?: string | null;
+  authorName: string;
+  createdAt: string;
+  hasAudioNote?: boolean;
+  audioNoteDuration?: number | null;
 }
 
 export function useScoringPageState(matchId: string): ScoringPageState {
@@ -131,13 +149,14 @@ export function useScoringPageState(matchId: string): ScoringPageState {
     player2: number;
   } | null>(null);
   const [viewMode, setViewMode] = useState<"scoring" | "timeline">("scoring");
-  const [undoTimestamp, setUndoTimestamp] = useState<number | null>(null);
+  const [engineTick, setEngineTick] = useState<number | null>(null);
   const isProcessingRef = useRef(false);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const tokenRef = useRef<string | null>(null);
   const [sessionActive, setSessionActive] = useState(false);
   const [pointLogAudioMeta, setPointLogAudioMeta] = useState<PointLogAudioMeta[]>([]);
+  const [comments, setComments] = useState<MatchCommentData[]>([]);
 
   const { activeModal, modalParams, open, close, closeAll } =
     useModalStack({ mode: 'internal' });
@@ -186,6 +205,22 @@ export function useScoringPageState(matchId: string): ScoringPageState {
     }
   }, [match, matchId]);
 
+  const fetchComments = useCallback(async () => {
+    if (!match) return;
+    try {
+      const token = tokenRef.current;
+      const res = await fetch(`/api/matches/${matchId}/comments?limit=100`, {
+        headers: token ? { authorization: `Bearer ${token}` } : {},
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setComments(data.comments ?? []);
+      }
+    } catch {
+      // Silently fail — comments are non-critical
+    }
+  }, [match, matchId]);
+
   return {
     matchId,
     router,
@@ -224,8 +259,8 @@ export function useScoringPageState(matchId: string): ScoringPageState {
     setFloorCurrentSets,
     viewMode,
     setViewMode,
-    undoTimestamp,
-    setUndoTimestamp,
+    engineTick,
+    setEngineTick,
     isProcessingRef,
     debounceTimerRef,
     tokenRef,
@@ -253,5 +288,8 @@ export function useScoringPageState(matchId: string): ScoringPageState {
     gamePointToDisplay,
     timelinePoints,
     fetchPointLogAudioMeta,
+    comments,
+    setComments,
+    fetchComments,
   };
 }

@@ -49,11 +49,6 @@ export function createServeActionsService(deps: ServeActionsDeps) {
     }
   };
 
-  const handleCancelSecondServe = () => {
-    cancelPendingDebounce();
-    setServeStep('none');
-  };
-
   const handleAceDirect = () => {
     if (!match || isProcessingRef.current) return;
     cancelPendingDebounce();
@@ -71,6 +66,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
       : undefined;
 
     debounceTimerRef.current = setTimeout(() => {
+      debounceTimerRef.current = null;
       processPoint({
         winnerId: serverHelpers.getWinnerId(true),
         type: 'ACE',
@@ -110,6 +106,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
       : undefined;
 
     debounceTimerRef.current = setTimeout(() => {
+      debounceTimerRef.current = null;
       processPoint({
         winnerId: serverHelpers.getWinnerId(true),
         type: 'ACE',
@@ -163,6 +160,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
     closeAll();
 
     debounceTimerRef.current = setTimeout(() => {
+      debounceTimerRef.current = null;
       processPoint({
         winnerId: serverHelpers.getWinnerId(false),
         type: 'DOUBLE_FAULT',
@@ -214,6 +212,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
     closeAll();
 
     debounceTimerRef.current = setTimeout(() => {
+      debounceTimerRef.current = null;
       processPoint({
         winnerId: serverHelpers.getWinnerId(false),
         type: 'DOUBLE_FAULT',
@@ -232,14 +231,6 @@ export function createServeActionsService(deps: ServeActionsDeps) {
     }, 50);
   };
 
-  const handleServeCancel = () => {
-    cancelPendingDebounce();
-    if (isProcessingRef.current) return;
-    handleServeErrorClose();
-    handleFirstServeErrorClear();
-    setServeStep('none');
-  };
-
   const handleServeErrorCancel = () => {
     cancelPendingDebounce();
     if (isProcessingRef.current) return;
@@ -250,12 +241,10 @@ export function createServeActionsService(deps: ServeActionsDeps) {
   };
 
   return {
-    handleCancelSecondServe,
     handleAceDirect,
     handleServerEffectConfirm,
     handleServeErrorConfirm,
     handleServeErrorDirect,
-    handleServeCancel,
     handleServeErrorCancel,
   };
 }

@@ -6,7 +6,7 @@ export interface RLSUser {
   role: string;
 }
 
-const rlsStorage = new AsyncLocalStorage<RLSUser>();
+let rlsStorage = new AsyncLocalStorage<RLSUser>();
 
 const VALID_ROLES = ['ADMIN', 'ANNOTATOR'] as const;
 
@@ -52,12 +52,13 @@ export const __setRLSUserForTesting: (user: RLSUser | null) => void =
   process.env.NODE_ENV === 'test'
     ? (user) => {
         if (user === null) {
-          rlsStorage.disable();
+          rlsStorage = new AsyncLocalStorage<RLSUser>();
           return;
         }
         if (!isValidRLSUser(user)) {
           throw new Error('Invalid RLS user in __setRLSUserForTesting');
         }
+        rlsStorage = new AsyncLocalStorage<RLSUser>();
         rlsStorage.enterWith(user);
       }
     : () => {
@@ -70,7 +71,7 @@ export const __setRLSUserForTesting: (user: RLSUser | null) => void =
 export const __clearRLSUserForTesting: () => void =
   process.env.NODE_ENV === 'test'
     ? () => {
-        rlsStorage.disable();
+        rlsStorage = new AsyncLocalStorage<RLSUser>();
       }
     : () => {
         throw new Error('__clearRLSUserForTesting é proibido fora de testes');

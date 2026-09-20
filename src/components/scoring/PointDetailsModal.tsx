@@ -42,13 +42,13 @@ export function PointDetailsModal({
   const [showCloseDialog, setShowCloseDialog] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [noteText, setNoteText] = useState('');
+  const [noteAudio, setNoteAudio] = useState<{ blob: Blob; durationMs: number } | undefined>();
   const [form, dispatch] = useReducer(formReducer, null, () => initialForm);
 
   const tipoRef = useRef<HTMLDivElement>(null);
   const golpeRef = useRef<HTMLDivElement>(null);
   const duracaoRef = useRef<HTMLDivElement>(null);
   const subtipo1Ref = useRef<HTMLDivElement>(null);
-  const subtipo2Ref = useRef<HTMLDivElement>(null);
   const efeitoRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -72,7 +72,6 @@ export function PointDetailsModal({
     golpeRef,
     duracaoRef,
     subtipo1Ref,
-    subtipo2Ref,
     efeitoRef,
   });
 
@@ -87,15 +86,16 @@ export function PointDetailsModal({
   const handleConfirm = useCallback(() => {
     const details = buildRallyDetails(form, vencedor, noteText);
     if (!details) return;
-    onConfirm(details, undefined);
-  }, [form, onConfirm, vencedor, noteText]);
+    onConfirm(details, noteAudio);
+  }, [form, onConfirm, vencedor, noteText, noteAudio]);
 
   const handleDiscard = useCallback(() => {
     onCancel();
   }, [onCancel]);
 
-  const handleSaveNote = useCallback((savedNoteText: string) => {
+  const handleSaveNote = useCallback((savedNoteText: string, audio?: { blob: Blob; durationMs: number }) => {
     setNoteText(savedNoteText);
+    setNoteAudio(audio);
   }, []);
 
   if (!mounted) return null;
@@ -138,7 +138,6 @@ export function PointDetailsModal({
             golpeRef,
             duracaoRef,
             subtipo1Ref,
-            subtipo2Ref,
             efeitoRef,
           }}
         />
@@ -146,6 +145,7 @@ export function PointDetailsModal({
         <ModalActions
           canConfirm={canConfirm}
           noteText={noteText}
+          hasNoteAudio={Boolean(noteAudio)}
           onConfirm={handleConfirm}
           onCancel={handleCancel}
           onOpenNotes={() => setShowNotesModal(true)}

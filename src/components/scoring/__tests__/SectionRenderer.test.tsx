@@ -24,7 +24,6 @@ function makeRefs() {
     golpeRef: React.createRef<HTMLDivElement>(),
     duracaoRef: React.createRef<HTMLDivElement>(),
     subtipo1Ref: React.createRef<HTMLDivElement>(),
-    subtipo2Ref: React.createRef<HTMLDivElement>(),
     efeitoRef: React.createRef<HTMLDivElement>(),
   };
 }
@@ -131,22 +130,21 @@ describe('SectionRenderer', () => {
     });
   });
 
-  describe('seção "Onde Errou?"', () => {
-    it('renderiza quando passada + erro + voleio/smash', () => {
+  describe('seção "Onde Errou?" (removida da cascata de passada + erro)', () => {
+    it('não renderiza para passada + erro + voleio', () => {
       renderSectionRenderer(
         { situacao: 'passada', tipo: 'erro_nao_forcado', golpe: 'vbh' },
         'sacador',
       );
-      expect(screen.getByText(/Onde Errou/)).toBeInTheDocument();
+      expect(screen.queryByText(/Onde Errou/)).not.toBeInTheDocument();
     });
 
-    it('dispatch SET_SUBTIPO2 ao selecionar subtipo2', () => {
-      const { dispatch } = renderSectionRenderer(
-        { situacao: 'passada', tipo: 'erro_nao_forcado', golpe: 'vbh' },
+    it('não renderiza para passada + erro + smash', () => {
+      renderSectionRenderer(
+        { situacao: 'passada', tipo: 'erro_forcado', golpe: 'smash' },
         'sacador',
       );
-      fireEvent.click(screen.getByText('Fora (Out)'));
-      expect(dispatch).toHaveBeenCalledWith({ type: 'SET_SUBTIPO2', value: 'out' });
+      expect(screen.queryByText(/Onde Errou/)).not.toBeInTheDocument();
     });
   });
 
@@ -254,22 +252,26 @@ describe('SectionRenderer', () => {
       fireEvent.click(screen.getByText('3 a 6 bolas'));
       expect(dispatch).toHaveBeenCalledWith({ type: 'SET_DURACAO', value: 'opcao_1' });
     });
+
+    it('não renderiza quando subtipo1 é devolucao_saque (rede + erro — ponto terminou na devolução)', () => {
+      renderSectionRenderer(
+        { situacao: 'rede', tipo: 'erro_nao_forcado', golpe: 'fh', subtipo1: 'devolucao_saque' },
+        'sacador',
+      );
+      expect(screen.queryByText(/Duração do Rallye/)).not.toBeInTheDocument();
+    });
+
+    it('renderiza quando subtipo1 é passing_shot (rede + erro)', () => {
+      renderSectionRenderer(
+        { situacao: 'rede', tipo: 'erro_nao_forcado', golpe: 'fh', subtipo1: 'passing_shot' },
+        'sacador',
+      );
+      expect(screen.getByText(/Duração do Rallye/)).toBeInTheDocument();
+    });
   });
 
   describe('numeração das seções', () => {
-    it('usa numeração "4" para Onde Errou quando subtipo1 não está presente', () => {
-      renderSectionRenderer(
-        {
-          situacao: 'passada',
-          tipo: 'erro_nao_forcado',
-          golpe: 'vbh',
-        },
-        'sacador',
-      );
-      expect(screen.getByText(/4\. Onde Errou/)).toBeInTheDocument();
-    });
-
-    it('usa numeração correta para Efeito sem subtipo1 nem subtipo2', () => {
+    it('usa numeração correta para Efeito sem subtipo1', () => {
       renderSectionRenderer(
         {
           situacao: 'fundo',

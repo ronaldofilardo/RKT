@@ -7,7 +7,6 @@ interface ActionBarProps {
   secondServe: boolean;
   serveStep: 'none' | 'second';
   canUndo: boolean;
-  canRedo: boolean;
   canEdit: boolean;
   fontScale: number;
   isFinished: boolean;
@@ -18,13 +17,11 @@ interface ActionBarProps {
   onNet: (step: 'first' | 'second') => void;
   onOutDirect: (step: 'first' | 'second') => void;
   onNetDirect: (step: 'first' | 'second') => void;
-  onCancelSecondServe?: () => void;
-  onServeCancel: () => void;
-  onUndo: () => void;
-  onRedo: () => void;
+  onVoltar: (serveStep: 'none' | 'second') => void;
   onFontSmaller: () => void;
   onFontBigger: () => void;
   onEditScore: () => void;
+  onComment?: () => void;
   onStats?: () => void;
 }
 
@@ -32,7 +29,6 @@ export function ActionBar({
   secondServe,
   serveStep,
   canUndo,
-  canRedo,
   canEdit,
   fontScale,
   isFinished,
@@ -43,12 +39,11 @@ export function ActionBar({
   onNet,
   onOutDirect,
   onNetDirect,
-  onServeCancel,
-  onUndo,
-  onRedo,
+  onVoltar,
   onFontSmaller,
   onFontBigger,
   onEditScore,
+  onComment,
   onStats,
 }: ActionBarProps) {
   const [aceDetailsEnabled, setAceDetailsEnabled] = useState(false);
@@ -83,7 +78,6 @@ export function ActionBar({
       secondServe={secondServe}
       serveStep={serveStep}
       canUndo={canUndo}
-      canRedo={canRedo}
       canEdit={canEdit}
       fontScale={fontScale}
       isFinished={isFinished}
@@ -91,12 +85,11 @@ export function ActionBar({
       onAce={handleAce}
       onOut={handleOut}
       onNet={handleNet}
-      onServeCancel={onServeCancel}
-      onUndo={onUndo}
-      onRedo={onRedo}
+      onVoltar={onVoltar}
       onFontSmaller={onFontSmaller}
       onFontBigger={onFontBigger}
       onEditScore={onEditScore}
+      onComment={onComment}
       onStats={onStats}
     />
   );

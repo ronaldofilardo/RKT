@@ -5,7 +5,6 @@ import {
   getTipoOptions,
   getGolpeOptions,
   shouldShowSubtipo1,
-  shouldShowSubtipo2,
   shouldShowEfeito,
   shouldShowDuracao,
   getDirecaoOptions,
@@ -15,7 +14,6 @@ import {
   TIPO_DESCRIPTIONS,
   GOLPE_LABELS,
   SUBTIPO1_OPTIONS,
-  SUBTIPO2_OPTIONS,
   EFEITO_OPTIONS,
   DURACAO_OPTIONS,
   DIRECAO_LABELS,
@@ -33,7 +31,6 @@ export interface SectionRendererProps {
     golpeRef: React.RefObject<HTMLDivElement>;
     duracaoRef: React.RefObject<HTMLDivElement>;
     subtipo1Ref: React.RefObject<HTMLDivElement>;
-    subtipo2Ref: React.RefObject<HTMLDivElement>;
     efeitoRef: React.RefObject<HTMLDivElement>;
   };
 }
@@ -45,7 +42,6 @@ export function SectionRenderer({
   refs,
 }: SectionRendererProps) {
   const needsSubtipo1 = form.situacao && form.tipo && shouldShowSubtipo1(vencedor, form.situacao, form.tipo);
-  const needsSubtipo2 = form.situacao && form.tipo && form.golpe && shouldShowSubtipo2(form.situacao, form.tipo, form.golpe);
   const needsEfeito = form.golpe != null && shouldShowEfeito(vencedor, form.situacao!, form.tipo!, !!form.subtipo1, !!form.subtipo2);
   const isDirecaoBlocked = form.efeito == null && needsEfeito;
 
@@ -99,22 +95,8 @@ export function SectionRenderer({
         </Section>
       )}
 
-      {needsSubtipo2 && form.tipo && (
-        <Section num={needsSubtipo1 ? '5' : '4'} label="Onde Errou?" ref={refs.subtipo2Ref}>
-          <Pills
-            options={SUBTIPO2_OPTIONS.map(o => o.value)}
-            selected={form.subtipo2}
-            onChange={v => dispatch({ type: 'SET_SUBTIPO2', value: v })}
-            labelMap={Object.fromEntries(SUBTIPO2_OPTIONS.map(o => [o.value, o.label])) as any}
-          />
-        </Section>
-      )}
-
       {needsEfeito && form.golpe && (
-        <Section num={
-          (needsSubtipo1 && needsSubtipo2) ? '6' :
-          (needsSubtipo1 || needsSubtipo2) ? '5' : '4'
-        } label="Efeito" ref={refs.efeitoRef}>
+        <Section num={needsSubtipo1 ? '5' : '4'} label="Efeito" ref={refs.efeitoRef}>
           <Pills
             options={EFEITO_OPTIONS.map(o => o.value)}
             selected={form.efeito}
@@ -146,12 +128,11 @@ export function SectionRenderer({
         </Section>
       )}
 
-      {shouldShowDuracao(form.situacao, form.golpe) && (
+      {shouldShowDuracao(form.situacao, form.golpe, form.subtipo1) && (
         <Section
           num={String(
             3
             + (needsSubtipo1 ? 1 : 0)
-            + (needsSubtipo2 ? 1 : 0)
             + (needsEfeito ? 1 : 0)
             + 1
           )}

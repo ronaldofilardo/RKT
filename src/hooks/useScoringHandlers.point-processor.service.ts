@@ -32,13 +32,15 @@ export interface PointProcessorDeps {
   setShowFinishedBanner: React.Dispatch<React.SetStateAction<boolean>>;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
   fetchMatch: (forceReset?: boolean) => Promise<void>;
+  onPointProcessed?: () => void;
+  onAudioUploaded?: () => void;
   uploadAudioNote?: (
     matchId: string,
     pointLogId: string,
     blob: Blob,
     durationMs: number,
     token: string | null,
-  ) => void;
+  ) => Promise<void>;
 }
 
 export function createPointProcessorService(deps: PointProcessorDeps) {
@@ -63,6 +65,8 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
     setShowFinishedBanner,
     setError,
     fetchMatch,
+    onPointProcessed,
+    onAudioUploaded,
     uploadAudioNote,
   } = deps;
 
@@ -166,6 +170,13 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
       return undefined;
     } finally {
       isProcessingRef.current = false;
+      // BUG FIX (ActionBar travada): isProcessingRef é um ref — mutar para
+      // false NÃO re-renderiza. Nos caminhos sem setState após o await (fila
+      // offline, resposta sem scoreState, tiebreak mismatch), o último render
+      // commitado aconteceu com isProcessing=true e todos os botões ficavam
+      // travados em ⏳. O bump força re-render para recomputar canUndo e
+      // isProcessing a partir dos refs atualizados.
+      onPointProcessed?.();
     }
   };
 
@@ -212,7 +223,9 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
       firstFaultDetail,
     }).then((pointLogId) => {
       if (audio && pointLogId && uploadAudioNote) {
-        uploadAudioNote(match.id, pointLogId, audio.blob, audio.durationMs, tokenRef.current);
+        uploadAudioNote(match.id, pointLogId, audio.blob, audio.durationMs, tokenRef.current)
+          .then(() => onAudioUploaded?.())
+          .catch(() => {});
       }
     });
   };

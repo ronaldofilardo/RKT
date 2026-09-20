@@ -8,6 +8,7 @@ const mockTx = {
     create: jest.fn(),
     findFirst: jest.fn(),
     updateMany: jest.fn(),
+    aggregate: jest.fn(),
   },
 
 };
@@ -87,6 +88,7 @@ beforeAll(async () => {
 describe('POST /api/matches/[id]/point', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTx.pointLog.aggregate.mockResolvedValue({ _max: { sequenceNumber: null } });
   });
 
   const mockMatch = (overrides = {}) => ({
@@ -315,7 +317,7 @@ describe('POST /api/matches/[id]/point', () => {
 
   it('deve retornar 409 se sequenceNumber conflita', async () => {
     mockTx.match.findFirst.mockResolvedValue(mockMatch());
-    mockTx.pointLog.count.mockResolvedValue(5);
+    mockTx.pointLog.aggregate.mockResolvedValue({ _max: { sequenceNumber: 5 } });
 
     const req = new NextRequest('http://localhost:3000/api/matches/match-1/point', {
       method: 'POST',
@@ -341,7 +343,7 @@ describe('POST /api/matches/[id]/point', () => {
 
   it('deve registrar ponto com sequenceNumber válido', async () => {
     mockTx.match.findFirst.mockResolvedValue(mockMatch());
-    mockTx.pointLog.count.mockResolvedValue(0);
+    mockTx.pointLog.aggregate.mockResolvedValue({ _max: { sequenceNumber: null } });
     mockTx.match.update.mockResolvedValue(mockMatch());
     mockTx.pointLog.create.mockResolvedValue({ id: 'point-1' } as any);
 
@@ -369,6 +371,7 @@ describe('POST /api/matches/[id]/point', () => {
   it('deve retornar 409 VERSION_CONFLICT quando version diverge', async () => {
     const { Prisma } = await import('@prisma/client');
     mockTx.match.findFirst.mockResolvedValue(mockMatch({ version: 1 }));
+    mockTx.pointLog.aggregate.mockResolvedValue({ _max: { sequenceNumber: null } });
     mockTx.match.update.mockRejectedValue(
       new Prisma.PrismaClientKnownRequestError('Record not found', {
         code: 'P2025',

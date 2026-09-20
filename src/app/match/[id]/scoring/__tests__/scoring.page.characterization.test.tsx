@@ -116,11 +116,9 @@ jest.mock("@/components/scoring/ActionBar", () => ({
   ActionBar: (props: any) => (
     <div data-testid="action-bar">
       <span data-testid="can-undo">{String(props.canUndo)}</span>
-      <span data-testid="can-redo">{String(props.canRedo)}</span>
       <span data-testid="is-finished-action">{String(props.isFinished)}</span>
       <span data-testid="is-processing">{String(props.isProcessing)}</span>
-      <button onClick={props.onUndo}>Undo</button>
-      <button onClick={props.onRedo}>Redo</button>
+      <button onClick={() => props.onVoltar("none")}>Voltar</button>
       <button onClick={props.onFontSmaller}>A−</button>
       <button onClick={props.onFontBigger}>A+</button>
       <button onClick={props.onEditScore}>Edit</button>
@@ -314,12 +312,11 @@ describe("ScoringPage - Characterization Tests", () => {
       });
     });
 
-    it("deve exibir botões de undo e redo na ActionBar após carregar", async () => {
+    it("deve exibir botão de voltar na ActionBar após carregar", async () => {
       render(<ScoringPage />);
 
       await waitFor(() => {
-        expect(screen.getByText("Undo")).toBeInTheDocument();
-        expect(screen.getByText("Redo")).toBeInTheDocument();
+        expect(screen.getByText("Voltar")).toBeInTheDocument();
       });
     });
 

@@ -724,6 +724,8 @@ it('deve criar partida com scheduledAt', async () => {
         { allowScoreEdit: true },
       );
 
+      // P1-6 fix + isTiebreakRegressing: correção do tiebreak (8-5 → 2-1)
+      // com mesmo vencedor (player1) é permitida
       expect(result).not.toHaveProperty('error');
     });
 

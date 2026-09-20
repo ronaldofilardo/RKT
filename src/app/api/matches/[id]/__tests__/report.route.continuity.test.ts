@@ -12,6 +12,9 @@ jest.mock('@/lib/prisma', () => ({
     pointLog: {
       findMany: jest.fn().mockResolvedValue([]),
     },
+    matchComment: {
+      findMany: jest.fn().mockResolvedValue([]),
+    },
   },
 }));
 

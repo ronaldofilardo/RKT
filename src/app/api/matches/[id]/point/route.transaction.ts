@@ -49,6 +49,7 @@ export async function processPointTransaction(tx: Prisma.TransactionClient, id: 
 
 
 async function getNextSequence(tx: Prisma.TransactionClient, id: string, received?: number) {
+  // Limpar sequenceNumbers de pontos anulados para liberar o espaço
   if (typeof tx.pointLog.updateMany === 'function') {
     await tx.pointLog.updateMany({
       where: { matchId: id, voidedAt: { not: null }, sequenceNumber: { not: null } },
@@ -56,7 +57,15 @@ async function getNextSequence(tx: Prisma.TransactionClient, id: string, receive
     });
   }
   if (received !== undefined) return received;
-  return (await tx.pointLog.count({ where: { matchId: id, voidedAt: null } })) + 1;
+  // P2-12 FIX: Usar MAX(sequenceNumber) + 1 em vez de count + 1.
+  // Após anular pontos, count pode ser menor que MAX(seq), gerando
+  // conflito de unique constraint (ex.: seqs [1,null,3,4] → count=3,
+  // next=4 → conflito com seq 4 existente).
+  const maxRow = await tx.pointLog.aggregate({
+    where: { matchId: id, voidedAt: null, sequenceNumber: { not: null } },
+    _max: { sequenceNumber: true },
+  });
+  return (maxRow._max.sequenceNumber ?? 0) + 1;
 }
 
 async function createPointLog(tx: Prisma.TransactionClient, matchId: string, parsed: PointInput, sequenceNumber: number, annotations: PointInput['annotations']) {
@@ -72,8 +81,17 @@ async function validateSequence(tx: Prisma.TransactionClient, id: string, parsed
       data: { sequenceNumber: null },
     });
   }
-  const count = await tx.pointLog.count({ where: { matchId: id, voidedAt: null } });
-  if (parsed.sequenceNumber !== count + 1) { logger.point.sequenceConflict({ expected: count + 1, received: parsed.sequenceNumber }); throw new TransactionError(`Conflito de sequência: esperado ${count + 1}, recebido ${parsed.sequenceNumber}`, 409, 'SEQUENCE_CONFLICT', { expectedSequence: count + 1 }); }
+  // P2-12 FIX: Usar MAX(sequenceNumber) + 1 em vez de count + 1 para
+  // evitar conflito de unique constraint após anulação de pontos.
+  const maxRow = await tx.pointLog.aggregate({
+    where: { matchId: id, voidedAt: null, sequenceNumber: { not: null } },
+    _max: { sequenceNumber: true },
+  });
+  const expectedSequence = (maxRow._max.sequenceNumber ?? 0) + 1;
+  if (parsed.sequenceNumber !== expectedSequence) {
+    logger.point.sequenceConflict({ expected: expectedSequence, received: parsed.sequenceNumber });
+    throw new TransactionError(`Conflito de sequência: esperado ${expectedSequence}, recebido ${parsed.sequenceNumber}`, 409, 'SEQUENCE_CONFLICT', { expectedSequence });
+  }
 }
 
 function createEngine(match: { format: string; player1Id: string; player2Id: string; initialServerId: string | null; scoreState: Prisma.JsonValue | null }, scoreState: Prisma.JsonValue | null) {

@@ -39,9 +39,18 @@ interface MatchTimelineViewProps {
   matchId: string;
   hideFilters?: boolean;
   showFinalResult?: boolean;
+  comments?: Array<{
+    id: string;
+    content: string;
+    category?: string | null;
+    authorName: string;
+    createdAt: string;
+    hasAudioNote?: boolean;
+    audioNoteDuration?: number | null;
+  }>;
 }
 
-export function MatchTimelineView({ points, player1Name, player2Name, matchId, hideFilters, showFinalResult }: MatchTimelineViewProps) {
+export function MatchTimelineView({ points, player1Name, player2Name, matchId, hideFilters, showFinalResult, comments = [] }: MatchTimelineViewProps) {
   const [activeFilters, setActiveFilters] = useState<Set<FilterKey>>(new Set());
 
   const toggleFilter = (key: FilterKey) => {
@@ -228,7 +237,7 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId, h
                         ))}
                       </div>
                     </td>
-                    <td colSpan={20} />
+                    <td colSpan={20} aria-hidden="true" />
                   </tr>
                 );
               })()}
@@ -236,6 +245,33 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId, h
           </table>
         </div>
       </div>
+
+      {comments.length > 0 && (
+        <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          <p className="font-semibold text-amber-800 text-[11px] mb-2">💬 Comentários</p>
+          <div className="space-y-2">
+            {comments.map((c) => (
+              <div key={c.id} className="bg-white rounded-lg px-3 py-2 border border-amber-100">
+                <p className="text-[11px] text-gray-800">{c.content}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[9px] text-gray-500">{c.authorName}</span>
+                  <span className="text-[9px] text-gray-400">·</span>
+                  <span className="text-[9px] text-gray-400">{new Date(c.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                  {c.category && (
+                    <>
+                      <span className="text-[9px] text-gray-400">·</span>
+                      <span className="text-[9px] text-amber-600 font-medium">{c.category}</span>
+                    </>
+                  )}
+                  {c.hasAudioNote && (
+                    <span className="text-[9px] text-green-600">🎤 {c.audioNoteDuration ? `${Math.round(c.audioNoteDuration / 1000)}s` : ''}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-3 text-[10px] text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 space-y-1">
         <p className="font-semibold text-gray-700 mb-1">Como ler esta tabela</p>

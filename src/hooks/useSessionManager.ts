@@ -13,6 +13,7 @@ import type { MatchData } from "@/hooks/useScoringHandlers";
 import {
   validateMatchTiebreakComplete,
 } from "./useSessionManager.utils";
+import { getMatchFormatRules } from "@/lib/matchConfig";
 import { buildNewScoringState } from "./useSessionManager.state-builder";
 import { finishMatch } from "./useSessionManager.match-finish";
 import { useSuspendedSession } from "./useSuspendedSession";
@@ -119,6 +120,14 @@ export function useSessionManager(ctx: SessionManagerContext) {
         return;
       }
 
+      // Bloquear novas adições de pontos enquanto a edição estiver sendo processada
+      // para evitar race condition entre persist edit e engine.loadState
+      if (ctx.isProcessingRef) {
+        ctx.isProcessingRef.current = true;
+      }
+
+      try {
+
       const partialSet = setResults.find((set) => set.isPartial);
       
       const tbValidation = validateMatchTiebreakComplete(setResults, match?.format || '');
@@ -142,12 +151,28 @@ export function useSessionManager(ctx: SessionManagerContext) {
           player1: 0,
           player2: 0,
         };
-        if (
-          newState.setsWon.player1 < bankSetsWon.player1 ||
-          newState.setsWon.player2 < bankSetsWon.player2
-        ) {
-          toast({ type: 'error', message: 'Cannot reduce the number of sets already won.' });
-          return;
+
+        // FIX P1-8: Mergear setsWon do banco com os calculados a partir de
+        // setResults. O modal de edição pode não incluir todos os sets
+        // completados antes da suspensão (ex.: se o engine foi restaurado
+        // de um snapshot parcial). O Math.max garante que sets já vencidos
+        // no banco não sejam perdidos.
+        newState.setsWon = {
+          player1: Math.max(newState.setsWon.player1, bankSetsWon.player1),
+          player2: Math.max(newState.setsWon.player2, bankSetsWon.player2),
+        };
+
+        // Recalcular isFinished/winner com base no setsWon mesclado
+        const { setsToWin } = getMatchFormatRules((match?.format as TennisFormat) || "BEST_OF_3");
+        if (newState.setsWon.player1 >= setsToWin) {
+          newState.isFinished = true;
+          newState.winner = "player1";
+        } else if (newState.setsWon.player2 >= setsToWin) {
+          newState.isFinished = true;
+          newState.winner = "player2";
+        } else {
+          newState.isFinished = false;
+          newState.winner = null;
         }
       }
 
@@ -245,6 +270,12 @@ export function useSessionManager(ctx: SessionManagerContext) {
       await abandonCurrentSession();
       setSessionActive(false);
       (ctx.closeAll ?? ctx.close)();
+
+      } finally {
+        if (ctx.isProcessingRef) {
+          ctx.isProcessingRef.current = false;
+        }
+      }
     },
     [
       match,

@@ -41,7 +41,11 @@ export function buildNewScoringState(options: BuildNewStateOptions): ScoringStat
     return {
       player1: set.p1Games,
       player2: set.p2Games,
-      isTiebreak: isRegularTiebreak || set.p1Games === 6 && set.p2Games === 6,
+      // Só marcar isTiebreak:true quando:
+      // 1. É um regular tiebreak (tiebreakScore definido) OU
+      // 2. É um MT (isMatchTiebreak) - nestes casos, o set começa 0-0 e os pontos vão para tiebreakScore
+      // NÃO marcar quando 6-6 sem tiebreak disputado ainda
+      isTiebreak: isRegularTiebreak,
       tiebreakScore: set.tiebreakScore ?? null,
     };
   });

@@ -136,6 +136,15 @@ export function validateTransitionState(
       return { error: "SCORE_REGRESSION: Placar não pode ser inferior ao estado atual", valid: false };
     }
 
+    // Verificação de regressão de tiebreak - sempre aplicável, mesmo em modo de edição
+    // Um tiebreak nunca pode regredir (ex.: 5-3 não pode voltar para 3-2)
+    const oldLastSet = oldState?.sets?.[(oldState.sets.length || 1) - 1];
+    const newLastSet = newState_?.sets?.[(newState_.sets.length || 1) - 1];
+
+    if (oldLastSet && newLastSet && isTiebreakRegressing(oldLastSet, newLastSet)) {
+      return { error: "SCORE_REGRESSION: Tie-break não pode regredir", valid: false };
+    }
+
     if (!options?.allowScoreEdit) {
       if (
         typeof newWon.player1 === "number" &&
@@ -144,8 +153,6 @@ export function validateTransitionState(
         newWon.player2 === oldWon.player2 &&
         isCurrentGameRegressing(oldState?.currentGame, newState_?.currentGame)
       ) {
-        const oldLastSet = oldState?.sets?.[(oldState.sets.length || 1) - 1];
-        const newLastSet = newState_?.sets?.[(newState_.sets.length || 1) - 1];
         const sameCurrentGameContext =
           oldLastSet && newLastSet
             ? oldLastSet.player1 === newLastSet.player1 &&
@@ -155,13 +162,6 @@ export function validateTransitionState(
         if (sameCurrentGameContext) {
           return { error: "SCORE_REGRESSION: Placar não pode ser inferior ao estado atual", valid: false };
         }
-      }
-
-      const oldLastSet = oldState?.sets?.[(oldState.sets.length || 1) - 1];
-      const newLastSet = newState_?.sets?.[(newState_.sets.length || 1) - 1];
-
-      if (oldLastSet && newLastSet && isTiebreakRegressing(oldLastSet, newLastSet)) {
-        return { error: "SCORE_REGRESSION: Tie-break não pode regredir", valid: false };
       }
     }
   }
@@ -200,6 +200,12 @@ export function isTiebreakRegressing(oldSet: any, newSet: any): boolean {
   const newTb = newSet.tiebreakScore;
   
   if (oldTb && newTb) {
+    // Se o vencedor do tiebreak é o mesmo, é uma correção (ex.: 10-8 → 10-6),
+    // não regressão. Só bloquear se o vencedor mudou.
+    const oldWinner = oldTb.player1 > oldTb.player2 ? 'player1' : 'player2';
+    const newWinner = newTb.player1 > newTb.player2 ? 'player1' : 'player2';
+    if (oldWinner === newWinner) return false;
+
     return (
       (newTb.player1 < oldTb.player1 && newTb.player2 <= oldTb.player2) ||
       (newTb.player2 < oldTb.player2 && newTb.player1 <= oldTb.player1)

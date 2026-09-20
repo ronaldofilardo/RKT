@@ -3,6 +3,9 @@ jest.mock('@/lib/prisma', () => ({
     pointLog: {
       findMany: jest.fn().mockResolvedValue([]),
     },
+    matchComment: {
+      findMany: jest.fn().mockResolvedValue([]),
+    },
   },
 }));
 
@@ -352,8 +355,8 @@ describe('GET /api/matches/[id]/report — segmentos separados por MatchScoreEdi
     expect(pivot.pointId).toBe('log-B1');
     expect(pivot.segmentBreak).toEqual({
       editedAt: editEditedAt.toISOString(),
-      previousLabel: 'Set 1 · Game 0x0 · 15x15',
-      newLabel: 'Set 1 · Game 0x0 · 30x15',
+      previousLabel: 'Set 1 · Game 6x4 · 40x30',
+      newLabel: 'Set 1 · Game 0x0 · 0x0',
       editedByUserId: 'p1',
       note: 'placar corrigido: 6x4 no 1o set, início do novo game/set',
     });
@@ -430,14 +433,14 @@ describe('GET /api/matches/[id]/report — segmentos separados por MatchScoreEdi
     // primeiro ponto do segmento 2 (L-C1, índice 4).
     expect(data.timelinePoints[2].segmentBreak).toEqual({
       editedAt: e1.toISOString(),
-      previousLabel: 'Set 1 · Game 0x0 · 15x0',
-      newLabel: 'Set 1 · Game 0x0 · 30x0',
+      previousLabel: 'Set 1 · Game 0x0 · 0x0',
+      newLabel: 'Set 1 · Game 0x0 · 0x0',
       editedByUserId: 'p1',
     });
     expect(data.timelinePoints[4].segmentBreak).toEqual({
       editedAt: e2.toISOString(),
-      previousLabel: 'Set 1 · Game 0x0 · 40x0',
-      newLabel: 'Set 1 · Game 0x0 · 4x0',
+      previousLabel: 'Set 1 · Game 0x0 · 0x0',
+      newLabel: 'Set 1 · Game 0x0 · 0x0',
       editedByUserId: 'p1',
     });
     // Pontos que não iniciam um novo segmento permanecem sem marcador.
