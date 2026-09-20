@@ -155,5 +155,5 @@ function MiniStat({ label, p1, p2, names }: { label: string; p1: number; p2: num
 
 function ReportTimeline({ report, matchId, onContinue }: { report: ReportData; matchId: string; onContinue: () => void }) {
   if (!report.timelinePoints.length) return <div className="bg-white rounded-xl border border-gray-200 p-12 text-center"><p className="text-gray-500">Nenhum ponto registrado nesta partida.</p>{report.state !== 'FINISHED' && <button onClick={onContinue} className="mt-4 text-sky-600 font-semibold underline">Iniciar anotação</button>}</div>;
-  return <div className="bg-white rounded-xl border border-gray-200 p-4"><MatchTimelineView points={report.timelinePoints} player1Name={report.player1.name} player2Name={report.player2.name} matchId={matchId} hideFilters showFinalResult /></div>;
+  return <div className="bg-white rounded-xl border border-gray-200 p-4"><MatchTimelineView points={report.timelinePoints} player1Name={report.player1.name} player2Name={report.player2.name} matchId={matchId} hideFilters showFinalResult comments={report.comments} /></div>;
 }

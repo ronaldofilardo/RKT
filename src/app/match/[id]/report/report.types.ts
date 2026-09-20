@@ -22,6 +22,15 @@ export interface ReportData {
   scoreState: unknown;
   timelinePoints: TimelinePoint[];
   summary: ReportSummary;
+  comments?: Array<{
+    id: string;
+    content: string;
+    category?: string | null;
+    authorName: string;
+    createdAt: string;
+    hasAudioNote?: boolean;
+    audioNoteDuration?: number | null;
+  }>;
   advancedStats?: AdvancedMatchStats;
   integrity?: ReportIntegrity;
   scoreEditsCount?: number;

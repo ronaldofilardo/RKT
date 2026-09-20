@@ -22,6 +22,7 @@ interface PointRowProps {
   isFirstPointOfGame: boolean;
   player1Name: string;
   player2Name: string;
+  theme?: 'light' | 'dark';
 }
 
 /**
@@ -43,10 +44,10 @@ export function getPlayerInitials(fullName: string): string {
 }
 
 const BADGE_COLORS = {
-  green: 'bg-green-100 text-green-700',
-  red: 'bg-red-100 text-red-700',
-  amber: 'bg-amber-100 text-amber-700',
-  gray: 'bg-gray-100 text-gray-700',
+  green: { light: 'bg-green-100 text-green-700', dark: 'bg-green-900/40 text-green-400' },
+  red: { light: 'bg-red-100 text-red-700', dark: 'bg-red-900/40 text-red-400' },
+  amber: { light: 'bg-amber-100 text-amber-700', dark: 'bg-amber-900/40 text-amber-400' },
+  gray: { light: 'bg-gray-100 text-gray-700', dark: 'bg-slate-800 text-slate-400' },
 } as const;
 
 function getPointBadge(p: TimelinePoint): { label: string; color: 'green' | 'red' | 'amber' | 'gray' } {
@@ -60,15 +61,16 @@ function getPointBadge(p: TimelinePoint): { label: string; color: 'green' | 'red
   return getPointDetailSummary(p.rallyDetails);
 }
 
-export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPointOfGame, player1Name, player2Name }: PointRowProps) {
+export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPointOfGame, player1Name, player2Name, theme = 'light' }: PointRowProps) {
+  const isDark = theme === 'dark';
   const rd = p.rallyDetails;
   const badge = getPointBadge(p);
   const isServeDecidedPoint = p.type === 'ACE' || p.type === 'DOUBLE_FAULT' || p.type === 'FAULT_FIRST';
 
   const rowClass = [
-    'border-b border-gray-100 hover:bg-gray-50 transition-colors',
+    isDark ? 'border-b border-slate-800 hover:bg-slate-800/50 transition-colors' : 'border-b border-gray-100 hover:bg-gray-50 transition-colors',
     p.winner === 'PLAYER_1' ? 'border-l-[3px] border-l-blue-500' : 'border-l-[3px] border-l-red-500',
-    p.isBreakPoint ? 'bg-amber-50/40' : '',
+    p.isBreakPoint ? (isDark ? 'bg-amber-900/20' : 'bg-amber-50/40') : '',
   ].join(' ');
 
   const serverNumber = p.server === 'player1' ? 1 : 2;
@@ -82,7 +84,7 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPo
   const cells = (
     <>
       {/* no. — pointNumber */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-700 font-semibold sticky left-0 bg-white z-10 border-r border-gray-200">
+      <td className={`px-1.5 py-1.5 text-[10px] font-semibold sticky left-0 z-10 border-r ${isDark ? 'bg-slate-900 text-slate-300 border-slate-800' : 'bg-white text-gray-700 border-gray-200'}`}>
         {p.pointNumber}
       </td>
       {/* P/ — ganhador do ponto (iniciais do atleta) */}
@@ -94,13 +96,13 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPo
         {serverInitials}
       </td>
       {/* GAMES — placar de games (ou tiebreak score quando isTiebreak) */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-700 font-semibold text-center">
+      <td className={`px-1.5 py-1.5 text-[10px] font-semibold text-center ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
         {p.isTiebreak
           ? `${p.gamesScore.player1}x${p.gamesScore.player2}`
           : isFirstPointOfGame ? p.gamesScore.player1 + p.gamesScore.player2 + 1 : '–'}
       </td>
       {/* PONTOS — placar de pontos dentro do game */}
-      <td className="px-1.5 py-1.5 text-[10px] font-bold text-gray-800">{getGameScoreLabelForPoint(p)}</td>
+      <td className={`px-1.5 py-1.5 text-[10px] font-bold ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>{getGameScoreLabelForPoint(p)}</td>
       {/* 1º Saque — ACE */}
       <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${firstOutcome === 'ace' ? 'text-green-600' : 'text-gray-400'}`}>
         {firstOutcome === 'ace' ? 'ACE' : '–'}
@@ -114,11 +116,11 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPo
         {firstOutcome === 'net' ? 'NET' : '–'}
       </td>
       {/* 1º Saque — Efeito */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
+      <td className={`px-1.5 py-1.5 text-[10px] ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
         {firstOutcome === 'ace' ? efeitoLabel(rd?.efeito) : firstOutcome ? efeitoLabel(p.firstFault?.serveEffect) : '–'}
       </td>
       {/* 1º Saque — Direção */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
+      <td className={`px-1.5 py-1.5 text-[10px] ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
         {firstOutcome === 'ace' ? direcaoLabel(rd?.direcao) : firstOutcome ? direcaoLabel(p.firstFault?.direction) : '–'}
       </td>
       {/* 2º Saque — ACE */}
@@ -134,37 +136,37 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPo
         {secondOutcome === 'net' ? 'NET' : '–'}
       </td>
       {/* 2º Saque — Efeito */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
+      <td className={`px-1.5 py-1.5 text-[10px] ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
         {secondOutcome ? efeitoLabel(rd?.efeito) : '–'}
       </td>
       {/* 2º Saque — Direção */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
+      <td className={`px-1.5 py-1.5 text-[10px] ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
         {secondOutcome ? direcaoLabel(rd?.direcao) : '–'}
       </td>
       {/* SITUAÇÃO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : situacaoLabel(rd?.situacao)}</td>
+      <td className={`px-1.5 py-1.5 text-[10px] ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{isServeDecidedPoint ? '–' : situacaoLabel(rd?.situacao)}</td>
       {/* TIPO badge (ENF/EF/W) */}
-      <td className="px-1.5 py-1.5 text-[10px] border-l border-gray-200">
-        <span className={`px-1.5 py-0.5 rounded-full font-semibold ${BADGE_COLORS[badge.color]}`}>
+      <td className={`px-1.5 py-1.5 text-[10px] border-l ${isDark ? 'border-slate-800' : 'border-gray-200'}`}>
+        <span className={`px-1.5 py-0.5 rounded-full font-semibold ${isDark ? BADGE_COLORS[badge.color].dark : BADGE_COLORS[badge.color].light}`}>
           {badge.label}
         </span>
       </td>
       {/* SUBTIPO1 — Tipo de Erro (Rede) */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : subtipo1Label(rd?.subtipo1)}</td>
+      <td className={`px-1.5 py-1.5 text-[10px] ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{isServeDecidedPoint ? '–' : subtipo1Label(rd?.subtipo1)}</td>
       {/* SUBTIPO2 — Onde Errou? */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : subtipo2Label(rd?.subtipo2)}</td>
+      <td className={`px-1.5 py-1.5 text-[10px] ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{isServeDecidedPoint ? '–' : subtipo2Label(rd?.subtipo2)}</td>
       {/* GOLPE */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : golpeLabel(rd?.golpe)}</td>
+      <td className={`px-1.5 py-1.5 text-[10px] ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{isServeDecidedPoint ? '–' : golpeLabel(rd?.golpe)}</td>
       {/* EFEITO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : efeitoLabel(rd?.efeito)}</td>
+      <td className={`px-1.5 py-1.5 text-[10px] ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{isServeDecidedPoint ? '–' : efeitoLabel(rd?.efeito)}</td>
       {/* DIREÇÃO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : direcaoLabel(rd?.direcao)}</td>
+      <td className={`px-1.5 py-1.5 text-[10px] ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{isServeDecidedPoint ? '–' : direcaoLabel(rd?.direcao)}</td>
       {/* GOLPES ESPECIAIS */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : golpeEspLabel(rd?.golpe_esp)}</td>
+      <td className={`px-1.5 py-1.5 text-[10px] ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{isServeDecidedPoint ? '–' : golpeEspLabel(rd?.golpe_esp)}</td>
       {/* RALLY */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-500">{isServeDecidedPoint ? '–' : duracaoLabel(rd?.duracao)}</td>
+      <td className={`px-1.5 py-1.5 text-[10px] ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>{isServeDecidedPoint ? '–' : duracaoLabel(rd?.duracao)}</td>
       {/* OBSERVAÇÃO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600 whitespace-normal break-words">
+      <td className={`px-1.5 py-1.5 text-[10px] whitespace-normal break-words ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
         <div className="flex flex-col gap-1">
           {p.note && !/^SET\s+\d+$/i.test(p.note) ? <span>📝 {p.note}</span> : null}
           {p.hasAudioNote && p.pointId ? (
@@ -190,8 +192,8 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPo
     return (
       <>
         <tr>
-          <td colSpan={25} className="text-center py-2 bg-amber-50/60 border-y border-dashed border-amber-300">
-            <span className="text-[10px] text-amber-800">
+          <td colSpan={25} className={`text-center py-2 border-y border-dashed ${isDark ? 'bg-amber-900/20 border-amber-700/50' : 'bg-amber-50/60 border-amber-300'}`}>
+            <span className={`text-[10px] ${isDark ? 'text-amber-500' : 'text-amber-800'}`}>
               ⏸ Partida interrompida em <strong>{p.segmentBreak.previousLabel}</strong> · placar ajustado para <strong>{p.segmentBreak.newLabel}</strong> em {editedAtLabel}
             </span>
           </td>
@@ -208,7 +210,7 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPo
       <>
         <tr>
           <td colSpan={25} className="text-center py-1.5">
-            <span className="text-[10px] italic text-gray-400 border-t border-dashed border-b border-dashed border-gray-300 px-2">marcação interrompida</span>
+            <span className={`text-[10px] italic border-t border-dashed border-b px-2 ${isDark ? 'text-slate-500 border-slate-700' : 'text-gray-400 border-gray-300'}`}>marcação interrompida</span>
           </td>
         </tr>
         <tr className={rowClass} aria-label={`Ponto: ${p.winner === 'PLAYER_1' ? 'P1' : 'P2'} venceu`}>
@@ -234,9 +236,10 @@ interface SetGroupProps {
   matchId: string;
   player1Name: string;
   player2Name: string;
+  theme?: 'light' | 'dark';
 }
 
-export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLast, matchId, player1Name, player2Name }: SetGroupProps) {
+export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLast, matchId, player1Name, player2Name, theme = 'light' }: SetGroupProps) {
   return (
     <>
       {points.map((p, i) => {
@@ -260,6 +263,7 @@ export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLa
             isFirstPointOfGame={isFirstPointOfGame}
             player1Name={player1Name}
             player2Name={player2Name}
+            theme={theme}
           />
         );
       })}

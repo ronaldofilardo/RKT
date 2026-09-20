@@ -161,6 +161,7 @@ function ScoringPageInner() {
               player2Name={match.player2.name}
               matchId={matchId}
               comments={state.comments}
+              theme="dark"
             />
           </div>
         </div>
