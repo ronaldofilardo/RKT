@@ -137,10 +137,9 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId, h
         </>
       )}
 
-      <div className="w-full relative overflow-x-auto overflow-y-hidden" ref={scrollContainerRef}>
-        <div className={`overflow-hidden border rounded-lg ${isDark ? 'border-slate-700' : 'border-gray-200'}`}>
-          <div className="min-w-max">
-            <table className={`w-full text-[11px] ${isDark ? 'bg-slate-900' : 'bg-white'}`} style={{ tableLayout: 'fixed', borderCollapse: 'collapse' }}>
+      <div className="w-full relative overflow-x-auto" ref={scrollContainerRef}>
+        <div className="min-w-max">
+          <table className={`w-full text-left text-[11px] ${isDark ? 'bg-slate-900 text-slate-300' : 'bg-white text-gray-700'}`} style={{ tableLayout: 'fixed', borderCollapse: 'collapse' }}>
             <colgroup>
               <col style={{ width: '3%' }} />
               <col style={{ width: '3%' }} />
@@ -250,7 +249,6 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId, h
               })()}
             </tbody>
           </table>
-          </div>
         </div>
       </div>
 
