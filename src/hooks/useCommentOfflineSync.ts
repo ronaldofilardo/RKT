@@ -104,11 +104,19 @@ export function useCommentOfflineSync() {
             const formData = new FormData();
             formData.append('file', action.payload.audioBlob);
             formData.append('durationMs', String(action.payload.audioDurationMs));
-            await fetch(`/api/matches/${action.matchId}/comments/${comment.id}/audio`, {
+            const audioRes = await fetch(`/api/matches/${action.matchId}/comments/${comment.id}/audio`, {
               method: 'POST',
               headers: { authorization: `Bearer ${accessToken}` },
               body: formData,
             });
+            if (!audioRes.ok) {
+              action.retries += 1;
+              await db.put(COMMENT_STORE, {
+                ...action,
+                status: action.retries >= 3 ? 'FAILED' : 'PENDING',
+              });
+              continue;
+            }
           }
 
           // 3. Remove from queue

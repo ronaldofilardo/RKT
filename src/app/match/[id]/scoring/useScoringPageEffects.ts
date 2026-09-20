@@ -4,6 +4,7 @@ import { useEffect, useCallback } from "react";
 import { useScoringHandlers } from "@/hooks/useScoringHandlers";
 import { useSessionManager } from "@/hooks/useSessionManager";
 import { useCommentOfflineSync } from "@/hooks/useCommentOfflineSync";
+import { logger } from "@/lib/logger";
 import type { SetEditData } from "@/components/scoring/editScoreHelpers";
 import type { ScoringPageState } from "./useScoringPageState";
 
@@ -234,11 +235,15 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
           const formData = new FormData();
           formData.append('file', audio.blob);
           formData.append('durationMs', String(audio.durationMs));
-          await fetch(`/api/matches/${matchId}/comments/${comment.id}/audio`, {
+          const audioRes = await fetch(`/api/matches/${matchId}/comments/${comment.id}/audio`, {
             method: 'POST',
             headers: token ? { authorization: `Bearer ${token}` } : {},
             body: formData,
           });
+          if (!audioRes.ok) {
+            logger.error('[handleCommentCreate] audio upload failed', audioRes.status);
+            toast({ type: 'info', message: 'Comentário criado, mas áudio não foi salvo' });
+          }
         }
 
         setComments((prev) => [

@@ -316,8 +316,7 @@ describe('useScoringHandlers - handleUndo', () => {
       }),
       undoLastPoint: jest
         .fn()
-        .mockReturnValueOnce({ point: { type: 'DOUBLE_FAULT' } })
-        .mockReturnValueOnce({ point: { type: 'FAULT_FIRST' } }),
+        .mockReturnValueOnce({ point: { type: 'DOUBLE_FAULT' } }),
     };
 
     const { result } = renderHook(() => useScoringHandlers(createMockContext({
@@ -329,11 +328,11 @@ describe('useScoringHandlers - handleUndo', () => {
 
     await result.current.handleUndo();
 
-    expect(mockEngine.undoLastPoint).toHaveBeenCalledTimes(2);
+    expect(mockEngine.undoLastPoint).toHaveBeenCalledTimes(1);
     expect(setScoreState).toHaveBeenCalled();
     expect(setPointsHistory).toHaveBeenCalledWith(expect.any(Function));
     const trimHistory = setPointsHistory.mock.calls[0][0];
-    expect(trimHistory(['first-fault', 'double-fault'])).toEqual([]);
+    expect(trimHistory(['double-fault'])).toEqual([]);
     expect(closeAll).toHaveBeenCalled();
   });
 

@@ -62,16 +62,9 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
       const undone = engineRef.current.undoLastPoint();
       if (!undone) return;
 
-          const undonePoint = undone.point ?? undone;
-          const requestedUndoCount = undonePoint.type === "DOUBLE_FAULT" ? 2 : 1;
-          let undoCount = 1;
-          for (let index = 1; index < requestedUndoCount; index += 1) {
-            if (!engineRef.current.undoLastPoint()) break;
-            undoCount += 1;
-      }
       const newState = engineRef.current.getState() as ScoringState;
       setScoreState({ type: "UNDO", payload: newState });
-      setPointsHistory((prev) => prev.slice(0, -undoCount));
+      setPointsHistory((prev) => prev.slice(0, -1));
 
       const pointLogIdToVoid = lastPointLogIdRef.current;
       const result = await persistState(newState, "undo", {
