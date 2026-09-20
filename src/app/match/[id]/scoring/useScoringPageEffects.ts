@@ -168,7 +168,37 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
 
   const handleCommentCreate = useCallback(
     async (content: string, audio?: { blob: Blob; durationMs: number }, category?: string) => {
-      const finalContent = content?.trim() || (audio ? '(Nota de voz)' : '');
+      let contextPrefix = "";
+      const state = engineRef.current?.getState();
+      if (state && state.sets.length > 0) {
+        const game = state.currentGame;
+        const currentSet = state.sets[state.sets.length - 1];
+        const isTiebreak = currentSet?.isTiebreak;
+
+        let p1Score = "0";
+        let p2Score = "0";
+
+        if (isTiebreak && currentSet.tiebreakScore) {
+          p1Score = String(currentSet.tiebreakScore.player1);
+          p2Score = String(currentSet.tiebreakScore.player2);
+        } else if (game.isDeuce) {
+          p1Score = game.advantage === "player1" ? "AD" : "40";
+          p2Score = game.advantage === "player2" ? "AD" : "40";
+        } else {
+          const map = [0, 15, 30, 40];
+          p1Score = String(map[game.player1] ?? game.player1);
+          p2Score = String(map[game.player2] ?? game.player2);
+        }
+
+        const gamesP1 = currentSet.player1;
+        const gamesP2 = currentSet.player2;
+        const setNumber = state.sets.length;
+        const pointNumber = pointSequenceRef.current + 1;
+
+        contextPrefix = `[Set ${setNumber} · Game ${gamesP1}x${gamesP2} · Pt ${pointNumber} (${p1Score}x${p2Score})] `;
+      }
+
+      const finalContent = contextPrefix + (content?.trim() || (audio ? '(Nota de voz)' : ''));
 
       // Offline: enqueue for later sync
       if (!isOnline) {
@@ -229,7 +259,7 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
         toast({ type: 'error', message: 'Erro ao criar comentário' });
       }
     },
-    [matchId, tokenRef, setComments, toast, isOnline, enqueueComment]
+    [matchId, tokenRef, setComments, toast, isOnline, enqueueComment, engineRef, pointSequenceRef]
   );
 
   const handlePointFromCard = useCallback(
