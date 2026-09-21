@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useNotesModal } from '@/hooks/useNotesModal';
+import { useNotesModal, type NotesModalResult } from '@/hooks/useNotesModal';
 
 interface CommentModalProps {
   isOpen: boolean;
@@ -49,16 +49,17 @@ export function CommentModal({
   }, [isOpen, mounted]);
 
   const handleSave = useCallback(async () => {
-    if (!notes.canSubmit || isSubmitting) return;
+    if (!notes.canSubmit) return;
     setIsSubmitting(true);
+    let result: NotesModalResult;
     try {
-      const result = await notes.save();
-      await onSave(result.text, result.audio);
-      onClose();
+      result = await notes.save();
     } finally {
       setIsSubmitting(false);
     }
-  }, [notes, onSave, onClose, isSubmitting]);
+    onClose();
+    void onSave(result.text, result.audio);
+  }, [notes, onSave, onClose]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
