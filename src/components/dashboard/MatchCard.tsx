@@ -94,129 +94,139 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
       </div>
 
       {hasScore && scoreState?.sets && numSets > 0 ? (
-        <div className="px-4 pb-3">
+        <div className="px-4 pb-3" style={{ display: 'table', width: '100%', borderCollapse: 'collapse' }}>
           {/* Player 1 row */}
-          <div className="flex items-stretch" style={{ borderRadius: '6px 6px 0 0', overflow: 'hidden' }}>
+          <div style={{ display: 'table-row' }}>
             <div
-              className="flex items-center px-3 py-1.5 min-w-[7rem] max-w-[7rem] truncate font-semibold text-white text-sm"
-              style={{ backgroundColor: barBg }}
+              className="flex items-center px-3 py-1.5 font-semibold text-white text-sm"
+              style={{ backgroundColor: barBg, display: 'table-cell', whiteSpace: 'nowrap' }}
             >
               {match.player1.name}
             </div>
-            <div className="flex items-stretch" style={{ borderLeft: '2px solid #1a1a2e' }}>
-              {scoreState.sets.map((s: any, idx: number) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-center px-2 py-1.5 font-mono text-sm text-white min-w-[2.5rem]"
-                  style={{ backgroundColor: scoreBg, borderRight: idx < numSets - 1 ? '1px solid #1a1a2e' : 'none' }}
-                >
-                  {formatCompactSetScore(s, 'player1', isSetIndexMatchTiebreak(scoreState.sets, idx, match.format as TennisFormat))}
-                </div>
-              ))}
-              {!isFinished && (
-                <div
-                  className="flex items-center justify-center px-2 py-1.5 font-mono text-sm text-white min-w-[2.5rem]"
-                  style={{ backgroundColor: scoreBg }}
-                >
-                  {isCurrentSetMT
-                    ? '-'
-                    : lastSetTiebreakScore
-                      ? lastSetTiebreakScore.player1
-                      : getSinglePointDisplay(scoreState?.currentGame, 'player1')}
-                </div>
-              )}
+            <div style={{ display: 'table-cell', borderLeft: '2px solid #1a1a2e' }}>
+              <div className="flex items-stretch">
+                {scoreState.sets.map((s: any, idx: number) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-center px-2 py-1.5 font-mono text-sm text-white min-w-[2.5rem]"
+                    style={{ backgroundColor: scoreBg, borderRight: idx < numSets - 1 ? '1px solid #1a1a2e' : 'none' }}
+                  >
+                    {formatCompactSetScore(s, 'player1', isSetIndexMatchTiebreak(scoreState.sets, idx, match.format as TennisFormat))}
+                  </div>
+                ))}
+                {!isFinished && (
+                  <div
+                    className="flex items-center justify-center px-2 py-1.5 font-mono text-sm text-white min-w-[2.5rem]"
+                    style={{ backgroundColor: scoreBg }}
+                  >
+                    {isCurrentSetMT
+                      ? '-'
+                      : lastSetTiebreakScore
+                        ? lastSetTiebreakScore.player1
+                        : getSinglePointDisplay(scoreState?.currentGame, 'player1')}
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="flex items-center justify-center px-3 py-1.5 font-mono text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg }}>
+            <div className="flex items-center justify-center px-3 py-1.5 font-mono text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, display: 'table-cell' }}>
               {setsWonP1}
             </div>
           </div>
 
           {/* White separator line */}
-          <div className="h-[2px] bg-white" />
+          <div style={{ display: 'table-row' }}>
+            <div className="h-[2px] bg-white" style={{ display: 'table-cell', height: '2px', width: '100%' }} />
+          </div>
 
           {/* Player 2 row */}
-          <div className="flex items-stretch" style={{ borderRadius: '0 0 6px 6px', overflow: 'hidden' }}>
+          <div style={{ display: 'table-row' }}>
             <div
-              className="flex items-center px-3 py-1.5 min-w-[7rem] max-w-[7rem] truncate font-semibold text-white text-sm"
-              style={{ backgroundColor: barBg }}
+              className="flex items-center px-3 py-1.5 font-semibold text-white text-sm"
+              style={{ backgroundColor: barBg, display: 'table-cell', whiteSpace: 'nowrap' }}
             >
               {match.player2.name}
             </div>
-            <div className="flex items-stretch" style={{ borderLeft: '2px solid #1a1a2e' }}>
-              {scoreState.sets.map((s: any, idx: number) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-center px-2 py-1.5 font-mono text-sm text-white min-w-[2.5rem]"
-                  style={{ backgroundColor: scoreBg, borderRight: idx < numSets - 1 ? '1px solid #1a1a2e' : 'none' }}
-                >
-                  {formatCompactSetScore(s, 'player2', isSetIndexMatchTiebreak(scoreState.sets, idx, match.format as TennisFormat))}
-                </div>
-              ))}
-              {!isFinished && (
-                <div
-                  className="flex items-center justify-center px-2 py-1.5 font-mono text-sm text-white min-w-[2.5rem]"
-                  style={{ backgroundColor: scoreBg }}
-                >
-                  {isCurrentSetMT
-                    ? '-'
-                    : lastSetTiebreakScore
-                      ? lastSetTiebreakScore.player2
-                      : getSinglePointDisplay(scoreState?.currentGame, 'player2')}
-                </div>
-              )}
+            <div style={{ display: 'table-cell', borderLeft: '2px solid #1a1a2e' }}>
+              <div className="flex items-stretch">
+                {scoreState.sets.map((s: any, idx: number) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-center px-2 py-1.5 font-mono text-sm text-white min-w-[2.5rem]"
+                    style={{ backgroundColor: scoreBg, borderRight: idx < numSets - 1 ? '1px solid #1a1a2e' : 'none' }}
+                  >
+                    {formatCompactSetScore(s, 'player2', isSetIndexMatchTiebreak(scoreState.sets, idx, match.format as TennisFormat))}
+                  </div>
+                ))}
+                {!isFinished && (
+                  <div
+                    className="flex items-center justify-center px-2 py-1.5 font-mono text-sm text-white min-w-[2.5rem]"
+                    style={{ backgroundColor: scoreBg }}
+                  >
+                    {isCurrentSetMT
+                      ? '-'
+                      : lastSetTiebreakScore
+                        ? lastSetTiebreakScore.player2
+                        : getSinglePointDisplay(scoreState?.currentGame, 'player2')}
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="flex items-center justify-center px-3 py-1.5 font-mono text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg }}>
+            <div className="flex items-center justify-center px-3 py-1.5 font-mono text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, display: 'table-cell' }}>
               {setsWonP2}
             </div>
           </div>
         </div>
       ) : hasScore && scoreState?.currentGame ? (
-        <div className="px-4 pb-3">
-          <div className="flex items-stretch" style={{ borderRadius: '6px 6px 0 0', overflow: 'hidden' }}>
+        <div className="px-4 pb-3" style={{ display: 'table', width: '100%', borderCollapse: 'collapse' }}>
+          <div style={{ display: 'table-row' }}>
             <div
-              className="flex items-center px-3 py-1.5 min-w-[7rem] max-w-[7rem] truncate font-semibold text-white text-sm"
-              style={{ backgroundColor: barBg }}
+              className="flex items-center px-3 py-1.5 font-semibold text-white text-sm"
+              style={{ backgroundColor: barBg, display: 'table-cell', whiteSpace: 'nowrap' }}
             >
               {match.player1.name}
             </div>
-            <div className="flex items-center justify-center px-2 py-1.5 font-mono text-sm text-white min-w-[2.5rem]" style={{ backgroundColor: scoreBg, borderLeft: '2px solid #1a1a2e' }}>
+            <div className="flex items-center justify-center px-2 py-1.5 font-mono text-sm text-white min-w-[2.5rem]" style={{ backgroundColor: scoreBg, borderLeft: '2px solid #1a1a2e', display: 'table-cell' }}>
               {getSinglePointDisplay(scoreState.currentGame, 'player1')}
             </div>
-            <div className="flex items-center justify-center px-3 py-1.5 font-mono text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg }}>
+            <div className="flex items-center justify-center px-3 py-1.5 font-mono text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, display: 'table-cell' }}>
               {setsWonP1}
             </div>
           </div>
-          <div className="h-[2px] bg-white" />
-          <div className="flex items-stretch" style={{ borderRadius: '0 0 6px 6px', overflow: 'hidden' }}>
+          <div style={{ display: 'table-row' }}>
+            <div className="h-[2px] bg-white" style={{ display: 'table-cell', height: '2px', width: '100%' }} />
+          </div>
+          <div style={{ display: 'table-row' }}>
             <div
-              className="flex items-center px-3 py-1.5 min-w-[7rem] max-w-[7rem] truncate font-semibold text-white text-sm"
-              style={{ backgroundColor: barBg }}
+              className="flex items-center px-3 py-1.5 font-semibold text-white text-sm"
+              style={{ backgroundColor: barBg, display: 'table-cell', whiteSpace: 'nowrap' }}
             >
               {match.player2.name}
             </div>
-            <div className="flex items-center justify-center px-2 py-1.5 font-mono text-sm text-white min-w-[2.5rem]" style={{ backgroundColor: scoreBg, borderLeft: '2px solid #1a1a2e' }}>
+            <div className="flex items-center justify-center px-2 py-1.5 font-mono text-sm text-white min-w-[2.5rem]" style={{ backgroundColor: scoreBg, borderLeft: '2px solid #1a1a2e', display: 'table-cell' }}>
               {getSinglePointDisplay(scoreState.currentGame, 'player2')}
             </div>
-            <div className="flex items-center justify-center px-3 py-1.5 font-mono text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg }}>
+            <div className="flex items-center justify-center px-3 py-1.5 font-mono text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, display: 'table-cell' }}>
               {setsWonP2}
             </div>
           </div>
         </div>
       ) : (
-        <div className="px-4 pb-3">
-          <div className="flex items-stretch" style={{ borderRadius: '6px 6px 0 0', overflow: 'hidden' }}>
+        <div className="px-4 pb-3" style={{ display: 'table', width: '100%', borderCollapse: 'collapse' }}>
+          <div style={{ display: 'table-row' }}>
             <div
-              className="flex items-center px-3 py-1.5 min-w-[7rem] max-w-[7rem] truncate font-semibold text-white text-sm"
-              style={{ backgroundColor: barBg }}
+              className="flex items-center px-3 py-1.5 font-semibold text-white text-sm"
+              style={{ backgroundColor: barBg, display: 'table-cell', whiteSpace: 'nowrap' }}
             >
               {match.player1.name}
             </div>
           </div>
-          <div className="h-[2px] bg-white" />
-          <div className="flex items-stretch" style={{ borderRadius: '0 0 6px 6px', overflow: 'hidden' }}>
+          <div style={{ display: 'table-row' }}>
+            <div className="h-[2px] bg-white" style={{ display: 'table-cell' }} />
+          </div>
+          <div style={{ display: 'table-row' }}>
             <div
-              className="flex items-center px-3 py-1.5 min-w-[7rem] max-w-[7rem] truncate font-semibold text-white text-sm"
-              style={{ backgroundColor: barBg }}
+              className="flex items-center px-3 py-1.5 font-semibold text-white text-sm"
+              style={{ backgroundColor: barBg, display: 'table-cell', whiteSpace: 'nowrap' }}
             >
               {match.player2.name}
             </div>

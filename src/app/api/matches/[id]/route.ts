@@ -73,7 +73,13 @@ export async function GET(
         );
       }
 
-      return NextResponse.json(match);
+      const maxSequenceRow = await prisma.pointLog.aggregate({
+        where: { matchId: id, voidedAt: null, sequenceNumber: { not: null } },
+        _max: { sequenceNumber: true },
+      });
+      const lastPointSequence = maxSequenceRow._max.sequenceNumber ?? 0;
+
+      return NextResponse.json({ ...match, lastPointSequence });
     } catch (error) {
       logger.error('[MATCH GET]', error);
       return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });
