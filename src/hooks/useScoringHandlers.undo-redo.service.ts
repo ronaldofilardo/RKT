@@ -3,6 +3,9 @@ import type { ScoringState } from "@/core/scoring/types";
 
 export interface UndoRedoDeps {
   engineRef: React.MutableRefObject<any>;
+  isOnline?: boolean;
+  matchId?: string;
+  removeLastAction?: (matchId: string) => Promise<boolean>;
   isProcessingRef: React.MutableRefObject<boolean>;
   debounceTimerRef: React.MutableRefObject<NodeJS.Timeout | null>;
   lastPointLogIdRef: React.MutableRefObject<string | null>;
@@ -16,8 +19,9 @@ export interface UndoRedoDeps {
       allowScoreEdit?: boolean;
       isManualScoreEdit?: boolean;
       voidPointLogId?: string;
+      voidLastPoint?: boolean;
     },
-  ) => Promise<{ success: boolean; needsResync?: boolean }>;
+  ) => Promise<{ success: boolean; needsResync?: boolean; errorStatus?: number }>;
   closeAll: () => void;
   handleFirstServeErrorClear: () => void;
   setServeStep: (step: "none" | "second") => void;
@@ -29,6 +33,9 @@ export interface UndoRedoDeps {
 export function createUndoRedoService(deps: UndoRedoDeps) {
   const {
     engineRef,
+    isOnline,
+    matchId,
+    removeLastAction,
     isProcessingRef,
     debounceTimerRef,
     lastPointLogIdRef,
@@ -59,6 +66,9 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
     if (!engineRef.current || isProcessingRef.current) return;
     isProcessingRef.current = true;
     try {
+      const previousState = engineRef.current.getState();
+      const previousHistory = engineRef.current.getPointHistory();
+      
       const undone = engineRef.current.undoLastPoint();
       if (!undone) return;
 
@@ -66,9 +76,21 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
       setScoreState({ type: "UNDO", payload: newState });
       setPointsHistory((prev) => prev.slice(0, -1));
 
+      if (isOnline === false && removeLastAction && matchId) {
+        const removed = await removeLastAction(matchId);
+        if (removed) {
+          lastPointLogIdRef.current = null;
+          pointSequenceRef.current = Math.max(0, pointSequenceRef.current - 1);
+          closeAll();
+          onUndoComplete?.();
+          return;
+        }
+      }
+
       const pointLogIdToVoid = lastPointLogIdRef.current;
       const result = await persistState(newState, "undo", {
         voidPointLogId: pointLogIdToVoid ?? undefined,
+        voidLastPoint: !pointLogIdToVoid ? true : undefined,
       });
 
       if (result.success) {
@@ -76,14 +98,14 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
         pointSequenceRef.current = Math.max(0, pointSequenceRef.current - 1);
         closeAll();
         onUndoComplete?.();
+      } else if (result.errorStatus && result.errorStatus >= 400 && result.errorStatus < 500) {
+        engineRef.current.restorePointHistory(previousHistory);
+        engineRef.current.loadState(previousState);
+        setScoreState({ type: "EDIT_CONFIRMED", payload: previousState });
+        const lastWinner = previousHistory[previousHistory.length - 1]?.point?.winnerId;
+        setPointsHistory((prev) => lastWinner ? [...prev, lastWinner] : prev);
+        closeAll();
       } else if (result.needsResync) {
-        await persistState(
-          engineRef.current?.getState() as ScoringState,
-          "undo-retry",
-          { voidPointLogId: pointLogIdToVoid ?? undefined },
-        );
-        lastPointLogIdRef.current = null;
-        pointSequenceRef.current = Math.max(0, pointSequenceRef.current - 1);
         closeAll();
       }
     } finally {

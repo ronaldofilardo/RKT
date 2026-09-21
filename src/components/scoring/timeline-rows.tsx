@@ -51,9 +51,9 @@ const BADGE_COLORS = {
 
 function getPointBadge(p: TimelinePoint): { label: string; color: 'green' | 'red' | 'amber' | 'gray' } {
   // Evento (PointFlow.type) tem precedência sobre rd.tipo para saques
-  if (p.type === 'ACE') return { label: 'ACe', color: 'green' };
+  if (p.type === 'ACE') return { label: 'Ace', color: 'green' };
   if (p.type === 'DOUBLE_FAULT') return { label: 'DF', color: 'red' };
-  if (p.type === 'WINNER') return { label: 'Winner', color: 'green' };
+  if (p.type === 'WINNER') return { label: 'W', color: 'green' };
   if (p.type === 'UNFORCED_ERROR') return { label: 'ENF', color: 'red' };
   if (p.type === 'FORCED_ERROR') return { label: 'EF', color: 'amber' };
   // Fallback: usa classificação detalhada do rallyDetails
@@ -85,13 +85,13 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPo
       <td className="px-1.5 py-1.5 text-[10px] text-gray-700 font-semibold sticky left-0 bg-white z-10 border-r border-gray-200">
         {p.pointNumber}
       </td>
-      {/* P/ — ganhador do ponto (iniciais do atleta) */}
-      <td className={`px-1.5 py-1.5 text-[10px] text-center font-bold ${winnerNumber === 1 ? 'text-blue-600' : 'text-red-600'}`}>
-        {winnerInitials}
-      </td>
       {/* SAC — sacador (iniciais do atleta) */}
       <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${serverNumber === 1 ? 'text-blue-600' : 'text-red-600'}`}>
         {serverInitials}
+      </td>
+      {/* Venc — ganhador do ponto (iniciais do atleta) */}
+      <td className={`px-1.5 py-1.5 text-[10px] text-center font-bold ${winnerNumber === 1 ? 'text-blue-600' : 'text-red-600'}`}>
+        {winnerInitials}
       </td>
       {/* GAMES — placar de games (ou tiebreak score quando isTiebreak) */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-700 font-semibold text-center">
@@ -166,7 +166,7 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPo
       {/* OBSERVAÇÃO */}
       <td className="px-1.5 py-1.5 text-[10px] text-gray-600 whitespace-normal break-words">
         <div className="flex flex-col gap-1">
-          {p.note && !/^SET\s+\d+$/i.test(p.note) ? <span>📝 {p.note}</span> : null}
+          {p.note && !/^SET\s+\d+$/i.test(p.note) ? <span>📝 {p.note.replace(/Match Tie-?break/ig, 'MTB').replace(/Tie-?break/ig, 'TB').replace(/Match Tie-?brake/ig, 'MTB').replace(/Tie-?brake/ig, 'TB')}</span> : null}
           {p.hasAudioNote && p.pointId ? (
             <AudioNotePlayer
               matchId={matchId}

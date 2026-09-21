@@ -42,7 +42,7 @@ export interface SessionManagerContext {
 
   suspendedSession: SuspendedSessionState | null;
   fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
-  persistState: (state: ScoringState, label: string, persistOptions?: { allowScoreEdit?: boolean; isManualScoreEdit?: boolean }) => Promise<{ success: boolean; needsResync?: boolean }>;
+  persistState: (state: ScoringState, label: string, persistOptions?: { allowScoreEdit?: boolean; isManualScoreEdit?: boolean; history?: any[] }) => Promise<{ success: boolean; needsResync?: boolean }>;
 
   setScoreState: Dispatch<ScoreAction>;
   setSessionActive: Dispatch<SetStateAction<boolean>>;
@@ -219,7 +219,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
         }
       } else {
         logger.log("[handleEditScore] Calling persistState with currentGame:", newState.currentGame);
-        const result = await persistState(newState, "edit-score", { isManualScoreEdit: true });
+        const result = await persistState(newState, "edit-score", { isManualScoreEdit: true, history: [] });
         if (result.success) {
           logger.log("[handleEditScore] State persisted successfully");
         } else if (result.needsResync) {
@@ -319,7 +319,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
       window.removeEventListener("pagehide", doAbandon);
       doAbandon();
     };
-  }, [matchId, sessionIdRef, engineRef, tokenRef, match?.version, toast]);
+  }, [matchId, sessionIdRef, engineRef, tokenRef, toast]);
 
   // Hook de suspended session foi extraído para useSuspendedSession.ts
   useSuspendedSession({

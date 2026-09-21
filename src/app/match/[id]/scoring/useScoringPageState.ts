@@ -86,6 +86,7 @@ export interface ScoringPageState {
   isOnline: boolean;
   enqueue: (action: Omit<QueuedAction, "id" | "status" | "retries">) => Promise<QueuedAction>;
   clearQueueForMatch: (matchId: string) => Promise<void>;
+  removeLastAction: (matchId: string) => Promise<boolean>;
   syncPendingMatches: () => Promise<void>;
   syncStatus: "offline" | "syncing" | "synced";
   setSyncStatus: React.Dispatch<React.SetStateAction<"offline" | "syncing" | "synced">>;
@@ -110,7 +111,7 @@ export interface MatchCommentData {
 
 export function useScoringPageState(matchId: string): ScoringPageState {
   const router = useRouter();
-  const { enqueue, clearQueueForMatch, isOnline } = useOfflineSync();
+  const { enqueue, clearQueueForMatch, removeLastAction, isOnline } = useOfflineSync();
   const { syncPendingMatches } = useOfflineMatchSync();
   const { toast } = useToast();
 
@@ -281,6 +282,7 @@ export function useScoringPageState(matchId: string): ScoringPageState {
     isOnline,
     enqueue,
     clearQueueForMatch,
+    removeLastAction,
     syncPendingMatches,
     syncStatus,
     setSyncStatus,

@@ -51,7 +51,7 @@ describe('MatchTimelineView — cabeçalhos e legenda (novo layout 23 colunas)',
     expect(screen.getByText('ENF, EF, W')).toBeInTheDocument();
   });
 
-  it('cabeçalhos de nível 2: no., P/, SAC, GAMES, PONTOS, ACE, OUT, NET, EFE, DIR', () => {
+  it('cabeçalhos de nível 2: no., SAC, Venc, GAMES, PONTOS, ACE, OUT, NET, EFE, DIR', () => {
     render(
       <MatchTimelineView
         points={[makePoint({})]}
@@ -62,8 +62,8 @@ describe('MatchTimelineView — cabeçalhos e legenda (novo layout 23 colunas)',
     );
 
     expect(screen.getByText('no.', { selector: 'th' })).toBeInTheDocument();
-    expect(screen.getByText('P/', { selector: 'th' })).toBeInTheDocument();
     expect(screen.getByText('SAC', { selector: 'th' })).toBeInTheDocument();
+    expect(screen.getByText('Venc', { selector: 'th' })).toBeInTheDocument();
     expect(screen.getByText('GAMES', { selector: 'th' })).toBeInTheDocument();
     expect(screen.getByText('PONTOS', { selector: 'th' })).toBeInTheDocument();
     // ACE, OUT, NET aparecem nos headers de saque

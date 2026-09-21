@@ -181,7 +181,7 @@ export const PointFlowInputSchema = z.object({
     .object({
       zone: z.string().optional(),
       stroke: z.string().optional(),
-      note: z.string().max(200).optional(),
+      note: z.string().max(500).optional(),
       rallyDetails: RallyDetailsSchema.optional(),
       rallyLength: z.number().int().optional(),
       isFirstServe: z.boolean().optional(),
@@ -406,6 +406,8 @@ export const MatchStateInputSchema = z
      * pointLog e match.scoreState caso haja falha ou conflito de versão).
      */
     voidPointLogId: flexibleIdValidator.optional(),
+    voidLastPoint: z.boolean().optional(),
+    isUndo: z.boolean().optional(),
   })
   .refine((data) => data.state !== "SCHEDULED", {
     message: "Não é possível voltar para SCHEDULED via API",

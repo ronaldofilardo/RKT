@@ -16,8 +16,8 @@ export async function fetchMatchSequence(matchId: string, accessToken: string): 
     });
     if (!response.ok) return 0;
     const matchData = await response.json();
-    const pointCount = matchData._count?.pointLog;
-    return typeof pointCount === 'number' ? pointCount : (matchData.version || 0);
+    const pointSequence = matchData.lastPointSequence;
+    return typeof pointSequence === 'number' ? pointSequence : (matchData.version || 0);
   } catch (err) {
     logger.error('[flush] Failed to fetch match sequence:', err);
     return 0;
@@ -53,7 +53,6 @@ export async function markActionSynced(
   sequences: SequenceMap,
 ): Promise<void> {
   await db.delete(STORE_NAME, action.id);
-  window.dispatchEvent(new CustomEvent('offline-sync-complete'));
   sequences.set(action.matchId, sequence);
 }
 

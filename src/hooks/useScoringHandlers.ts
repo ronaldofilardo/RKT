@@ -52,6 +52,7 @@ export function useScoringHandlers(
     onUndoComplete,
     onPointProcessed,
     onAudioUploaded,
+    removeLastAction,
     isProcessingRef,
     debounceTimerRef,
   } = ctx;
@@ -186,6 +187,9 @@ export function useScoringHandlers(
 
   const undoRedoService = createUndoRedoService({
     engineRef,
+    isOnline,
+    matchId,
+    removeLastAction,
     isProcessingRef,
     debounceTimerRef,
     lastPointLogIdRef,

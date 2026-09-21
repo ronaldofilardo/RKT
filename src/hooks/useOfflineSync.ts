@@ -66,6 +66,26 @@ export function useOfflineSync() {
     }
   }, []);
 
+  const removeLastAction = useCallback(async (targetMatchId: string) => {
+    try {
+      const db = await getDb();
+      const pending = await db.getAllFromIndex(STORE_NAME, 'status', 'PENDING');
+      
+      const matchActions = pending
+        .filter(a => a.matchId === targetMatchId)
+        .sort((a, b) => b.timestamp - a.timestamp);
+
+      if (matchActions.length > 0) {
+        await db.delete(STORE_NAME, matchActions[0].id);
+        return true;
+      }
+      return false;
+    } catch (err) {
+      logger.error('[removeLastAction] Failed:', err);
+      return false;
+    }
+  }, []);
+
   const flush = useCallback(async (accessToken: string) => {
     if (isFlushingRef.current) {
       logger.log('[flush] Sincronização offline já em andamento — ignorando chamada concorrente');
@@ -73,15 +93,25 @@ export function useOfflineSync() {
     }
     isFlushingRef.current = true;
     setIsSyncing(true);
+    let syncedAnything = false;
 
     try {
       const db = await getDb();
+      
+      // Resgata ações SYNCING que podem ter ficado orfãs em aberturas/fechamentos inesperados
+      const syncing = await db.getAllFromIndex(STORE_NAME, 'status', 'SYNCING');
+      for (const action of syncing) {
+        await db.put(STORE_NAME, { ...action, status: 'PENDING' });
+      }
+
       const pending = await db.getAllFromIndex(STORE_NAME, 'status', 'PENDING');
       pending.sort((a, b) => a.timestamp - b.timestamp);
 
       const matchSequences = new Map<string, number>();
+      const failedMatches = new Set<string>();
 
       for (const action of pending) {
+        if (failedMatches.has(action.matchId)) continue;
         try {
           const currentSequence = await ensureMatchSequence(action.matchId, accessToken, matchSequences);
           const nextSequence = currentSequence + 1;
@@ -95,20 +125,28 @@ export function useOfflineSync() {
 
           if (response.ok) {
             await markActionSynced(db, action, nextSequence, matchSequences);
+            syncedAnything = true;
             continue;
           }
 
           const retried = await retrySequenceConflict(db, action, accessToken, response, matchSequences);
           if (!retried) {
             await markActionPendingOrFailed(db, action);
+            failedMatches.add(action.matchId);
+          } else {
+            syncedAnything = true;
           }
         } catch {
           await markActionPending(db, action);
+          failedMatches.add(action.matchId);
         }
       }
     } finally {
       isFlushingRef.current = false;
       setIsSyncing(false);
+      if (syncedAnything) {
+        window.dispatchEvent(new CustomEvent('offline-sync-complete'));
+      }
     }
   }, []);
 
@@ -126,11 +164,27 @@ export function useOfflineSync() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
+    const token = sessionStorage.getItem('access_token');
+    
+    // Tentar flush na inicialização (e periodicamente quando online)
+    if (online && token) {
+      flush(token);
+    }
+
+    let intervalId: NodeJS.Timeout;
+    if (online) {
+      intervalId = setInterval(() => {
+        const currentToken = sessionStorage.getItem('access_token');
+        if (currentToken) flush(currentToken);
+      }, 30000); // Tentar a cada 30 segundos
+    }
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      if (intervalId) clearInterval(intervalId);
     };
-  }, [flush]);
+  }, [flush, online]);
 
-  return { enqueue, flush, clearQueueForMatch, isOnline: online, isSyncing };
+  return { enqueue, flush, clearQueueForMatch, removeLastAction, isOnline: online, isSyncing };
 }

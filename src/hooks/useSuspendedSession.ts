@@ -131,6 +131,7 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
                 clientEventId,
                 ...(entry.point.rallyDetails != null ? { rallyDetails: entry.point.rallyDetails } : {}),
                 ...(entry.point.rallyLength != null ? { rallyLength: entry.point.rallyLength } : {}),
+                ...(entry.point.firstFaultDetail != null ? { firstFaultDetail: entry.point.firstFaultDetail } : {}),
               }),
               signal,
             });
@@ -147,7 +148,10 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
         });
         if (freshRes.ok) {
           const freshData: MatchData = await freshRes.json();
-          if (freshData.scoreState) {
+          
+          if (freshData.version !== undefined && freshData.version <= (match?.version ?? -1)) {
+            logger.warn('[useSuspendedSession] freshData has no updated version, skipping engine reload');
+          } else if (freshData.scoreState) {
             engineRef.current = ScoringEngine.fromSerialized(
               engineConfig,
               JSON.stringify(freshData.scoreState),

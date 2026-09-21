@@ -45,11 +45,16 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
       setMatch(data);
 
       if (typeof data.version === 'number') {
+        if (matchVersionRef.current !== null && data.version < matchVersionRef.current) {
+          logger.warn(`[fetchMatch] Ignoring old data (v${data.version} < v${matchVersionRef.current})`);
+          setIsLoading(false);
+          return;
+        }
         matchVersionRef.current = data.version;
       }
 
-      if (data._count && typeof data._count.pointLog === 'number') {
-        pointSequenceRef.current = data._count.pointLog;
+      if ((data as any).lastPointSequence !== undefined) {
+        pointSequenceRef.current = (data as any).lastPointSequence;
       } else if (typeof data.version === 'number') {
         pointSequenceRef.current = data.version;
       }
@@ -88,7 +93,7 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
           openRef.current('setup');
         }
 
-        if (engineRef.current && previousHistory.length > 0) {
+        if (engineRef.current && previousHistory.length > 0 && !Array.isArray(scoreStateToUse?.history)) {
           engineRef.current.restorePointHistory(previousHistory);
         }
 

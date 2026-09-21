@@ -189,8 +189,8 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId, h
                 </tr>
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">no.</th>
-                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">P/</th>
-                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase border-r border-gray-200">SAC</th>
+                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">SAC</th>
+                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase border-r border-gray-200">Venc</th>
                   <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">GAMES</th>
                   <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase border-r border-gray-200">PONTOS</th>
                   <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">ACE</th>
@@ -253,7 +253,7 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId, h
         <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
           <p className="font-semibold text-amber-800 text-[11px] mb-2">💬 Comentários</p>
           <div className="space-y-2">
-            {comments.map((c) => (
+            {[...comments].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map((c) => (
               <div key={c.id} className="bg-white rounded-lg px-3 py-2 border border-amber-100">
                 <p className="text-[11px] text-gray-800">{c.content}</p>
                 <div className="flex items-center gap-2 mt-1">
@@ -284,14 +284,14 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId, h
 
       <div className="mt-3 text-[10px] text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 space-y-1">
         <p className="font-semibold text-gray-700 mb-1">Como ler esta tabela</p>
-        <p>Cada linha é um ponto disputado, na ordem em que aconteceu. <strong>no.</strong> = número do ponto; <strong>P/</strong> = ganhador do ponto ({player1Name}/{player2Name}); <strong>SAC</strong> = sacador ({player1Name}/{player2Name}).</p>
+        <p>Cada linha é um ponto disputado, na ordem em que aconteceu. <strong>no.</strong> = número do ponto; <strong>SAC</strong> = sacador ({player1Name}/{player2Name}); <strong>Venc</strong> = ganhador do ponto ({player1Name}/{player2Name}).</p>
         <p><strong>GAMES</strong> = placar de games/set (mostrado só no 1º ponto de cada game).</p>
         <p><strong>PONTOS</strong> = placar de pontos (15-0, Deuce, Adv. P1).</p>
         <p><strong>1º / 2º Saque</strong>: mostra ACE, OUT ou NET conforme o resultado de cada saque, além de efeito e direção. Apenas um dos saques é preenchido por ponto.</p>
-        <p><strong>TIPO</strong>: <strong>ACe</strong> = Ace · <strong>DF</strong> = Dupla Falta · <strong>Winner</strong> = ponto vencedor direto · <strong>ENF</strong> = Erro Não Forçado · <strong>EF</strong> = Erro Forçado</p>
-        <p><strong>ERRO</strong> = tipo de erro na rede (Passing Shot, Devolução). <strong>ONDE</strong> = onde errou (Out, Net).</p>
-        <p><strong>SITUAÇÃO / GOLPE / EFEITO / DIREÇÃO</strong> descrevem como o ponto terminou.</p>
-        <p><strong>ESPECIAL</strong> = golpe especial (lob, drop shot, etc.).</p>
+        <p><strong>TIPO</strong>: <strong>Ace</strong> = Ace · <strong>DF</strong> = Dupla Falta · <strong>W</strong> = ponto vencedor direto (Winner) · <strong>ENF</strong> = Erro Não Forçado · <strong>EF</strong> = Erro Forçado</p>
+        <p><strong>ERRO</strong> = tipo de erro na rede (Pass = Passada, DEV = Devolução). <strong>ONDE</strong> = onde errou (out, net).</p>
+        <p><strong>SITUAÇÃO</strong> (DEV, FQ, Rede, Pass, Sq) / <strong>GOLPE</strong> (FH, BH, VFH, VBH, Sm) / <strong>EFEITO</strong> (Top, Sl, Flat) / <strong>DIREÇÃO</strong> (X, Parl, Ce, In Out, In In, Ab, Fe) descrevem como o ponto terminou.</p>
+        <p><strong>ESPECIAL</strong> = golpe especial (Lob, Drop, SV, bate-pronto).</p>
         <p><strong>RALLY</strong> = faixa de bolas trocadas conforme duração marcada (3-6, 7-10, 11+).</p>
       </div>
     </div>

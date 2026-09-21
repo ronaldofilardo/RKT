@@ -128,6 +128,8 @@ export async function PATCH(
           editedByUserId: user?.id,
           note: parsed.data.note,
           voidPointLogId: parsed.data.voidPointLogId,
+          voidLastPoint: parsed.data.voidLastPoint,
+          isUndo: parsed.data.isUndo,
         },
       );
 

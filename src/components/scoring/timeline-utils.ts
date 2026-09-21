@@ -75,36 +75,37 @@ function capitalize(s: string): string {
 }
 
 export function situacaoLabel(s?: string): string {
-  const map: Record<string, string> = { devolucao: 'Devolução', fundo: 'Fundo', rede: 'Rede', passada: 'Passada', saque: 'Saque' };
+  const map: Record<string, string> = { devolucao: 'DEV', fundo: 'FQ', rede: 'Rede', passada: 'Pass', saque: 'Sq' };
   return s ? (map[s] ?? s) : '–';
 }
 
 export function golpeLabel(s?: string): string {
   if (!s) return '–';
-  const map: Record<string, string> = { fh: 'FH', bh: 'BH', vfh: 'VFH', vbh: 'VBH', smash: 'Smash' };
+  const map: Record<string, string> = { fh: 'FH', bh: 'BH', vfh: 'VFH', vbh: 'VBH', smash: 'Sm' };
   return map[s] ?? s;
 }
 
 export function direcaoLabel(s?: string): string {
   if (!s) return '–';
-  const map: Record<string, string> = { cruzada: 'cruzada', paralela: 'paralela', centro: 'centro', inside_out: 'Inside-Out', inside_in: 'Inside-In', aberto: 'aberto', fechado: 'fechado' };
+  const map: Record<string, string> = { cruzada: 'X', paralela: 'Parl', centro: 'Ce', inside_out: 'In Out', inside_in: 'In In', aberto: 'Ab', fechado: 'Fe' };
   return map[s] ?? s;
 }
 
 export function efeitoLabel(s?: string): string {
   if (!s) return '–';
-  return s;
+  const map: Record<string, string> = { topspin: 'Top', slice: 'Sl', flat: 'Flat' };
+  return map[s] ?? s;
 }
 
 export function golpeEspLabel(s?: string): string {
   if (!s) return '–';
-  const map: Record<string, string> = { lob: 'lob', drop_shot: 'drop', bate_pronto: 'bate-pronto', swing_volley: 'swingvolley' };
+  const map: Record<string, string> = { lob: 'Lob', drop_shot: 'Drop', bate_pronto: 'bate-pronto', swing_volley: 'SV' };
   return map[s] ?? s;
 }
 
 export function subtipo1Label(s?: string): string {
   if (!s) return '–';
-  const map: Record<string, string> = { passing_shot: 'Passing Shot', devolucao_saque: 'Devolução' };
+  const map: Record<string, string> = { passing_shot: 'Pass', devolucao_saque: 'DEV' };
   return map[s] ?? s;
 }
 
@@ -130,7 +131,7 @@ export function trocasFaixaLabel(rallyLength?: number): string {
 
 export function tipoLabel(s?: string): string {
   if (!s) return '–';
-  const map: Record<string, string> = { winner: 'Winner', erro_nao_forcado: 'Erro Não Forçado', erro_forcado: 'Erro Forçado', dupla_falta: 'Dupla Falta' };
+  const map: Record<string, string> = { winner: 'W', erro_nao_forcado: 'ENF', erro_forcado: 'EF', dupla_falta: 'DF' };
   return map[s] ?? s;
 }
 
@@ -218,7 +219,7 @@ export function getPointDetailSummary(rd?: RallyDetails | null): {
   if (!rd) return { label: '–', color: 'gray' };
 
   if (rd.tipo === 'winner') {
-    return { label: 'Winner', color: 'green' };
+    return { label: 'W', color: 'green' };
   }
   if (rd.tipo === 'erro_nao_forcado') {
     return { label: 'ENF', color: 'red' };

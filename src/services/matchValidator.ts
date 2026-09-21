@@ -83,7 +83,7 @@ export function validateTransitionState(
   match: MatchData,
   newState: MatchState,
   scoreState?: unknown,
-  options?: { allowScoreEdit?: boolean },
+  options?: { allowScoreEdit?: boolean; isUndo?: boolean },
 ): ValidationResult {
   const ALLOWED_TRANSITIONS: Record<MatchState, MatchState[]> = {
     SCHEDULED: ["IN_PROGRESS", "CANCELLED"],
@@ -93,10 +93,16 @@ export function validateTransitionState(
   };
 
   if (!ALLOWED_TRANSITIONS[match.state].includes(newState)) {
-    return {
-      error: `INVALID_TRANSITION: Transição ${match.state} → ${newState} não permitida`,
-      valid: false,
-    };
+    if (!(options?.isUndo && match.state === "FINISHED" && newState === "IN_PROGRESS")) {
+      return {
+        error: `INVALID_TRANSITION: Transição ${match.state} → ${newState} não permitida`,
+        valid: false,
+      };
+    }
+  }
+
+  if (options?.isUndo) {
+    return { valid: true };
   }
 
   if (newState === "FINISHED") {
@@ -202,9 +208,19 @@ export function isTiebreakRegressing(oldSet: any, newSet: any): boolean {
   if (oldTb && newTb) {
     // Se o vencedor do tiebreak é o mesmo, é uma correção (ex.: 10-8 → 10-6),
     // não regressão. Só bloquear se o vencedor mudou.
-    const oldWinner = oldTb.player1 > oldTb.player2 ? 'player1' : 'player2';
-    const newWinner = newTb.player1 > newTb.player2 ? 'player1' : 'player2';
-    if (oldWinner === newWinner) return false;
+    const oldWinner =
+      oldTb.player1 === oldTb.player2
+        ? null
+        : oldTb.player1 > oldTb.player2
+          ? "player1"
+          : "player2";
+    const newWinner =
+      newTb.player1 === newTb.player2
+        ? null
+        : newTb.player1 > newTb.player2
+          ? "player1"
+          : "player2";
+    if (oldWinner === newWinner && oldWinner !== null) return false;
 
     return (
       (newTb.player1 < oldTb.player1 && newTb.player2 <= oldTb.player2) ||

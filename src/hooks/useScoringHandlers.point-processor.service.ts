@@ -75,7 +75,10 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
   ) => {
     const currentHistory = engineRef.current!.getPointHistory();
     const localState = engineRef.current!.getState();
-    const serverState = serverResponse.scoreState!;
+    const rawServerState = serverResponse.scoreState!;
+    const isEnvelope = !!(rawServerState as any).state && Array.isArray((rawServerState as any).history);
+    const serverState = isEnvelope ? (rawServerState as any).state : rawServerState;
+    const historyToRestore = isEnvelope ? (rawServerState as any).history : currentHistory;
 
     const localInTiebreak = localState.sets?.some((s: any) => s.isTiebreak && s.tiebreakScore);
     const serverHasTiebreak = serverState.sets?.some((s: any) => s.isTiebreak && s.tiebreakScore);
@@ -96,7 +99,7 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
         },
         JSON.stringify(serverState),
       );
-      engineRef.current.restorePointHistory(currentHistory);
+      engineRef.current.restorePointHistory(historyToRestore);
     }
 
     if (serverResponse.version !== undefined) {

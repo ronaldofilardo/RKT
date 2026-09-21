@@ -102,7 +102,7 @@ export async function recordScoreEditSegment(
   await tx.matchScoreEdit.create({
     data: {
       matchId,
-      editedByUserId: options?.editedByUserId ?? 'system',
+      editedByUserId: options?.editedByUserId ?? null,
       note: options?.note ?? null,
       previousScoreState: previousScoreState as any,
       newScoreState: newScoreState as any,
@@ -119,7 +119,10 @@ export function buildTransitionUpdateData(
     state: newState,
     version: { increment: 1 },
   };
-  if (newState === 'IN_PROGRESS') updateData.startedAt = new Date();
+  if (newState === 'IN_PROGRESS') {
+    updateData.finishedAt = null;
+    updateData.winnerId = null;
+  }
   if (newState === 'FINISHED') updateData.finishedAt = new Date();
   if (initialServerId) updateData.initialServerId = initialServerId;
   if (scoreState) updateData.scoreState = scoreState as any;

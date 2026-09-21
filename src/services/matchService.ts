@@ -145,8 +145,12 @@ export async function finishMatch(
 
   if (!validation.valid) return { error: validation.error } as const;
 
+  const resolvedScoreState = options?.isManualScoreEdit
+    ? { ...((scoreState as any) || {}), history: [] }
+    : resolvePersistedScoreState(scoreState, match.scoreState);
+
   const updateData = buildFinishUpdateData(
-    resolvePersistedScoreState(scoreState, match.scoreState),
+    resolvedScoreState,
     options?.reason,
     options?.note,
     options?.winnerId,
@@ -179,6 +183,8 @@ export async function transitionMatchState(
     editedByUserId?: string;
     note?: string;
     voidPointLogId?: string;
+    voidLastPoint?: boolean;
+    isUndo?: boolean;
   },
 ) {
   const match = await prisma.match.findFirst({
@@ -198,7 +204,7 @@ export async function transitionMatchState(
     },
     newState,
     scoreState,
-    options,
+    { ...options, isUndo: options?.isUndo },
   );
 
   if (!validation.valid) return { error: validation.error } as const;
@@ -214,6 +220,17 @@ export async function transitionMatchState(
           where: { id: options.voidPointLogId, matchId: id, voidedAt: null },
           data: { voidedAt: new Date(), sequenceNumber: null },
         });
+      } else if (options?.voidLastPoint) {
+        const lastLog = await tx.pointLog.findFirst({
+          where: { matchId: id, voidedAt: null },
+          orderBy: { sequenceNumber: 'desc' },
+        });
+        if (lastLog) {
+          await tx.pointLog.update({
+            where: { id: lastLog.id },
+            data: { voidedAt: new Date(), sequenceNumber: null },
+          });
+        }
       }
 
       const updateData = buildTransitionUpdateData(newState, initialServerId, scoreState);

@@ -422,11 +422,11 @@ describe('timeline-utils', () => {
 
   describe('label functions', () => {
     it('situacaoLabel deve mapear situações', () => {
-      expect(situacaoLabel('devolucao')).toBe('Devolução');
-      expect(situacaoLabel('fundo')).toBe('Fundo');
+      expect(situacaoLabel('devolucao')).toBe('DEV');
+      expect(situacaoLabel('fundo')).toBe('FQ');
       expect(situacaoLabel('rede')).toBe('Rede');
-      expect(situacaoLabel('passada')).toBe('Passada');
-      expect(situacaoLabel('saque')).toBe('Saque');
+      expect(situacaoLabel('passada')).toBe('Pass');
+      expect(situacaoLabel('saque')).toBe('Sq');
       expect(situacaoLabel('desconhecida')).toBe('desconhecida');
     });
 
@@ -435,31 +435,31 @@ describe('timeline-utils', () => {
       expect(golpeLabel('bh')).toBe('BH');
       expect(golpeLabel('vfh')).toBe('VFH');
       expect(golpeLabel('vbh')).toBe('VBH');
-      expect(golpeLabel('smash')).toBe('Smash');
+      expect(golpeLabel('smash')).toBe('Sm');
     });
 
     it('direcaoLabel deve mapear direções', () => {
-      expect(direcaoLabel('cruzada')).toBe('cruzada');
-      expect(direcaoLabel('paralela')).toBe('paralela');
-      expect(direcaoLabel('inside_out')).toBe('Inside-Out');
-      expect(direcaoLabel('aberto')).toBe('aberto');
-      expect(direcaoLabel('fechado')).toBe('fechado');
-      expect(direcaoLabel('centro')).toBe('centro');
+      expect(direcaoLabel('cruzada')).toBe('X');
+      expect(direcaoLabel('paralela')).toBe('Parl');
+      expect(direcaoLabel('inside_out')).toBe('In Out');
+      expect(direcaoLabel('aberto')).toBe('Ab');
+      expect(direcaoLabel('fechado')).toBe('Fe');
+      expect(direcaoLabel('centro')).toBe('Ce');
     });
 
     it('efeitoLabel deve retornar string', () => {
-      expect(efeitoLabel('topspin')).toBe('topspin');
+      expect(efeitoLabel('topspin')).toBe('Top');
     });
 
     it('golpeEspLabel deve mapear golpes especiais', () => {
-      expect(golpeEspLabel('lob')).toBe('lob');
-      expect(golpeEspLabel('drop_shot')).toBe('drop');
+      expect(golpeEspLabel('lob')).toBe('Lob');
+      expect(golpeEspLabel('drop_shot')).toBe('Drop');
       expect(golpeEspLabel('bate_pronto')).toBe('bate-pronto');
     });
 
     it('subtipo1Label deve mapear subtipos 1', () => {
-      expect(subtipo1Label('passing_shot')).toBe('Passing Shot');
-      expect(subtipo1Label('devolucao_saque')).toBe('Devolução');
+      expect(subtipo1Label('passing_shot')).toBe('Pass');
+      expect(subtipo1Label('devolucao_saque')).toBe('DEV');
     });
 
     it('subtipo2Label deve mapear subtipos 2', () => {
@@ -468,10 +468,10 @@ describe('timeline-utils', () => {
     });
 
     it('tipoLabel deve mapear tipos', () => {
-      expect(tipoLabel('winner')).toBe('Winner');
-      expect(tipoLabel('erro_nao_forcado')).toBe('Erro Não Forçado');
-      expect(tipoLabel('erro_forcado')).toBe('Erro Forçado');
-      expect(tipoLabel('dupla_falta')).toBe('Dupla Falta');
+      expect(tipoLabel('winner')).toBe('W');
+      expect(tipoLabel('erro_nao_forcado')).toBe('ENF');
+      expect(tipoLabel('erro_forcado')).toBe('EF');
+      expect(tipoLabel('dupla_falta')).toBe('DF');
     });
 
     it('vencedorLabel deve mapear vencedor', () => {
@@ -632,18 +632,18 @@ describe('timeline-utils', () => {
 
     it('deve formatar rally details completo', () => {
       const result = formatPointDetails(completeRallyDetails);
-      expect(result.tipo).toBe('Winner');
-      expect(result.situacao).toBe('Fundo');
+      expect(result.tipo).toBe('W');
+      expect(result.situacao).toBe('FQ');
       expect(result.golpe).toBe('FH');
-      expect(result.direcao).toBe('cruzada');
-      expect(result.efeito).toBe('topspin');
-      expect(result.golpeEsp).toBe('lob');
+      expect(result.direcao).toBe('X');
+      expect(result.efeito).toBe('Top');
+      expect(result.golpeEsp).toBe('Lob');
     });
 
     it('deve formatar rally details parcial', () => {
       const partial = { vencedor: 'sacador' as const, situacao: 'fundo' as const, tipo: 'winner' as const, golpe: 'fh' as const, previewBalls: 1 };
       const result = formatPointDetails(partial);
-      expect(result.short).toBe('Fundo • FH');
+      expect(result.short).toBe('FQ • FH');
       expect(result.golpe).toBe('FH');
     });
 
@@ -662,15 +662,15 @@ describe('timeline-utils', () => {
 
     it('short deve conter situacao e golpe', () => {
       const result = formatPointDetails(completeRallyDetails);
-      expect(result.short).toContain('Fundo');
+      expect(result.short).toContain('FQ');
       expect(result.short).toContain('FH');
     });
 
     it('full deve conter todos os campos', () => {
       const result = formatPointDetails(completeRallyDetails);
       expect(result.full).toContain('Sacador');
-      expect(result.full).toContain('Fundo');
-      expect(result.full).toContain('Winner');
+      expect(result.full).toContain('FQ');
+      expect(result.full).toContain('W');
       expect(result.full).toContain('FH');
     });
   });
@@ -691,7 +691,7 @@ describe('timeline-utils', () => {
     it('deve retornar versão completa', () => {
       const rd = { vencedor: 'devolvedor' as const, situacao: 'fundo' as const, tipo: 'erro_forcado' as const, golpe: 'bh' as const, previewBalls: 2 };
       expect(formatPointDetailsFull(rd)).toContain('Devolvedor');
-      expect(formatPointDetailsFull(rd)).toContain('Fundo');
+      expect(formatPointDetailsFull(rd)).toContain('FQ');
     });
   });
 
@@ -699,7 +699,7 @@ describe('timeline-utils', () => {
     it('deve retornar green para winner', () => {
       const rd = { vencedor: 'sacador' as const, situacao: 'fundo' as const, tipo: 'winner' as const, golpe: 'fh' as const, previewBalls: 1 };
       const result = getPointDetailSummary(rd);
-      expect(result.label).toBe('Winner');
+      expect(result.label).toBe('W');
       expect(result.color).toBe('green');
     });
 

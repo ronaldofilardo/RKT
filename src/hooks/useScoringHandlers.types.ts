@@ -64,6 +64,7 @@ export interface ScoringHandlersContext {
   onUndoComplete?: () => void;
   onPointProcessed?: () => void;
   onAudioUploaded?: () => void;
+  removeLastAction?: (matchId: string) => Promise<boolean>;
   isProcessingRef: MutableRefObject<boolean>;
   debounceTimerRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
 }
