@@ -4,12 +4,15 @@ import { findAbandonedSessionSnapshot, getMatch } from '@/services/matchService'
 import type { TennisFormat } from '@/core/scoring/types';
 import { prisma } from '@/lib/prisma';
 
+import type { TimelineScoreEdit } from '@/core/scoring/timeline-rebuild';
+
 export async function buildReportTimeline(
   matchId: string,
   player1Id: string,
   player2Id: string,
   initialServerId: string,
   format: TennisFormat,
+  scoreEdits: TimelineScoreEdit[] = [],
 ): Promise<{ pointLogs: PointLogRow[]; timelinePoints: TimelinePoint[] }> {
   const pointLogs = await prisma.pointLog.findMany({
     where: { matchId, voidedAt: null },
@@ -29,7 +32,7 @@ export async function buildReportTimeline(
     },
   }) as PointLogRow[];
   const timelinePoints = rebuildTimelineFromPointLogs(
-    [], pointLogs, player1Id, player2Id, initialServerId, format,
+    [], pointLogs, player1Id, player2Id, initialServerId, format, scoreEdits,
   );
   return { pointLogs, timelinePoints };
 }

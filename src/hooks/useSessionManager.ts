@@ -1,7 +1,7 @@
 "use client";
 import { logger } from "@/lib/logger";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { MutableRefObject, Dispatch, SetStateAction } from "react";
 import { ScoringEngine } from "@/core/scoring/engine";
 import type { ScoringState } from "@/core/scoring/types";
@@ -85,6 +85,9 @@ export function useSessionManager(ctx: SessionManagerContext) {
   } = ctx;
 
   const { toast } = useToast();
+
+  const matchVersionRef = useRef(match?.version);
+  matchVersionRef.current = match?.version;
 
   const abandonCurrentSession = useCallback(
     async (snapshot?: string): Promise<boolean> => {
@@ -307,7 +310,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
       sessionStorage.setItem("last_abandon_timestamp", Date.now().toString());
       const token = tokenRef.current ?? sessionStorage.getItem("access_token");
       abandonSession(
-        { sessionId: sid, matchId, engine: engineRef.current!, token, matchVersion: match?.version },
+        { sessionId: sid, matchId, engine: engineRef.current!, token, matchVersion: matchVersionRef.current },
         { enqueuePendingAbandon, toast },
         snapshot,
       ).catch(() => {});

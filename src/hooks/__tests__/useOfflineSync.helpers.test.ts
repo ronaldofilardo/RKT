@@ -46,13 +46,13 @@ beforeEach(() => {
 });
 
 describe('fetchMatchSequence', () => {
-  it('returns pointCount from _count.pointLog', async () => {
-    mockFetch({ _count: { pointLog: 42 } });
+  it('returns lastPointSequence from the match response', async () => {
+    mockFetch({ lastPointSequence: 42 });
     const result = await fetchMatchSequence('match-1', 'token');
     expect(result).toBe(42);
   });
 
-  it('falls back to version when _count.pointLog is missing', async () => {
+  it('falls back to version when lastPointSequence is missing', async () => {
     mockFetch({ version: 15 });
     const result = await fetchMatchSequence('match-1', 'token');
     expect(result).toBe(15);
@@ -72,8 +72,8 @@ describe('fetchMatchSequence', () => {
     expect(logger.error).toHaveBeenCalled();
   });
 
-  it('returns 0 when pointCount is not a number and no version', async () => {
-    mockFetch({ _count: { pointLog: 'abc' } });
+  it('returns 0 when lastPointSequence is not a number and no version', async () => {
+    mockFetch({ lastPointSequence: 'abc' });
     const result = await fetchMatchSequence('match-1', 'token');
     expect(result).toBe(0);
   });
@@ -92,7 +92,7 @@ describe('fetchMatchSequence', () => {
 
 describe('ensureMatchSequence', () => {
   it('fetches and caches sequence for new matchId', async () => {
-    mockFetch({ _count: { pointLog: 10 } });
+    mockFetch({ lastPointSequence: 10 });
     const seq = new Map<string, number>();
     const result = await ensureMatchSequence('m1', 'token', seq);
     expect(result).toBe(10);
@@ -128,18 +128,14 @@ describe('createPointRequest', () => {
 });
 
 describe('markActionSynced', () => {
-  it('deletes from DB and dispatches event', async () => {
+  it('deletes from DB and updates the sequence map', async () => {
     const db = mockDB();
     const action = baseAction();
     const seq = new Map<string, number>();
-    (global as any).window = { dispatchEvent: jest.fn() };
 
     await markActionSynced(db, action, 3, seq);
 
     expect(db.delete).toHaveBeenCalledWith('optimistic-queue', 'action-1');
-    expect(global.window.dispatchEvent).toHaveBeenCalledWith(
-      expect.any(CustomEvent),
-    );
     expect(seq.get('match-1')).toBe(3);
   });
 });

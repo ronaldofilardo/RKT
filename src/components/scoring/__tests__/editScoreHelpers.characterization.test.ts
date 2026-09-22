@@ -127,10 +127,10 @@ describe('editScoreHelpers (characterization)', () => {
       expect(result.error).toContain('negative');
     });
 
-    it('deve rejeitar 0-0', () => {
+    it('deve aceitar 0-0 como parcial', () => {
       const result = validateSetResult({ p1Games: 0, p2Games: 0 }, 'MATCH_TB_10');
-      expect(result.isValid).toBe(false);
-      expect(result.error).toContain('Informe o resultado do set');
+      expect(result.isValid).toBe(true);
+      expect(result.isPartial).toBe(true);
     });
   });
 
@@ -315,8 +315,10 @@ describe('editScoreHelpers (characterization)', () => {
       expect(validateSetResult({ p1Games: 0, p2Games: -1 }, 'BEST_OF_3').isValid).toBe(false);
     });
 
-    it('deve rejeitar 0-0', () => {
-      expect(validateSetResult({ p1Games: 0, p2Games: 0 }, 'BEST_OF_3').isValid).toBe(false);
+    it('deve aceitar 0-0 como parcial', () => {
+      const result = validateSetResult({ p1Games: 0, p2Games: 0 }, 'BEST_OF_3');
+      expect(result.isValid).toBe(true);
+      expect(result.isPartial).toBe(true);
     });
 
     it('deve aceitar 1-0 como parcial', () => {
@@ -356,8 +358,10 @@ describe('editScoreHelpers (characterization)', () => {
       expect(validateMatchTiebreakInput({ p1Points: -1, p2Points: 5 }).isValid).toBe(false);
     });
 
-    it('deve rejeitar 0-0', () => {
-      expect(validateMatchTiebreakInput({ p1Points: 0, p2Points: 0 }).isValid).toBe(false);
+    it('deve aceitar 0-0 como parcial', () => {
+      const result = validateMatchTiebreakInput({ p1Points: 0, p2Points: 0 });
+      expect(result.isValid).toBe(true);
+      expect(result.isPartial).toBe(true);
     });
 
   });
@@ -381,14 +385,16 @@ describe('editScoreHelpers (characterization)', () => {
       expect(getNextServerAfterSet({ ...baseParams, p1Games: 6, p2Games: 3 })).toBe('player2');
     });
 
-    it('deve manter server em tiebreak win (não-MT)', () => {
+    it("BUG FIX (2026-09-22): deve TROCAR server em tiebreak win (não-MT) — regra ITF", () => {
+      // 7-6 = 13 games (ímpar) → servidor troca (quem sacou o 1º ponto do
+      // tiebreak passa a RECEBER no set seguinte).
       const result = getNextServerAfterSet({
         ...baseParams,
         p1Games: 7,
         p2Games: 6,
         tiebreakPoints: { player1: 7, player2: 5 },
       });
-      expect(result).toBe('player1');
+      expect(result).toBe('player2');
     });
 
     describe('Match Tiebreak logic', () => {

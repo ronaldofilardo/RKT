@@ -11,6 +11,7 @@ export function buildConfirmSubmission(params: {
   completedSets: CompletedSet[];
   matchFormat: TennisFormat;
   currentServer: "player1" | "player2";
+  initialServer?: "player1" | "player2";
   setData: SetEditData;
   p1Val: number;
   p2Val: number;
@@ -30,6 +31,7 @@ export function buildConfirmSubmission(params: {
 
   const nextServer = calculateNextServer({
     currentServer,
+    initialServer: params.initialServer,
     p1Games: p1Val,
     p2Games: p2Val,
     matchFormat,
@@ -57,6 +59,7 @@ export function prepareFullSetSubmission(params: {
   matchFormat: TennisFormat;
   completedSets: CompletedSet[];
   currentServer: "player1" | "player2";
+  initialServer?: "player1" | "player2";
   tiebreakComplete?: boolean;
 }): { setData: SetEditData; allSets: SetEditData[]; nextServer: "player1" | "player2" } {
   const {
@@ -73,6 +76,7 @@ export function prepareFullSetSubmission(params: {
     matchFormat,
     completedSets,
     currentServer,
+    initialServer,
     tiebreakComplete,
   } = params;
 
@@ -96,6 +100,7 @@ export function prepareFullSetSubmission(params: {
     completedSets,
     matchFormat,
     currentServer,
+    initialServer,
     setData,
     p1Val,
     p2Val,
@@ -147,6 +152,7 @@ export async function executeConfirmFlow(params: {
   completedSets: CompletedSet[];
   matchFormat: TennisFormat;
   currentServer: "player1" | "player2";
+  initialServer?: "player1" | "player2";
   bothFilled: boolean;
   p1Val: number;
   p2Val: number;
@@ -180,6 +186,7 @@ export async function executeConfirmFlow(params: {
     completedSets: params.completedSets,
     matchFormat: params.matchFormat,
     currentServer: params.currentServer,
+    initialServer: params.initialServer,
     bothFilled: params.bothFilled,
     p1Val: params.p1Val,
     p2Val: params.p2Val,
@@ -252,6 +259,7 @@ export async function executeConfirmFlow(params: {
     matchFormat: params.matchFormat,
     completedSets: params.completedSets,
     currentServer: params.currentServer,
+    initialServer: params.initialServer,
     tiebreakComplete: params.tiebreakComplete,
   });
 

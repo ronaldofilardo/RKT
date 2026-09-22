@@ -76,7 +76,7 @@ function EditScoreModalView({ data }: { data: ModalViewData }) {
   const score = derived.effectiveScoreState;
   const lastSet = score.sets[score.sets.length - 1];
   const isTiebreakActive = !!lastSet?.isTiebreak && lastSet.tiebreakScore;
-  return <EditScoreModal isOpen={true} matchFormat={match.format as TennisFormat} playerNames={{ p1: match.player1.name, p2: match.player2.name }} currentSets={derived.editScoreCurrentSets} currentServer={score.server} completedSets={derived.editScoreCompletedSets} currentGamePoints={{
+  return <EditScoreModal isOpen={true} matchFormat={match.format as TennisFormat} playerNames={{ p1: match.player1.name, p2: match.player2.name }} currentSets={derived.editScoreCurrentSets} currentServer={score.server} initialServer={match.initialServerId === match.player1.id ? 'player1' : 'player2'} completedSets={derived.editScoreCompletedSets} currentGamePoints={{
     player1: isTiebreakActive
       ? (lastSet?.tiebreakScore?.player1 ?? 0)
       : derived.gamePointToDisplay(score.currentGame?.player1 ?? 0),

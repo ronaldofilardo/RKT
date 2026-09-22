@@ -1,12 +1,18 @@
 /**
  * @jest-environment jsdom
  */
-jest.mock('@/core/scoring/engine', () => ({
-  ScoringEngine: jest.fn().mockImplementation(function(this: any) {
+jest.mock("@/core/scoring/engine", () => ({
+  ScoringEngine: jest.fn().mockImplementation(function (this: any) {
     this.getState = jest.fn().mockReturnValue({
       sets: [],
-      currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
-      server: 'player1',
+      currentGame: {
+        player1: 0,
+        player2: 0,
+        isDeuce: false,
+        advantage: null,
+        secondServe: false,
+      },
+      server: "player1",
       isFinished: false,
       winner: null,
       setsWon: { player1: 0, player2: 0 },
@@ -15,48 +21,52 @@ jest.mock('@/core/scoring/engine', () => ({
     });
     this.applyPoint = jest.fn();
     this.isFinished = jest.fn().mockReturnValue(false);
-    this.undoLastPoint = jest.fn().mockReturnValue({ point: { type: 'WINNER', winnerId: 'p1' } });
+    this.undoLastPoint = jest
+      .fn()
+      .mockReturnValue({ point: { type: "WINNER", winnerId: "p1" } });
     this.getHistoryLength = jest.fn().mockReturnValue(1);
   }),
 }));
 
-jest.mock('react', () => {
-  const actual = jest.requireActual('react');
+jest.mock("react", () => {
+  const actual = jest.requireActual("react");
   return {
     ...actual,
     useCallback: jest.fn((fn) => fn),
   };
 });
 
-import { renderHook } from '@testing-library/react';
-import { useScoringHandlers } from '@/hooks/useScoringHandlers';
-import type { ScoreboardUIState } from '@/hooks/useScoreboardUIState';
+import { renderHook } from "@testing-library/react";
+import { useScoringHandlers } from "@/hooks/useScoringHandlers";
+import type { ScoreboardUIState } from "@/hooks/useScoreboardUIState";
 
-function createMockContext(overrides: Partial<Parameters<typeof useScoringHandlers>[0]> = {}) {
+function createMockContext(
+  overrides: Partial<Parameters<typeof useScoringHandlers>[0]> = {},
+) {
   const match = {
-    id: 'match-1',
-    format: 'BEST_OF_3',
-    player1: { id: 'p1', name: 'Player 1' },
-    player2: { id: 'p2', name: 'Player 2' },
-    initialServerId: 'p1',
+    id: "match-1",
+    format: "BEST_OF_3",
+    player1: { id: "p1", name: "Player 1" },
+    player2: { id: "p2", name: "Player 2" },
+    initialServerId: "p1",
     scoreState: null,
-    state: 'IN_PROGRESS',
+    state: "IN_PROGRESS",
   };
 
   const defaultServeErrorState: ScoreboardUIState = {
-    serveStep: 'none',
+    serveStep: "none",
     pendingServeError: null,
     firstFaultDetail: null,
     isServeEffectModalOpen: false,
   };
 
   const ctx = {
-    matchId: 'match-1',
+    matchId: "match-1",
     match,
     isOnline: true,
     enqueue: jest.fn().mockResolvedValue(undefined),
     engineRef: { current: null as any },
-    tokenRef: { current: 'token' },
+    tokenRef: { current: "token" },
     modalParamsRef: { current: {} },
     openRef: { current: jest.fn() },
     pointSequenceRef: { current: 0 },
@@ -84,7 +94,7 @@ function createMockContext(overrides: Partial<Parameters<typeof useScoringHandle
   return ctx;
 }
 
-describe('useScoringHandlers - handleUndo', () => {
+describe("useScoringHandlers - handleUndo", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     global.fetch = jest.fn().mockResolvedValue({
@@ -97,7 +107,7 @@ describe('useScoringHandlers - handleUndo', () => {
     jest.restoreAllMocks();
   });
 
-  it('deve chamar closeAll() após desfazer o ponto', async () => {
+  it("deve chamar closeAll() após desfazer o ponto", async () => {
     const setScoreState = jest.fn();
     const setPointsHistory = jest.fn();
     const closeAll = jest.fn();
@@ -106,16 +116,26 @@ describe('useScoringHandlers - handleUndo', () => {
 
     const mockEngine = {
       getState: jest.fn().mockReturnValue({
-        sets: [{ player1: 1, player2: 0, isTiebreak: false, tiebreakScore: null }],
-        currentGame: { player1: 1, player2: 0, isDeuce: false, advantage: null, secondServe: false },
-        server: 'player1' as const,
+        sets: [
+          { player1: 1, player2: 0, isTiebreak: false, tiebreakScore: null },
+        ],
+        currentGame: {
+          player1: 1,
+          player2: 0,
+          isDeuce: false,
+          advantage: null,
+          secondServe: false,
+        },
+        server: "player1" as const,
         isFinished: false,
         winner: null,
         setsWon: { player1: 0, player2: 0 },
         startedAt: Date.now(),
         secondServe: false,
       }),
-      undoLastPoint: jest.fn().mockReturnValue({ type: 'WINNER', winnerId: 'p1' }),
+      undoLastPoint: jest
+        .fn()
+        .mockReturnValue({ type: "WINNER", winnerId: "p1" }),
       getHistoryLength: jest.fn().mockReturnValue(1),
     };
 
@@ -128,7 +148,7 @@ describe('useScoringHandlers - handleUndo', () => {
     });
 
     const { result } = renderHook(() => useScoringHandlers(ctx));
-      const handlers = result.current;
+    const handlers = result.current;
 
     await handlers.handleUndo();
 
@@ -137,7 +157,7 @@ describe('useScoringHandlers - handleUndo', () => {
     expect(closeAll).toHaveBeenCalled();
   });
 
-  it('deve chamar onUndoComplete() após desfazer o ponto com sucesso', async () => {
+  it("deve chamar onUndoComplete() após desfazer o ponto com sucesso", async () => {
     const setScoreState = jest.fn();
     const setPointsHistory = jest.fn();
     const closeAll = jest.fn();
@@ -146,16 +166,26 @@ describe('useScoringHandlers - handleUndo', () => {
 
     const mockEngine = {
       getState: jest.fn().mockReturnValue({
-        sets: [{ player1: 1, player2: 0, isTiebreak: false, tiebreakScore: null }],
-        currentGame: { player1: 1, player2: 0, isDeuce: false, advantage: null, secondServe: false },
-        server: 'player1' as const,
+        sets: [
+          { player1: 1, player2: 0, isTiebreak: false, tiebreakScore: null },
+        ],
+        currentGame: {
+          player1: 1,
+          player2: 0,
+          isDeuce: false,
+          advantage: null,
+          secondServe: false,
+        },
+        server: "player1" as const,
         isFinished: false,
         winner: null,
         setsWon: { player1: 0, player2: 0 },
         startedAt: Date.now(),
         secondServe: false,
       }),
-      undoLastPoint: jest.fn().mockReturnValue({ type: 'WINNER', winnerId: 'p1' }),
+      undoLastPoint: jest
+        .fn()
+        .mockReturnValue({ type: "WINNER", winnerId: "p1" }),
       getHistoryLength: jest.fn().mockReturnValue(1),
     };
 
@@ -168,14 +198,14 @@ describe('useScoringHandlers - handleUndo', () => {
     });
 
     const { result } = renderHook(() => useScoringHandlers(ctx));
-      const handlers = result.current;
+    const handlers = result.current;
 
     await handlers.handleUndo();
 
     expect(onUndoComplete).toHaveBeenCalled();
   });
 
-  it('deve atualizar o pointsHistory ao desfazer', () => {
+  it("deve atualizar o pointsHistory ao desfazer", () => {
     const setScoreState = jest.fn();
     const setPointsHistory = jest.fn();
     const closeAll = jest.fn();
@@ -183,16 +213,26 @@ describe('useScoringHandlers - handleUndo', () => {
 
     const mockEngine = {
       getState: jest.fn().mockReturnValue({
-        sets: [{ player1: 1, player2: 0, isTiebreak: false, tiebreakScore: null }],
-        currentGame: { player1: 1, player2: 0, isDeuce: false, advantage: null, secondServe: false },
-        server: 'player1' as const,
+        sets: [
+          { player1: 1, player2: 0, isTiebreak: false, tiebreakScore: null },
+        ],
+        currentGame: {
+          player1: 1,
+          player2: 0,
+          isDeuce: false,
+          advantage: null,
+          secondServe: false,
+        },
+        server: "player1" as const,
         isFinished: false,
         winner: null,
         setsWon: { player1: 0, player2: 0 },
         startedAt: Date.now(),
         secondServe: false,
       }),
-      undoLastPoint: jest.fn().mockReturnValue({ type: 'WINNER', winnerId: 'p1' }),
+      undoLastPoint: jest
+        .fn()
+        .mockReturnValue({ type: "WINNER", winnerId: "p1" }),
       getHistoryLength: jest.fn().mockReturnValue(1),
     };
 
@@ -205,14 +245,14 @@ describe('useScoringHandlers - handleUndo', () => {
     });
 
     const { result } = renderHook(() => useScoringHandlers(ctx));
-      const handlers = result.current;
+    const handlers = result.current;
 
     handlers.handleUndo();
 
     expect(setPointsHistory).toHaveBeenCalledWith(expect.any(Function));
   });
 
-  it('não deve fazer nada se engineRef.current for null', () => {
+  it("não deve fazer nada se engineRef.current for null", () => {
     const setScoreState = jest.fn();
     const closeAll = jest.fn();
     const onUndoComplete = jest.fn();
@@ -225,7 +265,7 @@ describe('useScoringHandlers - handleUndo', () => {
     });
 
     const { result } = renderHook(() => useScoringHandlers(ctx));
-      const handlers = result.current;
+    const handlers = result.current;
 
     handlers.handleUndo();
 
@@ -234,7 +274,7 @@ describe('useScoringHandlers - handleUndo', () => {
     expect(onUndoComplete).not.toHaveBeenCalled();
   });
 
-  it('não deve fazer nada se undoLastPoint retornar null', () => {
+  it("não deve fazer nada se undoLastPoint retornar null", () => {
     const setScoreState = jest.fn();
     const closeAll = jest.fn();
     const onUndoComplete = jest.fn();
@@ -253,7 +293,7 @@ describe('useScoringHandlers - handleUndo', () => {
     });
 
     const { result } = renderHook(() => useScoringHandlers(ctx));
-      const handlers = result.current;
+    const handlers = result.current;
 
     handlers.handleUndo();
 
@@ -262,7 +302,7 @@ describe('useScoringHandlers - handleUndo', () => {
     expect(onUndoComplete).not.toHaveBeenCalled();
   });
 
-  it('deve persistir o estado após o undo', async () => {
+  it("deve persistir o estado após o undo", async () => {
     const setScoreState = jest.fn();
     const setPointsHistory = jest.fn();
     const closeAll = jest.fn();
@@ -270,16 +310,26 @@ describe('useScoringHandlers - handleUndo', () => {
 
     const mockEngine = {
       getState: jest.fn().mockReturnValue({
-        sets: [{ player1: 1, player2: 0, isTiebreak: false, tiebreakScore: null }],
-        currentGame: { player1: 1, player2: 0, isDeuce: false, advantage: null, secondServe: false },
-        server: 'player1' as const,
+        sets: [
+          { player1: 1, player2: 0, isTiebreak: false, tiebreakScore: null },
+        ],
+        currentGame: {
+          player1: 1,
+          player2: 0,
+          isDeuce: false,
+          advantage: null,
+          secondServe: false,
+        },
+        server: "player1" as const,
         isFinished: false,
         winner: null,
         setsWon: { player1: 0, player2: 0 },
         startedAt: Date.now(),
         secondServe: false,
       }),
-      undoLastPoint: jest.fn().mockReturnValue({ point: { type: 'WINNER', winnerId: 'p1' } }),
+      undoLastPoint: jest
+        .fn()
+        .mockReturnValue({ point: { type: "WINNER", winnerId: "p1" } }),
       getHistoryLength: jest.fn().mockReturnValue(1),
     };
 
@@ -292,22 +342,28 @@ describe('useScoringHandlers - handleUndo', () => {
     });
 
     const { result } = renderHook(() => useScoringHandlers(ctx));
-      const handlers = result.current;
+    const handlers = result.current;
 
     handlers.handleUndo();
 
     expect(mockEngine.getState).toHaveBeenCalled();
   });
 
-  it('deve desfazer as duas ações de uma dupla falta', async () => {
+  it("deve desfazer as duas ações de uma dupla falta", async () => {
     const setScoreState = jest.fn();
     const setPointsHistory = jest.fn();
     const closeAll = jest.fn();
     const mockEngine = {
       getState: jest.fn().mockReturnValue({
         sets: [],
-        currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
-        server: 'player1' as const,
+        currentGame: {
+          player1: 0,
+          player2: 0,
+          isDeuce: false,
+          advantage: null,
+          secondServe: false,
+        },
+        server: "player1" as const,
         isFinished: false,
         winner: null,
         setsWon: { player1: 0, player2: 0 },
@@ -316,54 +372,69 @@ describe('useScoringHandlers - handleUndo', () => {
       }),
       undoLastPoint: jest
         .fn()
-        .mockReturnValueOnce({ point: { type: 'DOUBLE_FAULT' } }),
+        .mockReturnValueOnce({ point: { type: "DOUBLE_FAULT" } })
+        .mockReturnValueOnce({ point: { type: "FAULT_FIRST" } }),
     };
 
-    const { result } = renderHook(() => useScoringHandlers(createMockContext({
-      engineRef: { current: mockEngine as any },
-      setScoreState,
-      setPointsHistory,
-      closeAll,
-    })));
+    const { result } = renderHook(() =>
+      useScoringHandlers(
+        createMockContext({
+          engineRef: { current: mockEngine as any },
+          setScoreState,
+          setPointsHistory,
+          closeAll,
+        }),
+      ),
+    );
 
     await result.current.handleUndo();
 
-    expect(mockEngine.undoLastPoint).toHaveBeenCalledTimes(1);
+    expect(mockEngine.undoLastPoint).toHaveBeenCalledTimes(2);
     expect(setScoreState).toHaveBeenCalled();
     expect(setPointsHistory).toHaveBeenCalledWith(expect.any(Function));
     const trimHistory = setPointsHistory.mock.calls[0][0];
-    expect(trimHistory(['double-fault'])).toEqual([]);
+    expect(trimHistory(["first-fault", "double-fault"])).toEqual([]);
     expect(closeAll).toHaveBeenCalled();
   });
 
-  it('deve enviar voidPointLogId no PATCH /state atomicamente e NAO fazer chamada avulsa a DELETE', async () => {
-    let capturedUrl = '';
-    let capturedMethod = '';
+  it("deve enviar voidPointLogId no PATCH /state atomicamente e NAO fazer chamada avulsa a DELETE", async () => {
+    let capturedUrl = "";
+    let capturedMethod = "";
     let capturedBody: any = null;
 
-    global.fetch = jest.fn().mockImplementation(async (url: string, init?: RequestInit) => {
-      capturedUrl = url;
-      capturedMethod = init?.method ?? 'GET';
-      capturedBody = init?.body ? JSON.parse(init.body as string) : null;
-      return {
-        ok: true,
-        status: 200,
-        json: async () => ({ version: 2 }),
-      };
-    });
+    global.fetch = jest
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        capturedUrl = url;
+        capturedMethod = init?.method ?? "GET";
+        capturedBody = init?.body ? JSON.parse(init.body as string) : null;
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ version: 2 }),
+        };
+      });
 
     const mockEngine = {
       getState: jest.fn().mockReturnValue({
         sets: [],
-        currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
-        server: 'player1' as const,
+        currentGame: {
+          player1: 0,
+          player2: 0,
+          isDeuce: false,
+          advantage: null,
+          secondServe: false,
+        },
+        server: "player1" as const,
         isFinished: false,
         winner: null,
         setsWon: { player1: 0, player2: 0 },
         startedAt: Date.now(),
         secondServe: false,
       }),
-      undoLastPoint: jest.fn().mockReturnValue({ point: { type: 'WINNER', winnerId: 'p1' } }),
+      undoLastPoint: jest
+        .fn()
+        .mockReturnValue({ point: { type: "WINNER", winnerId: "p1" } }),
       getHistoryLength: jest.fn().mockReturnValue(1),
     };
 
@@ -378,18 +449,18 @@ describe('useScoringHandlers - handleUndo', () => {
 
     // Verifica que NÃO houve nenhuma chamada a DELETE /point/
     const deleteCalls = (global.fetch as jest.Mock).mock.calls.filter(
-      ([, init]) => init?.method === 'DELETE',
+      ([, init]) => init?.method === "DELETE",
     );
     expect(deleteCalls).toHaveLength(0);
 
     // Verifica que o PATCH foi feito para a rota de state
-    expect(capturedUrl).toContain('/api/matches/match-1/state');
-    expect(capturedMethod).toBe('PATCH');
-    expect(capturedBody).toHaveProperty('allowScoreEdit', true);
+    expect(capturedUrl).toContain("/api/matches/match-1/state");
+    expect(capturedMethod).toBe("PATCH");
+    expect(capturedBody).toHaveProperty("allowScoreEdit", true);
   });
 });
 
-describe('useScoringHandlers - handleVoltar', () => {
+describe("useScoringHandlers - handleVoltar", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     global.fetch = jest.fn().mockResolvedValue({
@@ -412,9 +483,9 @@ describe('useScoringHandlers - handleVoltar', () => {
 
     const { result } = renderHook(() => useScoringHandlers(ctx));
 
-    result.current.handleVoltar('none');
+    result.current.handleVoltar("none");
 
-    expect(open).toHaveBeenCalledWith('undo');
+    expect(open).toHaveBeenCalledWith("undo");
   });
 
   it('deve resetar o 2º saque diretamente (sem modal) quando serveStep é "second"', () => {
@@ -435,16 +506,16 @@ describe('useScoringHandlers - handleVoltar', () => {
 
     const { result } = renderHook(() => useScoringHandlers(ctx));
 
-    result.current.handleVoltar('second');
+    result.current.handleVoltar("second");
 
     expect(open).not.toHaveBeenCalled();
     expect(handleFirstServeErrorClear).toHaveBeenCalled();
     expect(handleServeErrorClose).toHaveBeenCalled();
-    expect(setServeStep).toHaveBeenCalledWith('none');
+    expect(setServeStep).toHaveBeenCalledWith("none");
     expect(closeAll).toHaveBeenCalled();
   });
 
-  it('deve cancelar o debounce pendente ao resetar o 2º saque', () => {
+  it("deve cancelar o debounce pendente ao resetar o 2º saque", () => {
     jest.useFakeTimers();
     try {
       const open = jest.fn();
@@ -460,11 +531,11 @@ describe('useScoringHandlers - handleVoltar', () => {
 
       const { result } = renderHook(() => useScoringHandlers(ctx));
 
-      result.current.handleVoltar('second');
+      result.current.handleVoltar("second");
 
       expect(debounceTimerRef.current).toBeNull();
       expect(ctx.isProcessingRef.current).toBe(false);
-      expect(setServeStep).toHaveBeenCalledWith('none');
+      expect(setServeStep).toHaveBeenCalledWith("none");
     } finally {
       jest.useRealTimers();
     }

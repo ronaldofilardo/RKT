@@ -46,7 +46,7 @@ export function validateSetResult(
   }
 
   if (p1Games === 0 && p2Games === 0) {
-    return { isValid: false, error: 'Informe o resultado do set' };
+    return { isValid: true, isPartial: true };
   }
 
   if (format === 'MATCH_TB_10') {
@@ -72,7 +72,7 @@ export function validateMatchTiebreakInput(
   }
 
   if (p1Points === 0 && p2Points === 0) {
-    return { isValid: false, error: 'Enter the tiebreak result' };
+    return { isValid: true, isPartial: true };
   }
 
   // Match tiebreak: first to 10 with 2-point lead
@@ -106,7 +106,7 @@ function validateStandardSet(
   }
 
   if (p1Games === 0 && p2Games === 0) {
-    return { isValid: false, error: 'Informe o resultado do set' };
+    return { isValid: true, isPartial: true };
   }
 
   // Over-max: in tiebreak formats, max games for a single player is tiebreakAt+1
@@ -238,13 +238,23 @@ export function isTiebreakScoreImpossible(p1: number, p2: number): boolean {
 
 export function getNextServerAfterSet(params: {
   currentServer: 'player1' | 'player2';
+  /**
+   * Sacador do Game 1 de TODA a partida (valor fixo — normalmente
+   * `match.initialServerId`). Usado como âncora para recalcular o
+   * sacador do set seguinte a partir da contagem total de games, em vez
+   * do sacador "ao vivo" (que pode estar desatualizado em relação ao
+   * placar sendo editado). Se omitido, cai para `currentServer` (mantém
+   * o comportamento anterior, com os bugs conhecidos — ver comentário em
+   * `computeServerForNextSetAfterTiebreak` em core/scoring/tiebreak.ts).
+   */
+  initialServer?: 'player1' | 'player2';
   p1Games: number;
   p2Games: number;
   format: TennisFormat;
   tiebreakPoints?: { player1: number; player2: number } | null;
   completedSets?: Array<{ player1: number; player2: number }>;
 }): 'player1' | 'player2' {
-  const { currentServer, p1Games, p2Games, format, tiebreakPoints, completedSets = [] } = params;
+  const { currentServer, initialServer = currentServer, p1Games, p2Games, format, tiebreakPoints, completedSets = [] } = params;
 
   // Calcular setsWon a partir dos completedSets
   const p1Sets = completedSets.filter(s => s.player1 > s.player2).length;
@@ -257,12 +267,6 @@ export function getNextServerAfterSet(params: {
     { player1: p1Sets, player2: p2Sets },
     format as any,
   );
-
-  const winnerGames = Math.max(p1Games, p2Games);
-  const loserGames = Math.min(p1Games, p2Games);
-  const tiebreakAt = getTiebreakAtForFormat(format);
-
-  const isTiebreakWin = winnerGames === tiebreakAt + 1 && loserGames === tiebreakAt;
 
   // For Match Tiebreak: server alternates every 2 points (standard tiebreak).
   // First point: currentServer serves, then alternate every 2 points.
@@ -281,30 +285,25 @@ export function getNextServerAfterSet(params: {
     return currentServer === 'player1' ? 'player2' : 'player1';
   }
 
-  if (isTiebreakWin && tiebreakPoints) {
-    const tbWinner = Math.max(tiebreakPoints.player1, tiebreakPoints.player2);
-    const tbLoser = Math.min(tiebreakPoints.player1, tiebreakPoints.player2);
-    // At this point, isMatchTiebreakSet already returned above, so we are
-    // always in a regular tiebreak — MIN_WIN_POINTS_STANDARD is correct.
-    const tbMin = TIEBREAK.MIN_WIN_POINTS_STANDARD;
-
-    if (tbWinner >= tbMin && tbWinner - tbLoser >= TIEBREAK.WIN_MARGIN) {
-      return currentServer;
-    }
-  }
-
-  if (isTiebreakWin) {
-    return currentServer;
-  }
-
+  // BUG FIX (2026-09-22): sets normais e sets decididos por tiebreak comum
+  // (ex.: 7-6, 10-9 em PRO_SET_8) usam a MESMA fórmula — contagem total de
+  // games da partida (o placar final do set já inclui o tiebreak: 7-6 =
+  // 13 games) módulo 2, a partir de uma âncora FIXA (initialServer, quem
+  // sacou o game 1 de toda a partida).
+  //
+  // Antes: um set decidido por tiebreak comum sempre "mantinha o mesmo
+  // sacador" (ramo especial isTiebreakWin), o que contraria a regra
+  // oficial (ITF): quem serviu o 1º ponto do tiebreak passa a RECEBER no
+  // set seguinte, ou seja, o saque troca. E mesmo o ramo geral (não
+  // tiebreak) usava `currentServer` — o sacador AO VIVO, já calculado a
+  // partir do placar de ANTES da edição — como se fosse uma âncora fixa,
+  // o que dá resposta errada sempre que a correção do set em andamento
+  // muda a paridade do total de games (ex.: corrigir 2-1 para 3-1).
   const totalGamesInMatch = completedSets.reduce(
     (sum, set) => sum + set.player1 + set.player2,
     p1Games + p2Games
   );
 
-  if (totalGamesInMatch % 2 === 0) {
-    return currentServer;
-  }
-
-  return currentServer === 'player1' ? 'player2' : 'player1';
+  if (totalGamesInMatch % 2 === 0) return initialServer;
+  return initialServer === 'player1' ? 'player2' : 'player1';
 }

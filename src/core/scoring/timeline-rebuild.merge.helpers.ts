@@ -43,8 +43,11 @@ function getMergedRallyLength(p: TimelinePoint, log: PointLogRow) {
   return log.annotations?.rallyLength ?? p.rallyLength;
 }
 
-function getMergedNote(p: TimelinePoint, log: PointLogRow, rallyDetails: PointDetails['rallyDetails']) {
-  return log.annotations?.note ?? (rallyDetails?.note ?? p.note);
+function getMergedNote(_p: TimelinePoint, log: PointLogRow, rallyDetails: PointDetails['rallyDetails']) {
+  // Fonte exclusiva: annotations persistidas no PointLog.
+  // NÃO usa p.note como fallback: pode ser residual de ponto anterior.
+  if (log.annotations == null) return undefined;
+  return log.annotations.note ?? rallyDetails?.note ?? undefined;
 }
 
 function getMergedDetails(p: TimelinePoint, log: PointLogRow) {

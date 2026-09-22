@@ -9,30 +9,9 @@ export function saveToHistory(history: HistoryEntry[], state: ScoringState, poin
 
 export function undoLastPoint(
   history: HistoryEntry[],
-  redoStack: HistoryEntry[],
-  currentState: ScoringState,
 ): { stateBefore: ScoringState; point: PointDetails } | null {
   if (history.length === 0) return null;
   const entry = history.pop()!;
-  redoStack.push({
-    stateBefore: JSON.parse(JSON.stringify(currentState)),
-    point: entry.point,
-  });
-  return { stateBefore: entry.stateBefore, point: entry.point };
-}
-
-/** @deprecated Redo feature disabled (TD-032) — kept for potential future re-enablement. */
-export function replayCurrentPoint(
-  redoStack: HistoryEntry[],
-  undoStack: HistoryEntry[],
-  currentState: ScoringState,
-): { stateBefore: ScoringState; point: PointDetails } | null {
-  if (redoStack.length === 0) return null;
-  const entry = redoStack.pop()!;
-  undoStack.push({
-    stateBefore: JSON.parse(JSON.stringify(currentState)),
-    point: entry.point,
-  });
   return { stateBefore: entry.stateBefore, point: entry.point };
 }
 
@@ -51,12 +30,4 @@ export function restorePointHistory(history: HistoryEntry[], newHistory: History
 
 export function clearHistory(history: HistoryEntry[]): void {
   history.length = 0;
-}
-
-export function clearRedoHistory(redoStack: HistoryEntry[]): void {
-  redoStack.length = 0;
-}
-
-export function getRedoLength(redoStack: HistoryEntry[]): number {
-  return redoStack.length;
 }

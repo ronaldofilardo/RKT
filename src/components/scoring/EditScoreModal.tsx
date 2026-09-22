@@ -22,6 +22,11 @@ interface EditScoreModalProps {
   playerNames: { p1: string; p2: string };
   currentSets: { player1: number; player2: number };
   currentServer: Player;
+  // Sacador do Game 1 de TODA a partida (fixo — normalmente derivado de
+  // match.initialServerId). Usado como âncora para recalcular corretamente
+  // o sacador do próximo set ao editar o placar. Se omitido, cai para
+  // currentServer (comportamento anterior).
+  initialServer?: Player;
   completedSets?: CompletedSet[];
   currentGamePoints?: { player1: number | string; player2: number | string };
   // Indica que currentGamePoints representa os pontos de um tie-break de
@@ -51,6 +56,7 @@ export function EditScoreModal({
   playerNames,
   currentSets,
   currentServer,
+  initialServer,
   completedSets = [],
   currentGamePoints,
   isTiebreak = false,
@@ -81,6 +87,7 @@ export function EditScoreModal({
       matchFormat,
       currentSets,
       currentServer,
+      initialServer,
       completedSets: completedSets as CompletedSet[],
       currentGamePoints,
       isTiebreak,

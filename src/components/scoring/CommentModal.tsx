@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useNotesModal, type NotesModalResult } from '@/hooks/useNotesModal';
+import { useNotesModal } from '@/hooks/useNotesModal';
 
 interface CommentModalProps {
   isOpen: boolean;
@@ -49,19 +49,29 @@ export function CommentModal({
   }, [isOpen, mounted]);
 
   const handleSave = useCallback(async () => {
-    if (!notes.canSubmit) return;
+    if (!notes.canSubmit || isSubmitting) return;
     setIsSubmitting(true);
-    let result: NotesModalResult;
     try {
-      result = await notes.save();
+      if (notes.voiceRecorder.state === 'recording') {
+        await notes.voiceRecorder.stopRecording();
+      }
+      const result = await notes.save();
+      const savePromise = Promise.resolve(onSave(result.text, result.audio));
+      await Promise.all([
+        savePromise,
+        new Promise((resolve) => setTimeout(resolve, 500)),
+      ]);
+      notes.clear();
+      onClose();
+    } catch {
+      setIsSubmitting(false);
     } finally {
       setIsSubmitting(false);
     }
-    onClose();
-    void onSave(result.text, result.audio);
-  }, [notes, onSave, onClose]);
+  }, [notes, onSave, onClose, isSubmitting]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (isSubmitting) return;
     if (e.key === 'Escape') {
       e.preventDefault();
       onClose();
@@ -70,12 +80,13 @@ export function CommentModal({
       e.preventDefault();
       handleSave();
     }
-  }, [onClose, handleSave]);
+  }, [onClose, handleSave, isSubmitting]);
 
   const handleClose = useCallback(() => {
+    if (isSubmitting) return;
     notes.clear();
     onClose();
-  }, [notes, onClose]);
+  }, [notes, onClose, isSubmitting]);
 
   if (!isOpen || !mounted) return null;
 
@@ -86,15 +97,29 @@ export function CommentModal({
       role="button"
       tabIndex={-1}
       aria-label="Fechar comentário"
-      onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
+      onClick={(e) => { if (!isSubmitting && e.target === e.currentTarget) handleClose(); }}
       onKeyDown={handleKeyDown}
     >
       <div
-        className="bg-[#1e293b] rounded-[20px] p-6 mx-4 w-[clamp(280px,80vw,420px)] shadow-2xl border border-white/10"
+        className="relative bg-[#1e293b] rounded-[20px] p-6 mx-4 w-[clamp(280px,80vw,420px)] shadow-2xl border border-white/10 overflow-hidden"
         role="dialog"
         aria-label={title}
         tabIndex={-1}
       >
+        {isSubmitting && (
+          <div
+            className="absolute inset-0 bg-[#1e293b]/95 backdrop-blur-sm rounded-[20px] flex flex-col items-center justify-center gap-3 z-50 p-6"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <h4 className="text-white font-bold text-base">Salvando comentário...</h4>
+            <p className="text-gray-400 text-xs text-center leading-relaxed">
+              Aguarde um instante enquanto registramos o seu comentário.
+            </p>
+          </div>
+        )}
+
         <h3 className="text-white font-bold text-center text-lg mb-1">{title}</h3>
         <p className="text-gray-400 text-center text-sm mb-4">Registe um comentário sobre a partida</p>
 
@@ -218,7 +243,12 @@ export function CommentModal({
           </button>
           <button
             onClick={handleClose}
-            className="w-full py-2.5 rounded-xl bg-transparent text-gray-400 font-bold border border-white/10 hover:bg-white/5 hover:text-white transition-all text-sm"
+            disabled={isSubmitting}
+            className={`w-full py-2.5 rounded-xl bg-transparent font-bold border border-white/10 transition-all text-sm ${
+              isSubmitting
+                ? 'text-gray-600 border-white/5 cursor-not-allowed'
+                : 'text-gray-400 hover:bg-white/5 hover:text-white'
+            }`}
           >
             Fechar
           </button>

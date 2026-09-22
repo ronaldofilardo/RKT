@@ -131,6 +131,7 @@ export function performAddSet(params: {
   canAddNextSet: boolean;
   state: EditScoreModalState;
   currentServer: "player1" | "player2";
+  initialServer?: "player1" | "player2";
   matchFormat: TennisFormat;
   completedSets: CompletedSet[];
   isMatchTiebreakSet: boolean;
@@ -154,6 +155,7 @@ export function performAddSet(params: {
     tiebreakP2: "",
     nextServer: calculateNextServer({
       currentServer: params.currentServer,
+      initialServer: params.initialServer,
       p1Games,
       p2Games,
       matchFormat: params.matchFormat,

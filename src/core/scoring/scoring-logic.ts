@@ -15,14 +15,15 @@ export function getGameScoreLabel(
 }
 
 export function isBreakPoint(state: ScoringState): boolean {
-  if (state.isFinished) return false;
-  const set = state.sets[state.sets.length - 1];
+  if (!state || state.isFinished) return false;
+  const sets = Array.isArray(state.sets) ? state.sets : [];
+  const set = sets[sets.length - 1];
   // Tiebreak não tem "quebra de saque" no sentido clássico de game — cada
   // ponto do tiebreak é servido alternadamente, então o conceito de break
   // point não se aplica.
   if (set?.isTiebreak) return false;
 
-  const game = state.currentGame;
+  const game = state.currentGame ?? { player1: 0, player2: 0, isDeuce: false, advantage: null };
   const server = state.server;
   const receiver = server === 'player1' ? 'player2' : 'player1';
 
@@ -41,8 +42,10 @@ export function isBreakPoint(state: ScoringState): boolean {
 }
 
 export function isGameBall(state: ScoringState): boolean {
-  const game = state.currentGame;
-  const set = state.sets[state.sets.length - 1];
+  if (!state) return false;
+  const game = state.currentGame ?? { player1: 0, player2: 0, isDeuce: false };
+  const sets = Array.isArray(state.sets) ? state.sets : [];
+  const set = sets[sets.length - 1];
   if (set?.isTiebreak && set.tiebreakScore) {
     const p1 = set.tiebreakScore.player1;
     const p2 = set.tiebreakScore.player2;
@@ -53,7 +56,9 @@ export function isGameBall(state: ScoringState): boolean {
 }
 
 export function isSetBall(state: ScoringState, setNumber: number): boolean {
-  const set = state.sets[setNumber - 1];
+  if (!state) return false;
+  const sets = Array.isArray(state.sets) ? state.sets : [];
+  const set = sets[setNumber - 1];
   if (!set) return false;
   return (set.player1 >= 5 && set.player2 <= 4) || (set.player2 >= 5 && set.player1 <= 4);
 }
@@ -67,14 +72,19 @@ export function enrichPointsFromHistory(
 
   for (let i = 0; i < history.length; i++) {
     const entry = history[i];
-    const stateBefore = entry.stateBefore;
+    const rawState = entry?.stateBefore;
+    const stateBefore: ScoringState =
+      rawState && typeof rawState === 'object' && 'state' in rawState && (rawState as any).state
+        ? (rawState as any).state
+        : rawState;
     const pt = entry.point;
 
     const winner: 'PLAYER_1' | 'PLAYER_2' =
       pt.winnerId === player1Id ? 'PLAYER_1' : 'PLAYER_2';
 
-    const setNumber = stateBefore.sets.length > 0 ? stateBefore.sets.length : 1;
-    const currentSet = stateBefore.sets[stateBefore.sets.length - 1];
+    const sets = Array.isArray(stateBefore?.sets) ? stateBefore.sets : [];
+    const setNumber = sets.length > 0 ? sets.length : 1;
+    const currentSet = sets.length > 0 ? sets[sets.length - 1] : undefined;
     const isTiebreak = currentSet?.isTiebreak ?? false;
 
     const tiebreakScore = isTiebreak ? currentSet?.tiebreakScore : undefined;
@@ -86,16 +96,17 @@ export function enrichPointsFromHistory(
           player2: currentSet?.player2 ?? 0,
         };
 
+    const currentGame = stateBefore?.currentGame ?? { player1: 0, player2: 0, isDeuce: false, advantage: null };
     const gameScore = isTiebreak && tiebreakScore
       ? { player1: tiebreakScore.player1, player2: tiebreakScore.player2 }
       : {
-          player1: stateBefore.currentGame.player1,
-          player2: stateBefore.currentGame.player2,
+          player1: currentGame.player1,
+          player2: currentGame.player2,
         };
 
-    const bp = isBreakPoint(stateBefore);
-    const gb = isGameBall(stateBefore);
-    const sb = isSetBall(stateBefore, setNumber);
+    const bp = stateBefore ? isBreakPoint(stateBefore) : false;
+    const gb = stateBefore ? isGameBall(stateBefore) : false;
+    const sb = stateBefore ? isSetBall(stateBefore, setNumber) : false;
 
     const isServeFinish = pt.type === 'ACE' || pt.type === 'DOUBLE_FAULT';
     const isDevolucao = pt.rallyDetails?.situacao === 'devolucao';
@@ -128,7 +139,7 @@ export function enrichPointsFromHistory(
       pointNumber: i + 1,
       winner,
       type: pt.type,
-      server: stateBefore.server,
+      server: stateBefore?.server ?? 'player1',
       isFirstServe: pt.isFirstServe,
       isSecondServe: pt.isSecondServe,
       gameScore,
@@ -139,11 +150,16 @@ export function enrichPointsFromHistory(
       isSetBall: sb,
       rallyLength,
       rallyDetails: pt.rallyDetails ?? null,
-      note: pt.rallyDetails?.note,
+      // `note` só é populada a partir do rallyDetails do ponto atual.
+      // NÃO herdamos nota de iterações anteriores — o spread do estado do
+      // engine pode carregar rallyDetails residual de pontos passados, e
+      // usar pt.rallyDetails?.note sem verificação causaria "vazamento" da
+      // observação de um ponto para o seguinte sem anotação.
+      note: pt.rallyDetails != null ? pt.rallyDetails.note : undefined,
       pointDetails: pt,
       isTiebreak,
-      gameIsDeuce: stateBefore.currentGame.isDeuce,
-      gameAdvantage: stateBefore.currentGame.advantage,
+      gameIsDeuce: currentGame?.isDeuce ?? false,
+      gameAdvantage: currentGame?.advantage ?? null,
       firstFault,
       firstServeOutcome,
       secondServeOutcome,

@@ -353,6 +353,7 @@ function ScoringPageInner() {
           playerNames={{ p1: match.player1.name, p2: match.player2.name }}
           currentSets={editScoreCurrentSets}
           currentServer={effectiveScoreState.server}
+          initialServer={match.initialServerId === match.player1.id ? "player1" : "player2"}
           completedSets={editScoreCompletedSets}
           currentGamePoints={{
             // Durante um tie-break ao vivo, currentGame.player1/player2 é
@@ -427,7 +428,7 @@ function ScoringPageInner() {
       {activeModal === "comment" && process.env.NEXT_PUBLIC_COMMENT_FEATURE === 'true' && (
         <CommentModal
           isOpen={true}
-          onClose={state.close}
+          onClose={state.closeAll}
           onSave={handleCommentCreate}
         />
       )}

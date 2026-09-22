@@ -158,7 +158,19 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
             return applySuccessResult(retryResult.serverResponse);
           } else if (retryResult.needsResync) {
             await fetchMatch(true);
-            setError("Ponto não registrado — o placar foi sincronizado com o servidor. Tente novamente.");
+            // BUG FIX (perda silenciosa de anotação ACE/dupla falta/rally):
+            // antes, quando as 2 tentativas online falhavam, o ponto (já
+            // aplicado localmente, incluindo rallyDetails/firstFaultDetail)
+            // era simplesmente descartado — fetchMatch(true) sobrescrevia o
+            // estado local com o do servidor (sem o ponto) e não havia
+            // nenhuma outra tentativa de reenvio. Agora o ponto é
+            // reenfileirado na fila offline (mesmo mecanismo usado quando
+            // isOnline é false) para ser reenviado automaticamente assim que
+            // a rede se estabilizar, em vez de ser perdido definitivamente.
+            await pointSync.queuePointForOffline(enqueue, flow);
+            setError(
+              "Falha ao sincronizar com o servidor — o ponto foi salvo neste dispositivo e será reenviado automaticamente.",
+            );
           }
         }
       } else {
@@ -225,10 +237,22 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
       rallyLength: rallyLengthToUse,
       firstFaultDetail,
     }).then((pointLogId) => {
-      if (audio && pointLogId && uploadAudioNote) {
-        uploadAudioNote(match.id, pointLogId, audio.blob, audio.durationMs, tokenRef.current)
-          .then(() => onAudioUploaded?.())
-          .catch(() => {});
+      if (audio) {
+        if (pointLogId && uploadAudioNote) {
+          uploadAudioNote(match.id, pointLogId, audio.blob, audio.durationMs, tokenRef.current)
+            .then(() => onAudioUploaded?.())
+            .catch((err) => {
+              logger.error("[handlePointDetailsConfirm] Falha no upload do áudio da nota:", err);
+            });
+        } else {
+          logger.warn(
+            "[handlePointDetailsConfirm] Áudio gravado não pôde ser enviado imediatamente (modo offline ou sem pointLogId)",
+            { matchId: match.id },
+          );
+          setError(
+            "O ponto foi salvo, mas o áudio da anotação não pôde ser sincronizado no momento (requer conexão ativa).",
+          );
+        }
       }
     });
   };

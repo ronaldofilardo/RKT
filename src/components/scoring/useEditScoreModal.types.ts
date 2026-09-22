@@ -20,6 +20,7 @@ export interface UseEditScoreModalOptions {
   playerNames: { p1: string; p2: string };
   currentSets: { player1: number; player2: number };
   currentServer: "player1" | "player2";
+  initialServer?: "player1" | "player2";
   completedSets: CompletedSet[];
   currentGamePoints?: { player1: number | string; player2: number | string };
   isTiebreak?: boolean;

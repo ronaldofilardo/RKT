@@ -19,6 +19,9 @@ jest.mock('@/lib/prisma', () => ({
     match: {
       findFirst: jest.fn(),
     },
+    pointLog: {
+      aggregate: jest.fn().mockResolvedValue({ _max: { sequenceNumber: null } }),
+    },
   },
 }));
 

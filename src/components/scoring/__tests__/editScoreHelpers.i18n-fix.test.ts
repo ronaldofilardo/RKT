@@ -5,10 +5,10 @@
 import { validateSetResult } from "@/components/scoring/editScoreHelpers";
 
 describe("validateSetResult — mensagens em português", () => {
-  it("usa 'Informe o resultado do set' (não mais o texto em inglês) quando ambos os games estão zerados", () => {
+  it("agora aceita 0-0 como válido e parcial (não exige mais preenchimento para iniciar a partida)", () => {
     const result = validateSetResult({ p1Games: 0, p2Games: 0 }, "BEST_OF_3");
-    expect(result.isValid).toBe(false);
-    expect(result.error).toBe("Informe o resultado do set");
-    expect(result.error).not.toMatch(/enter/i);
+    expect(result.isValid).toBe(true);
+    expect(result.isPartial).toBe(true);
+    expect(result.error).toBeUndefined();
   });
 });

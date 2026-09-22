@@ -197,7 +197,7 @@ describe('useScoringHandlers - fetchMatch error handling', () => {
     expect(setIsLoading).toHaveBeenCalledWith(false);
   });
 
-  it('deve inicializar pointSequenceRef com _count.pointLog quando disponível', async () => {
+  it('deve inicializar pointSequenceRef com lastPointSequence quando disponível', async () => {
     const pointSequenceRef = { current: 0 };
     
     const matchData = {
@@ -209,7 +209,7 @@ describe('useScoringHandlers - fetchMatch error handling', () => {
       scoreState: null,
       state: 'IN_PROGRESS',
       version: 5,
-      _count: { pointLog: 12 },
+      lastPointSequence: 12,
     };
 
     (global.fetch as jest.Mock).mockResolvedValue({
@@ -227,7 +227,7 @@ describe('useScoringHandlers - fetchMatch error handling', () => {
     expect(pointSequenceRef.current).toBe(12);
   });
 
-  it('deve inicializar pointSequenceRef com version como fallback se _count não existir', async () => {
+  it('deve inicializar pointSequenceRef com version como fallback se lastPointSequence não existir', async () => {
     const pointSequenceRef = { current: 0 };
     
     const matchData = {

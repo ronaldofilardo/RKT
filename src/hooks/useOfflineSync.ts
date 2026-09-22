@@ -105,12 +105,24 @@ export function useOfflineSync() {
       }
 
       const pending = await db.getAllFromIndex(STORE_NAME, 'status', 'PENDING');
-      pending.sort((a, b) => a.timestamp - b.timestamp);
+      // BUG FIX (pontos perdidos silenciosamente): ações que já bateram o
+      // limite de retries ficavam marcadas como 'FAILED' e o flush() nunca
+      // mais olhava para elas (só buscava 'PENDING'), então um ponto
+      // anotado (ACE/dupla falta/rally) gravado offline durante uma falha
+      // prolongada de rede ficava preso no IndexedDB do dispositivo para
+      // sempre, sem nenhum aviso na UI. Agora o flush também tenta
+      // reenviar as ações 'FAILED' sempre que roda (reconexão, intervalo
+      // periódico, etc.) — se voltar a falhar elas continuam FAILED, mas
+      // se a causa raiz (rede/servidor) já tiver sido resolvida, o ponto
+      // é sincronizado normalmente em vez de ficar perdido para sempre.
+      const failed = await db.getAllFromIndex(STORE_NAME, 'status', 'FAILED');
+      const toSync = [...pending, ...failed];
+      toSync.sort((a, b) => a.timestamp - b.timestamp);
 
       const matchSequences = new Map<string, number>();
       const failedMatches = new Set<string>();
 
-      for (const action of pending) {
+      for (const action of toSync) {
         if (failedMatches.has(action.matchId)) continue;
         try {
           const currentSequence = await ensureMatchSequence(action.matchId, accessToken, matchSequences);
@@ -147,6 +159,31 @@ export function useOfflineSync() {
       if (syncedAnything) {
         window.dispatchEvent(new CustomEvent('offline-sync-complete'));
       }
+      try {
+        const db = await getDb();
+        const stillFailed = await db.getAllFromIndex(STORE_NAME, 'status', 'FAILED');
+        if (stillFailed.length > 0) {
+          window.dispatchEvent(
+            new CustomEvent('offline-sync-stuck', { detail: { count: stillFailed.length } }),
+          );
+        }
+      } catch (err) {
+        logger.error('[flush] Failed to check stuck actions:', err);
+      }
+    }
+  }, []);
+
+  // Permite que a UI (ex.: um badge no dashboard) saiba quantos pontos
+  // anotados ainda não conseguiram ser sincronizados com o servidor, em
+  // vez de ficarem presos silenciosamente no IndexedDB do dispositivo.
+  const getFailedCount = useCallback(async (): Promise<number> => {
+    try {
+      const db = await getDb();
+      const failed = await db.getAllFromIndex(STORE_NAME, 'status', 'FAILED');
+      return failed.length;
+    } catch (err) {
+      logger.error('[getFailedCount] Failed to read queue:', err);
+      return 0;
     }
   }, []);
 
@@ -186,5 +223,13 @@ export function useOfflineSync() {
     };
   }, [flush, online]);
 
-  return { enqueue, flush, clearQueueForMatch, removeLastAction, isOnline: online, isSyncing };
+  return {
+    enqueue,
+    flush,
+    clearQueueForMatch,
+    removeLastAction,
+    isOnline: online,
+    isSyncing,
+    getFailedCount,
+  };
 }

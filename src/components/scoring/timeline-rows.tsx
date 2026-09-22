@@ -243,6 +243,7 @@ export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLa
         <tr>
           <td
             colSpan={25}
+            aria-label={`Set ${_setNumber}`}
             className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-700 bg-gray-100 border-y border-gray-300"
           >
             <div className="flex items-center gap-2">

@@ -255,13 +255,14 @@ export function shouldAutoAddSet(input: ShouldAutoAddSetInput): boolean {
 }
 
 export function calculateNextServer(input: CalculateNextServerInput): Player {
-  const { currentServer, p1Games, p2Games, matchFormat, tiebreakScore, completedSets } = input;
+  const { currentServer, initialServer, p1Games, p2Games, matchFormat, tiebreakScore, completedSets } = input;
   const completedSetsGames = completedSets.map((cs) => ({
     player1: cs.games.player1,
     player2: cs.games.player2,
   }));
   return getNextServerAfterSet({
     currentServer,
+    initialServer,
     p1Games,
     p2Games,
     format: matchFormat,

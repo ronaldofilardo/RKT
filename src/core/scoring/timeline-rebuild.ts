@@ -9,6 +9,11 @@ import { ScoringEngine } from '@/core/scoring/engine';
 import { enrichPointsFromHistory } from '@/core/scoring/scoring-logic';
 import { pointLogToFlow } from './timeline-rebuild.helpers';
 
+export interface TimelineScoreEdit {
+  editedAt: Date;
+  newScoreState: any;
+}
+
 /**
  * Estrutura mínima vinda do `prisma.pointLog.findMany` usada na reconstrução
  * do relatório. Mantida aqui (em vez de importar o tipo Prisma) para isolar a
@@ -70,6 +75,7 @@ export function rebuildTimelineFromPointLogs(
   player2Id: string,
   initialServerId: string,
   format?: string,
+  scoreEdits: TimelineScoreEdit[] = [],
 ): TimelinePoint[] {
   if (pointLogs.length === 0) return history;
 
@@ -94,7 +100,7 @@ export function rebuildTimelineFromPointLogs(
   // momento daquele ponto (games/game/set/server/BP/GB/SB), e o `point`
   // carrega os metadados brutos — depois sobrescrevemos as anotações com os
   // dados frescos do PointLog correspondente.
-  const simulatedHistory = simulateScoreFromPointLogs(pointLogs, config);
+  const simulatedHistory = simulateScoreFromPointLogs(pointLogs, config, scoreEdits);
   const enriched = enrichPointsFromHistory(simulatedHistory, player1Id, player2Id);
   return enriched.map((p, i) => mergeWithPointLog(p, pointLogs[i], i + 1));
 }
@@ -113,13 +119,37 @@ export function rebuildTimelineFromPointLogs(
 function simulateScoreFromPointLogs(
   pointLogs: PointLogRow[],
   config: ScoringEngineConfig,
+  scoreEdits: TimelineScoreEdit[] = [],
 ): HistoryEntry[] {
   const engine = new ScoringEngine(config);
   const history: HistoryEntry[] = [];
   let lastStateBefore = engine.getState();
+  let nextEditIndex = 0;
 
   for (const log of pointLogs) {
     const flow = pointLogToFlow(log);
+
+    // Apply any score edits that happened before this point
+    while (
+      nextEditIndex < scoreEdits.length &&
+      scoreEdits[nextEditIndex].editedAt.getTime() < log.timestamp.getTime()
+    ) {
+      try {
+        const raw = scoreEdits[nextEditIndex].newScoreState;
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        const unpacked =
+          parsed && typeof parsed === 'object' && 'state' in parsed && (parsed as any).state
+            ? (parsed as any).state
+            : parsed;
+        if (unpacked && Array.isArray(unpacked.sets)) {
+          engine.loadState(unpacked);
+          lastStateBefore = engine.getState();
+        }
+      } catch (e) {
+        // Ignora erros de carga de estado
+      }
+      nextEditIndex++;
+    }
 
     let stateBefore: ReturnType<typeof engine.getState>;
     let details: PointDetails | null;
@@ -195,7 +225,30 @@ function mergeWithPointLog(p: TimelinePoint, log: PointLogRow, pointNumber: numb
   const rallyDetails = ann?.rallyDetails ?? p.rallyDetails ?? null;
   const firstFaultDetail = ann?.firstFaultDetail ?? p.firstFault ?? null;
   const rallyLength = ann?.rallyLength ?? p.rallyLength;
-    const note = ann?.note ?? (rallyDetails?.note ?? p.note);
+  // `note` é extraída exclusivamente das annotations persistidas do PointLog:
+  // 1. annotations.note (campo raiz — path moderno, adicionado na V2)
+  // 2. rallyDetails.note (path legado — nota embutida dentro do rallyDetails)
+  // NÃO usamos `p.note` como fallback: o TimelinePoint `p` vem do engine
+  // simulado e pode carregar nota residual de um ponto anterior, causando
+  // "troca" de observações na tabela.
+  const note = ann != null
+    ? (ann.note ?? rallyDetails?.note ?? undefined)
+    : undefined;
+  
+  const firstServeOutcome = log.type === 'ACE' && (ann?.isFirstServe ?? p.isFirstServe) 
+    ? 'ace' 
+    : firstFaultDetail?.errorType === 'out' 
+      ? 'out' 
+      : firstFaultDetail?.errorType === 'net' 
+        ? 'net' 
+        : null;
+
+  const secondServeOutcome = log.type === 'ACE' && (ann?.isSecondServe ?? p.isSecondServe)
+    ? 'ace'
+    : log.type === 'DOUBLE_FAULT'
+      ? (rallyDetails?.subtipo2 as 'out' | 'net' | undefined) ?? null
+      : null;
+
   return {
 
     ...p,
@@ -212,6 +265,8 @@ function mergeWithPointLog(p: TimelinePoint, log: PointLogRow, pointNumber: numb
     rallyLength,
     note,
     firstFault: firstFaultDetail,
+    firstServeOutcome,
+    secondServeOutcome,
     hasAudioNote: log.audioNote !== null,
     audioNoteDuration: log.audioNoteDuration ?? undefined,
     pointDetails: {

@@ -122,6 +122,7 @@ function calculateServerForExistingSets(
   existingSets: SetEditData[],
   currentServer: "player1" | "player2",
   matchFormat: TennisFormat,
+  initialServer?: "player1" | "player2",
 ): "player1" | "player2" {
   const lastExistingSet = existingSets[existingSets.length - 1];
   const priorExistingSets = existingSets.slice(0, -1).map((s) => ({
@@ -132,6 +133,7 @@ function calculateServerForExistingSets(
 
   return calculateNextServer({
     currentServer,
+    initialServer,
     p1Games: lastExistingSet.p1Games,
     p2Games: lastExistingSet.p2Games,
     matchFormat,
@@ -162,11 +164,12 @@ export function buildExistingSetsPayload(params: {
   completedSets: CompletedSet[];
   matchFormat: TennisFormat;
   currentServer: "player1" | "player2";
+  initialServer?: "player1" | "player2";
   bothFilled: boolean;
   p1Val: number;
   p2Val: number;
 }): { shouldSave: boolean; existingSets: SetEditData[]; recalculatedServer: "player1" | "player2" } {
-  const { state, completedSets, matchFormat, currentServer, bothFilled, p1Val, p2Val } = params;
+  const { state, completedSets, matchFormat, currentServer, initialServer, bothFilled, p1Val, p2Val } = params;
   const scoresAreZero = bothFilled && p1Val === 0 && p2Val === 0;
   const existingSets = [...getCompletedSets(state, completedSets, matchFormat), ...state.newSets];
 
@@ -174,7 +177,7 @@ export function buildExistingSetsPayload(params: {
     return { shouldSave: false, existingSets: [], recalculatedServer: currentServer };
   }
 
-  const recalculatedServer = calculateServerForExistingSets(existingSets, currentServer, matchFormat);
+  const recalculatedServer = calculateServerForExistingSets(existingSets, currentServer, matchFormat, initialServer);
   appendPartialGamePointsSet(existingSets, state, scoresAreZero);
 
   return { shouldSave: true, existingSets, recalculatedServer };

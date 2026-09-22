@@ -126,6 +126,10 @@ export interface ShouldAutoAddSetInput extends AutoAddSetContext {
 
 export interface NextServerContext {
   currentServer: Player;
+  // Sacador do Game 1 de TODA a partida (valor fixo — `match.initialServerId`
+  // convertido para 'player1'/'player2'). Ver comentário em getNextServerAfterSet
+  // (editScoreHelpers.ts) para o porquê disso ser necessário.
+  initialServer?: Player;
   p1Games: number;
   p2Games: number;
   matchFormat: TennisFormat;

@@ -1,7 +1,7 @@
-import { logger } from '@/lib/logger';
-import { TIMEOUTS } from '@/lib/constants';
-import type { PointFlow } from '@/core/scoring/types';
-import type { MatchData } from './useScoringHandlers.types';
+import { logger } from "@/lib/logger";
+import { TIMEOUTS } from "@/lib/constants";
+import type { PointFlow } from "@/core/scoring/types";
+import type { MatchData } from "./useScoringHandlers.types";
 
 export interface ServeActionsDeps {
   match: MatchData | null;
@@ -18,9 +18,12 @@ export interface ServeActionsDeps {
   closeAll: () => void;
   handleFirstServeErrorSet: (val: any) => void;
   handleFirstServeErrorClear: () => void;
-  handleServeErrorOpen: (errorType: 'out' | 'net', step: 'first' | 'second') => void;
+  handleServeErrorOpen: (
+    errorType: "out" | "net",
+    step: "first" | "second",
+  ) => void;
   handleServeErrorClose: () => void;
-  setServeStep: (step: 'none' | 'second') => void;
+  setServeStep: (step: "none" | "second") => void;
 }
 
 export function createServeActionsService(deps: ServeActionsDeps) {
@@ -53,7 +56,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
     if (!match || isProcessingRef.current) return;
     cancelPendingDebounce();
     const isSecond =
-      serveErrorState.serveStep === 'second' ||
+      serveErrorState.serveStep === "second" ||
       serveErrorState.firstServeError !== null;
     closeAll();
     const rallyDetails = modalService.createAceRallyDetails();
@@ -69,7 +72,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
       debounceTimerRef.current = null;
       processPoint({
         winnerId: serverHelpers.getWinnerId(true),
-        type: 'ACE',
+        type: "ACE",
         serverId: serverHelpers.getServerId(),
         isFirstServe: !isSecond,
         isSecondServe: isSecond,
@@ -80,10 +83,10 @@ export function createServeActionsService(deps: ServeActionsDeps) {
       })
         .finally(() => {
           handleFirstServeErrorClear();
-          setServeStep('none');
+          setServeStep("none");
         })
         .catch((err: unknown) =>
-          logger.error('[handleAceDirect] Error processing ACE:', err),
+          logger.error("[handleAceDirect] Error processing ACE:", err),
         );
     }, TIMEOUTS.DEBOUNCE_MS);
   };
@@ -94,7 +97,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
     closeAll();
 
     const isSecond =
-      serveErrorState.serveStep === 'second' ||
+      serveErrorState.serveStep === "second" ||
       serveErrorState.firstServeError !== null;
     const rallyDetails = modalService.createAceRallyDetails(effect, direction);
     const firstFaultDetail = serveErrorState.firstServeError
@@ -109,7 +112,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
       debounceTimerRef.current = null;
       processPoint({
         winnerId: serverHelpers.getWinnerId(true),
-        type: 'ACE',
+        type: "ACE",
         serverId: serverHelpers.getServerId(),
         isFirstServe: !isSecond,
         isSecondServe: isSecond,
@@ -120,19 +123,23 @@ export function createServeActionsService(deps: ServeActionsDeps) {
       })
         .finally(() => {
           handleFirstServeErrorClear();
-          setServeStep('none');
+          setServeStep("none");
         })
         .catch((err) =>
-          logger.error('[handleServerEffectConfirm] Error processing ACE:', err),
+          logger.error(
+            "[handleServerEffectConfirm] Error processing ACE:",
+            err,
+          ),
         );
     }, TIMEOUTS.DEBOUNCE_MS);
   };
 
   const handleServeErrorConfirm = (effect?: string, direction?: string) => {
-    if (!match || !serveErrorState.pendingServeError || isProcessingRef.current) return;
+    if (!match || !serveErrorState.pendingServeError || isProcessingRef.current)
+      return;
     cancelPendingDebounce();
 
-    if (serveErrorState.pendingServeError.serveStep === 'first') {
+    if (serveErrorState.pendingServeError.serveStep === "first") {
       if (!engineRef.current) return;
       handleFirstServeErrorSet({
         errorType: serveErrorState.pendingServeError.errorType,
@@ -140,7 +147,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
         direction,
       });
       handleServeErrorClose();
-      setServeStep('second');
+      setServeStep("second");
       closeAll();
       return;
     }
@@ -163,7 +170,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
       debounceTimerRef.current = null;
       processPoint({
         winnerId: serverHelpers.getWinnerId(false),
-        type: 'DOUBLE_FAULT',
+        type: "DOUBLE_FAULT",
         serverId: serverHelpers.getServerId(),
         timestamp: Date.now(),
         rallyDetails,
@@ -174,17 +181,20 @@ export function createServeActionsService(deps: ServeActionsDeps) {
       }).finally(() => {
         handleFirstServeErrorClear();
         handleServeErrorClose();
-        setServeStep('none');
+        setServeStep("none");
       });
     }, 50);
   };
 
-  const handleServeErrorDirect = (errorType: 'out' | 'net', step: 'first' | 'second') => {
+  const handleServeErrorDirect = (
+    errorType: "out" | "net",
+    step: "first" | "second",
+  ) => {
     if (!match || isProcessingRef.current) return;
     cancelPendingDebounce();
     handleServeErrorOpen(errorType, step);
 
-    if (step === 'first') {
+    if (step === "first") {
       if (!engineRef.current) return;
       handleFirstServeErrorSet({
         errorType: serveErrorState.pendingServeError?.errorType ?? errorType,
@@ -192,7 +202,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
         direction: undefined,
       });
       handleServeErrorClose();
-      setServeStep('second');
+      setServeStep("second");
       closeAll();
       return;
     }
@@ -215,7 +225,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
       debounceTimerRef.current = null;
       processPoint({
         winnerId: serverHelpers.getWinnerId(false),
-        type: 'DOUBLE_FAULT',
+        type: "DOUBLE_FAULT",
         serverId: serverHelpers.getServerId(),
         timestamp: Date.now(),
         rallyDetails,
@@ -226,7 +236,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
       }).finally(() => {
         handleFirstServeErrorClear();
         handleServeErrorClose();
-        setServeStep('none');
+        setServeStep("none");
       });
     }, 50);
   };
@@ -237,7 +247,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
     closeAll();
     handleServeErrorClose();
     handleFirstServeErrorClear();
-    setServeStep('none');
+    setServeStep("none");
   };
 
   return {

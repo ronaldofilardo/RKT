@@ -758,14 +758,16 @@ describe('edit-score-logic (complete characterization)', () => {
       expect(result).toBe('player2');
     });
 
-    it('deve passar tiebreakScore para getNextServerAfterSet', () => {
+    it('BUG FIX (2026-09-22): deve trocar o server em set com tiebreak (regra ITF)', () => {
       const result = calculateNextServer({
         ...baseInput,
         p1Games: 7,
         p2Games: 6,
         tiebreakScore: { player1: 7, player2: 5 },
       });
-      expect(result).toBe('player1'); // tiebreak win mantém server
+      // 7+6=13 (ímpar) -> troca o server (quem sacou o 1º ponto do
+      // tiebreak passa a RECEBER no set seguinte)
+      expect(result).toBe('player2');
     });
 
     it('deve passar completedSets para getNextServerAfterSet', () => {

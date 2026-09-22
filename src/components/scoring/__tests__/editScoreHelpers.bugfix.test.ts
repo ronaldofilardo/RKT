@@ -51,10 +51,10 @@ describe("editScoreHelpers - Validações e Server Rotation", () => {
       expect(result.error).toContain("negative");
     });
 
-    it("deve retornar erro para 0-0", () => {
+    it("deve aceitar 0-0 como parcial", () => {
       const result = validateMatchTiebreakInput({ p1Points: 0, p2Points: 0 });
-      expect(result.isValid).toBe(false);
-      expect(result.error).toContain("Enter the tiebreak result");
+      expect(result.isValid).toBe(true);
+      expect(result.isPartial).toBe(true);
     });
   });
 
@@ -70,7 +70,11 @@ describe("editScoreHelpers - Validações e Server Rotation", () => {
       expect(next).toBe("player1");
     });
 
-    it("deve manter servidor após tiebreak win", () => {
+    it("BUG FIX (2026-09-22): deve TROCAR o servidor após set decidido por tiebreak comum (regra ITF)", () => {
+      // Regra oficial: quem serviu o 1º ponto do tiebreak passa a RECEBER
+      // no 1º game do set seguinte — ou seja, o saque troca. 7-6 = 13
+      // games totais (ímpar) → servidor alterna. Confirmado por simulação
+      // completa no motor real (ver core/scoring/__tests__/tiebreak.*).
       const next = getNextServerAfterSet({
         currentServer: "player1",
         p1Games: 7,
@@ -78,7 +82,7 @@ describe("editScoreHelpers - Validações e Server Rotation", () => {
         format: "BEST_OF_3",
         tiebreakPoints: { player1: 7, player2: 5 },
       });
-      expect(next).toBe("player1");
+      expect(next).toBe("player2");
     });
 
     it("deve considerar total de games de sets anteriores para rotação", () => {

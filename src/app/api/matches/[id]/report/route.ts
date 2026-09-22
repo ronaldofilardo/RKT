@@ -154,9 +154,13 @@ export async function GET(
       // "Set 1" de novo em vez de continuar no Set 2, e por consequência
       // nunca alcançar o Set 3 real da partida.
       //
-      // Usando sempre uma simulação única e contínua sobre TODOS os
-      // PointLog, o placar nunca reinicia no meio da partida: cada set é
-      // mostrado uma única vez, na ordem certa, do Set 1 ao Set final.
+      // Usando a "Stateful Simulation", iteramos sobre todos os PointLog,
+      // mas injetamos o estado de eventuais edições manuais (MatchScoreEdit)
+      // no ScoringEngine exatamente no momento em que ocorreram. Assim,
+      // a reconstrução não perde o contexto da correção e a tabela final
+      // respeita exatamente a realidade imposta pelo usuário.
+      const scoreEdits = await getMatchScoreEdits(id);
+      
       let timelinePoints: TimelinePoint[] = rebuildTimelineFromPointLogs(
         [],
         pointLogs,
@@ -164,15 +168,11 @@ export async function GET(
         player2Id,
         initialServerId,
         format,
+        scoreEdits
       );
 
-      // `MatchScoreEdit` registra cada correção manual de placar (ex.:
-      // retomada de partida interrompida). Isso não afeta mais o CÁLCULO
-      // do placar (que agora vem só dos PointLog) — usamos apenas para
-      // decorar a timeline com o aviso "⏸ Partida interrompida" no ponto
-      // correto, mostrando o que o placar era antes/depois da correção
-      // manual, para dar contexto a quem está lendo o relatório.
-      const scoreEdits = await getMatchScoreEdits(id);
+      // Decoramos a timeline com o aviso visual "⏸ Partida interrompida" 
+      // no ponto correto.
       timelinePoints = addScoreEditBreaks(timelinePoints, pointLogs, scoreEdits);
 
       // Snapshot "atual" devolvido no payload (usado pelo cliente para

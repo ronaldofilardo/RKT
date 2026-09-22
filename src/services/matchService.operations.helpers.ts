@@ -120,6 +120,7 @@ export function buildTransitionUpdateData(
     version: { increment: 1 },
   };
   if (newState === 'IN_PROGRESS') {
+    updateData.startedAt = new Date();
     updateData.finishedAt = null;
     updateData.winnerId = null;
   }

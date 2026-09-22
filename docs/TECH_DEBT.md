@@ -1127,12 +1127,43 @@ A configuração é setada em `src/lib/prisma.ts` no hook `$use` do Prisma, ante
 
 ---
 
-## [TD-056] Arquitetura: Modelos Conflitantes User/Player e Arquivos Mortos
+---
 
-- **Origem:** Auditoria Técnica Master (2026-09-11)
-- **Impacto:** Médio (Clean Code & Arquitetura P2)
+## [TD-032] ScoringEngine: Resíduos do Mecanismo de Redo / Refazer Ponto
+
+- **Origem:** Auditoria de Códigos Mortos e Concorrência (2026-09-22)
+- **Impacto:** Médio (Dead Code & Performance)
 - **Esforço:** P
-- **Status:** ✅ Resolvido (2026-09-11). Arquivos mortos `route.*.ts` excluídos e `ADR-0007-user-player-profile-separation.md` registrado.
+- **Status:** ✅ Resolvido (2026-09-22). Removido `redoStack`, `replayCurrentPoint()`, `getRedoLength()`, `clearRedoHistory()` em `engine.ts` e `engine.history.ts`, e limpa a suíte de testes.
+
+---
+
+## [TD-057] Frontend: Feature Flag Fantasma NEXT_PUBLIC_COMMENT_FEATURE e CommentModal Dormente
+
+- **Origem:** Auditoria de Códigos Mortos e Concorrência (2026-09-22)
+- **Impacto:** Baixo (Dead Code & Bundle Size)
+- **Esforço:** P
+- **Status:** 🟡 Mapeado (2026-09-22). `CommentModal` e seus handlers em `useScoringPageEffects` estão atrás de `process.env.NEXT_PUBLIC_COMMENT_FEATURE === 'true'`, que não está definida em nenhum ambiente. Recomenda-se promover para feature oficial ou expurgar.
+
+---
+
+## [TD-058] Offline Sync: Concorrência e Sobrescrita em appendPendingMatchSync
+
+- **Origem:** Auditoria de Códigos Mortos e Concorrência (2026-09-22)
+- **Impacto:** Alto (Integridade de Dados Offline)
+- **Esforço:** P
+- **Status:** ✅ Resolvido (2026-09-22). Implementada verificação com token em `acquireLocalStorageLock`, deduplicação em `appendPendingMatchSync` e preservação atômica de partidas concluídas enquanto o ciclo de sincronização de rede está em voo em `useOfflineMatchSync`.
+
+---
+
+## [TD-059] Scoring / Report: Desempacotamento de newScoreState em MatchScoreEdit e Resiliência em enrichPointsFromHistory
+
+- **Origem:** Incidente em GET /api/matches/[id]/report (2026-09-22)
+- **Impacto:** Alto (Disponibilidade de Relatórios P1)
+- **Esforço:** P
+- **Status:** ✅ Resolvido (2026-09-22). `simulateScoreFromPointLogs` e `engine.loadState` agora desempacotam envelopes `{ state, history }` e strings JSON de `newScoreState`. Adicionalmente, `enrichPointsFromHistory`, `isBreakPoint`, `isGameBall` e `isSetBall` foram blindados com navegação segura para `stateBefore` e `sets`.
+
+
 
 
 

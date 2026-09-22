@@ -46,6 +46,8 @@ export function useOfflineMatchSync() {
         const token = sessionStorage.getItem("access_token");
         const failedSyncs: PendingMatchSync[] = [];
 
+        const processedMatchIds = new Set(pendingSyncs.map((s) => s.matchId));
+
         for (const sync of pendingSyncs) {
           try {
             // Coordenação: se houver pontos desta partida ainda pendentes no
@@ -83,7 +85,12 @@ export function useOfflineMatchSync() {
           }
         }
 
-        writePendingMatchSyncs(failedSyncs);
+        // Preserva partidas que foram adicionadas concorrentemente enquanto este ciclo rodava
+        const currentInStorage = readPendingMatchSyncs<PendingMatchSync>();
+        const newlyAddedWhileSyncing = currentInStorage.filter(
+          (curr) => !processedMatchIds.has(curr.matchId)
+        );
+        writePendingMatchSyncs([...failedSyncs, ...newlyAddedWhileSyncing]);
 
         if (failedSyncs.length > 0) {
           logger.sync.someFailed(failedSyncs.length);

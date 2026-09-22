@@ -32,6 +32,7 @@ export function useEditScoreModal(
     matchFormat,
     currentSets,
     currentServer,
+    initialServer,
     completedSets,
     currentGamePoints,
     isTiebreak,
@@ -128,6 +129,7 @@ export function useEditScoreModal(
       completedSets,
       matchFormat,
       currentServer,
+      initialServer,
       bothFilled,
       p1Val,
       p2Val,
@@ -157,7 +159,7 @@ export function useEditScoreModal(
   }, [
     onRefreshFloor, floorCurrentSets, isSetTrulyCompleted, p1Val, p2Val,
     floorValidationError, validation, partial, hasTiebreak, tiebreakComplete, tiebreakImpossible,
-    tiebreakP1Num, tiebreakP2Num, matchWouldEnd, currentServer, state, completedSets, matchFormat,
+    tiebreakP1Num, tiebreakP2Num, matchWouldEnd, currentServer, initialServer, state, completedSets, matchFormat,
     bothFilled, isMatchTiebreakSet, isPotentialMTSet, currentSets, onConfirm, onMatchFinished,
     initialGameRef, inputTouchedRef,
   ]);
@@ -171,12 +173,13 @@ export function useEditScoreModal(
       canAddNextSet,
       state,
       currentServer,
+      initialServer,
       matchFormat,
       completedSets,
       isMatchTiebreakSet,
       setState,
     });
-  }, [canAddNextSet, state, currentServer, matchFormat, completedSets, isMatchTiebreakSet]);
+  }, [canAddNextSet, state, currentServer, initialServer, matchFormat, completedSets, isMatchTiebreakSet]);
 
   const handlePointsChange = useCallback((p1: string, p2: string) => {
     setConfirmError(null);

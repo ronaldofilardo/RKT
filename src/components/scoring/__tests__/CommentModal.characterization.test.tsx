@@ -61,11 +61,15 @@ describe('CommentModal - comportamento ao enviar', () => {
     jest.clearAllMocks();
   });
 
-  it('chama onClose antes de onSave ao clicar em Enviar Comentário', async () => {
+  it('exibe feedback visual de salvamento e fecha modal automaticamente após salvar', async () => {
+    let saved = false;
     const onSave = jest.fn(
       async () =>
         new Promise<void>((resolve) => {
-          setTimeout(resolve, 50);
+          setTimeout(() => {
+            saved = true;
+            resolve();
+          }, 50);
         }),
     );
     const onClose = jest.fn();
@@ -75,15 +79,20 @@ describe('CommentModal - comportamento ao enviar', () => {
     const submitBtn = screen.getByRole('button', { name: /Enviar Comentário/i });
     fireEvent.click(submitBtn);
 
-    await waitFor(() => {
-      expect(onClose).toHaveBeenCalled();
-    });
+    // Feedback visual deve aparecer imediatamente bloqueando interações
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.getByText(/Salvando comentário.../i)).toBeInTheDocument();
 
+    await waitFor(() => {
+      expect(onSave).toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalled();
+    }, { timeout: 2000 });
+
+    expect(saved).toBe(true);
     expect(onClose).toHaveBeenCalledTimes(1);
-    expect(onSave).toHaveBeenCalled();
   });
 
-  it('chama onSave após clicar em Enviar Comentário', async () => {
+  it('chama onSave com os parâmetros corretos após clicar em Enviar Comentário', async () => {
     const onSave = jest.fn().mockResolvedValue(undefined);
     const onClose = jest.fn();
 
@@ -99,7 +108,7 @@ describe('CommentModal - comportamento ao enviar', () => {
     expect(onSave).toHaveBeenCalledWith('Teste', undefined);
   });
 
-  it('fecha modal mesmo quando onSave demora', async () => {
+  it('fecha modal automaticamente após onSave concluir mesmo quando demorado', async () => {
     const onSave = jest.fn(
       () =>
         new Promise<void>((resolve) => {
@@ -113,11 +122,14 @@ describe('CommentModal - comportamento ao enviar', () => {
     const submitBtn = screen.getByRole('button', { name: /Enviar Comentário/i });
     fireEvent.click(submitBtn);
 
+    // Modal está salvando
+    expect(screen.getByText(/Salvando comentário.../i)).toBeInTheDocument();
+
     await waitFor(
       () => {
         expect(onClose).toHaveBeenCalled();
       },
-      { timeout: 100 },
+      { timeout: 2000 },
     );
   });
 

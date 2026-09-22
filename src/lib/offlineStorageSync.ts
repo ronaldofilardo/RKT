@@ -7,11 +7,16 @@ export function acquireLocalStorageLock(): boolean {
   try {
     const now = Date.now();
     const raw = localStorage.getItem(LOCK_KEY);
-    const existing = Number(raw ?? 0);
+    const existing = raw ? Number(raw.includes(":") ? raw.split(":")[0] : raw) : 0;
     if (existing && now - existing < TIMEOUTS.LOCK_TTL_MS) {
       return false;
     }
-    localStorage.setItem(LOCK_KEY, String(now));
+    const token = `${now}:${Math.random().toString(36).slice(2)}`;
+    localStorage.setItem(LOCK_KEY, token);
+    // Verificação dupla para mitigar colisões concorrentes entre abas
+    if (localStorage.getItem(LOCK_KEY) !== token) {
+      return false;
+    }
     return true;
   } catch {
     return false;
@@ -52,13 +57,18 @@ export function writePendingMatchSyncs<T>(items: T[]): void {
   }
 }
 
-export function appendPendingMatchSync<T>(item: T): void {
+export function appendPendingMatchSync<T extends { matchId?: string }>(item: T): void {
   if (typeof window === "undefined") return;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const items = readPendingMatchSyncs<T>();
-      items.push(item);
-      writePendingMatchSyncs(items);
+      const isDuplicate = item.matchId
+        ? items.some((existing) => existing.matchId === item.matchId)
+        : false;
+      if (!isDuplicate) {
+        items.push(item);
+        writePendingMatchSyncs(items);
+      }
       return;
     } catch {
       if (attempt === 1) return;
