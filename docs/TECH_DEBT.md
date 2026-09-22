@@ -165,8 +165,15 @@
 - **Risco se ignorado:** Dificuldade de manutenção, teste e reuso
 - **Proposta:** Identificar componentes >300 linhas e extrair componentes menores; seguir SRP
 - **Owner sugerido:** @frontend
-- **Módulos afetados:** `src/components/scoring/**`, `src/app/match/**`
-- **Status:** 🔴 Identificados: `EditScoreModal.tsx` (531 linhas), `PointDetailsModal.tsx` (358 linhas), `edit-score-form.tsx` (314 linhas)
+- **Módulos afetados:** `src/components/scoring/**`, `src/app/match/**`, `src/hooks/**`
+- **Status:** 🟡 Parcialmente resolvido (atualizado 2026-09-22)
+  - ✅ `EditScoreModal.tsx` (531 → 230 linhas) — lógica em `useEditScoreModal.ts` + 6 helpers; view decomposta em `SetInputForm`, `edit-score-summary.tsx`, `EditScoreModalFooter`. Shell fino de composição.
+  - ✅ `PointDetailsModal.tsx` (358 → 150 linhas) — lógica em `point-details-logic.ts` (reducer), `point-details-modal.helpers.ts`, `usePointDetailsScroll.ts`; view em `WinnerInfo`, `SectionRenderer` (+ `.sections`/`.state.helpers`), `ModalActions`, `PointDetailsNotesModal`, `PointDetailsCloseDialog`.
+  - ✅ `src/app/match/**` — nenhum arquivo >250 linhas; scoring fatiado em `useScoringPageState`, `useScoringPageEffects`, `ScoringPage.views`, etc.
+  - ⏳ Pendente: `edit-score-form.tsx` (353 linhas) — prop bag com 37 props e 9 blocos inline. Extrair seguindo padrão `SectionRenderer` (PointDetailsModal): `getStatusMessage` → helper puro; seções → subcomponentes; agrupar props em objetos coesos. **Só quando houver feature passando por ali** (regra de fronteira).
+  - ⚠️ Código morto removido (2026-09-22): `edit-score-form.sections.tsx` extraído mas nunca importado e **stale** (`max=9` para PRO_SET_8 enquanto o form vivo tem o fix Bug 2026-09-07 `max=10`) — reintroduziria bug corrigido.
+  - **Watchlist** (hooks no limite, espírito TD-011): `useScoringPageEffects.ts` (356L), `useSessionManager.ts` (313L), `useScoringHandlers.ts` (293L).
+  - **Guardrails:** `edit-score-form.characterization.test.tsx` + suites `EditScoreModal.*` cobrem o comportamento.
 
 ---
 
