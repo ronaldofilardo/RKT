@@ -40,14 +40,7 @@ export function RankingForm({ form, rankings, age, saving, onRankingToggle, onRa
   return (
     <div>
       {showHeader && (
-        <>
-          <p className="block text-xs font-medium text-gray-700 mb-1">Ranking <span className="font-normal text-gray-500">Opções de autoranking</span></p>
-          {age !== null && (
-            <p className="text-xs text-gray-600 mb-2 bg-gray-100 px-2 py-1 rounded-md">
-              Idade: <span className="font-semibold text-gray-900">{age} anos</span>
-            </p>
-          )}
-        </>
+        <p className="block text-xs font-medium text-gray-700 mb-1">Ranking</p>
       )}
       <div className="space-y-1.5">
         {availableTypes.map((type) => {

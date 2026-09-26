@@ -1,15 +1,8 @@
 import React from 'react';
 import { RankingForm } from '@/app/atletas/RankingForm';
-import { getMatchCategoriesForAge, MATCH_CATEGORY_LABELS, type MatchCategory } from '@/lib/ranking/rankingConstants';
+import { getCategoriesForAge } from '@/lib/ranking/rankingConstants';
 import { computeClassesForType, type RankingState } from '@/app/atletas/rankingLogic';
 import type { RankingType } from '@/lib/ranking/rankingConstants';
-
-const MATCH_CATEGORY_AGE_LABELS: Record<MatchCategory, string> = {
-  INFANTIL: '11–12 anos',
-  JUVENIL: '13–18 anos',
-  ADULTO: '19–34 anos',
-  VETERANO: '35 anos ou mais',
-};
 
 const fieldIds = {
   name: 'new-athlete-name',
@@ -166,11 +159,11 @@ export function NewAthleteModalForm({
                 <p className="text-xs text-sky-700/70 italic">Sem categoria etária disponível para a idade atual ({age} anos).</p>
               ) : (
                 <div className="space-y-1.5">
-                  {getMatchCategoriesForAge(age).map((category) => (
+                  {getCategoriesForAge('ESTADUAL', age).map((category) => (
                     <div key={category} className="flex items-center text-sm">
-                      <span className="font-medium text-sky-800">{MATCH_CATEGORY_LABELS[category]}</span>
+                      <span className="font-medium text-sky-800">Categoria</span>
                       <span className="text-sky-600 px-2">·</span>
-                      <span className="text-sky-700">{MATCH_CATEGORY_AGE_LABELS[category]}</span>
+                      <span className="text-sky-700">{category} anos</span>
                     </div>
                   ))}
                 </div>
@@ -215,13 +208,9 @@ export function NewAthleteModalForm({
       </section>
 
       <section aria-labelledby="new-athlete-ranking-title" className="space-y-4 rounded-xl border border-gray-200 p-4">
-        <h3 id="new-athlete-ranking-title" aria-label="2. Ranking" className="flex items-baseline gap-2 text-base font-semibold text-gray-900">
-          <span>2. Ranking</span>
-          <span className="text-sm font-normal text-gray-700">Opções de autoranking</span>
+        <h3 id="new-athlete-ranking-title" aria-label="2. Ranking" className="text-base font-semibold text-gray-900">
+          2. Ranking
         </h3>
-        {age !== null && (
-          <p className="text-xs text-gray-500">Idade: <span className="font-semibold text-gray-900">{age} anos</span></p>
-        )}
         <RankingForm
           showHeader={false}
           form={{ gender: form.gender }}

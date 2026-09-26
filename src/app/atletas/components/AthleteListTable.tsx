@@ -29,7 +29,7 @@ export function AthleteListTable({ athletes, onEditAthlete, onDeleteAthlete }: A
   const formatBirthDate = (bd: string | null | undefined) => {
     if (!bd) return null;
     const d = new Date(bd);
-    return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+    return `${d.getUTCDate().toString().padStart(2, '0')}/${(d.getUTCMonth() + 1).toString().padStart(2, '0')}/${d.getUTCFullYear()}`;
   };
 
   const formatRankings = (rankings: Record<string, RankingEntry> | null | undefined) => {
