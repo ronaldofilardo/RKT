@@ -211,3 +211,71 @@ describe('ActionBar - Detalhes da DF', () => {
     expect(checkbox).not.toBeChecked();
   });
 });
+
+describe('ActionBar - Editar Placar bloqueado durante anotação de 2º saque', () => {
+  // BUG FIX (2026-09-27): "Editar Placar" podia ser aberto/confirmado
+  // enquanto um erro de 1º saque estava pendente (serveStep === 'second'),
+  // sem limpar esse estado local — o firstFaultDetail do saque anotado
+  // antes da edição ficava "grudado" e era enviado junto do próximo ponto
+  // fechado após a edição, contaminando a anotação detalhada desse ponto
+  // no /report. Agora o botão fica desabilitado nesse estado.
+  function renderWithServeStep(serveStep: 'none' | 'second') {
+    return render(
+      <ActionBar
+        secondServe={serveStep === 'second'}
+        serveStep={serveStep}
+        canUndo={false}
+        canEdit={true}
+        fontScale={1}
+        isFinished={false}
+        onAceDirect={() => undefined}
+        onAceWithDetails={() => undefined}
+        onOut={() => undefined}
+        onNet={() => undefined}
+        onOutDirect={() => undefined}
+        onNetDirect={() => undefined}
+        onVoltar={() => undefined}
+        onFontSmaller={() => undefined}
+        onFontBigger={() => undefined}
+        onEditScore={() => undefined}
+      />,
+    );
+  }
+
+  it('desabilita o botão ✏️ quando serveStep é "second" (erro de 1º saque pendente)', () => {
+    renderWithServeStep('second');
+    expect(screen.getByRole('button', { name: '✏️' })).toBeDisabled();
+  });
+
+  it('mantém o botão ✏️ habilitado quando serveStep é "none"', () => {
+    renderWithServeStep('none');
+    expect(screen.getByRole('button', { name: '✏️' })).not.toBeDisabled();
+  });
+
+  it('onEditScore não é chamado ao clicar no botão desabilitado', () => {
+    const onEditScore = jest.fn();
+    render(
+      <ActionBar
+        secondServe={true}
+        serveStep="second"
+        canUndo={false}
+        canEdit={true}
+        fontScale={1}
+        isFinished={false}
+        onAceDirect={() => undefined}
+        onAceWithDetails={() => undefined}
+        onOut={() => undefined}
+        onNet={() => undefined}
+        onOutDirect={() => undefined}
+        onNetDirect={() => undefined}
+        onVoltar={() => undefined}
+        onFontSmaller={() => undefined}
+        onFontBigger={() => undefined}
+        onEditScore={onEditScore}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '✏️' }));
+    expect(onEditScore).not.toHaveBeenCalled();
+  });
+});

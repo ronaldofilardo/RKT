@@ -73,7 +73,7 @@ function parseRawScoreState(rawScoreState: any): any | null {
  * Extrai o array history do rawScoreState (antes de extrair só o state).
  * Usado para reconstruir tiebreakScore de sets corrompidos.
  */
-function extractHistory(rawScoreState: any): any[] | null {
+export function extractHistory(rawScoreState: any): any[] | null {
   if (!rawScoreState) return null;
   let parsed = rawScoreState;
   if (typeof parsed === 'string') {

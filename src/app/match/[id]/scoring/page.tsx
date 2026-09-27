@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useRef } from "react";
+import { Suspense, useRef, useState } from "react";
 import type { TennisFormat } from "@/core/scoring/types";
 import { MatchHeader } from "@/components/scoring/MatchHeader";
 import { PlayerCard } from "@/components/scoring/PlayerCard";
@@ -31,6 +31,16 @@ function ScoringPageInner() {
   // (handleMatchClick em useDashboardPageActions.ts). Usar ref para capturar
   // apenas o valor inicial e não reagir a mudanças de URL posteriores.
   const cameFromDashboardRef = useRef(searchParams.get('modal') === 'edit-score');
+
+  // BUG FIX (2026-09-27): a timeline em /scoring é alimentada por
+  // engineRef.current.getPointHistory() (histórico do engine em memória),
+  // que podia estar incompleto/colapsado (ex.: só o último ponto) até um
+  // fetchMatch(true) trazer o histórico completo do servidor — a timeline
+  // abria "cortada" e só se completava sozinha depois de um tempo. Agora
+  // forçamos um fetchMatch(true) ANTES de trocar para a view de timeline,
+  // com um popup de carregamento enquanto isso, para garantir que ela
+  // sempre abra já completa.
+  const [isTimelineLoading, setIsTimelineLoading] = useState(false);
 
   const state = useScoringPageState(matchId);
   const handlers = useScoringPageEffects(state);
@@ -81,6 +91,7 @@ function ScoringPageInner() {
   } = state;
 
   const {
+    fetchMatch,
     handleUndo,
     handleVoltar,
     openAceModal,
@@ -120,6 +131,17 @@ function ScoringPageInner() {
     editScoreCompletedSets,
     serverEffectWinnerName,
   } = derived;
+
+  const handleOpenTimeline = async () => {
+    if (isTimelineLoading) return;
+    setIsTimelineLoading(true);
+    try {
+      await fetchMatch(true);
+    } finally {
+      setViewMode("timeline");
+      setIsTimelineLoading(false);
+    }
+  };
 
   if (viewMode === "timeline" && !isSetupNeeded && activeModal === null) {
     return (
@@ -195,9 +217,18 @@ function ScoringPageInner() {
           await abandonCurrentSession();
           router.push("/dashboard");
         }}
-        onTimeline={() => setViewMode("timeline")}
+        onTimeline={handleOpenTimeline}
         isFinished={isFinished}
       />
+
+      {isTimelineLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-gray-800 border border-gray-700 rounded-2xl px-6 py-5 flex flex-col items-center gap-3">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500" />
+            <p className="text-sm text-gray-200 font-medium">Carregando linha do tempo completa...</p>
+          </div>
+        </div>
+      )}
 
       <div className="flex-1 flex flex-col gap-0 sm:gap-1 px-2 sm:px-3 py-1 sm:py-2 relative overflow-hidden">
         <div className="absolute inset-0 opacity-20 pointer-events-none">

@@ -349,7 +349,14 @@ describe("useScoringHandlers - handleUndo", () => {
     expect(mockEngine.getState).toHaveBeenCalled();
   });
 
-  it("deve desfazer as duas ações de uma dupla falta", async () => {
+  it("deve desfazer só a jogada de dupla falta (1 entrada de histórico), sem apagar o ponto anterior", async () => {
+    // BUG FIX (2026-09-27): erro de 1º saque nunca gera uma entrada própria
+    // no histórico do engine (é só estado local em serve-actions.service.ts);
+    // a jogada inteira (erro 1º saque + dupla falta) é UM único ponto salvo
+    // via saveToHistory em engine.ts. Este teste antes simulava uma 2ª
+    // entrada "FAULT_FIRST" que não existe em produção e mascarava o bug de
+    // handleUndo apagar também o ponto anterior (ex.: 15/0 → 15/15 → Voltar
+    // → 0/0 em vez de voltar a 15/0).
     const setScoreState = jest.fn();
     const setPointsHistory = jest.fn();
     const closeAll = jest.fn();
@@ -372,8 +379,7 @@ describe("useScoringHandlers - handleUndo", () => {
       }),
       undoLastPoint: jest
         .fn()
-        .mockReturnValueOnce({ point: { type: "DOUBLE_FAULT" } })
-        .mockReturnValueOnce({ point: { type: "FAULT_FIRST" } }),
+        .mockReturnValueOnce({ point: { type: "DOUBLE_FAULT" } }),
     };
 
     const { result } = renderHook(() =>
@@ -389,11 +395,11 @@ describe("useScoringHandlers - handleUndo", () => {
 
     await result.current.handleUndo();
 
-    expect(mockEngine.undoLastPoint).toHaveBeenCalledTimes(2);
+    expect(mockEngine.undoLastPoint).toHaveBeenCalledTimes(1);
     expect(setScoreState).toHaveBeenCalled();
     expect(setPointsHistory).toHaveBeenCalledWith(expect.any(Function));
     const trimHistory = setPointsHistory.mock.calls[0][0];
-    expect(trimHistory(["first-fault", "double-fault"])).toEqual([]);
+    expect(trimHistory(["ponto-anterior-15-0", "dupla-falta"])).toEqual(["ponto-anterior-15-0"]);
     expect(closeAll).toHaveBeenCalled();
   });
 

@@ -62,13 +62,18 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
       const undone = engineRef.current.undoLastPoint();
       if (!undone) return;
 
-      const undonePoint = undone.point ?? undone;
-      const requestedUndoCount = undonePoint.type === "DOUBLE_FAULT" ? 2 : 1;
-      let undoCount = 1;
-      for (let index = 1; index < requestedUndoCount; index += 1) {
-        if (!engineRef.current.undoLastPoint()) break;
-        undoCount += 1;
-      }
+      // BUG FIX (2026-09-27): antes, quando o ponto desfeito era DOUBLE_FAULT,
+      // o código assumia que o engine guardava 2 entradas de histórico para
+      // essa jogada (uma FAULT_FIRST + uma DOUBLE_FAULT) e desfazia uma
+      // SEGUNDA vez. Essa premissa está obsoleta: hoje o erro de 1º saque
+      // nunca gera uma entrada própria no histórico (é só estado local em
+      // useScoringHandlers.serve-actions.service.ts); o firstFaultDetail
+      // viaja embutido no ÚNICO processPoint que fecha a jogada, e
+      // engine.ts (handleDoubleFault) salva 1 única entrada via
+      // saveToHistory. Fazer 2 undos apagava também o ponto anterior
+      // (ex.: 15/0 → erro 1º saque + dupla falta → 15/15 → Voltar → 0/0
+      // em vez de voltar a 15/0). Agora sempre desfaz exatamente 1 ponto.
+      const undoCount = 1;
       const newState = engineRef.current.getState() as ScoringState;
       setScoreState({ type: "UNDO", payload: newState });
       setPointsHistory((prev) => prev.slice(0, -undoCount));

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { ScoringEngine } from '@/core/scoring/engine';
-import { normalizeScoreState } from '@/core/scoring/score-normalizer';
+import { normalizeScoreState, extractHistory } from '@/core/scoring/score-normalizer';
 import { logger } from '@/lib/logger';
 import type { PointFlowInput } from '@/schemas/contracts';
 
@@ -88,9 +88,34 @@ export function restoreEngineFromMatch(match: {
     initialServerId: match.initialServerId,
   };
 
-  return scoreStateToUse
+  const engine = scoreStateToUse
     ? ScoringEngine.fromSerialized(engineConfig, JSON.stringify(scoreStateToUse))
     : new ScoringEngine(engineConfig);
+
+  // BUG FIX (2026-09-27) — CRÍTICO: normalizeScoreState() sempre retorna só
+  // o `state` saneado, nunca o `history` — mesmo quando match.scoreState já
+  // era o envelope completo {state, history}. Como esta função constrói o
+  // engine usado em TODA transação real de ponto (POST /point, via
+  // route.ts), o engine sempre nascia com histórico VAZIO; applyPoint()
+  // então salvava só o ponto ATUAL nesse histórico, e essa versão de 1
+  // único ponto era persistida de volta em match.scoreState (snapshot =
+  // engine.serialize()). Resultado: o `history` gravado no banco nunca
+  // acumulava mais de 1 ponto por vez. Isso não corrompe o placar (que
+  // depende só do `state`), mas corrompe qualquer leitura futura do
+  // histórico completo a partir do scoreState persistido — em particular,
+  // a timeline ao vivo em /scoring (engineRef.current.getPointHistory() no
+  // cliente) podia reidratar com só 1 ponto sempre que um fetchMatch(true)
+  // recarregava o engine a partir do servidor. Corrigido restaurando o
+  // histórico original (extraído do match.scoreState ANTES da
+  // normalização) sobre o estado saneado.
+  if (engine.getHistoryLength() === 0) {
+    const originalHistory = extractHistory(match.scoreState);
+    if (originalHistory && originalHistory.length > 0) {
+      engine.restorePointHistory(originalHistory);
+    }
+  }
+
+  return engine;
 }
 
 export function buildAnnotationsPayload(data: PointFlowInput) {

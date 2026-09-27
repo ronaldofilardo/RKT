@@ -83,8 +83,9 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
               scoreStateToUse = JSON.parse(scoreStateToUse);
             } catch {}
           }
-          if (!scoreStateToUse.setsWon) {
-            scoreStateToUse.setsWon = { player1: 0, player2: 0 };
+          const targetObj = scoreStateToUse.state ? scoreStateToUse.state : scoreStateToUse;
+          if (!targetObj.setsWon) {
+            targetObj.setsWon = { player1: 0, player2: 0 };
           }
           engineRef.current = ScoringEngine.fromSerialized(config, JSON.stringify(scoreStateToUse));
         } else if (data.initialServerId) {
@@ -93,7 +94,21 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
           openRef.current('setup');
         }
 
-        if (engineRef.current && previousHistory.length > 0 && !Array.isArray(scoreStateToUse?.history)) {
+        // BUG FIX (2026-09-27) — timeline "cortada" em /scoring: a condição
+        // acima só restaurava previousHistory quando o servidor não mandava
+        // NENHUM array `history` — mas matches antigos/ainda não corrigidos
+        // no servidor (ver restoreEngineFromMatch em route.helpers.ts)
+        // podiam persistir um `history` que É um array, só que incompleto
+        // (ex.: só o último ponto). Nesse caso a engine recém-criada ficava
+        // com um histórico mais curto do que o engine anterior já tinha em
+        // memória, e a timeline (alimentada por getPointHistory()) exibia
+        // menos pontos do que os realmente jogados até um novo ponto local
+        // reconstruir o resto. Agora comparamos os tamanhos e mantemos o
+        // histórico mais completo dos dois.
+        const serverHistoryLength = Array.isArray(scoreStateToUse?.history)
+          ? scoreStateToUse.history.length
+          : 0;
+        if (engineRef.current && previousHistory.length > serverHistoryLength) {
           engineRef.current.restorePointHistory(previousHistory);
         }
 

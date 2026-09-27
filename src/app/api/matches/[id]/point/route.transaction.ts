@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { ScoringEngine } from '@/core/scoring/engine';
 import type { ScoringState, TennisFormat } from '@/core/scoring/types';
-import { normalizeScoreState } from '@/core/scoring/score-normalizer';
+import { normalizeScoreState, extractHistory } from '@/core/scoring/score-normalizer';
 import { logger } from '@/lib/logger';
 import { PointFlowInputSchema } from '@/schemas/contracts';
 import { buildAnnotationsPayload } from './route.helpers';
@@ -99,6 +99,30 @@ function createEngine(match: { format: string; player1Id: string; player2Id: str
   const config = { format, player1Id: match.player1Id, player2Id: match.player2Id, initialServerId: match.initialServerId as string };
   const normalized = scoreState && typeof scoreState === 'object' ? normalizeScoreState(scoreState, format) : null;
   const serialized = JSON.stringify(normalized ?? scoreState);
-  if (typeof ScoringEngine.fromSerialized === 'function') return ScoringEngine.fromSerialized(config, serialized);
-  return new ScoringEngine(config);
+  const engine = typeof ScoringEngine.fromSerialized === 'function'
+    ? ScoringEngine.fromSerialized(config, serialized)
+    : new ScoringEngine(config);
+
+  // BUG FIX (2026-09-27) — CRÍTICO: normalizeScoreState() sempre retorna só
+  // o `state` saneado (nunca o `history`), mesmo quando o scoreState de
+  // entrada já era o envelope completo {state, history}. Como este é o
+  // engine usado em TODA transação de ponto (POST /point), ele sempre
+  // nascia com histórico VAZIO — applyPoint() então salvava só o ponto
+  // ATUAL nesse histórico, e essa versão de 1 único ponto era persistida de
+  // volta em match.scoreState. Resultado: o `history` no banco nunca
+  // acumulava mais de 1 ponto, e a timeline ao vivo em /scoring (que lê
+  // engineRef.current.getPointHistory() no cliente, reidratado a partir
+  // dessa resposta) colapsava para 1 ponto sempre que um ponto era
+  // sincronizado com sucesso — só voltando a mostrar tudo enquanto o
+  // acúmulo local otimista (antes do round-trip) ainda não tinha sido
+  // substituído. Corrigido restaurando o histórico original (extraído do
+  // scoreState de entrada, antes da normalização) sobre o estado saneado.
+  if (engine.getHistoryLength() === 0) {
+    const originalHistory = extractHistory(scoreState);
+    if (originalHistory && originalHistory.length > 0) {
+      engine.restorePointHistory(originalHistory);
+    }
+  }
+
+  return engine;
 }

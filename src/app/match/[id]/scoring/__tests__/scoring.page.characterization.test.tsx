@@ -357,6 +357,40 @@ describe("ScoringPage - Characterization Tests", () => {
         expect(screen.getByTestId("timeline-view")).toBeInTheDocument();
       });
     });
+
+    // BUG FIX (2026-09-27): a timeline era alimentada só pelo histórico do
+    // engine em memória, que podia estar incompleto até um fetchMatch(true)
+    // trazer o histórico completo do servidor — a timeline abria "cortada"
+    // e só se completava sozinha depois de um tempo. Agora um fetchMatch(true)
+    // é disparado ANTES de trocar para a view de timeline, com um popup de
+    // carregamento visível enquanto isso.
+    it("deve buscar a partida novamente (fetchMatch) e exibir popup de carregamento antes de abrir a timeline", async () => {
+      render(<ScoringPage />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("match-header")).toBeInTheDocument();
+      });
+
+      const fetchCallsBeforeClick = (global.fetch as jest.Mock).mock.calls.length;
+
+      const timelineButton = screen.getByText("Timeline");
+      timelineButton.click();
+
+      await waitFor(() => {
+        expect(screen.getByText("Carregando linha do tempo completa...")).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId("timeline-view")).toBeInTheDocument();
+      });
+
+      expect(
+        screen.queryByText("Carregando linha do tempo completa..."),
+      ).not.toBeInTheDocument();
+      expect((global.fetch as jest.Mock).mock.calls.length).toBeGreaterThan(
+        fetchCallsBeforeClick,
+      );
+    });
   });
 
   describe("Finished match banner", () => {
