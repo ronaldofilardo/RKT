@@ -23,14 +23,14 @@ export function DashboardContent({ loading, view, finishedMatches, matches, susp
           <div className="flex items-center justify-between mb-4">
             <h2
               id="annotated-heading"
-              className="text-xl font-bold text-gray-900"
+              className="text-xl font-bold text-telemetry-text-primary"
             >
               Partidas Anotadas
             </h2>
             <button
               type="button"
               onClick={() => handleNavigate("dashboard")}
-              className="text-sm text-blue-600 hover:underline"
+              className="text-sm text-telemetry-blue-light hover:underline"
             >
               Voltar para Início
             </button>
@@ -62,7 +62,7 @@ export function DashboardContent({ loading, view, finishedMatches, matches, susp
         </h2>
         {suspendedFromApi.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase mb-3">
+            <h3 className="text-sm font-semibold text-telemetry-text-muted uppercase mb-3">
               Anotações Suspensas
             </h3>
             <div className="space-y-3">

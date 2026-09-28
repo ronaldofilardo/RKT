@@ -1,3 +1,13 @@
 import { ServeSection, ActionFooter } from './ActionBar.sections';
 type Props={aceDetailsEnabled:boolean;onAceDetailsToggle:()=>void;dfDetailsEnabled:boolean;onDfDetailsToggle:()=>void;secondServe:boolean;serveStep:'none'|'second';canUndo:boolean;canEdit:boolean;fontScale:number;isFinished:boolean;isProcessing?:boolean;onAce:()=>void;onOut:(step:'first'|'second')=>void;onNet:(step:'first'|'second')=>void;onVoltar:(serveStep:'none'|'second')=>void;onFontSmaller:()=>void;onFontBigger:()=>void;onEditScore:()=>void;onComment?:()=>void;onStats?:()=>void;};
-export function ActionBarView(p:Props){const disabled=Boolean(p.isFinished||p.isProcessing);return <div className="bg-white border-t border-gray-200 px-3 sm:px-4 py-3 sm:py-4 safe-bottom dark:bg-slate-900 dark:border-slate-700"><div className="max-w-lg mx-auto space-y-3"><ServeSection aceDetailsEnabled={p.aceDetailsEnabled} onAceDetailsToggle={p.onAceDetailsToggle} dfDetailsEnabled={p.dfDetailsEnabled} onDfDetailsToggle={p.onDfDetailsToggle} showSecondBadge={p.serveStep==='second'||p.secondServe} disabled={disabled} onAce={p.onAce} onOut={p.onOut} onNet={p.onNet} step={p.serveStep} processing={p.isProcessing}/><ActionFooter canUndo={p.canUndo} canEdit={p.canEdit} onVoltar={p.onVoltar} serveStep={p.serveStep} onFontSmaller={p.onFontSmaller} onFontBigger={p.onFontBigger} onEditScore={p.onEditScore} onComment={p.onComment} onStats={p.onStats} fontScale={p.fontScale} disabled={disabled} processing={p.isProcessing}/></div></div>}
+export function ActionBarView(p:Props){
+  const disabled=Boolean(p.isFinished||p.isProcessing);
+  return (
+    <div className="bg-telemetry-card border-t border-white/10 px-3 sm:px-4 py-3 sm:py-4 safe-bottom">
+      <div className="max-w-lg mx-auto space-y-3">
+        <ServeSection aceDetailsEnabled={p.aceDetailsEnabled} onAceDetailsToggle={p.onAceDetailsToggle} dfDetailsEnabled={p.dfDetailsEnabled} onDfDetailsToggle={p.onDfDetailsToggle} showSecondBadge={p.serveStep==='second'||p.secondServe} disabled={disabled} onAce={p.onAce} onOut={p.onOut} onNet={p.onNet} step={p.serveStep} processing={p.isProcessing}/>
+        <ActionFooter canUndo={p.canUndo} canEdit={p.canEdit} onVoltar={p.onVoltar} serveStep={p.serveStep} onFontSmaller={p.onFontSmaller} onFontBigger={p.onFontBigger} onEditScore={p.onEditScore} onComment={p.onComment} onStats={p.onStats} fontScale={p.fontScale} disabled={disabled} processing={p.isProcessing}/>
+      </div>
+    </div>
+  )
+}

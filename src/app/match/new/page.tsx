@@ -78,18 +78,18 @@ export default function NewMatchPage() {
   } = useNewMatchController();
 
   return (
-    <div className="min-h-screen bg-gray-50 safe-top safe-bottom">
+    <div className="min-h-screen bg-telemetry-base text-telemetry-text-primary safe-top safe-bottom">
       <MatchNewHeader />
 
       <main className="max-w-4xl mx-auto px-4 py-6">
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-start gap-2">
-            <span className="text-red-500 mt-0.5">⚠️</span>
+          <div className="mb-6 p-4 bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert text-sm rounded-lg flex items-start gap-2">
+            <span className="text-telemetry-alert mt-0.5">⚠️</span>
             <div>
               <p className="font-medium">Erro</p>
               <p>{error}</p>
               {missingFields.length > 0 && (
-                <ul className="mt-1 text-xs text-red-600 list-disc list-inside">
+                <ul className="mt-1 text-xs text-telemetry-alert list-disc list-inside opacity-90">
                   {missingFields.map((f) => (
                     <li key={f}>Falta: {f}</li>
                   ))}
@@ -126,10 +126,10 @@ export default function NewMatchPage() {
           <DateTimeSection date={date} time={time} onDateChange={setDate} onTimeChange={setTime} />
 
           {/* Torneio com auto-complete */}
-          <section className="bg-white rounded-xl shadow-sm border p-4">
+          <section className="bg-telemetry-card rounded-xl border border-white/10 p-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
-                Torneio <span className="text-gray-400 font-normal">(opcional)</span>
+              <h2 className="text-base font-semibold text-telemetry-text-primary w-40 shrink-0">
+                Torneio <span className="text-telemetry-text-muted font-normal">(opcional)</span>
               </h2>
               <div className="flex-1 relative">
                 <input
@@ -141,16 +141,16 @@ export default function NewMatchPage() {
                   }}
                   onFocus={() => setShowTournamentDropdown(true)}
                   placeholder="Nome do torneio"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-base bg-white text-gray-900 placeholder-gray-500"
+                  className="w-full px-3 py-2 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt text-base bg-telemetry-elevated text-telemetry-text-primary placeholder-telemetry-text-muted/50"
                 />
                 {showTournamentDropdown && tournamentSuggestions.length > 0 && (
-                  <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 shadow-lg max-h-48 overflow-auto">
+                  <ul className="absolute z-10 w-full bg-telemetry-card border border-white/10 rounded-lg mt-1 shadow-lg max-h-48 overflow-auto">
                     {tournamentSuggestions.map((t) => (
                       <li key={t}>
                         <button
                           type="button"
                           onClick={() => handleSelectTournament(t)}
-                          className="w-full text-left px-3 py-3 hover:bg-sky-50 text-sm"
+                          className="w-full text-left px-3 py-3 hover:bg-telemetry-elevated text-sm text-telemetry-text-primary"
                         >
                           {t}
                         </button>
@@ -163,22 +163,22 @@ export default function NewMatchPage() {
 
             {/* Clube */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
-              <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
-                Clube <span className="text-gray-400 font-normal">(opcional)</span>
+              <h2 className="text-base font-semibold text-telemetry-text-primary w-40 shrink-0">
+                Clube <span className="text-telemetry-text-muted font-normal">(opcional)</span>
               </h2>
               <input
                 type="text"
                 value={clubName}
                 onChange={(e) => setClubName(e.target.value)}
                 placeholder="Nome do clube"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-base bg-white text-gray-900 placeholder-gray-500"
+                className="flex-1 px-3 py-2 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt text-base bg-telemetry-elevated text-telemetry-text-primary placeholder-telemetry-text-muted/50"
               />
             </div>
 
             {/* Rodada */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
-              <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">
-                Rodada <span className="text-gray-400 font-normal">(opcional)</span>
+              <h2 className="text-base font-semibold text-telemetry-text-primary w-40 shrink-0">
+                Rodada <span className="text-telemetry-text-muted font-normal">(opcional)</span>
               </h2>
               <div className="flex-1 relative">
                 <RoundSelector
@@ -214,14 +214,14 @@ export default function NewMatchPage() {
             <button
               type="button"
               onClick={() => window.history.back()}
-              className="flex-1 px-4 py-3 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-3 bg-transparent border border-white/10 text-telemetry-text-muted font-semibold rounded-lg hover:bg-white/5 hover:text-telemetry-text-primary transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-3 bg-sky-600 text-white font-semibold rounded-lg hover:bg-sky-700 disabled:opacity-50 transition-colors shadow-sm"
+              className="flex-1 px-4 py-3 bg-telemetry-blue text-white font-semibold rounded-lg hover:opacity-90 disabled:opacity-50 transition-colors shadow-sm"
             >
               {loading ? 'Criando...' : 'Criar Partida'}
             </button>

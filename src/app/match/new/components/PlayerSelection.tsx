@@ -31,9 +31,9 @@ export function PlayerSelection({
   onCreateNewP2,
 }: PlayerSelectionProps) {
   return (
-    <section className="bg-white rounded-xl shadow-sm border p-4">
+    <section className="bg-telemetry-card rounded-xl border border-white/10 p-4">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-        <h2 className="text-base font-semibold text-gray-900 w-40 shrink-0">JOGADORES *</h2>
+        <h2 className="text-base font-semibold text-telemetry-text-primary w-40 shrink-0">JOGADORES *</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
           <AthleteDropdown
             label="Jogador 1"

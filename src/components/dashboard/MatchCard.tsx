@@ -73,8 +73,7 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
   return (
     <div
       data-testid={`match-card-${match.id}`}
-      className={`rounded-xl border border-white/10 shadow-sm transition-shadow ${onClick ? "cursor-pointer hover:shadow-md" : ""}`}
-      style={{ backgroundColor: '#1a1a2e' }}
+      className={`rounded-xl border border-white/10 shadow-sm transition-all bg-telemetry-card ${onClick ? "cursor-pointer hover:shadow-md hover:border-white/20 hover:bg-[#151c2d]" : ""}`}
       onClick={handleClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
@@ -103,20 +102,20 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
             >
               {match.player1.name}
             </div>
-            <div style={{ display: 'table-cell', borderLeft: '2px solid #1a1a2e' }}>
+            <div style={{ display: 'table-cell', borderLeft: '2px solid #111827' }}>
               <div className="flex items-stretch">
                 {scoreState.sets.map((s: any, idx: number) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-center px-2 py-1.5 font-mono text-sm text-white min-w-[2.5rem]"
-                    style={{ backgroundColor: scoreBg, borderRight: idx < numSets - 1 ? '1px solid #1a1a2e' : 'none' }}
+                    className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm text-white min-w-[2.5rem]"
+                    style={{ backgroundColor: scoreBg, borderRight: idx < numSets - 1 ? '1px solid #111827' : 'none' }}
                   >
                     {formatCompactSetScore(s, 'player1', isSetIndexMatchTiebreak(scoreState.sets, idx, match.format as TennisFormat))}
                   </div>
                 ))}
                 {!isFinished && (
                   <div
-                    className="flex items-center justify-center px-2 py-1.5 font-mono text-sm text-white min-w-[2.5rem]"
+                    className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm text-white min-w-[2.5rem]"
                     style={{ backgroundColor: scoreBg }}
                   >
                     {isCurrentSetMT
@@ -128,7 +127,7 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
                 )}
               </div>
             </div>
-            <div className="flex items-center justify-center px-3 py-1.5 font-mono text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, display: 'table-cell' }}>
+            <div className="flex items-center justify-center px-3 py-1.5 font-space-grotesk tabular-nums text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, display: 'table-cell' }}>
               {setsWonP1}
             </div>
           </div>
@@ -146,20 +145,20 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
             >
               {match.player2.name}
             </div>
-            <div style={{ display: 'table-cell', borderLeft: '2px solid #1a1a2e' }}>
+            <div style={{ display: 'table-cell', borderLeft: '2px solid #111827' }}>
               <div className="flex items-stretch">
                 {scoreState.sets.map((s: any, idx: number) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-center px-2 py-1.5 font-mono text-sm text-white min-w-[2.5rem]"
-                    style={{ backgroundColor: scoreBg, borderRight: idx < numSets - 1 ? '1px solid #1a1a2e' : 'none' }}
+                    className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm text-white min-w-[2.5rem]"
+                    style={{ backgroundColor: scoreBg, borderRight: idx < numSets - 1 ? '1px solid #111827' : 'none' }}
                   >
                     {formatCompactSetScore(s, 'player2', isSetIndexMatchTiebreak(scoreState.sets, idx, match.format as TennisFormat))}
                   </div>
                 ))}
                 {!isFinished && (
                   <div
-                    className="flex items-center justify-center px-2 py-1.5 font-mono text-sm text-white min-w-[2.5rem]"
+                    className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm text-white min-w-[2.5rem]"
                     style={{ backgroundColor: scoreBg }}
                   >
                     {isCurrentSetMT
@@ -171,7 +170,7 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
                 )}
               </div>
             </div>
-            <div className="flex items-center justify-center px-3 py-1.5 font-mono text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, display: 'table-cell' }}>
+            <div className="flex items-center justify-center px-3 py-1.5 font-space-grotesk tabular-nums text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, display: 'table-cell' }}>
               {setsWonP2}
             </div>
           </div>
@@ -185,10 +184,10 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
             >
               {match.player1.name}
             </div>
-            <div className="flex items-center justify-center px-2 py-1.5 font-mono text-sm text-white min-w-[2.5rem]" style={{ backgroundColor: scoreBg, borderLeft: '2px solid #1a1a2e', display: 'table-cell' }}>
+            <div className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm text-white min-w-[2.5rem]" style={{ backgroundColor: scoreBg, borderLeft: '2px solid #111827', display: 'table-cell' }}>
               {getSinglePointDisplay(scoreState.currentGame, 'player1')}
             </div>
-            <div className="flex items-center justify-center px-3 py-1.5 font-mono text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, display: 'table-cell' }}>
+            <div className="flex items-center justify-center px-3 py-1.5 font-space-grotesk tabular-nums text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, display: 'table-cell' }}>
               {setsWonP1}
             </div>
           </div>
@@ -202,10 +201,10 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
             >
               {match.player2.name}
             </div>
-            <div className="flex items-center justify-center px-2 py-1.5 font-mono text-sm text-white min-w-[2.5rem]" style={{ backgroundColor: scoreBg, borderLeft: '2px solid #1a1a2e', display: 'table-cell' }}>
+            <div className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm text-white min-w-[2.5rem]" style={{ backgroundColor: scoreBg, borderLeft: '2px solid #111827', display: 'table-cell' }}>
               {getSinglePointDisplay(scoreState.currentGame, 'player2')}
             </div>
-            <div className="flex items-center justify-center px-3 py-1.5 font-mono text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, display: 'table-cell' }}>
+            <div className="flex items-center justify-center px-3 py-1.5 font-space-grotesk tabular-nums text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, display: 'table-cell' }}>
               {setsWonP2}
             </div>
           </div>

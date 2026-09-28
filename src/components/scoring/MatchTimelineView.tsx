@@ -107,7 +107,7 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId, h
 
   if (points.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-500 text-sm">
+      <div className="text-center py-12 text-telemetry-text-muted text-sm">
         Esta sessão não possui pontos detalhados registrados.
       </div>
     );
@@ -125,7 +125,7 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId, h
             playerNames={{ p1: player1Name, p2: player2Name }}
           />
 
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-telemetry-text-muted mb-3">
             {hasActiveFilters
               ? `${filteredPoints.length} de ${points.length} pontos`
               : `${points.length} pontos`}
@@ -133,7 +133,7 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId, h
         </>
       )}
 
-      <div className="overflow-hidden border border-gray-200 rounded-lg">
+      <div className="overflow-hidden border border-white/10 rounded-lg">
         <div className="overflow-x-auto">
           <div className="min-w-[1000px]">
             <table className="w-full text-[11px]" style={{ tableLayout: 'fixed', borderCollapse: 'collapse' }}>
@@ -166,48 +166,48 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId, h
               </colgroup>
 
               <thead>
-                <tr className="bg-gray-100 border-b border-gray-300">
-                  <th colSpan={3} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide sticky left-0 bg-gray-100 z-20 border-r border-gray-300">SET</th>
-                  <th colSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide border-r border-gray-200">PLACAR</th>
-                  <th colSpan={5} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide border-r border-gray-200">1º Saque</th>
-                  <th colSpan={5} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide border-r border-gray-200">2º Saque</th>
-                  <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">SITUAÇÃO</th>
-                  <th rowSpan={2} aria-label="TIPO (ENF, EF, W)" className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide border-l border-gray-200">
+                <tr className="bg-telemetry-elevated border-b border-white/10">
+                  <th colSpan={3} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide sticky left-0 bg-telemetry-elevated z-20 border-r border-white/10">SET</th>
+                  <th colSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide border-r border-white/10">PLACAR</th>
+                  <th colSpan={5} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide border-r border-white/10">1º Saque</th>
+                  <th colSpan={5} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide border-r border-white/10">2º Saque</th>
+                  <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide">SITUAÇÃO</th>
+                  <th rowSpan={2} aria-label="TIPO (ENF, EF, W)" className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide border-l border-white/10">
                     <div className="flex flex-col leading-tight">
                       <span>TIPO</span>
-                      <span className="text-[7px] font-normal text-gray-400 normal-case">ENF, EF, W</span>
+                      <span className="text-[7px] font-normal text-telemetry-text-muted/50 normal-case">ENF, EF, W</span>
                     </div>
                   </th>
-                  <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">ERRO</th>
-                  <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">ONDE</th>
-                  <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">GOLPE</th>
-                  <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">EFEITO</th>
-                  <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">DIREÇÃO</th>
-                  <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">ESPECIAL</th>
-                  <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">RALLY</th>
-                  <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-gray-500 uppercase tracking-wide">OBS</th>
+                  <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide">ERRO</th>
+                  <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide">ONDE</th>
+                  <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide">GOLPE</th>
+                  <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide">EFEITO</th>
+                  <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide">DIREÇÃO</th>
+                  <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide">ESPECIAL</th>
+                  <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide">RALLY</th>
+                  <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide">OBS</th>
                 </tr>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">no.</th>
-                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">SAC</th>
-                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase border-r border-gray-200">Venc</th>
-                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">GAMES</th>
-                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase border-r border-gray-200">PONTOS</th>
-                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">ACE</th>
-                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">OUT</th>
-                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">NET</th>
-                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">EFE</th>
-                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase border-r border-gray-200">DIR</th>
-                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">ACE</th>
-                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">OUT</th>
-                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">NET</th>
-                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase">EFE</th>
-                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-gray-500 uppercase border-r border-gray-200">DIR</th>
+                <tr className="bg-telemetry-card border-b border-white/5">
+                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase">no.</th>
+                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase">SAC</th>
+                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase border-r border-white/10">Venc</th>
+                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase">GAMES</th>
+                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase border-r border-white/10">PONTOS</th>
+                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase">ACE</th>
+                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase">OUT</th>
+                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase">NET</th>
+                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase">EFE</th>
+                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase border-r border-white/10">DIR</th>
+                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase">ACE</th>
+                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase">OUT</th>
+                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase">NET</th>
+                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase">EFE</th>
+                  <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase border-r border-white/10">DIR</th>
                 </tr>
               </thead>
-              <tbody className="bg-white">
+              <tbody className="bg-transparent">
                 {hasActiveFilters && filteredPoints.length === 0 && (
-                  <tr><td colSpan={25} className="text-center py-6 text-gray-400 text-xs">Nenhum ponto corresponde aos filtros selecionados.</td></tr>
+                  <tr><td colSpan={25} className="text-center py-6 text-telemetry-text-muted text-xs">Nenhum ponto corresponde aos filtros selecionados.</td></tr>
                 )}
                 {groupedBySet.map((group, gi) => (
                   <SetGroup
@@ -225,14 +225,14 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId, h
                 {showFinalResult && (() => {
                   const setResults = getSetResults(points);
                   return (
-                    <tr className="bg-gray-100 border-t-2 border-gray-300 font-bold">
-                      <td colSpan={3} className="px-1.5 py-2 text-[10px] text-gray-700 sticky left-0 bg-gray-100 z-10 border-r border-gray-300 text-right pr-3">
+                    <tr className="bg-telemetry-elevated border-t border-white/10 font-bold">
+                      <td colSpan={3} className="px-1.5 py-2 text-[10px] text-telemetry-text-primary sticky left-0 bg-telemetry-elevated z-10 border-r border-white/10 text-right pr-3">
                         Resultado
                       </td>
-                      <td colSpan={2} className="px-1.5 py-2 text-[10px] border-r border-gray-200">
+                      <td colSpan={2} className="px-1.5 py-2 text-[10px] border-r border-white/10">
                         <div className="flex flex-col leading-tight">
                           {setResults.map((sr) => (
-                            <span key={sr.setNumber} className="text-gray-700">
+                            <span key={sr.setNumber} className="text-telemetry-text-primary">
                               {sr.p1}x{sr.p2}
                               {sr.tiebreak ? ` (${sr.tiebreak.p1}x${sr.tiebreak.p2})` : ''}
                             </span>
@@ -250,20 +250,20 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId, h
       </div>
 
       {comments.length > 0 && (
-        <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-          <p className="font-semibold text-amber-800 text-[11px] mb-2">💬 Comentários</p>
+        <div className="mt-3 bg-telemetry-alert/10 border border-telemetry-alert/20 rounded-lg px-3 py-2">
+          <p className="font-semibold text-telemetry-alert text-[11px] mb-2">💬 Comentários</p>
           <div className="space-y-2">
             {[...comments].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map((c) => (
-              <div key={c.id} className="bg-white rounded-lg px-3 py-2 border border-amber-100">
-                <p className="text-[11px] text-gray-800">{c.content}</p>
+              <div key={c.id} className="bg-telemetry-card rounded-lg px-3 py-2 border border-white/10">
+                <p className="text-[11px] text-telemetry-text-primary">{c.content}</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[9px] text-gray-500">{c.authorName}</span>
-                  <span className="text-[9px] text-gray-400">·</span>
-                  <span className="text-[9px] text-gray-400">{new Date(c.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                  <span className="text-[9px] text-telemetry-text-muted">{c.authorName}</span>
+                  <span className="text-[9px] text-telemetry-text-muted/50">·</span>
+                  <span className="text-[9px] text-telemetry-text-muted">{new Date(c.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
                   {c.category && (
                     <>
-                      <span className="text-[9px] text-gray-400">·</span>
-                      <span className="text-[9px] text-amber-600 font-medium">{c.category}</span>
+                      <span className="text-[9px] text-telemetry-text-muted/50">·</span>
+                      <span className="text-[9px] text-telemetry-alert font-medium">{c.category}</span>
                     </>
                   )}
                   {c.hasAudioNote && (
@@ -282,8 +282,8 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId, h
         </div>
       )}
 
-      <div className="mt-3 text-[10px] text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 space-y-1">
-        <p className="font-semibold text-gray-700 mb-1">Como ler esta tabela</p>
+      <div className="mt-3 text-[10px] text-telemetry-text-muted bg-telemetry-elevated border border-white/5 rounded-lg px-3 py-2 space-y-1">
+        <p className="font-semibold text-telemetry-text-primary mb-1">Como ler esta tabela</p>
         <p>Cada linha é um ponto disputado, na ordem em que aconteceu. <strong>no.</strong> = número do ponto; <strong>SAC</strong> = sacador ({player1Name}/{player2Name}); <strong>Venc</strong> = ganhador do ponto ({player1Name}/{player2Name}).</p>
         <p><strong>GAMES</strong> = placar de games/set (mostrado só no 1º ponto de cada game).</p>
         <p><strong>PONTOS</strong> = placar de pontos (15-0, Deuce, Adv. P1).</p>

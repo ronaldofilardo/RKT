@@ -117,6 +117,33 @@ const config: Config = {
           600: '#059669',
           700: '#047857',
         },
+        /**
+         * Telemetry Design System (Broadcast-grade)
+         */
+        telemetry: {
+          base: '#0A0F1D',
+          card: '#111827',
+          elevated: '#1E293B',
+          active: '#0F172A',
+          volt: '#CCFF00',
+          blue: {
+            DEFAULT: '#2563EB',
+            light: '#3B82F6',
+          },
+          orange: {
+            DEFAULT: '#EA580C',
+            light: '#E25822',
+          },
+          error: '#EF4444',
+          alert: {
+            DEFAULT: '#F59E0B',
+            light: '#FBBF24',
+          },
+          text: {
+            primary: '#F8FAFC',
+            muted: '#94A3B8',
+          }
+        },
       },
       /**
        * TYPOGRAPHY
@@ -126,6 +153,8 @@ const config: Config = {
         display: ['Haas Groot Disp', 'Haas', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
         body: ['Haas', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
         mono: ['ui-monospace', 'SF Mono', 'Cascadia Code', 'Segoe UI Mono', 'Roboto Mono', 'monospace'],
+        geist: ['var(--font-geist-sans)', 'sans-serif'],
+        'space-grotesk': ['var(--font-space-grotesk)', 'sans-serif'],
       },
       fontSize: {
         /**

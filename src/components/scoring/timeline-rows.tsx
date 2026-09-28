@@ -43,10 +43,10 @@ export function getPlayerInitials(fullName: string): string {
 }
 
 const BADGE_COLORS = {
-  green: 'bg-green-100 text-green-700',
-  red: 'bg-red-100 text-red-700',
-  amber: 'bg-amber-100 text-amber-700',
-  gray: 'bg-gray-100 text-gray-700',
+  green: 'bg-green-500/20 text-green-400',
+  red: 'bg-telemetry-error/20 text-telemetry-error',
+  amber: 'bg-telemetry-alert/20 text-telemetry-alert',
+  gray: 'bg-white/10 text-telemetry-text-primary',
 } as const;
 
 function getPointBadge(p: TimelinePoint): { label: string; color: 'green' | 'red' | 'amber' | 'gray' } {
@@ -66,9 +66,9 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPo
   const isServeDecidedPoint = p.type === 'ACE' || p.type === 'DOUBLE_FAULT' || p.type === 'FAULT_FIRST';
 
   const rowClass = [
-    'border-b border-gray-100 hover:bg-gray-50 transition-colors',
-    p.winner === 'PLAYER_1' ? 'border-l-[3px] border-l-blue-500' : 'border-l-[3px] border-l-red-500',
-    p.isBreakPoint ? 'bg-amber-50/40' : '',
+    'border-b border-white/5 hover:bg-white/5 transition-colors',
+    p.winner === 'PLAYER_1' ? 'border-l-[3px] border-l-telemetry-blue' : 'border-l-[3px] border-l-telemetry-error',
+    p.isBreakPoint ? 'bg-telemetry-alert/10' : '',
   ].join(' ');
 
   const serverNumber = p.server === 'player1' ? 1 : 2;
@@ -82,89 +82,89 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPo
   const cells = (
     <>
       {/* no. — pointNumber */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-700 font-semibold sticky left-0 bg-white z-10 border-r border-gray-200">
+      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-primary font-semibold sticky left-0 bg-telemetry-base z-10 border-r border-white/10">
         {p.pointNumber}
       </td>
       {/* SAC — sacador (iniciais do atleta) */}
-      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${serverNumber === 1 ? 'text-blue-600' : 'text-red-600'}`}>
+      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${serverNumber === 1 ? 'text-telemetry-blue' : 'text-telemetry-error'}`}>
         {serverInitials}
       </td>
       {/* Venc — ganhador do ponto (iniciais do atleta) */}
-      <td className={`px-1.5 py-1.5 text-[10px] text-center font-bold ${winnerNumber === 1 ? 'text-blue-600' : 'text-red-600'}`}>
+      <td className={`px-1.5 py-1.5 text-[10px] text-center font-bold ${winnerNumber === 1 ? 'text-telemetry-blue' : 'text-telemetry-error'}`}>
         {winnerInitials}
       </td>
       {/* GAMES — placar de games (ou tiebreak score quando isTiebreak) */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-700 font-semibold text-center">
+      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-primary font-semibold text-center">
         {p.isTiebreak
           ? `${p.gamesScore.player1}x${p.gamesScore.player2}`
           : isFirstPointOfGame ? p.gamesScore.player1 + p.gamesScore.player2 + 1 : '–'}
       </td>
       {/* PONTOS — placar de pontos dentro do game */}
-      <td className="px-1.5 py-1.5 text-[10px] font-bold text-gray-800">{getGameScoreLabelForPoint(p)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] font-bold text-telemetry-text-primary">{getGameScoreLabelForPoint(p)}</td>
       {/* 1º Saque — ACE */}
-      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${firstOutcome === 'ace' ? 'text-green-600' : 'text-gray-400'}`}>
+      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${firstOutcome === 'ace' ? 'text-green-400' : 'text-telemetry-text-muted/50'}`}>
         {firstOutcome === 'ace' ? 'ACE' : '–'}
       </td>
       {/* 1º Saque — OUT */}
-      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${firstOutcome === 'out' ? 'text-red-600' : 'text-gray-400'}`}>
+      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${firstOutcome === 'out' ? 'text-telemetry-error' : 'text-telemetry-text-muted/50'}`}>
         {firstOutcome === 'out' ? 'OUT' : '–'}
       </td>
       {/* 1º Saque — NET */}
-      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${firstOutcome === 'net' ? 'text-amber-600' : 'text-gray-400'}`}>
+      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${firstOutcome === 'net' ? 'text-telemetry-alert' : 'text-telemetry-text-muted/50'}`}>
         {firstOutcome === 'net' ? 'NET' : '–'}
       </td>
       {/* 1º Saque — Efeito */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
+      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">
         {firstOutcome === 'ace' ? efeitoLabel(rd?.efeito) : firstOutcome ? efeitoLabel(p.firstFault?.serveEffect) : '–'}
       </td>
       {/* 1º Saque — Direção */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
+      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">
         {firstOutcome === 'ace' ? direcaoLabel(rd?.direcao) : firstOutcome ? direcaoLabel(p.firstFault?.direction) : '–'}
       </td>
       {/* 2º Saque — ACE */}
-      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${secondOutcome === 'ace' ? 'text-green-600' : 'text-gray-400'}`}>
+      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${secondOutcome === 'ace' ? 'text-green-400' : 'text-telemetry-text-muted/50'}`}>
         {secondOutcome === 'ace' ? 'ACE' : '–'}
       </td>
       {/* 2º Saque — OUT */}
-      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${secondOutcome === 'out' ? 'text-red-600' : 'text-gray-400'}`}>
+      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${secondOutcome === 'out' ? 'text-telemetry-error' : 'text-telemetry-text-muted/50'}`}>
         {secondOutcome === 'out' ? 'OUT' : '–'}
       </td>
       {/* 2º Saque — NET */}
-      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${secondOutcome === 'net' ? 'text-amber-600' : 'text-gray-400'}`}>
+      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${secondOutcome === 'net' ? 'text-telemetry-alert' : 'text-telemetry-text-muted/50'}`}>
         {secondOutcome === 'net' ? 'NET' : '–'}
       </td>
       {/* 2º Saque — Efeito */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
+      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">
         {secondOutcome ? efeitoLabel(rd?.efeito) : '–'}
       </td>
       {/* 2º Saque — Direção */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">
+      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">
         {secondOutcome ? direcaoLabel(rd?.direcao) : '–'}
       </td>
       {/* SITUAÇÃO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : situacaoLabel(rd?.situacao)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">{isServeDecidedPoint ? '–' : situacaoLabel(rd?.situacao)}</td>
       {/* TIPO badge (ENF/EF/W) */}
-      <td className="px-1.5 py-1.5 text-[10px] border-l border-gray-200">
+      <td className="px-1.5 py-1.5 text-[10px] border-l border-white/10">
         <span className={`px-1.5 py-0.5 rounded-full font-semibold ${BADGE_COLORS[badge.color]}`}>
           {badge.label}
         </span>
       </td>
       {/* SUBTIPO1 — Tipo de Erro (Rede) */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : subtipo1Label(rd?.subtipo1)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">{isServeDecidedPoint ? '–' : subtipo1Label(rd?.subtipo1)}</td>
       {/* SUBTIPO2 — Onde Errou? */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : subtipo2Label(rd?.subtipo2)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">{isServeDecidedPoint ? '–' : subtipo2Label(rd?.subtipo2)}</td>
       {/* GOLPE */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : golpeLabel(rd?.golpe)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">{isServeDecidedPoint ? '–' : golpeLabel(rd?.golpe)}</td>
       {/* EFEITO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : efeitoLabel(rd?.efeito)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">{isServeDecidedPoint ? '–' : efeitoLabel(rd?.efeito)}</td>
       {/* DIREÇÃO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : direcaoLabel(rd?.direcao)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">{isServeDecidedPoint ? '–' : direcaoLabel(rd?.direcao)}</td>
       {/* GOLPES ESPECIAIS */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600">{isServeDecidedPoint ? '–' : golpeEspLabel(rd?.golpe_esp)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">{isServeDecidedPoint ? '–' : golpeEspLabel(rd?.golpe_esp)}</td>
       {/* RALLY */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-500">{isServeDecidedPoint ? '–' : duracaoLabel(rd?.duracao)}</td>
+      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted/70">{isServeDecidedPoint ? '–' : duracaoLabel(rd?.duracao)}</td>
       {/* OBSERVAÇÃO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-gray-600 whitespace-normal break-words">
+      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted whitespace-normal break-words">
         <div className="flex flex-col gap-1">
           {p.note && !/^SET\s+\d+$/i.test(p.note) ? <span>📝 {p.note.replace(/Match Tie-?break/ig, 'MTB').replace(/Tie-?break/ig, 'TB').replace(/Match Tie-?brake/ig, 'MTB').replace(/Tie-?brake/ig, 'TB')}</span> : null}
           {p.hasAudioNote && p.pointId ? (
@@ -190,8 +190,8 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPo
     return (
       <>
         <tr>
-          <td colSpan={25} className="text-center py-2 bg-amber-50/60 border-y border-dashed border-amber-300">
-            <span className="text-[10px] text-amber-800">
+          <td colSpan={25} className="text-center py-2 bg-telemetry-alert/10 border-y border-dashed border-telemetry-alert/30">
+            <span className="text-[10px] text-telemetry-alert">
               ⏸ Partida interrompida em <strong>{p.segmentBreak.previousLabel}</strong> · placar ajustado para <strong>{p.segmentBreak.newLabel}</strong> em {editedAtLabel}
             </span>
           </td>
@@ -208,7 +208,7 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPo
       <>
         <tr>
           <td colSpan={25} className="text-center py-1.5">
-            <span className="text-[10px] italic text-gray-400 border-t border-dashed border-b border-dashed border-gray-300 px-2">marcação interrompida</span>
+            <span className="text-[10px] italic text-telemetry-text-muted/50 border-t border-dashed border-b border-dashed border-white/20 px-2">marcação interrompida</span>
           </td>
         </tr>
         <tr className={rowClass} aria-label={`Ponto: ${p.winner === 'PLAYER_1' ? 'P1' : 'P2'} venceu`}>
@@ -244,7 +244,7 @@ export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLa
           <td
             colSpan={25}
             aria-label={`Set ${_setNumber}`}
-            className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-700 bg-gray-100 border-y border-gray-300"
+            className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-telemetry-text-primary bg-telemetry-elevated border-y border-white/10"
           >
             <div className="flex items-center gap-2">
               <span>Set {_setNumber}</span>

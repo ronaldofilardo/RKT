@@ -270,11 +270,11 @@ describe('PointRow — regressão do novo layout (25 colunas, sem coluna SET)', 
     const p2 = makePoint({ winner: 'PLAYER_2' });
     const { container: c1 } = render(<table><tbody><PointRow {...baseProps} point={p1} hasGap={false} isLast={true} /></tbody></table>);
     const row1 = c1.querySelector('tr');
-    expect(row1?.className).toContain('border-l-blue-500');
+    expect(row1?.className).toContain('border-l-telemetry-blue');
 
     const { container: c2 } = render(<table><tbody><PointRow {...baseProps} point={p2} hasGap={false} isLast={true} /></tbody></table>);
     const row2 = c2.querySelector('tr');
-    expect(row2?.className).toContain('border-l-red-500');
+    expect(row2?.className).toContain('border-l-telemetry-error');
   });
 });
 

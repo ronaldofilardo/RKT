@@ -102,7 +102,7 @@ describe('ScoreboardCard', () => {
       />
     );
     const card = screen.getByText('Player One').closest('div');
-    expect(card).toHaveClass('border-amber-300', 'dark:border-amber-700');
+    expect(card).toHaveClass('border-telemetry-alert');
   });
 
   it('applies regular styling when isSuspended is false', () => {
@@ -115,7 +115,7 @@ describe('ScoreboardCard', () => {
       />
     );
     const card = screen.getByText('Player One').closest('div');
-    expect(card).toHaveClass('border-gray-200', 'shadow-md');
+    expect(card).toHaveClass('border-white/10', 'bg-telemetry-card');
   });
 
   it('renders with empty score state', () => {

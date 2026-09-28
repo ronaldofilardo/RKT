@@ -113,13 +113,13 @@ export function SetInputForm({
   };
 
   // Don't show input form when match is already over
-  if (isMatchOver) {
+    if (isMatchOver) {
     return (
-      <div className="space-y-3 rounded-lg bg-gray-750 border border-white/5 p-3">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+      <div className="space-y-3 rounded-lg bg-telemetry-card border border-white/10 p-4">
+        <p className="text-xs font-semibold text-telemetry-text-muted uppercase tracking-wide">
           Partida Encerrada
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-telemetry-text-muted">
           A partida já foi finalizada. Não é possível adicionar novos sets.
         </p>
       </div>
@@ -127,36 +127,36 @@ export function SetInputForm({
   }
 
   return (
-    <div className="space-y-3 rounded-lg bg-gray-750 border border-white/5 p-3">
+    <div className="space-y-4 rounded-lg bg-telemetry-card border border-white/10 p-4">
       {isMatchTiebreakSet ? (
-        <p className="text-xs font-semibold text-purple-400 uppercase tracking-wide">
+        <p className="text-xs font-semibold text-telemetry-volt uppercase tracking-wide">
           Set {totalEditedSets + 1} — Match Tiebreak
         </p>
       ) : isPotentialMTSet ? (
         <div className="flex items-center gap-2">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+          <p className="text-xs font-semibold text-telemetry-text-muted uppercase tracking-wide">
             Set {totalEditedSets + 1}
           </p>
-          <span className="text-[10px] text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">
+          <span className="text-[10px] text-telemetry-alert bg-telemetry-alert/10 px-1.5 py-0.5 rounded">
             Pode virar MT em 6-6
           </span>
         </div>
       ) : (
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+        <p className="text-xs font-semibold text-telemetry-text-muted uppercase tracking-wide">
           Set {totalEditedSets + 1}
         </p>
       )}
 
       <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-400 w-16 truncate flex items-center gap-1">
-          {currentServer === 'player1' && <span className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" aria-label="Sacando" />}
+        <span className="text-xs text-telemetry-text-muted w-16 truncate flex items-center gap-1">
+          {currentServer === 'player1' && <span className="w-2 h-2 rounded-full bg-telemetry-volt flex-shrink-0 shadow-[0_0_8px_rgba(204,255,0,0.6)]" aria-label="Sacando" />}
           {playerNames.p1}
         </span>
         <input
           type="number"
-          className={`w-16 text-center bg-gray-700 border rounded-lg px-2 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          className={`w-16 text-center bg-telemetry-elevated border rounded-lg px-2 py-1.5 text-telemetry-text-primary text-sm font-space-grotesk focus:outline-none focus:ring-2 focus:ring-telemetry-volt ${
             p1Input && p2Input && p1Val > p2Val
-              ? 'border-green-500/50'
+              ? 'border-telemetry-volt'
               : 'border-white/10'
           }`}
           value={p1Input}
@@ -170,12 +170,12 @@ export function SetInputForm({
           // usuário de digitar/incrementar até 10.
           max={isMatchTiebreakSet ? 30 : (matchFormat === 'PRO_SET_8' ? 10 : 7)}
         />
-        <span className="text-gray-500 text-xs">×</span>
+        <span className="text-telemetry-text-muted text-xs font-space-grotesk">×</span>
         <input
           type="number"
-          className={`w-16 text-center bg-gray-700 border rounded-lg px-2 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          className={`w-16 text-center bg-telemetry-elevated border rounded-lg px-2 py-1.5 text-telemetry-text-primary text-sm font-space-grotesk focus:outline-none focus:ring-2 focus:ring-telemetry-volt ${
             p1Input && p2Input && p2Val > p1Val
-              ? 'border-green-500/50'
+              ? 'border-telemetry-volt'
               : 'border-white/10'
           }`}
           value={p2Input}
@@ -183,9 +183,9 @@ export function SetInputForm({
           placeholder="0"
           max={isMatchTiebreakSet ? 30 : (matchFormat === 'PRO_SET_8' ? 10 : 7)}
         />
-        <span className="text-xs text-gray-400 w-16 truncate text-right flex items-center justify-end gap-1">
+        <span className="text-xs text-telemetry-text-muted w-16 truncate text-right flex items-center justify-end gap-1">
           {playerNames.p2}
-          {currentServer === 'player2' && <span className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" aria-label="Sacando" />}
+          {currentServer === 'player2' && <span className="w-2 h-2 rounded-full bg-telemetry-volt flex-shrink-0 shadow-[0_0_8px_rgba(204,255,0,0.6)]" aria-label="Sacando" />}
         </span>
       </div>
 
@@ -201,36 +201,36 @@ export function SetInputForm({
 
       {!isMatchTiebreakSet && hasTiebreak && p1Input && p2Input && ((p1Val === 6 && p2Val === 6) || (matchFormat === 'SHORT_SET_2V2_NO_AD' && p1Val === 4 && p2Val === 4) || (matchFormat === 'PRO_SET_8' && p1Val === 9 && p2Val === 9)) && (
         <div className="space-y-1 pt-1">
-          <p className="text-xs font-semibold text-gray-400">
+          <p className="text-xs font-semibold text-telemetry-text-muted uppercase">
             Tie-Break
           </p>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400 w-16 truncate flex items-center gap-1">
-              {currentServer === 'player1' && <span className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" aria-label="Sacando" />}
+            <span className="text-xs text-telemetry-text-muted w-16 truncate flex items-center gap-1">
+              {currentServer === 'player1' && <span className="w-2 h-2 rounded-full bg-telemetry-volt flex-shrink-0 shadow-[0_0_8px_rgba(204,255,0,0.6)]" aria-label="Sacando" />}
               {playerNames.p1}
             </span>
             <input
               type="number"
-              className="w-16 text-center bg-gray-700 border border-white/10 rounded-lg px-2 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-16 text-center bg-telemetry-elevated border border-white/10 rounded-lg px-2 py-1.5 text-telemetry-text-primary text-sm font-space-grotesk focus:outline-none focus:ring-2 focus:ring-telemetry-volt"
               value={tiebreakP1}
               onChange={(e) => onTiebreakInputChange(e.target.value, 'p1')}
               min={0}
               max={SCORING_LIMITS.TIEBREAK_INPUT_CAP}
               placeholder="0"
             />
-            <span className="text-gray-500 text-xs">×</span>
+            <span className="text-telemetry-text-muted text-xs">×</span>
             <input
               type="number"
-              className="w-16 text-center bg-gray-700 border border-white/10 rounded-lg px-2 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-16 text-center bg-telemetry-elevated border border-white/10 rounded-lg px-2 py-1.5 text-telemetry-text-primary text-sm font-space-grotesk focus:outline-none focus:ring-2 focus:ring-telemetry-volt"
               value={tiebreakP2}
               onChange={(e) => onTiebreakInputChange(e.target.value, 'p2')}
               min={0}
               max={SCORING_LIMITS.TIEBREAK_INPUT_CAP}
               placeholder="0"
             />
-            <span className="text-xs text-gray-400 w-16 truncate text-right flex items-center justify-end gap-1">
+            <span className="text-xs text-telemetry-text-muted w-16 truncate text-right flex items-center justify-end gap-1">
               {playerNames.p2}
-              {currentServer === 'player2' && <span className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" aria-label="Sacando" />}
+              {currentServer === 'player2' && <span className="w-2 h-2 rounded-full bg-telemetry-volt flex-shrink-0 shadow-[0_0_8px_rgba(204,255,0,0.6)]" aria-label="Sacando" />}
             </span>
           </div>
           {!tiebreakComplete && !tiebreakImpossible && (
@@ -266,21 +266,21 @@ export function SetInputForm({
           type="button"
           onClick={onConfirmSet}
           disabled={!canConfirmSet}
-          className="w-full mt-2 px-4 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm text-sm"
+          className="w-full mt-2 px-4 py-2.5 bg-telemetry-blue text-white font-medium rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm text-sm"
         >
           Confirmar Set {totalEditedSets + 1}
         </button>
       )}
 
       {isSetTrulyCompleted && matchWouldEnd && (
-        <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-3 mt-2">
-          <p className="text-sm font-semibold text-green-300 flex items-center gap-2">
+        <div className="bg-telemetry-volt/10 border border-telemetry-volt/30 rounded-lg px-3 py-3 mt-2">
+          <p className="text-sm font-semibold text-telemetry-volt flex items-center gap-2">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
             Partida encerrada — confirmar para finalizar
           </p>
-          <p className="text-xs text-green-400 mt-1">
+          <p className="text-xs text-telemetry-volt mt-1 opacity-80">
             {p1Val > p2Val ? playerNames.p1 : playerNames.p2} venceu por {p1SetsWon}-{p2SetsWon} sets
           </p>
         </div>

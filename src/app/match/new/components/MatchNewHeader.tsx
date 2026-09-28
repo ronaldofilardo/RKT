@@ -6,11 +6,11 @@ export function MatchNewHeader() {
   const router = useRouter();
 
   return (
-    <header className="bg-white shadow-sm border-b sticky top-0 z-10 safe-top">
+    <header className="bg-telemetry-base shadow-sm border-b border-white/10 sticky top-0 z-10 safe-top">
       <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
         <button
           onClick={() => router.back()}
-          className="text-sky-600 hover:text-sky-700 font-medium flex items-center gap-1"
+          className="text-telemetry-blue hover:text-telemetry-active font-medium flex items-center gap-1 transition-colors"
           aria-label="Voltar"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -18,7 +18,7 @@ export function MatchNewHeader() {
           </svg>
           <span className="hidden sm:inline">Voltar</span>
         </button>
-        <h1 className="text-lg font-bold text-gray-900 truncate">Nova Partida</h1>
+        <h1 className="text-lg font-bold text-telemetry-text-primary truncate">Nova Partida</h1>
       </div>
     </header>
   );

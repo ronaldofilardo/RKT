@@ -26,7 +26,7 @@ export function ReportPageView({ report, matchId, p1Points, p2Points, totalPoint
   const [activeTab, setActiveTab] = useState<Tab>('summary');
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-telemetry-base text-telemetry-text-primary">
       <ReportHeader report={report} onContinue={onContinue} onDashboard={onDashboard} onExport={() => downloadReportCsv(report)} />
       <main className="max-w-7xl mx-auto px-6 py-6">
         <TabBar activeTab={activeTab} onTabChange={setActiveTab} hasAdvancedStats={!!report.advancedStats} />
@@ -49,7 +49,7 @@ function TabBar({ activeTab, onTabChange, hasAdvancedStats }: { activeTab: Tab; 
   ];
 
   return (
-    <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl">
+    <div className="flex gap-1 mb-6 bg-telemetry-elevated p-1 rounded-xl">
       {tabs.map(tab => (
         <button
           key={tab.id}
@@ -57,10 +57,10 @@ function TabBar({ activeTab, onTabChange, hasAdvancedStats }: { activeTab: Tab; 
           disabled={tab.disabled}
           className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
             activeTab === tab.id
-              ? 'bg-white text-gray-900 shadow-sm'
+              ? 'bg-telemetry-card text-telemetry-text-primary shadow-sm border border-white/10'
               : tab.disabled
-                ? 'text-gray-400 cursor-not-allowed'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                ? 'text-telemetry-text-muted/50 cursor-not-allowed'
+                : 'text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/5'
           }`}
         >
           {tab.label}
@@ -89,25 +89,25 @@ function ReportHeader({ report, onContinue, onDashboard, onExport }: { report: R
   if (courtLabel) metaItems.push(courtLabel);
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4">
+    <header className="bg-telemetry-card border-b border-white/10 px-6 py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Relatório da Partida</h1>
-          <p className="text-sm text-gray-500">
-            <span className="font-semibold text-blue-600">P1</span> {report.player1.name} vs <span className="font-semibold text-red-600">P2</span> {report.player2.name} · {report.format.replace(/_/g, ' ')} · {stateLabel}
+          <h1 className="text-xl font-bold text-telemetry-text-primary">Relatório da Partida</h1>
+          <p className="text-sm text-telemetry-text-muted mt-1">
+            <span className="font-semibold text-telemetry-blue">P1</span> {report.player1.name} vs <span className="font-semibold text-telemetry-error">P2</span> {report.player2.name} · {report.format.replace(/_/g, ' ')} · {stateLabel}
           </p>
-          <p className="text-xs text-gray-400 mt-1">Início: {formatDate(report.startedAt)} · Fim: {formatDate(report.finishedAt)}</p>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-telemetry-text-muted/70 mt-1">Início: {formatDate(report.startedAt)} · Fim: {formatDate(report.finishedAt)}</p>
+          <p className="text-xs text-telemetry-text-muted/70 mt-1">
             {metaItems.length > 0 ? metaItems.join(' · ') : 'Sem metadados adicionais'}
             {report.temperature != null ? ` · ${report.temperature}°` : ''}
             {report.humidity != null ? ` · ${report.humidity}% umidade` : ''}
           </p>
-          {report.finishNote ? <p className="text-xs text-amber-700 mt-1">Nota de encerramento: {report.finishNote}</p> : null}
+          {report.finishNote ? <p className="text-xs text-telemetry-alert mt-1">Nota de encerramento: {report.finishNote}</p> : null}
         </div>
         <div className="flex gap-3">
-          {report.state !== 'FINISHED' && <button onClick={onContinue} className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl text-sm">Continuar Anotação</button>}
-          <button onClick={onExport} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm">Exportar CSV</button>
-          <button onClick={onDashboard} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl text-sm">← Dashboard</button>
+          {report.state !== 'FINISHED' && <button onClick={onContinue} className="px-4 py-2 bg-telemetry-blue hover:opacity-90 text-white font-semibold rounded-xl text-sm transition-opacity shadow-sm">Continuar Anotação</button>}
+          <button onClick={onExport} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm transition-opacity shadow-sm">Exportar CSV</button>
+          <button onClick={onDashboard} className="px-4 py-2 bg-transparent border border-white/10 hover:bg-white/5 text-telemetry-text-primary font-semibold rounded-xl text-sm transition-colors">← Dashboard</button>
         </div>
       </div>
     </header>
@@ -121,9 +121,9 @@ function ReportStats({ report, p1Points, p2Points, totalPoints }: { report: Repo
   return (
     <section aria-label="Resumo estatístico" className="space-y-4 mb-6">
       <div className="grid grid-cols-3 gap-4">
-        <StatCard value={p1Points} label={report.player1.name} detail={`${percent(p1Points)}% dos pontos`} color="text-blue-600" />
-        <StatCard value={totalPoints} label="Total de Pontos" detail={report.state === 'FINISHED' ? 'Partida finalizada' : formatDate(report.startedAt)} color="text-gray-800" />
-        <StatCard value={p2Points} label={report.player2.name} detail={`${percent(p2Points)}% dos pontos`} color="text-red-600" />
+        <StatCard value={p1Points} label={report.player1.name} detail={`${percent(p1Points)}% dos pontos`} color="text-telemetry-blue" />
+        <StatCard value={totalPoints} label="Total de Pontos" detail={report.state === 'FINISHED' ? 'Partida finalizada' : formatDate(report.startedAt)} color="text-telemetry-text-primary" />
+        <StatCard value={p2Points} label={report.player2.name} detail={`${percent(p2Points)}% dos pontos`} color="text-telemetry-error" />
       </div>
       {p1 && p2 && <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2">
         <MiniStat label="Aces" p1={p1.aces} p2={p2.aces} names={report} />
@@ -142,18 +142,18 @@ function ReportStats({ report, p1Points, p2Points, totalPoints }: { report: Repo
 function IntegrityNotice({ report }: { report: ReportData }) {
   const integrity = report.integrity;
   if (!integrity || integrity.status === 'OK') return null;
-  return <aside className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800" role="status"><strong>Integridade do relatório: atenção.</strong><ul className="mt-1 list-disc pl-5">{integrity.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>;
+  return <aside className="mb-4 rounded-lg border border-telemetry-alert/30 bg-telemetry-alert/10 px-4 py-3 text-sm text-telemetry-alert" role="status"><strong>Integridade do relatório: atenção.</strong><ul className="mt-1 list-disc pl-5">{integrity.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></aside>;
 }
 
 function StatCard({ value, label, detail, color }: { value: number; label: string; detail: string; color: string }) {
-  return <div className="bg-white rounded-xl p-4 border border-gray-200 text-center"><div className={`text-3xl font-black ${color}`}>{value}</div><div className="text-sm font-semibold text-gray-600 mt-1">{label}</div><div className="text-xs text-gray-400">{detail}</div></div>;
+  return <div className="bg-telemetry-card rounded-xl p-4 border border-white/10 text-center"><div className={`text-3xl font-black ${color}`}>{value}</div><div className="text-sm font-semibold text-telemetry-text-muted mt-1">{label}</div><div className="text-xs text-telemetry-text-muted/70 mt-1">{detail}</div></div>;
 }
 
 function MiniStat({ label, p1, p2, names }: { label: string; p1: number; p2: number; names: ReportData }) {
-  return <div className="bg-white rounded-lg border border-gray-200 px-2 py-2 text-center" title={`${names.player1.name}: ${p1} · ${names.player2.name}: ${p2}`}><div className="text-[10px] text-gray-500 truncate">{label}</div><div className="text-sm font-bold"><span className="text-blue-600">{p1}</span><span className="text-gray-300 mx-1">–</span><span className="text-red-600">{p2}</span></div></div>;
+  return <div className="bg-telemetry-elevated rounded-lg border border-white/10 px-2 py-2 text-center" title={`${names.player1.name}: ${p1} · ${names.player2.name}: ${p2}`}><div className="text-[10px] text-telemetry-text-muted truncate">{label}</div><div className="text-sm font-bold"><span className="text-telemetry-blue">{p1}</span><span className="text-telemetry-text-muted/30 mx-1">–</span><span className="text-telemetry-error">{p2}</span></div></div>;
 }
 
 function ReportTimeline({ report, matchId, onContinue }: { report: ReportData; matchId: string; onContinue: () => void }) {
-  if (!report.timelinePoints.length) return <div className="bg-white rounded-xl border border-gray-200 p-12 text-center"><p className="text-gray-500">Nenhum ponto registrado nesta partida.</p>{report.state !== 'FINISHED' && <button onClick={onContinue} className="mt-4 text-sky-600 font-semibold underline">Iniciar anotação</button>}</div>;
-  return <div className="bg-white rounded-xl border border-gray-200 p-4"><MatchTimelineView points={report.timelinePoints} player1Name={report.player1.name} player2Name={report.player2.name} matchId={matchId} hideFilters showFinalResult comments={report.comments} /></div>;
+  if (!report.timelinePoints.length) return <div className="bg-telemetry-card rounded-xl border border-white/10 p-12 text-center"><p className="text-telemetry-text-muted">Nenhum ponto registrado nesta partida.</p>{report.state !== 'FINISHED' && <button onClick={onContinue} className="mt-4 text-telemetry-blue font-semibold underline">Iniciar anotação</button>}</div>;
+  return <div className="bg-telemetry-card rounded-xl border border-white/10 p-4"><MatchTimelineView points={report.timelinePoints} player1Name={report.player1.name} player2Name={report.player2.name} matchId={matchId} hideFilters showFinalResult comments={report.comments} /></div>;
 }

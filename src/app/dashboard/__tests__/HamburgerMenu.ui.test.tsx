@@ -2,9 +2,9 @@
  * @jest-environment jsdom
  *
  * Testes para os fixes de UI do menu lateral em DashboardPage:
- * - Hamburger button tem classe text-gray-700 (visibilidade do SVG)
+ * - Hamburger button tem classe text-telemetry-text-muted (visibilidade do SVG)
  * - Menu aberto aplica overlay (bg-black/60) e nav lateral (z-[70])
- * - Itens do menu têm text-gray-900 (texto legível sobre fundo branco)
+ * - Itens do menu têm text-telemetry-text-primary (texto legível sobre fundo branco)
  * - Nav tem select-none (bloqueia seleção nativa do Chrome)
  * - Foco visível com ring sky-500
  */
@@ -87,23 +87,23 @@ describe('DashboardPage - hamburger visível (TD-046)', () => {
     mockFetchEmpty();
   });
 
-  it('botão hamburger tem classe text-gray-700 para visibilidade do SVG', async () => {
+  it('botão hamburger tem classe text-telemetry-text-muted para visibilidade do SVG', async () => {
     setupAuth();
     render(<DashboardPage />);
 
     await waitFor(() => screen.getByTestId('hamburger-menu-button'));
     const btn = screen.getByTestId('hamburger-menu-button');
-    expect(btn.className).toContain('text-gray-700');
+    expect(btn.className).toContain('text-telemetry-text-muted');
   });
 
-  it('SVG dentro do hamburger tem classe text-gray-700', async () => {
+  it('SVG dentro do hamburger tem classe text-telemetry-text-primary', async () => {
     setupAuth();
     render(<DashboardPage />);
 
     await waitFor(() => screen.getByTestId('hamburger-menu-button'));
     const svg = screen.getByTestId('hamburger-menu-button').querySelector('svg');
     expect(svg).not.toBeNull();
-    expect(svg?.className.baseVal).toContain('text-gray-700');
+    expect(svg?.className.baseVal).toContain('text-telemetry-text-primary');
   });
 });
 
@@ -128,7 +128,7 @@ describe('DashboardPage - menu lateral aberto (TD-046)', () => {
   it('overlay tem bg-black/60 quando menu está aberto', async () => {
     setupAuth();
     await openMenu();
-    const overlay = document.querySelector('[aria-hidden="true"].bg-black\\/60');
+    const overlay = document.querySelector('[aria-hidden="true"].bg-black\\/80');
     expect(overlay).not.toBeNull();
   });
 
@@ -139,18 +139,18 @@ describe('DashboardPage - menu lateral aberto (TD-046)', () => {
     expect(nav.className).toContain('select-none');
   });
 
-  it('itens do menu têm text-gray-900 para contraste legível', async () => {
+  it('itens do menu têm text-telemetry-text-primary para contraste legível', async () => {
     setupAuth();
     await openMenu();
     const inicioItems = screen.getAllByText(/Início/i);
     const menuItemBtn = inicioItems[1].closest('button');
-    expect(menuItemBtn?.className).toContain('text-gray-900');
+    expect(menuItemBtn?.className).toContain('text-telemetry-text-primary');
   });
 
   it('overlay tem z-[60] acima do header sticky (z-40)', async () => {
     setupAuth();
     await openMenu();
-    const overlay = document.querySelector('[aria-hidden="true"].bg-black\\/60');
+    const overlay = document.querySelector('[aria-hidden="true"].bg-black\\/80');
     expect(overlay?.className).toContain('z-[60]');
   });
 
@@ -166,6 +166,6 @@ describe('DashboardPage - menu lateral aberto (TD-046)', () => {
     await openMenu();
     const inicioItems = screen.getAllByText(/Início/i);
     const menuItemBtn = inicioItems[1].closest('button');
-    expect(menuItemBtn?.className).toContain('focus-visible:ring-sky-500');
+    expect(menuItemBtn?.className).toContain('focus-visible:ring-telemetry-volt');
   });
 });

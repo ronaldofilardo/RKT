@@ -54,24 +54,24 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
 
   const getSetCellStyle = (set: any, _i: number, player: 'player1' | 'player2', isCurrent: boolean) => {
     if (!set) {
-      return 'text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800';
+      return 'text-telemetry-text-muted bg-telemetry-card';
     }
 
     if (isCurrent) {
-      return 'text-white font-bold bg-emerald-600 dark:bg-emerald-500';
+      return 'text-telemetry-volt font-bold bg-telemetry-elevated';
     }
 
     const isComplete = set && isSetCompleted(set, tennisFormat, undefined, setsWon);
     if (!isComplete) {
-      return 'text-gray-300 dark:text-gray-600 bg-white dark:bg-gray-800';
+      return 'text-telemetry-text-muted bg-telemetry-card';
     }
 
     const playerWon = player === 'player1' ? set.player1 > set.player2 : set.player2 > set.player1;
 
     if (playerWon) {
-      return 'text-white font-bold bg-violet-600 dark:bg-violet-500';
+      return 'text-white font-bold bg-telemetry-blue';
     } else {
-      return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700';
+      return 'text-telemetry-text-muted bg-telemetry-elevated';
     }
   };
 
@@ -89,26 +89,26 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
   };
 
   const nameBgP1 = isSuspended
-    ? 'bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200'
-    : 'bg-emerald-700 text-white dark:bg-emerald-800';
+    ? 'bg-telemetry-alert text-telemetry-base'
+    : 'bg-telemetry-card text-telemetry-text-primary';
   const nameBgP2 = isSuspended
-    ? 'bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200'
-    : 'bg-emerald-800 text-white dark:bg-emerald-900';
+    ? 'bg-telemetry-alert text-telemetry-base'
+    : 'bg-telemetry-card text-telemetry-text-primary';
 
   return (
-    <div className={`rounded-xl border overflow-hidden mx-4 sm:mx-auto max-w-md ${isSuspended ? 'border-amber-300 dark:border-amber-700' : 'border-gray-200 dark:border-gray-700 shadow-md'}`}>
+    <div className={`rounded-xl border overflow-hidden mx-4 sm:mx-auto max-w-md ${isSuspended ? 'border-telemetry-alert' : 'border-white/10 shadow-md bg-telemetry-card'}`}>
       <table className="w-full table-fixed border-collapse">
         <thead>
-          <tr className="text-[10px] text-gray-400 dark:text-gray-500 font-mono">
-            <th scope="col" aria-label="Jogador" className="text-left py-1.5 px-3 w-[80px] sm:w-[100px] bg-gray-50 dark:bg-gray-900"></th>
-            <th scope="col" aria-label="Vencedor" className="w-6 bg-gray-50 dark:bg-gray-900 border-l border-white dark:border-gray-800"></th>
+          <tr className="text-[10px] text-telemetry-text-muted font-space-grotesk">
+            <th scope="col" aria-label="Jogador" className="text-left py-1.5 px-3 w-[80px] sm:w-[100px] bg-telemetry-elevated border-b border-white/10"></th>
+            <th scope="col" aria-label="Vencedor" className="w-6 bg-telemetry-elevated border-l border-b border-white/10"></th>
             {Array.from({ length: numSets }).map((_, i) => {
               const set = sets[i];
               const isCurrent = i === currentSetIndex;
               const isComplete = set && isSetCompleted(set, tennisFormat, i, setsWon);
 
               return (
-                <th key={i} scope="col" aria-label={`Set ${i + 1}`} className={`text-center px-1 py-1.5 w-10 sm:w-12 bg-gray-50 dark:bg-gray-900 border-l border-white dark:border-gray-800 ${isCurrent ? 'font-bold text-emerald-600 dark:text-emerald-400' : ''}`}>
+                <th key={i} scope="col" aria-label={`Set ${i + 1}`} className={`text-center px-1 py-1.5 w-10 sm:w-12 bg-telemetry-elevated border-l border-b border-white/10 ${isCurrent ? 'font-bold text-telemetry-volt' : ''}`}>
                   {isCurrent ? 'atual' : (isComplete ? i + 1 : '')}
                 </th>
               );
@@ -117,11 +117,11 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
         </thead>
         <tbody>
           <tr className="text-xs">
-            <td className={`text-left py-2.5 px-3 font-bold tracking-wide ${nameBgP1}`}>
+            <td className={`text-left py-2.5 px-3 font-bold tracking-wide border-b border-white/10 ${nameBgP1}`}>
               {player1.name}
             </td>
-            <td className="text-center py-2.5 bg-gray-50 dark:bg-gray-900 border-l border-white dark:border-gray-800">
-              {winner === 'player1' && <span className="text-emerald-500 dark:text-emerald-400 font-bold text-sm">✓</span>}
+            <td className="text-center py-2.5 bg-telemetry-card border-l border-b border-white/10">
+              {winner === 'player1' && <span className="text-telemetry-volt font-bold text-sm">✓</span>}
             </td>
             {Array.from({ length: numSets }).map((_, i) => {
               const set = sets[i];
@@ -131,7 +131,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
               return (
                 <td
                   key={i}
-                  className={`text-center px-1 py-2.5 text-sm font-mono font-semibold border-l border-white dark:border-gray-800 ${style}`}
+                  className={`text-center px-1 py-2.5 text-sm font-space-grotesk font-semibold border-l border-b border-white/10 ${style}`}
                 >
                   {renderSetScore(set, 'player1')}
                 </td>
@@ -143,8 +143,8 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
             <td className={`text-left py-2.5 px-3 font-bold tracking-wide ${nameBgP2}`}>
               {player2.name}
             </td>
-            <td className="text-center py-2.5 bg-gray-50 dark:bg-gray-900 border-l border-white dark:border-gray-800">
-              {winner === 'player2' && <span className="text-emerald-500 dark:text-emerald-400 font-bold text-sm">✓</span>}
+            <td className="text-center py-2.5 bg-telemetry-card border-l border-white/10">
+              {winner === 'player2' && <span className="text-telemetry-volt font-bold text-sm">✓</span>}
             </td>
             {Array.from({ length: numSets }).map((_, i) => {
               const set = sets[i];
@@ -154,7 +154,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
               return (
                 <td
                   key={i}
-                  className={`text-center px-1 py-2.5 text-sm font-mono font-semibold border-l border-white dark:border-gray-800 ${style}`}
+                  className={`text-center px-1 py-2.5 text-sm font-space-grotesk font-semibold border-l border-white/10 ${style}`}
                 >
                   {renderSetScore(set, 'player2')}
                 </td>

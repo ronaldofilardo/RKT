@@ -164,6 +164,13 @@ export const MATCH_CATEGORY_LABELS: Record<MatchCategory, string> = {
   VETERANO: 'Veterano',
 };
 
+export const MATCH_CATEGORY_AGE_LABELS: Record<MatchCategory, string> = {
+  INFANTIL: 'Até 12 anos',
+  JUVENIL: '13 a 18 anos',
+  ADULTO: '19–34 anos',
+  VETERANO: '35+ anos',
+};
+
 export const MATCH_CATEGORY_BY_AGE: Record<string, number[]> = {
   INFANTIL: [11, 12],
   JUVENIL: [13, 14, 15, 16, 17, 18],

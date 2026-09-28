@@ -145,24 +145,24 @@ export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthle
       onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
     >
       <div
-        className="absolute inset-0 bg-black/50"
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         onClick={onClose}
         role="button"
         tabIndex={-1}
         aria-label="Fechar modal"
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose(); }}
       />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+      <div className="relative bg-telemetry-card border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-telemetry-elevated">
           <div>
-            <h2 className="text-base font-bold text-gray-900">Editar Atleta</h2>
-            <p className="text-xs text-gray-600">{athlete.name}</p>
+            <h2 className="text-base font-bold text-telemetry-text-primary">Editar Atleta</h2>
+            <p className="text-xs text-telemetry-text-muted">{athlete.name}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fechar modal"
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+            className="p-2 text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/5 rounded-lg transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -172,7 +172,7 @@ export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthle
         
         <div className="p-4 space-y-3 overflow-y-auto flex-1">
           {error && (
-            <div className="p-2 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            <div className="p-2 bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert rounded-lg text-sm">
               {error}
             </div>
           )}
@@ -189,12 +189,12 @@ export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthle
           />
         </div>
 
-        <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 flex gap-3">
+        <div className="px-4 py-3 border-t border-white/10 bg-telemetry-elevated flex gap-3">
           <button
             type="button"
             onClick={onClose}
             disabled={saving}
-            className="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            className="flex-1 px-4 py-2.5 bg-transparent border border-white/10 text-telemetry-text-muted font-medium rounded-lg hover:bg-white/5 hover:text-telemetry-text-primary disabled:opacity-50 transition-colors"
           >
             Cancelar
           </button>
@@ -202,7 +202,7 @@ export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthle
             type="button"
             onClick={handleSave}
             disabled={saving || !form.name.trim()}
-            className="flex-1 px-4 py-2.5 bg-sky-600 text-white font-medium rounded-lg hover:bg-sky-700 disabled:opacity-50 transition-colors shadow-sm"
+            className="flex-1 px-4 py-2.5 bg-telemetry-blue text-white font-medium rounded-lg hover:opacity-90 disabled:opacity-50 transition-colors shadow-sm shadow-telemetry-blue/20"
           >
             {saving ? 'Salvando...' : 'Salvar Alterações'}
           </button>

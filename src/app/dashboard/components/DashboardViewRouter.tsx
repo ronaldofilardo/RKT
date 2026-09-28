@@ -36,7 +36,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64" role="status" aria-live="polite">
-        <p className="text-gray-700 dark:text-gray-200 font-semibold">Carregando...</p>
+        <p className="text-telemetry-text-primary font-semibold">Carregando...</p>
       </div>
     );
   }
@@ -45,13 +45,13 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
     annotated: () => (
       <section aria-labelledby="annotated-heading">
         <div className="flex items-center justify-between mb-4">
-          <h2 id="annotated-heading" className="text-xl font-bold text-gray-900">
+          <h2 id="annotated-heading" className="text-xl font-bold text-telemetry-text-primary">
             Partidas Anotadas
           </h2>
           <button
             type="button"
             onClick={() => handleNavigate("dashboard")}
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-telemetry-blue-light hover:underline"
           >
             Voltar para Início
           </button>
@@ -77,13 +77,13 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
     live: () => (
       <section aria-labelledby="live-heading">
         <div className="flex items-center justify-between mb-4">
-          <h2 id="live-heading" className="text-xl font-bold text-gray-900">
+          <h2 id="live-heading" className="text-xl font-bold text-telemetry-text-primary">
             Partidas Ao Vivo
           </h2>
           <button
             type="button"
             onClick={() => handleNavigate("dashboard")}
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-telemetry-blue-light hover:underline"
           >
             Voltar para Início
           </button>
@@ -110,13 +110,13 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
     pending: () => (
       <section aria-labelledby="pending-heading">
         <div className="flex items-center justify-between mb-4">
-          <h2 id="pending-heading" className="text-xl font-bold text-gray-900">
+          <h2 id="pending-heading" className="text-xl font-bold text-telemetry-text-primary">
             Partidas Aguardando
           </h2>
           <button
             type="button"
             onClick={() => handleNavigate("dashboard")}
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-telemetry-blue-light hover:underline"
           >
             Voltar para Início
           </button>
@@ -142,13 +142,13 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
     history: () => (
       <section aria-labelledby="history-heading">
         <div className="flex items-center justify-between mb-4">
-          <h2 id="history-heading" className="text-xl font-bold text-gray-900">
+          <h2 id="history-heading" className="text-xl font-bold text-telemetry-text-primary">
             Histórico de Partidas
           </h2>
           <button
             type="button"
             onClick={() => handleNavigate("dashboard")}
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-telemetry-blue-light hover:underline"
           >
             Voltar para Início
           </button>
@@ -179,7 +179,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
         </h2>
         {suspendedFromApi.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase mb-3">
+            <h3 className="text-sm font-semibold text-telemetry-text-muted uppercase mb-3">
               Anotações Suspensas
             </h3>
             <div className="space-y-3">

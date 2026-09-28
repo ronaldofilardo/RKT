@@ -270,7 +270,7 @@ describe('PlayerCard — setsWon', () => {
         setsWon: { player1: 2, player2: 1 },
       },
     });
-    const dots = screen.getAllByRole('button')[0].querySelectorAll('.rounded-full.bg-gray-900');
+    const dots = screen.getAllByRole('button')[0].querySelectorAll('.rounded-full.bg-telemetry-text-primary');
     expect(dots.length).toBe(2);
   });
 

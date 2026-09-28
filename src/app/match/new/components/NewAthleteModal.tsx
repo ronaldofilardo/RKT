@@ -111,26 +111,26 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
       onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
     >
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         onClick={onClose}
         role="button"
         tabIndex={-1}
         aria-label="Fechar modal"
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose(); }}
       />
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-auto">
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
+      <div className="relative bg-telemetry-card border border-white/10 rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-auto">
+        <div className="sticky top-0 bg-telemetry-elevated border-b border-white/10 px-6 py-4 flex items-center justify-between z-10">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Novo Atleta</h2>
-            <p className="text-xs text-gray-500">Preencha os dados do jogador</p>
+            <h2 className="text-xl font-bold text-telemetry-text-primary">Novo Atleta</h2>
+            <p className="text-xs text-telemetry-text-muted">Preencha os dados do jogador</p>
           </div>
-          <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl p-1">
+          <button type="button" onClick={onClose} className="text-telemetry-text-muted hover:text-telemetry-text-primary text-2xl p-1 transition-colors">
             ×
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{error}</div>
+            <div className="p-3 bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert text-sm rounded-lg">{error}</div>
           )}
 
           <NewAthleteModalForm
@@ -150,14 +150,14 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="flex-1 bg-gray-100 border border-gray-300 text-gray-700 font-semibold py-2.5 rounded-lg hover:bg-gray-200 disabled:opacity-50"
+              className="flex-1 bg-transparent border border-white/10 text-telemetry-text-muted font-semibold py-2.5 rounded-lg hover:bg-telemetry-elevated hover:text-telemetry-text-primary disabled:opacity-50 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={submitting || !form.name.trim()}
-              className="flex-1 bg-sky-600 text-white font-semibold py-2.5 rounded-lg hover:bg-sky-700 disabled:opacity-50"
+              className="flex-1 bg-telemetry-blue text-white font-semibold py-2.5 rounded-lg hover:opacity-90 disabled:opacity-50 transition-colors shadow-[0_0_12px_rgba(37,99,235,0.3)]"
             >
               {submitting ? 'Salvando...' : 'Salvar Atleta'}
             </button>

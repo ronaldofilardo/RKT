@@ -58,8 +58,7 @@ export function PointDetailsNotesModal({
 
   return (
     <div
-      className="fixed inset-0 z-[2100] flex items-center justify-center"
-      style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+      className="fixed inset-0 z-[2100] flex items-center justify-center bg-black/80 backdrop-blur-sm"
       role="button"
       tabIndex={-1}
       aria-label="Fechar observações"
@@ -67,21 +66,21 @@ export function PointDetailsNotesModal({
       onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
     >
       <div
-        className="bg-[#1e293b] rounded-[20px] p-6 mx-4 w-[clamp(280px,80vw,420px)] shadow-2xl border border-white/10"
+        className="bg-telemetry-card rounded-2xl p-6 mx-4 w-[clamp(280px,80vw,420px)] shadow-2xl border border-white/10"
         role="dialog"
         aria-label="Observações do ponto"
         tabIndex={-1}
       >
-        <h3 className="text-white font-bold text-center text-lg mb-1">Observações do Ponto</h3>
-        <p className="text-gray-400 text-center text-sm mb-4">Registe detalhes importantes sobre este ponto</p>
+        <h3 className="text-telemetry-text-primary font-bold text-center text-lg mb-1">Observações do Ponto</h3>
+        <p className="text-telemetry-text-muted text-center text-sm mb-4">Registe detalhes importantes sobre este ponto</p>
 
-        <div className="flex rounded-xl bg-white/5 border border-white/10 p-0.5 mb-4">
+        <div className="flex rounded-xl bg-telemetry-elevated border border-white/10 p-0.5 mb-4">
           <button
             onClick={() => setNoteMode('text')}
             className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
               noteMode === 'text'
-                ? 'bg-blue-600 text-white shadow'
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-telemetry-volt text-telemetry-base shadow'
+                : 'text-telemetry-text-muted hover:text-telemetry-text-primary'
             }`}
           >
             📝 Texto
@@ -90,8 +89,8 @@ export function PointDetailsNotesModal({
             onClick={() => setNoteMode('voice')}
             className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
               noteMode === 'voice'
-                ? 'bg-green-600 text-white shadow'
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-telemetry-volt text-telemetry-base shadow'
+                : 'text-telemetry-text-muted hover:text-telemetry-text-primary'
             }`}
           >
             🎤 Voz
@@ -106,9 +105,9 @@ export function PointDetailsNotesModal({
               placeholder="Ex: jogador estava cansado, vento forte, etc."
               maxLength={500}
               rows={4}
-              className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/15 text-white placeholder-gray-500 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 rounded-xl bg-telemetry-elevated border border-white/15 text-telemetry-text-primary placeholder-telemetry-text-muted/50 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt"
             />
-            <p className="text-gray-500 text-xs text-right mt-1">{noteText.length}/500</p>
+            <p className="text-telemetry-text-muted text-xs text-right mt-1">{noteText.length}/500</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3 py-2">
@@ -183,14 +182,14 @@ export function PointDetailsNotesModal({
         <div className="flex flex-col gap-2 mt-4">
           <button
             onClick={handleSave}
-            className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all text-sm"
+            className="w-full py-2.5 rounded-xl bg-telemetry-blue hover:bg-telemetry-active text-white font-bold transition-all text-sm border border-white/10"
           >
             {hasContent ? 'Guardar' : 'Fechar'}
           </button>
           {hasContent && (
             <button
               onClick={handleClear}
-              className="w-full py-2.5 rounded-xl bg-transparent text-gray-400 font-bold border border-white/10 hover:bg-white/5 hover:text-white transition-all text-sm"
+              className="w-full py-2.5 rounded-xl bg-transparent text-telemetry-text-muted font-bold border border-white/10 hover:bg-white/5 hover:text-telemetry-text-primary transition-all text-sm"
             >
               Limpar observação
             </button>

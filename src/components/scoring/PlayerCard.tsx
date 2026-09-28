@@ -109,11 +109,11 @@ export function PlayerCard({ player, side, scoreState, isServing, isWinner, onPo
 
   return (
     <button
-      className={`relative flex flex-col items-center p-3 sm:p-4 rounded-2xl border-2 transition-all select-none min-h-[140px] sm:min-h-[160px] w-full
-        ${side === 'player1' ? 'bg-sky-50 border-sky-200 dark:bg-sky-900/30 dark:border-sky-700' : 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-700'}
-        ${isServing ? 'ring-2 ring-yellow-400 ring-offset-2 dark:ring-offset-slate-900' : ''}
-        ${isWinner ? 'bg-yellow-50 border-yellow-400 ring-2 ring-yellow-400 dark:bg-yellow-900/30 dark:border-yellow-600' : ''}
-        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer active:scale-[0.98] hover:shadow-md'}`}
+      className={`relative flex flex-col items-center p-3 sm:p-4 rounded-2xl border transition-all select-none min-h-[140px] sm:min-h-[160px] w-full
+        bg-telemetry-card border-white/10
+        ${isServing ? 'ring-2 ring-telemetry-volt ring-offset-2 ring-offset-telemetry-base' : ''}
+        ${isWinner ? 'bg-telemetry-blue/20 border-telemetry-blue ring-2 ring-telemetry-blue' : ''}
+        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer active:scale-[0.98] hover:shadow-md hover:bg-telemetry-elevated hover:border-white/20'}`}
       onClick={handleClick}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
@@ -121,27 +121,27 @@ export function PlayerCard({ player, side, scoreState, isServing, isWinner, onPo
       aria-label={`+ Ponto ${player.name}`}
     >
       <div className="flex items-center gap-1.5 sm:gap-2 mb-1 min-w-0 w-full justify-center">
-        <span className="font-bold text-sm sm:text-lg text-gray-900 dark:text-gray-100 truncate max-w-[70%]">{player.name}</span>
-        {isServing && <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500 animate-pulse flex-shrink-0" aria-label="Sacando" />}
+        <span className="font-bold text-sm sm:text-lg text-telemetry-text-primary truncate max-w-[70%]">{player.name}</span>
+        {isServing && <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-telemetry-volt animate-pulse flex-shrink-0 shadow-[0_0_8px_rgba(204,255,0,0.6)]" aria-label="Sacando" />}
       </div>
 
-      <span className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-gray-100 tabular-nums leading-none mb-1">{score}</span>
+      <span className="text-4xl sm:text-5xl font-space-grotesk font-black text-telemetry-text-primary tabular-nums leading-none mb-1">{score}</span>
 
-      <div className="w-full h-1 sm:h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-1.5">
+      <div className="w-full h-1 sm:h-1.5 bg-telemetry-elevated rounded-full overflow-hidden mb-1.5">
         <div
-          className={`h-full rounded-full transition-all ${isWinner ? 'bg-yellow-500' : side === 'player1' ? 'bg-sky-500' : 'bg-emerald-500'}`}
+          className={`h-full rounded-full transition-all ${isWinner ? 'bg-telemetry-volt' : 'bg-telemetry-blue'}`}
           style={{ width: `${progress * 100}%` }}
         />
       </div>
 
       <div className="flex gap-1 mb-1">
         {Array.from({ length: setsWon }).map((_, i) => (
-          <span key={i} className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-gray-900" />
+          <span key={i} className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-telemetry-text-primary" />
         ))}
       </div>
 
       {!disabled && !isWinner && (
-        <span className="text-[9px] sm:text-[10px] text-gray-600 dark:text-gray-200 font-medium mt-0.5">Toque para marcar ponto</span>
+        <span className="text-[9px] sm:text-[10px] text-telemetry-text-muted font-medium mt-0.5">Toque para marcar ponto</span>
       )}
     </button>
   );

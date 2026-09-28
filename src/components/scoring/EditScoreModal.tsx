@@ -126,7 +126,7 @@ export function EditScoreModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         role="button"
         tabIndex={-1}
         aria-label="Fechar modal"
@@ -135,21 +135,21 @@ export function EditScoreModal({
           if (!isConfirming && (e.key === 'Escape' || e.key === 'Enter')) handleCancel();
         }}
       />
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="relative bg-telemetry-card border border-white/10 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col">
         {isConfirming && (
-          <div className="absolute inset-0 z-10 bg-white/60 flex items-center justify-center rounded-2xl">
-            <div className="flex items-center gap-3 px-6 py-3 bg-white rounded-xl shadow-lg border border-gray-200">
-              <svg className="animate-spin h-5 w-5 text-sky-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <div className="absolute inset-0 z-10 bg-black/60 flex items-center justify-center rounded-2xl">
+            <div className="flex items-center gap-3 px-6 py-3 bg-telemetry-elevated border border-white/10 rounded-xl shadow-lg">
+              <svg className="animate-spin h-5 w-5 text-telemetry-volt" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              <span className="text-sm font-medium text-gray-700">Salvando placar...</span>
+              <span className="text-sm font-medium text-telemetry-text-primary">Salvando placar...</span>
             </div>
           </div>
         )}
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900">Editar Placar</h2>
-          <p className="text-sm text-gray-600 mt-1">
+        <div className="px-6 py-4 border-b border-white/10">
+          <h2 className="text-xl font-bold text-telemetry-text-primary">Editar Placar</h2>
+          <p className="text-sm text-telemetry-text-muted mt-1">
             Modo de jogo: Melhor de {totalSetsForFormat(matchFormat)} sets
           </p>
         </div>

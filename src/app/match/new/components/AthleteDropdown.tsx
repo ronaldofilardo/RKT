@@ -26,34 +26,33 @@ export function AthleteDropdown({
   onCreateNew,
 }: AthleteDropdownProps) {
   const filtered = athletes.filter((a) => a.id !== excludedAthlete?.id);
-  const color = colorClass === 'sky' ? 'sky' : 'emerald';
   const colorClasses = {
-    border: colorClass === 'sky' ? 'border-sky-200' : 'border-emerald-200',
-    bgHover: colorClass === 'sky' ? 'hover:bg-sky-50' : 'hover:bg-emerald-50',
-    bgSelected: colorClass === 'sky' ? 'bg-sky-100' : 'bg-emerald-100',
-    bgHeader: colorClass === 'sky' ? 'bg-sky-50/50' : 'bg-emerald-50/50',
-    borderHeader: colorClass === 'sky' ? 'border-sky-100' : 'border-emerald-100',
-    textHeader: colorClass === 'sky' ? 'text-sky-900' : 'text-emerald-900',
-    textSubheader: colorClass === 'sky' ? 'text-sky-600' : 'text-emerald-600',
-    btnBg: colorClass === 'sky' ? 'bg-sky-500' : 'bg-emerald-500',
+    border: 'border-white/10',
+    bgHover: 'hover:bg-white/5',
+    bgSelected: colorClass === 'sky' ? 'bg-telemetry-blue/10' : 'bg-telemetry-volt/10 text-telemetry-volt',
+    bgHeader: 'bg-telemetry-elevated',
+    borderHeader: 'border-white/10',
+    textHeader: 'text-telemetry-text-primary',
+    textSubheader: 'text-telemetry-text-muted',
+    btnBg: colorClass === 'sky' ? 'bg-telemetry-blue text-white' : 'bg-telemetry-volt text-black',
   };
 
   return (
     <div className="relative">
-      <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+      <label className="block text-sm font-medium text-telemetry-text-muted mb-2">{label}</label>
       <button
         type="button"
         onClick={onToggle}
-        className={`w-full px-3 py-3 border border-gray-300 rounded-lg text-left flex items-center justify-between bg-white hover:border-${color}-400 text-gray-900`}
+        className={`w-full px-3 py-3 border border-white/10 rounded-lg text-left flex items-center justify-between bg-telemetry-elevated hover:border-white/20 text-telemetry-text-primary`}
       >
-        <span className={selectedAthlete ? 'text-gray-900 font-medium' : 'text-gray-500'}>
+        <span className={selectedAthlete ? 'text-telemetry-text-primary font-medium' : 'text-telemetry-text-muted/50'}>
           {selectedAthlete?.name || 'Selecione...'}
         </span>
-        <span className="text-gray-400 text-sm">▼</span>
+        <span className="text-telemetry-text-muted text-sm">▼</span>
       </button>
       {isOpen && (
         <div
-          className={`absolute z-30 w-full mt-1 bg-white border-2 ${colorClasses.border} rounded-lg shadow-xl max-h-64 overflow-auto`}
+          className={`absolute z-30 w-full mt-1 bg-telemetry-card border ${colorClasses.border} rounded-lg shadow-xl max-h-64 overflow-auto`}
         >
           <button
             type="button"
@@ -61,7 +60,7 @@ export function AthleteDropdown({
             className={`w-full px-3 py-2 text-left ${colorClasses.bgHover} flex items-center gap-2 border-b ${colorClasses.borderHeader} ${colorClasses.bgHeader}`}
           >
             <span
-              className={`w-7 h-7 rounded-full ${colorClasses.btnBg} text-white flex items-center justify-center font-bold text-lg`}
+              className={`w-7 h-7 rounded-full ${colorClasses.btnBg} flex items-center justify-center font-bold text-lg`}
             >
               +
             </span>
@@ -80,16 +79,16 @@ export function AthleteDropdown({
                   selectedAthlete?.id === a.id ? colorClasses.bgSelected : ''
                 }`}
               >
-                <span className="font-medium text-gray-900">{a.name}</span>
+                <span className="font-medium text-telemetry-text-primary">{a.name}</span>
                 {a.ranking && (
-                  <span className="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded-full">
+                  <span className="text-xs text-telemetry-text-muted bg-white/5 px-2 py-0.5 rounded-full border border-white/10">
                     #{a.ranking}
                   </span>
                 )}
               </button>
             ))
           ) : (
-            <div className="px-3 py-2 text-gray-500 text-sm">Nenhum atleta</div>
+            <div className="px-3 py-2 text-telemetry-text-muted/50 text-sm">Nenhum atleta</div>
           )}
         </div>
       )}

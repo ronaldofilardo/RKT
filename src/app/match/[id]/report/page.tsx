@@ -42,20 +42,20 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600" />
+      <div className="flex items-center justify-center h-screen bg-telemetry-base">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-telemetry-blue" />
       </div>
     );
   }
 
   if (error || !report) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <p className="text-red-600 font-semibold">{error || 'Relatório não encontrado'}</p>
+      <div className="flex items-center justify-center h-screen bg-telemetry-base">
+        <div className="text-center p-6 bg-telemetry-card rounded-2xl border border-white/10">
+          <p className="text-telemetry-alert font-semibold">{error || 'Relatório não encontrado'}</p>
           <button
             onClick={() => router.push('/dashboard')}
-            className="mt-4 text-sky-600 underline"
+            className="mt-4 text-telemetry-blue underline hover:opacity-80 transition-opacity"
           >
             Voltar ao dashboard
           </button>

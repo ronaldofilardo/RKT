@@ -127,14 +127,14 @@ export default function AtletasPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-700 text-lg font-medium">Carregando...</div>
+      <div className="min-h-screen bg-telemetry-base flex items-center justify-center">
+        <div className="text-telemetry-text-muted text-lg font-medium">Carregando...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-telemetry-base">
       <AthleteSearchHeader
         athleteCount={athletes.length}
         onNewAthlete={() => setShowNewAthleteModal(true)}
@@ -142,7 +142,7 @@ export default function AtletasPage() {
 
       <main className="max-w-7xl mx-auto px-4 py-6">
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center gap-2">
+          <div className="mb-4 p-4 bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert rounded-lg flex items-center gap-2">
             <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
             </svg>
@@ -173,7 +173,7 @@ export default function AtletasPage() {
       {athleteToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
             onClick={() => { if (!deleting) setAthleteToDelete(null); }}
             role="button"
             tabIndex={-1}
@@ -184,12 +184,12 @@ export default function AtletasPage() {
               }
             }}
           />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Excluir Atleta</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Tem certeza que deseja excluir <span className="font-semibold text-gray-900">{athleteToDelete.name}</span>? Esta ação não pode ser desfeita.
+          <div className="relative bg-telemetry-card border border-white/10 rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h3 className="text-lg font-bold text-telemetry-text-primary mb-2">Excluir Atleta</h3>
+            <p className="text-sm text-telemetry-text-muted mb-4">
+              Tem certeza que deseja excluir <span className="font-semibold text-telemetry-text-primary">{athleteToDelete.name}</span>? Esta ação não pode ser desfeita.
             </p>
-            <p className="text-xs text-gray-500 mb-6">
+            <p className="text-xs text-telemetry-text-muted/70 mb-6">
               Caso o atleta possua partidas em andamento ou finalizadas, a exclusão será bloqueada para não afetar essas partidas.
             </p>
             <div className="flex gap-3">
@@ -197,7 +197,7 @@ export default function AtletasPage() {
                 type="button"
                 onClick={() => setAthleteToDelete(null)}
                 disabled={deleting}
-                className="flex-1 px-4 py-2 bg-gray-100 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors"
+                className="flex-1 px-4 py-2 bg-transparent border border-white/10 text-telemetry-text-muted font-medium rounded-lg hover:bg-telemetry-elevated hover:text-telemetry-text-primary disabled:opacity-50 transition-colors"
               >
                 Cancelar
               </button>
@@ -205,7 +205,7 @@ export default function AtletasPage() {
                 type="button"
                 onClick={handleConfirmDelete}
                 disabled={deleting}
-                className="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors shadow-sm"
+                className="flex-1 px-4 py-2 bg-telemetry-alert text-white font-medium rounded-lg hover:opacity-90 disabled:opacity-50 transition-colors shadow-sm"
               >
                 {deleting ? 'Excluindo...' : 'Excluir'}
               </button>

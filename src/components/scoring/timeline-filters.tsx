@@ -9,16 +9,16 @@ interface ChipProps {
 
 const COLOR_MAP = {
   blue: {
-    active: 'bg-blue-100 text-blue-700 border-blue-300',
-    inactive: 'bg-gray-100 text-gray-600 border-gray-200',
+    active: 'bg-telemetry-blue/20 text-telemetry-blue-light border-telemetry-blue',
+    inactive: 'bg-telemetry-elevated text-telemetry-text-muted border-white/10',
   },
   rose: {
-    active: 'bg-rose-100 text-rose-700 border-rose-300',
-    inactive: 'bg-gray-100 text-gray-600 border-gray-200',
+    active: 'bg-telemetry-error/20 text-telemetry-error border-telemetry-error',
+    inactive: 'bg-telemetry-elevated text-telemetry-text-muted border-white/10',
   },
   gray: {
-    active: 'bg-gray-200 text-gray-800 border-gray-400',
-    inactive: 'bg-gray-100 text-gray-600 border-gray-200',
+    active: 'bg-white/10 text-telemetry-text-primary border-white/20',
+    inactive: 'bg-telemetry-elevated text-telemetry-text-muted border-white/10',
   },
 } as const;
 
@@ -98,7 +98,7 @@ export function FilterBar({ activeFilters, onToggleFilter, onClearFilters, count
       {hasActiveFilters && (
         <button
           onClick={onClearFilters}
-          className="px-3 py-1 text-xs font-semibold rounded-full border border-gray-300 text-gray-500 hover:bg-gray-100"
+          className="px-3 py-1 text-xs font-semibold rounded-full border border-white/10 text-telemetry-text-muted hover:bg-white/5 transition-colors"
         >
           ✕ Limpar
         </button>

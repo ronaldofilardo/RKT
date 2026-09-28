@@ -1,7 +1,7 @@
 import React from 'react';
 import { RankingForm } from '@/app/atletas/RankingForm';
-import { getCategoriesForAge } from '@/lib/ranking/rankingConstants';
 import { computeClassesForType, type RankingState } from '@/app/atletas/rankingLogic';
+import { getMatchCategoriesForAge, MATCH_CATEGORY_LABELS, MATCH_CATEGORY_AGE_LABELS } from '@/lib/ranking/rankingConstants';
 import type { RankingType } from '@/lib/ranking/rankingConstants';
 
 const fieldIds = {
@@ -129,7 +129,12 @@ export function NewAthleteModalForm({
                 />
               </div>
             </div>
-            <p className="mt-1.5 text-xs text-gray-500">Ex: 15 / 03 / 1995</p>
+            <div className="mt-1.5 flex justify-between items-center">
+              <span className="text-xs text-telemetry-text-muted">Ex: 15 / 03 / 1995</span>
+              {age !== null && (
+                <span className="text-xs text-telemetry-text-primary">Idade: <span className="font-semibold">{age} anos</span></span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -151,19 +156,19 @@ export function NewAthleteModalForm({
               </select>
             </div>
             <div className="col-span-3">
-              <div className="bg-sky-50 border border-sky-100 rounded-xl p-4 h-full">
-              <h3 className="text-sm font-semibold text-sky-900 mb-2">Categoria por idade</h3>
+              <div className="bg-telemetry-blue/10 border border-telemetry-blue/20 rounded-xl p-4 h-full">
+              <h3 className="text-sm font-semibold text-telemetry-text-primary mb-2">Categoria por idade</h3>
               {age === null || !form.gender ? (
-                <p className="text-xs text-sky-700/70 italic">Preencha sexo e data de nascimento para identificar a categoria.</p>
+                <p className="text-xs text-telemetry-text-muted italic">Preencha sexo e data de nascimento para identificar a categoria.</p>
               ) : age < 11 || age > 90 ? (
-                <p className="text-xs text-sky-700/70 italic">Sem categoria etária disponível para a idade atual ({age} anos).</p>
+                <p className="text-xs text-telemetry-text-muted italic">Sem categoria etária disponível para a idade atual ({age} anos).</p>
               ) : (
                 <div className="space-y-1.5">
-                  {getCategoriesForAge('ESTADUAL', age).map((category) => (
+                  {getMatchCategoriesForAge(age).map((category) => (
                     <div key={category} className="flex items-center text-sm">
-                      <span className="font-medium text-sky-800">Categoria</span>
-                      <span className="text-sky-600 px-2">·</span>
-                      <span className="text-sky-700">{category} anos</span>
+                      <span className="font-medium text-telemetry-text-primary">{MATCH_CATEGORY_LABELS[category]}</span>
+                      <span className="text-telemetry-blue px-2">·</span>
+                      <span className="text-telemetry-text-primary">{MATCH_CATEGORY_AGE_LABELS[category]}</span>
                     </div>
                   ))}
                 </div>
@@ -208,9 +213,12 @@ export function NewAthleteModalForm({
       </section>
 
       <section aria-labelledby="new-athlete-ranking-title" className="space-y-4 rounded-xl border border-gray-200 p-4">
-        <h3 id="new-athlete-ranking-title" aria-label="2. Ranking" className="text-base font-semibold text-gray-900">
-          2. Ranking
-        </h3>
+        <div>
+          <h3 id="new-athlete-ranking-title" aria-label="2. Ranking" className="text-base font-semibold text-gray-900">
+            2. Ranking
+          </h3>
+          <p className="text-sm text-gray-500">Opções de autoranking</p>
+        </div>
         <RankingForm
           showHeader={false}
           form={{ gender: form.gender }}

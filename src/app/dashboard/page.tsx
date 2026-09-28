@@ -122,7 +122,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-telemetry-base text-telemetry-text-primary">
       <DashboardTopBar 
         menuOpen={menuOpen} 
         setMenuOpen={setMenuOpen} 
@@ -157,19 +157,19 @@ export default function DashboardPage() {
       {matchToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/60"
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
             onClick={() => setMatchToDelete(null)}
             aria-hidden="true"
           />
-          <div className="relative bg-white rounded-lg p-6 max-w-sm">
-            <h3 className="font-bold mb-2">Excluir partida?</h3>
-            <p className="text-sm text-gray-500 mb-4">
+          <div className="relative bg-telemetry-card rounded-lg p-6 max-w-sm border border-white/10">
+            <h3 className="font-bold mb-2 text-telemetry-text-primary">Excluir partida?</h3>
+            <p className="text-sm text-telemetry-text-muted mb-4">
               Esta ação não pode ser desfeita.
             </p>
             <div className="flex gap-2">
               <button
                 onClick={() => setMatchToDelete(null)}
-                className="flex-1 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                className="flex-1 py-2 rounded-lg bg-telemetry-elevated hover:bg-telemetry-active text-telemetry-text-primary transition-colors"
               >
                 Cancelar
               </button>
@@ -178,7 +178,7 @@ export default function DashboardPage() {
                   confirmDeleteMatch("hard");
                   setMatchToDelete(null);
                 }}
-                className="flex-1 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors"
+                className="flex-1 py-2 rounded-lg bg-telemetry-error hover:bg-red-500 text-white transition-colors"
               >
                 Excluir
               </button>

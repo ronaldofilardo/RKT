@@ -18,23 +18,23 @@ export function DashboardSidebar({ menuOpen, setMenuOpen, menuItems }: Dashboard
   return (
     <div className="fixed inset-0 z-[60] flex">
       <div
-        className="fixed inset-0 z-[60] bg-black/60"
+        className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm"
         onClick={() => setMenuOpen(false)}
         aria-hidden="true"
       />
       <nav
-        className="relative z-[70] bg-white w-72 max-w-full h-full shadow-xl flex flex-col p-4 select-none"
+        className="relative z-[70] bg-telemetry-card w-72 max-w-full h-full shadow-xl flex flex-col p-4 select-none border-r border-white/10"
         aria-label="Menu"
       >
         <div className="flex items-center justify-between mb-4">
-          <span className="text-sm font-semibold text-gray-700 uppercase">
+          <span className="text-sm font-semibold text-telemetry-text-muted uppercase">
             Menu
           </span>
           <button
             type="button"
             onClick={() => setMenuOpen(false)}
             aria-label="Fechar menu"
-            className="p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg text-telemetry-text-muted hover:bg-telemetry-elevated transition-colors"
           >
             <svg
               className="w-5 h-5"
@@ -61,7 +61,7 @@ export function DashboardSidebar({ menuOpen, setMenuOpen, menuItems }: Dashboard
                   setMenuOpen(false);
                   item.action();
                 }}
-                className="w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center gap-2 text-gray-900 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                className="w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center gap-2 text-telemetry-text-primary hover:bg-telemetry-elevated focus:outline-none focus-visible:ring-2 focus-visible:ring-telemetry-volt"
               >
                 <span className="text-lg" aria-hidden="true">
                   {item.emoji}

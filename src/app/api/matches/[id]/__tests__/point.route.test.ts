@@ -56,6 +56,8 @@ jest.mock('@/core/scoring/engine', () => ({
       history: [],
     }));
     this.getPointHistory = jest.fn().mockReturnValue([]);
+    this.getHistoryLength = jest.fn().mockReturnValue(0);
+    this.restorePointHistory = jest.fn();
     this.fromSerialized = jest.fn().mockImplementation(function() {
       return new (jest.requireActual('@/core/scoring/engine').ScoringEngine)(
         { format: 'BEST_OF_3', player1Id: 'p1', player2Id: 'p2', initialServerId: 'p1' },
