@@ -3,25 +3,34 @@
 import { useEffect, useRef } from 'react';
 import type { PointDetailsForm } from './point-details-logic';
 import {
-  shouldShowSubtipo1,
-  shouldShowEfeito,
-  shouldShowDuracao,
-} from './point-details-logic';
+  computeScrollTop,
+  getNextStep,
+  type StepKey,
+} from './usePointDetailsScroll.helpers';
 
 type Vencedor = 'sacador' | 'devolvedor';
+type DivRef = React.RefObject<HTMLDivElement>;
 
 interface UsePointDetailsScrollProps {
   form: PointDetailsForm;
   vencedor: Vencedor;
   mounted: boolean;
-  containerRef: React.RefObject<HTMLDivElement>;
-  tipoRef: React.RefObject<HTMLDivElement>;
-  golpeRef: React.RefObject<HTMLDivElement>;
-  duracaoRef: React.RefObject<HTMLDivElement>;
-  subtipo1Ref: React.RefObject<HTMLDivElement>;
-  efeitoRef: React.RefObject<HTMLDivElement>;
+  /** Elemento com overflow-y (data-testid="modal-content"). */
+  containerRef: DivRef;
+  tipoRef: DivRef;
+  golpeRef: DivRef;
+  duracaoRef: DivRef;
+  subtipo1Ref: DivRef;
+  efeitoRef: DivRef;
+  direcaoRef: DivRef;
+  golpeEspRef: DivRef;
 }
 
+/**
+ * Rola automaticamente o modal para a próxima etapa da cascata assim que o
+ * usuário responde a etapa atual — em telas pequenas a próxima seção nasce
+ * abaixo da dobra e o usuário não precisa arrastar a tela manualmente.
+ */
 export function usePointDetailsScroll({
   form,
   vencedor,
@@ -32,68 +41,71 @@ export function usePointDetailsScroll({
   duracaoRef,
   subtipo1Ref,
   efeitoRef,
+  direcaoRef,
+  golpeEspRef,
 }: UsePointDetailsScrollProps) {
   const prevFormRef = useRef<PointDetailsForm>(form);
-  const needsRef = useRef({
-    needsEfeito: false,
-    needsSubtipo1: false,
-  });
-
-  const needsEfeito = form.golpe != null && form.situacao && form.tipo && shouldShowEfeito(vencedor, form.situacao, form.tipo, !!form.subtipo1, !!form.subtipo2);
-  const needsSubtipo1 = form.situacao && form.tipo && shouldShowSubtipo1(vencedor, form.situacao, form.tipo);
-
-  needsRef.current = { needsEfeito: !!needsEfeito, needsSubtipo1: !!needsSubtipo1 };
+  const frameRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!mounted) return;
-    
-    const container = containerRef.current;
-    if (!container) return;
 
-    const currentForm = form;
-    const prev = prevFormRef.current;
-    const { needsEfeito: currNeedsEfeito, needsSubtipo1: currNeedsSubtipo1 } = needsRef.current;
+    const previous = prevFormRef.current;
+    prevFormRef.current = form;
 
-    const getTargetRef = () => {
-      if (currentForm.tipo && !prev.tipo && tipoRef.current) return tipoRef.current;
-      if (currentForm.golpe && !prev.golpe) {
-        if (currNeedsSubtipo1 && subtipo1Ref.current) return subtipo1Ref.current;
-        if (currNeedsEfeito && efeitoRef.current) return efeitoRef.current;
-      }
-      if (currentForm.efeito && !prev.efeito) {
-        if (shouldShowDuracao(currentForm.situacao, currentForm.golpe, currentForm.subtipo1) && duracaoRef.current) return duracaoRef.current;
-      }
-      if (currentForm.subtipo1 && !prev.subtipo1 && subtipo1Ref.current) return subtipo1Ref.current;
-      if (currentForm.efeito && !prev.efeito && efeitoRef.current) return efeitoRef.current;
-      
-      return null;
+    const nextStep = getNextStep(previous, form, vencedor);
+    if (!nextStep) return;
+
+    const refByStep: Partial<Record<StepKey, DivRef>> = {
+      tipo: tipoRef,
+      golpe: golpeRef,
+      subtipo1: subtipo1Ref,
+      efeito: efeitoRef,
+      direcao: direcaoRef,
+      golpeEsp: golpeEspRef,
+      duracao: duracaoRef,
     };
 
-    const targetRef = getTargetRef();
-    if (targetRef) {
-      const useStart = (currentForm.golpe && !prev.golpe);
-      setTimeout(() => {
-        if (typeof targetRef.scrollIntoView === 'function') {
-          targetRef.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: useStart ? 'start' : 'center',
-            inline: 'nearest'
-          });
-        }
-      }, 50);
-    }
-    
-    prevFormRef.current = currentForm;
+    if (frameRef.current != null) cancelAnimationFrame(frameRef.current);
+
+    // rAF: espera o commit/layout da seção recém-renderizada antes de medir.
+    frameRef.current = requestAnimationFrame(() => {
+      frameRef.current = null;
+      const container = containerRef.current;
+      const target = refByStep[nextStep]?.current;
+      if (!container || !target) return;
+
+      const top = computeScrollTop(
+        container.getBoundingClientRect(),
+        container.scrollTop,
+        target.getBoundingClientRect(),
+      );
+      if (top == null) return;
+
+      if (typeof container.scrollTo === 'function') {
+        container.scrollTo({ top, behavior: 'smooth' });
+      } else {
+        container.scrollTop = top;
+      }
+    });
   }, [
     form,
+    vencedor,
     mounted,
     containerRef,
     tipoRef,
     golpeRef,
-    duracaoRef,
     subtipo1Ref,
     efeitoRef,
-    vencedor,
-    form.situacao,
+    direcaoRef,
+    golpeEspRef,
+    duracaoRef,
   ]);
+
+  useEffect(
+    () => () => {
+      if (frameRef.current != null) cancelAnimationFrame(frameRef.current);
+    },
+    [],
+  );
 }

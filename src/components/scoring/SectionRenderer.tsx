@@ -32,6 +32,10 @@ export interface SectionRendererProps {
     duracaoRef: React.RefObject<HTMLDivElement>;
     subtipo1Ref: React.RefObject<HTMLDivElement>;
     efeitoRef: React.RefObject<HTMLDivElement>;
+    direcaoRef?: React.RefObject<HTMLDivElement>;
+    golpeEspRef?: React.RefObject<HTMLDivElement>;
+    /** Container com overflow-y — usado pelo auto-scroll da cascata. */
+    containerRef?: React.RefObject<HTMLDivElement>;
   };
 }
 
@@ -49,7 +53,7 @@ export function SectionRenderer({
   const golpeEspOptions = form.golpe ? getGolpeEspOptions(form.golpe, form.efeito, vencedor, form.situacao ?? 'fundo', form.tipo ?? 'winner', form.subtipo2, form.direcao) : [];
 
   return (
-    <div className="flex-1 overflow-y-auto px-5 py-4 space-y-[18px]" data-testid="modal-content">
+    <div ref={refs.containerRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-[18px]" data-testid="modal-content">
       <Section num="1" label="Situação do Ponto">
         <Pills
           options={SITUACAO_OPTIONS.map(o => o.value)}
@@ -67,7 +71,7 @@ export function SectionRenderer({
             onChange={v => dispatch({ type: 'SET_TIPO', value: v })}
             labelMap={TIPO_LABELS}
           />
-          <p className="text-[11px] text-telemetry-text-muted dark:text-telemetry-text-muted mt-1.5 leading-relaxed">
+          <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed">
             {form.tipo ? TIPO_DESCRIPTIONS[form.tipo] : 'Selecione como o ponto terminou'}
           </p>
         </Section>
@@ -107,7 +111,7 @@ export function SectionRenderer({
       )}
 
       {form.golpe && (
-        <Section num="" label="Direção">
+        <Section num="" label="Direção" ref={refs.direcaoRef}>
           <Pills
             options={direcaoOptions}
             selected={isDirecaoBlocked ? null : form.direcao}
@@ -118,7 +122,7 @@ export function SectionRenderer({
       )}
 
       {golpeEspOptions.length > 0 && (
-        <Section num="" label="Golpe Especial">
+        <Section num="" label="Golpe Especial" ref={refs.golpeEspRef}>
           <Pills
             options={golpeEspOptions}
             selected={form.golpeEsp}

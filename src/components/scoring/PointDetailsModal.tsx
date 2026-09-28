@@ -50,6 +50,8 @@ export function PointDetailsModal({
   const duracaoRef = useRef<HTMLDivElement>(null);
   const subtipo1Ref = useRef<HTMLDivElement>(null);
   const efeitoRef = useRef<HTMLDivElement>(null);
+  const direcaoRef = useRef<HTMLDivElement>(null);
+  const golpeEspRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -73,6 +75,8 @@ export function PointDetailsModal({
     duracaoRef,
     subtipo1Ref,
     efeitoRef,
+    direcaoRef,
+    golpeEspRef,
   });
 
   const handleCancel = useCallback(() => {
@@ -102,7 +106,8 @@ export function PointDetailsModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+      className="fixed inset-0 z-[2000] flex items-center justify-center"
+      style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: '-webkit-backdrop-filter blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
       role="button"
       tabIndex={-1}
       aria-label="Fechar modal"
@@ -114,9 +119,13 @@ export function PointDetailsModal({
       }}
     >
       <div
-        className="animate-[fadeInSlideUp_0.2s_ease-out] w-[clamp(260px,80vw,480px)] modal-max-w-tablet mx-4 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] bg-telemetry-card border border-white/10"
+        className="animate-[fadeInSlideUp_0.2s_ease-out] w-[clamp(260px,80vw,480px)] modal-max-w-tablet mx-4 rounded-[20px] shadow-[0_20px_60px_rgba(0,0,0,0.5),0_0_30px_rgba(59,130,246,0.15)] flex flex-col max-h-[90vh]"
         style={{
-          fontSize: `${_fontScale * 100}%`,
+          backgroundColor: 'var(--court-surface)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          borderTop: '3px solid #3b82f6',
+          fontFamily: 'var(--font-main)',
+          fontSize: `calc(var(--sb-scale) * 1em)`,
         }}
         role="dialog"
         aria-label="Detalhes do ponto"
@@ -134,6 +143,9 @@ export function PointDetailsModal({
             duracaoRef,
             subtipo1Ref,
             efeitoRef,
+            direcaoRef,
+            golpeEspRef,
+            containerRef,
           }}
         />
 
