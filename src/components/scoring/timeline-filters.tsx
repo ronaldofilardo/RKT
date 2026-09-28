@@ -17,7 +17,7 @@ const COLOR_MAP = {
     inactive: 'bg-telemetry-elevated text-telemetry-text-muted border-white/10',
   },
   gray: {
-    active: 'bg-white/10 text-telemetry-text-primary border-white/20',
+    active: 'bg-white/ text-telemetry-text-primary border-white/20',
     inactive: 'bg-telemetry-elevated text-telemetry-text-muted border-white/10',
   },
 } as const;
@@ -98,7 +98,7 @@ export function FilterBar({ activeFilters, onToggleFilter, onClearFilters, count
       {hasActiveFilters && (
         <button
           onClick={onClearFilters}
-          className="px-3 py-1 text-xs font-semibold rounded-full border border-white/10 text-telemetry-text-muted hover:bg-white/5 transition-colors"
+          className="px-3 py-1 text-xs font-semibold rounded-full border border-white/10 text-telemetry-text-muted hover:bg-white/ transition-colors"
         >
           ✕ Limpar
         </button>

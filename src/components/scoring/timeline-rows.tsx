@@ -46,7 +46,7 @@ const BADGE_COLORS = {
   green: 'bg-green-500/20 text-green-400',
   red: 'bg-telemetry-error/20 text-telemetry-error',
   amber: 'bg-telemetry-alert/20 text-telemetry-alert',
-  gray: 'bg-white/10 text-telemetry-text-primary',
+  gray: 'bg-white/ text-telemetry-text-primary',
 } as const;
 
 function getPointBadge(p: TimelinePoint): { label: string; color: 'green' | 'red' | 'amber' | 'gray' } {
@@ -66,7 +66,7 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPo
   const isServeDecidedPoint = p.type === 'ACE' || p.type === 'DOUBLE_FAULT' || p.type === 'FAULT_FIRST';
 
   const rowClass = [
-    'border-b border-white/5 hover:bg-white/5 transition-colors',
+    'border-b border-white/5 hover:bg-white/ transition-colors',
     p.winner === 'PLAYER_1' ? 'border-l-[3px] border-l-telemetry-blue' : 'border-l-[3px] border-l-telemetry-error',
     p.isBreakPoint ? 'bg-telemetry-alert/10' : '',
   ].join(' ');

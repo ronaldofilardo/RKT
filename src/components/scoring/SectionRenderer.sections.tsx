@@ -34,7 +34,7 @@ export function SituationSection({ form, dispatch }: { form: PointDetailsForm; d
 export function TipoSection({ form, vencedor, dispatch, refs }: { form: PointDetailsForm; vencedor: Vencedor; dispatch: Dispatch; refs: Refs }) {
   if (!form.situacao) return null;
   const options = getTipoOptions(vencedor, form.situacao);
-  return <Section num="2" label="Resultado do Ponto" ref={refs.tipoRef}><Pills options={options} selected={form.tipo} onChange={(value) => dispatch({ type: 'SET_TIPO', value })} labelMap={TIPO_LABELS} /><p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed">{form.tipo ? TIPO_DESCRIPTIONS[form.tipo] : 'Selecione como o ponto terminou'}</p></Section>;
+  return <Section num="2" label="Resultado do Ponto" ref={refs.tipoRef}><Pills options={options} selected={form.tipo} onChange={(value) => dispatch({ type: 'SET_TIPO', value })} labelMap={TIPO_LABELS} /><p className="text-[11px] text-telemetry-text-muted dark:text-telemetry-text-muted mt-1.5 leading-relaxed">{form.tipo ? TIPO_DESCRIPTIONS[form.tipo] : 'Selecione como o ponto terminou'}</p></Section>;
 }
 
 export function GolpeSection({ form, vencedor, dispatch, refs }: { form: PointDetailsForm; vencedor: Vencedor; dispatch: Dispatch; refs: Refs }) {

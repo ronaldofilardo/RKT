@@ -43,11 +43,11 @@ export function NewAthleteModalForm({
 
   return (
     <div className="space-y-4">
-      <section aria-labelledby="new-athlete-cadastro-title" className="space-y-4 rounded-xl border border-gray-200 p-4">
-        <h3 id="new-athlete-cadastro-title" className="text-base font-semibold text-gray-900">1. Cadastro</h3>
+      <section aria-labelledby="new-athlete-cadastro-title" className="space-y-4 rounded-xl border border-white/10 p-4">
+        <h3 id="new-athlete-cadastro-title" className="text-base font-semibold text-telemetry-text-primary">1. Cadastro</h3>
 
         <div>
-          <label htmlFor={fieldIds.name} className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor={fieldIds.name} className="block text-sm font-medium text-telemetry-text-primary mb-1">
             Nome <span className="text-red-500">*</span>
           </label>
           <input
@@ -58,28 +58,28 @@ export function NewAthleteModalForm({
             onChange={(e) => handleChange('name', e.target.value)}
             disabled={submitting}
             placeholder="Ex: João Silva"
-            className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-500"
+            className="w-full px-3 py-2 border-2 border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary placeholder-telemetry-text-muted/50"
           />
         </div>
 
         <div className="grid grid-cols-4 gap-4">
           <div className="col-span-1">
-            <label htmlFor={fieldIds.gender} className="block text-sm font-medium text-gray-700 mb-1">Sexo</label>
+            <label htmlFor={fieldIds.gender} className="block text-sm font-medium text-telemetry-text-primary mb-1">Sexo</label>
             <select
               id={fieldIds.gender}
               value={form.gender}
               onChange={(e) => handleChange('gender', e.target.value)}
               disabled={submitting}
-              className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900"
+              className="w-full px-3 py-2 border-2 border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary"
             >
-              <option value="" className="text-gray-900">Selecione...</option>
-              <option value="MALE" className="text-gray-900">Masculino</option>
-              <option value="FEMALE" className="text-gray-900">Feminino</option>
+              <option value="" className="text-telemetry-text-primary">Selecione...</option>
+              <option value="MALE" className="text-telemetry-text-primary">Masculino</option>
+              <option value="FEMALE" className="text-telemetry-text-primary">Feminino</option>
             </select>
           </div>
 
           <div className="col-span-3">
-            <span className="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</span>
+            <span className="block text-sm font-medium text-telemetry-text-primary mb-1">Data de Nascimento</span>
             <div className="flex items-end gap-3">
               <div className="w-28">
                 <label htmlFor={fieldIds.birthDay} className="sr-only">Dia</label>
@@ -93,10 +93,10 @@ export function NewAthleteModalForm({
                   disabled={submitting}
                   placeholder="DD"
                   maxLength={2}
-                  className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-400 text-center text-base"
+                  className="w-full px-3 py-2.5 border-2 border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary placeholder-telemetry-text-muted/50 text-center text-base"
                 />
               </div>
-              <span className="text-gray-400 text-xl font-medium mb-2.5">/</span>
+              <span className="text-telemetry-text-muted text-xl font-medium mb-2.5">/</span>
               <div className="w-28">
                 <label htmlFor={fieldIds.birthMonth} className="sr-only">Mês</label>
                 <input
@@ -109,10 +109,10 @@ export function NewAthleteModalForm({
                   disabled={submitting}
                   placeholder="MM"
                   maxLength={2}
-                  className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-400 text-center text-base"
+                  className="w-full px-3 py-2.5 border-2 border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary placeholder-telemetry-text-muted/50 text-center text-base"
                 />
               </div>
-              <span className="text-gray-400 text-xl font-medium mb-2.5">/</span>
+              <span className="text-telemetry-text-muted text-xl font-medium mb-2.5">/</span>
               <div className="w-36">
                 <label htmlFor={fieldIds.birthYear} className="sr-only">Ano</label>
                 <input
@@ -125,7 +125,7 @@ export function NewAthleteModalForm({
                   disabled={submitting}
                   placeholder="AAAA"
                   maxLength={4}
-                  className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 placeholder-gray-400 text-center text-base"
+                  className="w-full px-3 py-2.5 border-2 border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary placeholder-telemetry-text-muted/50 text-center text-base"
                 />
               </div>
             </div>
@@ -141,17 +141,17 @@ export function NewAthleteModalForm({
         {(!rankings.ESTADUAL.enabled || age === null || age < 11 || age > 90) && (
           <div className="grid grid-cols-4 gap-4 items-start">
             <div className="col-span-1">
-              <label htmlFor={fieldIds.class} className="block text-sm font-medium text-gray-700 mb-1">Classe</label>
+              <label htmlFor={fieldIds.class} className="block text-sm font-medium text-telemetry-text-primary mb-1">Classe</label>
               <select
                 id={fieldIds.class}
                 value={rankings.ESTADUAL.class}
                 onChange={(e) => onRankingFieldChange('ESTADUAL', 'class', e.target.value)}
                 disabled={submitting || age === null || !form.gender || age < 11 || age > 90}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900 disabled:bg-gray-50 disabled:text-gray-500"
+                className="w-full px-3 py-2 border-2 border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary disabled:bg-white/5 disabled:text-telemetry-text-muted"
               >
                 <option value="">{(age === null || !form.gender) ? 'Aguardando...' : 'Selecione...'}</option>
                 {age !== null && form.gender && age >= 11 && age <= 90 && computeClassesForType(rankings.ESTADUAL.category, form.gender, age).map((cls) => (
-                  <option key={cls} value={cls} className="text-gray-900">{cls}</option>
+                  <option key={cls} value={cls} className="text-telemetry-text-primary">{cls}</option>
                 ))}
               </select>
             </div>
@@ -180,44 +180,44 @@ export function NewAthleteModalForm({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor={fieldIds.dominance} className="block text-sm font-medium text-gray-700 mb-1">Dominância</label>
+            <label htmlFor={fieldIds.dominance} className="block text-sm font-medium text-telemetry-text-primary mb-1">Dominância</label>
             <select
               id={fieldIds.dominance}
               value={form.dominance}
               onChange={(e) => handleChange('dominance', e.target.value)}
               disabled={submitting}
-              className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900"
+              className="w-full px-3 py-2 border-2 border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary"
             >
-              <option value="" className="text-gray-900">Selecione...</option>
-              <option value="RIGHT" className="text-gray-900">Destro</option>
-              <option value="LEFT" className="text-gray-900">Canhoto</option>
+              <option value="" className="text-telemetry-text-primary">Selecione...</option>
+              <option value="RIGHT" className="text-telemetry-text-primary">Destro</option>
+              <option value="LEFT" className="text-telemetry-text-primary">Canhoto</option>
             </select>
           </div>
 
           <div>
-            <label htmlFor={fieldIds.backhand} className="block text-sm font-medium text-gray-700 mb-1">Backhand</label>
+            <label htmlFor={fieldIds.backhand} className="block text-sm font-medium text-telemetry-text-primary mb-1">Backhand</label>
             <select
               id={fieldIds.backhand}
               value={form.backhand}
               onChange={(e) => handleChange('backhand', e.target.value)}
               disabled={submitting}
-              className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white text-gray-900"
+              className="w-full px-3 py-2 border-2 border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary"
             >
-              <option value="" className="text-gray-900">Selecione...</option>
-              <option value="ONE_HANDED" className="text-gray-900">Uma mão</option>
-              <option value="TWO_HANDED" className="text-gray-900">Duas mãos</option>
+              <option value="" className="text-telemetry-text-primary">Selecione...</option>
+              <option value="ONE_HANDED" className="text-telemetry-text-primary">Uma mão</option>
+              <option value="TWO_HANDED" className="text-telemetry-text-primary">Duas mãos</option>
             </select>
           </div>
         </div>
 
       </section>
 
-      <section aria-labelledby="new-athlete-ranking-title" className="space-y-4 rounded-xl border border-gray-200 p-4">
+      <section aria-labelledby="new-athlete-ranking-title" className="space-y-4 rounded-xl border border-white/10 p-4">
         <div>
-          <h3 id="new-athlete-ranking-title" aria-label="2. Ranking" className="text-base font-semibold text-gray-900">
+          <h3 id="new-athlete-ranking-title" aria-label="2. Ranking" className="text-base font-semibold text-telemetry-text-primary">
             2. Ranking
           </h3>
-          <p className="text-sm text-gray-500">Opções de autoranking</p>
+          <p className="text-sm text-telemetry-text-muted">Opções de autoranking</p>
         </div>
         <RankingForm
           showHeader={false}

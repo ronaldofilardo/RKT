@@ -29,7 +29,7 @@ export function ContextBadges({ isMatchPoint, isSetPoint, isBreakPoint, isTiebre
   if (pointsHistory.length >= 3) {
     const last3 = pointsHistory.slice(-3);
     if (last3.every(p => p === last3[0]) && last3[0]) {
-      badges.push({ icon: '📊', text: `3 pontos seguidos`, color: 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700' });
+      badges.push({ icon: '📊', text: `3 pontos seguidos`, color: 'bg-white/5 text-telemetry-text-primary border-white/10 dark:bg-gray-800 dark:text-telemetry-text-muted dark:border-gray-700' });
     }
   }
 

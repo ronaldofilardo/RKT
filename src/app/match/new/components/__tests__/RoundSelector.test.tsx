@@ -176,7 +176,7 @@ describe('RoundSelector', () => {
       const textOptions = Array.from(select.options).filter((o) => o.textContent !== '');
       expect(textOptions.length).toBeGreaterThan(0);
       textOptions.forEach((opt) => {
-        expect(opt).toHaveClass('text-gray-900');
+        expect(opt).toHaveClass('text-telemetry-text-primary');
       });
     });
   });

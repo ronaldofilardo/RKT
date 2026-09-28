@@ -207,15 +207,18 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
       ? parseInt(rallyLengthFromModal, 10) || details.previewBalls
       : details.previewBalls;
 
+    const id = winnerSide === "player1" ? match.player1.id : match.player2.id;
+    const isServerWinner = id === serverHelpers.getServerId();
+    const isAce = details.tipo === "winner" && isServerWinner && rallyLengthToUse === 1;
+
     const flowType =
       details.tipo === "winner"
-        ? serveErrorState.firstServeError
+        ? isAce
           ? "ACE"
           : "WINNER"
         : details.tipo === "erro_forcado"
           ? "FORCED_ERROR"
           : "UNFORCED_ERROR";
-    const id = winnerSide === "player1" ? match.player1.id : match.player2.id;
     const firstFaultDetail = serveErrorState.firstServeError
       ? {
           errorType: serveErrorState.firstServeError.errorType,

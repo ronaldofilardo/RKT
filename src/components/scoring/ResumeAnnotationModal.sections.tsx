@@ -14,13 +14,13 @@ export function ResumeAnnotationBody({ player1Name, player2Name, format, complet
       <p className="font-semibold">{snapshotStatus === 'IN_SYNC' ? 'Sincronizado' : snapshotStatus === 'SNAPSHOT_AHEAD' ? 'Pontos offline' : 'Banco à frente'}</p>
       <p className="text-xs mt-0.5 opacity-80">Snapshot: {snapshotPointCount} ponto(s) | Banco: {bankPointCount} ponto(s)</p>
     </div>
-    {completedSetsInfo && completedSetsInfo.total > 0 && <p className="text-gray-300 text-sm">Placar: {completedSetsInfo.completedSets.map((set) => `${set.player1}x${set.player2}`).join(', ')} ({getFormatLabel(format)})</p>}
-    {completedSetsInfo && !completedSetsInfo.total && <p className="text-gray-300 text-sm">Modo de jogo: {getFormatLabel(format)}</p>}
-    {completedSetsInfo?.current && !completedSetsInfo.isFinished && <p className="text-gray-300 text-sm">Set atual: {completedSetsInfo.current.player1} x {completedSetsInfo.current.player2}</p>}
+    {completedSetsInfo && completedSetsInfo.total > 0 && <p className="text-telemetry-text-muted text-sm">Placar: {completedSetsInfo.completedSets.map((set) => `${set.player1}x${set.player2}`).join(', ')} ({getFormatLabel(format)})</p>}
+    {completedSetsInfo && !completedSetsInfo.total && <p className="text-telemetry-text-muted text-sm">Modo de jogo: {getFormatLabel(format)}</p>}
+    {completedSetsInfo?.current && !completedSetsInfo.isFinished && <p className="text-telemetry-text-muted text-sm">Set atual: {completedSetsInfo.current.player1} x {completedSetsInfo.current.player2}</p>}
     {previousPointsCount > 0 && snapshotStatus !== 'SNAPSHOT_AHEAD' && <p className="text-blue-300 text-sm">Você havia marcado {previousPointsCount} ponto(s).</p>}
     {snapshotStatus === 'SNAPSHOT_AHEAD' && <p className="text-amber-200 text-sm">Você tinha <span className="font-bold">{diff}</span> ponto(s) marcado(s) offline que não foram sincronizados. Deseja enviá-los agora?</p>}
     {snapshotStatus === 'BANK_AHEAD' && <p className="text-red-200 text-sm">A partida avançou <span className="font-bold">{diff}</span> ponto(s) desde que você saiu. Seu histórico local está desatualizado.</p>}
-    {snapshotStatus === 'IN_SYNC' && <p className="text-gray-400 text-xs italic">Você pode retomar com o histórico de pontos para usar o undo, ou começar nova anotação.</p>}
+    {snapshotStatus === 'IN_SYNC' && <p className="text-telemetry-text-muted text-xs italic">Você pode retomar com o histórico de pontos para usar o undo, ou começar nova anotação.</p>}
     {error && <div className="bg-red-500/10 border border-red-500/30 rounded px-3 py-2 text-sm" role="alert"><p className="text-red-400">⚠️ {error}</p></div>}
   </div>;
 }

@@ -67,7 +67,7 @@ export function SectionRenderer({
             onChange={v => dispatch({ type: 'SET_TIPO', value: v })}
             labelMap={TIPO_LABELS}
           />
-          <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed">
+          <p className="text-[11px] text-telemetry-text-muted dark:text-telemetry-text-muted mt-1.5 leading-relaxed">
             {form.tipo ? TIPO_DESCRIPTIONS[form.tipo] : 'Selecione como o ponto terminou'}
           </p>
         </Section>

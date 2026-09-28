@@ -234,7 +234,7 @@ export function SetInputForm({
             </span>
           </div>
           {!tiebreakComplete && !tiebreakImpossible && (
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-telemetry-text-muted mt-1">
               Informe o placar do tiebreak (ex.: 7x5).
             </p>
           )}
@@ -298,11 +298,11 @@ export function SetInputForm({
 
       {(partial || showGamePointsAtZero) && !isMatchTiebreakSet && !hasTiebreak && (
         <div className="space-y-1 pt-1">
-          <p className="text-xs font-semibold text-gray-400">
+          <p className="text-xs font-semibold text-telemetry-text-muted">
             Pontos no Game Atual
           </p>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400 w-16 truncate flex items-center gap-1">
+            <span className="text-xs text-telemetry-text-muted w-16 truncate flex items-center gap-1">
               {currentServer === 'player1' && <span className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" aria-label="Sacando" />}
               {playerNames.p1}
             </span>
@@ -323,7 +323,7 @@ export function SetInputForm({
                 </>
               )}
             </select>
-            <span className="text-gray-500 text-xs">×</span>
+            <span className="text-telemetry-text-muted text-xs">×</span>
             <select
               className="w-20 text-center bg-gray-700 border border-white/10 rounded-lg px-1 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={p2Points}
@@ -341,7 +341,7 @@ export function SetInputForm({
                 </>
               )}
             </select>
-            <span className="text-xs text-gray-400 w-16 truncate text-right flex items-center justify-end gap-1">
+            <span className="text-xs text-telemetry-text-muted w-16 truncate text-right flex items-center justify-end gap-1">
               {playerNames.p2}
               {currentServer === 'player2' && <span className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" aria-label="Sacando" />}
             </span>

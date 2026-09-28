@@ -18,7 +18,7 @@ export function SetsSummary({ title, sets, playerNames, startIndex = 0 }: SetsSu
   // highlight do vencedor em roxo/cinza, font-mono). Antes usava estilo claro.
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+      <p className="text-xs font-semibold text-telemetry-text-muted uppercase tracking-wide">
         {title}
       </p>
       <div className="space-y-1.5 rounded-lg border border-white/5 bg-gray-700/50 px-3 py-2">
@@ -28,28 +28,28 @@ export function SetsSummary({ title, sets, playerNames, startIndex = 0 }: SetsSu
           const p1CellClass = isWinnerP1
             ? 'bg-purple-700 text-white font-bold'
             : isWinnerP2
-              ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-              : 'text-gray-300';
+              ? 'bg-white/5 dark:bg-gray-700 text-telemetry-text-primary dark:text-gray-200'
+              : 'text-telemetry-text-muted';
           const p2CellClass = isWinnerP2
             ? 'bg-purple-700 text-white font-bold'
             : isWinnerP1
-              ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-              : 'text-gray-300';
+              ? 'bg-white/5 dark:bg-gray-700 text-telemetry-text-primary dark:text-gray-200'
+              : 'text-telemetry-text-muted';
           return (
             <div
               key={idx}
               className="flex items-center gap-3 text-sm"
             >
-              <span className="text-gray-500 w-14 font-medium text-xs">Set {startIndex + idx + 1}</span>
+              <span className="text-telemetry-text-muted w-14 font-medium text-xs">Set {startIndex + idx + 1}</span>
               <span className={`font-mono font-semibold px-2 py-1 rounded ${p1CellClass}`}>
                 {set.p1Games}
               </span>
-              <span className="text-gray-400">×</span>
+              <span className="text-telemetry-text-muted">×</span>
               <span className={`font-mono font-semibold px-2 py-1 rounded ${p2CellClass}`}>
                 {set.p2Games}
               </span>
               <span
-                className={`text-xs font-semibold ${isWinnerP1 ? 'text-sky-600 dark:text-sky-400' : isWinnerP2 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500'}`}
+                className={`text-xs font-semibold ${isWinnerP1 ? 'text-telemetry-blue dark:text-sky-400' : isWinnerP2 ? 'text-emerald-600 dark:text-emerald-400' : 'text-telemetry-text-muted'}`}
               >
                 {isWinnerP1 ? playerNames.p1 : isWinnerP2 ? playerNames.p2 : 'Em andamento'}
               </span>
@@ -84,10 +84,10 @@ export function EditableSetsSummary({ title, sets, playerNames, startIndex = 0, 
 
   // Bug #3 (2026-08-07): alinhar estilo ao padrão do ScoreboardCard (dark bg,
   // highlight do vencedor em roxo/cinza, font-mono). Antes usava estilo claro
-  // (bg-gray-50, text-gray-700) que destoava da tela ao vivo.
+  // (bg-white/5, text-telemetry-text-primary) que destoava da tela ao vivo.
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+      <p className="text-xs font-semibold text-telemetry-text-muted uppercase tracking-wide">
         {title}
       </p>
       <div className="space-y-1.5 rounded-lg border border-white/5 bg-gray-700/50 px-3 py-2">
@@ -98,14 +98,14 @@ export function EditableSetsSummary({ title, sets, playerNames, startIndex = 0, 
           const p1CellClass = isWinnerP1
             ? 'bg-purple-700 text-white font-bold'
             : isWinnerP2
-              ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+              ? 'bg-white/5 dark:bg-gray-700 text-telemetry-text-primary dark:text-gray-200'
               : hasValidationError
                 ? 'bg-gray-700 border border-red-500 text-white'
                 : 'bg-gray-700 border border-white/10 text-white';
           const p2CellClass = isWinnerP2
             ? 'bg-purple-700 text-white font-bold'
             : isWinnerP1
-              ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+              ? 'bg-white/5 dark:bg-gray-700 text-telemetry-text-primary dark:text-gray-200'
               : hasValidationError
                 ? 'bg-gray-700 border border-red-500 text-white'
                 : 'bg-gray-700 border border-white/10 text-white';
@@ -114,14 +114,14 @@ export function EditableSetsSummary({ title, sets, playerNames, startIndex = 0, 
               key={idx}
               className="flex items-center gap-3 text-sm"
             >
-              <span className="text-gray-500 w-14 font-medium text-xs">Set {startIndex + idx + 1}</span>
+              <span className="text-telemetry-text-muted w-14 font-medium text-xs">Set {startIndex + idx + 1}</span>
               <input
                 type="number"
                 value={set.p1Games}
                 onChange={(e) => onEditSet(set.index, parseInt(e.target.value, 10) || 0, set.p2Games)}
                 className={`w-16 text-center rounded-lg px-2 py-1 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${p1CellClass}`}
               />
-              <span className="text-gray-400">×</span>
+              <span className="text-telemetry-text-muted">×</span>
               <input
                 type="number"
                 value={set.p2Games}
@@ -129,7 +129,7 @@ export function EditableSetsSummary({ title, sets, playerNames, startIndex = 0, 
                 className={`w-16 text-center rounded-lg px-2 py-1 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${p2CellClass}`}
               />
               <span
-                className={`text-xs font-semibold min-w-[80px] ${isWinnerP1 ? 'text-sky-600 dark:text-sky-400' : isWinnerP2 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500'}`}
+                className={`text-xs font-semibold min-w-[80px] ${isWinnerP1 ? 'text-telemetry-blue dark:text-sky-400' : isWinnerP2 ? 'text-emerald-600 dark:text-emerald-400' : 'text-telemetry-text-muted'}`}
               >
                 {isWinnerP1 ? playerNames.p1 : isWinnerP2 ? playerNames.p2 : 'Em andamento'}
               </span>
@@ -157,9 +157,9 @@ export function MatchSummary({ playerNames, p1SetsWon, p2SetsWon, setsToWin }: M
 
   return (
     <div className="space-y-2 pt-1">
-      <div className="flex items-center justify-center gap-4 text-sm font-semibold text-gray-700">
+      <div className="flex items-center justify-center gap-4 text-sm font-semibold text-telemetry-text-primary">
         <span>{playerNames.p1}</span>
-        <span className="text-lg font-mono text-gray-900">
+        <span className="text-lg font-mono text-telemetry-text-primary">
           {p1SetsWon} — {p2SetsWon}
         </span>
         <span>{playerNames.p2}</span>

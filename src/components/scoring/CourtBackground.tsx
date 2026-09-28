@@ -21,10 +21,10 @@ export default function CourtBackground({ courtType = 'HARD' }: { courtType?: Co
       style={{ backgroundColor: colors.bg }}
     >
       {/* Net */}
-      <div className="absolute inset-x-0 top-1/2 h-0.5 bg-white/60 -translate-y-1/2" />
+      <div className="absolute inset-x-0 top-1/2 h-0.5 bg-white/ -translate-y-1/2" />
 
       {/* Center line */}
-      <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/40 -translate-x-1/2" />
+      <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/ -translate-x-1/2" />
 
       {/* Left service box */}
       <div className="absolute left-0 top-1/4 w-1/3 h-1/2 border-2 border-white/30" />

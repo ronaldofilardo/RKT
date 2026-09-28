@@ -162,7 +162,7 @@ export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthle
             type="button"
             onClick={onClose}
             aria-label="Fechar modal"
-            className="p-2 text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/5 rounded-lg transition-colors"
+            className="p-2 text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/ rounded-lg transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -194,7 +194,7 @@ export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthle
             type="button"
             onClick={onClose}
             disabled={saving}
-            className="flex-1 px-4 py-2.5 bg-transparent border border-white/10 text-telemetry-text-muted font-medium rounded-lg hover:bg-white/5 hover:text-telemetry-text-primary disabled:opacity-50 transition-colors"
+            className="flex-1 px-4 py-2.5 bg-transparent border border-white/10 text-telemetry-text-muted font-medium rounded-lg hover:bg-white/ hover:text-telemetry-text-primary disabled:opacity-50 transition-colors"
           >
             Cancelar
           </button>

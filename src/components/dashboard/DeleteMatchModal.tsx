@@ -52,20 +52,20 @@ export function DeleteMatchModal({
           if (e.key === 'Escape' || e.key === 'Enter') onCancel();
         }}
       />
-      <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+      <div className="relative bg-telemetry-elevated dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6">
+        <h2 className="text-2xl font-bold text-telemetry-text-primary dark:text-gray-100 mb-2">
           Excluir Partida
         </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+        <p className="text-sm text-telemetry-text-muted dark:text-telemetry-text-muted mb-4">
           {matchLabel}
         </p>
 
         <fieldset className="mb-6">
-          <legend className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+          <legend className="block text-sm font-semibold text-telemetry-text-primary dark:text-telemetry-text-muted mb-3">
             Tipo de exclusão:
           </legend>
           <div className="space-y-3">
-            <label htmlFor="delete-type-soft" className="flex items-start gap-3 p-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-colors">
+            <label htmlFor="delete-type-soft" className="flex items-start gap-3 p-3 rounded-xl border-2 border-white/10 dark:border-gray-700 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-colors">
               <input
                 id="delete-type-soft"
                 type="radio"
@@ -80,7 +80,7 @@ export function DeleteMatchModal({
 
             <label htmlFor="delete-type-hard" className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors ${
               canHardDelete
-                ? 'border-gray-200 dark:border-gray-700 hover:border-red-400 dark:hover:border-red-500'
+                ? 'border-white/10 dark:border-gray-700 hover:border-red-400 dark:hover:border-red-500'
                 : 'border-gray-100 dark:border-gray-800 opacity-50 cursor-not-allowed'
             }`}>
               <input
@@ -137,7 +137,7 @@ export function DeleteMatchModal({
               placeholder="Motivo da exclusão..."
               maxLength={500}
               rows={3}
-              className="mt-2 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="mt-2 w-full px-3 py-2 border border-white/10 dark:border-gray-600 rounded-xl bg-telemetry-elevated dark:bg-slate-700 text-telemetry-text-primary dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             />
           )}
         </div>
@@ -146,7 +146,7 @@ export function DeleteMatchModal({
           <button
             onClick={onCancel}
             disabled={loading}
-            className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 text-gray-700 font-semibold rounded-xl transition-all"
+            className="flex-1 py-3 px-4 bg-white/5 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 text-telemetry-text-primary font-semibold rounded-xl transition-all"
           >
             Cancelar
           </button>

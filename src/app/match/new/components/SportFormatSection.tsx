@@ -106,7 +106,7 @@ export function SportFormatSection({
                 ${
                   courtType === court.value
                     ? 'border-current ring-2 ring-offset-2 ring-offset-telemetry-base scale-105'
-                    : 'border-white/10 hover:border-white/20 hover:bg-white/5'
+                    : 'border-white/10 hover:border-white/20 hover:bg-white/'
                 }`}
                 style={
                   {

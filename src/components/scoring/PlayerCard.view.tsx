@@ -14,15 +14,15 @@ export function PlayerCardView({player,side,score,progress,setsWon,isServing,isW
       aria-label={`+ Ponto ${player.name}`}
     >
       <div className="flex items-center gap-1.5 sm:gap-2 mb-1 min-w-0 w-full justify-center">
-        <span className="font-bold text-sm sm:text-lg text-gray-900 dark:text-gray-100 truncate max-w-[70%]">{player.name}</span>
+        <span className="font-bold text-sm sm:text-lg text-telemetry-text-primary dark:text-gray-100 truncate max-w-[70%]">{player.name}</span>
         {isServing && <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500 animate-pulse flex-shrink-0" aria-label="Sacando" />}
       </div>
 
-      <span className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-gray-100 tabular-nums leading-none mb-1">{score}</span>
+      <span className="text-4xl sm:text-5xl font-black text-telemetry-text-primary dark:text-gray-100 tabular-nums leading-none mb-1">{score}</span>
 
       <div className="w-full h-1 sm:h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-1.5">
         <div
-          className={`h-full rounded-full transition-all ${isWinner ? 'bg-yellow-500' : side === 'player1' ? 'bg-sky-500' : 'bg-emerald-500'}`}
+          className={`h-full rounded-full transition-all ${isWinner ? 'bg-yellow-500' : side === 'player1' ? 'bg-telemetry-blue' : 'bg-emerald-500'}`}
           style={{ width: `${progress * 100}%` }}
         />
       </div>
@@ -34,7 +34,7 @@ export function PlayerCardView({player,side,score,progress,setsWon,isServing,isW
       </div>
 
       {!disabled && !isWinner && (
-        <span className="text-[9px] sm:text-[10px] text-gray-600 dark:text-gray-200 font-medium mt-0.5">Toque para marcar ponto</span>
+        <span className="text-[9px] sm:text-[10px] text-telemetry-text-muted dark:text-gray-200 font-medium mt-0.5">Toque para marcar ponto</span>
       )}
     </button>
   );

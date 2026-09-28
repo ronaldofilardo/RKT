@@ -114,7 +114,7 @@ export function PointDetailsNotesModal({
             {voiceRecorder.error && (
               <div className="w-full rounded-xl bg-red-500/10 border border-red-500/30 p-3 text-center">
                 <p className="text-red-400 text-xs font-semibold mb-1">{voiceRecorder.error}</p>
-                <p className="text-gray-400 text-[10px] leading-tight">
+                <p className="text-telemetry-text-muted text-[10px] leading-tight">
                   Clique no cadeado na barra de endereço → Permissões → Microfone → Permitir.
                   <br />Depois clique em <span className="text-white font-semibold">Tentar novamente</span>.
                 </p>
@@ -140,7 +140,7 @@ export function PointDetailsNotesModal({
                   <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
                   <span className="font-bold text-sm">Gravando...</span>
                 </div>
-                <p className="text-gray-300 text-lg font-mono">
+                <p className="text-telemetry-text-muted text-lg font-mono">
                   {formatDuration(voiceRecorder.durationMs)} / 0:15
                 </p>
                 <button
@@ -154,13 +154,13 @@ export function PointDetailsNotesModal({
 
             {voiceRecorder.state === 'recorded' && (
               <div className="w-full flex flex-col items-center gap-3">
-                <p className="text-gray-300 text-sm">
+                <p className="text-telemetry-text-muted text-sm">
                   Duração: {formatDuration(voiceRecorder.durationMs)}
                 </p>
                 <div className="flex gap-2 w-full">
                   <button
                     onClick={voiceRecorder.playPreview}
-                    className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold transition-all text-sm flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2.5 rounded-xl bg-white/ hover:bg-white/ text-white font-bold transition-all text-sm flex items-center justify-center gap-1.5"
                   >
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z" />
@@ -169,7 +169,7 @@ export function PointDetailsNotesModal({
                   </button>
                   <button
                     onClick={voiceRecorder.clear}
-                    className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 font-bold border border-white/10 transition-all text-sm"
+                    className="flex-1 py-2.5 rounded-xl bg-white/ hover:bg-white/ text-telemetry-text-muted font-bold border border-white/10 transition-all text-sm"
                   >
                     Limpar
                   </button>
@@ -189,7 +189,7 @@ export function PointDetailsNotesModal({
           {hasContent && (
             <button
               onClick={handleClear}
-              className="w-full py-2.5 rounded-xl bg-transparent text-telemetry-text-muted font-bold border border-white/10 hover:bg-white/5 hover:text-telemetry-text-primary transition-all text-sm"
+              className="w-full py-2.5 rounded-xl bg-transparent text-telemetry-text-muted font-bold border border-white/10 hover:bg-white/ hover:text-telemetry-text-primary transition-all text-sm"
             >
               Limpar observação
             </button>

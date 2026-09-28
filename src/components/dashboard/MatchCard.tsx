@@ -134,7 +134,7 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
 
           {/* White separator line */}
           <div style={{ display: 'table-row' }}>
-            <div className="h-[2px] bg-white" style={{ display: 'table-cell', height: '2px', width: '100%' }} />
+            <div className="h-[2px] bg-telemetry-elevated" style={{ display: 'table-cell', height: '2px', width: '100%' }} />
           </div>
 
           {/* Player 2 row */}
@@ -192,7 +192,7 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
             </div>
           </div>
           <div style={{ display: 'table-row' }}>
-            <div className="h-[2px] bg-white" style={{ display: 'table-cell', height: '2px', width: '100%' }} />
+            <div className="h-[2px] bg-telemetry-elevated" style={{ display: 'table-cell', height: '2px', width: '100%' }} />
           </div>
           <div style={{ display: 'table-row' }}>
             <div
@@ -220,7 +220,7 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
             </div>
           </div>
           <div style={{ display: 'table-row' }}>
-            <div className="h-[2px] bg-white" style={{ display: 'table-cell' }} />
+            <div className="h-[2px] bg-telemetry-elevated" style={{ display: 'table-cell' }} />
           </div>
           <div style={{ display: 'table-row' }}>
             <div
@@ -234,7 +234,7 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
       )}
 
       {match.scheduledAt && (
-        <p className="px-4 pb-3 text-xs text-gray-500">
+        <p className="px-4 pb-3 text-xs text-telemetry-text-muted">
           {new Date(match.scheduledAt).toLocaleString("pt-BR")}
         </p>
       )}

@@ -10,7 +10,7 @@ interface SectionProps {
 export const Section = forwardRef<HTMLDivElement, SectionProps>(({ num, label, children }, ref) => {
   return (
     <div ref={ref}>
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-telemetry-text-muted dark:text-telemetry-text-muted mb-2">
         {num ? `${num}. ` : ''}{label}
       </p>
       {children}

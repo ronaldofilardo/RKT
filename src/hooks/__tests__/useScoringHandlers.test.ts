@@ -973,7 +973,7 @@ describe('useScoringHandlers - firstFaultDetail propagado quando o ponto NÃO é
 
     expect(applyPoint).toHaveBeenCalledTimes(1);
     const flow = applyPoint.mock.calls[0][0];
-    expect(flow.type).toBe('ACE');
+    expect(flow.type).toBe('WINNER');
     expect(flow.isSecondServe).toBe(true);
     expect(flow.firstFaultDetail).toEqual(firstServeError);
   });

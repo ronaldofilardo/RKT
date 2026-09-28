@@ -127,7 +127,7 @@ export function ServerEffectModal({
         tabIndex={-1}
       >
         {/* Header */}
-        <div className="px-5 py-4 border-b border-white/10 bg-white/5">
+        <div className="px-5 py-4 border-b border-white/10 bg-white/">
           <h2 className="text-center font-bold text-telemetry-text-primary" style={{ fontSize: '1.15rem' }}>
             {context === 'winner' ? '🎾 Efeito do Saque' : `⚠️ Erro de Saque (${errorType === 'out' ? 'Out' : 'Net'})`}
           </h2>
@@ -156,7 +156,7 @@ export function ServerEffectModal({
           </Section>
 
           {isDoubleFault && (
-            <p className="text-xs text-gray-400 italic leading-relaxed bg-gray-800/60 rounded-lg px-3 py-2">
+            <p className="text-xs text-telemetry-text-muted italic leading-relaxed bg-gray-800/60 rounded-lg px-3 py-2">
               O ponto já está definido para o adversário por dupla falta.
               Efeito e direção descrevem a falha do sacador.
             </p>
@@ -228,7 +228,7 @@ export function ServerEffectModal({
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-2">{label}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-telemetry-text-muted mb-2">{label}</p>
       {children}
     </div>
   );

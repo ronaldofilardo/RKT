@@ -20,12 +20,12 @@ export function EditScoreModalFooter({
   const isConfirmDisabled = !canConfirm || hasErrors || isConfirming;
 
   return (
-    <div className="px-6 py-4 border-t border-gray-200 flex gap-3">
+    <div className="px-6 py-4 border-t border-white/10 flex gap-3">
       <button
         type="button"
         onClick={onCancel}
         disabled={isConfirming}
-        className="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="flex-1 px-4 py-2.5 bg-telemetry-elevated border border-white/10 text-telemetry-text-primary font-medium rounded-lg hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         Cancelar
       </button>

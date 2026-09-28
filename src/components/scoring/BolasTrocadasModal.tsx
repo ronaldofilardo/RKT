@@ -103,7 +103,7 @@ export function BolasTrocadasModal({ fontScale, onConfirm, onCancel: _onCancel }
           <h2 className="text-center font-bold text-white" style={{ fontSize: '0.85rem' }}>
             Bolas Trocadas
           </h2>
-          <p className="text-center text-gray-400 dark:text-gray-500 text-[10px] mt-0.5">
+          <p className="text-center text-telemetry-text-muted dark:text-telemetry-text-muted text-[10px] mt-0.5">
             Quantas bolas foram trocadas?
           </p>
         </div>
@@ -202,7 +202,7 @@ export function BolasTrocadasModal({ fontScale, onConfirm, onCancel: _onCancel }
               disabled={bolas === ''}
               className={`flex-1 py-1.5 rounded-lg font-bold transition-all text-[10px] ${
                 bolas === ''
-                  ? 'bg-gray-700/50 text-gray-500 cursor-not-allowed'
+                  ? 'bg-gray-700/50 text-telemetry-text-muted cursor-not-allowed'
                   : 'bg-gray-700 hover:bg-gray-600 text-white'
               }`}
             >
@@ -220,7 +220,7 @@ export function BolasTrocadasModal({ fontScale, onConfirm, onCancel: _onCancel }
             disabled={bolas === '1' || bolas === '2'}
             className={`w-full py-2 rounded-lg font-bold text-[10px] shadow-lg transition-all ${
               bolas === '1' || bolas === '2'
-                ? 'bg-gray-600 text-gray-400 cursor-not-allowed shadow-none'
+                ? 'bg-gray-600 text-telemetry-text-muted cursor-not-allowed shadow-none'
                 : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20'
             }`}
           >

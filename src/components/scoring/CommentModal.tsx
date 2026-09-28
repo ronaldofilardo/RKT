@@ -114,22 +114,22 @@ export function CommentModal({
           >
             <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
             <h4 className="text-white font-bold text-base">Salvando comentário...</h4>
-            <p className="text-gray-400 text-xs text-center leading-relaxed">
+            <p className="text-telemetry-text-muted text-xs text-center leading-relaxed">
               Aguarde um instante enquanto registramos o seu comentário.
             </p>
           </div>
         )}
 
         <h3 className="text-white font-bold text-center text-lg mb-1">{title}</h3>
-        <p className="text-gray-400 text-center text-sm mb-4">Registe um comentário sobre a partida</p>
+        <p className="text-telemetry-text-muted text-center text-sm mb-4">Registe um comentário sobre a partida</p>
 
-        <div className="flex rounded-xl bg-white/5 border border-white/10 p-0.5 mb-4">
+        <div className="flex rounded-xl bg-white/ border border-white/10 p-0.5 mb-4">
           <button
             onClick={() => notes.setMode('text')}
             className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
               notes.mode === 'text'
                 ? 'bg-blue-600 text-white shadow'
-                : 'text-gray-400 hover:text-white'
+                : 'text-telemetry-text-muted hover:text-white'
             }`}
           >
             📝 Texto
@@ -139,7 +139,7 @@ export function CommentModal({
             className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
               notes.mode === 'voice'
                 ? 'bg-green-600 text-white shadow'
-                : 'text-gray-400 hover:text-white'
+                : 'text-telemetry-text-muted hover:text-white'
             }`}
           >
             🎤 Voz
@@ -155,16 +155,16 @@ export function CommentModal({
               placeholder="Ex: mudança de estratégia, condição do jogador, etc."
               maxLength={notes.maxChars}
               rows={4}
-              className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/15 text-white placeholder-gray-500 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 rounded-xl bg-white/ border border-white/15 text-white placeholder-telemetry-text-muted/50 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
-            <p className="text-gray-500 text-xs text-right mt-1">{notes.text.length}/{notes.maxChars}</p>
+            <p className="text-telemetry-text-muted text-xs text-right mt-1">{notes.text.length}/{notes.maxChars}</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3 py-2">
             {notes.voiceRecorder.error && (
               <div className="w-full rounded-xl bg-red-500/10 border border-red-500/30 p-3 text-center">
                 <p className="text-red-400 text-xs font-semibold mb-1">{notes.voiceRecorder.error}</p>
-                <p className="text-gray-400 text-[10px] leading-tight">
+                <p className="text-telemetry-text-muted text-[10px] leading-tight">
                   Clique no cadeado na barra de endereço → Permissões → Microfone → Permitir.
                   <br />Depois clique em <span className="text-white font-semibold">Tentar novamente</span>.
                 </p>
@@ -190,7 +190,7 @@ export function CommentModal({
                   <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
                   <span className="font-bold text-sm">Gravando...</span>
                 </div>
-                <p className="text-gray-300 text-lg font-mono">
+                <p className="text-telemetry-text-muted text-lg font-mono">
                   {formatDuration(notes.voiceRecorder.durationMs)} / 0:15
                 </p>
                 <button
@@ -204,13 +204,13 @@ export function CommentModal({
 
             {notes.voiceRecorder.state === 'recorded' && (
               <div className="w-full flex flex-col items-center gap-3">
-                <p className="text-gray-300 text-sm">
+                <p className="text-telemetry-text-muted text-sm">
                   Duração: {formatDuration(notes.voiceRecorder.durationMs)}
                 </p>
                 <div className="flex gap-2 w-full">
                   <button
                     onClick={notes.voiceRecorder.playPreview}
-                    className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold transition-all text-sm flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2.5 rounded-xl bg-white/ hover:bg-white/ text-white font-bold transition-all text-sm flex items-center justify-center gap-1.5"
                   >
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z" />
@@ -219,7 +219,7 @@ export function CommentModal({
                   </button>
                   <button
                     onClick={notes.voiceRecorder.clear}
-                    className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 font-bold border border-white/10 transition-all text-sm"
+                    className="flex-1 py-2.5 rounded-xl bg-white/ hover:bg-white/ text-telemetry-text-muted font-bold border border-white/10 transition-all text-sm"
                   >
                     Limpar
                   </button>
@@ -246,8 +246,8 @@ export function CommentModal({
             disabled={isSubmitting}
             className={`w-full py-2.5 rounded-xl bg-transparent font-bold border border-white/10 transition-all text-sm ${
               isSubmitting
-                ? 'text-gray-600 border-white/5 cursor-not-allowed'
-                : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                ? 'text-telemetry-text-muted border-white/5 cursor-not-allowed'
+                : 'text-telemetry-text-muted hover:bg-white/ hover:text-white'
             }`}
           >
             Fechar

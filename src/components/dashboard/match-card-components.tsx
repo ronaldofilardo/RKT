@@ -41,7 +41,7 @@ export function MatchActions({ match, onReport, onFinish, onDelete }: MatchActio
             e.stopPropagation();
             onReport(match);
           }}
-          className="text-xs text-gray-400 hover:text-blue-600 transition-colors"
+          className="text-xs text-telemetry-text-muted hover:text-blue-600 transition-colors"
           title="Ver relatório"
         >
           📊

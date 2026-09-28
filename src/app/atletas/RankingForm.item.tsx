@@ -6,16 +6,16 @@ type Props = { type: RankingType; ranking: RankingState; age: number | null; bir
 type InputProps = { label: string; value: string; onChange: (value: string) => void; saving: boolean; id: string; placeholder: string };
 
 function Header({ type, enabled, saving, onToggle }: { type: RankingType; enabled: boolean; saving: boolean; onToggle: () => void }) {
-  return <div className="flex items-center gap-1.5 mb-1.5"><input type="checkbox" id={`ranking-${type}`} checked={enabled} onChange={onToggle} disabled={saving} className="w-3.5 h-3.5" /><label htmlFor={`ranking-${type}`} className="text-xs font-medium text-gray-700">{RANKING_TYPE_LABELS[type]}</label>{enabled && <button type="button" title="Remover este ranking" onClick={onToggle} disabled={saving} className="ml-auto text-xs text-red-500">Remover</button>}</div>;
+  return <div className="flex items-center gap-1.5 mb-1.5"><input type="checkbox" id={`ranking-${type}`} checked={enabled} onChange={onToggle} disabled={saving} className="w-3.5 h-3.5" /><label htmlFor={`ranking-${type}`} className="text-xs font-medium text-telemetry-text-primary">{RANKING_TYPE_LABELS[type]}</label>{enabled && <button type="button" title="Remover este ranking" onClick={onToggle} disabled={saving} className="ml-auto text-xs text-red-500">Remover</button>}</div>;
 }
 
 function InputField({ label, value, onChange, saving, id, placeholder }: InputProps) {
-  return <div><label htmlFor={id} className="block text-xs text-gray-500 mb-0.5">{label}</label><input id={id} type="number" min="1" value={value} onChange={e => onChange(e.target.value)} disabled={saving} placeholder={placeholder} className="w-full px-2 py-1 border border-gray-300 rounded text-xs" /></div>;
+  return <div><label htmlFor={id} className="block text-xs text-telemetry-text-muted mb-0.5">{label}</label><input id={id} type="number" min="1" value={value} onChange={e => onChange(e.target.value)} disabled={saving} placeholder={placeholder} className="w-full px-2 py-1 border border-white/10 rounded text-xs" /></div>;
 }
 
 function SelectField({ type, label, value, options, saving, onChange }: { type: string; label: string; value: string; options: string[]; saving: boolean; onChange: (value: string) => void }) {
   const isCategory = label === 'Categoria';
-  return <div><label htmlFor={`ranking-${type}-${label.toLowerCase()}`} className="block text-xs text-gray-500 mb-0.5">{label}</label><select id={`ranking-${type}-${label.toLowerCase()}`} value={value} onChange={e => onChange(e.target.value)} disabled={saving} className="w-full px-2 py-1 border rounded text-xs"><option value="">Selecione...</option>{options.map(option => <option key={option} value={option}>{isCategory ? `${option} anos` : option}</option>)}</select></div>;
+  return <div><label htmlFor={`ranking-${type}-${label.toLowerCase()}`} className="block text-xs text-telemetry-text-muted mb-0.5">{label}</label><select id={`ranking-${type}-${label.toLowerCase()}`} value={value} onChange={e => onChange(e.target.value)} disabled={saving} className="w-full px-2 py-1 border rounded text-xs"><option value="">Selecione...</option>{options.map(option => <option key={option} value={option}>{isCategory ? `${option} anos` : option}</option>)}</select></div>;
 }
 
 function RankingFields({ type, ranking, age, birthYear, gender, saving, onChange }: Props) {
@@ -30,5 +30,5 @@ function RankingFields({ type, ranking, age, birthYear, gender, saving, onChange
 }
 
 export function RankingFormItem(p: Props) {
-  return <div className="border border-gray-200 rounded-md px-2.5 py-2"><Header type={p.type} enabled={p.ranking.enabled} saving={p.saving} onToggle={p.onToggle} />{p.ranking.enabled && <div className="ml-5"><RankingFields {...p} /></div>}</div>;
+  return <div className="border border-white/10 rounded-md px-2.5 py-2"><Header type={p.type} enabled={p.ranking.enabled} saving={p.saving} onToggle={p.onToggle} />{p.ranking.enabled && <div className="ml-5"><RankingFields {...p} /></div>}</div>;
 }

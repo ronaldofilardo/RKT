@@ -115,7 +115,7 @@ export function ResumeAnnotationModal({
           </h2>
           <button
             onClick={onDiscard}
-            className="text-gray-400 hover:text-white text-xl leading-none"
+            className="text-telemetry-text-muted hover:text-white text-xl leading-none"
             aria-label="Fechar"
           >
             ✕
@@ -144,7 +144,7 @@ export function ResumeAnnotationModal({
           </div>
 
           {completedSetsInfo && completedSetsInfo.total > 0 && (
-            <p className="text-gray-300 text-sm">
+            <p className="text-telemetry-text-muted text-sm">
               Placar:{" "}
               {completedSetsInfo.completedSets
                 .map((s: any) => `${s.player1}x${s.player2}`)
@@ -154,11 +154,11 @@ export function ResumeAnnotationModal({
           )}
 
           {completedSetsInfo && !completedSetsInfo.total && (
-            <p className="text-gray-300 text-sm">Formato: {format}</p>
+            <p className="text-telemetry-text-muted text-sm">Formato: {format}</p>
           )}
 
           {completedSetsInfo?.current && !completedSetsInfo.isFinished && (
-            <p className="text-gray-300 text-sm">
+            <p className="text-telemetry-text-muted text-sm">
               Set atual: {completedSetsInfo.current.player1} x{" "}
               {completedSetsInfo.current.player2}
             </p>
@@ -187,7 +187,7 @@ export function ResumeAnnotationModal({
           )}
 
           {snapshotStatus === "IN_SYNC" && (
-            <p className="text-gray-400 text-xs italic">
+            <p className="text-telemetry-text-muted text-xs italic">
               Você pode retomar com o histórico de pontos para usar o undo, ou
               começar nova anotação.
             </p>

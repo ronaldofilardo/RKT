@@ -30,12 +30,12 @@ export function ServerSelectionModal({
           if (e.key === 'Escape' || e.key === 'Enter') onClose();
         }}
       />{" "}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 text-center">
+      <div className="relative bg-telemetry-elevated rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 text-center">
         {" "}
-        <h2 className="text-xl font-bold text-gray-900 mb-2">
+        <h2 className="text-xl font-bold text-telemetry-text-primary mb-2">
           Quem saca primeiro?
         </h2>{" "}
-        <p className="text-sm text-gray-500 mb-6">
+        <p className="text-sm text-telemetry-text-muted mb-6">
           Selecione o jogador que fará o primeiro saque
         </p>{" "}
         <div className="flex flex-col gap-3">
@@ -44,7 +44,7 @@ export function ServerSelectionModal({
             type="button"
             onClick={() => onSelectServer(selectedP1.id)}
             disabled={startingMatch}
-            className="w-full py-4 px-4 bg-sky-500 hover:bg-sky-600 disabled:bg-sky-300 text-white font-bold rounded-xl text-lg transition-all active:scale-95"
+            className="w-full py-4 px-4 bg-telemetry-blue hover:bg-telemetry-active disabled:bg-sky-300 text-white font-bold rounded-xl text-lg transition-all active:scale-95"
           >
             {" "}
             {selectedP1.name}{" "}
@@ -60,7 +60,7 @@ export function ServerSelectionModal({
           </button>{" "}
         </div>{" "}
         {startingMatch && (
-          <div className="mt-4 flex items-center justify-center gap-2 text-gray-500">
+          <div className="mt-4 flex items-center justify-center gap-2 text-telemetry-text-muted">
             {" "}
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-sky-600" />{" "}
             <span className="text-sm">Iniciando partida...</span>{" "}

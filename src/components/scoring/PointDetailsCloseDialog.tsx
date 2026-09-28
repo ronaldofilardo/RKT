@@ -30,7 +30,7 @@ export function PointDetailsCloseDialog({
         tabIndex={-1}
       >
         <p className="text-white font-bold text-center text-lg mb-1">Descartar detalhes?</p>
-        <p className="text-gray-400 dark:text-gray-500 text-center text-sm mb-5">Os dados deste ponto serão perdidos</p>
+        <p className="text-telemetry-text-muted dark:text-telemetry-text-muted text-center text-sm mb-5">Os dados deste ponto serão perdidos</p>
         <div className="flex flex-col gap-2">
           <button
             onClick={() => { onDiscard(); onClose(); }}
@@ -40,7 +40,7 @@ export function PointDetailsCloseDialog({
           </button>
           <button
             onClick={onClose}
-            className="w-full py-2.5 rounded-xl bg-white/5 text-gray-300 font-bold border border-white/10 hover:bg-white/10 hover:text-white transition-all text-sm"
+            className="w-full py-2.5 rounded-xl bg-white/ text-telemetry-text-muted font-bold border border-white/10 hover:bg-white/ hover:text-white transition-all text-sm"
           >
             Continuar preenchendo
           </button>

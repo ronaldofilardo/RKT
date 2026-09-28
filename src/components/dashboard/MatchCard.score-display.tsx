@@ -13,11 +13,11 @@ function displayScore(set: ScoreSet, player: 'player1' | 'player2', isMatchTiebr
 }
 
 function ScoreCell({ value, suspended }: { value: ReactNode; suspended: boolean }) {
-  return <span className={`text-sm flex items-center justify-center ${suspended ? 'text-amber-700' : 'text-gray-900'}`}>{value}</span>;
+  return <span className={`text-sm flex items-center justify-center ${suspended ? 'text-amber-700' : 'text-telemetry-text-primary'}`}>{value}</span>;
 }
 
 function SetHeaders({ count, includePoints }: { count: number; includePoints: boolean }) {
-  return <><span className="text-[10px] text-gray-500 text-center" style={{ gridColumn: `1 / ${count + 1}` }}>Sets</span>{includePoints && <span />}{Array.from({ length: count }, (_, index) => <span key={`header-${index}`} className="text-[10px] text-gray-500 text-center">{index + 1}</span>)}{includePoints && <span className="text-[10px] text-gray-500 text-center">Pontos</span>}</>;
+  return <><span className="text-[10px] text-telemetry-text-muted text-center" style={{ gridColumn: `1 / ${count + 1}` }}>Sets</span>{includePoints && <span />}{Array.from({ length: count }, (_, index) => <span key={`header-${index}`} className="text-[10px] text-telemetry-text-muted text-center">{index + 1}</span>)}{includePoints && <span className="text-[10px] text-telemetry-text-muted text-center">Pontos</span>}</>;
 }
 
 function SetRows({ sets, player, isMatchTiebreak, suspended }: { sets: ScoreSet[]; player: 'player1' | 'player2'; isMatchTiebreak: boolean; suspended: boolean }) {
@@ -34,11 +34,11 @@ function ActiveSetsGrid({ scoreState, isCurrentSetMT, isMatchTiebreak, suspended
 }
 
 function CurrentGameGrid({ currentGame, suspended }: { currentGame: NormalizedScoreState['currentGame']; suspended: boolean }) {
-  return <div className="grid grid-cols-1 gap-y-1" style={{ gridTemplateRows: '1.5rem 2rem 2rem' }}><span className="text-[10px] text-gray-500 text-center">Pontos</span><span className={`text-sm flex items-center justify-end ${suspended ? 'text-amber-700' : 'text-gray-900'}`}>{getSinglePointDisplay(currentGame, 'player1')}</span><span className={`text-sm flex items-center justify-end ${suspended ? 'text-amber-700' : 'text-gray-900'}`}>{getSinglePointDisplay(currentGame, 'player2')}</span></div>;
+  return <div className="grid grid-cols-1 gap-y-1" style={{ gridTemplateRows: '1.5rem 2rem 2rem' }}><span className="text-[10px] text-telemetry-text-muted text-center">Pontos</span><span className={`text-sm flex items-center justify-end ${suspended ? 'text-amber-700' : 'text-telemetry-text-primary'}`}>{getSinglePointDisplay(currentGame, 'player1')}</span><span className={`text-sm flex items-center justify-end ${suspended ? 'text-amber-700' : 'text-telemetry-text-primary'}`}>{getSinglePointDisplay(currentGame, 'player2')}</span></div>;
 }
 
 function EmptyScoreGrid() {
-  return <div className="grid grid-cols-[1.5rem_2.5rem] gap-x-1 text-[10px] text-gray-500"><span className="text-center">Pontos</span></div>;
+  return <div className="grid grid-cols-[1.5rem_2.5rem] gap-x-1 text-[10px] text-telemetry-text-muted"><span className="text-center">Pontos</span></div>;
 }
 
 export function ScoreDisplay({ scoreState, isFinished, isMatchTiebreak, isCurrentSetMT, suspended }: { scoreState: NormalizedScoreState | null; isFinished: boolean; isMatchTiebreak: boolean; isCurrentSetMT: boolean; suspended: boolean }) {
@@ -48,6 +48,6 @@ export function ScoreDisplay({ scoreState, isFinished, isMatchTiebreak, isCurren
 }
 
 export function PlayerNames({ match, hasScore }: { match: ScoreMatch; hasScore: boolean }) {
-  if (hasScore) return <div className="grid grid-rows-[1.5rem_2rem_2rem] text-sm"><div className="text-[10px] text-gray-500 font-mono" /><p className="font-semibold text-gray-900 truncate self-center">{match.player1.name}</p><p className="font-semibold text-gray-900 truncate self-center">{match.player2.name}</p></div>;
-  return <div className="text-sm"><p className="font-semibold text-gray-900 truncate">{match.player1.name}</p><p className="font-semibold text-gray-900 truncate">{match.player2.name}</p></div>;
+  if (hasScore) return <div className="grid grid-rows-[1.5rem_2rem_2rem] text-sm"><div className="text-[10px] text-telemetry-text-muted font-mono" /><p className="font-semibold text-telemetry-text-primary truncate self-center">{match.player1.name}</p><p className="font-semibold text-telemetry-text-primary truncate self-center">{match.player2.name}</p></div>;
+  return <div className="text-sm"><p className="font-semibold text-telemetry-text-primary truncate">{match.player1.name}</p><p className="font-semibold text-telemetry-text-primary truncate">{match.player2.name}</p></div>;
 }

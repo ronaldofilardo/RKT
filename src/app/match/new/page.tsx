@@ -214,7 +214,7 @@ export default function NewMatchPage() {
             <button
               type="button"
               onClick={() => window.history.back()}
-              className="flex-1 px-4 py-3 bg-transparent border border-white/10 text-telemetry-text-muted font-semibold rounded-lg hover:bg-white/5 hover:text-telemetry-text-primary transition-colors"
+              className="flex-1 px-4 py-3 bg-transparent border border-white/10 text-telemetry-text-muted font-semibold rounded-lg hover:bg-white/ hover:text-telemetry-text-primary transition-colors"
             >
               Cancelar
             </button>

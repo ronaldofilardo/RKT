@@ -50,7 +50,7 @@ export function AnnotationSessionPanel({ sessionId, matchId, isActive, onStart, 
   const endorsedBy = endorsements.length > 0 ? endorsements[0].endorsedBy?.name : null;
 
   return (
-    <div className="bg-white border-t border-gray-200 px-4 py-3">
+    <div className="bg-telemetry-elevated border-t border-white/10 px-4 py-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
@@ -72,7 +72,7 @@ export function AnnotationSessionPanel({ sessionId, matchId, isActive, onStart, 
               </span>
             )
           )}
-          <span className="text-xs text-gray-500">Sessão: {sessionId.slice(0, 8)}...</span>
+          <span className="text-xs text-telemetry-text-muted">Sessão: {sessionId.slice(0, 8)}...</span>
         </div>
         <div className="flex items-center gap-2">
           {isActive ? (
@@ -84,7 +84,7 @@ export function AnnotationSessionPanel({ sessionId, matchId, isActive, onStart, 
               Retomar
             </button>
           )}
-          <button onClick={onEnd} className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
+          <button onClick={onEnd} className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/5 text-telemetry-text-muted hover:bg-gray-200 transition-colors">
             Encerrar
           </button>
         </div>

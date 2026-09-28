@@ -5,9 +5,9 @@ export function SportFormatSectionView({sportType,format,courtType,sportSelectRe
   return (
     <>
       {/* ESPORTE */}
-      <section className="bg-white rounded-xl shadow-sm border p-4">
+      <section className="bg-telemetry-elevated rounded-xl shadow-sm border p-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <label htmlFor="sport-select" className="text-base font-semibold text-gray-900 w-40 shrink-0">
+          <label htmlFor="sport-select" className="text-base font-semibold text-telemetry-text-primary w-40 shrink-0">
             ESPORTE *
           </label>
           <select
@@ -15,14 +15,14 @@ export function SportFormatSectionView({sportType,format,courtType,sportSelectRe
             ref={sportSelectRef}
             value={sportType}
             onChange={(e) => onSportChange(e.target.value)}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900"
+            className="flex-1 px-3 py-2 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary"
             required
           >
-            <option value="" disabled className="text-gray-900">
+            <option value="" disabled className="text-telemetry-text-primary">
               Selecione o esporte
             </option>
             {SPORT_TYPES.map((sport) => (
-              <option key={sport.value} value={sport.value} className="text-gray-900">
+              <option key={sport.value} value={sport.value} className="text-telemetry-text-primary">
                 {sport.label}
               </option>
             ))}
@@ -31,9 +31,9 @@ export function SportFormatSectionView({sportType,format,courtType,sportSelectRe
       </section>
 
       {/* FORMATO */}
-      <section className="bg-white rounded-xl shadow-sm border p-4">
+      <section className="bg-telemetry-elevated rounded-xl shadow-sm border p-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <label htmlFor="format-select" className="text-base font-semibold text-gray-900 w-40 shrink-0">
+          <label htmlFor="format-select" className="text-base font-semibold text-telemetry-text-primary w-40 shrink-0">
             FORMATO DO JOGO *
           </label>
           <div className="flex-1">
@@ -41,21 +41,21 @@ export function SportFormatSectionView({sportType,format,courtType,sportSelectRe
               id="format-select"
               value={format}
               onChange={(e) => onFormatChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white text-gray-900"
+              className="w-full px-3 py-2 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary"
               required
             >
-              <option value="" disabled className="text-gray-900">
+              <option value="" disabled className="text-telemetry-text-primary">
                 Selecione
               </option>
               {TENNIS_FORMATS.map((f) => (
-                <option key={f.value} value={f.value} className="text-gray-900">
+                <option key={f.value} value={f.value} className="text-telemetry-text-primary">
                   {f.label}
                 </option>
               ))}
             </select>
             {TENNIS_FORMATS.find((f) => f.value === format)?.hint && (
               <div className="bg-sky-50 border border-sky-200 rounded-lg p-3 flex gap-2 mt-2">
-                <span className="text-sky-600 text-lg">💡</span>
+                <span className="text-telemetry-blue text-lg">💡</span>
                 <p className="text-sm text-sky-800">
                   {TENNIS_FORMATS.find((f) => f.value === format)?.hint}
                 </p>
@@ -67,8 +67,8 @@ export function SportFormatSectionView({sportType,format,courtType,sportSelectRe
 
       {/* QUADRA */}
       {showCourtType && (
-        <section className="bg-white rounded-xl shadow-sm border p-4">
-          <label htmlFor="courtType" className="text-lg font-semibold text-gray-900 mb-3 block">
+        <section className="bg-telemetry-elevated rounded-xl shadow-sm border p-4">
+          <label htmlFor="courtType" className="text-lg font-semibold text-telemetry-text-primary mb-3 block">
             TIPO DE QUADRA *
           </label>
           <div className="grid grid-cols-3 gap-3">
@@ -81,7 +81,7 @@ export function SportFormatSectionView({sportType,format,courtType,sportSelectRe
                 ${
                   courtType === court.value
                     ? 'border-current ring-2 ring-offset-2 scale-105'
-                    : 'border-gray-200 hover:border-gray-300'
+                    : 'border-white/10 hover:border-white/10'
                 }`}
                 style={
                   {
@@ -92,7 +92,7 @@ export function SportFormatSectionView({sportType,format,courtType,sportSelectRe
               >
                 <span className="text-2xl">{court.icon}</span>
                 <span className="text-sm font-semibold">{court.label}</span>
-                <span className="text-xs text-gray-500">{court.note}</span>
+                <span className="text-xs text-telemetry-text-muted">{court.note}</span>
               </button>
             ))}
           </div>
