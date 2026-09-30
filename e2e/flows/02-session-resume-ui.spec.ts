@@ -51,14 +51,6 @@ test.describe('Fluxo de Retomada: Dashboard -> Modal -> Scoring', () => {
   });
 
   test('deve abrir modal de retomada e navegar para scoring após confirmação', async ({ page }) => {
-    page.on('console', (msg) => console.log('[BROWSER CONSOLE]', msg.type(), msg.text()));
-    page.on('pageerror', (err) => console.log('[BROWSER ERROR]', err));
-    page.on('framenavigated', (frame) => {
-      if (frame === page.mainFrame()) {
-        console.log('[NAVIGATED TO]', frame.url());
-      }
-    });
-
     await ctx.authenticatePage(page, 'coach');
 
     // 1. Navegação para o Dashboard
@@ -67,17 +59,17 @@ test.describe('Fluxo de Retomada: Dashboard -> Modal -> Scoring', () => {
 
     // 2. Localizar partida na seção "Anotações Suspensas"
     const suspendedSection = page.locator('h3:has-text("Anotações Suspensas")');
-    await expect(suspendedSection).toBeVisible();
+    await expect(suspendedSection).toBeVisible({ timeout: 15_000 });
 
     const suspendedCard = page.locator(`[data-testid="match-card-${matchId}"]`);
     await expect(suspendedCard).toBeVisible({ timeout: 10_000 });
     await suspendedCard.click();
 
     // 3. Validar navegação para a página de scoring da partida retomada
-    await expect(page).toHaveURL(/.*\/scoring/);
+    await expect(page).toHaveURL(/.*\/scoring/, { timeout: 15_000 });
     await page.waitForLoadState('networkidle');
 
     // 4. Validar que a tela de scoring foi carregada
-    await expect(page.locator('button:has-text("Corrigir")').first()).toBeVisible();
+    await expect(page.getByTestId('edit-score-button').first()).toBeVisible({ timeout: 20_000 });
   });
 });

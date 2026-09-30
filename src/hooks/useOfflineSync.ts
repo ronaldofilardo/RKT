@@ -16,18 +16,54 @@ import {
 
 const DB_NAME = 'racket-offline-db';
 const STORE_NAME = 'optimistic-queue';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
+
+let cachedDb: IDBPDatabase | null = null;
 
 async function getDb(): Promise<IDBPDatabase> {
-  return openDB(DB_NAME, DB_VERSION, {
+  if (cachedDb) {
+    try {
+      cachedDb.transaction(STORE_NAME, 'readonly').abort();
+      return cachedDb;
+    } catch {
+      cachedDb = null;
+    }
+  }
+
+  const db = await openDB(DB_NAME, DB_VERSION, {
     upgrade(db) {
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
         store.createIndex('status', 'status');
         store.createIndex('timestamp', 'timestamp');
       }
+      if (!db.objectStoreNames.contains('optimistic-comment-queue')) {
+        const store = db.createObjectStore('optimistic-comment-queue', { keyPath: 'id' });
+        store.createIndex('status', 'status');
+        store.createIndex('timestamp', 'timestamp');
+      }
+    },
+    blocked() {
+      console.warn('[IndexedDB] Connection blocked');
+    },
+    blocking() {
+      console.warn('[IndexedDB] Connection blocking - closing');
+      if (cachedDb) {
+        cachedDb.close();
+        cachedDb = null;
+      }
+    },
+    terminated() {
+      console.warn('[IndexedDB] Connection terminated');
+      cachedDb = null;
     },
   });
+
+  cachedDb = db;
+  db.onclose = () => {
+    cachedDb = null;
+  };
+  return db;
 }
 
 export function useOfflineSync() {
@@ -105,16 +141,6 @@ export function useOfflineSync() {
       }
 
       const pending = await db.getAllFromIndex(STORE_NAME, 'status', 'PENDING');
-      // BUG FIX (pontos perdidos silenciosamente): ações que já bateram o
-      // limite de retries ficavam marcadas como 'FAILED' e o flush() nunca
-      // mais olhava para elas (só buscava 'PENDING'), então um ponto
-      // anotado (ACE/dupla falta/rally) gravado offline durante uma falha
-      // prolongada de rede ficava preso no IndexedDB do dispositivo para
-      // sempre, sem nenhum aviso na UI. Agora o flush também tenta
-      // reenviar as ações 'FAILED' sempre que roda (reconexão, intervalo
-      // periódico, etc.) — se voltar a falhar elas continuam FAILED, mas
-      // se a causa raiz (rede/servidor) já tiver sido resolvida, o ponto
-      // é sincronizado normalmente em vez de ficar perdido para sempre.
       const failed = await db.getAllFromIndex(STORE_NAME, 'status', 'FAILED');
       const toSync = [...pending, ...failed];
       toSync.sort((a, b) => a.timestamp - b.timestamp);

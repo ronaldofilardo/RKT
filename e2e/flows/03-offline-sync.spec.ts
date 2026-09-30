@@ -56,7 +56,7 @@ test.describe('TEST-02.3: Offline — indicador visual, fila IndexedDB e mecanis
     await setBrowserAuth(page, { token: athlete1Token, userId: athlete1Id, role: 'ATHLETE' });
 
     await page.goto(`/match/${matchId}/scoring`);
-    await page.locator('button:has-text("Corrigir")').first().waitFor({ state: 'visible', timeout: 20_000 });
+    await page.getByTestId('edit-score-button').first().waitFor({ state: 'visible', timeout: 20_000 });
 
     await expect(page.locator('text=Modo Offline')).toHaveCount(0);
 
@@ -84,7 +84,7 @@ test.describe('TEST-02.3: Offline — indicador visual, fila IndexedDB e mecanis
       const STORE_NAME = 'optimistic-queue';
 
       const db = await new Promise<any>((resolve, reject) => {
-        const req = indexedDB.open(DB_NAME, 1);
+        const req = indexedDB.open(DB_NAME, 2);
         req.onupgradeneeded = () => {
           const store = req.result.createObjectStore(STORE_NAME, { keyPath: 'id' });
           store.createIndex('status', 'status');

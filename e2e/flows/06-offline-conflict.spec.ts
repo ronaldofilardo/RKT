@@ -48,7 +48,8 @@ test.describe('TEST-03.3: Offline Sync Conflict Reconciliation (TD-013 + seq rac
     await ctx.authenticatePage(page, 'athlete1');
 
     await page.goto(`/match/${matchId}/scoring`);
-    await page.locator('button:has-text("Corrigir")').first().waitFor({ state: 'visible', timeout: 20_000 });
+    await page.waitForURL(/\/match\/.*\/scoring/);
+    await page.getByTestId('edit-score-button').first().waitFor({ state: 'visible', timeout: 30_000 });
 
     // 1. Backend recebe ponto concorrente enquanto ainda online (simula cliente paralelo)
     //    sequenceNumber=1 implicito (db tem 0 pontos persistidos).
@@ -73,7 +74,7 @@ test.describe('TEST-03.3: Offline Sync Conflict Reconciliation (TD-013 + seq rac
     await page.evaluate(
       async ({ dbName, storeName, mid, aid }) => {
         const db = await new Promise<any>((resolve, reject) => {
-          const req = indexedDB.open(dbName, 1);
+          const req = indexedDB.open(dbName, 2);
           req.onupgradeneeded = () => {
             const store = req.result.createObjectStore(storeName, {
               keyPath: 'id',

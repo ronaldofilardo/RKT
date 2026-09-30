@@ -66,7 +66,22 @@ export async function GET(
         return NextResponse.json({ error: 'MATCH_NOT_FOUND' }, { status: 404 });
       }
 
-      if (match.createdByUserId !== currentUserId) {
+      const isParticipant =
+        match.createdByUserId === currentUserId ||
+        match.player1Id === currentUserId ||
+        match.player2Id === currentUserId;
+      const isPublicOrOpen =
+        match.visibility === 'PUBLIC' || match.openForAnnotation === true;
+
+      let hasSession = false;
+      if (!isParticipant && !isPublicOrOpen) {
+        const sessionCount = await prisma.matchAnnotationSession.count({
+          where: { matchId: id, annotatorUserId: currentUserId },
+        });
+        hasSession = sessionCount > 0;
+      }
+
+      if (!isParticipant && !isPublicOrOpen && !hasSession) {
         return NextResponse.json(
           { error: 'FORBIDDEN', message: 'Você não tem acesso a esta partida' },
           { status: 403 }

@@ -30,7 +30,7 @@ export async function loginAs(role: UserRole): Promise<{ token: string; userId: 
   const api = await request.newContext({ baseURL: 'http://127.0.0.1:3000' });
 
   const res = await api.post('/api/auth/login', {
-    data: { email: user.email, password: user.password },
+    data: { identifier: user.email, password: user.password },
   });
 
   if (!res.ok()) {

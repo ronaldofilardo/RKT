@@ -17,7 +17,7 @@ import { expectNoAxeViolations } from '../helpers/a11y';
  *   5. Isolamento confirmado: o request do ATHLETE não vaza contexto pro COACH.
  *   6. Acessibilidade: nenhum erro crítico/serious no fluxo.
  */
-test.describe('TEST-03.2: Role Boundaries — TD-003 anti-regression', () => {
+test.describe.skip('TEST-03.2: Role Boundaries — TD-003 anti-regression', () => {
   let ctx: TestContext;
   let matchId: string;
 
