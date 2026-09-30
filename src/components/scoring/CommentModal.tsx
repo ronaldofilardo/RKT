@@ -19,6 +19,122 @@ function formatDuration(ms: number): string {
   return `${min}:${String(sec).padStart(2, '0')}`;
 }
 
+function CommentSubmittingOverlay() {
+  return (
+    <div
+      className="absolute inset-0 bg-[#1e293b]/95 backdrop-blur-sm rounded-[20px] flex flex-col items-center justify-center gap-3 z-50 p-6"
+      role="status"
+      aria-live="polite"
+    >
+      <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      <h4 className="text-white font-bold text-base">Salvando comentário...</h4>
+      <p className="text-telemetry-text-muted text-xs text-center leading-relaxed">
+        Aguarde um instante enquanto registramos o seu comentário.
+      </p>
+    </div>
+  );
+}
+
+interface CommentTextInputProps {
+  textareaRef: React.RefObject<HTMLTextAreaElement>;
+  text: string;
+  maxChars: number;
+  onChange: (val: string) => void;
+}
+
+function CommentTextInput({ textareaRef, text, maxChars, onChange }: CommentTextInputProps) {
+  return (
+    <div>
+      <textarea
+        ref={textareaRef}
+        value={text}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Ex: mudança de estratégia, condição do jogador, etc."
+        maxLength={maxChars}
+        rows={4}
+        className="w-full px-3 py-2 rounded-xl bg-white/ border border-white/15 text-white placeholder-telemetry-text-muted/50 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      />
+      <p className="text-telemetry-text-muted text-xs text-right mt-1">{text.length}/{maxChars}</p>
+    </div>
+  );
+}
+
+interface CommentVoiceRecorderViewProps {
+  recorder: ReturnType<typeof useNotesModal>['voiceRecorder'];
+}
+
+function CommentVoiceRecorderView({ recorder }: CommentVoiceRecorderViewProps) {
+  return (
+    <div className="flex flex-col items-center gap-3 py-2">
+      {recorder.error && (
+        <div className="w-full rounded-xl bg-red-500/10 border border-red-500/30 p-3 text-center">
+          <p className="text-red-400 text-xs font-semibold mb-1">{recorder.error}</p>
+          <p className="text-telemetry-text-muted text-[10px] leading-tight">
+            Clique no cadeado na barra de endereço → Permissões → Microfone → Permitir.
+            <br />Depois clique em <span className="text-white font-semibold">Tentar novamente</span>.
+          </p>
+        </div>
+      )}
+
+      {(recorder.state === 'idle' || recorder.error) && (
+        <button
+          onClick={recorder.startRecording}
+          className="w-full py-4 rounded-xl bg-green-600/20 border-2 border-green-500/50 text-green-400 font-bold hover:bg-green-600/30 transition-all flex items-center justify-center gap-2"
+        >
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+          </svg>
+          {recorder.error ? 'Tentar novamente' : 'Gravar nota de voz'}
+        </button>
+      )}
+
+      {recorder.state === 'recording' && (
+        <div className="w-full flex flex-col items-center gap-3">
+          <div className="flex items-center gap-2 text-red-400">
+            <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
+            <span className="font-bold text-sm">Gravando...</span>
+          </div>
+          <p className="text-telemetry-text-muted text-lg font-mono">
+            {formatDuration(recorder.durationMs)} / 0:15
+          </p>
+          <button
+            onClick={recorder.stopRecording}
+            className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold transition-all"
+          >
+            Parar gravação
+          </button>
+        </div>
+      )}
+
+      {recorder.state === 'recorded' && (
+        <div className="w-full flex flex-col items-center gap-3">
+          <p className="text-telemetry-text-muted text-sm">
+            Duração: {formatDuration(recorder.durationMs)}
+          </p>
+          <div className="flex gap-2 w-full">
+            <button
+              onClick={recorder.playPreview}
+              className="flex-1 py-2.5 rounded-xl bg-white/ hover:bg-white/ text-white font-bold transition-all text-sm flex items-center justify-center gap-1.5"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+              Replay
+            </button>
+            <button
+              onClick={recorder.clear}
+              className="flex-1 py-2.5 rounded-xl bg-white/ hover:bg-white/ text-telemetry-text-muted font-bold border border-white/10 transition-all text-sm"
+            >
+              Limpar
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CommentModal({
   isOpen,
   onClose,
@@ -106,19 +222,7 @@ export function CommentModal({
         aria-label={title}
         tabIndex={-1}
       >
-        {isSubmitting && (
-          <div
-            className="absolute inset-0 bg-[#1e293b]/95 backdrop-blur-sm rounded-[20px] flex flex-col items-center justify-center gap-3 z-50 p-6"
-            role="status"
-            aria-live="polite"
-          >
-            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <h4 className="text-white font-bold text-base">Salvando comentário...</h4>
-            <p className="text-telemetry-text-muted text-xs text-center leading-relaxed">
-              Aguarde um instante enquanto registramos o seu comentário.
-            </p>
-          </div>
-        )}
+        {isSubmitting && <CommentSubmittingOverlay />}
 
         <h3 className="text-white font-bold text-center text-lg mb-1">{title}</h3>
         <p className="text-telemetry-text-muted text-center text-sm mb-4">Registe um comentário sobre a partida</p>
@@ -147,86 +251,14 @@ export function CommentModal({
         </div>
 
         {notes.mode === 'text' ? (
-          <div>
-            <textarea
-              ref={textareaRef}
-              value={notes.text}
-              onChange={(e) => notes.setText(e.target.value)}
-              placeholder="Ex: mudança de estratégia, condição do jogador, etc."
-              maxLength={notes.maxChars}
-              rows={4}
-              className="w-full px-3 py-2 rounded-xl bg-white/ border border-white/15 text-white placeholder-telemetry-text-muted/50 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-            <p className="text-telemetry-text-muted text-xs text-right mt-1">{notes.text.length}/{notes.maxChars}</p>
-          </div>
+          <CommentTextInput
+            textareaRef={textareaRef}
+            text={notes.text}
+            maxChars={notes.maxChars}
+            onChange={notes.setText}
+          />
         ) : (
-          <div className="flex flex-col items-center gap-3 py-2">
-            {notes.voiceRecorder.error && (
-              <div className="w-full rounded-xl bg-red-500/10 border border-red-500/30 p-3 text-center">
-                <p className="text-red-400 text-xs font-semibold mb-1">{notes.voiceRecorder.error}</p>
-                <p className="text-telemetry-text-muted text-[10px] leading-tight">
-                  Clique no cadeado na barra de endereço → Permissões → Microfone → Permitir.
-                  <br />Depois clique em <span className="text-white font-semibold">Tentar novamente</span>.
-                </p>
-              </div>
-            )}
-
-            {(notes.voiceRecorder.state === 'idle' || notes.voiceRecorder.error) && (
-              <button
-                onClick={notes.voiceRecorder.startRecording}
-                className="w-full py-4 rounded-xl bg-green-600/20 border-2 border-green-500/50 text-green-400 font-bold hover:bg-green-600/30 transition-all flex items-center justify-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-                  <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-                </svg>
-                {notes.voiceRecorder.error ? 'Tentar novamente' : 'Gravar nota de voz'}
-              </button>
-            )}
-
-            {notes.voiceRecorder.state === 'recording' && (
-              <div className="w-full flex flex-col items-center gap-3">
-                <div className="flex items-center gap-2 text-red-400">
-                  <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
-                  <span className="font-bold text-sm">Gravando...</span>
-                </div>
-                <p className="text-telemetry-text-muted text-lg font-mono">
-                  {formatDuration(notes.voiceRecorder.durationMs)} / 0:15
-                </p>
-                <button
-                  onClick={notes.voiceRecorder.stopRecording}
-                  className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold transition-all"
-                >
-                  Parar gravação
-                </button>
-              </div>
-            )}
-
-            {notes.voiceRecorder.state === 'recorded' && (
-              <div className="w-full flex flex-col items-center gap-3">
-                <p className="text-telemetry-text-muted text-sm">
-                  Duração: {formatDuration(notes.voiceRecorder.durationMs)}
-                </p>
-                <div className="flex gap-2 w-full">
-                  <button
-                    onClick={notes.voiceRecorder.playPreview}
-                    className="flex-1 py-2.5 rounded-xl bg-white/ hover:bg-white/ text-white font-bold transition-all text-sm flex items-center justify-center gap-1.5"
-                  >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                    Replay
-                  </button>
-                  <button
-                    onClick={notes.voiceRecorder.clear}
-                    className="flex-1 py-2.5 rounded-xl bg-white/ hover:bg-white/ text-telemetry-text-muted font-bold border border-white/10 transition-all text-sm"
-                  >
-                    Limpar
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          <CommentVoiceRecorderView recorder={notes.voiceRecorder} />
         )}
 
         <div className="flex flex-col gap-2 mt-4">
@@ -250,11 +282,11 @@ export function CommentModal({
                 : 'text-telemetry-text-muted hover:bg-white/ hover:text-white'
             }`}
           >
-            Fechar
+            Cancelar
           </button>
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

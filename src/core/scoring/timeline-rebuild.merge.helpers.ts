@@ -2,9 +2,16 @@ import type { PointDetails, TimelinePoint } from '@/core/scoring/types';
 import type { PointLogRow } from './timeline-rebuild';
 
 function getServeFields(log: PointLogRow) {
+  const isSecondServe =
+    log.type === 'DOUBLE_FAULT' ||
+    Boolean(log.annotations?.firstFaultDetail) ||
+    log.annotations?.isSecondServe === true ||
+    log.annotations?.isFirstServe === false;
+  const isFirstServe = !isSecondServe;
+
   return {
-    isFirstServe: log.annotations?.isFirstServe ?? true,
-    isSecondServe: log.annotations?.isSecondServe ?? false,
+    isFirstServe,
+    isSecondServe,
   };
 }
 

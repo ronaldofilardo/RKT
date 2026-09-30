@@ -17,12 +17,15 @@ interface MatchCardProps {
     state: string;
     format: string;
     courtType?: string | null;
-    player1: { name: string };
-    player2: { name: string };
+    player1: { name: string; id?: string };
+    player2: { name: string; id?: string };
     scheduledAt?: string | null;
     scoreState?: any;
     suspendedSessionId?: string;
     matchStateSnapshot?: string | null;
+    initialServerId?: string | null;
+    finishReason?: string | null;
+    status?: string | null;
   };
   onClick?: (match: any) => void;
   onReport?: (match: any) => void;
@@ -50,6 +53,41 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
     }
   }, [match.matchStateSnapshot]);
 
+  const isFinished = match.state === 'FINISHED';
+
+  const currentServer = useMemo(() => {
+    const s = scoreState?.server || suspendedAnnotationScore?.server;
+    if (s === 'player1' || s === 'player2') return s;
+    if (s && match.player1?.id && s === match.player1.id) return 'player1';
+    if (s && match.player2?.id && s === match.player2.id) return 'player2';
+    if (match.initialServerId) {
+      if (match.player1?.id && match.player1.id === match.initialServerId) return 'player1';
+      if (match.player2?.id && match.player2.id === match.initialServerId) return 'player2';
+    }
+    return null;
+  }, [scoreState, suspendedAnnotationScore, match.initialServerId, match.player1, match.player2]);
+
+  const showServer = !isFinished && Boolean(currentServer);
+  const isServerP1 = showServer && currentServer === 'player1';
+  const isServerP2 = showServer && currentServer === 'player2';
+
+  const renderPlayerName = (name: string, isServer: boolean, testId: string) => (
+    <span className="inline-flex items-center gap-2">
+      <span className="text-white font-semibold">{name}</span>
+      {isServer && (
+        <span
+          className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-black/75 border border-yellow-300 text-xs select-none shadow-md ring-1 ring-yellow-400/60"
+          title="Sacador"
+          aria-label="Sacador"
+          role="img"
+          data-testid={testId}
+        >
+          🎾
+        </span>
+      )}
+    </span>
+  );
+
   const handleClick = useCallback(() => {
     if (onClick) onClick(match);
   }, [onClick, match]);
@@ -59,7 +97,6 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
   const isCurrentSetMT = isMatchTiebreak && scoreState?.sets && scoreState.sets.length > 0
     ? isCurrentSetMatchTiebreak(scoreState.sets, match.format as TennisFormat)
     : false;
-  const isFinished = match.state === 'FINISHED';
   const lastSet = scoreState?.sets && scoreState.sets.length > 0 ? scoreState.sets[scoreState.sets.length - 1] : null;
   const lastSetTiebreakScore = !isCurrentSetMT && lastSet?.isTiebreak && lastSet?.tiebreakScore ? lastSet.tiebreakScore : null;
 
@@ -98,25 +135,25 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
           <div style={{ display: 'table-row' }}>
             <div
               className="flex items-center px-3 py-1.5 font-semibold text-white text-sm"
-              style={{ backgroundColor: barBg, display: 'table-cell', whiteSpace: 'nowrap' }}
+              style={{ backgroundColor: barBg, color: '#ffffff', display: 'table-cell', whiteSpace: 'nowrap' }}
             >
-              {match.player1.name}
+              {renderPlayerName(match.player1.name, isServerP1, "server-indicator-player1")}
             </div>
             <div style={{ display: 'table-cell', borderLeft: '2px solid #111827' }}>
               <div className="flex items-stretch">
                 {scoreState.sets.map((s: any, idx: number) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm text-white min-w-[2.5rem]"
-                    style={{ backgroundColor: scoreBg, borderRight: idx < numSets - 1 ? '1px solid #111827' : 'none' }}
+                    className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm font-semibold text-white min-w-[2.5rem]"
+                    style={{ backgroundColor: scoreBg, color: '#ffffff', borderRight: idx < numSets - 1 ? '1px solid #111827' : 'none' }}
                   >
                     {formatCompactSetScore(s, 'player1', isSetIndexMatchTiebreak(scoreState.sets, idx, match.format as TennisFormat))}
                   </div>
                 ))}
                 {!isFinished && (
                   <div
-                    className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm text-white min-w-[2.5rem]"
-                    style={{ backgroundColor: scoreBg }}
+                    className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm font-semibold text-white min-w-[2.5rem]"
+                    style={{ backgroundColor: scoreBg, color: '#ffffff' }}
                   >
                     {isCurrentSetMT
                       ? '-'
@@ -127,7 +164,7 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
                 )}
               </div>
             </div>
-            <div className="flex items-center justify-center px-3 py-1.5 font-space-grotesk tabular-nums text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, display: 'table-cell' }}>
+            <div className="flex items-center justify-center px-3 py-1.5 font-space-grotesk tabular-nums text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, color: '#ffffff', display: 'table-cell' }}>
               {setsWonP1}
             </div>
           </div>
@@ -141,25 +178,25 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
           <div style={{ display: 'table-row' }}>
             <div
               className="flex items-center px-3 py-1.5 font-semibold text-white text-sm"
-              style={{ backgroundColor: barBg, display: 'table-cell', whiteSpace: 'nowrap' }}
+              style={{ backgroundColor: barBg, color: '#ffffff', display: 'table-cell', whiteSpace: 'nowrap' }}
             >
-              {match.player2.name}
+              {renderPlayerName(match.player2.name, isServerP2, "server-indicator-player2")}
             </div>
             <div style={{ display: 'table-cell', borderLeft: '2px solid #111827' }}>
               <div className="flex items-stretch">
                 {scoreState.sets.map((s: any, idx: number) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm text-white min-w-[2.5rem]"
-                    style={{ backgroundColor: scoreBg, borderRight: idx < numSets - 1 ? '1px solid #111827' : 'none' }}
+                    className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm font-semibold text-white min-w-[2.5rem]"
+                    style={{ backgroundColor: scoreBg, color: '#ffffff', borderRight: idx < numSets - 1 ? '1px solid #111827' : 'none' }}
                   >
                     {formatCompactSetScore(s, 'player2', isSetIndexMatchTiebreak(scoreState.sets, idx, match.format as TennisFormat))}
                   </div>
                 ))}
                 {!isFinished && (
                   <div
-                    className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm text-white min-w-[2.5rem]"
-                    style={{ backgroundColor: scoreBg }}
+                    className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm font-semibold text-white min-w-[2.5rem]"
+                    style={{ backgroundColor: scoreBg, color: '#ffffff' }}
                   >
                     {isCurrentSetMT
                       ? '-'
@@ -170,7 +207,7 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
                 )}
               </div>
             </div>
-            <div className="flex items-center justify-center px-3 py-1.5 font-space-grotesk tabular-nums text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, display: 'table-cell' }}>
+            <div className="flex items-center justify-center px-3 py-1.5 font-space-grotesk tabular-nums text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, color: '#ffffff', display: 'table-cell' }}>
               {setsWonP2}
             </div>
           </div>
@@ -180,14 +217,14 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
           <div style={{ display: 'table-row' }}>
             <div
               className="flex items-center px-3 py-1.5 font-semibold text-white text-sm"
-              style={{ backgroundColor: barBg, display: 'table-cell', whiteSpace: 'nowrap' }}
+              style={{ backgroundColor: barBg, color: '#ffffff', display: 'table-cell', whiteSpace: 'nowrap' }}
             >
-              {match.player1.name}
+              {renderPlayerName(match.player1.name, isServerP1, "server-indicator-player1")}
             </div>
-            <div className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm text-white min-w-[2.5rem]" style={{ backgroundColor: scoreBg, borderLeft: '2px solid #111827', display: 'table-cell' }}>
+            <div className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm font-semibold text-white min-w-[2.5rem]" style={{ backgroundColor: scoreBg, color: '#ffffff', borderLeft: '2px solid #111827', display: 'table-cell' }}>
               {getSinglePointDisplay(scoreState.currentGame, 'player1')}
             </div>
-            <div className="flex items-center justify-center px-3 py-1.5 font-space-grotesk tabular-nums text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, display: 'table-cell' }}>
+            <div className="flex items-center justify-center px-3 py-1.5 font-space-grotesk tabular-nums text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, color: '#ffffff', display: 'table-cell' }}>
               {setsWonP1}
             </div>
           </div>
@@ -197,14 +234,14 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
           <div style={{ display: 'table-row' }}>
             <div
               className="flex items-center px-3 py-1.5 font-semibold text-white text-sm"
-              style={{ backgroundColor: barBg, display: 'table-cell', whiteSpace: 'nowrap' }}
+              style={{ backgroundColor: barBg, color: '#ffffff', display: 'table-cell', whiteSpace: 'nowrap' }}
             >
-              {match.player2.name}
+              {renderPlayerName(match.player2.name, isServerP2, "server-indicator-player2")}
             </div>
-            <div className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm text-white min-w-[2.5rem]" style={{ backgroundColor: scoreBg, borderLeft: '2px solid #111827', display: 'table-cell' }}>
+            <div className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm font-semibold text-white min-w-[2.5rem]" style={{ backgroundColor: scoreBg, color: '#ffffff', borderLeft: '2px solid #111827', display: 'table-cell' }}>
               {getSinglePointDisplay(scoreState.currentGame, 'player2')}
             </div>
-            <div className="flex items-center justify-center px-3 py-1.5 font-space-grotesk tabular-nums text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, display: 'table-cell' }}>
+            <div className="flex items-center justify-center px-3 py-1.5 font-space-grotesk tabular-nums text-lg font-bold text-white min-w-[2rem]" style={{ backgroundColor: barBg, color: '#ffffff', display: 'table-cell' }}>
               {setsWonP2}
             </div>
           </div>
@@ -214,9 +251,9 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
           <div style={{ display: 'table-row' }}>
             <div
               className="flex items-center px-3 py-1.5 font-semibold text-white text-sm"
-              style={{ backgroundColor: barBg, display: 'table-cell', whiteSpace: 'nowrap' }}
+              style={{ backgroundColor: barBg, color: '#ffffff', display: 'table-cell', whiteSpace: 'nowrap' }}
             >
-              {match.player1.name}
+              {renderPlayerName(match.player1.name, isServerP1, "server-indicator-player1")}
             </div>
           </div>
           <div style={{ display: 'table-row' }}>
@@ -225,16 +262,16 @@ export function MatchCard({ match, onClick, onReport, onFinish, onDelete }: Matc
           <div style={{ display: 'table-row' }}>
             <div
               className="flex items-center px-3 py-1.5 font-semibold text-white text-sm"
-              style={{ backgroundColor: barBg, display: 'table-cell', whiteSpace: 'nowrap' }}
+              style={{ backgroundColor: barBg, color: '#ffffff', display: 'table-cell', whiteSpace: 'nowrap' }}
             >
-              {match.player2.name}
+              {renderPlayerName(match.player2.name, isServerP2, "server-indicator-player2")}
             </div>
           </div>
         </div>
       )}
 
       {match.scheduledAt && (
-        <p className="px-4 pb-3 text-xs text-telemetry-text-muted">
+        <p className="px-4 pb-3 text-xs text-slate-300 font-medium">
           {new Date(match.scheduledAt).toLocaleString("pt-BR")}
         </p>
       )}

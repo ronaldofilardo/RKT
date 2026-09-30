@@ -13,8 +13,29 @@ export interface ModalStackOptions {
   mode?: ModalMode;
 }
 
-export function useModalStack(options: ModalStackOptions = {}) {
-  const mode = options.mode ?? 'router';
+function buildModalUrl(
+  pathname: string,
+  searchParams: { toString: () => string },
+  modal: string | null,
+  params?: ModalParams,
+): string {
+  const sp = new URLSearchParams(searchParams.toString());
+  if (modal) {
+    sp.set('modal', modal);
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => sp.set(k, v));
+    }
+  } else {
+    sp.delete('modal');
+    if (params) {
+      Object.keys(params).forEach(k => sp.delete(k));
+    }
+  }
+  const qs = sp.toString();
+  return qs ? `${pathname}?${qs}` : pathname;
+}
+
+function useRouterModalStack() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -22,10 +43,13 @@ export function useModalStack(options: ModalStackOptions = {}) {
   const searchParamsRef = useRef(searchParams);
   searchParamsRef.current = searchParams;
 
-  const modeRef = useRef(mode);
-  modeRef.current = mode;
+  const pathnameRef = useRef(pathname);
+  pathnameRef.current = pathname;
 
-  const activeModal = mode === 'internal' ? null : searchParams.get('modal');
+  const routerRef = useRef(router);
+  routerRef.current = router;
+
+  const activeModal = searchParams.get('modal');
 
   const modalParams = useMemo<ModalParams>(() => {
     const params: ModalParams = {};
@@ -35,19 +59,55 @@ export function useModalStack(options: ModalStackOptions = {}) {
     return params;
   }, [searchParams]);
 
+  const open = useCallback((name: string, params?: ModalParams) => {
+    const url = buildModalUrl(pathnameRef.current, searchParamsRef.current, name, params);
+    routerRef.current.push(url as any);
+  }, []);
+
+  const replace = useCallback((name: string, params?: ModalParams) => {
+    const url = buildModalUrl(pathnameRef.current, searchParamsRef.current, name, params);
+    routerRef.current.replace(url as any);
+  }, []);
+
+  const close = useCallback(() => {
+    routerRef.current.back();
+  }, []);
+
+  const closeAll = useCallback(() => {
+    const sp = new URLSearchParams(searchParamsRef.current.toString());
+    sp.delete('modal');
+    const qs = sp.toString();
+    const url = qs ? `${pathnameRef.current}?${qs}` : pathnameRef.current;
+    routerRef.current.replace(url as any);
+  }, []);
+
+  return {
+    activeModal,
+    modalParams,
+    open,
+    replace,
+    close,
+    closeAll,
+  };
+}
+
+function useInternalModalStack() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const searchParamsRef = useRef(searchParams);
+  searchParamsRef.current = searchParams;
+
+  const pathnameRef = useRef(pathname);
+  pathnameRef.current = pathname;
+
   const [internalModal, setInternalModal] = useState<string | null>(null);
   const [internalParams, setInternalParams] = useState<ModalParams>({});
 
   const modalHistoryRef = useRef<Array<{ modal: string | null; params: ModalParams }>>([]);
   const historyIndexRef = useRef(-1);
   const isSyncWithUrlRef = useRef(true);
-  const pathnameRef = useRef(pathname);
-  pathnameRef.current = pathname;
-
   const [, forceUpdate] = useState({});
-
-  const effectiveModal = mode === 'internal' ? internalModal : activeModal;
-  const effectiveParams = mode === 'internal' ? internalParams : modalParams;
 
   const syncToUrl = useCallback((modal: string | null, params: ModalParams, method: 'push' | 'replace' = 'replace') => {
     const sp = new URLSearchParams(searchParamsRef.current.toString());
@@ -71,23 +131,16 @@ export function useModalStack(options: ModalStackOptions = {}) {
   const syncToUrlRef = useRef(syncToUrl);
   syncToUrlRef.current = syncToUrl;
 
-  const routerRef = useRef(router);
-  routerRef.current = router;
-
   useEffect(() => {
-    if (mode !== 'internal') return;
-
     const handlePopState = (event: PopStateEvent) => {
+      isSyncWithUrlRef.current = false;
       if (event.state && event.state.modal !== undefined) {
-        isSyncWithUrlRef.current = false;
         setInternalModal(event.state.modal);
         setInternalParams(event.state.params || {});
         historyIndexRef.current = modalHistoryRef.current.findIndex(
           h => h.modal === event.state.modal && JSON.stringify(h.params) === JSON.stringify(event.state.params || {})
         );
-        isSyncWithUrlRef.current = true;
       } else {
-        isSyncWithUrlRef.current = false;
         const sp = searchParamsRef.current;
         const modal = sp.get('modal');
         const params: ModalParams = {};
@@ -97,17 +150,16 @@ export function useModalStack(options: ModalStackOptions = {}) {
         historyIndexRef.current = modalHistoryRef.current.findIndex(
           h => h.modal === modal && JSON.stringify(h.params) === JSON.stringify(params)
         );
-        isSyncWithUrlRef.current = true;
       }
+      isSyncWithUrlRef.current = true;
       forceUpdate({});
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [mode]);
+  }, []);
 
   useEffect(() => {
-    if (mode !== 'internal') return;
     if (!isSyncWithUrlRef.current) return;
 
     const sp = searchParamsRef.current;
@@ -130,94 +182,67 @@ export function useModalStack(options: ModalStackOptions = {}) {
         historyIndexRef.current = existingIndex;
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, searchParams]);
+  }, [searchParams, internalModal, internalParams]);
 
   const open = useCallback((name: string, params?: ModalParams) => {
-    if (modeRef.current === 'internal') {
-      const newParams = params || {};
-      setInternalModal(name);
-      setInternalParams(newParams);
-      syncToUrlRef.current(name, newParams, 'push');
-      modalHistoryRef.current = modalHistoryRef.current.slice(0, historyIndexRef.current + 1);
-      modalHistoryRef.current.push({ modal: name, params: newParams });
-      historyIndexRef.current = modalHistoryRef.current.length - 1;
-    } else {
-      const sp = new URLSearchParams(searchParamsRef.current.toString());
-      sp.set('modal', name);
-      if (params) {
-        Object.entries(params).forEach(([k, v]) => sp.set(k, v));
-      }
-      const qs = sp.toString();
-      const url = qs ? `${pathnameRef.current}?${qs}` : pathnameRef.current;
-      routerRef.current.push(url as any);
-    }
+    const newParams = params || {};
+    setInternalModal(name);
+    setInternalParams(newParams);
+    syncToUrlRef.current(name, newParams, 'push');
+    modalHistoryRef.current = modalHistoryRef.current.slice(0, historyIndexRef.current + 1);
+    modalHistoryRef.current.push({ modal: name, params: newParams });
+    historyIndexRef.current = modalHistoryRef.current.length - 1;
   }, []);
 
   const replace = useCallback((name: string, params?: ModalParams) => {
-    if (modeRef.current === 'internal') {
-      const newParams = params || {};
-      setInternalModal(name);
-      setInternalParams(newParams);
-      syncToUrlRef.current(name, newParams, 'replace');
-      modalHistoryRef.current = modalHistoryRef.current.slice(0, historyIndexRef.current + 1);
-      modalHistoryRef.current.push({ modal: name, params: newParams });
-      historyIndexRef.current = modalHistoryRef.current.length - 1;
-    } else {
-      const sp = new URLSearchParams(searchParamsRef.current.toString());
-      sp.set('modal', name);
-      if (params) {
-        Object.entries(params).forEach(([k, v]) => sp.set(k, v));
-      }
-      const qs = sp.toString();
-      const url = qs ? `${pathnameRef.current}?${qs}` : pathnameRef.current;
-      routerRef.current.replace(url as any);
-    }
+    const newParams = params || {};
+    setInternalModal(name);
+    setInternalParams(newParams);
+    syncToUrlRef.current(name, newParams, 'replace');
+    modalHistoryRef.current = modalHistoryRef.current.slice(0, historyIndexRef.current + 1);
+    modalHistoryRef.current.push({ modal: name, params: newParams });
+    historyIndexRef.current = modalHistoryRef.current.length - 1;
   }, []);
 
   const close = useCallback(() => {
-    if (modeRef.current === 'internal') {
-      if (historyIndexRef.current > 0) {
-        historyIndexRef.current--;
-        const prev = modalHistoryRef.current[historyIndexRef.current];
-        setInternalModal(prev.modal);
-        setInternalParams(prev.params);
-        syncToUrlRef.current(prev.modal, prev.params, 'replace');
-      } else {
-        setInternalModal(null);
-        setInternalParams({});
-        syncToUrlRef.current(null, {}, 'replace');
-      }
+    if (historyIndexRef.current > 0) {
+      historyIndexRef.current--;
+      const prev = modalHistoryRef.current[historyIndexRef.current];
+      setInternalModal(prev.modal);
+      setInternalParams(prev.params);
+      syncToUrlRef.current(prev.modal, prev.params, 'replace');
     } else {
-      routerRef.current.back();
+      setInternalModal(null);
+      setInternalParams({});
+      syncToUrlRef.current(null, {}, 'replace');
     }
   }, []);
 
   const closeAll = useCallback(() => {
-    if (modeRef.current === 'internal') {
-      setInternalModal(null);
-      setInternalParams({});
-      syncToUrlRef.current(null, {}, 'replace');
-      if (modalHistoryRef.current.length > 0) {
-        modalHistoryRef.current = modalHistoryRef.current.slice(0, 1);
-        modalHistoryRef.current[0] = { modal: null, params: {} };
-        historyIndexRef.current = 0;
-      }
-    } else {
-      const sp = new URLSearchParams(searchParamsRef.current.toString());
-      sp.delete('modal');
-      const qs = sp.toString();
-      const url = qs ? `${pathnameRef.current}?${qs}` : pathnameRef.current;
-      routerRef.current.replace(url as any);
+    setInternalModal(null);
+    setInternalParams({});
+    syncToUrlRef.current(null, {}, 'replace');
+    if (modalHistoryRef.current.length > 0) {
+      modalHistoryRef.current = modalHistoryRef.current.slice(0, 1);
+      modalHistoryRef.current[0] = { modal: null, params: {} };
+      historyIndexRef.current = 0;
     }
   }, []);
 
   return {
-    activeModal: effectiveModal,
-    modalParams: effectiveParams,
+    activeModal: internalModal,
+    modalParams: internalParams,
     open,
     replace,
     close,
     closeAll,
   };
+}
+
+export function useModalStack(options: ModalStackOptions = {}) {
+  const mode = options.mode ?? 'router';
+  const routerStack = useRouterModalStack();
+  const internalStack = useInternalModalStack();
+
+  return mode === 'internal' ? internalStack : routerStack;
 }

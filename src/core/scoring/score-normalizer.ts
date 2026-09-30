@@ -123,6 +123,79 @@ function looksLikeMatchTiebreakFormat(format: TennisFormat): boolean {
   );
 }
 
+function sanitizeMatchTiebreakSet(set: any): any {
+  return {
+    ...set,
+    tiebreakScore: { player1: set.player1, player2: set.player2 },
+    player1: 0,
+    player2: 0,
+    isTiebreak: true,
+  };
+}
+
+function updateSetsWon(
+  set: any,
+  counts: { p1Won: number; p2Won: number },
+): void {
+  if (!set) return;
+  const isSetFinished =
+    !set.isTiebreak || (set.isTiebreak && set.tiebreakScore);
+  if (isSetFinished) {
+    if (set.player1 > set.player2) counts.p1Won++;
+    else if (set.player2 > set.player1) counts.p2Won++;
+  }
+}
+
+function normalizeMatchTiebreakSets(sets: any[], format: TennisFormat): any[] {
+  const counts = { p1Won: 0, p2Won: 0 };
+  return sets.map((set: any, idx: number) => {
+    const isMtSet = isMatchTiebreakSetIndex(
+      idx,
+      sets.length,
+      format,
+      counts,
+    );
+
+    const isCorruptedMt =
+      isMtSet &&
+      set &&
+      (set.player1 > 0 || set.player2 > 0) &&
+      !set.isTiebreak &&
+      !set.tiebreakScore;
+
+    if (isCorruptedMt) {
+      return sanitizeMatchTiebreakSet(set);
+    }
+
+    updateSetsWon(set, counts);
+    return set;
+  });
+}
+
+function normalizeRegularTiebreakSets(sets: any[], rawScoreState: any): any[] {
+  const history = extractHistory(rawScoreState);
+  return sets.map((set: any, idx: number) => {
+    if (!set || set.tiebreakScore != null) return set;
+    const is76 = set.player1 === 7 && set.player2 === 6;
+    const is67 = set.player1 === 6 && set.player2 === 7;
+    if (!is76 && !is67) return set;
+    const reconstructed = reconstructTiebreakFromHistory(history, idx);
+    return reconstructed ? { ...set, tiebreakScore: reconstructed } : set;
+  });
+}
+
+function ensureDefaultCurrentGame(parsed: any): NormalizedScoreState {
+  return {
+    ...parsed,
+    currentGame: parsed.currentGame ?? {
+      player1: 0,
+      player2: 0,
+      isDeuce: false,
+      advantage: null,
+    },
+  } as NormalizedScoreState;
+}
+
 /**
  * Sanea um scoreState para o formato canonical.
  *
@@ -135,90 +208,16 @@ export function normalizeScoreState(
   format?: TennisFormat,
 ): NormalizedScoreState | null {
   const parsed = parseRawScoreState(rawScoreState);
-  if (!parsed) return null;
-  if (!parsed.sets || !Array.isArray(parsed.sets)) {
-    if (!parsed?.sets) return null;
-  }
+  if (!parsed || !parsed.sets || !Array.isArray(parsed.sets)) return null;
+
+  let currentSets = parsed.sets;
 
   if (format && looksLikeMatchTiebreakFormat(format)) {
-    // Contar sets vencidos ANTES de cada índice (não-MT) para validar posição.
-    let p1Won = 0;
-    let p2Won = 0;
-    const newSets = parsed.sets.map((set: any, idx: number) => {
-      const isMtSet = isMatchTiebreakSetIndex(idx, parsed.sets.length, format, { p1Won, p2Won });
-
-      // Detecta o padrão corrompido apenas em sets que deveriam ser MT.
-      if (
-        isMtSet &&
-        set &&
-        (set.player1 > 0 || set.player2 > 0) &&
-        !set.isTiebreak &&
-        !set.tiebreakScore
-      ) {
-        const sanitized = {
-          ...set,
-          tiebreakScore: { player1: set.player1, player2: set.player2 },
-          player1: 0,
-          player2: 0,
-          isTiebreak: true,
-        };
-        // Conta como vitória do MT (não incrementa p1Won/p2Won para sets
-        // futuros — este é o último set destes formatos).
-        return sanitized;
-      }
-
-      // Set "normal": conta vencedor para a heurística dos próximos índices.
-      if (set && !set.isTiebreak) {
-        if (set.player1 > set.player2) p1Won++;
-        else if (set.player2 > set.player1) p2Won++;
-      } else if (set && set.isTiebreak && set.tiebreakScore) {
-        // Tiebreak normal de fim de set: conta pelo games.
-        if (set.player1 > set.player2) p1Won++;
-        else if (set.player2 > set.player1) p2Won++;
-      }
-      return set;
-    });
-    parsed.sets = newSets;
+    currentSets = normalizeMatchTiebreakSets(currentSets, format);
   }
 
-  // Pass 2: Detect regular tiebreak sets (7-6 or 6-7) with missing tiebreakScore.
-  // Any set ending 7-6 or 6-7 always had a tiebreak. Try to reconstruct from history.
-  if (parsed?.sets && Array.isArray(parsed.sets)) {
-    const history = extractHistory(rawScoreState);
-    let changed = false;
-    const normalizedSets = parsed.sets.map((set: any, idx: number) => {
-      if (!set) return set;
-      if (set.tiebreakScore != null) return set;
-      const is76 = set.player1 === 7 && set.player2 === 6;
-      const is67 = set.player1 === 6 && set.player2 === 7;
-      if (!is76 && !is67) return set;
-      const reconstructed = reconstructTiebreakFromHistory(history, idx);
-      if (reconstructed) {
-        changed = true;
-        return { ...set, tiebreakScore: reconstructed };
-      }
-      return set;
-    });
-    if (changed) {
-      parsed.sets = normalizedSets;
-    }
-  }
+  currentSets = normalizeRegularTiebreakSets(currentSets, rawScoreState);
+  parsed.sets = currentSets;
 
-  if (parsed?.sets && parsed?.currentGame) {
-    return parsed as NormalizedScoreState;
-  }
-
-  if (parsed?.sets && Array.isArray(parsed.sets)) {
-    return {
-      ...parsed,
-      currentGame: parsed.currentGame ?? {
-        player1: 0,
-        player2: 0,
-        isDeuce: false,
-        advantage: null,
-      },
-    } as NormalizedScoreState;
-  }
-
-  return null;
+  return ensureDefaultCurrentGame(parsed);
 }

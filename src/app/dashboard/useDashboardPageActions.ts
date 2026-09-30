@@ -13,14 +13,25 @@ type ActionsOptions = {
   handleResumeSuspended: (match: DashboardMatch) => void;
   setMatchToDelete: (match: DashboardMatch | null) => void;
   setMatchToFinish: (match: DashboardMatch | null) => void;
+  onOpenServerModal?: (match: DashboardMatch) => void;
 };
 
-export function useDashboardPageActions({ router, handleResumeSuspended, setMatchToDelete, setMatchToFinish }: ActionsOptions) {
+export function useDashboardPageActions({ router, handleResumeSuspended, setMatchToDelete, setMatchToFinish, onOpenServerModal }: ActionsOptions) {
   const handleMatchClick = useCallback((match: DashboardMatch) => {
-    if (match.state === 'FINISHED') router.push(`/match/${match.id}/report`);
-    else if (match.suspendedSessionId || match.matchStateSnapshot) handleResumeSuspended(match);
-    else router.push(`/match/${match.id}/scoring?modal=edit-score`);
-  }, [router, handleResumeSuspended]);
+    if (match.state === 'FINISHED') {
+      router.push(`/match/${match.id}/report`);
+    } else if (match.suspendedSessionId || match.matchStateSnapshot) {
+      handleResumeSuspended(match);
+    } else if (match.state === 'SCHEDULED' || !match.initialServerId) {
+      if (onOpenServerModal) {
+        onOpenServerModal(match);
+      } else {
+        router.push(`/match/${match.id}/scoring`);
+      }
+    } else {
+      router.push(`/match/${match.id}/scoring`);
+    }
+  }, [router, handleResumeSuspended, onOpenServerModal]);
 
   const handleMatchReport = useCallback((match: DashboardMatch) => router.push(`/match/${match.id}/report`), [router]);
   const handleMatchFinish = useCallback((match: DashboardMatch) => setMatchToFinish(match), [setMatchToFinish]);

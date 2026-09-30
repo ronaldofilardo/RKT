@@ -14,13 +14,20 @@ interface MatchStatusBadgeProps {
 }
 
 export function MatchStatusBadge({ isSuspended, state }: MatchStatusBadgeProps) {
+  let badgeStyle = "bg-sky-500/20 text-sky-300 border border-sky-500/30";
+  if (isSuspended) {
+    badgeStyle = "bg-amber-500/20 text-amber-300 border border-amber-500/30";
+  } else if (state === "FINISHED") {
+    badgeStyle = "bg-slate-700/50 text-slate-200 border border-white/10";
+  } else if (state === "SCHEDULED") {
+    badgeStyle = "bg-purple-500/20 text-purple-300 border border-purple-500/30";
+  } else if (state === "IN_PROGRESS") {
+    badgeStyle = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+  }
+
   return (
-    <span
-      className={`text-xs font-semibold px-2 py-1 rounded-full ${
-        isSuspended ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800'
-      }`}
-    >
-      {isSuspended ? 'Suspensa' : STATUS_LABELS[state] || state}
+    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${badgeStyle}`}>
+      {isSuspended ? "Suspensa" : STATUS_LABELS[state] || state}
     </span>
   );
 }
@@ -34,15 +41,16 @@ interface MatchActionsProps {
 
 export function MatchActions({ match, onReport, onFinish, onDelete }: MatchActionsProps) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1.5 sm:gap-2">
       {onReport && (
         <button
           onClick={(e) => {
             e.stopPropagation();
             onReport(match);
           }}
-          className="text-xs text-telemetry-text-muted hover:text-blue-600 transition-colors"
+          className="p-1 rounded text-xs text-slate-300 hover:text-blue-400 hover:bg-white/5 transition-colors"
           title="Ver relatório"
+          aria-label="Ver relatório"
         >
           📊
         </button>
@@ -53,8 +61,9 @@ export function MatchActions({ match, onReport, onFinish, onDelete }: MatchActio
             e.stopPropagation();
             onFinish(match);
           }}
-          className="text-xs text-green-600 hover:text-green-700 transition-colors"
+          className="p-1 rounded text-xs font-bold text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 transition-colors"
           title="Encerrar partida"
+          aria-label="Encerrar partida"
         >
           ✓
         </button>
@@ -65,8 +74,9 @@ export function MatchActions({ match, onReport, onFinish, onDelete }: MatchActio
             e.stopPropagation();
             onDelete(match);
           }}
-          className="text-xs text-red-600 hover:text-red-700 transition-colors"
+          className="p-1 rounded text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
           title="Excluir partida"
+          aria-label="Excluir partida"
         >
           🗑
         </button>
@@ -81,7 +91,7 @@ interface FormatLabelProps {
 
 export function FormatLabel({ format }: FormatLabelProps) {
   return (
-    <span className="text-xs text-slate-300 font-medium">
+    <span className="text-xs text-slate-200 font-medium">
       Modo de jogo: {getFormatLabel(format)}
     </span>
   );

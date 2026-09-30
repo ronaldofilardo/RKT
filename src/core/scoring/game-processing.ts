@@ -93,56 +93,99 @@ export function processRegularPoint(
   return processStandardPoint(winner, state, config);
 }
 
+function validateGameWinner(gameWinner: 'player1' | 'player2', currentSet: SetScore): void {
+  if (gameWinner !== 'player1' && gameWinner !== 'player2') {
+    logger.error('[ScoringEngine] handleGameWon: invalid gameWinner', { gameWinner, currentSet });
+    throw new Error('INVALID_GAME_WINNER');
+  }
+}
+
+function resolveActiveSet(state: ScoringState, config: ScoringEngineConfig): {
+  currentSet: SetScore;
+  currentSetIndex: number;
+} {
+  const currentSetIndex = state.sets.length === 0 ? 0 : state.sets.length - 1;
+  let currentSet = state.sets[currentSetIndex] ?? createEmptySetForFormat(config.format);
+
+  const initGames = getInitialGames(config.format);
+  const setsDecided = state.setsWon.player1 + state.setsWon.player2;
+  const lastSetAlreadyDecided = state.sets.length > 0 && setsDecided >= state.sets.length;
+  const isPreviousComplete = isSetComplete(currentSet, state.setsWon, config, state.sets) &&
+    !currentSet.isTiebreak &&
+    (currentSet.player1 > initGames || currentSet.player2 > initGames);
+
+  if (lastSetAlreadyDecided || isPreviousComplete) {
+    currentSet = createEmptySetForFormat(config.format);
+  }
+
+  return { currentSet, currentSetIndex };
+}
+
+function shouldTriggerTiebreak(newSet: SetScore, state: ScoringState, config: ScoringEngineConfig): boolean {
+  if (newSet.isTiebreak) return false;
+
+  const isBestOf5Decider = config.format === 'BEST_OF_5' &&
+    state.setsWon.player1 === 2 &&
+    state.setsWon.player2 === 2 &&
+    newSet.player1 === 6 &&
+    newSet.player2 === 6;
+
+  return isBestOf5Decider || shouldStartTiebreak(newSet, state, config);
+}
+
+function transitionToTiebreak(
+  newSet: SetScore,
+  newSets: SetScore[],
+  state: ScoringState,
+  newServer: 'player1' | 'player2',
+): ScoringState {
+  newSet.isTiebreak = true;
+  newSet.tiebreakScore = { player1: 0, player2: 0 };
+  newSets[newSets.length - 1] = newSet;
+
+  state.sets = newSets;
+  state.currentGame = createEmptyGame();
+  state.server = newServer;
+  return state;
+}
+
+function transitionToMatchTiebreak(
+  state: ScoringState,
+  newServer: 'player1' | 'player2',
+): ScoringState {
+  const matchTbSet: SetScore = {
+    player1: 0,
+    player2: 0,
+    isTiebreak: true,
+    tiebreakScore: { player1: 0, player2: 0 },
+  };
+  state.sets = [...state.sets, matchTbSet];
+  state.currentGame = createEmptyGame();
+  state.server = newServer;
+  return state;
+}
+
 export function handleGameWon(
   gameWinner: 'player1' | 'player2',
   _finalGame: GameScore,
   state: ScoringState,
   config: ScoringEngineConfig,
 ): ScoringState {
-  const currentSetIndex = state.sets.length === 0 ? 0 : state.sets.length - 1;
-  let currentSet = state.sets[currentSetIndex] ?? createEmptySetForFormat(config.format);
+  const { currentSet, currentSetIndex } = resolveActiveSet(state, config);
+  validateGameWinner(gameWinner, currentSet);
 
-  const initGames = getInitialGames(config.format);
-  // Um set já contabilizado em `setsWon` está definitivamente encerrado — mesmo
-  // quando seu placar final não bate mais com `isSetComplete()` (ex.: um set
-  // vencido no tie-break vira "7-6", diferença de apenas 1 game, que a checagem
-  // padrão de set completo NÃO reconhece como concluído). Usar a soma de
-  // `setsWon` contra `state.sets.length` é a forma robusta de saber que o
-  // último set do array já foi fechado e que o próximo game pertence a um set
-  // novo, evitando que os games seguintes sejam somados por engano ao set
-  // anterior já finalizado (o que corrompia o placar do set seguinte).
-  const setsDecided = state.setsWon.player1 + state.setsWon.player2;
-  const lastSetAlreadyDecided = state.sets.length > 0 && setsDecided >= state.sets.length;
-  if (lastSetAlreadyDecided || (isSetComplete(currentSet, state.setsWon, config, state.sets) && !currentSet.isTiebreak && (currentSet.player1 > initGames || currentSet.player2 > initGames))) {
-    currentSet = createEmptySetForFormat(config.format);
-  }
-
-  const newSet = { ...currentSet };
-  if (gameWinner === 'player1') newSet.player1++;
-  else if (gameWinner === 'player2') newSet.player2++;
-  else {
-    logger.error('[ScoringEngine] handleGameWon: invalid gameWinner', { gameWinner, currentSet });
-    throw new Error('INVALID_GAME_WINNER');
-  }
+  const newSet: SetScore = {
+    ...currentSet,
+    [gameWinner]: currentSet[gameWinner] + 1,
+  };
 
   const newServer = state.server === 'player1' ? 'player2' : 'player1';
 
-  const shouldStartMatchTb = shouldStartMatchTiebreak(state, config);
-  if (shouldStartMatchTb) {
-    const matchTbSet: SetScore = {
-      player1: 0,
-      player2: 0,
-      isTiebreak: true,
-      tiebreakScore: { player1: 0, player2: 0 },
-    };
-    const newSets = [...state.sets];
-    newSets.push(matchTbSet);
-    state.sets = newSets;
-    state.currentGame = createEmptyGame();
-    state.server = newServer;
-    return state;
+  if (shouldStartMatchTiebreak(state, config)) {
+    return transitionToMatchTiebreak(state, newServer);
   }
 
+  const initGames = getInitialGames(config.format);
   const newSets = [...state.sets];
   if (currentSet.player1 === initGames && currentSet.player2 === initGames && !currentSet.isTiebreak) {
     newSets.push(newSet);
@@ -150,28 +193,8 @@ export function handleGameWon(
     newSets[currentSetIndex] = newSet;
   }
 
-  if (config.format === 'BEST_OF_5' &&
-      state.setsWon.player1 === 2 && state.setsWon.player2 === 2 &&
-      newSet.player1 === 6 && newSet.player2 === 6 && !newSet.isTiebreak) {
-    newSet.isTiebreak = true;
-    newSet.tiebreakScore = { player1: 0, player2: 0 };
-    const setIdx = newSets.length - 1;
-    newSets[setIdx] = newSet;
-    state.sets = newSets;
-    state.currentGame = createEmptyGame();
-    state.server = newServer;
-    return state;
-  }
-
-  if (shouldStartTiebreak(newSet, state, config)) {
-    newSet.isTiebreak = true;
-    newSet.tiebreakScore = { player1: 0, player2: 0 };
-    const newSetIndex = newSets.length - 1;
-    newSets[newSetIndex] = newSet;
-    state.sets = newSets;
-    state.currentGame = createEmptyGame();
-    state.server = newServer;
-    return state;
+  if (shouldTriggerTiebreak(newSet, state, config)) {
+    return transitionToTiebreak(newSet, newSets, state, newServer);
   }
 
   if (isSetComplete(newSet, state.setsWon, config, state.sets)) {

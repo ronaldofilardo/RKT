@@ -38,6 +38,94 @@ export interface ScoringPageDerived {
   serverEffectWinnerName: string;
 }
 
+function derivePointBadges(
+  effectiveScoreState: ScoringState | null,
+  format?: string,
+): { isMatchPoint: boolean; isSetPoint: boolean; isBreakPoint: boolean } {
+  if (!effectiveScoreState) {
+    return { isMatchPoint: false, isSetPoint: false, isBreakPoint: false };
+  }
+  const isMatchPoint = checkMatchPoint(effectiveScoreState, format);
+  const isSetPoint = !isMatchPoint && checkSetPoint(effectiveScoreState);
+  const isBreakPoint = !isMatchPoint && !isSetPoint && checkBreakPoint(effectiveScoreState);
+
+  return { isMatchPoint, isSetPoint, isBreakPoint };
+}
+
+function deriveTiebreakState(
+  effectiveScoreState: ScoringState | null,
+  format?: string,
+): { isTiebreak: boolean; isSuperTiebreak: boolean } {
+  if (!effectiveScoreState) {
+    return { isTiebreak: false, isSuperTiebreak: false };
+  }
+
+  const lastSet = effectiveScoreState.sets[effectiveScoreState.sets.length - 1];
+  if (!lastSet) {
+    return { isTiebreak: false, isSuperTiebreak: false };
+  }
+
+  let isTb = lastSet.isTiebreak;
+  if (!isTb && lastSet.player1 === 0 && lastSet.player2 === 0 && effectiveScoreState.sets.length > 1) {
+    const prevSet = effectiveScoreState.sets[effectiveScoreState.sets.length - 2];
+    isTb = prevSet?.isTiebreak ?? false;
+  }
+
+  const isSuperTb = isTb
+    ? isMatchTiebreakSetIndex(
+        format as TennisFormat | undefined,
+        effectiveScoreState.sets.length - 1,
+        effectiveScoreState.setsWon,
+      )
+    : false;
+
+  return { isTiebreak: isTb, isSuperTiebreak: isSuperTb };
+}
+
+function deriveEditScoreCurrentSets(
+  effectiveScoreState: ScoringState | null,
+): { player1: number; player2: number } {
+  if (!effectiveScoreState) return { player1: 0, player2: 0 };
+  const lastSet = effectiveScoreState.sets[effectiveScoreState.sets.length - 1];
+  if (!lastSet) return { player1: 0, player2: 0 };
+
+  if (lastSet.isTiebreak && lastSet.tiebreakScore) {
+    if (lastSet.player1 > 0 || lastSet.player2 > 0) {
+      return { player1: lastSet.player1, player2: lastSet.player2 };
+    }
+    return {
+      player1: lastSet.tiebreakScore.player1,
+      player2: lastSet.tiebreakScore.player2,
+    };
+  }
+
+  return { player1: lastSet.player1, player2: lastSet.player2 };
+}
+
+function deriveEditScoreCompletedSets(
+  effectiveScoreState: ScoringState | null,
+  format?: string,
+) {
+  if (!effectiveScoreState) return [];
+
+  return effectiveScoreState.sets
+    .filter((s, i) => isSetCompleted(s, format as TennisFormat, i, effectiveScoreState.setsWon))
+    .map((s) => {
+      const winner = s.tiebreakScore
+        ? s.tiebreakScore.player1 > s.tiebreakScore.player2
+          ? "player1"
+          : "player2"
+        : s.player1 > s.player2
+          ? "player1"
+          : "player2";
+      return {
+        games: { player1: s.player1, player2: s.player2 } as Record<"player1" | "player2", number>,
+        winner: winner as "player1" | "player2",
+        ...(s.isTiebreak && s.tiebreakScore ? { tiebreakScore: s.tiebreakScore } : {}),
+      };
+    });
+}
+
 export function useScoringPageDerived(
   state: ScoringPageState,
   handlers: ScoringPageHandlers,
@@ -57,99 +145,24 @@ export function useScoringPageDerived(
 
   const p1IsServing = effectiveScoreState?.server === "player1";
   const p2IsServing = effectiveScoreState?.server === "player2";
-  const isMatchPoint = effectiveScoreState ? checkMatchPoint(effectiveScoreState, match?.format) : false;
-  const isSetPoint = effectiveScoreState && !checkMatchPoint(effectiveScoreState, match?.format) ? checkSetPoint(effectiveScoreState) : false;
-  const isBreakPoint = effectiveScoreState && !checkMatchPoint(effectiveScoreState, match?.format) && !isSetPoint ? checkBreakPoint(effectiveScoreState) : false;
-  const isTiebreak = effectiveScoreState
-    ? (() => {
-        const lastSet = effectiveScoreState.sets[effectiveScoreState.sets.length - 1];
-        if (!lastSet) return false;
-        if (lastSet.isTiebreak) return true;
-        // Se o último set é vazio (auto-added 0-0), verificar o set anterior
-        if (lastSet.player1 === 0 && lastSet.player2 === 0 && effectiveScoreState.sets.length > 1) {
-          const prevSet = effectiveScoreState.sets[effectiveScoreState.sets.length - 2];
-          return prevSet?.isTiebreak ?? false;
-        }
-        return false;
-      })()
-    : false;
-  // Um "Super Tie-Break" (Match Tiebreak de 10 pontos) acontece não só no
-  // formato MATCH_TB_10 (partida inteira em 1 set), mas também:
-  // - no 5º set decisivo do BEST_OF_5 (Grand Slam), após 6x6 em games;
-  // - no 3º set "no lugar do set decisivo" de BEST_OF_3_MATCH_TB,
-  //   BEST_OF_3_NO_AD e SHORT_SET_2V2_NO_AD (1x1 em sets).
-  // Antes, isSuperTiebreak só considerava MATCH_TB_10, então esses outros
-  // formatos mostravam o badge genérico "Tie-Break!" (7 pontos) mesmo
-  // durante um desempate de 10 pontos que decide a partida.
-  const isSuperTiebreak = isTiebreak && !!effectiveScoreState
-    ? isMatchTiebreakSetIndex(
-        match?.format as TennisFormat | undefined,
-        effectiveScoreState.sets.length - 1,
-        effectiveScoreState.setsWon,
-      )
-    : false;
+  const { isMatchPoint, isSetPoint, isBreakPoint } = derivePointBadges(effectiveScoreState, match?.format);
+  const { isTiebreak, isSuperTiebreak } = deriveTiebreakState(effectiveScoreState, match?.format);
+
   const isFinished = effectiveScoreState?.isFinished ?? false;
   const winner = effectiveScoreState?.winner ?? null;
-  // Voltar button: enabled quando há ponto no histórico OU quando estamos
-  // aguardando o 2º saque (nesse caso Voltar cancela o 2º saque diretamente,
-  // sem modal e sem impacto no banco).
+
   const canUndo =
     (engineRef.current ? engineRef.current.getHistoryLength() > 0 : false) ||
     serveErrorState?.serveStep === 'second';
   const isSetupNeeded = activeModal === "setup" && !match?.initialServerId;
   const isProcessingPoint = isProcessing === true;
 
-  const editScoreCurrentSets = (() => {
-    if (!effectiveScoreState) return { player1: 0, player2: 0 };
-    const lastSet = effectiveScoreState.sets[effectiveScoreState.sets.length - 1];
-    if (!lastSet) return { player1: 0, player2: 0 };
-    const lastSetIsCompleted = isSetCompleted(lastSet, match?.format as TennisFormat, effectiveScoreState.sets.length - 1, effectiveScoreState.setsWon);
+  const editScoreCurrentSets = deriveEditScoreCurrentSets(effectiveScoreState);
+  const editScoreCompletedSets = deriveEditScoreCompletedSets(effectiveScoreState, match?.format);
 
-    if (lastSet.isTiebreak && lastSet.tiebreakScore) {
-      // Regular tiebreak (games at threshold like 6-6): show game scores for edit modal
-      // Match tiebreak (games at 0-0): show tiebreak points for edit modal
-      if (lastSet.player1 > 0 || lastSet.player2 > 0) {
-        return { player1: lastSet.player1, player2: lastSet.player2 };
-      }
-      return {
-        player1: lastSet.tiebreakScore.player1,
-        player2: lastSet.tiebreakScore.player2,
-      };
-    }
-
-    if (lastSetIsCompleted && !lastSet.isTiebreak) {
-      // Retornar os games do set completo para que o modal mostre o placar atual
-      return { player1: lastSet.player1, player2: lastSet.player2 };
-    }
-
-    return { player1: lastSet.player1, player2: lastSet.player2 };
-  })();
-
-  const editScoreCompletedSets = effectiveScoreState
-    ? effectiveScoreState.sets
-        .filter((s, i) => isSetCompleted(s, match?.format as TennisFormat, i, effectiveScoreState.setsWon))
-        .map((s) => {
-          const winner = s.tiebreakScore
-            ? s.tiebreakScore.player1 > s.tiebreakScore.player2
-              ? "player1"
-              : "player2"
-            : s.player1 > s.player2
-              ? "player1"
-              : "player2";
-          return {
-            games: { player1: s.player1, player2: s.player2 } as Record<"player1" | "player2", number>,
-            winner: winner as "player1" | "player2",
-            ...(s.isTiebreak && s.tiebreakScore ? { tiebreakScore: s.tiebreakScore } : {}),
-          };
-        })
-    : [];
-
-  const serverEffectWinnerName = (() => {
-    if (!match || !effectiveScoreState) return "";
-    const server = effectiveScoreState.server;
-    if (server === "player1") return match.player2.name;
-    return match.player1.name;
-  })();
+  const serverEffectWinnerName = match && effectiveScoreState
+    ? (effectiveScoreState.server === "player1" ? match.player2.name : match.player1.name)
+    : "";
 
   return {
     effectiveScoreState,

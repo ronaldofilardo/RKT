@@ -16,14 +16,14 @@ test.describe('Fluxo de Retomada: Dashboard -> Modal -> Scoring', () => {
         format: 'BEST_OF_3',
         initialServerId: ctx.athlete1.userId,
       },
-      headers: ctx.authHeader(ctx.athlete1.token),
+      headers: ctx.authHeader(ctx.coach.token),
     });
     const match = await mRes.json();
     matchId = match.id ?? match.data?.id;
 
     await ctx.api.patch(`/api/matches/${matchId}/state`, {
       data: { state: 'IN_PROGRESS', initialServerId: ctx.athlete1.userId },
-      headers: ctx.authHeader(ctx.athlete1.token),
+      headers: ctx.authHeader(ctx.coach.token),
     });
 
     const sRes = await ctx.api.post(`/api/matches/${matchId}/sessions`, {
@@ -51,6 +51,14 @@ test.describe('Fluxo de Retomada: Dashboard -> Modal -> Scoring', () => {
   });
 
   test('deve abrir modal de retomada e navegar para scoring após confirmação', async ({ page }) => {
+    page.on('console', (msg) => console.log('[BROWSER CONSOLE]', msg.type(), msg.text()));
+    page.on('pageerror', (err) => console.log('[BROWSER ERROR]', err));
+    page.on('framenavigated', (frame) => {
+      if (frame === page.mainFrame()) {
+        console.log('[NAVIGATED TO]', frame.url());
+      }
+    });
+
     await ctx.authenticatePage(page, 'coach');
 
     // 1. Navegação para o Dashboard

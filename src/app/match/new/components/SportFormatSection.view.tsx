@@ -15,14 +15,14 @@ export function SportFormatSectionView({sportType,format,courtType,sportSelectRe
             ref={sportSelectRef}
             value={sportType}
             onChange={(e) => onSportChange(e.target.value)}
-            className="flex-1 px-3 py-2 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary"
+            className="flex-1 px-3 py-2 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary [color-scheme:dark]"
             required
           >
-            <option value="" disabled className="text-telemetry-text-primary">
+            <option value="" disabled className="bg-telemetry-elevated text-telemetry-text-primary">
               Selecione o esporte
             </option>
             {SPORT_TYPES.map((sport) => (
-              <option key={sport.value} value={sport.value} className="text-telemetry-text-primary">
+              <option key={sport.value} value={sport.value} className="bg-telemetry-elevated text-telemetry-text-primary">
                 {sport.label}
               </option>
             ))}
@@ -41,14 +41,14 @@ export function SportFormatSectionView({sportType,format,courtType,sportSelectRe
               id="format-select"
               value={format}
               onChange={(e) => onFormatChange(e.target.value)}
-              className="w-full px-3 py-2 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary"
+              className="w-full px-3 py-2 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary [color-scheme:dark]"
               required
             >
-              <option value="" disabled className="text-telemetry-text-primary">
+              <option value="" disabled className="bg-telemetry-elevated text-telemetry-text-primary">
                 Selecione
               </option>
               {TENNIS_FORMATS.map((f) => (
-                <option key={f.value} value={f.value} className="text-telemetry-text-primary">
+                <option key={f.value} value={f.value} className="bg-telemetry-elevated text-telemetry-text-primary">
                   {f.label}
                 </option>
               ))}

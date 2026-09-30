@@ -45,10 +45,10 @@ export function MatchDetailsSection({
             <select
               value={visibility}
               onChange={(e) => onVisibilityChange(e.target.value)}
-              className="w-full px-3 py-2 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary"
+              className="w-full px-3 py-2 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary [color-scheme:dark]"
             >
               {VISIBILITY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value} className="text-telemetry-text-primary">
+                <option key={option.value} value={option.value} className="bg-telemetry-elevated text-telemetry-text-primary">
                   {option.label}
                 </option>
               ))}

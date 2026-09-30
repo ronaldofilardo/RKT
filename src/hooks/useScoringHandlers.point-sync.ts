@@ -36,6 +36,91 @@ interface ErrorResponseBody {
   message?: string;
 }
 
+function buildPointPayload(
+  flow: PointFlow,
+  sequenceNumber: number,
+  clientEventId?: string,
+) {
+  return {
+    winnerId: flow.winnerId,
+    type: flow.type,
+    serverId: flow.serverId,
+    timestamp: flow.timestamp ?? Date.now(),
+    sequenceNumber,
+    clientEventId: clientEventId ?? (
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    ),
+    rallyDetails: flow.rallyDetails ?? undefined,
+    rallyLength: flow.rallyLength ?? undefined,
+    isFirstServe: flow.isFirstServe ?? undefined,
+    isSecondServe: flow.isSecondServe ?? undefined,
+    firstFaultDetail: flow.firstFaultDetail ?? undefined,
+  };
+}
+
+async function handleSuccessResponse(res: Response): Promise<PointSyncResult> {
+  try {
+    const data = await res.json();
+    return {
+      success: true,
+      needsResync: false,
+      serverResponse: data,
+    };
+  } catch (err) {
+    logger.point.parseResponseError(err);
+    return { success: true, needsResync: false };
+  }
+}
+
+async function handleConflictResponse(
+  res: Response,
+  pointSequenceRef: React.MutableRefObject<number>,
+  setError: (msg: string) => void,
+): Promise<PointSyncResult> {
+  try {
+    const errData = (await res.json()) as VersionConflictBody;
+    if (errData.error === "SEQUENCE_CONFLICT" && errData.expectedSequence) {
+      pointSequenceRef.current = errData.expectedSequence - 1;
+    }
+  } catch (e) {
+    logger.warn("[syncPointToServer] Falha ao parsear body do 409:", e);
+  }
+  setError("Conflito de sequência — sincronizando...");
+  return { success: false, needsResync: true };
+}
+
+async function handleErrorResponse(
+  res: Response,
+  setError: (msg: string) => void,
+): Promise<PointSyncResult> {
+  let errorMsg = `Erro ao registrar ponto (${res.status})`;
+  try {
+    const errData = (await res.json()) as ErrorResponseBody;
+    logger.point.responseError(res.status, errData);
+    if (errData.error) {
+      errorMsg = `Erro: ${errData.error} — ${errData.message || "sincronizando..."}`;
+    }
+  } catch (e) {
+    const text = await res.text();
+    logger.point.responseErrorText(res.status, text);
+  }
+  setError(errorMsg);
+  return { success: false, needsResync: true };
+}
+
+function handleFetchCatch(err: unknown, setError: (msg: string) => void): PointSyncResult {
+  if (err instanceof Error && err.name === "AbortError") {
+    logger.point.requestTimeout();
+    setError("Tempo esgotado — sincronizando placar...");
+  } else {
+    logger.point.requestError(err);
+    setError("Erro de conexão — sincronizando...");
+  }
+  return { success: false, needsResync: true };
+}
+
 export function createPointSyncService(config: PointSyncConfig) {
   const { matchId, match, tokenRef, pointSequenceRef, setError } = config;
 
@@ -48,34 +133,16 @@ export function createPointSyncService(config: PointSyncConfig) {
       return { success: false, needsResync: true };
     }
 
-    const payload = {
-      winnerId: flow.winnerId,
-      type: flow.type,
-      serverId: flow.serverId,
-      timestamp: flow.timestamp ?? Date.now(),
-      sequenceNumber,
-      // Reaproveita o mesmo clientEventId em reenvios (ex.: retry após
-      // SEQUENCE_CONFLICT/timeout) para que o dedup por clientEventId no
-      // servidor evite registrar o mesmo ponto duas vezes caso a tentativa
-      // original já tenha sido persistida.
-      clientEventId: clientEventId ?? (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`),
-      rallyDetails: flow.rallyDetails ?? undefined,
-      rallyLength: flow.rallyLength ?? undefined,
-      isFirstServe: flow.isFirstServe ?? undefined,
-      isSecondServe: flow.isSecondServe ?? undefined,
-      firstFaultDetail: flow.firstFaultDetail ?? undefined,
-    };
-
+    const payload = buildPointPayload(flow, sequenceNumber, clientEventId);
     logger.point.request(payload);
 
     const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), TIMEOUTS.POINT_REQUEST_ABORT_MS);
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUTS.POINT_REQUEST_ABORT_MS);
     if (typeof timeoutId === 'object' && timeoutId !== null && 'unref' in timeoutId) {
       timeoutId.unref();
     }
 
     try {
-
       const res = await fetch(`/api/matches/${matchId}/point`, {
         method: "POST",
         headers: {
@@ -86,63 +153,21 @@ export function createPointSyncService(config: PointSyncConfig) {
         signal: controller.signal,
       }).catch(() => null);
 
-      clearTimeout(timeoutId);
-
       if (!res) {
         return { success: false, needsResync: true };
       }
 
       if (res.ok) {
-        try {
-          const data = await res.json();
-          return {
-            success: true,
-            needsResync: false,
-            serverResponse: data,
-          };
-        } catch (err) {
-          logger.point.parseResponseError(err);
-          return { success: true, needsResync: false };
-        }
+        return await handleSuccessResponse(res);
       }
 
       if (res.status === 409) {
-        try {
-          const errData = (await res.json()) as VersionConflictBody;
-          if (errData.error === "SEQUENCE_CONFLICT" && errData.expectedSequence) {
-            pointSequenceRef.current = errData.expectedSequence - 1;
-          }
-        } catch (e) {
-          logger.warn("[syncPointToServer] Falha ao parsear body do 409:", e);
-        }
-        setError("Conflito de sequência — sincronizando...");
-        return { success: false, needsResync: true };
+        return await handleConflictResponse(res, pointSequenceRef, setError);
       }
 
-      let errorMsg = `Erro ao registrar ponto (${res.status})`;
-      try {
-        const errData = (await res.json()) as ErrorResponseBody;
-        logger.point.responseError(res.status, errData);
-        if (errData.error) {
-          errorMsg = `Erro: ${errData.error} — ${errData.message || "sincronizando..."}`;
-        }
-      } catch (e) {
-        const text = await res.text();
-        logger.point.responseErrorText(res.status, text);
-      }
-      setError(errorMsg);
-      return { success: false, needsResync: true };
+      return await handleErrorResponse(res, setError);
     } catch (err) {
-      if (err instanceof Error && err.name === "AbortError") {
-        logger.point.requestTimeout();
-        // The point may have been saved on the server before the timeout.
-        // A resync will reconcile the state — inform the user accordingly.
-        setError("Tempo esgotado — sincronizando placar...");
-      } else {
-        logger.point.requestError(err);
-        setError("Erro de conexão — sincronizando...");
-      }
-      return { success: false, needsResync: true };
+      return handleFetchCatch(err, setError);
     } finally {
       clearTimeout(timeoutId);
     }

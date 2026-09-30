@@ -1,4 +1,4 @@
-import { restoreEngineFromMatch } from '../route.helpers';
+import { restoreEngineFromMatch, buildAnnotationsPayload } from '../route.helpers';
 
 // BUG FIX (2026-09-27) — CRÍTICO: restoreEngineFromMatch() passava o
 // scoreState por normalizeScoreState(), que sempre retorna só o `state`
@@ -95,5 +95,117 @@ describe('restoreEngineFromMatch', () => {
     expect(engine.getState().currentGame).toEqual(
       expect.objectContaining({ player1: 2, player2: 3 }),
     );
+  });
+});
+
+describe('buildAnnotationsPayload', () => {
+  it('sempre persiste isFirstServe e isSecondServe mesmo quando rallyDetails não for preenchido (ponto rápido de 1º saque)', () => {
+    const payload = buildAnnotationsPayload({
+      winnerId: 'p1',
+      type: 'WINNER',
+      serverId: 'p1',
+      isFirstServe: true,
+      isSecondServe: false,
+    });
+
+    expect(payload).toEqual({
+      isFirstServe: true,
+      isSecondServe: false,
+    });
+  });
+
+  it('persiste isFirstServe=false, isSecondServe=true e firstFaultDetail mesmo quando rallyDetails não for preenchido (2º saque)', () => {
+    const payload = buildAnnotationsPayload({
+      winnerId: 'p1',
+      type: 'WINNER',
+      serverId: 'p1',
+      isFirstServe: false,
+      isSecondServe: true,
+      firstFaultDetail: { errorType: 'net', direction: 'T' },
+    });
+
+    expect(payload).toEqual({
+      isFirstServe: false,
+      isSecondServe: true,
+      firstFaultDetail: { errorType: 'net', direction: 'T' },
+    });
+  });
+
+  it('detecta infalivelmente DOUBLE_FAULT como 2º saque mesmo se flags vierem omitidas', () => {
+    const payload = buildAnnotationsPayload({
+      winnerId: 'p2',
+      type: 'DOUBLE_FAULT',
+      serverId: 'p1',
+    });
+
+    expect(payload).toEqual({
+      isFirstServe: false,
+      isSecondServe: true,
+    });
+  });
+
+  it('detecta infalivelmente firstFaultDetail como 2º saque mesmo se flags booleanas vierem omitidas', () => {
+    const payload = buildAnnotationsPayload({
+      winnerId: 'p1',
+      type: 'ACE',
+      serverId: 'p1',
+      firstFaultDetail: { errorType: 'out' },
+    });
+
+    expect(payload).toEqual({
+      isFirstServe: false,
+      isSecondServe: true,
+      firstFaultDetail: { errorType: 'out' },
+    });
+  });
+
+  it('preserva rallyDetails, rallyLength e note quando preenchidos', () => {
+    const rallyDetails = {
+      tipoPonto: 'winner' as const,
+      origem: 'fundo' as const,
+      golpe: 'forehand' as const,
+      note: 'Belo winner na paralela',
+    };
+
+    const payload = buildAnnotationsPayload({
+      winnerId: 'p1',
+      type: 'WINNER',
+      serverId: 'p1',
+      isFirstServe: true,
+      isSecondServe: false,
+      rallyDetails,
+      rallyLength: 5,
+    });
+
+    expect(payload).toEqual({
+      isFirstServe: true,
+      isSecondServe: false,
+      rallyDetails,
+      rallyLength: 5,
+      note: 'Belo winner na paralela',
+    });
+  });
+
+  it('mescla corretamente quando annotations já vem parcialmente preenchido no payload', () => {
+    const payload = buildAnnotationsPayload({
+      winnerId: 'p1',
+      type: 'FORCED_ERROR',
+      serverId: 'p1',
+      isFirstServe: false,
+      isSecondServe: true,
+      firstFaultDetail: { errorType: 'out' },
+      annotations: {
+        zone: 'crosscourt',
+        stroke: 'backhand',
+      },
+    });
+
+    expect(payload).toEqual({
+      zone: 'crosscourt',
+      stroke: 'backhand',
+      isFirstServe: false,
+      isSecondServe: true,
+      firstFaultDetail: { errorType: 'out' },
+    });
   });
 });

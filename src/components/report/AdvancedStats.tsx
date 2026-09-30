@@ -142,16 +142,50 @@ function ShotSection({ stats, player1Name, player2Name }: Props) {
           <div className="grid grid-cols-2 gap-2 text-xs">
             {Object.entries(shots.player1.winnersByStroke).map(([stroke, count]) => (
               <div key={stroke} className="flex justify-between bg-telemetry-blue/10 rounded px-2 py-1">
-                <span className="text-telemetry-blue">{stroke}</span>
+                <span className="text-telemetry-blue">{stroke.toUpperCase()}</span>
                 <span className="font-bold">{count}</span>
               </div>
             ))}
             {Object.entries(shots.player2.winnersByStroke).map(([stroke, count]) => (
               <div key={stroke} className="flex justify-between bg-telemetry-error/10 rounded px-2 py-1">
-                <span className="text-telemetry-error">{stroke}</span>
+                <span className="text-telemetry-error">{stroke.toUpperCase()}</span>
                 <span className="font-bold">{count}</span>
               </div>
             ))}
+          </div>
+        </div>
+      ) : null}
+
+      {Object.keys(shots.player1.unforcedErrorsByStroke).length > 0 || Object.keys(shots.player2.unforcedErrorsByStroke).length > 0 ? (
+        <div className="mt-3 pt-3 border-t border-white/10">
+          <div className="text-xs font-semibold text-telemetry-text-primary mb-2">Erros Não Forçados por Golpe</div>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            {Object.entries(shots.player1.unforcedErrorsByStroke).map(([stroke, count]) => (
+              <div key={stroke} className="flex justify-between bg-telemetry-blue/10 rounded px-2 py-1">
+                <span className="text-telemetry-blue">{stroke.toUpperCase()}</span>
+                <span className="font-bold">{count}</span>
+              </div>
+            ))}
+            {Object.entries(shots.player2.unforcedErrorsByStroke).map(([stroke, count]) => (
+              <div key={stroke} className="flex justify-between bg-telemetry-error/10 rounded px-2 py-1">
+                <span className="text-telemetry-error">{stroke.toUpperCase()}</span>
+                <span className="font-bold">{count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {(shots.player1.backhandStats.total > 0 || shots.player2.backhandStats.total > 0) ? (
+        <div className="mt-3 pt-3 border-t border-white/10">
+          <div className="text-xs font-semibold text-telemetry-text-primary mb-2">Balanço de Backhand (Winners / ENF / EF)</div>
+          <div className="grid grid-cols-2 gap-2 text-xs text-center">
+            <div className="bg-telemetry-blue/10 rounded px-2 py-1 text-telemetry-blue font-mono">
+              {shots.player1.backhandStats.winners}W / {shots.player1.backhandStats.unforcedErrors}ENF / {shots.player1.backhandStats.forcedErrors}EF
+            </div>
+            <div className="bg-telemetry-error/10 rounded px-2 py-1 text-telemetry-error font-mono">
+              {shots.player2.backhandStats.winners}W / {shots.player2.backhandStats.unforcedErrors}ENF / {shots.player2.backhandStats.forcedErrors}EF
+            </div>
           </div>
         </div>
       ) : null}

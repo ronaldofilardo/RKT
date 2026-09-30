@@ -8,9 +8,9 @@ export interface TestUser {
 }
 
 export const USERS = {
-  athlete1: { email: 'play@email.com', password: '12345678', name: 'Jogador Atleta', role: 'ATHLETE' },
-  athlete2: { email: 'player2@email.com', password: '12345678', name: 'Segundo Jogador', role: 'ATHLETE' },
-  coach: { email: 'coach@email.com', password: '12345678', name: 'Técnico', role: 'COACH' },
+  athlete1: { email: 'play@email.com', password: '12345678', name: 'Jogador Atleta', role: 'ANNOTATOR' },
+  athlete2: { email: 'player2@email.com', password: '12345678', name: 'Segundo Jogador', role: 'ANNOTATOR' },
+  coach: { email: 'coach@email.com', password: '12345678', name: 'Técnico', role: 'ANNOTATOR' },
   admin: { email: 'admin@email.com', password: '12345678', name: 'Administrador', role: 'ADMIN' },
 } as const;
 
@@ -49,11 +49,14 @@ export async function setBrowserAuth(
   page: Page,
   user: { token: string; userId?: string; role?: string }
 ): Promise<void> {
-  const role = user.role ?? 'ATHLETE';
+  const role = user.role ?? 'ANNOTATOR';
   await page.context().addCookies([
-    { name: 'access_token', value: user.token, domain: 'localhost', path: '/' },
-    { name: 'rkt_access_token', value: user.token, domain: 'localhost', path: '/' },
-    { name: 'user_role', value: role, domain: 'localhost', path: '/' },
+    { name: 'access_token', value: user.token, url: 'http://localhost:3000' },
+    { name: 'rkt_access_token', value: user.token, url: 'http://localhost:3000' },
+    { name: 'user_role', value: role, url: 'http://localhost:3000' },
+    { name: 'access_token', value: user.token, url: 'http://127.0.0.1:3000' },
+    { name: 'rkt_access_token', value: user.token, url: 'http://127.0.0.1:3000' },
+    { name: 'user_role', value: role, url: 'http://127.0.0.1:3000' },
   ]);
   await page.goto('/login');
   await page.evaluate((u) => {

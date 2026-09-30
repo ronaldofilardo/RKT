@@ -93,14 +93,12 @@ export function validateMatchTiebreakInput(
   };
 }
 
-function validateStandardSet(
+function validateGameBounds(
   p1Games: number,
   p2Games: number,
-  gamesNeeded: number,
-  _withAdvantage: boolean,
   hasTiebreak: boolean,
   tiebreakAt: number,
-): SetValidation {
+): SetValidation | null {
   if (p1Games < 0 || p2Games < 0) {
     return { isValid: false, error: 'Games cannot be negative' };
   }
@@ -109,28 +107,28 @@ function validateStandardSet(
     return { isValid: true, isPartial: true };
   }
 
-  // Over-max: in tiebreak formats, max games for a single player is tiebreakAt+1
-  // (e.g. standard set tiebreak at 6→7, PRO_SET_8 tiebreak at 9→10).
   if (hasTiebreak) {
     const maxValid = tiebreakAt + 1;
     if (p1Games > maxValid || p2Games > maxValid) {
       return { isValid: false, error: `Maximum ${maxValid} games in a set` };
     }
-    // Impossible tie at the tiebreak ceiling (e.g. 7-7, 10-10): a tiebreak set always
-    // ends maxValid vs tiebreakAt (e.g. 7-6, 10-9). Both players reaching
-    // maxValid cannot happen and previously fell through to isPartial.
     if (p1Games === maxValid && p2Games === maxValid) {
-      return { isValid: false, error: `Set score ${p1Games}x${p2Games} is not possible — tiebreak ends ${maxValid}x${tiebreakAt}` };
+      return {
+        isValid: false,
+        error: `Set score ${p1Games}x${p2Games} is not possible — tiebreak ends ${maxValid}x${tiebreakAt}`,
+      };
     }
   }
 
-  let winner: 'player1' | 'player2' | undefined;
+  return null;
+}
 
-  if (p1Games >= gamesNeeded && p1Games - p2Games >= 2) {
-    winner = 'player1';
-  } else if (p2Games >= gamesNeeded && p2Games - p1Games >= 2) {
-    winner = 'player2';
-  } else if (hasTiebreak && p1Games === tiebreakAt && p2Games === tiebreakAt) {
+function checkTiebreakThreshold(
+  p1Games: number,
+  p2Games: number,
+  tiebreakAt: number,
+): SetValidation | null {
+  if (p1Games === tiebreakAt && p2Games === tiebreakAt) {
     return {
       isValid: false,
       hasTiebreak: true,
@@ -139,64 +137,84 @@ function validateStandardSet(
     };
   }
 
-  // If winner has gamesNeeded+1 (7), loser must have exactly gamesNeeded-1 (5) or gamesNeeded (6)
-  // Scores like 7-0, 7-1, 7-2, 7-3, 7-4 are invalid — set would have ended earlier
-  if (winner && hasTiebreak) {
-    const winnerGames = winner === 'player1' ? p1Games : p2Games;
-    const loserGames = winner === 'player1' ? p2Games : p1Games;
-    if (winnerGames === gamesNeeded + 1 && loserGames < gamesNeeded - 1) {
-      return {
-        isValid: false,
-        hasTiebreak: true,
-        error: `Set score ${p1Games}x${p2Games} is not possible — set would have ended earlier`,
-      };
-    }
-    // PRO_SET_8 (tiebreakAt > gamesNeeded): o placar de tiebreakAt+1 (10) só
-    // é alcançável via tiebreak a partir de tiebreakAt x tiebreakAt (9x9).
-    // 10x8 seria impossível: em 9x8 o set continua até 9x9, então o 10º game
-    // só existe contra um perdedor com exatamente tiebreakAt games.
-    if (
-      tiebreakAt > gamesNeeded &&
-      winnerGames === tiebreakAt + 1 &&
-      loserGames !== tiebreakAt
-    ) {
-      return {
-        isValid: false,
-        hasTiebreak: true,
-        error: `Set score ${p1Games}x${p2Games} is not possible — ${tiebreakAt + 1} games only from ${tiebreakAt}x${tiebreakAt} tiebreak`,
-      };
-    }
+  if (p1Games === tiebreakAt + 1 && p2Games === tiebreakAt) {
+    return { isValid: true, winner: 'player1', hasTiebreak: true, tiebreakRequired: true };
   }
 
-  // Bug (2026-09-05): estes ramos cobrem o placar de games já resolvido por
-  // tiebreak (ex.: 7x6). Antes retornavam `hasTiebreak: true` sem marcar
-  // `tiebreakRequired: true`, então calculateValidation() considerava o set
-  // "verdadeiramente completo" mesmo sem nenhum placar de tiebreak informado
-  // (campos vazios tratados como 0x0). Isso liberava indevidamente o botão
-  // Confirmar em formatos BEST_OF_5 (e outros com tiebreak) para um placar
-  // 7x6/6x7 sem pontos de tiebreak reais, e o clique em Confirmar então
-  // travava silenciosamente na tela de edição (handleConfirm/useEditScoreModal
-  // faz `return` sem feedback quando canAddNextSet é falso por falta de
-  // tiebreak completo). Adicionar tiebreakRequired: true faz o fluxo exigir
-  // o placar do tiebreak antes de habilitar a confirmação, como já acontece
-  // corretamente no ramo de 6x6.
-  if (hasTiebreak && p1Games === tiebreakAt + 1 && p2Games === tiebreakAt) {
-    return { isValid: true, winner: 'player1', hasTiebreak: true, tiebreakRequired: true };
-  } else if (hasTiebreak && p2Games === tiebreakAt + 1 && p1Games === tiebreakAt) {
+  if (p2Games === tiebreakAt + 1 && p1Games === tiebreakAt) {
     return { isValid: true, winner: 'player2', hasTiebreak: true, tiebreakRequired: true };
   }
 
+  return null;
+}
+
+function validateTiebreakLoserGames(
+  winner: 'player1' | 'player2',
+  p1Games: number,
+  p2Games: number,
+  gamesNeeded: number,
+  tiebreakAt: number,
+): SetValidation | null {
+  const winnerGames = winner === 'player1' ? p1Games : p2Games;
+  const loserGames = winner === 'player1' ? p2Games : p1Games;
+
+  if (winnerGames === gamesNeeded + 1 && loserGames < gamesNeeded - 1) {
+    return {
+      isValid: false,
+      hasTiebreak: true,
+      error: `Set score ${p1Games}x${p2Games} is not possible — set would have ended earlier`,
+    };
+  }
+
+  if (
+    tiebreakAt > gamesNeeded &&
+    winnerGames === tiebreakAt + 1 &&
+    loserGames !== tiebreakAt
+  ) {
+    return {
+      isValid: false,
+      hasTiebreak: true,
+      error: `Set score ${p1Games}x${p2Games} is not possible — ${tiebreakAt + 1} games only from ${tiebreakAt}x${tiebreakAt} tiebreak`,
+    };
+  }
+
+  return null;
+}
+
+function resolveStandardWinner(
+  p1Games: number,
+  p2Games: number,
+  gamesNeeded: number,
+): 'player1' | 'player2' | null {
+  if (p1Games >= gamesNeeded && p1Games - p2Games >= 2) return 'player1';
+  if (p2Games >= gamesNeeded && p2Games - p1Games >= 2) return 'player2';
+  return null;
+}
+
+function validateStandardSet(
+  p1Games: number,
+  p2Games: number,
+  gamesNeeded: number,
+  _withAdvantage: boolean,
+  hasTiebreak: boolean,
+  tiebreakAt: number,
+): SetValidation {
+  const boundsValidation = validateGameBounds(p1Games, p2Games, hasTiebreak, tiebreakAt);
+  if (boundsValidation) return boundsValidation;
+
+  if (hasTiebreak) {
+    const tbThreshold = checkTiebreakThreshold(p1Games, p2Games, tiebreakAt);
+    if (tbThreshold) return tbThreshold;
+  }
+
+  const winner = resolveStandardWinner(p1Games, p2Games, gamesNeeded);
+
+  if (winner && hasTiebreak) {
+    const loserValidation = validateTiebreakLoserGames(winner, p1Games, p2Games, gamesNeeded, tiebreakAt);
+    if (loserValidation) return loserValidation;
+  }
+
   if (!winner) {
-    const p1Reached = p1Games >= gamesNeeded;
-    const p2Reached = p2Games >= gamesNeeded;
-    const anyReached = p1Reached || p2Reached;
-    const marginOk = Math.abs(p1Games - p2Games) >= 2;
-    const reachedTooClose = anyReached && !marginOk;
-
-    if (reachedTooClose) {
-      return { isValid: true, isPartial: true };
-    }
-
     return { isValid: true, isPartial: true };
   }
 

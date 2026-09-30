@@ -49,11 +49,22 @@ export interface PressureStats {
   totalPointsWon: number;
 }
 
+export interface StrokeSideStats {
+  winners: number;
+  unforcedErrors: number;
+  forcedErrors: number;
+  total: number;
+}
+
 export interface ShotAnalysis {
   winners: number;
   winnersByStroke: Record<string, number>;
   forcedErrors: number;
+  forcedErrorsByStroke: Record<string, number>;
   unforcedErrors: number;
+  unforcedErrorsByStroke: Record<string, number>;
+  backhandStats: StrokeSideStats;
+  forehandStats: StrokeSideStats;
   netApproaches: number;
   netApproachesWon: number;
   netApproachPct: number;

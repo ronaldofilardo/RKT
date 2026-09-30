@@ -203,9 +203,13 @@ function buildPointDetailsFromLog(log: PointLogRow): PointDetails {
   const isServeFinish = log.type === 'ACE' || log.type === 'DOUBLE_FAULT';
   const isDevolucao = ann?.rallyDetails?.situacao === 'devolucao';
   const autoRallyLength = ann?.rallyLength ?? (isServeFinish ? 1 : isDevolucao ? 2 : 0);
-  const isFirstServe = ann?.isFirstServe ?? true;
-  const isSecondServe = ann?.isSecondServe ?? false;
   const firstFaultDetail = ann?.firstFaultDetail ?? null;
+  const isSecondServe =
+    log.type === 'DOUBLE_FAULT' ||
+    Boolean(firstFaultDetail) ||
+    ann?.isSecondServe === true ||
+    ann?.isFirstServe === false;
+  const isFirstServe = !isSecondServe;
   return {
     winnerId: log.winnerId,
     type: log.type as PointDetails['type'],
@@ -225,6 +229,16 @@ function mergeWithPointLog(p: TimelinePoint, log: PointLogRow, pointNumber: numb
   const rallyDetails = ann?.rallyDetails ?? p.rallyDetails ?? null;
   const firstFaultDetail = ann?.firstFaultDetail ?? p.firstFault ?? null;
   const rallyLength = ann?.rallyLength ?? p.rallyLength;
+
+  const isSecondServe =
+    log.type === 'DOUBLE_FAULT' ||
+    Boolean(firstFaultDetail) ||
+    ann?.isSecondServe === true ||
+    ann?.isFirstServe === false ||
+    p.isSecondServe === true ||
+    p.isFirstServe === false;
+  const isFirstServe = !isSecondServe;
+
   // `note` é extraída exclusivamente das annotations persistidas do PointLog:
   // 1. annotations.note (campo raiz — path moderno, adicionado na V2)
   // 2. rallyDetails.note (path legado — nota embutida dentro do rallyDetails)
@@ -235,7 +249,7 @@ function mergeWithPointLog(p: TimelinePoint, log: PointLogRow, pointNumber: numb
     ? (ann.note ?? rallyDetails?.note ?? undefined)
     : undefined;
   
-  const firstServeOutcome = log.type === 'ACE' && (ann?.isFirstServe ?? p.isFirstServe) 
+  const firstServeOutcome = log.type === 'ACE' && isFirstServe 
     ? 'ace' 
     : firstFaultDetail?.errorType === 'out' 
       ? 'out' 
@@ -243,7 +257,7 @@ function mergeWithPointLog(p: TimelinePoint, log: PointLogRow, pointNumber: numb
         ? 'net' 
         : null;
 
-  const secondServeOutcome = log.type === 'ACE' && (ann?.isSecondServe ?? p.isSecondServe)
+  const secondServeOutcome = log.type === 'ACE' && isSecondServe
     ? 'ace'
     : log.type === 'DOUBLE_FAULT'
       ? (rallyDetails?.subtipo2 as 'out' | 'net' | undefined) ?? null
@@ -260,7 +274,8 @@ function mergeWithPointLog(p: TimelinePoint, log: PointLogRow, pointNumber: numb
     stroke: ann?.stroke,
     pointId: log.id,
     rawAnnotations: ann ? { ...ann } : p.rawAnnotations,
-
+    isFirstServe,
+    isSecondServe,
     rallyDetails,
     rallyLength,
     note,
@@ -271,6 +286,8 @@ function mergeWithPointLog(p: TimelinePoint, log: PointLogRow, pointNumber: numb
     audioNoteDuration: log.audioNoteDuration ?? undefined,
     pointDetails: {
       ...p.pointDetails,
+      isFirstServe,
+      isSecondServe,
       rallyDetails,
       rallyLength,
       firstFaultDetail,

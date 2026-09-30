@@ -225,18 +225,172 @@
 
 ---
 
-### 7. `src/app/match/[id]/scoring/page.tsx` (22.1 KB)
-**Issues:**
-- Acoplamento excessivo (tamanho indica complexidade)
-- Prováveis imports excessivos
+### 7. `src/app/match/[id]/scoring/page.tsx` (550 → 277 linhas, -50%)
+**Status:** ✅ Refatorado (2026-09-30)  
+**Issues Anteriores:**
+- Concentrava múltiplos modais, sincronização offline, layouts condicionais e renderização de cards.
+- Complexidade ciclomática elevada (CC 48).
 
-**Refatoração Sugerida:**
-- [ ] Revisar import dependencies
-- [ ] Extrair scoring logic para módulo dedicado
-- [ ] Usar context para shared state
-- [ ] Adicionar testes de caracterização
+**Arquivos Criados:**
+- `src/app/match/[id]/scoring/ScoringModals.tsx` - Extração e gestão isolada de todos os 7 modais (178 linhas).
+- `src/app/match/[id]/scoring/ScoringPlayArea.tsx` - Renderização da quadra, cards de atletas, live counters, badges de contexto e banner de finalização (182 linhas).
+- `src/app/match/[id]/scoring/ScoringTimelineView.tsx` - Modo de visualização de tela cheia da timeline de pontos (67 linhas).
 
-**Handoff:** @frontend → @qa (após refatoração)
+**Testes & Baseline:**
+- ✅ 100% dos testes passando (`pnpm test` com 284/284 suítes e 3.134 testes verdes).
+- ✅ Typecheck 100% verde (`tsc --noEmit`).
+
+---
+
+### Particionamento de `src/schemas/contracts.ts` (513 → 19 linhas, -96%)
+**Status:** ✅ Refatorado (2026-09-30)  
+**Issues Anteriores:**
+- Arquivo acumulador monolítico de tipos e esquemas Zod (513 linhas).
+
+**Arquivos Criados:**
+- `src/schemas/common.ts` - Validador utilitário `flexibleIdValidator`.
+- `src/schemas/rally.ts` - Schemas e tipos de rally, golpes e pontuação.
+- `src/schemas/user.ts` - Schemas e tipos de usuário, roles e autenticação.
+- `src/schemas/player.ts` - Schemas e tipos de atleta e rankings.
+- `src/schemas/match.ts` - Schemas e tipos de partida, placar e mutações.
+- `src/schemas/annotation.ts` - Schemas e tipos de sessão de anotação.
+- `src/schemas/index.ts` - Barrel central de exportação modular.
+- `src/schemas/contracts.ts` - Reexportação limpa retrocompatível sem breaking changes.
+
+**Testes & Baseline:**
+- ✅ 100% dos testes passando (`pnpm test` com 284/284 suítes e 3.134 testes verdes).
+- ✅ Typecheck 100% verde (`tsc --noEmit`).
+
+---
+
+## ✅ COMPLETED - Arquivos do Gatilho de Atenção (≥ 350 linhas) (2026-09-30)
+
+### 1. `src/components/scoring/timeline-utils.ts` (409 → 65 linhas, -84%, CC 102 → <10)
+**Status:** ✅ Refatorado  
+**Arquivos criados:**
+- `src/components/scoring/timeline-format.ts` - Formatação e labels de pontos, tipos e detalhes do rally (178 linhas).
+- `src/components/scoring/timeline-validation.ts` - Validação de detalhes do rally e enums com Zod (64 linhas).
+- `src/components/scoring/timeline-game-end.ts` - Detecção de fim de game, quebras e transições (88 linhas).
+**Testes:** ✅ 86 testes dedicados passando (`timeline-utils`).
+
+### 2. `src/app/match/[id]/scoring/useScoringPageEffects.ts` (404 → 202 linhas, -50%, CC 44 → <15)
+**Status:** ✅ Refatorado  
+**Arquivos criados:**
+- `src/app/match/[id]/scoring/useScoringLifecycleEffects.ts` - Efeitos de ciclo de vida, polling, visibilidade e sincronização online/offline (89 linhas).
+- `src/app/match/[id]/scoring/useScoringCommentHandler.ts` - Criação de comentários contextuais e upload de áudio (134 linhas).
+- `src/app/match/[id]/scoring/useScoringEditScoreHandlers.ts` - Handlers de edição de placar, cancelamento e refresh de floor (52 linhas).
+**Testes:** ✅ 38 testes de characterization passando.
+
+### 3. `src/app/match/[id]/scoring/useScoringPageState.ts` (354 → 250 linhas, -30%, CC 37 → <15)
+**Status:** ✅ Refatorado  
+**Arquivos criados:**
+- `src/app/match/[id]/scoring/useScoringTimelineSync.ts` - Sincronização de timeline, mescla local/servidor com quebras de segmento, áudio e comentários (129 linhas).
+**Testes:** ✅ Testes de scoring e sync passando.
+
+### 4. `src/components/scoring/edit-score-form.tsx` (353 → 245 linhas, -30%, CC 64 → <20)
+**Status:** ✅ Refatorado  
+**Arquivos criados:**
+- `src/components/scoring/edit-score-tiebreak-inputs.tsx` - Inputs especializados de tiebreak (70 linhas).
+- `src/components/scoring/edit-score-game-points.tsx` - Dropdowns de seleção de pontos no game atual (78 linhas).
+**Testes:** ✅ 2 testes de characterization passando.
+
+---
+
+## ✅ COMPLETED - Core de Pontuação e Relatórios (2026-09-30)
+
+### 1. `validateTransitionState()` (`src/services/matchValidator.ts`)
+**Status:** ✅ Refatorado  
+**Redução:** CC 35 → <5, 95 → 25 linhas  
+**Ações:** Decomposto em validadores granulares (`validateAllowedTransition`, `validateFinishedTransition`, `validateScoreProgression`).  
+**Testes:** ✅ 88 testes passando (`matchValidator`).
+
+### 2. `isTiebreakRegressing()` (`src/services/matchValidator.ts`)
+**Status:** ✅ Refatorado  
+**Redução:** CC 31 → <5, 49 → 24 linhas  
+**Ações:** Decomposto com predicados utilitários especializados (`isSameWinnerCorrection`, `isCoordinateRegressing`).  
+**Testes:** ✅ 88 testes passando (`matchValidator`).
+
+### 3. `normalizeScoreState()` (`src/core/scoring/score-normalizer.ts`)
+**Status:** ✅ Refatorado  
+**Redução:** CC 37 → 3, 92 → 20 linhas  
+**Ações:** Decomposto em fases sequenciais (`normalizeMatchTiebreakSets`, `normalizeRegularTiebreakSets`, `ensureDefaultCurrentGame`).  
+**Testes:** ✅ 40 testes passando (`score-normalizer`).
+
+### 4. `detectTacticalTrends()` (`src/core/scoring/live-tactical-insights.ts`)
+**Status:** ✅ Refatorado  
+**Redução:** CC 28 → <5, 110 → 32 linhas  
+**Ações:** Decomposto em analisadores dedicados (`detectWingWeakness`, `detectNetVulnerability`, `detectDoubleFaultAlert`, `detectSetPerformanceDrop`).  
+**Testes:** ✅ 5 testes passando (`live-tactical-insights`).
+
+### 5. `computeShotAnalysis()` (`src/core/report/pressure-shot-stats.ts`)
+**Status:** ✅ Refatorado  
+**Redução:** CC 28 → 1, 106 → 12 linhas  
+**Ações:** Decomposto em subfunções analíticas puras (`aggregatePlayerOutcomes`, `applyLegacyFallback`, `computeNetApproaches`, `computeRallyMetrics`, `countSpecialShots`).  
+**Testes:** ✅ 4 testes passando (`pressure-shot-stats`).
+
+### 6. `calculatePlayerStats()` (`src/core/scoring/set-summary-stats.ts`)
+**Status:** ✅ Refatorado  
+**Redução:** CC 27 → 2, 113 → 18 linhas  
+**Ações:** Decomposto em sub-acumuladores (`calculateServiceStats`, `calculateReturnBreakPoints`, `calculatePlayerErrors`) e cálculo percentual unificado.  
+**Testes:** ✅ 3 testes passando (`set-summary-stats`).
+
+### 7. `handleGameWon()` (`src/core/scoring/game-processing.ts`)
+**Status:** ✅ Refatorado  
+**Redução:** CC 24 → 4, 90 → 30 linhas  
+**Ações:** Decomposto em sub-rotinas de decisão de ciclo (`resolveActiveSet`, `validateGameWinner`, `shouldTriggerTiebreak`, `transitionToTiebreak`, `transitionToMatchTiebreak`).  
+**Testes:** ✅ 27 testes passando (`game-processing`).
+
+---
+
+## ✅ COMPLETED - Hooks & UI Logic (2026-09-30)
+
+### 1. `useScoringPageDerived()` (`src/app/match/[id]/scoring/useScoringPageDerived.ts`)
+**Status:** ✅ Refatorado  
+**Redução:** CC 38 → 3, 134 → 45 linhas  
+**Ações:** Decomposto em funções puras dedicadas (`derivePointBadges`, `deriveTiebreakState`, `deriveEditScoreCurrentSets`, `deriveEditScoreCompletedSets`).  
+**Testes:** ✅ 23 testes passando (`scoring.page.characterization`, `useScoringPageDerived`).
+
+### 2. `useModalStack()` (`src/hooks/useModalStack.ts`)
+**Status:** ✅ Refatorado  
+**Redução:** CC 38 → <6, 208 → 70 linhas por estratégia  
+**Ações:** Separado nas estratégias modulares desacopladas `useRouterModalStack()` (modo router Next.js) e `useInternalModalStack()` (modo memória/history stack) com helper `buildModalUrl()`.  
+**Testes:** ✅ 15 testes passando (`useModalStack`).
+
+### 3. `handleEditScore()` / `executeScoreEdit()` (`src/hooks/useSessionManager.ts`)
+**Status:** ✅ Refatorado  
+**Redução:** CC 32 → <3, 170 → 25 linhas  
+**Ações:** Extraído para o módulo especializado `src/hooks/useSessionManager.edit-score.ts`, particionando em validação de tiebreak, mescla com sessão suspensa, persistência (match finish vs ongoing) e aplicação no engine local.  
+**Testes:** ✅ 88 testes passando (`useSessionManager`).
+
+### 4. `syncPointToServer()` (`src/hooks/useScoringHandlers.point-sync.ts`)
+**Status:** ✅ Refatorado  
+**Redução:** CC 27 → 4, 108 → 35 linhas  
+**Ações:** Decomposto em pipeline granular (`buildPointPayload`, `handleSuccessResponse`, `handleConflictResponse`, `handleErrorResponse`, `handleFetchCatch`).  
+**Testes:** ✅ 12 testes passando (`point-sync`).
+
+### 5. `validateStandardSet()` (`src/components/scoring/editScoreHelpers.ts`)
+**Status:** ✅ Refatorado  
+**Redução:** CC 38 → 4, 113 → 30 linhas  
+**Ações:** Decomposto em validadores isolados (`validateGameBounds`, `checkTiebreakThreshold`, `validateTiebreakLoserGames`, `resolveStandardWinner`).  
+**Testes:** ✅ 149 testes passando (`editScoreHelpers`).
+
+### 6. `ResumeAnnotationModal()` (`src/components/scoring/ResumeAnnotationModal.tsx`)
+**Status:** ✅ Refatorado  
+**Redução:** CC 35 → <4, 241 → 50 linhas no componente principal  
+**Ações:** Decomposto em subcomponentes puros (`parseSnapshotSets`, `ResumeFooter`, `ResumeStatusExplanation`, `ResumeScoreDetails`).  
+**Testes:** ✅ 3 testes passando (`ResumeAnnotationModal`).
+
+### 7. `CommentModal()` (`src/components/scoring/CommentModal.tsx`)
+**Status:** ✅ Refatorado  
+**Redução:** CC 34 → <5, 239 → 60 linhas no componente principal  
+**Ações:** Decomposto em componentes focados (`CommentSubmittingOverlay`, `CommentTextInput`, `CommentVoiceRecorderView`).  
+**Testes:** ✅ 4 testes passando (`CommentModal`).
+
+### 8. `getGameEndInfo()` (`src/components/scoring/timeline-game-end.ts` / `timeline-utils.ts`)
+**Status:** ✅ Refatorado  
+**Redução:** CC 30 → 3, 82 → 25 linhas  
+**Ações:** Decomposto em analisadores dedicados de transição de games e encerramento de sets (`handleTransitionGameEnd`, `handleLastPointOfSetGameEnd`, `isTransitionToNewGame`, `isSetDecidingPoint`, `checkIsBreak`).  
+**Testes:** ✅ 86 testes passando (`timeline-utils`).
 
 ---
 
@@ -444,3 +598,53 @@
 4. **@qa** → Adicionar testes de caracterização antes de cada refatoração
 
 **Handoff Inicial:** @qa → @arquitetura + @backend + @frontend
+
+---
+
+## Refatoração de Modelo de Dados de Golpes (Shot Data Model)
+
+**Plano de Vinculação de Erros e Winners:**
+- **Em fundo e devolução:** o golpe é o de quem errou, então essa parte é segura. 
+- **Vencedor do ponto:** 
+  - Winner é dele
+  - EF (Erro Forçado) e ENF (Erro Não Forçado): erro do adversário e ponto do vencedor
+- **Vencedor > rede:** 
+  - i. winner: ponto para o vencedor
+  - ii. EF ou ENF: ponto para vencedor e erro para o adversário
+- **Vencedor > passada:**
+  - i. winner > fundo D ou E: ponto para vencedor e erro para o adversário
+  - ii. EF ou ENF > voleio ou smash > ponto para vencedor e erro para adversário
+
+---
+
+## Correção de Persistência de Saque e Cálculo Infalível de 1º e 2º Serviço (2026-09-29)
+
+- **Problema:** `buildAnnotationsPayload` retornava `undefined` quando `rallyDetails` não vinha preenchido (ex.: marcação rápida de pontos em cards diretos sem abertura de modal), descartando `isFirstServe`, `isSecondServe` e `firstFaultDetail` do `PointLog.annotations`. Com isso, reconstruções de timeline e cálculos de serviço perdiam a distinção entre 1º e 2º saque nesses pontos.
+- **Solução no Backend:**
+  1. `buildAnnotationsPayload` (`src/app/api/matches/[id]/point/route.helpers.ts`) atualizado para sempre computar e persistir `isFirstServe`, `isSecondServe` e `firstFaultDetail` no `PointLog.annotations`, mesmo sem `rallyDetails`.
+  2. `isSecondServe` e `isFirstServe` são estritamente complementares e infalíveis: qualquer `DOUBLE_FAULT`, presença de `firstFaultDetail`, flag `isSecondServe === true` ou `isFirstServe === false` classifica o ponto como 2º serviço.
+  3. `ScoringEngine.applyPoint` / `buildPointDetails` (`src/core/scoring/engine.ts`) atualizados para respeitar o estado do engine (`state.secondServe`) e `flow.firstFaultDetail`.
+  4. `timeline-rebuild.ts` e helpers atualizados para garantir que timelines nominais e simuladas atribuam os campos de serviço com precisão absoluta.
+  5. `computeServeStats` e `computeReturnStats` (`src/core/report/serve-return-stats.ts`) atualizados com as funções guardiãs `isFirstServePoint` e `isSecondServePoint`, assegurando que `totalPoints === firstServePoints + secondServePoints` e que duplas faltas e pontos com erro de 1º saque nunca sejam computados indevidamente como 1º saque.
+- **Testes:**
+  - Testes unitários em `src/app/api/matches/[id]/point/__tests__/route.helpers.test.ts`
+  - Testes de caracterização em `src/core/report/__tests__/serve-return-stats.characterization.test.ts`
+  - Testes de reconstrução em `src/components/scoring/__tests__/timeline-rebuild.characterization.test.ts`
+
+---
+
+## Integridade de Estatísticas On-Time e Fechamento de Set (2026-09-29)
+
+- **Problemas Resolvidos:**
+  1. **Contagem de Winners e Erros em Anotação Rápida:** Pontos marcados pelos botões diretos sem abrir o modal de detalhes do ponto vinham sem `rallyDetails`, gerando 0 winners / 0 erros nos relatórios e breakdowns. Adicionado fallback para `point.type` (`WINNER`, `FORCED_ERROR`, `UNFORCED_ERROR`).
+  2. **Perda do Último Game do Set (Fronteira de Set):** Quando um set era fechado, `newGames > prevGames` não disparava porque os contadores eram zerados na transição de set (`setNumber > currentSet`), perdendo o game decisivo (ex: 6x4 computava apenas 9 games). `computeCompletedGames` agora avalia `next.setNumber > p.setNumber` para contabilizar o game final do set.
+  3. **Inflação de Games por Tiebreak:** Durante tiebreaks, a pontuação de games na timeline armazenava pontos do tiebreak (1-0, 2-0...), fazendo com que cada ponto de tiebreak fosse falsamente interpretado como um game de serviço completo. `computeCompletedGames` e `computeServiceGames` agora isolam pontos de tiebreak (`isTiebreak === true`).
+  4. **Placar de Games no SetBreakdown (Lag de StateBefore):** O último ponto do set registrava o placar do game *antes* da conclusão do game decisivo (exibindo 5x4 em vez de 6x4). `computeSetBreakdown` agora calcula o placar final consolidado dos games a partir de `computeCompletedGames`.
+- **Arquivos:**
+  - `src/core/report/serve-return-stats.ts` (`computeCompletedGames`, `computeServiceGames`, `computeReturnGames`)
+  - `src/core/report/momentum-set-stats.ts` (`computeSetBreakdown`, `updateWinnerAndErrorStats`)
+  - `src/core/scoring/scoring-logic.ts` (`enrichPointsFromHistory` ajustado para detectar início de novo set quando `setsWon >= sets.length`)
+  - `src/app/api/matches/[id]/report/route.ts` (`buildPlayerSummary`)
+  - `src/app/api/matches/[id]/report/report.summary.ts` (`aggregatePointLogs`)
+  - `src/core/report/__tests__/momentum-set-stats.test.ts`
+  - `src/app/api/matches/[id]/__tests__/report.route.set-close-tiebreak.integration.test.ts` (@qa validação de integração ponta a ponta)

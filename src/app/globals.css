@@ -125,6 +125,27 @@ body {
     background-color: #ffffff;
   }
 
+  /* Telemetry / dark mode select and option contrast */
+  select.bg-telemetry-elevated,
+  select.bg-telemetry-card,
+  select.bg-telemetry-base,
+  .bg-telemetry-card select,
+  .bg-telemetry-elevated select {
+    color-scheme: dark;
+    background-color: #1E293B;
+    color: #F8FAFC;
+  }
+
+  select.bg-telemetry-elevated option,
+  select.bg-telemetry-card option,
+  select.bg-telemetry-base option,
+  .bg-telemetry-card select option,
+  .bg-telemetry-elevated select option {
+    color-scheme: dark;
+    background-color: #1E293B;
+    color: #ffffff;
+  }
+
   select::placeholder,
   input::placeholder {
     color: #6b7280;
@@ -135,5 +156,14 @@ body {
   input:focus {
     background-color: #ffffff;
     color: #181d26;
+  }
+
+  select.bg-telemetry-elevated:focus,
+  select.bg-telemetry-card:focus,
+  select.bg-telemetry-base:focus,
+  .bg-telemetry-card select:focus,
+  .bg-telemetry-elevated select:focus {
+    background-color: #1E293B;
+    color: #F8FAFC;
   }
 }

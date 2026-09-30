@@ -23,10 +23,10 @@ export function DashboardTopBar({ menuOpen, setMenuOpen, user, onNewMatch, onLog
             }}
             aria-label="Abrir menu"
             aria-expanded={menuOpen}
-            className="p-2 rounded-lg text-telemetry-text-muted hover:bg-telemetry-elevated transition-colors"
+            className="p-2 rounded-lg text-slate-200 text-telemetry-text-muted hover:text-white hover:bg-white/10 transition-colors"
           >
             <svg
-              className="w-6 h-6 text-telemetry-text-primary"
+              className="w-6 h-6 text-white text-telemetry-text-primary"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -40,28 +40,28 @@ export function DashboardTopBar({ menuOpen, setMenuOpen, user, onNewMatch, onLog
               />
             </svg>
           </button>
-          <h1 className="text-lg font-bold text-telemetry-text-primary">Início</h1>
+          <h1 className="text-lg font-bold text-white tracking-wide">Início</h1>
         </div>
         {user && (
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={onNewMatch}
-              className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-telemetry-blue hover:bg-telemetry-blue-light text-white transition-colors"
+              className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-telemetry-blue hover:bg-telemetry-blue-light text-white shadow-sm transition-colors"
               aria-label="Nova partida"
             >
               + Nova Partida
             </button>
-            <span className="text-sm text-telemetry-text-muted font-medium">{user.name}</span>
+            <span className="text-sm text-slate-200 font-medium">{user.name}</span>
             {user.role === "ADMIN" && (
-              <span className="text-xs px-2 py-1 rounded bg-telemetry-alert text-telemetry-base font-bold">
+              <span className="text-xs px-2 py-0.5 rounded bg-telemetry-alert text-telemetry-base font-bold">
                 Admin
               </span>
             )}
             <button
               type="button"
               onClick={onLogout}
-              className="text-sm text-telemetry-error hover:text-red-400 font-medium"
+              className="text-sm text-red-400 hover:text-red-300 font-semibold transition-colors"
               aria-label="Sair"
             >
               Sair

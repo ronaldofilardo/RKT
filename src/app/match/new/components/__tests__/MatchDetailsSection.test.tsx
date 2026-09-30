@@ -53,4 +53,21 @@ describe('MatchDetailsSection', () => {
       expect(defaultProps.onHumidityChange).toHaveBeenCalledWith('60');
     }
   });
+
+  it('deve renderizar opções de visibilidade com estilo de alto contraste e disparar onVisibilityChange', () => {
+    render(<MatchDetailsSection {...defaultProps} />);
+
+    const select = screen.getByRole('combobox') as HTMLSelectElement;
+    expect(select).toBeInTheDocument();
+    expect(select).toHaveClass('[color-scheme:dark]', 'text-telemetry-text-primary');
+
+    const options = Array.from(select.options);
+    expect(options.length).toBeGreaterThan(0);
+    options.forEach((opt) => {
+      expect(opt).toHaveClass('text-telemetry-text-primary', 'bg-telemetry-elevated');
+    });
+
+    fireEvent.change(select, { target: { value: 'PUBLIC' } });
+    expect(defaultProps.onVisibilityChange).toHaveBeenCalledWith('PUBLIC');
+  });
 });

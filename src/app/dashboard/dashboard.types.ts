@@ -18,10 +18,11 @@ export interface User {
 
 export interface Match {
   id: string;
-  player1: { name: string };
-  player2: { name: string };
+  player1: { id?: string; name: string };
+  player2: { id?: string; name: string };
   state: "SCHEDULED" | "IN_PROGRESS" | "FINISHED" | "CANCELLED";
   format: string;
+  initialServerId?: string | null;
   scheduledAt?: string;
   scoreState?: any;
   matchStateSnapshot?: any;

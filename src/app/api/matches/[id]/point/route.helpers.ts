@@ -119,16 +119,64 @@ export function restoreEngineFromMatch(match: {
 }
 
 export function buildAnnotationsPayload(data: PointFlowInput) {
-  if (data.annotations) return data.annotations;
-  if (!data.rallyDetails) return undefined;
+  const hasFirstFaultDetail = Boolean(
+    data.firstFaultDetail &&
+      (data.firstFaultDetail.errorType ||
+        data.firstFaultDetail.serveEffect ||
+        data.firstFaultDetail.direction ||
+        Object.keys(data.firstFaultDetail).length > 0)
+  ) || Boolean(
+    data.annotations?.firstFaultDetail &&
+      (data.annotations.firstFaultDetail.errorType ||
+        data.annotations.firstFaultDetail.serveEffect ||
+        data.annotations.firstFaultDetail.direction ||
+        Object.keys(data.annotations.firstFaultDetail).length > 0)
+  );
+
+  const isExplicitSecondServe =
+    data.type === 'DOUBLE_FAULT' ||
+    hasFirstFaultDetail ||
+    data.isSecondServe === true ||
+    data.annotations?.isSecondServe === true ||
+    data.isFirstServe === false ||
+    data.annotations?.isFirstServe === false;
+
+  const isSecondServe = isExplicitSecondServe;
+  const isFirstServe = !isSecondServe;
+
+  const firstFaultDetail =
+    data.firstFaultDetail ??
+    data.annotations?.firstFaultDetail ??
+    undefined;
+
+  const rallyDetails =
+    data.rallyDetails ??
+    data.annotations?.rallyDetails ??
+    undefined;
+
+  const rallyLength =
+    data.rallyLength ??
+    data.annotations?.rallyLength ??
+    undefined;
+
+  const note =
+    data.annotations?.note ??
+    rallyDetails?.note ??
+    undefined;
+
+  const zone = data.annotations?.zone;
+  const stroke = data.annotations?.stroke;
 
   return {
-    rallyDetails: data.rallyDetails,
-    rallyLength: data.rallyLength,
-    isFirstServe: data.isFirstServe,
-    isSecondServe: data.isSecondServe,
-    firstFaultDetail: data.firstFaultDetail,
-    note: data.rallyDetails.note,
+    ...(data.annotations ?? {}),
+    isFirstServe,
+    isSecondServe,
+    ...(firstFaultDetail !== undefined ? { firstFaultDetail } : {}),
+    ...(rallyDetails !== undefined ? { rallyDetails } : {}),
+    ...(rallyLength !== undefined ? { rallyLength } : {}),
+    ...(note !== undefined ? { note } : {}),
+    ...(zone !== undefined ? { zone } : {}),
+    ...(stroke !== undefined ? { stroke } : {}),
   };
 }
 

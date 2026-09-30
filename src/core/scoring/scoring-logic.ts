@@ -83,8 +83,18 @@ export function enrichPointsFromHistory(
       pt.winnerId === player1Id ? 'PLAYER_1' : 'PLAYER_2';
 
     const sets = Array.isArray(stateBefore?.sets) ? stateBefore.sets : [];
-    const setNumber = sets.length > 0 ? sets.length : 1;
-    const currentSet = sets.length > 0 ? sets[sets.length - 1] : undefined;
+    const setsWon = stateBefore?.setsWon
+      ? (stateBefore.setsWon.player1 ?? 0) + (stateBefore.setsWon.player2 ?? 0)
+      : 0;
+    const isNextSetPending = sets.length > 0 && setsWon >= sets.length;
+
+    const setNumber = isNextSetPending
+      ? sets.length + 1
+      : sets.length > 0
+        ? sets.length
+        : 1;
+
+    const currentSet = !isNextSetPending && sets.length > 0 ? sets[sets.length - 1] : undefined;
     const isTiebreak = currentSet?.isTiebreak ?? false;
 
     const tiebreakScore = isTiebreak ? currentSet?.tiebreakScore : undefined;

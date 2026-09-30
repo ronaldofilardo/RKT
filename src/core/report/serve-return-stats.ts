@@ -1,49 +1,93 @@
 import type { TimelinePoint } from '@/core/scoring/types';
 import { isServer, isWinner, type ReturnStats, type ServeStats } from './types';
 
-function computeServiceGames(points: TimelinePoint[], playerIndex: 1 | 2): Array<{ won: boolean; startIdx: number; endIdx: number }> {
-  const games: Array<{ won: boolean; startIdx: number; endIdx: number }> = [];
+export interface CompletedGame {
+  setNumber: number;
+  server: 'player1' | 'player2';
+  winner: 'PLAYER_1' | 'PLAYER_2';
+  isTiebreak: boolean;
+  startIdx: number;
+  endIdx: number;
+}
+
+export function computeCompletedGames(points: TimelinePoint[]): CompletedGame[] {
+  const games: CompletedGame[] = [];
   let gameStart = 0;
-  let currentSet = 1;
-  let currentGamesP1 = 0;
-  let currentGamesP2 = 0;
 
   for (let i = 0; i < points.length; i++) {
     const p = points[i];
+    const next = i < points.length - 1 ? points[i + 1] : null;
 
-    if (p.setNumber > currentSet) {
-      currentSet = p.setNumber;
-      currentGamesP1 = 0;
-      currentGamesP2 = 0;
-    }
+    let isGameEnd = false;
 
-    const gameScore = p.gamesScore;
-    const newGamesP1 = gameScore.player1;
-    const newGamesP2 = gameScore.player2;
-
-    if (isServer(p, playerIndex)) {
-      const prevGames = currentGamesP1 + currentGamesP2;
-      const newGames = newGamesP1 + newGamesP2;
-      if (newGames > prevGames || i === points.length - 1) {
-        const won = isWinner(p, playerIndex);
-        games.push({ won, startIdx: gameStart, endIdx: i });
-        gameStart = i + 1;
+    if (next) {
+      if (next.setNumber > p.setNumber) {
+        isGameEnd = true;
+      } else if (!p.isTiebreak && next.isTiebreak) {
+        isGameEnd = true;
+      } else if (!p.isTiebreak && !next.isTiebreak) {
+        const prevGames = p.gamesScore.player1 + p.gamesScore.player2;
+        const nextGames = next.gamesScore.player1 + next.gamesScore.player2;
+        if (nextGames > prevGames) {
+          isGameEnd = true;
+        }
+      } else if (p.isTiebreak && !next.isTiebreak) {
+        isGameEnd = true;
       }
+    } else {
+      isGameEnd = true;
     }
 
-    currentGamesP1 = newGamesP1;
-    currentGamesP2 = newGamesP2;
+    if (isGameEnd) {
+      games.push({
+        setNumber: p.setNumber,
+        server: p.server,
+        winner: p.winner,
+        isTiebreak: p.isTiebreak === true,
+        startIdx: gameStart,
+        endIdx: i,
+      });
+      gameStart = i + 1;
+    }
   }
 
   return games;
+}
+
+function computeServiceGames(points: TimelinePoint[], playerIndex: 1 | 2): Array<{ won: boolean; startIdx: number; endIdx: number }> {
+  const targetServer = playerIndex === 1 ? 'player1' : 'player2';
+  const targetWinner = playerIndex === 1 ? 'PLAYER_1' : 'PLAYER_2';
+
+  const completed = computeCompletedGames(points);
+  return completed
+    .filter(g => !g.isTiebreak && g.server === targetServer)
+    .map(g => ({
+      won: g.winner === targetWinner,
+      startIdx: g.startIdx,
+      endIdx: g.endIdx,
+    }));
+}
+
+export function isSecondServePoint(p: TimelinePoint): boolean {
+  if (p.type === 'FAULT_FIRST') return false;
+  if (p.type === 'DOUBLE_FAULT') return true;
+  if (p.firstFault != null || p.pointDetails?.firstFaultDetail != null) return true;
+  if (p.isSecondServe === true) return true;
+  if (p.isFirstServe === false) return true;
+  return false;
+}
+
+export function isFirstServePoint(p: TimelinePoint): boolean {
+  if (p.type === 'FAULT_FIRST') return false;
+  return !isSecondServePoint(p);
 }
 
 export function computeServeStats(points: TimelinePoint[], playerIndex: 1 | 2): ServeStats {
   const servicePoints = points.filter(p => isServer(p, playerIndex) && p.type !== 'FAULT_FIRST');
   const totalPoints = servicePoints.length;
 
-  const firstServeIn = servicePoints.filter(p => p.isFirstServe && p.type !== 'FAULT_FIRST').length;
-  const firstServePoints = servicePoints.filter(p => p.isFirstServe);
+  const firstServeIn = servicePoints.filter(isFirstServePoint).length;
+  const firstServePoints = servicePoints.filter(isFirstServePoint);
   const firstServePct = totalPoints > 0 ? (firstServeIn / totalPoints) * 100 : 0;
 
   const firstServePointsWon = firstServePoints.filter(p => isWinner(p, playerIndex)).length;
@@ -51,7 +95,7 @@ export function computeServeStats(points: TimelinePoint[], playerIndex: 1 | 2): 
     ? (firstServePointsWon / firstServePoints.length) * 100
     : 0;
 
-  const secondServePoints = servicePoints.filter(p => p.isSecondServe);
+  const secondServePoints = servicePoints.filter(isSecondServePoint);
   const secondServePointsWon = secondServePoints.filter(p => isWinner(p, playerIndex)).length;
   const secondServePointsWonPct = secondServePoints.length > 0
     ? (secondServePointsWon / secondServePoints.length) * 100
@@ -67,7 +111,7 @@ export function computeServeStats(points: TimelinePoint[], playerIndex: 1 | 2): 
     ? (serviceGamesWon / serviceGamesPlayed) * 100
     : 0;
 
-  const breakPointsFaced = servicePoints.filter(p => p.isBreakPoint && !isWinner(p, playerIndex)).length;
+  const breakPointsFaced = servicePoints.filter(p => p.isBreakPoint).length;
   const breakPointsSaved = servicePoints.filter(p => p.isBreakPoint && isWinner(p, playerIndex)).length;
   const breakPointsSavedPct = breakPointsFaced > 0
     ? (breakPointsSaved / breakPointsFaced) * 100
@@ -93,45 +137,28 @@ export function computeServeStats(points: TimelinePoint[], playerIndex: 1 | 2): 
 }
 
 function computeReturnGames(points: TimelinePoint[], playerIndex: 1 | 2): Array<{ won: boolean }> {
-  const games: Array<{ won: boolean }> = [];
-  let currentSet = 1;
-  let currentGamesP1 = 0;
-  let currentGamesP2 = 0;
+  const opponentServer = playerIndex === 1 ? 'player2' : 'player1';
+  const targetWinner = playerIndex === 1 ? 'PLAYER_1' : 'PLAYER_2';
 
-  for (let i = 0; i < points.length; i++) {
-    const p = points[i];
-    if (p.setNumber > currentSet) {
-      currentSet = p.setNumber;
-      currentGamesP1 = 0;
-      currentGamesP2 = 0;
-    }
-
-    const gameScore = p.gamesScore;
-    const prevGames = currentGamesP1 + currentGamesP2;
-    const newGames = gameScore.player1 + gameScore.player2;
-
-    if (!isServer(p, playerIndex) && newGames > prevGames) {
-      games.push({ won: isWinner(p, playerIndex) });
-    }
-
-    currentGamesP1 = gameScore.player1;
-    currentGamesP2 = gameScore.player2;
-  }
-
-  return games;
+  const completed = computeCompletedGames(points);
+  return completed
+    .filter(g => !g.isTiebreak && g.server === opponentServer)
+    .map(g => ({
+      won: g.winner === targetWinner,
+    }));
 }
 
 export function computeReturnStats(points: TimelinePoint[], playerIndex: 1 | 2): ReturnStats {
   const returnPoints = points.filter(p => !isServer(p, playerIndex) && p.type !== 'FAULT_FIRST');
   const totalPoints = returnPoints.length;
 
-  const firstServeReturns = returnPoints.filter(p => p.isFirstServe);
+  const firstServeReturns = returnPoints.filter(isFirstServePoint);
   const firstServeReturnPointsWon = firstServeReturns.filter(p => isWinner(p, playerIndex)).length;
   const firstServeReturnPointsWonPct = firstServeReturns.length > 0
     ? (firstServeReturnPointsWon / firstServeReturns.length) * 100
     : 0;
 
-  const secondServeReturns = returnPoints.filter(p => p.isSecondServe);
+  const secondServeReturns = returnPoints.filter(isSecondServePoint);
   const secondServeReturnPointsWon = secondServeReturns.filter(p => isWinner(p, playerIndex)).length;
   const secondServeReturnPointsWonPct = secondServeReturns.length > 0
     ? (secondServeReturnPointsWon / secondServeReturns.length) * 100

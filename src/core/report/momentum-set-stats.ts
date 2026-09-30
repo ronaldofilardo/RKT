@@ -1,5 +1,6 @@
 import type { TimelinePoint } from '@/core/scoring/types';
 import type { MomentumStats, SetBreakdown } from './types';
+import { computeCompletedGames } from './serve-return-stats';
 
 function extractScoringRuns(points: TimelinePoint[]): MomentumStats['scoringRuns'] {
   const runs: MomentumStats['scoringRuns'] = [];
@@ -115,12 +116,15 @@ function initSetBreakdown(setNumber: number): SetBreakdown {
 
 function updateWinnerAndErrorStats(entry: SetBreakdown, p: TimelinePoint): void {
   const tipo = p.rallyDetails?.tipo;
-  if (tipo === 'winner') {
+  const isWinner = tipo === 'winner' || p.type === 'WINNER';
+  if (isWinner) {
     if (p.winner === 'PLAYER_1') entry.p1Winners++;
     if (p.winner === 'PLAYER_2') entry.p2Winners++;
     return;
   }
-  if (tipo === 'erro_forcado' || tipo === 'erro_nao_forcado') {
+  const isForced = tipo === 'erro_forcado' || p.type === 'FORCED_ERROR';
+  const isUnforced = tipo === 'erro_nao_forcado' || p.type === 'UNFORCED_ERROR' || p.type === 'DOUBLE_FAULT';
+  if (isForced || isUnforced) {
     if (p.winner === 'PLAYER_2') entry.p1Errors++;
     if (p.winner === 'PLAYER_1') entry.p2Errors++;
   }
@@ -131,8 +135,6 @@ function updateSetPointStats(entry: SetBreakdown, p: TimelinePoint): void {
   if (p.winner === 'PLAYER_1') entry.p1Points++;
   else entry.p2Points++;
 
-  entry.p1Games = p.gamesScore.player1;
-  entry.p2Games = p.gamesScore.player2;
   if (p.isTiebreak) entry.isTiebreak = true;
 
   if (p.type === 'ACE') {
@@ -156,6 +158,7 @@ function calculateSetDuration(points: TimelinePoint[], setNumber: number): numbe
 
 export function computeSetBreakdown(points: TimelinePoint[]): SetBreakdown[] {
   const setMap = new Map<number, SetBreakdown>();
+  const completed = computeCompletedGames(points);
 
   for (const p of points) {
     const s = p.setNumber;
@@ -163,6 +166,14 @@ export function computeSetBreakdown(points: TimelinePoint[]): SetBreakdown[] {
       setMap.set(s, initSetBreakdown(s));
     }
     updateSetPointStats(setMap.get(s)!, p);
+  }
+
+  for (const g of completed) {
+    const entry = setMap.get(g.setNumber);
+    if (entry) {
+      if (g.winner === 'PLAYER_1') entry.p1Games++;
+      else entry.p2Games++;
+    }
   }
 
   const sets = Array.from(setMap.values());

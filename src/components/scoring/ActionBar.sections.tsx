@@ -29,19 +29,17 @@ export function ServeSection({aceDetailsEnabled,onAceDetailsToggle,dfDetailsEnab
     </>
   )
 }
-export function ActionFooter({canUndo,canEdit,onVoltar,serveStep,onFontSmaller,onFontBigger,onEditScore,onComment,onStats,fontScale,disabled,processing}:{canUndo:boolean;canEdit:boolean;onVoltar:(serveStep:'none'|'second')=>void;serveStep:'none'|'second';onFontSmaller:()=>void;onFontBigger:()=>void;onEditScore:()=>void;onComment?:()=>void;onStats?:()=>void;fontScale:number;disabled:boolean;processing?:boolean}){
+export function ActionFooter({canUndo,canEdit,onVoltar,serveStep,onFontSmaller: _onFontSmaller,onFontBigger: _onFontBigger,onEditScore,onComment,onStats,fontScale: _fontScale,disabled,processing}:{canUndo:boolean;canEdit:boolean;onVoltar:(serveStep:'none'|'second')=>void;serveStep:'none'|'second';onFontSmaller?:()=>void;onFontBigger?:()=>void;onEditScore:()=>void;onComment?:()=>void;onStats?:()=>void;fontScale?:number;disabled:boolean;processing?:boolean}){
   const commentDisabled=Boolean(disabled);
   return (
     <div className="flex items-center justify-between gap-2 flex-wrap text-telemetry-text-primary">
-      <button data-testid="undo-button" onClick={() => onVoltar(serveStep)} disabled={!canUndo||disabled} className="text-sm font-semibold bg-telemetry-elevated border border-white/10 px-3 py-2 rounded-lg hover:bg-telemetry-active disabled:opacity-50 flex items-center gap-1"> {processing?'⏳':'↩'} Voltar</button>
-      <div className="flex items-center gap-2 bg-telemetry-elevated border border-white/10 px-2 py-1 rounded-lg">
-        <button onClick={onFontSmaller} className="px-2 py-1 hover:text-telemetry-volt">A−</button>
-        <span className="text-xs font-space-grotesk">{Math.round(fontScale*100)}%</span>
-        <button onClick={onFontBigger} className="px-2 py-1 hover:text-telemetry-volt">A+</button>
+      <div className="flex items-center gap-2">
+        <button data-testid="undo-button" onClick={() => onVoltar(serveStep)} disabled={!canUndo||disabled} className="text-sm font-semibold bg-telemetry-elevated border border-white/10 px-3 py-2 rounded-lg hover:bg-telemetry-active disabled:opacity-50 flex items-center gap-1"> {processing?'⏳':'↩'} Voltar</button>
+        <button data-testid="redo-button" disabled aria-disabled="true" className="text-sm font-semibold bg-telemetry-elevated border border-white/10 px-3 py-2 rounded-lg hover:bg-telemetry-active disabled:opacity-50 flex items-center gap-1"> ↪ Refazer</button>
       </div>
       <div className="flex gap-2">
         {onComment&&<button onClick={onComment} disabled={commentDisabled} className="bg-telemetry-elevated border border-white/10 p-2 rounded-lg hover:bg-telemetry-active disabled:opacity-50">💬</button>}
-        {canEdit&&<button onClick={onEditScore} disabled={serveStep==='second'} title={serveStep==='second'?'Finalize a anotação do 2º saque antes de editar o placar':undefined} className="bg-telemetry-elevated border border-white/10 p-2 rounded-lg hover:bg-telemetry-active disabled:opacity-50">✏️</button>}
+        {canEdit&&<button data-testid="edit-score-button" aria-label="Corrigir placar" onClick={onEditScore} disabled={serveStep==='second'} title={serveStep==='second'?'Finalize a anotação do 2º saque antes de editar o placar':'Corrigir placar'} className="bg-telemetry-elevated border border-white/10 p-2 rounded-lg hover:bg-telemetry-active disabled:opacity-50">✏️<span className="sr-only">Corrigir</span></button>}
         {onStats&&<button onClick={onStats} className="bg-telemetry-elevated border border-white/10 p-2 rounded-lg hover:bg-telemetry-active">📊</button>}
       </div>
     </div>

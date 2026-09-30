@@ -279,3 +279,33 @@ describe('ActionBar - Editar Placar bloqueado durante anotação de 2º saque', 
     expect(onEditScore).not.toHaveBeenCalled();
   });
 });
+
+describe('ActionBar - Remoção dos botões de escala de fonte (A- / A+)', () => {
+  it('não renderiza os botões A-, A+ nem a porcentagem de escala de fonte', () => {
+    render(
+      <ActionBar
+        secondServe={false}
+        serveStep="none"
+        canUndo={true}
+        canEdit={true}
+        fontScale={1}
+        isFinished={false}
+        onAceDirect={() => undefined}
+        onAceWithDetails={() => undefined}
+        onOut={() => undefined}
+        onNet={() => undefined}
+        onOutDirect={() => undefined}
+        onNetDirect={() => undefined}
+        onVoltar={() => undefined}
+        onFontSmaller={() => undefined}
+        onFontBigger={() => undefined}
+        onEditScore={() => undefined}
+      />,
+    );
+
+    expect(screen.queryByRole('button', { name: 'A-' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'A+' })).not.toBeInTheDocument();
+    expect(screen.queryByText(/100%/)).not.toBeInTheDocument();
+  });
+});
+

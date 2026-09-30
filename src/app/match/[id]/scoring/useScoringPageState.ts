@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useReducer } from "react";
+import { useState, useRef, useReducer } from "react";
 import { useRouter } from "next/navigation";
 import { ScoringEngine } from "@/core/scoring/engine";
 import type { ScoringState, TimelinePoint } from "@/core/scoring/types";
@@ -15,8 +15,12 @@ import type { MatchData } from "@/hooks/useScoringHandlers";
 import type { SuspendedSessionState } from "@/hooks/useSessionManager";
 import type { QueuedAction } from "@/schemas/contracts";
 import { scoreReducer, type ScoreAction } from "@/hooks/useScoreReducer";
-import { enrichPointsFromHistory } from "@/components/scoring/timeline-utils";
-import { enrichTimelineWithAudio, type PointLogAudioMeta } from "@/components/scoring/timeline-utils";
+import {
+  useScoringTimelineSync,
+  type MatchCommentData,
+} from "./useScoringTimelineSync";
+
+export type { MatchCommentData };
 
 export interface ScoringPageState {
   matchId: string;
@@ -59,11 +63,6 @@ export interface ScoringPageState {
   setFloorCurrentSets: React.Dispatch<React.SetStateAction<{ player1: number; player2: number } | null>>;
   viewMode: "scoring" | "timeline";
   setViewMode: React.Dispatch<React.SetStateAction<"scoring" | "timeline">>;
-  // Render tick para valores derivados de refs mutáveis (getHistoryLength do
-  // engine, isProcessingRef). Bumpado após undo (onUndoComplete) e após
-  // processPoint (onPointProcessed) — sem isso o último render commitado
-  // continuava com isProcessing=true/canUndo stale e o botão "Voltar" ficava
-  // travado/desabilitado após registrar um ponto.
   engineTick: number | null;
   setEngineTick: React.Dispatch<React.SetStateAction<number | null>>;
   isProcessingRef: React.MutableRefObject<boolean>;
@@ -93,20 +92,11 @@ export interface ScoringPageState {
   toast: (options: { type: import("@/components/Toast").ToastType; message: string }) => void;
   gamePointToDisplay: (p: number) => string;
   timelinePoints: TimelinePoint[];
+  fetchTimelinePoints: () => Promise<void>;
   fetchPointLogAudioMeta: () => Promise<void>;
   comments: MatchCommentData[];
   setComments: React.Dispatch<React.SetStateAction<MatchCommentData[]>>;
   fetchComments: () => Promise<void>;
-}
-
-export interface MatchCommentData {
-  id: string;
-  content: string;
-  category?: string | null;
-  authorName: string;
-  createdAt: string;
-  hasAudioNote?: boolean;
-  audioNoteDuration?: number | null;
 }
 
 export function useScoringPageState(matchId: string): ScoringPageState {
@@ -156,11 +146,25 @@ export function useScoringPageState(matchId: string): ScoringPageState {
 
   const tokenRef = useRef<string | null>(null);
   const [sessionActive, setSessionActive] = useState(false);
-  const [pointLogAudioMeta, setPointLogAudioMeta] = useState<PointLogAudioMeta[]>([]);
-  const [comments, setComments] = useState<MatchCommentData[]>([]);
+
+  const {
+    timelinePoints,
+    fetchTimelinePoints,
+    fetchPointLogAudioMeta,
+    comments,
+    setComments,
+    fetchComments,
+  } = useScoringTimelineSync({
+    matchId,
+    match,
+    scoreState,
+    engineRef,
+    engineTick,
+    tokenRef,
+  });
 
   const { activeModal, modalParams, open, close, closeAll } =
-    useModalStack({ mode: 'internal' });
+    useModalStack({ mode: "internal" });
   const { session, clearPendingEdit, updateScore, setPendingEdit } = useSession();
   const modalParamsRef = useRef(modalParams);
   modalParamsRef.current = modalParams;
@@ -178,49 +182,6 @@ export function useScoringPageState(matchId: string): ScoringPageState {
     if (p === 4) return "AD";
     return String(p);
   };
-
-  const timelinePoints: TimelinePoint[] = engineRef.current && match
-    ? enrichTimelineWithAudio(
-        enrichPointsFromHistory(
-          engineRef.current.getPointHistory(),
-          match.player1.id,
-          match.player2.id,
-        ),
-        pointLogAudioMeta,
-      )
-    : [];
-
-  const fetchPointLogAudioMeta = useCallback(async () => {
-    if (!match) return;
-    try {
-      const token = tokenRef.current;
-      const res = await fetch(`/api/matches/${matchId}/point-logs-meta`, {
-        headers: token ? { authorization: `Bearer ${token}` } : {},
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setPointLogAudioMeta(data.pointLogs ?? []);
-      }
-    } catch {
-      // Silently fail — audio is non-critical
-    }
-  }, [match, matchId]);
-
-  const fetchComments = useCallback(async () => {
-    if (!match) return;
-    try {
-      const token = tokenRef.current;
-      const res = await fetch(`/api/matches/${matchId}/comments?limit=100`, {
-        headers: token ? { authorization: `Bearer ${token}` } : {},
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setComments(data.comments ?? []);
-      }
-    } catch {
-      // Silently fail — comments are non-critical
-    }
-  }, [match, matchId]);
 
   return {
     matchId,
@@ -289,6 +250,7 @@ export function useScoringPageState(matchId: string): ScoringPageState {
     toast,
     gamePointToDisplay,
     timelinePoints,
+    fetchTimelinePoints,
     fetchPointLogAudioMeta,
     comments,
     setComments,

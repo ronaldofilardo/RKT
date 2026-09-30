@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { ReportPageView } from './ReportPage.view';
 import type { ReportData } from './report.types';
@@ -12,8 +12,12 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const fetchedMatchIdRef = useRef<string | null>(null);
 
   useEffect(() => {
+    if (fetchedMatchIdRef.current === matchId) return;
+    fetchedMatchIdRef.current = matchId;
+
     const token = sessionStorage.getItem('access_token');
     if (!token) {
       router.push('/login');

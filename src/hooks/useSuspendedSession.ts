@@ -1,7 +1,7 @@
 "use client";
 import { logger } from "@/lib/logger";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ScoringEngine } from "@/core/scoring/engine";
 import type { SuspendedSessionState } from "./useSessionManager";
 import type { MatchData } from "@/hooks/useScoringHandlers";
@@ -41,8 +41,13 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
     startSession,
   } = config;
 
+  const resumedSessionKeyRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (!suspendedSession || !match) return;
+    const sessionKey = `${matchId}-${suspendedSession.snapshotStatus}-${suspendedSession.snapshotPointCount}-${suspendedSession.bankPointCount}`;
+    if (resumedSessionKeyRef.current === sessionKey) return;
+    resumedSessionKeyRef.current = sessionKey;
     let ignored = false;
     const controller = new AbortController();
 

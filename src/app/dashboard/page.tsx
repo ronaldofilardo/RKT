@@ -18,12 +18,15 @@ import { useDeleteMatch, useFinishMatch } from "./dashboard.actions";
 import { DashboardTopBar } from "./components/DashboardTopBar";
 import { DashboardSidebar } from "./components/DashboardSidebar";
 import { DashboardViewRouter } from "./components/DashboardViewRouter";
+import { ServerSelectionModal } from "@/app/match/new/components/ServerSelectionModal";
 
 export default function DashboardPage() {
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
   const { setSession, setPendingEdit } = useSession();
+  const [selectedMatchForServer, setSelectedMatchForServer] = useState<any | null>(null);
+  const [startingMatch, setStartingMatch] = useState(false);
 
   logger.info("[DashboardPage] mount pathname=", pathname, "menuOpen=", false);
 
@@ -77,10 +80,40 @@ export default function DashboardPage() {
       router.push(`/match/${match.id}/report`);
     } else if (match.suspendedSessionId || match.matchStateSnapshot) {
       handleResumeSuspended(match);
+    } else if (match.state === "SCHEDULED" || !match.initialServerId) {
+      setSelectedMatchForServer(match);
     } else {
-      router.push(`/match/${match.id}/scoring?modal=edit-score`);
+      router.push(`/match/${match.id}/scoring`);
     }
   }, [router, handleResumeSuspended]);
+
+  const handleSelectServer = async (serverId: string) => {
+    if (!selectedMatchForServer) return;
+    setStartingMatch(true);
+    try {
+      const accessToken = sessionStorage.getItem("access_token");
+      const response = await fetch(`/api/matches/${selectedMatchForServer.id}/state`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          state: "IN_PROGRESS",
+          initialServerId: serverId,
+        }),
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data?.error || "Erro ao iniciar partida");
+      }
+      router.push(`/match/${selectedMatchForServer.id}/scoring`);
+    } catch (err) {
+      logger.error("[DashboardPage handleSelectServer]", err);
+      toast({ type: "error", message: "Erro ao iniciar partida" });
+      setStartingMatch(false);
+    }
+  };
 
   const handleMatchReport = useCallback((match: any) => {
     router.push(`/match/${match.id}/report`);
@@ -185,6 +218,17 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {selectedMatchForServer && (
+        <ServerSelectionModal
+          isOpen={!!selectedMatchForServer}
+          selectedP1={selectedMatchForServer.player1}
+          selectedP2={selectedMatchForServer.player2}
+          startingMatch={startingMatch}
+          onSelectServer={handleSelectServer}
+          onClose={() => setSelectedMatchForServer(null)}
+        />
       )}
     </div>
   );

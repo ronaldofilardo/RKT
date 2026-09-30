@@ -69,7 +69,7 @@ test.describe('TEST-03.1: Undo/Redo Annotation (regressão crítica de anotaçã
     await page.waitForLoadState('networkidle');
 
     // canUndo deve estar true após 2 pontos
-    const undoButton = page.locator('button:has-text("Corrigir")').first();
+    const undoButton = page.locator('[data-testid="undo-button"], button:has-text("Voltar")').first();
     await expect(undoButton).toBeEnabled();
 
     await undoButton.click();

@@ -36,12 +36,29 @@ function computeRallyLength(flow: PointFlow): number {
   return 0;
 }
 
-function buildPointDetails(flow: PointFlow): PointDetails {
+function buildPointDetails(flow: PointFlow, isSecondServeState = false): PointDetails {
+  const hasFirstFaultDetail = Boolean(
+    flow.firstFaultDetail &&
+      (flow.firstFaultDetail.errorType ||
+        flow.firstFaultDetail.serveEffect ||
+        flow.firstFaultDetail.direction ||
+        Object.keys(flow.firstFaultDetail).length > 0)
+  );
+
+  const isSecondServe =
+    flow.type === 'DOUBLE_FAULT' ||
+    hasFirstFaultDetail ||
+    flow.isSecondServe === true ||
+    flow.isFirstServe === false ||
+    isSecondServeState;
+
+  const isFirstServe = !isSecondServe;
+
   return {
     winnerId: flow.winnerId,
     type: (flow.type as PointDetails['type']) || 'WINNER',
-    isFirstServe: flow.isFirstServe ?? true,
-    isSecondServe: flow.isSecondServe ?? false,
+    isFirstServe,
+    isSecondServe,
     isLet: flow.isLet ?? false,
     serverId: flow.serverId,
     timestamp: flow.timestamp ?? Date.now(),
@@ -72,7 +89,8 @@ export class ScoringEngine {
 
     const isFaultFirst = Boolean(flow.type === 'FAULT_FIRST' || flow.firstFault);
     const winner = resolveWinner(flow, this.config, isFaultFirst);
-    const details = buildPointDetails(flow);
+    const isSecondServeState = Boolean(this.state.secondServe || this.state.currentGame?.secondServe);
+    const details = buildPointDetails(flow, isSecondServeState);
 
     if (flow.type === 'DOUBLE_FAULT') {
       this.state = this.handleDoubleFault(winner, details);

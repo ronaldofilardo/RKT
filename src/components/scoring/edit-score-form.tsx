@@ -1,10 +1,9 @@
-import { useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import type { TennisFormat } from '@/core/scoring/types';
-import { GAME_POINTS } from '@/core/scoring/point-utils';
-import { SCORING_LIMITS } from '@/lib/constants';
+import { EditScoreTiebreakInputs } from './edit-score-tiebreak-inputs';
+import { EditScoreGamePoints } from './edit-score-game-points';
 
 export interface SetInputFormProps {
-
   matchFormat: TennisFormat;
   totalEditedSets: number;
   currentServer: 'player1' | 'player2';
@@ -73,7 +72,7 @@ export function SetInputForm({
   onTiebreakInputChange,
   matchAlreadyOver,
   matchWouldEnd,
-   p1SetsWon,
+  p1SetsWon,
   p2SetsWon,
   maxSets,
   showGamePointsAtZero,
@@ -95,9 +94,6 @@ export function SetInputForm({
     const p2Num = parseInt(p2Input, 10);
     const winner = p1Num > p2Num ? playerNames.p1 : playerNames.p2;
 
-    // Bug #6 (2026-08-07): em modo Match Tiebreak, não exibir mensagens
-    // explicativas de regra ("diferença de 2 pontos necessária"). Só mostrar
-    // mensagem quando o set está de fato completo (vencedor declarado).
     if (isMatchTiebreakSet) {
       if (isSetTrulyCompleted) {
         return `${winner} venceu o match tiebreak — partida encerrada`;
@@ -113,7 +109,7 @@ export function SetInputForm({
   };
 
   // Don't show input form when match is already over
-    if (isMatchOver) {
+  if (isMatchOver) {
     return (
       <div className="space-y-3 rounded-lg bg-telemetry-card border border-white/10 p-4">
         <p className="text-xs font-semibold text-telemetry-text-muted uppercase tracking-wide">
@@ -125,6 +121,15 @@ export function SetInputForm({
       </div>
     );
   }
+
+  const isTiebreakInputVisible =
+    !isMatchTiebreakSet &&
+    hasTiebreak &&
+    p1Input &&
+    p2Input &&
+    ((p1Val === 6 && p2Val === 6) ||
+      (matchFormat === 'SHORT_SET_2V2_NO_AD' && p1Val === 4 && p2Val === 4) ||
+      (matchFormat === 'PRO_SET_8' && p1Val === 9 && p2Val === 9));
 
   return (
     <div className="space-y-4 rounded-lg bg-telemetry-card border border-white/10 p-4">
@@ -149,7 +154,12 @@ export function SetInputForm({
 
       <div className="flex items-center gap-2">
         <span className="text-xs text-telemetry-text-muted w-16 truncate flex items-center gap-1">
-          {currentServer === 'player1' && <span className="w-2 h-2 rounded-full bg-telemetry-volt flex-shrink-0 shadow-[0_0_8px_rgba(204,255,0,0.6)]" aria-label="Sacando" />}
+          {currentServer === 'player1' && (
+            <span
+              className="w-2 h-2 rounded-full bg-telemetry-volt flex-shrink-0 shadow-[0_0_8px_rgba(204,255,0,0.6)]"
+              aria-label="Sacando"
+            />
+          )}
           {playerNames.p1}
         </span>
         <input
@@ -163,12 +173,7 @@ export function SetInputForm({
           onChange={(e) => onP1InputChange(e.target.value)}
           placeholder="0"
           ref={p1InputRef}
-          // Bug (2026-09-07) — MÉDIO: getMaxValidGames() (editScoreHelpers.ts)
-          // permite até 10 games em PRO_SET_8 (tiebreakAt=9, cap=tiebreakAt+1),
-          // pois um set pode terminar 10x9 via tiebreak. O atributo HTML
-          // `max` estava travado em 9, o que em alguns navegadores impede o
-          // usuário de digitar/incrementar até 10.
-          max={isMatchTiebreakSet ? 30 : (matchFormat === 'PRO_SET_8' ? 10 : 7)}
+          max={isMatchTiebreakSet ? 30 : matchFormat === 'PRO_SET_8' ? 10 : 7}
         />
         <span className="text-telemetry-text-muted text-xs font-space-grotesk">×</span>
         <input
@@ -181,11 +186,16 @@ export function SetInputForm({
           value={p2Input}
           onChange={(e) => onP2InputChange(e.target.value)}
           placeholder="0"
-          max={isMatchTiebreakSet ? 30 : (matchFormat === 'PRO_SET_8' ? 10 : 7)}
+          max={isMatchTiebreakSet ? 30 : matchFormat === 'PRO_SET_8' ? 10 : 7}
         />
         <span className="text-xs text-telemetry-text-muted w-16 truncate text-right flex items-center justify-end gap-1">
           {playerNames.p2}
-          {currentServer === 'player2' && <span className="w-2 h-2 rounded-full bg-telemetry-volt flex-shrink-0 shadow-[0_0_8px_rgba(204,255,0,0.6)]" aria-label="Sacando" />}
+          {currentServer === 'player2' && (
+            <span
+              className="w-2 h-2 rounded-full bg-telemetry-volt flex-shrink-0 shadow-[0_0_8px_rgba(204,255,0,0.6)]"
+              aria-label="Sacando"
+            />
+          )}
         </span>
       </div>
 
@@ -199,46 +209,16 @@ export function SetInputForm({
         </p>
       )}
 
-      {!isMatchTiebreakSet && hasTiebreak && p1Input && p2Input && ((p1Val === 6 && p2Val === 6) || (matchFormat === 'SHORT_SET_2V2_NO_AD' && p1Val === 4 && p2Val === 4) || (matchFormat === 'PRO_SET_8' && p1Val === 9 && p2Val === 9)) && (
-        <div className="space-y-1 pt-1">
-          <p className="text-xs font-semibold text-telemetry-text-muted uppercase">
-            Tie-Break
-          </p>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-telemetry-text-muted w-16 truncate flex items-center gap-1">
-              {currentServer === 'player1' && <span className="w-2 h-2 rounded-full bg-telemetry-volt flex-shrink-0 shadow-[0_0_8px_rgba(204,255,0,0.6)]" aria-label="Sacando" />}
-              {playerNames.p1}
-            </span>
-            <input
-              type="number"
-              className="w-16 text-center bg-telemetry-elevated border border-white/10 rounded-lg px-2 py-1.5 text-telemetry-text-primary text-sm font-space-grotesk focus:outline-none focus:ring-2 focus:ring-telemetry-volt"
-              value={tiebreakP1}
-              onChange={(e) => onTiebreakInputChange(e.target.value, 'p1')}
-              min={0}
-              max={SCORING_LIMITS.TIEBREAK_INPUT_CAP}
-              placeholder="0"
-            />
-            <span className="text-telemetry-text-muted text-xs">×</span>
-            <input
-              type="number"
-              className="w-16 text-center bg-telemetry-elevated border border-white/10 rounded-lg px-2 py-1.5 text-telemetry-text-primary text-sm font-space-grotesk focus:outline-none focus:ring-2 focus:ring-telemetry-volt"
-              value={tiebreakP2}
-              onChange={(e) => onTiebreakInputChange(e.target.value, 'p2')}
-              min={0}
-              max={SCORING_LIMITS.TIEBREAK_INPUT_CAP}
-              placeholder="0"
-            />
-            <span className="text-xs text-telemetry-text-muted w-16 truncate text-right flex items-center justify-end gap-1">
-              {playerNames.p2}
-              {currentServer === 'player2' && <span className="w-2 h-2 rounded-full bg-telemetry-volt flex-shrink-0 shadow-[0_0_8px_rgba(204,255,0,0.6)]" aria-label="Sacando" />}
-            </span>
-          </div>
-          {!tiebreakComplete && !tiebreakImpossible && (
-            <p className="text-xs text-telemetry-text-muted mt-1">
-              Informe o placar do tiebreak (ex.: 7x5).
-            </p>
-          )}
-        </div>
+      {isTiebreakInputVisible && (
+        <EditScoreTiebreakInputs
+          playerNames={playerNames}
+          currentServer={currentServer}
+          tiebreakP1={tiebreakP1}
+          tiebreakP2={tiebreakP2}
+          tiebreakComplete={tiebreakComplete}
+          tiebreakImpossible={tiebreakImpossible}
+          onTiebreakInputChange={onTiebreakInputChange}
+        />
       )}
 
       {hasTiebreak && p1Input && p2Input && isSetTrulyCompleted && !tiebreakComplete && (
@@ -248,9 +228,7 @@ export function SetInputForm({
       )}
 
       {p1Input && p2Input && validationError && (
-        <p className="text-xs text-red-400 mt-1">
-          {validationError}
-        </p>
+        <p className="text-xs text-red-400 mt-1">{validationError}</p>
       )}
 
       {p1Input && p2Input && !validationError && (
@@ -276,7 +254,11 @@ export function SetInputForm({
         <div className="bg-telemetry-volt/10 border border-telemetry-volt/30 rounded-lg px-3 py-3 mt-2">
           <p className="text-sm font-semibold text-telemetry-volt flex items-center gap-2">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clipRule="evenodd"
+              />
             </svg>
             Partida encerrada — confirmar para finalizar
           </p>
@@ -286,67 +268,25 @@ export function SetInputForm({
         </div>
       )}
 
-      {partial && floorCurrentSets && (p1Val < floorCurrentSets.player1 || p2Val < floorCurrentSets.player2) && (
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2 mb-2">
-          <p className="text-xs text-amber-300">
-            Ponto de parada: {floorCurrentSets.player1}x
-            {floorCurrentSets.player2} — placar não pode ser inferior a
-            este valor.
-          </p>
-        </div>
-      )}
+      {partial &&
+        floorCurrentSets &&
+        (p1Val < floorCurrentSets.player1 || p2Val < floorCurrentSets.player2) && (
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2 mb-2">
+            <p className="text-xs text-amber-300">
+              Ponto de parada: {floorCurrentSets.player1}x{floorCurrentSets.player2} — placar não pode ser inferior a este valor.
+            </p>
+          </div>
+        )}
 
       {(partial || showGamePointsAtZero) && !isMatchTiebreakSet && !hasTiebreak && (
-        <div className="space-y-1 pt-1">
-          <p className="text-xs font-semibold text-telemetry-text-muted">
-            Pontos no Game Atual
-          </p>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-telemetry-text-muted w-16 truncate flex items-center gap-1">
-              {currentServer === 'player1' && <span className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" aria-label="Sacando" />}
-              {playerNames.p1}
-            </span>
-            <select
-              className="w-20 text-center bg-gray-700 border border-white/10 rounded-lg px-1 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={p1Points}
-              onChange={(e) => onP1PointsChange(e.target.value)}
-            >
-              {GAME_POINTS.map((pt) => (
-                <option key={pt} value={pt}>
-                  {pt}
-                </option>
-              ))}
-              {p2Points === '40' && (
-                <>
-                  <option value="DEUCE">Deuce</option>
-                  <option value="AD">Adv.</option>
-                </>
-              )}
-            </select>
-            <span className="text-telemetry-text-muted text-xs">×</span>
-            <select
-              className="w-20 text-center bg-gray-700 border border-white/10 rounded-lg px-1 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={p2Points}
-              onChange={(e) => onP2PointsChange(e.target.value)}
-            >
-              {GAME_POINTS.map((pt) => (
-                <option key={pt} value={pt}>
-                  {pt}
-                </option>
-              ))}
-              {p1Points === '40' && (
-                <>
-                  <option value="DEUCE">Deuce</option>
-                  <option value="AD">Adv.</option>
-                </>
-              )}
-            </select>
-            <span className="text-xs text-telemetry-text-muted w-16 truncate text-right flex items-center justify-end gap-1">
-              {playerNames.p2}
-              {currentServer === 'player2' && <span className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" aria-label="Sacando" />}
-            </span>
-          </div>
-        </div>
+        <EditScoreGamePoints
+          playerNames={playerNames}
+          currentServer={currentServer}
+          p1Points={p1Points}
+          p2Points={p2Points}
+          onP1PointsChange={onP1PointsChange}
+          onP2PointsChange={onP2PointsChange}
+        />
       )}
     </div>
   );

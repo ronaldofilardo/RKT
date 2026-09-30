@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import { useScoringHandlers } from "@/hooks/useScoringHandlers";
 import { useSessionManager } from "@/hooks/useSessionManager";
-import { useCommentOfflineSync } from "@/hooks/useCommentOfflineSync";
-import { logger } from "@/lib/logger";
 import type { SetEditData } from "@/components/scoring/editScoreHelpers";
 import type { ScoringPageState } from "./useScoringPageState";
+import { useScoringLifecycleEffects } from "./useScoringLifecycleEffects";
+import { useScoringCommentHandler } from "./useScoringCommentHandler";
+import { useScoringEditScoreHandlers } from "./useScoringEditScoreHandlers";
 
 export interface ScoringPageHandlers {
   persistState: ReturnType<typeof useScoringHandlers>["persistState"];
@@ -14,9 +15,8 @@ export interface ScoringPageHandlers {
   handleSetupConfirm: ReturnType<typeof useScoringHandlers>["handleSetupConfirm"];
   handleUndo: ReturnType<typeof useScoringHandlers>["handleUndo"];
   handleVoltar: ReturnType<typeof useScoringHandlers>["handleVoltar"];
-    openAceModal: ReturnType<typeof useScoringHandlers>["openAceModal"];
+  openAceModal: ReturnType<typeof useScoringHandlers>["openAceModal"];
   handleAceDirect: ReturnType<typeof useScoringHandlers>["handleAceDirect"];
-
   handleServerEffectConfirm: ReturnType<typeof useScoringHandlers>["handleServerEffectConfirm"];
   handleServeErrorConfirm: ReturnType<typeof useScoringHandlers>["handleServeErrorConfirm"];
   handleServeErrorDirect: ReturnType<typeof useScoringHandlers>["handleServeErrorDirect"];
@@ -67,28 +67,11 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     setFloorCurrentSets,
     clearPendingEdit,
     updateScore,
-    scoreState,
-    setElapsed,
-    session,
     setEngineTick,
-    setSyncStatus,
-    syncPendingMatches,
-    toast,
     fetchPointLogAudioMeta,
     clearQueueForMatch,
     removeLastAction,
-    setComments,
-    fetchComments,
   } = state;
-
-  const { enqueueComment } = useCommentOfflineSync();
-
-  useEffect(() => {
-    const freshToken = sessionStorage.getItem("access_token");
-    if (freshToken !== tokenRef.current) {
-      tokenRef.current = freshToken;
-    }
-  });
 
   const {
     persistState,
@@ -162,112 +145,18 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
       clearQueueForMatch,
     });
 
-  const handleEditScore = useCallback(
-    async (setResults: SetEditData[], server: "player1" | "player2") => {
-      await originalHandleEditScore(setResults, server);
-    },
-    [originalHandleEditScore]
-  );
+  useScoringLifecycleEffects({ state, fetchMatch });
 
-  const handleCommentCreate = useCallback(
-    async (content: string, audio?: { blob: Blob; durationMs: number }, category?: string) => {
-      let contextPrefix = "";
-      const state = engineRef.current?.getState();
-      if (state && state.sets.length > 0) {
-        const game = state.currentGame;
-        const currentSet = state.sets[state.sets.length - 1];
-        const isTiebreak = currentSet?.isTiebreak;
+  const { handleCommentCreate } = useScoringCommentHandler(state);
 
-        let p1Score = "0";
-        let p2Score = "0";
-
-        if (isTiebreak && currentSet.tiebreakScore) {
-          p1Score = String(currentSet.tiebreakScore.player1);
-          p2Score = String(currentSet.tiebreakScore.player2);
-        } else if (game.isDeuce) {
-          p1Score = game.advantage === "player1" ? "AD" : "40";
-          p2Score = game.advantage === "player2" ? "AD" : "40";
-        } else {
-          const map = [0, 15, 30, 40];
-          p1Score = String(map[game.player1] ?? game.player1);
-          p2Score = String(map[game.player2] ?? game.player2);
-        }
-
-        const gamesP1 = currentSet.player1;
-        const gamesP2 = currentSet.player2;
-        const setNumber = state.sets.length;
-        const pointNumber = pointSequenceRef.current + 1;
-
-        contextPrefix = `[Set ${setNumber} · Game ${gamesP1}x${gamesP2} · Pt ${pointNumber} (${p1Score}x${p2Score})] `;
-      }
-
-      const finalContent = contextPrefix + (content?.trim() || (audio ? '(Nota de voz)' : ''));
-
-      // Offline: enqueue for later sync
-      if (!isOnline) {
-        await enqueueComment({
-          matchId,
-          type: 'COMMENT',
-          payload: { content: finalContent, category, audioBlob: audio?.blob, audioDurationMs: audio?.durationMs },
-          timestamp: Date.now(),
-        });
-        toast({ type: 'success', message: 'Comentário salvo localmente, sincronizando ao reconectar' });
-        return;
-      }
-
-      try {
-        const token = tokenRef.current;
-        const res = await fetch(`/api/matches/${matchId}/comments`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({ content: finalContent, category }),
-        });
-
-        if (!res.ok) {
-          toast({ type: 'error', message: 'Erro ao criar comentário' });
-          return;
-        }
-
-        const comment = await res.json();
-
-        if (audio && comment.id) {
-          const formData = new FormData();
-          formData.append('file', audio.blob);
-          formData.append('durationMs', String(audio.durationMs));
-          const audioRes = await fetch(`/api/matches/${matchId}/comments/${comment.id}/audio`, {
-            method: 'POST',
-            headers: token ? { authorization: `Bearer ${token}` } : {},
-            body: formData,
-          });
-          if (!audioRes.ok) {
-            logger.error('[handleCommentCreate] audio upload failed', audioRes.status);
-            toast({ type: 'info', message: 'Comentário criado, mas áudio não foi salvo' });
-          }
-        }
-
-        setComments((prev) => [
-          {
-            id: comment.id,
-            content: comment.content,
-            category: comment.category,
-            authorName: comment.authorName,
-            createdAt: comment.createdAt,
-            hasAudioNote: Boolean(audio),
-            audioNoteDuration: audio?.durationMs ?? null,
-          },
-          ...prev,
-        ]);
-
-        toast({ type: 'success', message: 'Comentário registrado' });
-      } catch {
-        toast({ type: 'error', message: 'Erro ao criar comentário' });
-      }
-    },
-    [matchId, tokenRef, setComments, toast, isOnline, enqueueComment, engineRef, pointSequenceRef]
-  );
+  const {
+    handleEditScore,
+    handleEditScoreCancel,
+    handleEditScoreRefreshFloor,
+  } = useScoringEditScoreHandlers({
+    state,
+    originalHandleEditScore,
+  });
 
   const handlePointFromCard = useCallback(
     (winnerSide: "player1" | "player2") => {
@@ -288,83 +177,6 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     },
     [isProcessing, handleServeErrorOpen, open],
   );
-
-  const handleEditScoreCancel = useCallback(() => {
-    clearPendingEdit();
-    close();
-  }, [clearPendingEdit, close]);
-
-  const handleEditScoreRefreshFloor = useCallback(async () => {
-    if (!engineRef.current || !match) return null;
-    const currentState = engineRef.current.getState();
-    const sets = currentState.sets;
-    if (sets.length === 0) return null;
-
-    // P2-10 FIX: Se o último set é vazio (auto-added 0-0), olhar para
-    // o set anterior completo como floor. O set vazio não representa
-    // progresso real — usar seu placar como floor inutiliza a proteção.
-    for (let i = sets.length - 1; i >= 0; i--) {
-      const set = sets[i];
-      const isLastSet = i === sets.length - 1;
-      // Para o último set, só usar como floor se tiver progresso real
-      if (isLastSet && set.player1 === 0 && set.player2 === 0) continue;
-      // Para qualquer set com progresso, usar como floor
-      if (set.player1 > 0 || set.player2 > 0) {
-        return { player1: set.player1, player2: set.player2 };
-      }
-    }
-
-    return null;
-  }, [engineRef, match]);
-
-  useEffect(() => {
-    fetchMatch();
-  }, [fetchMatch]);
-
-  useEffect(() => {
-    if (state.viewMode === 'timeline' && match) {
-      fetchPointLogAudioMeta();
-      fetchComments();
-    }
-  }, [state.viewMode, match, fetchPointLogAudioMeta, fetchComments]);
-
-  useEffect(() => {
-    if (isOnline) {
-      setSyncStatus("syncing");
-      syncPendingMatches();
-      const timer = setTimeout(() => {
-        setSyncStatus((current) => (current === 'syncing' ? 'synced' : current));
-      }, 500);
-      return () => clearTimeout(timer);
-    } else {
-      setSyncStatus("offline");
-    }
-  }, [isOnline, syncPendingMatches, setSyncStatus]);
-
-  useEffect(() => {
-    const handleSyncComplete = () => {
-      setSyncStatus("synced");
-      toast({ type: "success", message: "Pontos offline sincronizados com sucesso" });
-    };
-    window.addEventListener("offline-sync-complete", handleSyncComplete);
-    return () => window.removeEventListener("offline-sync-complete", handleSyncComplete);
-  }, [toast, setSyncStatus]);
-
-  useEffect(() => {
-    if (scoreState?.startedAt) {
-      const startedAtMs = scoreState.startedAt;
-      setElapsed(Math.max(0, Math.floor((Date.now() - startedAtMs) / 1000)));
-    } else {
-      setElapsed(0);
-    }
-  }, [scoreState?.startedAt, setElapsed]);
-
-  useEffect(() => {
-    if (session.pendingEditScore) {
-      setFloorCurrentSets(session.pendingEditScore.floorSets);
-      open("edit-score");
-    }
-  }, [session.pendingEditScore, open, setFloorCurrentSets]);
 
   return {
     persistState,

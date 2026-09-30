@@ -34,6 +34,186 @@ const STATUS_COLORS: Record<SnapshotStatus, string> = {
   BANK_AHEAD: "border-red-500 bg-red-500/10 text-red-300",
 };
 
+interface SnapshotSetsInfo {
+  completedSets: any[];
+  total: number;
+  current: any | null;
+  isFinished: boolean;
+}
+
+function parseSnapshotSets(matchStateSnapshot: string | null, format: string): SnapshotSetsInfo | null {
+  if (!matchStateSnapshot) return null;
+  try {
+    const raw = JSON.parse(matchStateSnapshot);
+    const snap = raw.state && Array.isArray(raw.history) ? raw.state : raw;
+    const sets = snap.sets ?? [];
+
+    let formatRules: ReturnType<typeof getMatchFormatRules> | null = null;
+    try {
+      formatRules = getMatchFormatRules(format as TennisFormat);
+    } catch {}
+
+    const completed = sets.filter((s: any) =>
+      formatRules
+        ? isSetCompleteForFormat({ player1: s.player1, player2: s.player2 }, formatRules)
+        : Math.max(s.player1, s.player2) >= 6 && Math.abs(s.player1 - s.player2) >= 2,
+    );
+    return {
+      completedSets: completed,
+      total: completed.length,
+      current: sets[sets.length - 1] ?? null,
+      isFinished: snap.isFinished ?? false,
+    };
+  } catch {
+    return null;
+  }
+}
+
+interface ResumeFooterProps {
+  status: SnapshotStatus;
+  diff: number;
+  loading?: boolean;
+  onResume: () => void;
+  onStartNew: () => void;
+  onDiscard: () => void;
+}
+
+function ResumeFooter({ status, diff, loading, onResume, onStartNew, onDiscard }: ResumeFooterProps) {
+  if (status === "SNAPSHOT_AHEAD") {
+    return (
+      <>
+        <button
+          onClick={onResume}
+          disabled={loading}
+          className="w-full py-2.5 rounded-xl font-bold text-sm bg-amber-600 hover:bg-amber-700 text-white disabled:opacity-50 transition-all"
+        >
+          {loading ? "Sincronizando..." : `⬆️ Sincronizar ${diff} ponto(s) e retomar`}
+        </button>
+        <button
+          onClick={onStartNew}
+          disabled={loading}
+          className="w-full py-2.5 rounded-xl font-bold text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600 disabled:opacity-50 transition-all"
+        >
+          Descartar pontos offline
+        </button>
+      </>
+    );
+  }
+
+  if (status === "BANK_AHEAD") {
+    return (
+      <>
+        <button
+          onClick={onStartNew}
+          disabled={loading}
+          className="w-full py-2.5 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 transition-all"
+        >
+          {loading ? "Carregando..." : "▶️ Retomar com estado atual"}
+        </button>
+        <button
+          onClick={onDiscard}
+          disabled={loading}
+          className="w-full py-2.5 rounded-xl font-bold text-sm bg-transparent text-red-400 border-2 border-red-400/60 hover:bg-red-500/10 transition-all"
+        >
+          ❌ Descartar
+        </button>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <button
+        onClick={onResume}
+        disabled={loading}
+        className="w-full py-2.5 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 transition-all"
+      >
+        {loading ? "Carregando..." : "✏️ Retomar (com undo)"}
+      </button>
+      <button
+        onClick={onStartNew}
+        disabled={loading}
+        className="w-full py-2.5 rounded-xl font-bold text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600 disabled:opacity-50 transition-all"
+      >
+        🆕 Começar Nova Anotação
+      </button>
+      <button
+        onClick={onDiscard}
+        disabled={loading}
+        className="w-full py-2.5 rounded-xl font-bold text-sm bg-transparent text-red-400 border-2 border-red-400/60 hover:bg-red-500/10 transition-all"
+      >
+        ❌ Descartar
+      </button>
+    </>
+  );
+}
+
+function ResumeStatusExplanation({ status, diff }: { status: SnapshotStatus; diff: number }) {
+  if (status === "SNAPSHOT_AHEAD") {
+    return (
+      <p className="text-amber-200 text-sm">
+        Você tinha <span className="font-bold">{diff}</span> ponto(s)
+        marcado(s) offline que não foram sincronizados. Deseja enviá-los agora?
+      </p>
+    );
+  }
+
+  if (status === "BANK_AHEAD") {
+    return (
+      <p className="text-red-200 text-sm">
+        A partida avançou <span className="font-bold">{diff}</span>{" "}
+        ponto(s) desde que você saiu. Seu histórico local está desatualizado.
+      </p>
+    );
+  }
+
+  return (
+    <p className="text-telemetry-text-muted text-xs italic">
+      Você pode retomar com o histórico de pontos para usar o undo, ou começar nova anotação.
+    </p>
+  );
+}
+
+function ResumeScoreDetails({
+  info,
+  format,
+  previousPointsCount,
+  showPreviousPoints,
+}: {
+  info: SnapshotSetsInfo | null;
+  format: string;
+  previousPointsCount: number;
+  showPreviousPoints: boolean;
+}) {
+  return (
+    <>
+      {info && info.total > 0 && (
+        <p className="text-telemetry-text-muted text-sm">
+          Placar:{" "}
+          {info.completedSets.map((s: any) => `${s.player1}x${s.player2}`).join(", ")}{" "}
+          ({format})
+        </p>
+      )}
+
+      {info && !info.total && (
+        <p className="text-telemetry-text-muted text-sm">Formato: {format}</p>
+      )}
+
+      {info?.current && !info.isFinished && (
+        <p className="text-telemetry-text-muted text-sm">
+          Set atual: {info.current.player1} x {info.current.player2}
+        </p>
+      )}
+
+      {showPreviousPoints && previousPointsCount > 0 && (
+        <p className="text-blue-300 text-sm">
+          Você havia marcado {previousPointsCount} ponto(s).
+        </p>
+      )}
+    </>
+  );
+}
+
 export function ResumeAnnotationModal({
   player1Name,
   player2Name,
@@ -49,37 +229,10 @@ export function ResumeAnnotationModal({
   loading,
   error,
 }: ResumeAnnotationModalProps) {
-  const completedSetsInfo = useMemo(() => {
-    if (!matchStateSnapshot) return null;
-    try {
-      const raw = JSON.parse(matchStateSnapshot);
-      const snap = raw.state && Array.isArray(raw.history) ? raw.state : raw;
-      const sets = snap.sets ?? [];
-
-      let formatRules: ReturnType<typeof getMatchFormatRules> | null = null;
-      try {
-        formatRules = getMatchFormatRules(format as TennisFormat);
-      } catch {}
-
-      const completed = sets.filter((s: any) =>
-        formatRules
-          ? isSetCompleteForFormat(
-              { player1: s.player1, player2: s.player2 },
-              formatRules,
-            )
-          : Math.max(s.player1, s.player2) >= 6 &&
-            Math.abs(s.player1 - s.player2) >= 2,
-      );
-      return {
-        completedSets: completed,
-        total: completed.length,
-        current: sets[sets.length - 1] ?? null,
-        isFinished: snap.isFinished ?? false,
-      };
-    } catch {
-      return null;
-    }
-  }, [matchStateSnapshot, format]);
+  const completedSetsInfo = useMemo(
+    () => parseSnapshotSets(matchStateSnapshot, format),
+    [matchStateSnapshot, format],
+  );
 
   const diff = Math.abs((snapshotPointCount ?? 0) - (bankPointCount ?? 0));
 
@@ -143,55 +296,14 @@ export function ResumeAnnotationModal({
             </p>
           </div>
 
-          {completedSetsInfo && completedSetsInfo.total > 0 && (
-            <p className="text-telemetry-text-muted text-sm">
-              Placar:{" "}
-              {completedSetsInfo.completedSets
-                .map((s: any) => `${s.player1}x${s.player2}`)
-                .join(", ")}{" "}
-              ({format})
-            </p>
-          )}
+          <ResumeScoreDetails
+            info={completedSetsInfo}
+            format={format}
+            previousPointsCount={previousPointsCount}
+            showPreviousPoints={snapshotStatus !== "SNAPSHOT_AHEAD"}
+          />
 
-          {completedSetsInfo && !completedSetsInfo.total && (
-            <p className="text-telemetry-text-muted text-sm">Formato: {format}</p>
-          )}
-
-          {completedSetsInfo?.current && !completedSetsInfo.isFinished && (
-            <p className="text-telemetry-text-muted text-sm">
-              Set atual: {completedSetsInfo.current.player1} x{" "}
-              {completedSetsInfo.current.player2}
-            </p>
-          )}
-
-          {previousPointsCount > 0 && snapshotStatus !== "SNAPSHOT_AHEAD" && (
-            <p className="text-blue-300 text-sm">
-              Você havia marcado {previousPointsCount} ponto(s).
-            </p>
-          )}
-
-          {snapshotStatus === "SNAPSHOT_AHEAD" && (
-            <p className="text-amber-200 text-sm">
-              Você tinha <span className="font-bold">{diff}</span> ponto(s)
-              marcado(s) offline que não foram sincronizados. Deseja enviá-los
-              agora?
-            </p>
-          )}
-
-          {snapshotStatus === "BANK_AHEAD" && (
-            <p className="text-red-200 text-sm">
-              A partida avançou <span className="font-bold">{diff}</span>{" "}
-              ponto(s) desde que você saiu. Seu histórico local está
-              desatualizado.
-            </p>
-          )}
-
-          {snapshotStatus === "IN_SYNC" && (
-            <p className="text-telemetry-text-muted text-xs italic">
-              Você pode retomar com o histórico de pontos para usar o undo, ou
-              começar nova anotação.
-            </p>
-          )}
+          <ResumeStatusExplanation status={snapshotStatus} diff={diff} />
 
           {error && (
             <div
@@ -203,73 +315,16 @@ export function ResumeAnnotationModal({
           )}
         </div>
 
-        {/* Footer — buttons vary by snapshotStatus */}
+        {/* Footer */}
         <div className="px-5 py-4 border-t border-white/10 flex flex-col gap-2">
-          {snapshotStatus === "SNAPSHOT_AHEAD" && (
-            <>
-              <button
-                onClick={onResume}
-                disabled={loading}
-                className="w-full py-2.5 rounded-xl font-bold text-sm bg-amber-600 hover:bg-amber-700 text-white disabled:opacity-50 transition-all"
-              >
-                {loading
-                  ? "Sincronizando..."
-                  : `⬆️ Sincronizar ${diff} ponto(s) e retomar`}
-              </button>
-              <button
-                onClick={onStartNew}
-                disabled={loading}
-                className="w-full py-2.5 rounded-xl font-bold text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600 disabled:opacity-50 transition-all"
-              >
-                Descartar pontos offline
-              </button>
-            </>
-          )}
-
-          {snapshotStatus === "BANK_AHEAD" && (
-            <>
-              <button
-                onClick={onStartNew}
-                disabled={loading}
-                className="w-full py-2.5 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 transition-all"
-              >
-                {loading ? "Carregando..." : "▶️ Retomar com estado atual"}
-              </button>
-              <button
-                onClick={onDiscard}
-                disabled={loading}
-                className="w-full py-2.5 rounded-xl font-bold text-sm bg-transparent text-red-400 border-2 border-red-400/60 hover:bg-red-500/10 transition-all"
-              >
-                ❌ Descartar
-              </button>
-            </>
-          )}
-
-          {snapshotStatus === "IN_SYNC" && (
-            <>
-              <button
-                onClick={onResume}
-                disabled={loading}
-                className="w-full py-2.5 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 transition-all"
-              >
-                {loading ? "Carregando..." : "✏️ Retomar (com undo)"}
-              </button>
-              <button
-                onClick={onStartNew}
-                disabled={loading}
-                className="w-full py-2.5 rounded-xl font-bold text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600 disabled:opacity-50 transition-all"
-              >
-                🆕 Começar Nova Anotação
-              </button>
-              <button
-                onClick={onDiscard}
-                disabled={loading}
-                className="w-full py-2.5 rounded-xl font-bold text-sm bg-transparent text-red-400 border-2 border-red-400/60 hover:bg-red-500/10 transition-all"
-              >
-                ❌ Descartar
-              </button>
-            </>
-          )}
+          <ResumeFooter
+            status={snapshotStatus}
+            diff={diff}
+            loading={loading}
+            onResume={onResume}
+            onStartNew={onStartNew}
+            onDiscard={onDiscard}
+          />
         </div>
       </div>
     </div>

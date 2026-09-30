@@ -8,6 +8,7 @@ import { createMatchRequest } from './new-match-submit.helpers';
 import { buildMatchPayload } from './build-match-payload.helpers';
 import { saveOfflineIfNeeded } from './offline-match.helpers';
 import { submitOnlineMatch } from './online-match-submit.helpers';
+import { isMatchScheduledForFuture } from './schedule-check.helpers';
 
 export function useNewMatchSubmissionActions(
   state: NewMatchState,
@@ -45,6 +46,12 @@ export function useNewMatchSubmissionActions(
     try {
       const { response, data: match } = await createMatchRequest(state.pendingPayload, true);
       if (!response.ok) throw new Error(match.message || 'Erro ao criar partida');
+      const isScheduled = isMatchScheduledForFuture(state.date, state.time);
+      if (isScheduled) {
+        toast({ type: 'success', message: 'Partida agendada com sucesso!' });
+        router.push('/dashboard');
+        return;
+      }
       state.setCreatedMatchId(match.data.id);
       state.setShowServerModal(true);
       toast({ type: 'success', message: 'Partida criada! Escolha o primeiro sacador.' });
@@ -83,6 +90,12 @@ export function useNewMatchSubmissionActions(
         state.setDuplicateInfo(result.data.details ?? null);
         state.setPendingPayload(payload);
         state.setShowDuplicateModal(true);
+        return;
+      }
+      const isScheduled = isMatchScheduledForFuture(state.date, state.time);
+      if (isScheduled) {
+        toast({ type: 'success', message: 'Partida agendada com sucesso!' });
+        router.push('/dashboard');
         return;
       }
       state.setCreatedMatchId(result.data.data.id);

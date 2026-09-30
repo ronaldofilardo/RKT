@@ -28,11 +28,15 @@ function buildPlayerSummary(
   let unforcedErrors = 0;
   for (const p of points) {
     const tipo = p.rallyDetails?.tipo;
+    const isWinnerPoint = tipo === 'winner' || p.type === 'WINNER';
+    const isForcedErrorPoint = tipo === 'erro_forcado' || p.type === 'FORCED_ERROR';
+    const isUnforcedErrorPoint = tipo === 'erro_nao_forcado' || p.type === 'UNFORCED_ERROR';
+
     if (p.winner === winner) {
-      if (tipo === 'winner') winners++;
+      if (isWinnerPoint) winners++;
     } else {
-      if (tipo === 'erro_forcado') forcedErrors++;
-      else if (tipo === 'erro_nao_forcado') unforcedErrors++;
+      if (isForcedErrorPoint) forcedErrors++;
+      else if (isUnforcedErrorPoint) unforcedErrors++;
     }
   }
 
