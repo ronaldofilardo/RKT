@@ -20,14 +20,14 @@ export function TacticalInsightBanner({ insights }: TacticalInsightBannerProps) 
   const getBorderAndBg = (type: TacticalInsight['type']) => {
     switch (type) {
       case 'weakness':
-        return 'bg-amber-500/15 border-amber-500/40 text-amber-200';
+        return 'bg-telemetry-card border-amber-500/40 text-amber-200';
       case 'opportunity':
-        return 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200';
+        return 'bg-telemetry-card border-emerald-500/40 text-emerald-200';
       case 'trend':
-        return 'bg-blue-500/15 border-blue-500/40 text-blue-200';
+        return 'bg-telemetry-card border-blue-500/40 text-blue-200';
       case 'alert':
       default:
-        return 'bg-purple-500/15 border-purple-500/40 text-purple-200';
+        return 'bg-telemetry-card border-purple-500/40 text-purple-200';
     }
   };
 

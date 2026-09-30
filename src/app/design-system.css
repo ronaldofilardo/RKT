@@ -4,9 +4,6 @@
  * @see https://airtable.com/design
  */
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 :root {
   /* ============================================
@@ -132,15 +129,6 @@
  * Base Styles - Airtable Design System
  * ============================================ */
 
-body {
-  font-family: var(--font-body);
-  color: var(--fg);
-  background-color: var(--bg);
-  line-height: var(--leading-body);
-  letter-spacing: 0.08px;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
 
 /* Display / Hero Typography */
 .text-display {

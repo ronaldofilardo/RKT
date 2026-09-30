@@ -96,8 +96,14 @@ export function useScoringLifecycleEffects({
   }, [scoreState?.startedAt, setElapsed]);
 
   useEffect(() => {
-    if (session.pendingEditScore) {
-      setFloorCurrentSets(session.pendingEditScore.floorSets);
+    const isModalParam =
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("modal") === "edit-score";
+
+    if (session.pendingEditScore || isModalParam) {
+      if (session.pendingEditScore?.floorSets) {
+        setFloorCurrentSets(session.pendingEditScore.floorSets);
+      }
       open("edit-score");
     }
   }, [session.pendingEditScore, open, setFloorCurrentSets]);

@@ -160,7 +160,7 @@ export function PointDetailsNotesModal({
                 <div className="flex gap-2 w-full">
                   <button
                     onClick={voiceRecorder.playPreview}
-                    className="flex-1 py-2.5 rounded-xl bg-white/ hover:bg-white/ text-white font-bold transition-all text-sm flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold transition-all text-sm flex items-center justify-center gap-1.5"
                   >
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z" />
@@ -169,7 +169,7 @@ export function PointDetailsNotesModal({
                   </button>
                   <button
                     onClick={voiceRecorder.clear}
-                    className="flex-1 py-2.5 rounded-xl bg-white/ hover:bg-white/ text-telemetry-text-muted font-bold border border-white/10 transition-all text-sm"
+                    className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-telemetry-text-muted font-bold border border-white/10 transition-all text-sm"
                   >
                     Limpar
                   </button>
@@ -189,7 +189,7 @@ export function PointDetailsNotesModal({
           {hasContent && (
             <button
               onClick={handleClear}
-              className="w-full py-2.5 rounded-xl bg-transparent text-telemetry-text-muted font-bold border border-white/10 hover:bg-white/ hover:text-telemetry-text-primary transition-all text-sm"
+              className="w-full py-2.5 rounded-xl bg-transparent text-telemetry-text-muted font-bold border border-white/10 hover:bg-white/10 hover:text-telemetry-text-primary transition-all text-sm"
             >
               Limpar observação
             </button>

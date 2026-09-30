@@ -14,6 +14,9 @@ interface DashboardViewRouterProps {
   handleMatchReport: (m: any) => void;
   handleMatchFinish: (m: any) => void;
   handleMatchDelete: (m: any) => void;
+  handleMatchEditScore?: (m: any) => void;
+  handleMatchResume?: (m: any) => void;
+  handleMatchSetSummary?: (m: any) => void;
 }
 
 export function DashboardViewRouter(props: DashboardViewRouterProps) {
@@ -31,6 +34,9 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
     handleMatchReport,
     handleMatchFinish,
     handleMatchDelete,
+    handleMatchEditScore,
+    handleMatchResume,
+    handleMatchSetSummary,
   } = props;
 
   if (loading) {
@@ -57,7 +63,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
           </button>
         </div>
         {finishedMatches.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">
+          <p className="text-telemetry-text-muted text-center py-8">
             Nenhuma partida anotada encontrada.
           </p>
         ) : (
@@ -89,7 +95,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
           </button>
         </div>
         {liveMatches.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">
+          <p className="text-telemetry-text-muted text-center py-8">
             Nenhuma partida ao vivo no momento.
           </p>
         ) : (
@@ -101,6 +107,9 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
                 onClick={handleMatchClick}
                 onReport={handleMatchReport}
                 onFinish={handleMatchFinish}
+                onEditScore={handleMatchEditScore}
+                onResumeMatch={handleMatchResume}
+                onSetSummary={handleMatchSetSummary}
               />
             ))}
           </div>
@@ -122,7 +131,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
           </button>
         </div>
         {pendingMatches.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">
+          <p className="text-telemetry-text-muted text-center py-8">
             Nenhuma partida agendada aguardando no momento.
           </p>
         ) : (
@@ -154,7 +163,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
           </button>
         </div>
         {historyMatches.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">
+          <p className="text-telemetry-text-muted text-center py-8">
             Nenhuma partida no histórico.
           </p>
         ) : (
@@ -189,6 +198,9 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
                   match={m}
                   onClick={handleMatchClick}
                   onReport={handleMatchReport}
+                  onEditScore={handleMatchEditScore}
+                  onResumeMatch={handleMatchResume}
+                  onSetSummary={handleMatchSetSummary}
                 />
               ))}
             </div>
@@ -196,7 +208,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
         )}
         <div className="space-y-3">
           {visibleMatches.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">
+            <p className="text-telemetry-text-muted text-center py-8">
               Nenhuma partida encontrada.
             </p>
           ) : (
@@ -208,6 +220,9 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
                 onReport={handleMatchReport}
                 onFinish={handleMatchFinish}
                 onDelete={handleMatchDelete}
+                onEditScore={handleMatchEditScore}
+                onResumeMatch={handleMatchResume}
+                onSetSummary={handleMatchSetSummary}
               />
             ))
           )}

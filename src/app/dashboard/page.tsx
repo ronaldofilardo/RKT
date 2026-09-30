@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import { useSession } from "@/contexts/SessionContext";
@@ -19,6 +19,7 @@ import { DashboardTopBar } from "./components/DashboardTopBar";
 import { DashboardSidebar } from "./components/DashboardSidebar";
 import { DashboardViewRouter } from "./components/DashboardViewRouter";
 import { ServerSelectionModal } from "@/app/match/new/components/ServerSelectionModal";
+import { SetSummaryModal } from "@/components/scoring/SetSummaryModal";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -27,6 +28,8 @@ export default function DashboardPage() {
   const { setSession, setPendingEdit } = useSession();
   const [selectedMatchForServer, setSelectedMatchForServer] = useState<any | null>(null);
   const [startingMatch, setStartingMatch] = useState(false);
+  const [setSummaryMatch, setSetSummaryMatch] = useState<any | null>(null);
+  const [setSummaryTimelinePoints, setSetSummaryTimelinePoints] = useState<any[]>([]);
 
   logger.info("[DashboardPage] mount pathname=", pathname, "menuOpen=", false);
 
@@ -79,13 +82,69 @@ export default function DashboardPage() {
     if (match.state === "FINISHED") {
       router.push(`/match/${match.id}/report`);
     } else if (match.suspendedSessionId || match.matchStateSnapshot) {
-      handleResumeSuspended(match);
+      handleResumeSuspended(match, { openEditModal: false });
     } else if (match.state === "SCHEDULED" || !match.initialServerId) {
       setSelectedMatchForServer(match);
     } else {
       router.push(`/match/${match.id}/scoring`);
     }
   }, [router, handleResumeSuspended]);
+
+  const handleMatchResume = useCallback((match: any) => {
+    logger.info("[DashboardPage] resume match directly", match.id);
+    if (match.suspendedSessionId || match.matchStateSnapshot) {
+      handleResumeSuspended(match, { openEditModal: false });
+    } else {
+      router.push(`/match/${match.id}/scoring`);
+    }
+  }, [router, handleResumeSuspended]);
+
+  const handleMatchEditScore = useCallback((match: any) => {
+    logger.info("[DashboardPage] edit score match", match.id);
+    if (match.suspendedSessionId || match.matchStateSnapshot) {
+      handleResumeSuspended(match, { openEditModal: true });
+    } else {
+      router.push(`/match/${match.id}/scoring?modal=edit-score`);
+    }
+  }, [router, handleResumeSuspended]);
+
+  const handleMatchSetSummary = useCallback(async (match: any) => {
+    logger.info("[DashboardPage] open set summary", match.id);
+    setSetSummaryMatch(match);
+    setSetSummaryTimelinePoints([]);
+    try {
+      const accessToken = sessionStorage.getItem("access_token");
+      const res = await fetch(`/api/matches/${match.id}/report`, {
+        headers: accessToken ? { authorization: `Bearer ${accessToken}` } : {},
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.timelinePoints)) {
+          setSetSummaryTimelinePoints(data.timelinePoints);
+        }
+      }
+    } catch (err) {
+      logger.error("[DashboardPage] Erro ao buscar pontos para análise do set", err);
+    }
+  }, []);
+
+  const completedSetsCount = useMemo(() => {
+    if (!setSummaryMatch?.scoreState?.sets) return 1;
+    const sets = setSummaryMatch.scoreState.sets;
+    const count = sets.filter((s: any) => {
+      return (s.player1 >= 6 || s.player2 >= 6) && Math.abs(s.player1 - s.player2) >= 2 || s.isTiebreak || s.tiebreakScore;
+    }).length;
+    return count || sets.length || 1;
+  }, [setSummaryMatch]);
+
+  const completedSetsData = useMemo(() => {
+    if (!setSummaryMatch?.scoreState?.sets) return [];
+    return setSummaryMatch.scoreState.sets.map((s: any) => ({
+      games: { player1: s.player1 ?? 0, player2: s.player2 ?? 0 },
+      winner: (s.player1 > s.player2 ? 'player1' : 'player2') as 'player1' | 'player2',
+      tiebreakScore: s.tiebreakScore ?? undefined,
+    }));
+  }, [setSummaryMatch]);
 
   const handleSelectServer = async (serverId: string) => {
     if (!selectedMatchForServer) return;
@@ -184,6 +243,9 @@ export default function DashboardPage() {
           handleMatchReport={handleMatchReport}
           handleMatchFinish={handleMatchFinish}
           handleMatchDelete={handleMatchDelete}
+          handleMatchEditScore={handleMatchEditScore}
+          handleMatchResume={handleMatchResume}
+          handleMatchSetSummary={handleMatchSetSummary}
         />
       </main>
 
@@ -228,6 +290,25 @@ export default function DashboardPage() {
           startingMatch={startingMatch}
           onSelectServer={handleSelectServer}
           onClose={() => setSelectedMatchForServer(null)}
+        />
+      )}
+
+      {setSummaryMatch && (
+        <SetSummaryModal
+          isOpen={Boolean(setSummaryMatch)}
+          onClose={() => setSetSummaryMatch(null)}
+          onResumeMatch={() => {
+            const m = setSummaryMatch;
+            setSetSummaryMatch(null);
+            handleMatchResume(m);
+          }}
+          timelinePoints={setSummaryTimelinePoints}
+          player1Name={setSummaryMatch.player1?.name ?? "Jogador 1"}
+          player2Name={setSummaryMatch.player2?.name ?? "Jogador 2"}
+          initialSetNumber={completedSetsCount || 1}
+          completedSetsCount={completedSetsCount}
+          isMatchFinished={setSummaryMatch.state === "FINISHED"}
+          completedSetsData={completedSetsData}
         />
       )}
     </div>

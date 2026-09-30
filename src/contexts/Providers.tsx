@@ -1,11 +1,14 @@
 'use client';
 
 import { SessionProvider } from './SessionContext';
+import { ThemeProvider } from './ThemeContext';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider>
-      {children}
-    </SessionProvider>
+    <ThemeProvider>
+      <SessionProvider>
+        {children}
+      </SessionProvider>
+    </ThemeProvider>
   );
 }

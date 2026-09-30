@@ -118,30 +118,31 @@ const config: Config = {
           700: '#047857',
         },
         /**
-         * Telemetry Design System (Broadcast-grade)
+         * Telemetry Design System (Broadcast-grade) — Dual Theme (Light & Dark)
          */
         telemetry: {
-          base: '#0A0F1D',
-          card: '#111827',
-          elevated: '#1E293B',
-          active: '#0F172A',
-          volt: '#CCFF00',
+          base: 'rgb(var(--telemetry-base) / <alpha-value>)',
+          card: 'rgb(var(--telemetry-card) / <alpha-value>)',
+          elevated: 'rgb(var(--telemetry-elevated) / <alpha-value>)',
+          active: 'rgb(var(--telemetry-active) / <alpha-value>)',
+          border: 'rgb(var(--telemetry-border) / <alpha-value>)',
+          volt: 'rgb(var(--telemetry-volt) / <alpha-value>)',
           blue: {
-            DEFAULT: '#2563EB',
-            light: '#3B82F6',
+            DEFAULT: 'rgb(var(--telemetry-blue) / <alpha-value>)',
+            light: 'rgb(var(--telemetry-blue-light) / <alpha-value>)',
           },
           orange: {
-            DEFAULT: '#EA580C',
-            light: '#E25822',
+            DEFAULT: 'rgb(var(--telemetry-orange) / <alpha-value>)',
+            light: 'rgb(var(--telemetry-orange-light) / <alpha-value>)',
           },
-          error: '#EF4444',
+          error: 'rgb(var(--telemetry-error) / <alpha-value>)',
           alert: {
-            DEFAULT: '#F59E0B',
-            light: '#FBBF24',
+            DEFAULT: 'rgb(var(--telemetry-alert) / <alpha-value>)',
+            light: 'rgb(var(--telemetry-alert-light) / <alpha-value>)',
           },
           text: {
-            primary: '#F8FAFC',
-            muted: '#94A3B8',
+            primary: 'rgb(var(--telemetry-text-primary) / <alpha-value>)',
+            muted: 'rgb(var(--telemetry-text-muted) / <alpha-value>)',
           }
         },
       },

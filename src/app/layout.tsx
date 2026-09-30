@@ -13,11 +13,16 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#0A0F1D' },
+    { media: '(prefers-color-scheme: light)', color: '#F1F5F9' },
+  ],
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
+  colorScheme: 'light dark',
 };
 
 export default function RootLayout({
@@ -27,7 +32,27 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning className={`${inter.variable} ${spaceGrotesk.variable}`}>
-      <body className={`font-geist antialiased bg-telemetry-base text-telemetry-text-primary`}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var p = localStorage.getItem('rkt_theme_preference');
+                  if (p === 'light') {
+                    document.documentElement.classList.add('light');
+                    document.documentElement.setAttribute('data-theme', 'light');
+                  } else if (p === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className="font-geist antialiased bg-telemetry-base text-telemetry-text-primary">
         <ToastProvider>
           <Providers>{children}</Providers>
         </ToastProvider>

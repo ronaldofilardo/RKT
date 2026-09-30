@@ -1,38 +1,223 @@
+@import './design-system.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import './design-system.css' layer(base);
+/* ==========================================================================
+   TELEMETRY DESIGN SYSTEM — DUAL THEME TOKENS (LIGHT & DARK)
+   ========================================================================== */
 
-/* Legacy tokens - kept for compatibility, mapped to Airtable Design System */
+/* 1. Default Tokens: DARK THEME (Identidade Telemetria Broadcast) */
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 248, 250, 252;
-  --background-end-rgb: 255, 255, 255;
+  color-scheme: dark;
+
+  /* Telemetry RGB channels (space-separated for Tailwind opacity modifier support) */
+  --telemetry-base: 10 15 29;           /* #0A0F1D */
+  --telemetry-card: 17 24 39;           /* #111827 */
+  --telemetry-elevated: 30 41 59;       /* #1E293B */
+  --telemetry-active: 15 23 42;         /* #0F172A */
+  --telemetry-border: 255 255 255;      /* Usado com opacidade (ex: 10%) */
+  --telemetry-text-primary: 248 250 252;/* #F8FAFC */
+  --telemetry-text-muted: 148 163 184;  /* #94A3B8 */
+  --telemetry-volt: 204 255 0;          /* #CCFF00 - Neon volt broadcast */
+  --telemetry-blue: 37 99 235;          /* #2563EB */
+  --telemetry-blue-light: 59 130 246;   /* #3B82F6 */
+  --telemetry-orange: 234 88 12;        /* #EA580C */
+  --telemetry-orange-light: 226 88 34;  /* #E25822 */
+  --telemetry-error: 239 68 68;         /* #EF4444 */
+  --telemetry-alert: 245 158 11;        /* #F59E0B */
+  --telemetry-alert-light: 251 191 36;  /* #FBBF24 */
+
+  /* Legacy & utility vars */
+  --foreground-rgb: 248, 250, 252;
+  --background-start-rgb: 10, 15, 29;
+  --background-end-rgb: 17, 24, 39;
   --court-surface: #1e293b;
   --font-main: Inter, system-ui, -apple-system, sans-serif;
   --sb-scale: 1;
   --clr-yellow: #f59e0b;
   --clr-yellow-glow: rgba(251, 191, 36, 0.15);
+
+  --body-bg: #0A0F1D;
+  --body-fg: #F8FAFC;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 15, 23, 42;
-    --background-end-rgb: 30, 41, 59;
+/* 2. Dispositivo com Tema Claro (prefers-color-scheme: light) */
+@media (prefers-color-scheme: light) {
+  :root:not(.dark):not([data-theme="dark"]) {
+    color-scheme: light;
+
+    --telemetry-base: 241 245 249;          /* #F1F5F9 - Canvas neutro e limpo */
+    --telemetry-card: 255 255 255;          /* #FFFFFF - Superfície de card branca */
+    --telemetry-elevated: 248 250 252;      /* #F8FAFC - Superfície elevada suave */
+    --telemetry-active: 226 232 240;        /* #E2E8F0 - Estado ativo / hover / tab */
+    --telemetry-border: 15 23 42;           /* Usado com opacidade (ex: 8% ~ 10%) */
+    --telemetry-text-primary: 15 23 42;     /* #0F172A - Texto primário de alto contraste */
+    --telemetry-text-muted: 100 116 139;    /* #64748B - Texto secundário / metadados (WCAG AA) */
+    --telemetry-volt: 101 163 13;           /* #65A30D - Verde limão tênis legível no claro */
+    --telemetry-blue: 37 99 235;            /* #2563EB - Azul primário */
+    --telemetry-blue-light: 59 130 246;     /* #3B82F6 */
+    --telemetry-orange: 234 88 12;          /* #EA580C - Laranja saibro */
+    --telemetry-orange-light: 226 88 34;    /* #E25822 */
+    --telemetry-error: 220 38 38;           /* #DC2626 - Vermelho de erro */
+    --telemetry-alert: 217 119 6;           /* #D97706 - Âmbar de alerta */
+    --telemetry-alert-light: 245 158 11;    /* #F59E0B */
+
+    --foreground-rgb: 15, 23, 42;
+    --background-start-rgb: 241, 245, 249;
+    --background-end-rgb: 226, 232, 240;
+    --court-surface: #e2e8f0;
+    --clr-yellow: #d97706;
+    --clr-yellow-glow: rgba(217, 119, 6, 0.15);
+
+    --body-bg: #F1F5F9;
+    --body-fg: #0F172A;
   }
 }
 
+/* 3. Forçamento Explícito: .dark ou [data-theme="dark"] */
+.dark, [data-theme="dark"] {
+  color-scheme: dark;
+
+  --telemetry-base: 10 15 29;
+  --telemetry-card: 17 24 39;
+  --telemetry-elevated: 30 41 59;
+  --telemetry-active: 15 23 42;
+  --telemetry-border: 255 255 255;
+  --telemetry-text-primary: 248 250 252;
+  --telemetry-text-muted: 148 163 184;
+  --telemetry-volt: 204 255 0;
+  --telemetry-blue: 37 99 235;
+  --telemetry-blue-light: 59 130 246;
+  --telemetry-orange: 234 88 12;
+  --telemetry-orange-light: 226 88 34;
+  --telemetry-error: 239 68 68;
+  --telemetry-alert: 245 158 11;
+  --telemetry-alert-light: 251 191 36;
+
+  --foreground-rgb: 248, 250, 252;
+  --background-start-rgb: 10, 15, 29;
+  --background-end-rgb: 17, 24, 39;
+  --court-surface: #1e293b;
+  --clr-yellow: #f59e0b;
+  --clr-yellow-glow: rgba(251, 191, 36, 0.15);
+
+  --body-bg: #0A0F1D;
+  --body-fg: #F8FAFC;
+}
+
+/* 4. Forçamento Explícito: .light ou [data-theme="light"] */
+.light, [data-theme="light"] {
+  color-scheme: light;
+
+  --telemetry-base: 241 245 249;
+  --telemetry-card: 255 255 255;
+  --telemetry-elevated: 248 250 252;
+  --telemetry-active: 226 232 240;
+  --telemetry-border: 15 23 42;
+  --telemetry-text-primary: 15 23 42;
+  --telemetry-text-muted: 100 116 139;
+  --telemetry-volt: 101 163 13;
+  --telemetry-blue: 37 99 235;
+  --telemetry-blue-light: 59 130 246;
+  --telemetry-orange: 234 88 12;
+  --telemetry-orange-light: 226 88 34;
+  --telemetry-error: 220 38 38;
+  --telemetry-alert: 217 119 6;
+  --telemetry-alert-light: 245 158 11;
+
+  --foreground-rgb: 15, 23, 42;
+  --background-start-rgb: 241, 245, 249;
+  --background-end-rgb: 226, 232, 240;
+  --court-surface: #e2e8f0;
+  --clr-yellow: #d97706;
+  --clr-yellow-glow: rgba(217, 119, 6, 0.15);
+
+  --body-bg: #F1F5F9;
+  --body-fg: #0F172A;
+}
+
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  color: var(--body-fg);
+  background-color: var(--body-bg);
   overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ==========================================================================
+   ADAPTAÇÃO DE BORDAS E TRANSLUCIDÊNCIA NO TEMA CLARO
+   ========================================================================== */
+@media (prefers-color-scheme: light) {
+  :root:not(.dark):not([data-theme="dark"]) .border-white\/10:not(.dark *):not([data-theme="dark"] *),
+  :root:not(.dark):not([data-theme="dark"]) .border-white\/15:not(.dark *):not([data-theme="dark"] *),
+  :root:not(.dark):not([data-theme="dark"]) .border-white\/20:not(.dark *):not([data-theme="dark"] *) {
+    border-color: rgba(15, 23, 42, 0.09);
+  }
+  :root:not(.dark):not([data-theme="dark"]) .border-white\/5:not(.dark *):not([data-theme="dark"] *) {
+    border-color: rgba(15, 23, 42, 0.05);
+  }
+  :root:not(.dark):not([data-theme="dark"]) .bg-white\/5:not(.dark *):not([data-theme="dark"] *),
+  :root:not(.dark):not([data-theme="dark"]) .bg-white\/10:not(.dark *):not([data-theme="dark"] *) {
+    background-color: rgba(15, 23, 42, 0.04);
+  }
+  :root:not(.dark):not([data-theme="dark"]) .hover\:bg-white\/5:hover:not(.dark *):not([data-theme="dark"] *),
+  :root:not(.dark):not([data-theme="dark"]) .hover\:bg-white\/10:hover:not(.dark *):not([data-theme="dark"] *) {
+    background-color: rgba(15, 23, 42, 0.06);
+  }
+  :root:not(.dark):not([data-theme="dark"]) .divide-white\/5 > :not([hidden]) ~ :not([hidden]) {
+    border-color: rgba(15, 23, 42, 0.06);
+  }
+}
+
+.dark .border-white\/10,
+.dark .border-white\/15,
+.dark .border-white\/20,
+[data-theme="dark"] .border-white\/10,
+[data-theme="dark"] .border-white\/15,
+[data-theme="dark"] .border-white\/20 {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.dark .border-white\/5,
+[data-theme="dark"] .border-white\/5 {
+  border-color: rgba(255, 255, 255, 0.05);
+}
+.dark .bg-white\/5,
+[data-theme="dark"] .bg-white\/5 {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.dark .bg-white\/10,
+[data-theme="dark"] .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.light .border-white\/10,
+.light .border-white\/15,
+.light .border-white\/20,
+[data-theme="light"] .border-white\/10,
+[data-theme="light"] .border-white\/15,
+[data-theme="light"] .border-white\/20 {
+  border-color: rgba(15, 23, 42, 0.09);
+}
+.light .border-white\/5,
+[data-theme="light"] .border-white\/5 {
+  border-color: rgba(15, 23, 42, 0.05);
+}
+.light .bg-white\/5,
+.light .bg-white\/10,
+[data-theme="light"] .bg-white\/5,
+[data-theme="light"] .bg-white\/10 {
+  background-color: rgba(15, 23, 42, 0.04);
+}
+.light .hover\:bg-white\/5:hover,
+.light .hover\:bg-white\/10:hover,
+[data-theme="light"] .hover\:bg-white\/5:hover,
+[data-theme="light"] .hover\:bg-white\/10:hover {
+  background-color: rgba(15, 23, 42, 0.06);
+}
+.light .divide-white\/5 > :not([hidden]) ~ :not([hidden]),
+[data-theme="light"] .divide-white\/5 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(15, 23, 42, 0.06);
 }
 
 /* Safe area support for notched devices */

@@ -40,7 +40,7 @@ export function PointDetailsCloseDialog({
           </button>
           <button
             onClick={onClose}
-            className="w-full py-2.5 rounded-xl bg-white/ text-telemetry-text-muted font-bold border border-white/10 hover:bg-white/ hover:text-white transition-all text-sm"
+            className="w-full py-2.5 rounded-xl bg-white/5 text-telemetry-text-muted font-bold border border-white/10 hover:bg-white/10 hover:text-white transition-all text-sm"
           >
             Continuar preenchendo
           </button>

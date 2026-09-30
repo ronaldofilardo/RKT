@@ -107,7 +107,7 @@ function ReportHeader({ report, onContinue, onDashboard, onExport }: { report: R
         <div className="flex gap-3">
           {report.state !== 'FINISHED' && <button onClick={onContinue} className="px-4 py-2 bg-telemetry-blue hover:opacity-90 text-white font-semibold rounded-xl text-sm transition-opacity shadow-sm">Continuar Anotação</button>}
           <button onClick={onExport} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm transition-opacity shadow-sm">Exportar CSV</button>
-          <button onClick={onDashboard} className="px-4 py-2 bg-transparent border border-white/10 hover:bg-white/ text-telemetry-text-primary font-semibold rounded-xl text-sm transition-colors">← Dashboard</button>
+          <button onClick={onDashboard} className="px-4 py-2 bg-transparent border border-white/10 hover:bg-white/5 text-telemetry-text-primary font-semibold rounded-xl text-sm transition-colors">← Dashboard</button>
         </div>
       </div>
     </header>

@@ -81,7 +81,7 @@ export function AthleteDropdown({
               >
                 <span className="font-medium text-telemetry-text-primary">{a.name}</span>
                 {a.ranking && (
-                  <span className="text-xs text-telemetry-text-muted bg-white/ px-2 py-0.5 rounded-full border border-white/10">
+                  <span className="text-xs text-telemetry-text-muted bg-white/5 px-2 py-0.5 rounded-full border border-white/10">
                     #{a.ranking}
                   </span>
                 )}

@@ -14,15 +14,15 @@ interface MatchStatusBadgeProps {
 }
 
 export function MatchStatusBadge({ isSuspended, state }: MatchStatusBadgeProps) {
-  let badgeStyle = "bg-sky-500/20 text-sky-300 border border-sky-500/30";
+  let badgeStyle = "bg-sky-500/15 text-sky-800 dark:text-sky-300 border border-sky-500/30";
   if (isSuspended) {
-    badgeStyle = "bg-amber-500/20 text-amber-300 border border-amber-500/30";
+    badgeStyle = "bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30";
   } else if (state === "FINISHED") {
-    badgeStyle = "bg-slate-700/50 text-slate-200 border border-white/10";
+    badgeStyle = "bg-slate-200 text-slate-800 dark:bg-slate-700/50 dark:text-slate-200 border border-slate-300 dark:border-white/10";
   } else if (state === "SCHEDULED") {
-    badgeStyle = "bg-purple-500/20 text-purple-300 border border-purple-500/30";
+    badgeStyle = "bg-purple-500/15 text-purple-800 dark:text-purple-300 border border-purple-500/30";
   } else if (state === "IN_PROGRESS") {
-    badgeStyle = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+    badgeStyle = "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30";
   }
 
   return (
@@ -48,7 +48,7 @@ export function MatchActions({ match, onReport, onFinish, onDelete }: MatchActio
             e.stopPropagation();
             onReport(match);
           }}
-          className="p-1 rounded text-xs text-slate-300 hover:text-blue-400 hover:bg-white/5 transition-colors"
+          className="p-1 rounded text-xs text-telemetry-text-muted hover:text-telemetry-blue hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           title="Ver relatório"
           aria-label="Ver relatório"
         >
@@ -61,7 +61,7 @@ export function MatchActions({ match, onReport, onFinish, onDelete }: MatchActio
             e.stopPropagation();
             onFinish(match);
           }}
-          className="p-1 rounded text-xs font-bold text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 transition-colors"
+          className="p-1 rounded text-xs font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 hover:bg-emerald-500/10 transition-colors"
           title="Encerrar partida"
           aria-label="Encerrar partida"
         >
@@ -74,7 +74,7 @@ export function MatchActions({ match, onReport, onFinish, onDelete }: MatchActio
             e.stopPropagation();
             onDelete(match);
           }}
-          className="p-1 rounded text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+          className="p-1 rounded text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-500/10 transition-colors"
           title="Excluir partida"
           aria-label="Excluir partida"
         >
@@ -91,7 +91,7 @@ interface FormatLabelProps {
 
 export function FormatLabel({ format }: FormatLabelProps) {
   return (
-    <span className="text-xs text-slate-200 font-medium">
+    <span className="text-xs text-telemetry-text-muted font-medium">
       Modo de jogo: {getFormatLabel(format)}
     </span>
   );
@@ -105,11 +105,11 @@ interface ScoreDisplayProps {
 
 export function ScoreDisplay({ scoreState, format, isSuspended }: ScoreDisplayProps) {
   const isMatchTiebreak = format === 'MATCH_TB_10' || format === 'BEST_OF_3_MATCH_TB';
-  const textColor = isSuspended ? 'text-amber-300' : 'text-slate-100';
+  const textColor = isSuspended ? 'text-amber-700 dark:text-amber-300' : 'text-telemetry-text-primary';
 
   if (!scoreState?.sets || scoreState.sets.length === 0) {
     return (
-      <div className="grid grid-cols-[1.5rem_2.5rem] gap-x-1 text-[10px] text-slate-300">
+      <div className="grid grid-cols-[1.5rem_2.5rem] gap-x-1 text-[10px] text-telemetry-text-muted">
         <span></span>
         <span className="text-center">Pontos</span>
       </div>
@@ -125,17 +125,17 @@ export function ScoreDisplay({ scoreState, format, isSuspended }: ScoreDisplayPr
         rowGap: '0.125rem',
       }}
     >
-      <span className="text-[10px] text-slate-300 text-center" style={{ gridColumn: `1 / ${scoreState.sets.length + 1}` }}>
+      <span className="text-[10px] text-telemetry-text-muted text-center" style={{ gridColumn: `1 / ${scoreState.sets.length + 1}` }}>
         Sets
       </span>
       <span></span>
 
       {scoreState.sets.map((_: any, idx: number) => (
-        <span key={idx} className="text-[10px] text-slate-300 text-center">
+        <span key={idx} className="text-[10px] text-telemetry-text-muted text-center">
           {idx + 1}
         </span>
       ))}
-      <span className="text-[10px] text-slate-300 text-center">Pontos</span>
+      <span className="text-[10px] text-telemetry-text-muted text-center">Pontos</span>
 
       {scoreState.sets.map((s: any, idx: number) => {
         let displayScore = s.player1 ?? 0;

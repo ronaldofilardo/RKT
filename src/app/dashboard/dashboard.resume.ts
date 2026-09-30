@@ -11,8 +11,9 @@ interface ResumeSessionOptions {
 export function useResumeSession(options: ResumeSessionOptions) {
   const { router, setSession, setPendingEdit } = options;
 
-  const handleResumeSuspended = (match: any) => {
+  const handleResumeSuspended = (match: any, resumeOptions?: { openEditModal?: boolean }) => {
     try {
+      const shouldOpenEditModal = resumeOptions?.openEditModal ?? true;
       const isRealSuspendedSession = Boolean(
       match.matchStateSnapshot && match.suspendedSessionId
     );
@@ -76,7 +77,7 @@ export function useResumeSession(options: ResumeSessionOptions) {
       suspendedSessionId: match.suspendedSessionId ?? null,
     });
 
-    if (scoreState) {
+    if (scoreState && shouldOpenEditModal) {
       setPendingEdit(scoreState, floorSets);
     }
 
@@ -110,7 +111,10 @@ export function useResumeSession(options: ResumeSessionOptions) {
       `suspended_session_${match.id}`,
       JSON.stringify(sessionStorageData)
     );
-    router.push(`/match/${match.id}/scoring`);
+    const targetUrl = shouldOpenEditModal
+      ? `/match/${match.id}/scoring?modal=edit-score`
+      : `/match/${match.id}/scoring`;
+    router.push(targetUrl);
     } catch (err) {
       console.error('[handleResumeSuspended] ERROR:', err);
     }

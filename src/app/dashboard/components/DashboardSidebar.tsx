@@ -1,4 +1,5 @@
 import { logger } from "@/lib/logger";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface MenuItem {
   emoji: string;
@@ -23,7 +24,7 @@ export function DashboardSidebar({ menuOpen, setMenuOpen, menuItems }: Dashboard
         aria-hidden="true"
       />
       <nav
-        className="relative z-[70] bg-telemetry-card w-72 max-w-full h-full shadow-xl flex flex-col p-4 select-none border-r border-white/10"
+        className="relative z-[70] bg-telemetry-card w-72 max-w-full h-full shadow-xl flex flex-col p-4 select-none border-r border-telemetry-border/10"
         aria-label="Menu"
       >
         <div className="flex items-center justify-between mb-4">
@@ -71,6 +72,12 @@ export function DashboardSidebar({ menuOpen, setMenuOpen, menuItems }: Dashboard
             </li>
           ))}
         </ul>
+        <div className="pt-4 mt-auto border-t border-telemetry-border/10">
+          <span className="block text-xs font-semibold text-telemetry-text-muted uppercase mb-2">
+            Tema
+          </span>
+          <ThemeToggle fullWidth />
+        </div>
       </nav>
     </div>
   );

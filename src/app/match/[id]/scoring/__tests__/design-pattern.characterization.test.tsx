@@ -124,6 +124,12 @@ function hasGrayClass(container: HTMLElement): boolean {
   );
 }
 
+function hasSlateOrGrayClass(container: HTMLElement): boolean {
+  return Array.from(container.querySelectorAll("[class]")).some((el) =>
+    /(bg|text|border)-(gray|slate)-[0-9]/.test(el.getAttribute("class") ?? ""),
+  );
+}
+
 // ─── ScoringPage ──────────────────────────────────────────────────────────────
 
 describe("ScoringPage - Design Pattern (telemetry tokens)", () => {
@@ -241,5 +247,104 @@ describe("ScoringPlayArea - Design Pattern (telemetry tokens)", () => {
     expect(setsEl).toBeTruthy();
     expect(setsEl?.className).toContain("text-telemetry-text-muted");
     expect(setsEl?.className).not.toContain("text-gray-400");
+  });
+});
+
+// ─── LiveCountersBar ──────────────────────────────────────────────────────────
+
+describe("LiveCountersBar - Design Pattern (telemetry tokens)", () => {
+  const mockCounters = {
+    aces: { p1: 2, p2: 1 },
+    doubleFaults: { p1: 1, p2: 0 },
+    breakPoints: {
+      p1: { converted: 1, total: 2, pct: 50 },
+      p2: { converted: 0, total: 1, pct: 0 },
+    },
+    breakPointsSaved: {
+      p1: { saved: 1, total: 1, pct: 100 },
+      p2: { saved: 1, total: 2, pct: 50 },
+    },
+    forcedErrors: { p1: 1, p2: 2 },
+    unforcedErrors: { p1: 2, p2: 4 },
+    totalPointsWon: { p1: 10, p2: 8 },
+  };
+
+  it("NAO usa classes slate-* ou gray-*", () => {
+    const { LiveCountersBar } = jest.requireActual("@/components/scoring/LiveCountersBar");
+    const { container } = render(
+      React.createElement(LiveCountersBar, {
+        counters: mockCounters,
+        player1Name: "Carlos Alcaraz",
+        player2Name: "Jannik Sinner",
+      }),
+    );
+    expect(hasSlateOrGrayClass(container)).toBe(false);
+  });
+
+  it("usa tokens bg-telemetry-card e text-telemetry-*", () => {
+    const { LiveCountersBar } = jest.requireActual("@/components/scoring/LiveCountersBar");
+    const { container } = render(
+      React.createElement(LiveCountersBar, {
+        counters: mockCounters,
+        player1Name: "Carlos Alcaraz",
+        player2Name: "Jannik Sinner",
+      }),
+    );
+    const root = container.firstElementChild as HTMLElement;
+    expect(root.className).toContain("bg-telemetry-card");
+    expect(container.querySelector(".text-telemetry-text-primary")).toBeTruthy();
+    expect(container.querySelector(".text-telemetry-text-muted")).toBeTruthy();
+  });
+});
+
+// ─── SetSummaryModal ──────────────────────────────────────────────────────────
+
+describe("SetSummaryModal - Design Pattern (telemetry tokens)", () => {
+  const mockPoints: any[] = [
+    {
+      pointNumber: 1,
+      setNumber: 1,
+      gameNumber: 1,
+      winner: "player1",
+      server: "player1",
+      scoreBefore: "0-0",
+      scoreAfter: "15-0",
+      tags: ["ACE"],
+      rallyLength: 1,
+      gamesScore: { player1: 6, player2: 4 },
+    },
+  ];
+
+  it("NAO usa classes slate-* ou gray-*", () => {
+    const { SetSummaryModal } = jest.requireActual("@/components/scoring/SetSummaryModal");
+    const { container } = render(
+      React.createElement(SetSummaryModal, {
+        isOpen: true,
+        onClose: jest.fn(),
+        timelinePoints: mockPoints,
+        player1Name: "Carlos Alcaraz",
+        player2Name: "Jannik Sinner",
+        completedSetsCount: 1,
+      }),
+    );
+    expect(hasSlateOrGrayClass(container)).toBe(false);
+  });
+
+  it("usa tokens bg-telemetry-elevated e bg-telemetry-card", () => {
+    const { SetSummaryModal } = jest.requireActual("@/components/scoring/SetSummaryModal");
+    const { container } = render(
+      React.createElement(SetSummaryModal, {
+        isOpen: true,
+        onClose: jest.fn(),
+        timelinePoints: mockPoints,
+        player1Name: "Carlos Alcaraz",
+        player2Name: "Jannik Sinner",
+        completedSetsCount: 1,
+      }),
+    );
+    expect(container.querySelector(".bg-telemetry-elevated")).toBeTruthy();
+    expect(container.querySelector(".bg-telemetry-card")).toBeTruthy();
+    expect(container.querySelector(".text-telemetry-text-primary")).toBeTruthy();
+    expect(container.querySelector(".text-telemetry-text-muted")).toBeTruthy();
   });
 });

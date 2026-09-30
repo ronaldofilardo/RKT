@@ -80,7 +80,7 @@ export function AthleteListTable({ athletes, onEditAthlete, onDeleteAthlete }: A
           </thead>
           <tbody className="divide-y divide-white/5">
             {athletes.map((a) => (
-              <tr key={a.id} className="hover:bg-white/ transition-colors">
+              <tr key={a.id} className="hover:bg-white/5 transition-colors">
                 <td className="px-6 py-4">
                   <div className="font-semibold text-telemetry-text-primary">{a.name}</div>
                 </td>
@@ -88,7 +88,7 @@ export function AthleteListTable({ athletes, onEditAthlete, onDeleteAthlete }: A
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border border-white/5 ${
                     a.gender === 'MALE' ? 'bg-telemetry-blue/20 text-telemetry-blue' :
                     a.gender === 'FEMALE' ? 'bg-pink-500/20 text-pink-400' :
-                    'bg-white/ text-telemetry-text-muted'
+                    'bg-white/5 text-telemetry-text-muted'
                   }`}>
                     {a.gender === 'MALE' ? 'M' : a.gender === 'FEMALE' ? 'F' : '-'}
                   </span>

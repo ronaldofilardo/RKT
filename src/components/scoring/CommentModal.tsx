@@ -52,7 +52,7 @@ function CommentTextInput({ textareaRef, text, maxChars, onChange }: CommentText
         placeholder="Ex: mudança de estratégia, condição do jogador, etc."
         maxLength={maxChars}
         rows={4}
-        className="w-full px-3 py-2 rounded-xl bg-white/ border border-white/15 text-white placeholder-telemetry-text-muted/50 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/15 text-white placeholder-telemetry-text-muted/50 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
       />
       <p className="text-telemetry-text-muted text-xs text-right mt-1">{text.length}/{maxChars}</p>
     </div>
@@ -115,7 +115,7 @@ function CommentVoiceRecorderView({ recorder }: CommentVoiceRecorderViewProps) {
           <div className="flex gap-2 w-full">
             <button
               onClick={recorder.playPreview}
-              className="flex-1 py-2.5 rounded-xl bg-white/ hover:bg-white/ text-white font-bold transition-all text-sm flex items-center justify-center gap-1.5"
+              className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold transition-all text-sm flex items-center justify-center gap-1.5"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
@@ -124,7 +124,7 @@ function CommentVoiceRecorderView({ recorder }: CommentVoiceRecorderViewProps) {
             </button>
             <button
               onClick={recorder.clear}
-              className="flex-1 py-2.5 rounded-xl bg-white/ hover:bg-white/ text-telemetry-text-muted font-bold border border-white/10 transition-all text-sm"
+              className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-telemetry-text-muted font-bold border border-white/10 transition-all text-sm"
             >
               Limpar
             </button>
@@ -227,7 +227,7 @@ export function CommentModal({
         <h3 className="text-white font-bold text-center text-lg mb-1">{title}</h3>
         <p className="text-telemetry-text-muted text-center text-sm mb-4">Registe um comentário sobre a partida</p>
 
-        <div className="flex rounded-xl bg-white/ border border-white/10 p-0.5 mb-4">
+        <div className="flex rounded-xl bg-white/5 border border-white/10 p-0.5 mb-4">
           <button
             onClick={() => notes.setMode('text')}
             className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
@@ -279,7 +279,7 @@ export function CommentModal({
             className={`w-full py-2.5 rounded-xl bg-transparent font-bold border border-white/10 transition-all text-sm ${
               isSubmitting
                 ? 'text-telemetry-text-muted border-white/5 cursor-not-allowed'
-                : 'text-telemetry-text-muted hover:bg-white/ hover:text-white'
+                : 'text-telemetry-text-muted hover:bg-white/10 hover:text-white'
             }`}
           >
             Cancelar

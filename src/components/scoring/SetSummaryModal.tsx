@@ -8,6 +8,7 @@ import { GameErrorsHistogram } from './GameErrorsHistogram';
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  onResumeMatch?: () => void;
   timelinePoints: TimelinePoint[];
   player1Name: string;
   player2Name: string;
@@ -44,19 +45,19 @@ function StatBarBilateral({
     <div className="py-2 border-b border-white/5 last:border-0">
       <div className="flex justify-between items-center text-xs mb-1">
         <span className="font-mono font-bold text-telemetry-blue">{p1Label}</span>
-        <span className="text-[11px] font-medium text-slate-300 uppercase tracking-wider">{label}</span>
+        <span className="text-[11px] font-medium text-telemetry-text-muted uppercase tracking-wider">{label}</span>
         <span className="font-mono font-bold text-telemetry-error">{p2Label}</span>
       </div>
       <div className="grid grid-cols-2 gap-2 h-2">
         {/* Barra P1 (preenche da direita para a esquerda) */}
-        <div className="flex justify-end bg-white/5 rounded-full overflow-hidden">
+        <div className="flex justify-end bg-telemetry-elevated rounded-full overflow-hidden">
           <div
             className="h-full bg-telemetry-blue rounded-full transition-all duration-300"
             style={{ width: `${p1Width}%` }}
           />
         </div>
         {/* Barra P2 (preenche da esquerda para a direita) */}
-        <div className="flex justify-start bg-white/5 rounded-full overflow-hidden">
+        <div className="flex justify-start bg-telemetry-elevated rounded-full overflow-hidden">
           <div
             className="h-full bg-telemetry-error rounded-full transition-all duration-300"
             style={{ width: `${p2Width}%` }}
@@ -70,6 +71,7 @@ function StatBarBilateral({
 export function SetSummaryModal({
   isOpen,
   onClose,
+  onResumeMatch,
   timelinePoints,
   player1Name,
   player2Name,
@@ -129,12 +131,12 @@ export function SetSummaryModal({
                 Análise do Set
               </span>
               {summary.durationMinutes && (
-                <span className="text-xs text-slate-300">
+                <span className="text-xs text-telemetry-text-muted">
                   ⏱ {summary.durationMinutes} min
                 </span>
               )}
             </div>
-            <h2 id="set-summary-title" className="text-lg font-bold text-white mt-1">
+            <h2 id="set-summary-title" className="text-lg font-bold text-telemetry-text-primary mt-1">
               Resumo do {selectedSet}º Set
             </h2>
           </div>
@@ -142,7 +144,7 @@ export function SetSummaryModal({
             type="button"
             onClick={onClose}
             aria-label="Fechar resumo"
-            className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-lg text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-telemetry-elevated transition-colors"
           >
             ✕
           </button>
@@ -158,8 +160,8 @@ export function SetSummaryModal({
                 onClick={() => setSelectedSet(s)}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-t-lg transition-all ${
                   selectedSet === s
-                    ? 'bg-telemetry-card text-white border-t border-x border-white/15 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-telemetry-card text-telemetry-text-primary border-t border-x border-white/15 shadow-sm'
+                    : 'text-telemetry-text-muted hover:text-telemetry-text-primary'
                 }`}
               >
                 Set {s}
@@ -174,31 +176,31 @@ export function SetSummaryModal({
           <div className="bg-telemetry-elevated/60 border border-white/10 rounded-xl p-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-telemetry-blue inline-block" />
-              <span className="font-bold text-sm text-slate-100">{player1Name}</span>
+              <span className="font-bold text-sm text-telemetry-text-primary">{player1Name}</span>
             </div>
             <div className="flex items-center gap-2 text-xl font-mono font-black">
-              <span className={summary.winner === 'player1' ? 'text-telemetry-volt' : 'text-slate-200'}>
+              <span className={summary.winner === 'player1' ? 'text-telemetry-volt' : 'text-telemetry-text-primary'}>
                 {summary.score.player1}
               </span>
-              <span className="text-slate-400 text-sm">×</span>
-              <span className={summary.winner === 'player2' ? 'text-telemetry-volt' : 'text-slate-200'}>
+              <span className="text-telemetry-text-muted text-sm">×</span>
+              <span className={summary.winner === 'player2' ? 'text-telemetry-volt' : 'text-telemetry-text-primary'}>
                 {summary.score.player2}
               </span>
               {summary.score.tiebreakScore && (
-                <span className="text-xs text-slate-400 font-sans ml-1">
+                <span className="text-xs text-telemetry-text-muted font-sans ml-1">
                   ({Math.min(summary.score.tiebreakScore.player1, summary.score.tiebreakScore.player2)})
                 </span>
               )}
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-sm text-slate-100">{player2Name}</span>
+              <span className="font-bold text-sm text-telemetry-text-primary">{player2Name}</span>
               <span className="w-3 h-3 rounded-full bg-telemetry-error inline-block" />
             </div>
           </div>
 
           {/* Seção 1: Saque e Eficiência */}
           <div className="bg-telemetry-elevated/40 border border-white/10 rounded-xl p-3.5 space-y-1">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-telemetry-text-muted mb-2">
               Saque & Eficiência
             </h3>
             <StatBarBilateral
@@ -218,19 +220,19 @@ export function SetSummaryModal({
 
             {/* Aces e Duplas Faltas */}
             <div className="grid grid-cols-2 gap-2 pt-2 mt-2 border-t border-white/5">
-              <div className="bg-white/5 rounded-lg p-2 text-center">
-                <div className="text-[11px] text-slate-400 uppercase font-semibold mb-1">Aces</div>
+              <div className="bg-telemetry-elevated/70 rounded-lg p-2 text-center">
+                <div className="text-[11px] text-telemetry-text-muted uppercase font-semibold mb-1">Aces</div>
                 <div className="flex justify-around items-center font-mono font-bold text-sm">
                   <span className="text-telemetry-blue">{p1.aces}</span>
-                  <span className="text-slate-400 text-xs">vs</span>
+                  <span className="text-telemetry-text-muted text-xs">vs</span>
                   <span className="text-telemetry-error">{p2.aces}</span>
                 </div>
               </div>
-              <div className="bg-white/5 rounded-lg p-2 text-center">
-                <div className="text-[11px] text-slate-400 uppercase font-semibold mb-1">Duplas Faltas</div>
+              <div className="bg-telemetry-elevated/70 rounded-lg p-2 text-center">
+                <div className="text-[11px] text-telemetry-text-muted uppercase font-semibold mb-1">Duplas Faltas</div>
                 <div className="flex justify-around items-center font-mono font-bold text-sm">
                   <span className="text-telemetry-blue">{p1.doubleFaults}</span>
-                  <span className="text-slate-400 text-xs">vs</span>
+                  <span className="text-telemetry-text-muted text-xs">vs</span>
                   <span className="text-telemetry-error">{p2.doubleFaults}</span>
                 </div>
               </div>
@@ -239,12 +241,12 @@ export function SetSummaryModal({
 
           {/* Seção 2: Break Points */}
           <div className="bg-telemetry-elevated/40 border border-white/10 rounded-xl p-3.5 space-y-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-telemetry-text-muted">
               Break Points
             </h3>
             <div className="grid grid-cols-2 gap-2">
-              <div className="bg-white/5 rounded-lg p-2 text-center">
-                <div className="text-[11px] text-slate-400 font-medium mb-1">Convertidos (Devolução)</div>
+              <div className="bg-telemetry-elevated/70 rounded-lg p-2 text-center">
+                <div className="text-[11px] text-telemetry-text-muted font-medium mb-1">Convertidos (Devolução)</div>
                 <div className="flex justify-around items-center font-mono text-xs">
                   <span className="font-bold text-telemetry-blue">
                     {p1.breakPointsConverted}/{p1.breakPointsOpportunities} ({p1.breakPointsConvertedPct}%)
@@ -254,8 +256,8 @@ export function SetSummaryModal({
                   </span>
                 </div>
               </div>
-              <div className="bg-white/5 rounded-lg p-2 text-center">
-                <div className="text-[11px] text-slate-400 font-medium mb-1">Salvos (Saque)</div>
+              <div className="bg-telemetry-elevated/70 rounded-lg p-2 text-center">
+                <div className="text-[11px] text-telemetry-text-muted font-medium mb-1">Salvos (Saque)</div>
                 <div className="flex justify-around items-center font-mono text-xs">
                   <span className="font-bold text-telemetry-blue">
                     {p1.breakPointsSaved}/{p1.breakPointsFaced} ({p1.breakPointsSavedPct}%)
@@ -286,7 +288,7 @@ export function SetSummaryModal({
                 <button
                   type="button"
                   onClick={onViewReport}
-                  className="w-full sm:w-auto px-4 py-2 rounded-xl bg-telemetry-elevated border border-white/20 text-slate-200 hover:text-white hover:bg-white/10 text-xs font-semibold transition-all"
+                  className="w-full sm:w-auto px-4 py-2 rounded-xl bg-telemetry-elevated border border-white/20 text-telemetry-text-primary hover:bg-white/10 text-xs font-semibold transition-all"
                 >
                   Ver Relatório Completo
                 </button>
@@ -304,16 +306,16 @@ export function SetSummaryModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full sm:w-auto px-4 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 text-xs font-semibold transition-all"
+                className="w-full sm:w-auto px-4 py-2 rounded-xl text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/10 text-xs font-semibold transition-all"
               >
                 Fechar
               </button>
               <button
                 type="button"
-                onClick={onClose}
+                onClick={onResumeMatch ?? onClose}
                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-telemetry-volt text-black font-bold text-xs uppercase tracking-wide hover:opacity-90 shadow-lg shadow-telemetry-volt/20 transition-all flex items-center justify-center gap-1.5"
               >
-                {isLastCompletedSet ? `Prosseguir para o Set ${nextSetNumber} →` : 'Continuar Anotação'}
+                {onResumeMatch ? 'Partida →' : (isLastCompletedSet ? `Prosseguir para o Set ${nextSetNumber} →` : 'Continuar Anotação')}
               </button>
             </>
           )}

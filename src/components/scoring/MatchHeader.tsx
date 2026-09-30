@@ -14,6 +14,8 @@ interface MatchHeaderProps {
   format?: string;
 }
 
+import { ThemeToggle } from '@/components/ThemeToggle';
+
 function formatTime(elapsedSeconds: number): string {
   const mins = Math.floor(elapsedSeconds / 60);
   const secs = elapsedSeconds % 60;
@@ -58,10 +60,10 @@ export function MatchHeader({
   const displayElapsed = startedAt ? localElapsed : initialElapsed;
 
   return (
-    <div className="bg-telemetry-elevated border-b border-white/10 px-2 sm:px-4 py-2 sm:py-3 dark:bg-slate-900 dark:border-slate-700">
+    <div className="bg-telemetry-card border-b border-white/10 px-2 sm:px-4 py-2 sm:py-3">
       <div className="flex items-center justify-between gap-1 sm:gap-2">
         {!isFinished && (
-          <button onClick={onClose} className="p-1.5 sm:p-2 text-telemetry-text-muted hover:text-telemetry-text-primary dark:text-telemetry-text-muted dark:hover:text-gray-200 -ml-1.5 sm:-ml-2 min-h-[36px] min-w-[36px] flex items-center justify-center" aria-label="Fechar">
+          <button onClick={onClose} className="p-1.5 sm:p-2 text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/10 rounded-lg transition-colors -ml-1.5 sm:-ml-2 min-h-[36px] min-w-[36px] flex items-center justify-center" aria-label="Fechar">
             <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
@@ -70,18 +72,19 @@ export function MatchHeader({
 
         <div className="flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0">
           {format && (
-            <span className="text-[10px] sm:text-xs font-medium text-telemetry-text-muted dark:text-telemetry-text-muted whitespace-nowrap hidden xs:inline">
-              Modo de jogo: <span className="font-semibold">{getFormatLabel(format)}</span>
+            <span className="text-[10px] sm:text-xs font-medium text-telemetry-text-muted whitespace-nowrap hidden xs:inline">
+              Modo de jogo: <span className="font-semibold text-telemetry-text-primary">{getFormatLabel(format)}</span>
             </span>
           )}
-          <span className="text-[10px] sm:text-xs font-mono font-semibold text-telemetry-text-muted dark:text-telemetry-text-muted whitespace-nowrap">
+          <span className="text-[10px] sm:text-xs font-mono font-semibold text-telemetry-text-muted whitespace-nowrap">
             {formatTime(displayElapsed)}
           </span>
         </div>
 
-        <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+          <ThemeToggle />
           {canEdit && onEditMatch && (
-            <button onClick={onEditMatch} className="p-1.5 sm:p-2 text-telemetry-text-muted hover:text-telemetry-text-primary dark:text-telemetry-text-muted dark:hover:text-gray-200 min-h-[36px] min-w-[36px] flex items-center justify-center" aria-label="Editar partida">
+            <button onClick={onEditMatch} className="p-1.5 sm:p-2 text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/10 rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center" aria-label="Editar partida">
               <svg className="w-3.5 sm:w-4 h-3.5 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -89,10 +92,10 @@ export function MatchHeader({
             </button>
           )}
           {onStats && (
-            <button onClick={onStats} className="p-1.5 sm:p-2 text-telemetry-text-muted hover:text-telemetry-text-primary dark:text-telemetry-text-muted dark:hover:text-gray-200 text-base sm:text-lg leading-none min-h-[36px] min-w-[36px] flex items-center justify-center" aria-label="Estatísticas">≡</button>
+            <button onClick={onStats} className="p-1.5 sm:p-2 text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/10 rounded-lg transition-colors text-base sm:text-lg leading-none min-h-[36px] min-w-[36px] flex items-center justify-center" aria-label="Estatísticas">≡</button>
           )}
           {onTimeline && (
-            <button onClick={onTimeline} className="px-1.5 sm:px-2 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold text-telemetry-blue hover:text-sky-800 bg-sky-50 hover:bg-sky-100 rounded border border-sky-200 min-h-[32px] dark:text-sky-400 dark:hover:text-sky-300 dark:bg-sky-900/20 dark:border-sky-800 dark:hover:bg-sky-900/30">
+            <button onClick={onTimeline} className="px-1.5 sm:px-2 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold text-telemetry-blue bg-telemetry-blue/10 hover:bg-telemetry-blue/20 rounded border border-telemetry-blue/30 min-h-[32px] transition-colors" aria-label="Linha do tempo">
               📊
             </button>
           )}
