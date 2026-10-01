@@ -1,7 +1,7 @@
 import type { AnnotationSession } from "@/schemas/contracts";
 import { logger } from "@/lib/logger";
 
-export interface SessionServiceConfig {
+interface SessionServiceConfig {
   baseUrl: string;
   getToken: () => Promise<string | null>;
 }

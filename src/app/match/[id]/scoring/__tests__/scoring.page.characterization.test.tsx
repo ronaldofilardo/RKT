@@ -100,10 +100,6 @@ jest.mock("@/components/scoring/PlayerCard", () => ({
   ),
 }));
 
-jest.mock("@/components/scoring/VSIndicator", () => ({
-  VSIndicator: () => <div data-testid="vs-indicator" />,
-}));
-
 jest.mock("@/components/scoring/ContextBadges", () => ({
   ContextBadges: () => <div data-testid="context-badges" />,
 }));

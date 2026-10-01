@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "node scripts/run-tests.js --ci",
+    "test:design": "node scripts/run-tests.js --ci \"design-pattern.characterization\" \"dual-theme.characterization\" \"telemetry-integrity\"",
     "test:strict": "pnpm typecheck && node scripts/check-no-skipped-tests.mjs && node scripts/run-tests.js --ci --runInBand",
     "test:watch": "node -e \"process.env.NODE_ENV='test'; require('dotenv').config({path:'.env.test'}); require('jest').run(['--watch'])\"",
     "test:coverage": "node scripts/run-tests.js --ci --coverage --runInBand",

@@ -1,11 +1,13 @@
 /**
  * validate-spec-drift.mjs
  *
- * Valida que os schemas Zod em src/schemas/contracts.ts e as rotas da API
+ * Valida que os schemas Zod em src/schemas/ e as rotas da API
  * em src/app/api/ não sofreram drift (divergência não intencional).
  *
  * O que verifica:
  *  - 10 schemas obrigatórios (MatchSchema, PointFlowInputSchema, etc.)
+ *    definidos em src/schemas/*.ts (contracts.ts é um barrel desde o
+ *    particamento de 2026-09-30, então a checagem varre os módulos de domínio)
  *  - 13 rotas API obrigatórias (/auth/login, /matches/[id]/point, etc.)
  *
  * Uso local:
@@ -22,11 +24,14 @@ import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 
 const ROUTES_DIR = join(process.cwd(), 'src/app/api');
-const CONTRACTS_FILE = join(process.cwd(), 'src/schemas/contracts.ts');
+const SCHEMAS_DIR = join(process.cwd(), 'src/schemas');
 
 console.log('Validating Spec Drift...\n');
 
-const contractsContent = readFileSync(CONTRACTS_FILE, 'utf-8');
+const schemasContent = readdirSync(SCHEMAS_DIR)
+  .filter((name) => name.endsWith('.ts'))
+  .map((name) => readFileSync(join(SCHEMAS_DIR, name), 'utf-8'))
+  .join('\n');
 
 const expectedExports = [
   'MatchSchema',
@@ -44,8 +49,8 @@ const expectedExports = [
 let hasError = false;
 
 for (const exportName of expectedExports) {
-  if (!contractsContent.includes(`export const ${exportName}`)) {
-    console.error(`Schema ausente no contracts.ts: ${exportName}`);
+  if (!schemasContent.includes(`export const ${exportName}`)) {
+    console.error(`Schema ausente em src/schemas/: ${exportName}`);
     hasError = true;
   } else {
     console.log(`ok ${exportName}`);
@@ -95,9 +100,50 @@ for (const route of requiredRoutes) {
   }
 }
 
+// --- Telemetry Design System Guardrails ---
+console.log('\nValidating Telemetry Design System Guardrails...');
+
+const tailwindPath = join(process.cwd(), 'tailwind.config.ts');
+const tailwindContent = readFileSync(tailwindPath, 'utf-8');
+
+if (!tailwindContent.includes('telemetry: {') || !/darkMode:\s*\['class',\s*'\[data-theme="dark"\]'\]/.test(tailwindContent)) {
+  console.error('ERRO: tailwind.config.ts perdeu a configuração do Telemetry Design System ou darkMode.');
+  hasError = true;
+} else {
+  console.log('ok Telemetry Tokens & Dual Theme config');
+}
+
+const playAreaPath = join(process.cwd(), 'src/app/match/[id]/scoring/ScoringPlayArea.tsx');
+const playAreaContent = readFileSync(playAreaPath, 'utf-8');
+
+if (!playAreaContent.includes('<ScoreboardCard') || !playAreaContent.includes('<LiveCountersBar')) {
+  console.error('ERRO: ScoringPlayArea perdeu ScoreboardCard ou LiveCountersBar.');
+  hasError = true;
+} else {
+  console.log('ok ScoringPlayArea hierarchy');
+}
+
+const scoringDir = join(process.cwd(), 'src/components/scoring');
+const forbiddenLegacyFiles = [
+  'ScoreboardCard.view.tsx',
+  'ScoreboardCard.rows.tsx',
+  'PlayerCard.view.tsx',
+];
+
+for (const legacy of forbiddenLegacyFiles) {
+  try {
+    readFileSync(join(scoringDir, legacy));
+    console.error(`ERRO: Arquivo legado ressuscitado detectado: src/components/scoring/${legacy}`);
+    hasError = true;
+  } catch {
+    // Esperado: arquivo não existe
+  }
+}
+
 if (hasError) {
-  console.error('\nSpec Drift detectado! Corrija antes do merge.\n');
+  console.error('\nSpec Drift ou Regressão Visual detectada! Corrija antes do merge.\n');
   process.exit(1);
 } else {
-  console.log('\nNenhum drift detectado. Spec consistente!\n');
+  console.log('\nNenhum drift detectado. Spec e Design System consistentes!\n');
 }
+

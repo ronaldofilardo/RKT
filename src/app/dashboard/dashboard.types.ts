@@ -45,8 +45,3 @@ export interface Athlete {
   rankings?: Record<string, RankingEntry>;
 }
 
-export interface SuspendedMatch extends Match {
-  suspendedSessionId?: string;
-  matchStateSnapshot?: any;
-  scoreState?: any;
-}

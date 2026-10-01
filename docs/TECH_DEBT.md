@@ -132,7 +132,10 @@
 - **Proposta:** Auditar código em busca de strings que pareçam secrets; garantir que todos os secrets venham de `process.env`
 - **Owner sugerido:** @qa + @backend
 - **Módulos afetados:** Todo o códigobase
-- **Status:** 🔴 Identificado: `src/app/api/matches/route.ts:49` — `JWT_SECRET` sendo codado inline em vez de usar helper centralizado
+- **Status:** 🟡 Parcialmente resolvido / texto desatualizado (revisado 2026-09-30)
+  - ✅ Não há literal de secret no código: `src/lib/jwt-client.ts:9` e `src/app/api/matches/route.ts:8` leem `process.env.JWT_SECRET` (falham loud se ausente)
+  - ⏳ A refatoração proposta em `docs/adr/TD-008-JWT-REFACTOR.md` **nunca foi adotada**; `src/lib/jwt.ts` (`getJWTSecret()`) foi removido em 2026-09-30 por estar morto (TD-060)
+  - ⏳ A duplicação de implementação de assinatura/verificação entre `src/lib/jwt-client.ts` e `src/app/api/auth/login/route.ts` permanece
 
 ---
 
@@ -823,11 +826,12 @@ a correção. Status inicial: 🟡 Backlog.
 - **Proposta:** Auditar todos os `import { JWT_SECRET } from ...` e garantir
   uso exclusivo de `getJWTSecret()` de `@/lib/jwt`
 - **Owner sugerido:** @qa + @backend
-- **Status:** ✅ Resolvido (2026-07-28) — `src/app/api/auth/login/route.ts`
-  migrado para `getJWTSecret()`. Auditoria completa via grep: zero ocorrências
-  de `process.env.JWT_SECRET` em código de produção (apenas `lib/jwt.ts` e
-  test helpers, que são intencionais).
-- **Arquivos:** `src/app/api/auth/login/route.ts:9,28,40`
+- **Status:** 🟡 Texto desatualizado (revisado 2026-09-30) — não há literal hardcoded:
+  hoje `process.env.JWT_SECRET` é lido diretamente em `src/lib/jwt-client.ts:9`
+  e `src/app/api/matches/route.ts:8`. O helper `getJWTSecret()` de `@/lib/jwt`
+  **nunca permaneceu no código** (`src/lib/jwt.ts` não existe e foi removido por
+  estar morto, TD-060); o que persiste é a duplicação de implementação — ver TD-008.
+- **Arquivos:** `src/lib/jwt-client.ts`, `src/app/api/auth/login/route.ts`
 
 ---
 
@@ -1169,6 +1173,25 @@ A configuração é setada em `src/lib/prisma.ts` no hook `$use` do Prisma, ante
 - **Impacto:** Alto (Disponibilidade de Relatórios P1)
 - **Esforço:** P
 - **Status:** ✅ Resolvido (2026-09-22). `simulateScoreFromPointLogs` e `engine.loadState` agora desempacotam envelopes `{ state, history }` e strings JSON de `newScoreState`. Adicionalmente, `enrichPointsFromHistory`, `isBreakPoint`, `isGameBall` e `isSetBall` foram blindados com navegação segura para `stateBefore` e `sets`.
+
+---
+
+## [TD-060] Limpeza de Código Morto Executada (2026-09-30) e Pendências de Remoção
+
+- **Origem:** Auditoria de código legado/obsoleto (lotes 1–7, execução 2026-09-30)
+- **Impacto:** Baixo (higiene / risco de confundir manutenção futura)
+- **Esforço:** P
+- **Owner sugerido:** @backend + @arquitetura
+- **Módulos afetados:** `src/**`, `docs/**`, `scripts/**`, `reports/**`, `e2e/**`
+- **Status:** 🟡 Parcialmente concluído
+  - ✅ **Baseline primeiro:** testes deixaram de estar verdes e foram corrigidos antes de qualquer remoção (3 suites / 6 testes), depois remoção em 7 lotes.
+  - ✅ Removidos: ~230 arquivos (leftovers de split de `route.ts`, UI morta, helpers órfãos, testes órfãos), camadas ADR nunca adotadas (`src/infrastructure/**`, `src/services/di/**`, `src/core/scoring/formats/**`, `src/lib/composition.ts`, `src/lib/jwt.ts`), exports sem uso em 61 arquivos, e docs/scripts obsoletos (`docs/REFACTOR_QUEUE.legacy-2026-07-20.md`, `reports/RELATORIO_CODIGO_MORTO_LEGADO_OBSOLETO.md`, `temp_query.sql`, 5 scripts one-off).
+  - ✅ Verificação final: `pnpm typecheck` = 0, `pnpm lint` = 0, Jest 270 suites / 3023 testes verdes, `node scripts/check-no-skipped-tests.mjs` OK, `pnpm spec:validate` OK, `pnpm build` OK, `graft build` OK.
+  - ✅ Corrigido `scripts/validate-spec-drift.mjs`: a checagem de schemas lia só `src/schemas/contracts.ts`, que virou barrel no particamento e nunca mais continha `export const` (drift falso, pré-existente). Agora varre `src/schemas/*.ts`.
+  - ✅ Exports de contrato em `src/schemas/*.ts` (`AnnotationSessionSchema`, `AnnotationEndorsementSchema`, `QueuedActionSchema` e tipos derivados) foram **restaurados** após o codemod de exports: são superfície pública de contrato, mesmo sem importadores internos.
+  - ⏳ **Pendência 1 (remoção conjunta):** `src/hooks/useMatchEvents.ts` + `src/hooks/useScoringHandlers.point-sync.ts` + endpoint SSE `src/app/api/matches/[id]/events/route.ts` — mantidos por decisão humana; precisam sair juntos (cliente e servidor), ver `docs/RKT-auditoria-integracao-implementada.md`.
+  - ⏳ **Pendência 2:** duplo caminho de JWT (`src/lib/jwt-client.ts` × `src/app/api/auth/login/route.ts`) — ver TD-008.
+  - ⏳ **Pendência 3:** `prisma/legacy_sql/*.sql` mantidos como histórico (não referenciados pelas migrations atuais) — decidir se vão para o histórico do git e saem do repo.
 
 
 

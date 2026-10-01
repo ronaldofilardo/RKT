@@ -22,7 +22,7 @@ const COLOR_MAP = {
   },
 } as const;
 
-export function Chip({ label, active, color, onClick }: ChipProps) {
+function Chip({ label, active, color, onClick }: ChipProps) {
   const colors = COLOR_MAP[color];
   return (
     <button

@@ -1,7 +1,7 @@
 import React from 'react';
 import { SCORING_LIMITS } from '@/lib/constants';
 
-export interface EditScoreTiebreakInputsProps {
+interface EditScoreTiebreakInputsProps {
   playerNames: { p1: string; p2: string };
   currentServer?: 'player1' | 'player2';
   tiebreakP1: string;

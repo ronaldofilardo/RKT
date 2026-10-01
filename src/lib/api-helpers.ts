@@ -72,14 +72,7 @@ export function handleApiError(error: unknown): NextResponse {
  * @example
  * const { items, nextCursor } = paginate(matches, cursor, limit);
  */
-export function paginate<T extends { id: string }>(
-  items: T[],
-  _cursor: string | null,
-  limit: number
-): { items: T[]; nextCursor: string | null } {
-  const nextCursor = items.length === limit ? items[items.length - 1].id : null;
-  return { items, nextCursor };
-}
+
 
 /**
  * Extrair paginação de query params
@@ -110,12 +103,3 @@ export function extractPagination(searchParams: URLSearchParams) {
  * @example
  * const { page, limit, offset } = extractPagePagination(searchParams);
  */
-export function extractPagePagination(searchParams: URLSearchParams) {
-  const rawPage = parseInt(searchParams.get('page') || '1', 10);
-  const rawLimit = parseInt(searchParams.get('limit') || String(PAGINATION_LIMITS.DEFAULT), 10);
-  const page = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
-  const safeLimit = Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : PAGINATION_LIMITS.DEFAULT;
-  const limit = Math.min(PAGINATION_LIMITS.MAX, Math.max(1, safeLimit));
-  const offset = (page - 1) * limit;
-  return { page, limit, offset };
-}

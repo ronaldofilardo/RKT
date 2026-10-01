@@ -21,11 +21,6 @@ export const SPORT_TYPES = [
   { value: 'VOLLEYBALL', label: 'Vôlei' },
 ];
 
-export const BRACKET_TYPES = [
-  { value: 'ELIMINATION', label: 'Eliminação Direta' },
-  { value: 'GROUPS', label: 'Grupos' },
-  { value: 'SWISS', label: 'Suíço' },
-];
 
 export const VISIBILITY_OPTIONS = [
   { value: 'PUBLIC', label: 'Pública' },

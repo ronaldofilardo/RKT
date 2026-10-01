@@ -58,7 +58,7 @@ Semana 4+ │ Onda 3: Refactor Guiado por Dor
 |----------|-------|--------|------------|
 | `src/lib/api-helpers.ts` | @backend | ❌ Pendente | Alta |
 | `src/lib/errors.ts` | @backend | ❌ Pendente | Alta |
-| `src/lib/jwt.ts` (centralizar JWT_SECRET) | @backend | ❌ Pendente | Crítica |
+| `src/lib/jwt.ts` (centralizar JWT_SECRET) | @backend | ⚠️ Nunca entregue (arquivo morto removido 2026-09-30; ver TD-008/TD-060) | Crítica |
 | `src/app/api/TEMPLATE/route.ts` | @backend | ❌ Pendente | Alta |
 | `src/lib/ui-helpers.ts` | @frontend | ❌ Pendente | Média |
 | `src/components/TEMPLATE/` | @frontend | ❌ Pendente | Média |

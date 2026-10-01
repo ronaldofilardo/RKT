@@ -48,30 +48,4 @@ export function useUserAuth(router: any) {
   return { user, setUser };
 }
 
-export function useWindowFocus(callback: () => void) {
-  useEffect(() => {
-    const handleFocus = () => callback();
-    window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
-  }, [callback]);
-}
 
-export function useVisibilityChange(callback: () => void) {
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        const lastAbandon = sessionStorage.getItem("last_abandon_timestamp");
-        if (lastAbandon) {
-          const lastTime = parseInt(lastAbandon, 10);
-          const now = Date.now();
-          if (now - lastTime < 60000) {
-            callback();
-          }
-        }
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () =>
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [callback]);
-}

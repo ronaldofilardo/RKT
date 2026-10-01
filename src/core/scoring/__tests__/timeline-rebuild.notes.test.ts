@@ -12,7 +12,7 @@
  *   2. annotations.rallyDetails.note (path legado)
  *   3. sem annotations           → undefined (OBS fica vazia)
  */
-import { rebuildTimelineFromPointLogs, type PointLogRow } from '@/components/scoring/timeline-rebuild';
+import { rebuildTimelineFromPointLogs, type PointLogRow } from '@/core/scoring/timeline-rebuild';
 import type { TimelinePoint } from '@/core/scoring/types';
 
 function makeHistory(): TimelinePoint[] {

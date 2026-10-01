@@ -1,6 +1,6 @@
 # Plano de Solução — Principais Achados
 
-**Base:** `reports/RELATORIO_CODIGO_MORTO_LEGADO_OBSOLETO.md`  
+**Base:** relatório `RELATORIO_CODIGO_MORTO_LEGADO_OBSOLETO.md` — removido em 2026-09-30 após a execução da limpeza de código morto (recuperável no histórico do git).  
 **Data:** 2026-07-31  
 **Responsável de acompanhamento:** `@arquitetura` + `@qa`
 

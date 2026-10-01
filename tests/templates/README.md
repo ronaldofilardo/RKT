@@ -17,16 +17,18 @@ Este documento descreve os padrões e templates para testes no projeto rkt.
 ```
 tests/
 ├── setup.ts                    # Setup global do Jest
-├── helpers.ts                  # Helpers compartilhados (factories, cleanup)
-├── api-route.template.test.ts  # Template de teste de API
-└── component.template.test.tsx # Template de teste de componente
+└── helpers/
+    └── auth.ts                 # createToken — JWT real para testes de API
+
+src/test-helpers/
+└── auth.ts                     # createToken / makeAuthHeaders (suites de API em src)
 
 e2e/
 ├── helpers/
-│   ├── index.ts                # Export de helpers E2E
 │   ├── auth.ts                 # Autenticação (loginAs, USERS)
-│   ├── factories.ts            # Factories (createTestPlayer, createTestMatch)
-│   └── test-context.ts         # Contexto compartilhado (TestContext)
+│   ├── test-context.ts         # Contexto compartilhado (TestContext)
+│   ├── a11y.ts                 # expectNoAxeViolations (axe-core)
+│   └── wait-helpers.ts         # waitForApiCall, waitForToast, getByTestid
 └── flows/
     ├── 01-full-match-cycle.spec.ts
     ├── 02-session-suspend-resume.spec.ts
@@ -78,7 +80,7 @@ describe('MyComponent', () => {
 
 **Onde:** `src/app/api/**/__tests__/*.test.ts`
 
-**Template:** `tests/api-route.template.test.ts`
+**Exemplo canônico:** `docs/templates/api-route.template.ts`
 
 **Exemplo:**
 ```typescript
@@ -120,38 +122,21 @@ test('deve criar partida com sucesso', async ({ page }) => {
 
 ### Unitários/Componentes
 
-**Arquivo:** `tests/helpers.ts` (criar)
+**Arquivo:** `src/test-helpers/auth.ts`
 
 ```typescript
-export async function createTestPlayer(overrides?: Partial<Player>) {
-  // Factory de Player
-}
-
-export function createAuthHeader(player: Player) {
-  // Gera header com token JWT
-}
-
-export async function cleanup() {
-  // Limpa dados de teste
-}
+// createToken(userId, role) — assina JWT real com o JWT_SECRET do ambiente
+// makeAuthHeaders(userId, role) — headers { authorization } prontos p/ fetch
 ```
 
 ### E2E
 
-**Arquivo:** `e2e/helpers/factories.ts`
+**Arquivo:** `e2e/helpers/auth.ts` / `e2e/helpers/test-context.ts`
 
 ```typescript
-export async function createTestPlayer(api, overrides) {
-  // Cria Player via API
-}
-
-export async function createTestMatch(api, player1Id, player2Id, overrides) {
-  // Cria Match via API
-}
-
-export async function cleanupTestData(api) {
-  // Limpa dados de teste
-}
+// loginAs('athlete1')          — loga via API e cacheia token
+// TestContext.create()         — sessão compartilhada (api + browser auth)
+// ctx.authenticatePage(page)   — injeta token/roles no browser
 ```
 
 ---
@@ -211,15 +196,14 @@ pnpm test:mutation     # Stryker (mutation testing)
 
 ### Template de Teste de API
 
-**Arquivo:** `tests/api-route.template.test.ts`
+**Arquivo:** `docs/templates/api-route.template.ts`
 
 Copie e adapte para cada nova API route.
 
-### Template de Teste de Componente
+### Teste de Componente
 
-**Arquivo:** `tests/component.template.test.tsx`
-
-Copie e adapte para cada novo componente.
+Copie qualquer `src/components/**/__tests__/*.characterization.test.tsx` existente como base
+(render + interações + acessibilidade).
 
 ---
 

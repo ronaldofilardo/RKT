@@ -11,7 +11,7 @@ import type { LiveMatchCounters, TacticalInsight } from "@/core/scoring/live-tac
 import type { ScoringPageState } from "./useScoringPageState";
 import type { ScoringPageDerived } from "./useScoringPageDerived";
 
-export interface ScoringPlayAreaProps {
+interface ScoringPlayAreaProps {
   match: NonNullable<ScoringPageState["match"]>;
   effectiveScoreState: ScoringPageDerived["effectiveScoreState"];
   suspendedSession: ScoringPageState["suspendedSession"];
@@ -67,7 +67,7 @@ export function ScoringPlayArea({
         <CourtBackground courtType={match.courtType} />
       </div>
 
-      <div className="my-1 sm:my-2">
+      <div className="my-1 sm:my-2 flex-shrink-0">
         <ScoreboardCard
           player1={match.player1}
           player2={match.player2}
@@ -78,7 +78,7 @@ export function ScoringPlayArea({
       </div>
 
       {/* Boxes de Estatísticas ao Vivo e Insight Tático */}
-      <div className="flex flex-col gap-1 my-0.5">
+      <div className="flex flex-col gap-1 my-0.5 flex-shrink-0">
         <LiveCountersBar
           counters={liveCounters}
           player1Name={match.player1.name}

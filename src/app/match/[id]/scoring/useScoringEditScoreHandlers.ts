@@ -5,7 +5,7 @@ import type { SetEditData } from "@/components/scoring/editScoreHelpers";
 import type { useSessionManager } from "@/hooks/useSessionManager";
 import type { ScoringPageState } from "./useScoringPageState";
 
-export interface ScoringEditScoreHandlersParams {
+interface ScoringEditScoreHandlersParams {
   state: ScoringPageState;
   originalHandleEditScore: ReturnType<typeof useSessionManager>["handleEditScore"];
 }

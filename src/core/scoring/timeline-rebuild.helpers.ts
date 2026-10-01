@@ -1,7 +1,6 @@
-import type { HistoryEntry, PointDetails } from '@/core/scoring/types';
 import type { PointLogRow } from './timeline-rebuild';
-import type { ScoringEngine } from '@/core/scoring/engine';
-import { getLogPointDetails } from './timeline-rebuild.merge.helpers';
+
+
 
 export function pointLogToFlow(log: PointLogRow): import('@/core/scoring/types').PointFlow {
   const ann = log.annotations;
@@ -27,24 +26,5 @@ export function pointLogToFlow(log: PointLogRow): import('@/core/scoring/types')
   };
 }
 
-export function getLastPointDetails(engine: ScoringEngine): PointDetails | null {
-  const history = engine.getPointHistory();
-  return history.length > 0 ? history[history.length - 1].point : null;
-}
 
-export function addSuccessfulEntry(
-  history: HistoryEntry[],
-  stateBefore: ReturnType<ScoringEngine['getState']>,
-  details: PointDetails | null,
-  log: PointLogRow,
-): void {
-  history.push({ stateBefore, point: details ?? getLogPointDetails(log) });
-}
 
-export function addFailedEntry(
-  history: HistoryEntry[],
-  stateBefore: ReturnType<ScoringEngine['getState']>,
-  log: PointLogRow,
-): void {
-  history.push({ stateBefore, point: getLogPointDetails(log) });
-}

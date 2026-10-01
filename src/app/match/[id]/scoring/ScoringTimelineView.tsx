@@ -5,7 +5,7 @@ import { MatchHeader } from "@/components/scoring/MatchHeader";
 import { MatchTimelineView } from "@/components/scoring/MatchTimelineView";
 import type { TimelinePoint } from "@/core/scoring/types";
 
-export interface ScoringTimelineViewProps {
+interface ScoringTimelineViewProps {
   fontScale: number;
   elapsed: number;
   isFinished: boolean;

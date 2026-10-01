@@ -1,4 +1,4 @@
-export const FORMAT_LABELS: Record<string, string> = {
+const FORMAT_LABELS: Record<string, string> = {
   BEST_OF_3: 'Melhor de 3 Sets',
   BEST_OF_3_MATCH_TB: 'Melhor de 3 - TB 3º',
   BEST_OF_5: 'Melhor de 5 Sets',

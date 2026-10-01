@@ -5,6 +5,7 @@
 **Owner:** @arquitetura
 **Supersedes:** —
 **Depends on:** ADR-0001, F1 (ILogger)
+**Nota (2026-09-30):** nunca foi aceito. O scaffold de strategy já criado em `src/core/scoring/formats/**` estava morto e foi removido (TD-060). A decisão segue aberta: ao aceitar este ADR, recriar o scaffold.
 
 ---
 

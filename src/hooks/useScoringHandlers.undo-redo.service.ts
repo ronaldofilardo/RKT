@@ -1,7 +1,7 @@
 import { logger } from "@/lib/logger";
 import type { ScoringState } from "@/core/scoring/types";
 
-export interface UndoRedoDeps {
+interface UndoRedoDeps {
   engineRef: React.MutableRefObject<any>;
   isProcessingRef: React.MutableRefObject<boolean>;
   debounceTimerRef: React.MutableRefObject<NodeJS.Timeout | null>;

@@ -133,7 +133,3 @@ export function mockJwtVerify(
  * Reseta o mock de `jwtVerify`. Útil em `afterEach` quando se quer um
  *墩clean slate sem `jest.clearAllMocks()` (mais cirúrgico).
  */
-export function resetJwtVerifyMock(): void {
-  const mocked = jwtVerify as unknown as jest.Mock;
-  mocked.mockReset();
-}

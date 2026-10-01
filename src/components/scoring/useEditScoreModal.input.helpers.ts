@@ -73,7 +73,7 @@ export function computeTiebreakInputChange(params: {
   return { shouldSet: true, valueToSet: String(capped) };
 }
 
-export function validateCompletedSetEdit(params: {
+function validateCompletedSetEdit(params: {
   p1Games: number;
   p2Games: number;
   matchFormat: TennisFormat;
@@ -98,7 +98,7 @@ export function validateCompletedSetEdit(params: {
   return null;
 }
 
-export function buildNextSetData(params: {
+function buildNextSetData(params: {
   p1Input: string;
   p2Input: string;
   tiebreakP1: string;

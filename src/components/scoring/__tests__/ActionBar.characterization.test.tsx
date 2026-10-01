@@ -244,12 +244,12 @@ describe('ActionBar - Editar Placar bloqueado durante anotação de 2º saque', 
 
   it('desabilita o botão ✏️ quando serveStep é "second" (erro de 1º saque pendente)', () => {
     renderWithServeStep('second');
-    expect(screen.getByRole('button', { name: '✏️' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Corrigir placar' })).toBeDisabled();
   });
 
   it('mantém o botão ✏️ habilitado quando serveStep é "none"', () => {
     renderWithServeStep('none');
-    expect(screen.getByRole('button', { name: '✏️' })).not.toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Corrigir placar' })).not.toBeDisabled();
   });
 
   it('onEditScore não é chamado ao clicar no botão desabilitado', () => {
@@ -275,7 +275,7 @@ describe('ActionBar - Editar Placar bloqueado durante anotação de 2º saque', 
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: '✏️' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Corrigir placar' }));
     expect(onEditScore).not.toHaveBeenCalled();
   });
 });

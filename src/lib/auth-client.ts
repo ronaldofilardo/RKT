@@ -57,11 +57,6 @@ export function readAuthState(): {
   };
 }
 
-export function isFullyAuthenticated(): boolean {
-  if (typeof window === 'undefined') return false;
-  const { accessToken, userId, userRole } = readAuthState();
-  return !!(accessToken && userId && userRole);
-}
 
 /**
  * Limpa estado de autenticacao de ambos os lados (cliente e middleware).

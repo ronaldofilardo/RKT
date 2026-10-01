@@ -1,7 +1,7 @@
 import type { TimelinePoint } from './types';
 import { isSecondServePoint, computeCompletedGames } from '../report/serve-return-stats';
 
-export interface PlayerSetStats {
+interface PlayerSetStats {
   totalServicePoints: number;
   firstServesIn: number;
   firstServePct: number;

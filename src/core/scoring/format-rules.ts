@@ -54,7 +54,7 @@ export function isFinalSet(config: ScoringEngineConfig): boolean {
   return isFinalSetFormat(config.format);
 }
 
-export function isFinalSetFormat(format: TennisFormat): boolean {
+function isFinalSetFormat(format: TennisFormat): boolean {
   return format === 'PRO_SET_8';
 }
 

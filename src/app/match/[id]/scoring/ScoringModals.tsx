@@ -13,7 +13,7 @@ import type { ScoringPageState } from "./useScoringPageState";
 import type { ScoringPageHandlers } from "./useScoringPageEffects";
 import type { ScoringPageDerived } from "./useScoringPageDerived";
 
-export interface ScoringModalsProps {
+interface ScoringModalsProps {
   state: ScoringPageState;
   handlers: ScoringPageHandlers;
   derived: ScoringPageDerived;

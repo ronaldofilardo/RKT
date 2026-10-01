@@ -3,7 +3,7 @@ import { ScoringEngine } from '@/core/scoring/engine';
 import type { ScoringState } from '@/core/scoring/types';
 import type { MatchData } from './useScoringHandlers.types';
 
-export interface MatchFetchDeps {
+interface MatchFetchDeps {
   matchId: string;
   tokenRef: React.MutableRefObject<string | null>;
   matchVersionRef: React.MutableRefObject<number | null>;

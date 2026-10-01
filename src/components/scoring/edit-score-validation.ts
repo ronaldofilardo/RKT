@@ -7,7 +7,7 @@ import type {
   EditScoreValidationInput,
 } from './edit-score-logic.types';
 
-export function countCompletedSets(setResults: SetEditData[]): { p1Sets: number; p2Sets: number } {
+function countCompletedSets(setResults: SetEditData[]): { p1Sets: number; p2Sets: number } {
   let p1Sets = 0;
   let p2Sets = 0;
   for (const s of setResults) {
@@ -30,13 +30,13 @@ export function isPotentialMTSet(
   return p1Sets === 2 && p2Sets === 2;
 }
 
-export function isTiebreakCompleteScore(loser: number, winner: number): boolean {
+function isTiebreakCompleteScore(loser: number, winner: number): boolean {
   if (loser < 6 && winner === 7) return true;
   if (loser >= 6 && winner === loser + 2) return true;
   return false;
 }
 
-export function isValidTiebreakInput(n1: number, n2: number): boolean {
+function isValidTiebreakInput(n1: number, n2: number): boolean {
   return !isNaN(n1) && !isNaN(n2) && n1 >= 0 && n2 >= 0;
 }
 

@@ -2,13 +2,13 @@
 
 import { useReducer, useCallback } from 'react';
 
-export interface FirstServeErrorDetail {
+interface FirstServeErrorDetail {
   errorType?: 'out' | 'net';
   serveEffect?: string;
   direction?: string;
 }
 
-export interface PendingServeError {
+interface PendingServeError {
   errorType: 'out' | 'net';
   serveStep: 'first' | 'second';
 }

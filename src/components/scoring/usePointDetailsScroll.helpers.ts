@@ -20,7 +20,7 @@ export type StepKey =
   | 'golpeEsp'
   | 'duracao';
 
-export const STEP_ORDER: readonly StepKey[] = [
+const STEP_ORDER: readonly StepKey[] = [
   'situacao',
   'tipo',
   'golpe',
@@ -95,7 +95,7 @@ export function getNextStep(
   return null;
 }
 
-export const SCROLL_TOP_OFFSET_PX = 12;
+const SCROLL_TOP_OFFSET_PX = 12;
 
 interface Rect {
   top: number;

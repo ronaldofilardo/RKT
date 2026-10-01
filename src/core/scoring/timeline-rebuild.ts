@@ -9,7 +9,7 @@ import { ScoringEngine } from '@/core/scoring/engine';
 import { enrichPointsFromHistory } from '@/core/scoring/scoring-logic';
 import { pointLogToFlow } from './timeline-rebuild.helpers';
 
-export interface TimelineScoreEdit {
+interface TimelineScoreEdit {
   editedAt: Date;
   newScoreState: any;
 }

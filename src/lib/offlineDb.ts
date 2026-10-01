@@ -16,7 +16,7 @@ function openDB(): Promise<IDBDatabase> {
   });
 }
 
-export interface PendingMatch {
+interface PendingMatch {
   tempId: string;
   matchData: Record<string, unknown>;
   syncStatus: 'PENDING' | 'SYNCING' | 'FAILED';

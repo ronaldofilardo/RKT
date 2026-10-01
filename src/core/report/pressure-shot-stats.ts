@@ -72,7 +72,7 @@ export function computePressureStats(points: TimelinePoint[], playerIndex: 1 | 2
   };
 }
 
-export interface PointShotDetails {
+interface PointShotDetails {
   executor: 'PLAYER_1' | 'PLAYER_2';
   outcome: 'winner' | 'unforced_error' | 'forced_error';
   stroke?: string;

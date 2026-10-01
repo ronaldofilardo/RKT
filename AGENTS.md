@@ -55,10 +55,20 @@
 - **Framework:** Next.js 15+ (App Router)
 - **Linguagem:** TypeScript 5.5+
 - **Database:** PostgreSQL + Prisma ORM
-- **Estilização:** Tailwind CSS
+- **Estilização:** Tailwind CSS + **Telemetry Design System (Broadcast-Grade)** com Dual-Theme
 - **Testes:** Jest (unitário), Playwright (E2E), Stryker (mutation)
 - **Auth:** JWT via `jose`, middleware + RLS
 - **PWA:** desabilitado (removido 2026-08-02 por cache stale da API em produção)
+
+## Design System — Telemetry (Broadcast-Grade) — MANDATÓRIO
+- **Identidade Visual Oficial:** O projeto adota o **Telemetry Design System** com suporte a Dual-Theme (Light & Dark via `ThemeContext`).
+- **Proibição Estrita de Regressão Visual:**
+  - NENHUM agente pode remover, alterar ou ignorar tokens `telemetry-*` (`bg-telemetry-base`, `bg-telemetry-card`, `bg-telemetry-elevated`, `text-telemetry-text-primary`, `text-telemetry-text-muted`, `ring-telemetry-volt`, `text-telemetry-volt`, etc.).
+  - **NUNCA reintroduzir classes genéricas de Tailwind** (`bg-gray-*`, `text-gray-*`, `border-gray-*`, `bg-sky-*`, `bg-emerald-*`) em componentes de `/scoring`, `/dashboard`, `/match/new` ou `/atletas`.
+  - **NUNCA reverter o layout de `/scoring`** para visual de quadra sólida (`CourtBackground` com azul opaco cobrindo a tela) ou remover o placar (`ScoreboardCard`) e a barra de estatísticas (`LiveCountersBar`).
+  - **NUNCA ressuscitar arquivos legados de visualização** (ex: `*.view.tsx` ou `*.rows.tsx` arcaicos) que reintroduzem o CSS pré-telemetria de agosto de 2026.
+- **Validação de Design Obrigatória:** Toda alteração de frontend deve rodar e passar os testes de integridade e caracterização de design:
+  `pnpm test:design`
 
 ## Comandos Úteis
 ```bash
@@ -68,6 +78,7 @@ pnpm start            # Produção
 pnpm lint             # ESLint
 pnpm typecheck        # TypeScript
 pnpm test             # Jest (unitário)
+pnpm test:design      # Validação Telemetry Design System (anti-regressão)
 pnpm test:watch       # Jest watch mode
 pnpm test:coverage    # Jest com coverage
 pnpm test:components  # Jest (componentes)
@@ -76,9 +87,7 @@ pnpm test:mutation    # Stryker
 pnpm db:push          # Prisma db push
 pnpm db:migrate       # Prisma migrate dev
 pnpm db:seed          # Seed do banco
-pnpm spec:validate    # Validação de spec drift
-```
-
+pnpm spec:validate    # Validação de spec drift e guardrails de telemetria
 ```
 
 <!-- graft:start -->

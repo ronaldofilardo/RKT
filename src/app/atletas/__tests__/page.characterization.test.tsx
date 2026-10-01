@@ -1,7 +1,6 @@
 /**
  * @jest-environment jsdom
  */
-export const testEnvironment = 'jsdom';
 /**
  * CHARACTERIZATION TESTS — atletas/page.tsx
  *

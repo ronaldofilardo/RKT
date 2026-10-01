@@ -3,13 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
-export interface ModalParams {
+interface ModalParams {
   [key: string]: string;
 }
 
 type ModalMode = 'router' | 'internal';
 
-export interface ModalStackOptions {
+interface ModalStackOptions {
   mode?: ModalMode;
 }
 

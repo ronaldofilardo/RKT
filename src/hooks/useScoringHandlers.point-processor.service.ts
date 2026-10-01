@@ -4,7 +4,7 @@ import type { PointFlow, ScoringState, RallyDetails } from "@/core/scoring/types
 import type { MatchData } from "./useScoringHandlers.types";
 import type { createPointSyncService } from "./useScoringHandlers.point-sync";
 
-export interface PointProcessorDeps {
+interface PointProcessorDeps {
   match: MatchData | null;
   isOnline: boolean;
   enqueue: (action: {

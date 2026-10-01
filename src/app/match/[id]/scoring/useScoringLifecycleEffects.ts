@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import type { ScoringPageState } from "./useScoringPageState";
 import type { ScoringPageHandlers } from "./useScoringPageEffects";
 
-export interface ScoringLifecycleEffectsParams {
+interface ScoringLifecycleEffectsParams {
   state: ScoringPageState;
   fetchMatch: ScoringPageHandlers["fetchMatch"];
 }

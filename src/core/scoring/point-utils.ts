@@ -43,13 +43,6 @@ export function toDisplayPoint(index: number): string {
  * Converte índice de progresso para número de pontos
  * Usado para comparar estados
  */
-export function pointProgressToIndex(progress: number): number {
-  if (progress >= 4) return 4; // AD
-  if (progress === 3) return 3; // 40
-  if (progress === 2) return 2; // 30
-  if (progress === 1) return 1; // 15
-  return 0;
-}
 
 /**
  * Converte valor de ponto (0, 15, 30, 40, AD, DEUCE) para índice de progresso (0-4)
@@ -75,27 +68,3 @@ export function pointToProgress(value: number | string): number {
  * Verifica se houve regressão no progresso do game
  * Compara dois estados de game e retorna true se houve regressão
  */
-export function isGameRegressing(
-  oldGame: { player1: number; player2: number; isDeuce?: boolean; advantage?: string | null },
-  newGame: { player1: number; player2: number; isDeuce?: boolean; advantage?: string | null }
-): boolean {
-  const getProgress = (game: typeof oldGame, player: 'player1' | 'player2'): number => {
-    if (!game) return 0;
-    const p = typeof game[player] === 'number' ? game[player] : 0;
-    
-    if (game.isDeuce) {
-      if (game.advantage === player) return 4;
-      return 3; // Deuce ou vantagem do oponente
-    }
-    
-    return p;
-  };
-  
-  const oldP1 = getProgress(oldGame, 'player1');
-  const oldP2 = getProgress(oldGame, 'player2');
-  const newP1 = getProgress(newGame, 'player1');
-  const newP2 = getProgress(newGame, 'player2');
-  
-  // Regressão: um jogador perdeu progresso sem que o outro avance
-  return (newP1 < oldP1 && newP2 <= oldP2) || (newP2 < oldP2 && newP1 <= oldP1);
-}

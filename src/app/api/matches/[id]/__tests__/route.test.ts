@@ -13,6 +13,9 @@ jest.mock('@/lib/prisma', () => ({
     pointLog: {
       aggregate: jest.fn().mockResolvedValue({ _max: { sequenceNumber: null } }),
     },
+    matchAnnotationSession: {
+      count: jest.fn().mockResolvedValue(0),
+    },
   },
 }));
 
@@ -144,7 +147,7 @@ category: null,
     expect(data.id).toBe('test-id');
   });
 
-  it('deve retornar 403 se player2 não é o criador da partida', async () => {
+  it('deve retornar partida se usuário é player2 (participante, mesmo não sendo criador)', async () => {
     const token = await createToken('user2', 'ANNOTATOR');
     mockPrisma.match.findFirst.mockResolvedValue({
       id: 'test-id',
@@ -162,8 +165,8 @@ category: null,
       headers: { authorization: `Bearer ${token}` },
     });
     const response = await GET(req, { params: Promise.resolve({ id: 'test-id' }) });
-    
-    expect(response.status).toBe(403);
+
+    expect(response.status).toBe(200);
   });
 
   it('deve retornar partida se usuário é o criador', async () => {

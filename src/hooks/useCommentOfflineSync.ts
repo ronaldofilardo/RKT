@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { openDB, IDBPDatabase } from 'idb';
 
-export interface QueuedCommentAction {
+interface QueuedCommentAction {
   id: string;
   matchId: string;
   type: 'COMMENT';

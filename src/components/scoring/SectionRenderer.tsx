@@ -22,7 +22,7 @@ import {
 import { Section } from './point-details-section';
 import { Pills } from './pills-component';
 
-export interface SectionRendererProps {
+interface SectionRendererProps {
   form: PointDetailsForm;
   vencedor: Vencedor;
   dispatch: React.Dispatch<any>;

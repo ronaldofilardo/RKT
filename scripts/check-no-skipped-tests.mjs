@@ -2,11 +2,18 @@ import { readdir, readFile } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 
 const root = join(process.cwd(), 'src')
+const e2eRoot = join(process.cwd(), 'e2e')
 const testPattern = /(?:describe|it|test)\s*\.\s*(?:skip|only)\s*\(|\b(?:xdescribe|xit|xtest)\s*\(/g
 const files = []
 
 async function walk(directory) {
-  for (const entry of await readdir(directory, { withFileTypes: true })) {
+  let entries
+  try {
+    entries = await readdir(directory, { withFileTypes: true })
+  } catch {
+    return
+  }
+  for (const entry of entries) {
     const path = join(directory, entry.name)
     if (entry.isDirectory()) {
       if (entry.name !== 'node_modules' && entry.name !== '__snapshots__') await walk(path)
@@ -17,6 +24,7 @@ async function walk(directory) {
 }
 
 await walk(root)
+await walk(e2eRoot)
 const violations = []
 for (const file of files) {
   const content = await readFile(file, 'utf8')

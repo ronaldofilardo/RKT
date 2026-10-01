@@ -7,7 +7,7 @@ export type TennisFormat =
   | "MATCH_TB_10"
   | "BEST_OF_3_NO_AD";
 
-export interface MatchFormatRules {
+interface MatchFormatRules {
   format: TennisFormat;
   setsToWin: number;
   gamesPerSet: number;
@@ -237,9 +237,4 @@ export function validateSetScore(
 }
 
 /** Convenience wrapper — returns true if the given set score is complete for the given format rules. */
-export function isSetCompleteForFormat(
-  set: { player1: number; player2: number },
-  rules: MatchFormatRules,
-): boolean {
-  return validateSetScore(set.player1, set.player2, rules).complete;
-}
+

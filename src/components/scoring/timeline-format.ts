@@ -107,7 +107,7 @@ export function vencedorLabel(s?: string): string {
   return map[s] ?? s;
 }
 
-export interface FormattedPointDetails {
+interface FormattedPointDetails {
   short: string;
   full: string;
   tipo: string;

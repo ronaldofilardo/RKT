@@ -1,7 +1,7 @@
 import React from 'react';
 import { GAME_POINTS } from '@/core/scoring/point-utils';
 
-export interface EditScoreGamePointsProps {
+interface EditScoreGamePointsProps {
   playerNames: { p1: string; p2: string };
   currentServer?: 'player1' | 'player2';
   p1Points: string;

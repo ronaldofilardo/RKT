@@ -6,7 +6,7 @@ import { getCompletedSets, toCompletedSetsForServer, getFreshFloorError } from "
 import { validateConfirmForm, buildExistingSetsPayload } from "./useEditScoreModal.validation.helpers";
 import type { EditScoreModalState } from "./useEditScoreModal.types";
 
-export function buildConfirmSubmission(params: {
+function buildConfirmSubmission(params: {
   state: any;
   completedSets: CompletedSet[];
   matchFormat: TennisFormat;
@@ -45,7 +45,7 @@ export function buildConfirmSubmission(params: {
   return { allSets, nextServer };
 }
 
-export function prepareFullSetSubmission(params: {
+function prepareFullSetSubmission(params: {
   p1Val: number;
   p2Val: number;
   isSetTrulyCompleted: boolean;
@@ -113,7 +113,7 @@ export function prepareFullSetSubmission(params: {
 }
 
 
-export async function applyFullSetSubmission(params: {
+async function applyFullSetSubmission(params: {
   submission: ReturnType<typeof prepareFullSetSubmission>;
   validation: any;
   matchWouldEnd: boolean;

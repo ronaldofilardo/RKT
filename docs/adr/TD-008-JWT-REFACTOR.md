@@ -1,8 +1,10 @@
 # TD-008 — Centralizar JWT_SECRET com getJWTSecret()
 
-**Status:** ✅ Refatorado (2026-07-20)  
+**Status:** ❌ Nunca adotado (escrito 2026-07-20, revisado 2026-09-30)  
 **Owner:** @backend  
 **Breaking Changes:** Não (backward compatible)
+
+> **Nota (2026-09-30):** esta refatoração **não está no código atual**. `src/lib/jwt.ts` não existe — o arquivo nunca foi adotado e foi removido por estar morto (TD-060). Hoje `process.env.JWT_SECRET` é lido diretamente em `src/lib/jwt-client.ts:9` e em `src/app/api/matches/route.ts:8`. Os marcadores "✅" das tabelas abaixo estão desatualizados. Contexto em `docs/TECH_DEBT.md` → TD-008.
 
 ---
 

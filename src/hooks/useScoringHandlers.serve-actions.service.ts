@@ -3,7 +3,7 @@ import { TIMEOUTS } from "@/lib/constants";
 import type { PointFlow } from "@/core/scoring/types";
 import type { MatchData } from "./useScoringHandlers.types";
 
-export interface ServeActionsDeps {
+interface ServeActionsDeps {
   match: MatchData | null;
   serveErrorState: any;
   serverHelpers: {

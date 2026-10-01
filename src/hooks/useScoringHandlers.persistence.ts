@@ -1,6 +1,6 @@
 import type { ScoringState, HistoryEntry } from "@/core/scoring/types";
 import { logger } from "@/lib/logger";
-import { TIMEOUTS, PERSIST, calculateBackoffDelay } from "@/lib/constants";
+import { PERSIST, calculateBackoffDelay } from "@/lib/constants";
 
 interface PersistStateOptions {
   matchId: string;
@@ -143,4 +143,3 @@ export async function persistStateWithRetry(
   return { success: false };
 }
 
-export const _INTERNAL = { TIMEOUTS, PERSIST };

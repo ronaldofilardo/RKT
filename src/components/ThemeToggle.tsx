@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import { useTheme, type ThemePreference } from '@/contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface ThemeToggleProps {
   fullWidth?: boolean;
@@ -9,10 +8,10 @@ interface ThemeToggleProps {
 }
 
 export function ThemeToggle({ fullWidth = false, className = '' }: ThemeToggleProps) {
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
 
   const options: Array<{
-    id: ThemePreference;
+    id: 'light' | 'dark';
     label: string;
     ariaLabel: string;
     icon: React.ReactNode;
@@ -34,27 +33,6 @@ export function ThemeToggle({ fullWidth = false, className = '' }: ThemeTogglePr
             strokeLinejoin="round"
             strokeWidth={2}
             d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-          />
-        </svg>
-      ),
-    },
-    {
-      id: 'system',
-      label: 'Sistema',
-      ariaLabel: 'Tema do Sistema',
-      icon: (
-        <svg
-          className="w-3.5 h-3.5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
           />
         </svg>
       ),
@@ -82,6 +60,8 @@ export function ThemeToggle({ fullWidth = false, className = '' }: ThemeTogglePr
     },
   ];
 
+  const currentTheme = theme === 'system' ? resolvedTheme : theme;
+
   return (
     <div
       role="group"
@@ -91,7 +71,7 @@ export function ThemeToggle({ fullWidth = false, className = '' }: ThemeTogglePr
       } ${className}`}
     >
       {options.map((opt) => {
-        const isActive = theme === opt.id;
+        const isActive = currentTheme === opt.id;
         return (
           <button
             key={opt.id}

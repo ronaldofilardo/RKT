@@ -1,4 +1,4 @@
-import type { ScoringEngineConfig, ScoringState, SetScore, GameScore, HistoryEntry } from './types';
+import type { ScoringEngineConfig, ScoringState, GameScore, HistoryEntry } from './types';
 
 export function createInitialState(config: ScoringEngineConfig): ScoringState {
   const server = config.initialServerId === config.player1Id ? 'player1' : 'player2';
@@ -20,9 +20,7 @@ export function createInitialState(config: ScoringEngineConfig): ScoringState {
   };
 }
 
-export function createEmptySet(): SetScore {
-  return { player1: 0, player2: 0, isTiebreak: false, tiebreakScore: null };
-}
+
 
 export function createEmptyGame(): GameScore {
   return { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false };

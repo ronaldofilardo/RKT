@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-export function ActionButton({onClick,disabled,children}:{onClick:()=>void;disabled?:boolean;children:ReactNode}){
+function ActionButton({onClick,disabled,children}:{onClick:()=>void;disabled?:boolean;children:ReactNode}){
   return <button onClick={onClick} disabled={disabled} className="flex items-center justify-center gap-1 px-2 sm:px-3 py-3 sm:py-3.5 text-xs sm:text-sm font-semibold rounded-xl transition-all select-none min-h-[44px] sm:min-h-[48px] active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed bg-telemetry-elevated hover:bg-telemetry-active text-telemetry-text-primary border border-white/10">{children}</button>
 }
 export function ServeSection({aceDetailsEnabled,onAceDetailsToggle,dfDetailsEnabled,onDfDetailsToggle,showSecondBadge,disabled,onAce,onOut,onNet,step,processing}:{aceDetailsEnabled:boolean;onAceDetailsToggle:()=>void;dfDetailsEnabled:boolean;onDfDetailsToggle:()=>void;showSecondBadge:boolean;disabled:boolean;onAce:()=>void;onOut:(s:'first'|'second')=>void;onNet:(s:'first'|'second')=>void;step:'none'|'second';processing?:boolean}){

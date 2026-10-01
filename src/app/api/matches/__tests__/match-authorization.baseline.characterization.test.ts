@@ -4,7 +4,7 @@
  * Atualizado pós-migração para Role enum ADMIN | ANNOTATOR (2026-09-13):
  * - ADMIN é bloqueado de acessar partidas de anotadores (403 sempre)
  * - ANNOTATOR só vê partidas onde é criador ou participante (player1/player2)
- * - Validação de IDOR: bloqueio de visualização para anotador não-criador em partida privada
+ * - Validação de IDOR: bloqueio de visualização para anotador não-participante em partida privada
  *
  * Estes são characterization tests — documentam o comportamento OBSERVADO.
  */
@@ -136,7 +136,7 @@ describe('Match Authorization Specification Tests', () => {
       expect(match.id).toBe('match-private');
     });
 
-    it('ANNOTATOR player1 recebe 403 se não é o criador da partida PRIVATE', async () => {
+    it('ANNOTATOR player1 (participante) recebe 200 em partida PRIVATE', async () => {
       const p1Token = await createToken('athlete-1', 'ANNOTATOR');
       (mockPrisma.match.findFirst as any).mockResolvedValue(privateMatchData);
 
@@ -145,7 +145,9 @@ describe('Match Authorization Specification Tests', () => {
       });
 
       const response = await GET(req, { params: Promise.resolve({ id: 'match-private' }) });
-      expect(response.status).toBe(403);
+      expect(response.status).toBe(200);
+      const match = await response.json();
+      expect(match.id).toBe('match-private');
     });
   });
 });

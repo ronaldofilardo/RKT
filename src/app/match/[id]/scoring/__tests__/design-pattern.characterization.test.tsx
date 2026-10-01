@@ -76,7 +76,6 @@ jest.mock("@/components/scoring/MatchHeader", () => ({
 jest.mock("@/components/scoring/PlayerCard", () => ({
   PlayerCard: () => React.createElement("div", { "data-testid": "player-card" }),
 }));
-jest.mock("@/components/scoring/VSIndicator", () => ({ VSIndicator: () => React.createElement("div") }));
 jest.mock("@/components/scoring/ContextBadges", () => ({ ContextBadges: () => React.createElement("div") }));
 jest.mock("@/components/scoring/ScoreboardCard", () => ({ ScoreboardCard: () => React.createElement("div") }));
 jest.mock("@/components/scoring/ActionBar", () => ({

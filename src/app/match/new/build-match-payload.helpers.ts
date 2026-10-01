@@ -1,4 +1,4 @@
-export type MatchPayloadFields = {
+type MatchPayloadFields = {
   sportType: string; format: string; courtType: string; player1Id?: string; player2Id?: string;
   nickname: string; visibility: string; openForAnnotation: boolean; anotadorEmail: string; date: string; time: string;
   venueId: string; publicMatchCode: string; tournamentName: string; clubName: string; category: string; roundName: string;

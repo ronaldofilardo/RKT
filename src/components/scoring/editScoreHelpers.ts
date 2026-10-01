@@ -14,7 +14,7 @@ export interface SetEditData {
   currentGamePoints?: { player1: number | string; player2: number | string };
 }
 
-export interface SetValidation {
+interface SetValidation {
   isValid: boolean;
   error?: string;
   winner?: 'player1' | 'player2';

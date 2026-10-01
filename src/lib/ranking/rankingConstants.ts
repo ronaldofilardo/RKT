@@ -79,34 +79,14 @@ export const CATEGORY_TO_NUMBER: Record<string, number> = {
   '75+': 1,
 };
 
-export const AGE_GROUP_RANGES: Record<string, [number, number]> = {
+const AGE_GROUP_RANGES: Record<string, [number, number]> = {
   A: [11, 34],
   B: [35, 49],
   C: [50, 999],
 };
 
-export const AGE_GROUP_LABELS: Record<string, string> = {
-  A: '11 a 34 anos',
-  B: '35 a 49 anos',
-  C: '50 anos +',
-};
 
-export const GENDERS = ['MALE', 'FEMALE'] as const;
-export const GENDER_LABELS: Record<string, string> = {
-  MALE: 'Masculino',
-  FEMALE: 'Feminino',
-};
 
-export const EXTRA_ESTADUAL_CLASSES = [
-  '6ªMA',
-  '6ªMB',
-  '6ªMC',
-  '6ªFA',
-  '7ªMA',
-  '7ªMB',
-  '7ªMC',
-  '8ªMA',
-];
 
 export function calculateAgeFromYear(birthYear: number): number {
   return new Date().getFullYear() - birthYear;
@@ -154,8 +134,8 @@ export function hasClasses(rankingType: RankingType): boolean {
   return rankingType === 'ESTADUAL';
 }
 
-export const MATCH_CATEGORIES = ['INFANTIL', 'JUVENIL', 'ADULTO', 'VETERANO'] as const;
-export type MatchCategory = (typeof MATCH_CATEGORIES)[number];
+const MATCH_CATEGORIES = ['INFANTIL', 'JUVENIL', 'ADULTO', 'VETERANO'] as const;
+type MatchCategory = (typeof MATCH_CATEGORIES)[number];
 
 export const MATCH_CATEGORY_LABELS: Record<MatchCategory, string> = {
   INFANTIL: 'Kids',
@@ -171,10 +151,6 @@ export const MATCH_CATEGORY_AGE_LABELS: Record<MatchCategory, string> = {
   VETERANO: '35+ anos',
 };
 
-export const MATCH_CATEGORY_BY_AGE: Record<string, number[]> = {
-  INFANTIL: [11, 12],
-  JUVENIL: [13, 14, 15, 16, 17, 18],
-};
 
 export function getMatchCategoriesForAge(age: number): MatchCategory[] {
   if (age < 11) return [];
@@ -201,7 +177,7 @@ export const HIGHER_CATEGORY: Record<string, string | undefined> = {
   '17-18': undefined,
 };
 
-export const LOWER_CATEGORY: Record<string, string | undefined> = {
+const LOWER_CATEGORY: Record<string, string | undefined> = {
   '35-39': undefined,
   '40-44': '35-39',
   '45-49': '40-44',

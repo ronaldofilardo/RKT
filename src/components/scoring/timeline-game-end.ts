@@ -1,6 +1,6 @@
 import type { TimelinePoint } from '@/core/scoring/types';
 
-export interface GameEndInfo {
+interface GameEndInfo {
   isGameEnd: boolean;
   gameFinalScore: { player1: number; player2: number };
   winner: 'PLAYER_1' | 'PLAYER_2';

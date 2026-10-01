@@ -58,17 +58,17 @@ export interface EditScoreMatchState {
   currentSets?: { player1: number; player2: number };
 }
 
-export interface TiebreakInput {
+interface TiebreakInput {
   tiebreakP1?: string;
   tiebreakP2?: string;
 }
 
-export interface GameScoreInput {
+interface GameScoreInput {
   p1Input: string;
   p2Input: string;
 }
 
-export interface ValidationContext {
+interface ValidationContext {
   matchFormat: TennisFormat;
   totalEditedSets: number;
   setResults?: SetEditData[];
@@ -76,15 +76,15 @@ export interface ValidationContext {
 
 export interface EditScoreValidationInput extends GameScoreInput, TiebreakInput, ValidationContext {}
 
-export interface CompletedSetsInput {
+interface CompletedSetsInput {
   completedSets: CompletedSet[];
 }
 
-export interface NewSetsInput {
+interface NewSetsInput {
   newSets: SetEditData[];
 }
 
-export interface ValidationResultInput {
+interface ValidationResultInput {
   validation: EditScoreValidation;
 }
 
@@ -96,7 +96,7 @@ export interface EditScoreMatchStateInput
   currentSets?: { player1: number; player2: number };
 }
 
-export interface SetResultInput {
+interface SetResultInput {
   p1Val: number;
   p2Val: number;
   isSetTrulyCompleted: boolean;
@@ -113,7 +113,7 @@ export interface SetResultInput {
 
 export interface CreateSetEditDataInput extends SetResultInput {}
 
-export interface AutoAddSetContext {
+interface AutoAddSetContext {
   validation: EditScoreValidation;
   matchState: EditScoreMatchState;
   currentSets: { player1: number; player2: number };
@@ -124,7 +124,7 @@ export interface ShouldAutoAddSetInput extends AutoAddSetContext {
   p2Val: number;
 }
 
-export interface NextServerContext {
+interface NextServerContext {
   currentServer: Player;
   // Sacador do Game 1 de TODA a partida (valor fixo — `match.initialServerId`
   // convertido para 'player1'/'player2'). Ver comentário em getNextServerAfterSet

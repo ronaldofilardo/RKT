@@ -23,7 +23,7 @@ describe('ThemeToggle & ThemeContext', () => {
     document.documentElement.removeAttribute('data-theme');
   });
 
-  it('renderiza os 3 botoes de tema: claro, sistema e escuro', () => {
+  it('renderiza somente os 2 botoes de tema: claro e escuro (sem o botao de sistema)', () => {
     render(
       <ThemeProvider>
         <ThemeToggle />
@@ -31,8 +31,8 @@ describe('ThemeToggle & ThemeContext', () => {
     );
 
     expect(screen.getByTestId('theme-toggle-light')).toBeInTheDocument();
-    expect(screen.getByTestId('theme-toggle-system')).toBeInTheDocument();
     expect(screen.getByTestId('theme-toggle-dark')).toBeInTheDocument();
+    expect(screen.queryByTestId('theme-toggle-system')).toBeNull();
   });
 
   it('permite selecionar tema claro e aplica classes no documento', () => {
@@ -71,7 +71,7 @@ describe('ThemeToggle & ThemeContext', () => {
     expect(localStorage.getItem('rkt_theme_preference')).toBe('dark');
   });
 
-  it('permite voltar ao modo sistema e remove overrides manuais', () => {
+  it('alterna perfeitamente entre claro e escuro', () => {
     render(
       <ThemeProvider>
         <ThemeToggle />
@@ -79,16 +79,15 @@ describe('ThemeToggle & ThemeContext', () => {
       </ThemeProvider>
     );
 
-    // Primeiro vai para dark
+    // Seleciona escuro
     fireEvent.click(screen.getByTestId('theme-toggle-dark'));
+    expect(screen.getByTestId('current-theme').textContent).toBe('dark');
     expect(document.documentElement.classList.contains('dark')).toBe(true);
 
-    // Volta para sistema
-    fireEvent.click(screen.getByTestId('theme-toggle-system'));
-    expect(screen.getByTestId('current-theme').textContent).toBe('system');
+    // Alterna para claro
+    fireEvent.click(screen.getByTestId('theme-toggle-light'));
+    expect(screen.getByTestId('current-theme').textContent).toBe('light');
+    expect(document.documentElement.classList.contains('light')).toBe(true);
     expect(document.documentElement.classList.contains('dark')).toBe(false);
-    expect(document.documentElement.classList.contains('light')).toBe(false);
-    expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
-    expect(localStorage.getItem('rkt_theme_preference')).toBe('system');
   });
 });

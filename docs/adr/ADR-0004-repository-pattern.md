@@ -6,6 +6,7 @@
 **Supersedes:** —
 **Depends on:** ADR-0001, ADR-0003, F1 (ports)
 **Companion of:** ADR-0003 (Strategy Pattern)
+**Nota (2026-09-30):** nunca foi aceito. O scaffold de repositories/DI já criado (`src/infrastructure/**`, `src/services/di/**`, `src/lib/composition.ts`) estava morto e foi removido (TD-060). A decisão segue aberta: ao aceitar este ADR, recriar o scaffold.
 
 ---
 

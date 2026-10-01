@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 
-export interface NotesModalResult {
+interface NotesModalResult {
   text: string;
   audio?: { blob: Blob; durationMs: number };
 }

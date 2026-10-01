@@ -13,7 +13,7 @@ import {
 } from './edit-score-logic';
 import type { SetEditData } from './editScoreHelpers';
 
-export interface UseEditScoreCalculatorParams {
+interface UseEditScoreCalculatorParams {
   matchFormat: TennisFormat;
   completedSets: CompletedSet[];
   editableCompletedSets?: SetEditData[];
@@ -23,7 +23,7 @@ export interface UseEditScoreCalculatorParams {
   currentSets?: { player1: number; player2: number };
 }
 
-export interface EditScoreCalculations {
+interface EditScoreCalculations {
   validation: EditScoreValidation;
   tiebreakValidation: {
     hasValidTiebreak: boolean;
@@ -42,7 +42,7 @@ export interface EditScoreCalculations {
   currentScoreBelowOriginal: boolean;
 }
 
-export function evaluateCanAddNextSet(
+function evaluateCanAddNextSet(
   validation: EditScoreValidation,
   matchState: EditScoreMatchState,
   tiebreakValidation: { tiebreakComplete: boolean },
@@ -55,7 +55,7 @@ export function evaluateCanAddNextSet(
   return true;
 }
 
-export function evaluateCanConfirmSet(
+function evaluateCanConfirmSet(
   validation: EditScoreValidation,
   tiebreakValidation: { tiebreakImpossible: boolean; hasValidTiebreak: boolean },
   matchState: EditScoreMatchState,
@@ -146,7 +146,7 @@ function checkSetErrorValidity(
   return true;
 }
 
-export function evaluateCanConfirm(params: {
+function evaluateCanConfirm(params: {
   validation: EditScoreValidation;
   matchState: EditScoreMatchState;
   newSetsCount: number;
@@ -184,7 +184,7 @@ export function evaluateCanConfirm(params: {
   );
 }
 
-export function evaluateShowGamePointsAtZero(
+function evaluateShowGamePointsAtZero(
   validation: EditScoreValidation,
   completedSetsCount: number,
   newSets: SetEditData[],

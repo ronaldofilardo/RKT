@@ -1,7 +1,7 @@
 import type { TimelinePoint } from '@/core/scoring/types';
 import { isServer, isWinner, type ReturnStats, type ServeStats } from './types';
 
-export interface CompletedGame {
+interface CompletedGame {
   setNumber: number;
   server: 'player1' | 'player2';
   winner: 'PLAYER_1' | 'PLAYER_2';
@@ -77,7 +77,7 @@ export function isSecondServePoint(p: TimelinePoint): boolean {
   return false;
 }
 
-export function isFirstServePoint(p: TimelinePoint): boolean {
+function isFirstServePoint(p: TimelinePoint): boolean {
   if (p.type === 'FAULT_FIRST') return false;
   return !isSecondServePoint(p);
 }

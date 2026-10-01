@@ -16,7 +16,7 @@ export default function CourtBackground({ courtType = 'HARD' }: { courtType?: Co
 
   return (
     <div
-      className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl"
+      className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl opacity-25"
       aria-hidden="true"
       style={{ backgroundColor: colors.bg }}
     >

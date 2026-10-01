@@ -1,4 +1,3 @@
-import type { PrismaClient } from '@prisma/client';
 import type { CreateMatchInput, MatchFormat } from '@/schemas/contracts';
 import { ValidationError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
@@ -62,4 +61,3 @@ export function buildCreateMatchData(data: CreateMatchInput, createdByUserId?: s
   };
 }
 
-export type MatchTransactionClient = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];

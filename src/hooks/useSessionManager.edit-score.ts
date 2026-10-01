@@ -13,7 +13,7 @@ import { buildNewScoringState } from "./useSessionManager.state-builder";
 import { finishMatch } from "./useSessionManager.match-finish";
 import type { SessionManagerContext, SuspendedSessionState } from "./useSessionManager";
 
-export interface ExecuteEditScoreOptions {
+interface ExecuteEditScoreOptions {
   setResults: SetEditData[];
   server: "player1" | "player2";
   onMatchFinished?: (winner: "player1" | "player2") => void;

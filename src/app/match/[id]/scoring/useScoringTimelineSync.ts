@@ -20,7 +20,7 @@ export interface MatchCommentData {
   audioNoteDuration?: number | null;
 }
 
-export interface UseScoringTimelineSyncParams {
+interface UseScoringTimelineSyncParams {
   matchId: string;
   match: MatchData | null;
   scoreState: ScoringState | null;

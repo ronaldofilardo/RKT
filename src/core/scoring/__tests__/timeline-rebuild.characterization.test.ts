@@ -1,4 +1,4 @@
-import { rebuildTimelineFromPointLogs } from '../timeline-rebuild';
+import { rebuildTimelineFromPointLogs } from '@/core/scoring/timeline-rebuild';
 
 describe('timeline-rebuild - Caracterizacao', () => {
   it('deve retornar array vazio se pointLogs for vazio', () => {

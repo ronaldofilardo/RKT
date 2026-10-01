@@ -1,7 +1,7 @@
 import {
   rebuildTimelineFromPointLogs,
   type PointLogRow,
-} from '../timeline-rebuild';
+} from '@/core/scoring/timeline-rebuild';
 import type {
   TimelinePoint,
   HistoryEntry,
