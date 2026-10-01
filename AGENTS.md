@@ -1,133 +1,27 @@
-# Multi-Agent Spec — rkt
+# 🤖 Instruções para Agentes de IA
 
-## Princípios Globais (aplicáveis a TODOS os agentes)
-- **SRP (Single Responsibility Principle):** cada agente atua APENAS no seu domínio. Se a demanda escapar do escopo, delega explicitamente citando `@agente-alvo`.
-- **Context isolation:** cada agente carrega SOMENTE os arquivos/pastas do seu domínio. Nunca vazar contexto entre agentes.
-- **Output contract:** toda resposta deve conter: (1) o que foi feito, (2) arquivos tocados, (3) handoff sugerido para outro agente.
-- **No cross-cutting changes:** nenhum agente altera código fora do seu domínio sem handoff explícito.
-- **Fail loud:** se faltar contexto, pare e peça. Não invente.
-- **Package Manager / CLI Restriction:** O ambiente do sistema NÃO executa `npm`. Agentes de IA NUNCA devem rodar comandos com `npm` (`npm install`, `npm run`, `npm test`, etc.). Use EXCLUSIVAMENTE `pnpm` (`pnpm install`, `pnpm dev`, `pnpm test`, etc.) ou `npx` quando necessário.
+Este projeto utiliza **uma única metodologia** documentada nos seguintes arquivos:
 
-## Convenções de Handoff
-- `@backend → @qa` quando endpoint estiver pronto para testes.
-- `@frontend → @qa` quando componente/página estiver pronta para testes.
-- `@arquitetura → @backend` quando ADR for aprovado.
-- `@arquitetura → @frontend` quando decisão de UI/UX estrutural for necessária.
-- `@qa → @backend` quando falha for detectada em API.
-- `@qa → @frontend` quando falha for detectada em UI.
-- `@backend → @arquitetura` quando decisão estrutural for necessária.
-- `@frontend → @arquitetura` quando decisão de arquitetura de UI for necessária.
+## 📚 Documentação de Referência
 
-## Regra de Fronteira (Projetos em Andamento)
+1. **[PRD.md](docs/PRD.md)** - Product Requirements Document
+   - Visão do produto, problema que resolve, objetivos e escopo do MVP
 
-**Data de Corte:** 2026-07-20 (adoção do multi-agente)
+2. **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Arquitetura do Sistema
+   - Stack tecnológica, estrutura de pastas, fluxo de dados e padrões
 
-- **Código NOVO** (arquivos criados após 2026-07-20) segue **100%** as specs dos agentes.
-- **Código LEGADO** (arquivos existentes) só é tocado pelos agentes quando:
-  1. Uma **feature nova** exige mudança nele, OU
-  2. Um **bug crítico** exige correção, OU
-  3. Foi explicitamente listado em `docs/REFACTOR_QUEUE.md`.
+3. **[RULES.md](docs/RULES.md)** - Regras de Desenvolvimento
+   - Padrões de código, princípios, estratégia de testes e qualidade
 
-### Ao tocar código legado, o agente DEVE:
+4. **[DESIGN.md](docs/DESIGN.md)** - Design System
+   - Tokens visuais, componentes, padrões de UI e acessibilidade
 
-1. **Delimitar o "raio de mudança" mínimo** — não refatorar além do necessário para a tarefa.
-2. **Adicionar testes de caracterização ANTES de mudar** (via `@qa`) — capturar comportamento atual.
-3. **Registrar item em `docs/TECH_DEBT.md`** se identificar dívida adjacente (mas **NÃO corrigir agora** — anotar e seguir).
-4. **Documentar no PR** o que foi mudado e por quê (linkar issue/ADR se aplicável).
+5. **[TASKS.md](docs/TASKS.md)** - Backlog do Projeto
+   - Tarefas críticas, funcionalidades ausentes, débito técnico e melhorias
 
-### Exemplo de Aplicação
+6. **[MEMORY.md](docs/MEMORY.md)** - Histórico e Contexto
+   - Estado atual do projeto, decisões tomadas e próximos passos
 
-```
-✅ Permitido:
-- Criar nova API route `/api/suggestions` seguindo guardrails
-- Modificar `matchService.ts` para adicionar feature de suggestion
-- Adicionar teste de caracterização em `matchService.test.ts` antes de mudar
+---
 
-❌ Não permitido:
-- Refatorar `playerService.ts` inteiro "porque precisa de limpeza"
-- Mudar estrutura de `src/components/scoring/` sem feature/bug relacionado
-- Corrigir TD-011 (componentes gigantes) sem haver feature passando por ali
-```
-
-**Objetivo:** Aceitar o passado, mas **não permitir que o futuro herde os pecados**.
-
-## Stack do Projeto
-- **Framework:** Next.js 15+ (App Router)
-- **Linguagem:** TypeScript 5.5+
-- **Database:** PostgreSQL + Prisma ORM
-- **Estilização:** Tailwind CSS + **Telemetry Design System (Broadcast-Grade)** com Dual-Theme
-- **Testes:** Jest (unitário), Playwright (E2E), Stryker (mutation)
-- **Auth:** JWT via `jose`, middleware + RLS
-- **PWA:** desabilitado (removido 2026-08-02 por cache stale da API em produção)
-
-## Design System — Telemetry (Broadcast-Grade) — MANDATÓRIO
-- **Identidade Visual Oficial:** O projeto adota o **Telemetry Design System** com suporte a Dual-Theme (Light & Dark via `ThemeContext`).
-- **Proibição Estrita de Regressão Visual:**
-  - NENHUM agente pode remover, alterar ou ignorar tokens `telemetry-*` (`bg-telemetry-base`, `bg-telemetry-card`, `bg-telemetry-elevated`, `text-telemetry-text-primary`, `text-telemetry-text-muted`, `ring-telemetry-volt`, `text-telemetry-volt`, etc.).
-  - **NUNCA reintroduzir classes genéricas de Tailwind** (`bg-gray-*`, `text-gray-*`, `border-gray-*`, `bg-sky-*`, `bg-emerald-*`) em componentes de `/scoring`, `/dashboard`, `/match/new` ou `/atletas`.
-  - **NUNCA reverter o layout de `/scoring`** para visual de quadra sólida (`CourtBackground` com azul opaco cobrindo a tela) ou remover o placar (`ScoreboardCard`) e a barra de estatísticas (`LiveCountersBar`).
-  - **NUNCA ressuscitar arquivos legados de visualização** (ex: `*.view.tsx` ou `*.rows.tsx` arcaicos) que reintroduzem o CSS pré-telemetria de agosto de 2026.
-- **Validação de Design Obrigatória:** Toda alteração de frontend deve rodar e passar os testes de integridade e caracterização de design:
-  `pnpm test:design`
-
-## Comandos Úteis
-```bash
-pnpm dev              # Desenvolvimento
-pnpm build            # Build (gera Prisma + Next)
-pnpm start            # Produção
-pnpm lint             # ESLint
-pnpm typecheck        # TypeScript
-pnpm test             # Jest (unitário)
-pnpm test:design      # Validação Telemetry Design System (anti-regressão)
-pnpm test:watch       # Jest watch mode
-pnpm test:coverage    # Jest com coverage
-pnpm test:components  # Jest (componentes)
-pnpm test:e2e         # Playwright
-pnpm test:mutation    # Stryker
-pnpm db:push          # Prisma db push
-pnpm db:migrate       # Prisma migrate dev
-pnpm db:seed          # Seed do banco
-pnpm spec:validate    # Validação de spec drift e guardrails de telemetria
-```
-
-<!-- graft:start -->
-## Graft — repo context graph
-
-This repo is indexed in `graft/`: small linked markdown nodes that explain each
-system and carry exact file:line spans, kept in sync with the code through git.
-
-For ANY task here — understanding how something works, finding where code lives,
-or scoping a change — get context from the graph before grepping or opening
-source files. Re-ask freely (it's cheap) and reuse literal identifiers you
-already have (symbol, error string, file name) as the query. New to this repo?
-Run `graft map` first — a token-budgeted orientation (dir clusters, hubs,
-hotspots), no LLM, no key.
-
-- Run `graft ask "<your question>" --source` → ranked nodes with the relevant
-  code spans inlined (each hit's ≤8-line crux by default; `--full` for whole
-  definitions when the crux isn't enough). Match the tool to the task shape:
-  for understanding or editing, the top node IS the answer — cite its
-  `covers:` file:line spans and edit straight from `--source`. For
-  exhaustive tasks ("every occurrence / every caller of this pattern"), ranked
-  results are top-N, not complete — run `graft grep "<literal>"` instead
-  (exhaustive over indexed files, grouped by enclosing symbol), falling back
-  to raw `grep -rn` only for unindexed files.
-- `graft skeleton <file>` → every definition's signature + span, ~10× cheaper
-  than reading the file; use it to skim an API surface.
-- `graft callers <symbol>` gives precomputed, exact edges — who calls this.
-  Add `--direction out` for what it calls, or `--depth N` to walk
-  transitively for the full blast radius. For structural questions, skip
-  ranking and use this directly.
-- Or browse: `graft/INDEX.md` lists every node; follow the links.
-- Monorepos and folders of multiple repos rank fairly across sub-projects —
-  hits carry `[scope/]` labels naming which one they're from. Narrow with
-  `graft ask "<task>" --in <scope>/` once you know where you're working.
-
-If a returned span is truncated ("+N more lines"), open the file at that exact
-range before finalizing. Only open source files when a node genuinely lacks a
-needed detail, and then at the exact file:line the node points to — never
-re-read whole files.
-
-After big code changes, refresh the graph with `graft build` (deterministic,
-no API key, $0).
-<!-- graft:end -->
+**Instrução única:** Ao trabalhar neste projeto, consulte estes 6 documentos como fonte única de verdade. Não há metodologias ou diretrizes alternativas.
