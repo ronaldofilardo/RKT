@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { openDB, IDBPDatabase } from 'idb';
-import type { QueuedAction } from '@/schemas/contracts';
-import { logger } from '@/lib/logger';
+import { useEffect, useState, useCallback, useRef } from "react";
+import { openDB, IDBPDatabase } from "idb";
+import type { QueuedAction } from "@/schemas/contracts";
+import { logger } from "@/lib/logger";
 
 import {
   ensureMatchSequence,
@@ -12,10 +12,10 @@ import {
   retrySequenceConflict,
   markActionPendingOrFailed,
   markActionPending,
-} from './useOfflineSync.helpers';
+} from "./useOfflineSync.helpers";
 
-const DB_NAME = 'racket-offline-db';
-const STORE_NAME = 'optimistic-queue';
+const DB_NAME = "racket-offline-db";
+const STORE_NAME = "optimistic-queue";
 const DB_VERSION = 2;
 
 let cachedDb: IDBPDatabase | null = null;
@@ -23,7 +23,10 @@ let cachedDb: IDBPDatabase | null = null;
 async function getDb(): Promise<IDBPDatabase> {
   if (cachedDb) {
     try {
-      cachedDb.transaction(STORE_NAME, 'readonly').abort();
+      // Testa se a conexão ainda está válida acessando uma propriedade interna
+      // em vez de .abort() (que lança AbortError visível no console mesmo dentro
+      // do catch). Se a conexão foi fechada/terminada, objectStoreNames lançará.
+      void cachedDb.objectStoreNames;
       return cachedDb;
     } catch {
       cachedDb = null;
@@ -33,28 +36,30 @@ async function getDb(): Promise<IDBPDatabase> {
   const db = await openDB(DB_NAME, DB_VERSION, {
     upgrade(db) {
       if (!db.objectStoreNames.contains(STORE_NAME)) {
-        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-        store.createIndex('status', 'status');
-        store.createIndex('timestamp', 'timestamp');
+        const store = db.createObjectStore(STORE_NAME, { keyPath: "id" });
+        store.createIndex("status", "status");
+        store.createIndex("timestamp", "timestamp");
       }
-      if (!db.objectStoreNames.contains('optimistic-comment-queue')) {
-        const store = db.createObjectStore('optimistic-comment-queue', { keyPath: 'id' });
-        store.createIndex('status', 'status');
-        store.createIndex('timestamp', 'timestamp');
+      if (!db.objectStoreNames.contains("optimistic-comment-queue")) {
+        const store = db.createObjectStore("optimistic-comment-queue", {
+          keyPath: "id",
+        });
+        store.createIndex("status", "status");
+        store.createIndex("timestamp", "timestamp");
       }
     },
     blocked() {
-      console.warn('[IndexedDB] Connection blocked');
+      console.warn("[IndexedDB] Connection blocked");
     },
     blocking() {
-      console.warn('[IndexedDB] Connection blocking - closing');
+      console.warn("[IndexedDB] Connection blocking - closing");
       if (cachedDb) {
         cachedDb.close();
         cachedDb = null;
       }
     },
     terminated() {
-      console.warn('[IndexedDB] Connection terminated');
+      console.warn("[IndexedDB] Connection terminated");
       cachedDb = null;
     },
   });
@@ -67,48 +72,53 @@ async function getDb(): Promise<IDBPDatabase> {
 }
 
 export function useOfflineSync() {
-  const [online, setOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [online, setOnline] = useState(
+    typeof navigator !== "undefined" ? navigator.onLine : true,
+  );
   const [isSyncing, setIsSyncing] = useState(false);
   const isFlushingRef = useRef(false);
 
-  const enqueue = useCallback(async (action: Omit<QueuedAction, 'id' | 'status' | 'retries'>) => {
-    const db = await getDb();
-    const queuedAction: QueuedAction = {
-      ...action,
-      payload: {
-        ...action.payload,
-        clientEventId: action.payload.clientEventId ?? crypto.randomUUID(),
-      },
-      id: crypto.randomUUID(),
-      status: 'PENDING',
-      retries: 0,
-    };
+  const enqueue = useCallback(
+    async (action: Omit<QueuedAction, "id" | "status" | "retries">) => {
+      const db = await getDb();
+      const queuedAction: QueuedAction = {
+        ...action,
+        payload: {
+          ...action.payload,
+          clientEventId: action.payload.clientEventId ?? crypto.randomUUID(),
+        },
+        id: crypto.randomUUID(),
+        status: "PENDING",
+        retries: 0,
+      };
 
-    await db.add(STORE_NAME, queuedAction);
-    return queuedAction;
-  }, []);
+      await db.add(STORE_NAME, queuedAction);
+      return queuedAction;
+    },
+    [],
+  );
 
   const clearQueueForMatch = useCallback(async (targetMatchId: string) => {
     try {
       const db = await getDb();
-      const pending = await db.getAllFromIndex(STORE_NAME, 'status', 'PENDING');
+      const pending = await db.getAllFromIndex(STORE_NAME, "status", "PENDING");
       for (const action of pending) {
         if (action.matchId === targetMatchId) {
           await db.delete(STORE_NAME, action.id);
         }
       }
     } catch (err) {
-      logger.error('[clearQueueForMatch] Failed to clear queue:', err);
+      logger.error("[clearQueueForMatch] Failed to clear queue:", err);
     }
   }, []);
 
   const removeLastAction = useCallback(async (targetMatchId: string) => {
     try {
       const db = await getDb();
-      const pending = await db.getAllFromIndex(STORE_NAME, 'status', 'PENDING');
-      
+      const pending = await db.getAllFromIndex(STORE_NAME, "status", "PENDING");
+
       const matchActions = pending
-        .filter(a => a.matchId === targetMatchId)
+        .filter((a) => a.matchId === targetMatchId)
         .sort((a, b) => b.timestamp - a.timestamp);
 
       if (matchActions.length > 0) {
@@ -117,14 +127,16 @@ export function useOfflineSync() {
       }
       return false;
     } catch (err) {
-      logger.error('[removeLastAction] Failed:', err);
+      logger.error("[removeLastAction] Failed:", err);
       return false;
     }
   }, []);
 
   const flush = useCallback(async (accessToken: string) => {
     if (isFlushingRef.current) {
-      logger.log('[flush] Sincronização offline já em andamento — ignorando chamada concorrente');
+      logger.log(
+        "[flush] Sincronização offline já em andamento — ignorando chamada concorrente",
+      );
       return;
     }
     isFlushingRef.current = true;
@@ -133,15 +145,15 @@ export function useOfflineSync() {
 
     try {
       const db = await getDb();
-      
+
       // Resgata ações SYNCING que podem ter ficado orfãs em aberturas/fechamentos inesperados
-      const syncing = await db.getAllFromIndex(STORE_NAME, 'status', 'SYNCING');
+      const syncing = await db.getAllFromIndex(STORE_NAME, "status", "SYNCING");
       for (const action of syncing) {
-        await db.put(STORE_NAME, { ...action, status: 'PENDING' });
+        await db.put(STORE_NAME, { ...action, status: "PENDING" });
       }
 
-      const pending = await db.getAllFromIndex(STORE_NAME, 'status', 'PENDING');
-      const failed = await db.getAllFromIndex(STORE_NAME, 'status', 'FAILED');
+      const pending = await db.getAllFromIndex(STORE_NAME, "status", "PENDING");
+      const failed = await db.getAllFromIndex(STORE_NAME, "status", "FAILED");
       const toSync = [...pending, ...failed];
       toSync.sort((a, b) => a.timestamp - b.timestamp);
 
@@ -151,10 +163,14 @@ export function useOfflineSync() {
       for (const action of toSync) {
         if (failedMatches.has(action.matchId)) continue;
         try {
-          const currentSequence = await ensureMatchSequence(action.matchId, accessToken, matchSequences);
+          const currentSequence = await ensureMatchSequence(
+            action.matchId,
+            accessToken,
+            matchSequences,
+          );
           const nextSequence = currentSequence + 1;
 
-          await db.put(STORE_NAME, { ...action, status: 'SYNCING' });
+          await db.put(STORE_NAME, { ...action, status: "SYNCING" });
 
           const response = await fetch(
             `/api/matches/${action.matchId}/point`,
@@ -167,7 +183,13 @@ export function useOfflineSync() {
             continue;
           }
 
-          const retried = await retrySequenceConflict(db, action, accessToken, response, matchSequences);
+          const retried = await retrySequenceConflict(
+            db,
+            action,
+            accessToken,
+            response,
+            matchSequences,
+          );
           if (!retried) {
             await markActionPendingOrFailed(db, action);
             failedMatches.add(action.matchId);
@@ -183,18 +205,24 @@ export function useOfflineSync() {
       isFlushingRef.current = false;
       setIsSyncing(false);
       if (syncedAnything) {
-        window.dispatchEvent(new CustomEvent('offline-sync-complete'));
+        window.dispatchEvent(new CustomEvent("offline-sync-complete"));
       }
       try {
         const db = await getDb();
-        const stillFailed = await db.getAllFromIndex(STORE_NAME, 'status', 'FAILED');
+        const stillFailed = await db.getAllFromIndex(
+          STORE_NAME,
+          "status",
+          "FAILED",
+        );
         if (stillFailed.length > 0) {
           window.dispatchEvent(
-            new CustomEvent('offline-sync-stuck', { detail: { count: stillFailed.length } }),
+            new CustomEvent("offline-sync-stuck", {
+              detail: { count: stillFailed.length },
+            }),
           );
         }
       } catch (err) {
-        logger.error('[flush] Failed to check stuck actions:', err);
+        logger.error("[flush] Failed to check stuck actions:", err);
       }
     }
   }, []);
@@ -205,10 +233,10 @@ export function useOfflineSync() {
   const getFailedCount = useCallback(async (): Promise<number> => {
     try {
       const db = await getDb();
-      const failed = await db.getAllFromIndex(STORE_NAME, 'status', 'FAILED');
+      const failed = await db.getAllFromIndex(STORE_NAME, "status", "FAILED");
       return failed.length;
     } catch (err) {
-      logger.error('[getFailedCount] Failed to read queue:', err);
+      logger.error("[getFailedCount] Failed to read queue:", err);
       return 0;
     }
   }, []);
@@ -216,7 +244,7 @@ export function useOfflineSync() {
   useEffect(() => {
     const handleOnline = () => {
       setOnline(true);
-      const token = sessionStorage.getItem('access_token');
+      const token = sessionStorage.getItem("access_token");
       if (token) flush(token);
     };
 
@@ -224,11 +252,11 @@ export function useOfflineSync() {
       setOnline(false);
     };
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
-    const token = sessionStorage.getItem('access_token');
-    
+    const token = sessionStorage.getItem("access_token");
+
     // Tentar flush na inicialização (e periodicamente quando online)
     if (online && token) {
       flush(token);
@@ -237,14 +265,14 @@ export function useOfflineSync() {
     let intervalId: NodeJS.Timeout;
     if (online) {
       intervalId = setInterval(() => {
-        const currentToken = sessionStorage.getItem('access_token');
+        const currentToken = sessionStorage.getItem("access_token");
         if (currentToken) flush(currentToken);
       }, 30000); // Tentar a cada 30 segundos
     }
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
       if (intervalId) clearInterval(intervalId);
     };
   }, [flush, online]);

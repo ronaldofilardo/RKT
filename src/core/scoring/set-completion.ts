@@ -121,6 +121,17 @@ export function isSetComplete(
     return isTiebreakComplete(set.tiebreakScore, config.format, sets.length);
   }
 
+  // Se o set tem tiebreakScore, mas isTiebreak=false, ele foi decidido por tiebreak e já concluído.
+  // Nesse caso, o vencedor tem 1 game de vantagem (ex: 7-6 ou 5-4 em short sets).
+  if (!set.isTiebreak && set.tiebreakScore) {
+    const diff = Math.abs(set.player1 - set.player2);
+    const needed = getRequiredGamesToWinSet(config);
+    const maxGames = Math.max(set.player1, set.player2);
+    if (diff === 1 && maxGames === needed + 1) {
+      return true;
+    }
+  }
+
   const diff = Math.abs(set.player1 - set.player2);
   const maxGames = Math.max(set.player1, set.player2);
   const needed = getRequiredGamesToWinSet(config);

@@ -11,112 +11,125 @@ interface ResumeSessionOptions {
 export function useResumeSession(options: ResumeSessionOptions) {
   const { router, setSession, setPendingEdit } = options;
 
-  const handleResumeSuspended = (match: any, resumeOptions?: { openEditModal?: boolean }) => {
+  const handleResumeSuspended = (
+    match: any,
+    resumeOptions?: { openEditModal?: boolean },
+  ) => {
+    // Partida finalizada não deve voltar para /scoring: mesmo que exista um
+    // suspendedSessionId/matchStateSnapshot residual, o destino correto é o
+    // relatório (fonte de verdade pós-jogo).
+    if (match.state === "FINISHED") {
+      router.push(`/match/${match.id}/report`);
+      return;
+    }
     try {
       const shouldOpenEditModal = resumeOptions?.openEditModal ?? true;
       const isRealSuspendedSession = Boolean(
-      match.matchStateSnapshot && match.suspendedSessionId
-    );
+        match.matchStateSnapshot && match.suspendedSessionId,
+      );
 
-    const rawScoreState = match.scoreState;
-    let scoreState: any = null;
-    if (rawScoreState) {
-      if (rawScoreState.sets && rawScoreState.currentGame) {
-        scoreState = rawScoreState;
-      } else if (rawScoreState.state && Array.isArray(rawScoreState.history)) {
-        scoreState = rawScoreState.state;
+      const rawScoreState = match.scoreState;
+      let scoreState: any = null;
+      if (rawScoreState) {
+        if (rawScoreState.sets && rawScoreState.currentGame) {
+          scoreState = rawScoreState;
+        } else if (
+          rawScoreState.state &&
+          Array.isArray(rawScoreState.history)
+        ) {
+          scoreState = rawScoreState.state;
+        }
       }
-    }
 
-    const floorSets = scoreState?.sets?.length
-      ? (() => {
-          // Find the current set being played (last set in array)
-          const lastSet = scoreState.sets[scoreState.sets.length - 1];
-          const lastSetIsCompleted = isSetCompleted(
-            lastSet,
-            match.format as TennisFormat,
-            scoreState.sets.length - 1,
-            scoreState.setsWon
-          );
-          
-          // Bug fix (2026-09-08): a checagem original `lastSet.isTiebreak && lastSet.tiebreakScore`
-          // tratava qualquer set em tiebreak (inclusive um tiebreak comum em 6x6) como se fosse o
-          // Match Tiebreak decisivo, retornando null e perdendo o floor de games (6-6) ao retomar
-          // a sessão suspensa. Só o Match Tiebreak decisivo real não tem floor de games (mesmo bug
-          // já corrigido em MatchCard.tsx via isCurrentSetMatchTiebreak).
-          const isDecisiveMatchTiebreak = isCurrentSetMatchTiebreak(
-            scoreState.sets,
-            match.format as TennisFormat
-          );
+      const floorSets = scoreState?.sets?.length
+        ? (() => {
+            // Find the current set being played (last set in array)
+            const lastSet = scoreState.sets[scoreState.sets.length - 1];
+            const lastSetIsCompleted = isSetCompleted(
+              lastSet,
+              match.format as TennisFormat,
+              scoreState.sets.length - 1,
+              scoreState.setsWon,
+            );
 
-          if (isDecisiveMatchTiebreak) {
-            // Match Tiebreak decisivo: não há floor de games a aplicar.
-            return null;
-          }
+            // Bug fix (2026-09-08): a checagem original `lastSet.isTiebreak && lastSet.tiebreakScore`
+            // tratava qualquer set em tiebreak (inclusive um tiebreak comum em 6x6) como se fosse o
+            // Match Tiebreak decisivo, retornando null e perdendo o floor de games (6-6) ao retomar
+            // a sessão suspensa. Só o Match Tiebreak decisivo real não tem floor de games (mesmo bug
+            // já corrigido em MatchCard.tsx via isCurrentSetMatchTiebreak).
+            const isDecisiveMatchTiebreak = isCurrentSetMatchTiebreak(
+              scoreState.sets,
+              match.format as TennisFormat,
+            );
 
-          if (lastSet.isTiebreak && lastSet.tiebreakScore) {
-            // Tiebreak comum de um set normal (ex.: 6x6) — o floor continua sendo os games do set,
-            // os pontos do tiebreak em si não têm floor (começam em 0-0).
-            return { player1: lastSet.player1, player2: lastSet.player2 };
-          }
+            if (isDecisiveMatchTiebreak) {
+              // Match Tiebreak decisivo: não há floor de games a aplicar.
+              return null;
+            }
 
-          return lastSetIsCompleted
-            ? null
-            : { player1: lastSet.player1, player2: lastSet.player2 };
-        })()
-      : null;
+            if (lastSet.isTiebreak && lastSet.tiebreakScore) {
+              // Tiebreak comum de um set normal (ex.: 6x6) — o floor continua sendo os games do set,
+              // os pontos do tiebreak em si não têm floor (começam em 0-0).
+              return { player1: lastSet.player1, player2: lastSet.player2 };
+            }
 
-    setSession({
-      matchId: match.id,
-      sessionId: match.suspendedSessionId ?? null,
-      bankScoreState: scoreState,
-      matchStateSnapshot: match.matchStateSnapshot,
-      snapshotStatus: match.snapshotStatus ?? "IN_SYNC",
-      snapshotPointCount: match.snapshotPointCount ?? 0,
-      bankPointCount: match.bankPointCount ?? 0,
-      suspendedSessionId: match.suspendedSessionId ?? null,
-    });
+            return lastSetIsCompleted
+              ? null
+              : { player1: lastSet.player1, player2: lastSet.player2 };
+          })()
+        : null;
 
-    if (scoreState && shouldOpenEditModal) {
-      setPendingEdit(scoreState, floorSets);
-    }
+      setSession({
+        matchId: match.id,
+        sessionId: match.suspendedSessionId ?? null,
+        bankScoreState: scoreState,
+        matchStateSnapshot: match.matchStateSnapshot,
+        snapshotStatus: match.snapshotStatus ?? "IN_SYNC",
+        snapshotPointCount: match.snapshotPointCount ?? 0,
+        bankPointCount: match.bankPointCount ?? 0,
+        suspendedSessionId: match.suspendedSessionId ?? null,
+      });
 
-    const sessionStorageData: Record<string, any> = {
-      bankScoreState: scoreState,
-      matchStateSnapshot: match.matchStateSnapshot,
-      snapshotStatus: match.snapshotStatus ?? "IN_SYNC",
-      snapshotPointCount: match.snapshotPointCount ?? 0,
-      bankPointCount: match.bankPointCount ?? 0,
-      suspendedSessionId: match.suspendedSessionId ?? null,
-    };
-
-    if (!isRealSuspendedSession) {
-      const stored = sessionStorage.getItem(`suspended_session_${match.id}`);
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (parsed.matchStateSnapshot) {
-            sessionStorageData.matchStateSnapshot = parsed.matchStateSnapshot;
-            sessionStorageData.snapshotStatus =
-              parsed.snapshotStatus ?? "IN_SYNC";
-            sessionStorageData.snapshotPointCount =
-              parsed.snapshotPointCount ?? 0;
-            sessionStorageData.bankPointCount = parsed.bankPointCount ?? 0;
-          }
-        } catch {}
+      if (scoreState && shouldOpenEditModal) {
+        setPendingEdit(scoreState, floorSets);
       }
-    }
 
-    sessionStorage.setItem(
-      `suspended_session_${match.id}`,
-      JSON.stringify(sessionStorageData)
-    );
-    const targetUrl = shouldOpenEditModal
-      ? `/match/${match.id}/scoring?modal=edit-score`
-      : `/match/${match.id}/scoring`;
-    router.push(targetUrl);
+      const sessionStorageData: Record<string, any> = {
+        bankScoreState: scoreState,
+        matchStateSnapshot: match.matchStateSnapshot,
+        snapshotStatus: match.snapshotStatus ?? "IN_SYNC",
+        snapshotPointCount: match.snapshotPointCount ?? 0,
+        bankPointCount: match.bankPointCount ?? 0,
+        suspendedSessionId: match.suspendedSessionId ?? null,
+      };
+
+      if (!isRealSuspendedSession) {
+        const stored = sessionStorage.getItem(`suspended_session_${match.id}`);
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (parsed.matchStateSnapshot) {
+              sessionStorageData.matchStateSnapshot = parsed.matchStateSnapshot;
+              sessionStorageData.snapshotStatus =
+                parsed.snapshotStatus ?? "IN_SYNC";
+              sessionStorageData.snapshotPointCount =
+                parsed.snapshotPointCount ?? 0;
+              sessionStorageData.bankPointCount = parsed.bankPointCount ?? 0;
+            }
+          } catch {}
+        }
+      }
+
+      sessionStorage.setItem(
+        `suspended_session_${match.id}`,
+        JSON.stringify(sessionStorageData),
+      );
+      const targetUrl = shouldOpenEditModal
+        ? `/match/${match.id}/scoring?modal=edit-score`
+        : `/match/${match.id}/scoring`;
+      router.push(targetUrl);
     } catch (err) {
-      console.error('[handleResumeSuspended] ERROR:', err);
+      console.error("[handleResumeSuspended] ERROR:", err);
     }
   };
 

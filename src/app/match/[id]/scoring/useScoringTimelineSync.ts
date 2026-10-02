@@ -91,7 +91,7 @@ export function useScoringTimelineSync({
 
         const serverPointsInCurrentSegment = lastBreakIndex >= 0
           ? serverTimelinePoints.length - lastBreakIndex
-          : (localEnriched.length === 0 ? serverTimelinePoints.length : 0);
+          : serverTimelinePoints.length;
 
         if (localEnriched.length > serverPointsInCurrentSegment) {
           const newLocalPoints = localEnriched.slice(serverPointsInCurrentSegment);
