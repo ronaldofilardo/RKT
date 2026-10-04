@@ -342,9 +342,12 @@ export function MatchCard({
       )}
 
       {match.scheduledAt && (
-        <p className="px-4 pb-3 text-xs text-telemetry-text-muted font-medium">
-          {new Date(match.scheduledAt).toLocaleString("pt-BR")}
-        </p>
+        <div className={`px-4 pb-3 flex items-center gap-1.5 text-xs font-medium ${match.state === 'SCHEDULED' ? 'text-purple-400' : 'text-telemetry-text-muted'}`}>
+          <span aria-hidden="true" className={match.state === 'SCHEDULED' ? 'text-purple-400' : 'text-telemetry-text-primary/70'}>
+            {match.state === 'SCHEDULED' ? '⏰' : '📅'}
+          </span>
+          <span>{new Date(match.scheduledAt).toLocaleString("pt-BR")}</span>
+        </div>
       )}
     </div>
   );
