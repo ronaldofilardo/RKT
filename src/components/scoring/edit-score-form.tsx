@@ -122,14 +122,15 @@ export function SetInputForm({
     );
   }
 
+  const tbAt = matchFormat === 'PRO_SET_8' ? 9 : matchFormat === 'SHORT_SET_2V2_NO_AD' ? 4 : 6;
   const isTiebreakInputVisible =
     !isMatchTiebreakSet &&
     hasTiebreak &&
     p1Input &&
     p2Input &&
-    ((p1Val === 6 && p2Val === 6) ||
-      (matchFormat === 'SHORT_SET_2V2_NO_AD' && p1Val === 4 && p2Val === 4) ||
-      (matchFormat === 'PRO_SET_8' && p1Val === 9 && p2Val === 9));
+    ((p1Val === tbAt && p2Val === tbAt) ||
+      (p1Val === tbAt + 1 && p2Val === tbAt) ||
+      (p1Val === tbAt && p2Val === tbAt + 1));
 
   return (
     <div className="space-y-4 rounded-lg bg-telemetry-card border border-white/10 p-4">

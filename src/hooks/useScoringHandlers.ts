@@ -225,6 +225,8 @@ export function useScoringHandlers(
     onPointProcessed,
     onAudioUploaded,
     uploadAudioNote: undoRedoService.uploadAudioNote,
+    handleFirstServeErrorClear,
+    setServeStep,
   });
 
   const processPoint = useCallback(

@@ -41,6 +41,8 @@ interface PointProcessorDeps {
     durationMs: number,
     token: string | null,
   ) => Promise<void>;
+  handleFirstServeErrorClear: () => void;
+  setServeStep: (step: "none" | "second") => void;
 }
 
 export function createPointProcessorService(deps: PointProcessorDeps) {
@@ -68,6 +70,8 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
     onPointProcessed,
     onAudioUploaded,
     uploadAudioNote,
+    handleFirstServeErrorClear,
+    setServeStep,
   } = deps;
 
   const applySuccessResult = (
@@ -240,6 +244,9 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
       rallyLength: rallyLengthToUse,
       firstFaultDetail,
     }).then((pointLogId) => {
+      handleFirstServeErrorClear();
+      setServeStep("none");
+      
       if (audio) {
         if (pointLogId && uploadAudioNote) {
           uploadAudioNote(match.id, pointLogId, audio.blob, audio.durationMs, tokenRef.current)
