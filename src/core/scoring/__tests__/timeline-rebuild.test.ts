@@ -247,4 +247,94 @@ describe('rebuildTimelineFromPointLogs (regressão: match cmscejb8o com 24 Point
     const result = rebuildTimelineFromPointLogs(history, [], player1Id, player2Id, initialServerId);
     expect(result).toEqual(history);
   });
+
+  it('aplica scoreEdits simulando placar com estado ajustado no history vazio', () => {
+    const pointLogs: PointLogRow[] = [
+      makePointLog(1, player1Id, 'WINNER', {}),
+      makePointLog(2, player2Id, 'WINNER', {}),
+    ];
+    // Set time for logs
+    pointLogs[0].timestamp = new Date(Date.UTC(2026, 7, 1, 10, 0, 0));
+    pointLogs[1].timestamp = new Date(Date.UTC(2026, 7, 1, 10, 5, 0));
+
+    // Simulate an edit happening between log 1 and log 2
+    const scoreEdits = [
+      {
+        editedAt: new Date(Date.UTC(2026, 7, 1, 10, 2, 0)),
+        newScoreState: JSON.stringify({
+          sets: [{ player1: 0, player2: 0, isTiebreak: false, tiebreakScore: null }],
+          currentGame: { player1: 15, player2: 30, isDeuce: false, advantage: null, secondServe: false },
+          server: 'player2',
+          isFinished: false,
+          winner: null,
+          setsWon: { player1: 0, player2: 0 },
+          startedAt: null,
+          secondServe: false,
+        }),
+      }
+    ];
+
+    const result = rebuildTimelineFromPointLogs([], pointLogs, player1Id, player2Id, initialServerId, 'BEST_OF_3', scoreEdits);
+
+    expect(result).toHaveLength(2);
+    // Point 1 uses initial state
+    expect(result[0].gameScore).toEqual({ player1: 0, player2: 0 });
+    
+    // Point 2 stateBefore should reflect the scoreEdit injected before its timestamp
+    expect(result[1].gameScore).toEqual({ player1: 15, player2: 30 });
+    // And because player2 won the second point from 15-30, the next state (not in stateBefore) would be 15-40, but stateBefore is 15-30.
+    expect(result[1].server).toBe('player2');
+  });
+
+  it('fallback para buildPointDetailsFromLog quando engine rejeita ponto (ex: jogo finalizado)', () => {
+    // Para forçar o erro do engine, simulamos 5 pontos onde o formato é BEST_OF_3,
+    // e criamos um placar já de finalização pra causar MATCH_ALREADY_FINISHED.
+    const pointLogs: PointLogRow[] = [
+      makePointLog(1, player1Id, 'WINNER', {}),
+      makePointLog(2, player1Id, 'WINNER', {}),
+    ];
+    
+    const scoreEdits = [
+      {
+        editedAt: new Date(pointLogs[0].timestamp.getTime() - 1000),
+        newScoreState: {
+          sets: [{ player1: 6, player2: 0, isTiebreak: false, tiebreakScore: null }, { player1: 6, player2: 0, isTiebreak: false, tiebreakScore: null }],
+          currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+          server: 'player1',
+          isFinished: true,
+          winner: 'player1',
+          setsWon: { player1: 2, player2: 0 },
+          startedAt: null,
+          secondServe: false,
+        },
+      }
+    ];
+
+    // O engine vai carregar o scoreEdit. Quando for aplicar log 1, dará MATCH_ALREADY_FINISHED e usará o fallback.
+    const result = rebuildTimelineFromPointLogs([], pointLogs, player1Id, player2Id, initialServerId, 'BEST_OF_3', scoreEdits);
+
+    expect(result).toHaveLength(2);
+    expect(result[0].pointId).toBe('log-1');
+    expect(result[1].pointId).toBe('log-2');
+    
+    // Fallback preservou a informação (Winner)
+    expect(result[0].winner).toBe('PLAYER_1');
+    // Como fallback usa o stateBefore salvo anterior (que no caso foi pós edit)
+    expect(result[0].gamesScore).toEqual({ player1: 0, player2: 0 }); 
+    expect(result[0].setNumber).toBe(3); // or 2, depends on how enrichPoints interprets
+  });
+
+  it('extrai firstServeOutcome e secondServeOutcome em mergeWithPointLog', () => {
+    const pointLogs: PointLogRow[] = [
+      makePointLog(1, player1Id, 'ACE', {}), // isFirstServe, ACE
+      makePointLog(2, player2Id, 'DOUBLE_FAULT', { subtipo2: 'net' }, false, { isSecondServe: true }), // DOUBLE_FAULT, net
+      makePointLog(3, player1Id, 'FAULT_FIRST', {}, false, { firstFaultDetail: { errorType: 'out' } }) // FAULT_FIRST, out
+    ];
+
+    const result = rebuildTimelineFromPointLogs([], pointLogs, player1Id, player2Id, initialServerId);
+
+    expect(result[0].firstServeOutcome).toBe('ace');
+    expect(result[1].secondServeOutcome).toBe('net');
+    expect(result[2].firstServeOutcome).toBe('out');
+  });
 });
