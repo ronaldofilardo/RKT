@@ -597,3 +597,49 @@ describe('calculateValidation - tiebreakImpossible', () => {
     expect(result.isSetTrulyCompleted).toBe(true);
   });
 });
+
+describe('calculateValidation - contradição de vencedor de tie-break', () => {
+  it('deve retornar erro de contradição quando jogador 2 vence o set mas jogador 1 vence o tie-break', () => {
+    const result = calculateValidation({
+      p1Input: '6', p2Input: '7',
+      matchFormat: 'BEST_OF_3',
+      totalEditedSets: 1,
+      tiebreakP1: '7', tiebreakP2: '5',
+    });
+    expect(result.isSetTrulyCompleted).toBe(false);
+    expect(result.setValidationError).toBe('Vencedor do tie-break não corresponde ao vencedor do set');
+  });
+
+  it('deve retornar erro de contradição quando jogador 1 vence o set mas jogador 2 vence o tie-break', () => {
+    const result = calculateValidation({
+      p1Input: '7', p2Input: '6',
+      matchFormat: 'BEST_OF_3',
+      totalEditedSets: 1,
+      tiebreakP1: '5', tiebreakP2: '7',
+    });
+    expect(result.isSetTrulyCompleted).toBe(false);
+    expect(result.setValidationError).toBe('Vencedor do tie-break não corresponde ao vencedor do set');
+  });
+
+  it('NÃO deve retornar erro de contradição quando tie-break e set têm o mesmo vencedor (P1)', () => {
+    const result = calculateValidation({
+      p1Input: '7', p2Input: '6',
+      matchFormat: 'BEST_OF_3',
+      totalEditedSets: 1,
+      tiebreakP1: '7', tiebreakP2: '5',
+    });
+    expect(result.isSetTrulyCompleted).toBe(true);
+    expect(result.setValidationError).toBeUndefined();
+  });
+
+  it('NÃO deve retornar erro de contradição quando tie-break e set têm o mesmo vencedor (P2)', () => {
+    const result = calculateValidation({
+      p1Input: '6', p2Input: '7',
+      matchFormat: 'BEST_OF_3',
+      totalEditedSets: 1,
+      tiebreakP1: '5', tiebreakP2: '7',
+    });
+    expect(result.isSetTrulyCompleted).toBe(true);
+    expect(result.setValidationError).toBeUndefined();
+  });
+});

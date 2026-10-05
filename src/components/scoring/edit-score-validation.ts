@@ -141,11 +141,13 @@ function resolveTiebreakStatus(
 function checkIsSetTrulyCompleted(
   setValidation: ReturnType<typeof validateSetResult> | null,
   tiebreakComplete: boolean,
+  hasContradiction: boolean = false,
 ) {
   const hasWinner = setValidation?.winner !== undefined;
   const completed = hasWinner && !setValidation?.isPartial;
   const tiebreakRequired = !!setValidation?.tiebreakRequired;
   const isSetTrulyCompleted =
+    !hasContradiction &&
     (completed || (tiebreakRequired && tiebreakComplete)) &&
     (!tiebreakRequired || tiebreakComplete);
   return { completed, hasWinner, isSetTrulyCompleted };
@@ -157,9 +159,13 @@ function buildSetValidationError(
   setValidation: ReturnType<typeof validateSetResult> | null,
   tbWinner: number,
   tbLoser: number,
+  hasContradiction: boolean = false,
 ): string | undefined {
   if (tiebreakImpossible) {
     return `Placar de tiebreak impossível — o set teria terminado antes de ${tbWinner}x${tbLoser}`;
+  }
+  if (hasContradiction) {
+    return 'Vencedor do tie-break não corresponde ao vencedor do set';
   }
   if (isSetTrulyCompleted) {
     return undefined;
@@ -195,9 +201,18 @@ export function calculateValidation(input: EditScoreValidationInput): EditScoreV
     tbP2Num,
   );
 
+  let hasContradiction = false;
+  if (setValidation?.winner && hasValidTiebreak && tiebreakComplete) {
+    const tbWinnerPlayer = tbP1Num > tbP2Num ? 'player1' : 'player2';
+    if (setValidation.winner !== tbWinnerPlayer) {
+      hasContradiction = true;
+    }
+  }
+
   const { completed, hasWinner, isSetTrulyCompleted } = checkIsSetTrulyCompleted(
     setValidation,
     tiebreakComplete,
+    hasContradiction,
   );
 
   const setValidationError = buildSetValidationError(
@@ -206,6 +221,7 @@ export function calculateValidation(input: EditScoreValidationInput): EditScoreV
     setValidation,
     tbWinner,
     tbLoser,
+    hasContradiction,
   );
 
   return {
