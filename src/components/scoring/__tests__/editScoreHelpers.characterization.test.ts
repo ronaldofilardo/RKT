@@ -406,9 +406,9 @@ describe('editScoreHelpers (characterization)', () => {
           p2Games: 8,
           tiebreakPoints: { player1: 10, player2: 8 },
         });
-        // MT: server alterna a cada 2 pontos
-        // totalPoints = 18, 18 % 2 = 0 -> mesmo server
-        expect(result).toBe('player1');
+        // ITF: 1º saque saca 1 pt, depois alterna a cada 2 pts.
+        // totalPoints = 18, turn = floor(19/2) = 9 (ímpar) -> player2
+        expect(result).toBe('player2');
       });
 
       it('deve alternar server em MT a cada 2 pontos (totalPoints par)', () => {
@@ -419,7 +419,7 @@ describe('editScoreHelpers (characterization)', () => {
           p2Games: 7,
           tiebreakPoints: { player1: 10, player2: 7 }, // total = 17 (ímpar)
         });
-        // 17 % 2 = 1 -> outro server
+        // 17 pts jogados -> turn = floor(18/2) = 9 (ímpar) -> outro server
         expect(result).toBe('player2');
       });
 
@@ -436,7 +436,7 @@ describe('editScoreHelpers (characterization)', () => {
             { player1: 4, player2: 6 },
           ],
         });
-        // MT: totalPoints = 6+6 = 12, 12 % 2 = 0 → currentServer (player1)
+        // MT: totalPoints = 6+6 = 12, turn = floor(13/2) = 6 (par) → player1
         expect(result).toBe('player1');
       });
 
@@ -452,7 +452,7 @@ describe('editScoreHelpers (characterization)', () => {
           ],
           tiebreakPoints: { player1: 10, player2: 8 },
         });
-        expect(result).toBe('player1'); // 18 % 2 = 0
+        expect(result).toBe('player2'); // total=18, turn=9 (ímpar)
       });
 
       it('deve detectar SHORT_SET_2V2_NO_AD 3º set com 1-1 como MT', () => {
@@ -467,7 +467,7 @@ describe('editScoreHelpers (characterization)', () => {
           ],
           tiebreakPoints: { player1: 10, player2: 8 },
         });
-        expect(result).toBe('player1');
+        expect(result).toBe('player2');
       });
 
       it('deve detectar BEST_OF_3_NO_AD 3º set com 1-1 como MT', () => {
@@ -482,7 +482,7 @@ describe('editScoreHelpers (characterization)', () => {
           ],
           tiebreakPoints: { player1: 10, player2: 8 },
         });
-        expect(result).toBe('player1');
+        expect(result).toBe('player2');
       });
 
     });

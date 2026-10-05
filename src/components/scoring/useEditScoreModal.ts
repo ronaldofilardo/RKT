@@ -23,7 +23,7 @@ export type * from "./useEditScoreModal.types";
 
 export function useEditScoreModal(
   options: UseEditScoreModalOptions,
-  onConfirm: (setResults: SetEditData[], server: "player1" | "player2") => void | Promise<void>,
+  onConfirm: (setResults: SetEditData[], server: "player1" | "player2", note?: string) => void | Promise<void>,
   onCancel: () => void,
   onMatchFinished?: (winner: "player1" | "player2") => void,
 ): UseEditScoreModalReturn {
@@ -61,6 +61,7 @@ export function useEditScoreModal(
     tiebreakP1: state.tiebreakP1,
     tiebreakP2: state.tiebreakP2,
     currentSets,
+    floorCurrentSets,
   });
 
   const { validation, tiebreakValidation, matchState, canAddNextSet, canConfirmSet: canConfirmSetCalc, partial, isPotentialMTSet } = calculations;

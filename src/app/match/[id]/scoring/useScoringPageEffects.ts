@@ -28,7 +28,7 @@ export interface ScoringPageHandlers {
   handleEditScoreRefreshFloor: () => Promise<{ player1: number; player2: number } | null>;
   isProcessing: boolean;
   abandonCurrentSession: ReturnType<typeof useSessionManager>["abandonCurrentSession"];
-  handleEditScore: (setResults: SetEditData[], server: "player1" | "player2") => Promise<void>;
+  handleEditScore: (setResults: SetEditData[], server: "player1" | "player2", note?: string) => Promise<void>;
   handleCommentCreate: (content: string, audio?: { blob: Blob; durationMs: number }, category?: string) => Promise<void>;
 }
 

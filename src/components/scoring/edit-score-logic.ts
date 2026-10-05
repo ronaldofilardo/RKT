@@ -35,6 +35,7 @@ export function createInitialEditScoreState(currentServer: Player): EditScoreSta
     tiebreakP1: '',
     tiebreakP2: '',
     newSets: [],
+    note: '',
   };
 }
 

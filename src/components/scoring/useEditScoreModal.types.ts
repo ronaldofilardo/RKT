@@ -12,6 +12,7 @@ export interface EditScoreModalState {
   nextServer: "player1" | "player2";
   newSets: SetEditData[];
   editableCompletedSets: SetEditData[];
+  note?: string;
 }
 
 export interface UseEditScoreModalOptions {

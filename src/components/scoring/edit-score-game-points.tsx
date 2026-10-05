@@ -43,7 +43,7 @@ export function EditScoreGamePoints({
               {pt}
             </option>
           ))}
-          {p2Points === '40' && (
+          {(p2Points === '40' || p2Points === 'DEUCE') && (
             <>
               <option value="DEUCE">Deuce</option>
               <option value="AD">Adv.</option>
@@ -61,7 +61,7 @@ export function EditScoreGamePoints({
               {pt}
             </option>
           ))}
-          {p1Points === '40' && (
+          {(p1Points === '40' || p1Points === 'DEUCE') && (
             <>
               <option value="DEUCE">Deuce</option>
               <option value="AD">Adv.</option>

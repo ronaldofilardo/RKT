@@ -46,12 +46,12 @@ describe('Bug #5: getNextServerAfterSet alternates server in MT', () => {
     expect(next).toBe('player2');
   });
 
-  it('MT 2x0: back to current server (totalPoints=2, par)', () => {
+  it('MT 2x0: continues with opponent (points 2-3 served by opponent, ITF rule)', () => {
     const next = getNextServerAfterSet({
       ...baseParams,
       tiebreakPoints: { player1: 2, player2: 0 },
     });
-    expect(next).toBe('player1');
+    expect(next).toBe('player2');
   });
 
   it('MT 3x2: alternates (totalPoints=5, ímpar)', () => {
@@ -63,7 +63,7 @@ describe('Bug #5: getNextServerAfterSet alternates server in MT', () => {
   });
 
   it('MT 7x5 complete (12 total points, par): current server', () => {
-    // MT complete: 12 points → 12%2===0 → currentServer
+    // MT complete: 12 points → turn = floor(13/2) = 6 (par) → currentServer
     const next = getNextServerAfterSet({
       ...baseParams,
       tiebreakPoints: { player1: 7, player2: 5 },
@@ -71,15 +71,17 @@ describe('Bug #5: getNextServerAfterSet alternates server in MT', () => {
     expect(next).toBe('player1');
   });
 
-  it('MT 10x8 complete (18 total points, par): current server', () => {
+  it('MT 10x8 complete (18 total points, turn ímpar): other server', () => {
+    // 18 total points → turn = floor(19/2) = 9 (ímpar) → other player
     const next = getNextServerAfterSet({
       ...baseParams,
       tiebreakPoints: { player1: 10, player2: 8 },
     });
-    expect(next).toBe('player1');
+    expect(next).toBe('player2');
   });
 
-  it('MT 11x9 complete (20 total points, par): current server', () => {
+  it('MT 11x9 complete (20 total points, turn par): current server', () => {
+    // 20 total points → turn = floor(21/2) = 10 (par) → currentServer
     const next = getNextServerAfterSet({
       ...baseParams,
       tiebreakPoints: { player1: 11, player2: 9 },
@@ -108,7 +110,7 @@ describe('Bug #5: getNextServerAfterSet alternates server in MT', () => {
     expect(next).toBe('player1');
   });
 
-  it('MATCH_TB_10 single-set: alternates by totalPoints parity', () => {
+  it('MATCH_TB_10 single-set: alternates by ITF tiebreak rule (1 pt then 2 pts)', () => {
     const matchTbParams = {
       currentServer: 'player2' as const,
       p1Games: 0,
@@ -119,8 +121,11 @@ describe('Bug #5: getNextServerAfterSet alternates server in MT', () => {
     // totalPoints=1 → other (player1)
     expect(getNextServerAfterSet({ ...matchTbParams, tiebreakPoints: { player1: 1, player2: 0 } }))
       .toBe('player1');
-    // totalPoints=2 → current (player2)
+    // totalPoints=2 → points 2 and 3 served by other (player1)
     expect(getNextServerAfterSet({ ...matchTbParams, tiebreakPoints: { player1: 2, player2: 0 } }))
+      .toBe('player1');
+    // totalPoints=3 → points 4 and 5 back to initial server (player2)
+    expect(getNextServerAfterSet({ ...matchTbParams, tiebreakPoints: { player1: 3, player2: 0 } }))
       .toBe('player2');
   });
 });

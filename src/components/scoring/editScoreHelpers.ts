@@ -287,7 +287,7 @@ export function getNextServerAfterSet(params: {
   );
 
   // For Match Tiebreak: server alternates every 2 points (standard tiebreak).
-  // First point: currentServer serves, then alternate every 2 points.
+  // First point: tiebreakInitialServer serves, then alternate every 2 points.
   // When tiebreakPoints is available, use it directly. When null (e.g. editing
   // a MT set from completedSets), derive total points from p1Games + p2Games
   // since in MT the "games" field actually stores the tiebreak points.
@@ -295,12 +295,31 @@ export function getNextServerAfterSet(params: {
     const totalPoints = tiebreakPoints
       ? tiebreakPoints.player1 + tiebreakPoints.player2
       : p1Games + p2Games;
-    // In standard tiebreak: server serves 1 point, then alternate every 2 points.
-    // Even totalPoints → same as initial server; odd → alternate.
-    if (totalPoints % 2 === 0) {
-      return currentServer;
+
+    const gamesBeforeMT = completedSets.reduce((sum, set) => sum + set.player1 + set.player2, 0);
+    const tbInitialServer = params.initialServer !== undefined
+      ? (gamesBeforeMT % 2 === 0 ? params.initialServer : (params.initialServer === 'player1' ? 'player2' : 'player1'))
+      : currentServer;
+
+    // Regra ITF (Regra 5b): 1º saque saca 1 ponto; a seguir, cada jogador saca 2 pontos alternados.
+    // Pt 1 (totalPoints=0): Initial; Pts 2-3 (totalPoints=1,2): Other; Pts 4-5 (totalPoints=3,4): Initial...
+    const turn = Math.floor((totalPoints + 1) / 2);
+    if (turn % 2 === 0) {
+      return tbInitialServer;
     }
-    return currentServer === 'player1' ? 'player2' : 'player1';
+    return tbInitialServer === 'player1' ? 'player2' : 'player1';
+  }
+
+  // Se for tiebreak de set em andamento (ex.: 6-6 com tiebreakPoints em progresso)
+  if (tiebreakPoints && p1Games === p2Games) {
+    const totalGamesBeforeTb = completedSets.reduce(
+      (sum, set) => sum + set.player1 + set.player2,
+      p1Games + p2Games
+    );
+    const tbInitialServer = totalGamesBeforeTb % 2 === 0 ? initialServer : (initialServer === 'player1' ? 'player2' : 'player1');
+    const totalPoints = tiebreakPoints.player1 + tiebreakPoints.player2;
+    const turn = Math.floor((totalPoints + 1) / 2);
+    return turn % 2 === 0 ? tbInitialServer : (tbInitialServer === 'player1' ? 'player2' : 'player1');
   }
 
   // BUG FIX (2026-09-22): sets normais e sets decididos por tiebreak comum

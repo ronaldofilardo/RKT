@@ -35,7 +35,7 @@ export interface SessionManagerContext {
 
   suspendedSession: SuspendedSessionState | null;
   fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
-  persistState: (state: ScoringState, label: string, persistOptions?: { allowScoreEdit?: boolean; isManualScoreEdit?: boolean; history?: any[] }) => Promise<{ success: boolean; needsResync?: boolean }>;
+  persistState: (state: ScoringState, label: string, persistOptions?: { allowScoreEdit?: boolean; isManualScoreEdit?: boolean; history?: any[]; note?: string }) => Promise<{ success: boolean; needsResync?: boolean }>;
 
   setScoreState: Dispatch<ScoreAction>;
   setSessionActive: Dispatch<SetStateAction<boolean>>;
@@ -107,10 +107,12 @@ export function useSessionManager(ctx: SessionManagerContext) {
       setResults: SetEditData[],
       server: "player1" | "player2",
       onMatchFinished?: (winner: "player1" | "player2") => void,
+      note?: string,
     ) => {
       await executeScoreEdit({
         setResults,
         server,
+        note,
         onMatchFinished,
         ctx,
         match,

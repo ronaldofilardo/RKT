@@ -150,7 +150,7 @@ export function EditScoreModal({
         <div className="px-6 py-4 border-b border-white/10">
           <h2 className="text-xl font-bold text-telemetry-text-primary">Editar Placar</h2>
           <p className="text-sm text-telemetry-text-muted mt-1">
-            Modo de jogo: Melhor de {totalSetsForFormat(matchFormat)} sets
+            Modo de jogo: {totalSetsForFormat(matchFormat) === 1 ? 'Melhor de 1 set' : `Melhor de ${totalSetsForFormat(matchFormat)} sets`}
           </p>
         </div>
 
@@ -215,6 +215,21 @@ export function EditScoreModal({
             onTiebreakInputChange={handleTiebreakInputChange}
             currentScoreBelowOriginal={calculations.currentScoreBelowOriginal}
           />
+
+          <div className="space-y-1.5 pt-2 border-t border-white/5">
+            <label htmlFor="edit-score-note" className="text-xs font-medium text-telemetry-text-muted">
+              Motivo da correção (opcional)
+            </label>
+            <input
+              id="edit-score-note"
+              type="text"
+              maxLength={500}
+              placeholder="Ex.: Correção de placar após verificação com o árbitro"
+              value={state.note ?? ""}
+              onChange={(e) => setState((prev) => ({ ...prev, note: e.target.value }))}
+              className="w-full px-3 py-2 text-sm bg-telemetry-elevated border border-white/10 rounded-lg text-telemetry-text-primary placeholder:text-telemetry-text-muted/50 focus:outline-none focus:border-telemetry-volt transition-colors"
+            />
+          </div>
         </div>
 
         <EditScoreModalFooter

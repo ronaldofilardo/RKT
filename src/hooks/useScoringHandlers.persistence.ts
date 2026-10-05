@@ -29,6 +29,7 @@ interface PersistStateOptions {
    * ID do PointLog a ser anulado atomicamente junto com a atualização de estado.
    */
   voidPointLogId?: string;
+  note?: string;
 }
 
 interface VersionConflictPayload {
@@ -85,6 +86,7 @@ export async function persistStateWithRetry(
           version: currentMatch.version,
           allowScoreEdit,
           isManualScoreEdit,
+          note: options.note,
           voidPointLogId: options.voidPointLogId,
         }),
       });

@@ -132,6 +132,7 @@ export function useScoringHandlers(
         allowScoreEdit?: boolean;
         isManualScoreEdit?: boolean;
         voidPointLogId?: string;
+        note?: string;
       },
     ): Promise<{
       success: boolean;
@@ -157,6 +158,7 @@ export function useScoringHandlers(
         fetchMatch,
         allowScoreEdit: persistOptions?.allowScoreEdit,
         isManualScoreEdit: persistOptions?.isManualScoreEdit,
+        note: persistOptions?.note,
         voidPointLogId: persistOptions?.voidPointLogId,
         history,
       });

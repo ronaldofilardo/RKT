@@ -18,8 +18,8 @@ export function useScoringEditScoreHandlers({
     state;
 
   const handleEditScore = useCallback(
-    async (setResults: SetEditData[], server: "player1" | "player2") => {
-      await originalHandleEditScore(setResults, server);
+    async (setResults: SetEditData[], server: "player1" | "player2", note?: string) => {
+      await originalHandleEditScore(setResults, server, undefined, note);
       await fetchTimelinePoints?.();
     },
     [originalHandleEditScore, fetchTimelinePoints],

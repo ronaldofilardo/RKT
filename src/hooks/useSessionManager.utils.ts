@@ -61,8 +61,14 @@ function countSetsWonBefore(setResults: SetEditData[], uptoIndex: number): { pla
   for (let i = 0; i < uptoIndex; i++) {
     const s = setResults[i];
     if (!s || s.isPartial) continue;
-    if (s.p1Games > s.p2Games) player1++;
-    else if (s.p2Games > s.p1Games) player2++;
+    if (s.p1Games > s.p2Games) {
+      player1++;
+    } else if (s.p2Games > s.p1Games) {
+      player2++;
+    } else if (s.tiebreakScore) {
+      if (s.tiebreakScore.player1 > s.tiebreakScore.player2) player1++;
+      else if (s.tiebreakScore.player2 > s.tiebreakScore.player1) player2++;
+    }
   }
   return { player1, player2 };
 }
@@ -189,8 +195,14 @@ export function isMatchTiebreakSet(index: number, setResults: SetEditData[], for
     if (!s) continue;
     const isPartial = 'isPartial' in s ? s.isPartial : false;
     if (!isPartial) {
-      if (s.p1Games > s.p2Games) p1Sets++;
-      else if (s.p2Games > s.p1Games) p2Sets++;
+      if (s.p1Games > s.p2Games) {
+        p1Sets++;
+      } else if (s.p2Games > s.p1Games) {
+        p2Sets++;
+      } else if (s.tiebreakScore) {
+        if (s.tiebreakScore.player1 > s.tiebreakScore.player2) p1Sets++;
+        else if (s.tiebreakScore.player2 > s.tiebreakScore.player1) p2Sets++;
+      }
     }
   }
 

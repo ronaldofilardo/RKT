@@ -44,6 +44,7 @@ describe('edit-score-logic (complete characterization)', () => {
         tiebreakP1: '',
         tiebreakP2: '',
         newSets: [],
+        note: '',
       });
     });
 

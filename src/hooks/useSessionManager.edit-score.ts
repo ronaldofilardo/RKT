@@ -16,6 +16,7 @@ import type { SessionManagerContext, SuspendedSessionState } from "./useSessionM
 interface ExecuteEditScoreOptions {
   setResults: SetEditData[];
   server: "player1" | "player2";
+  note?: string;
   onMatchFinished?: (winner: "player1" | "player2") => void;
   ctx: SessionManagerContext;
   match: MatchData | null;
@@ -26,7 +27,7 @@ interface ExecuteEditScoreOptions {
   persistState: (
     state: ScoringState,
     label: string,
-    persistOptions?: { allowScoreEdit?: boolean; isManualScoreEdit?: boolean; history?: any[] },
+    persistOptions?: { allowScoreEdit?: boolean; isManualScoreEdit?: boolean; history?: any[]; note?: string },
   ) => Promise<{ success: boolean; needsResync?: boolean }>;
   fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
   setScoreState: Dispatch<ScoreAction>;
@@ -72,7 +73,7 @@ async function persistFinishedMatch(
     { matchId, tokenRef, matchVersion: match?.version },
     winnerPlayerId,
     newState,
-    { isManualScoreEdit: true },
+    { isManualScoreEdit: true, note: options.note },
   );
 
   if (finishResult.error === 'offline') {
@@ -99,10 +100,10 @@ async function persistOngoingMatch(
   newState: ScoringState,
   options: ExecuteEditScoreOptions,
 ): Promise<boolean> {
-  const { persistState, fetchMatch, ctx, toast } = options;
+  const { persistState, fetchMatch, toast } = options;
 
   logger.log("[handleEditScore] Calling persistState with currentGame:", newState.currentGame);
-  const result = await persistState(newState, "edit-score", { isManualScoreEdit: true, history: [] });
+  const result = await persistState(newState, "edit-score", { isManualScoreEdit: true, history: [], note: options.note });
 
   if (result.success) {
     logger.log("[handleEditScore] State persisted successfully");
@@ -112,7 +113,10 @@ async function persistOngoingMatch(
   if (result.needsResync) {
     logger.warn("[handleEditScore] Needs resync due to version conflict — state re-synced from server");
     await fetchMatch(true);
-    (ctx.closeAll ?? ctx.close)();
+    toast({
+      type: 'error',
+      message: 'Ocorreu uma atualização simultânea no servidor. Por favor, revise o placar e confirme novamente.',
+    });
     return false;
   }
 

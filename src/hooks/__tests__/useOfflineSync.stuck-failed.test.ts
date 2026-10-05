@@ -38,7 +38,7 @@ function createFakeDb() {
   };
 }
 
-let fakeDb: ReturnType<typeof createFakeDb>;
+const fakeDb = createFakeDb();
 
 jest.mock('idb', () => ({
   openDB: jest.fn(async () => fakeDb),
@@ -52,7 +52,8 @@ import { useOfflineSync } from '../useOfflineSync';
 
 describe('useOfflineSync — regressão de ações FAILED presas na fila', () => {
   beforeEach(() => {
-    fakeDb = createFakeDb();
+    fakeDb.__store.clear();
+    jest.clearAllMocks();
     global.fetch = jest.fn();
   });
 

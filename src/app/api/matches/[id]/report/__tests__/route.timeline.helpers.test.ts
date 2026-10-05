@@ -87,8 +87,8 @@ describe('addScoreEditBreaks', () => {
     expect(result[1]).toHaveProperty('segmentBreak');
     expect(result[1].segmentBreak).toEqual({
       editedAt: edits[0].editedAt.toISOString(),
-      previousLabel: 'Set 1 · Game 0x0 · 15-0',
-      newLabel: 'Set 1 · Game 0x0 · 0-15',
+      previousLabel: 'Set 1 · Game 0x0 · 15x0',
+      newLabel: 'Set 1 · Game 0x0 · 0x15',
       editedByUserId: 'user-1',
       note: 'Correction'
     });
@@ -158,8 +158,8 @@ describe('addScoreEditBreaks', () => {
 
     expect(result[1].segmentBreak).toBeDefined();
     expect(result[1].segmentBreak?.note).toBe('First edit → Second edit');
-    expect(result[1].segmentBreak?.previousLabel).toBe('Set 1 · Game 0x0 · 15-0');
-    expect(result[1].segmentBreak?.newLabel).toBe('Set 1 · Game 0x0 · 30-0');
+    expect(result[1].segmentBreak?.previousLabel).toBe('Set 1 · Game 0x0 · 15x0');
+    expect(result[1].segmentBreak?.newLabel).toBe('Set 1 · Game 0x0 · 30x0');
   });
 
   it('handles edit before any point (index 0)', () => {

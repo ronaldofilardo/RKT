@@ -7,17 +7,6 @@ import { calculateNextServer } from "./edit-score-logic";
 import { toCompletedSetsForServer } from "./useEditScoreModal.confirm.helpers";
 import type { EditScoreModalState } from "./useEditScoreModal.types";
 
-function checkBelowMinimumInput(
-  num: number,
-  player: 'p1' | 'p2',
-  currentInputVal: string,
-  currentSets: { player1: number; player2: number },
-): boolean {
-  const currentInput = parseInt(currentInputVal, 10) || 0;
-  const minFromCurrent = player === 'p1' ? currentSets.player1 : currentSets.player2;
-  return currentInput >= minFromCurrent && num < minFromCurrent;
-}
-
 export function computeGameInputChange(params: {
   value: string;
   isMatchTiebreakSet: boolean;
@@ -27,7 +16,7 @@ export function computeGameInputChange(params: {
   player: 'p1' | 'p2';
   currentInputVal: string;
 }): { shouldSet: boolean; valueToSet: string; clearTiebreak: boolean } {
-  const { value, isMatchTiebreakSet, matchFormat, otherInput, currentSets, player, currentInputVal } = params;
+  const { value, isMatchTiebreakSet, matchFormat, otherInput } = params;
   if (value === "") {
     return { shouldSet: true, valueToSet: "", clearTiebreak: true };
   }
@@ -35,9 +24,6 @@ export function computeGameInputChange(params: {
     return { shouldSet: false, valueToSet: "", clearTiebreak: false };
   }
   const num = parseInt(value, 10);
-  if (checkBelowMinimumInput(num, player, currentInputVal, currentSets)) {
-    return { shouldSet: false, valueToSet: "", clearTiebreak: false };
-  }
 
   const otherGames = otherInput ? (parseInt(otherInput, 10) || 0) : 0;
   const maxGames = isMatchTiebreakSet
@@ -54,20 +40,13 @@ export function computeTiebreakInputChange(params: {
   currentGamePoints?: { player1: number | string; player2: number | string };
   currentTbInputVal: string;
 }): { shouldSet: boolean; valueToSet: string } {
-  const { value, player, currentGamePoints, currentTbInputVal } = params;
+  const { value } = params;
   if (value === '') {
     return { shouldSet: true, valueToSet: '' };
   }
   const v = parseInt(value, 10);
   if (isNaN(v) || v < 0) {
     return { shouldSet: false, valueToSet: '' };
-  }
-  if (currentGamePoints) {
-    const currentTbInput = parseInt(currentTbInputVal, 10) || 0;
-    const minFromCurrent = Number(player === 'p1' ? currentGamePoints.player1 : currentGamePoints.player2) || 0;
-    if (currentTbInput >= minFromCurrent && v < minFromCurrent) {
-      return { shouldSet: false, valueToSet: '' };
-    }
   }
   const capped = Math.min(v, SCORING_LIMITS.TIEBREAK_INPUT_CAP);
   return { shouldSet: true, valueToSet: String(capped) };
@@ -80,15 +59,10 @@ function validateCompletedSetEdit(params: {
   originalSet?: CompletedSet;
   floorCurrentSets?: { player1: number; player2: number } | null;
 }): string | null {
-  const { p1Games, p2Games, matchFormat, originalSet, floorCurrentSets } = params;
+  const { p1Games, p2Games, matchFormat, floorCurrentSets } = params;
   const validation = validateSetResult({ p1Games, p2Games }, matchFormat);
   if (validation.error && !validation.isPartial) {
     return validation.error;
-  }
-  if (originalSet) {
-    if (p1Games < originalSet.games.player1 || p2Games < originalSet.games.player2) {
-      return "Placar não pode ser inferior ao registrado no momento do abandono";
-    }
   }
   if (floorCurrentSets) {
     if (p1Games < floorCurrentSets.player1 || p2Games < floorCurrentSets.player2) {
@@ -215,11 +189,17 @@ export function applyCompletedSetEdit(params: {
     return;
   }
 
+  const validation = validateSetResult({ p1Games: params.p1Games, p2Games: params.p2Games }, params.matchFormat);
   params.editedCompletedSetIndicesRef.current.add(params.index);
   params.setState((prev) => {
     const newEditable = [...prev.editableCompletedSets];
     if (newEditable[params.index]) {
-      newEditable[params.index] = { ...newEditable[params.index], p1Games: params.p1Games, p2Games: params.p2Games };
+      newEditable[params.index] = {
+        ...newEditable[params.index],
+        p1Games: params.p1Games,
+        p2Games: params.p2Games,
+        tiebreakScore: validation.hasTiebreak ? newEditable[params.index].tiebreakScore : undefined,
+      };
     }
     return { ...prev, editableCompletedSets: newEditable };
   });

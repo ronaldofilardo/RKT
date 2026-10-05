@@ -13,7 +13,7 @@ export async function finishMatch(
   config: MatchFinishConfig,
   winnerId: string,
   scoreState: ScoringState,
-  options?: { isManualScoreEdit?: boolean }
+  options?: { isManualScoreEdit?: boolean; note?: string }
 ): Promise<{ success: boolean; error?: string }> {
   const { matchId, tokenRef, matchVersion } = config;
 
@@ -31,6 +31,7 @@ export async function finishMatch(
         reason: 'COMPLETED',
         ...(matchVersion != null ? { version: matchVersion } : {}),
         ...(options?.isManualScoreEdit ? { isManualScoreEdit: true } : {}),
+        ...(options?.note ? { note: options.note } : {}),
       }),
     });
 

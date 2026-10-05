@@ -35,7 +35,9 @@ function buildConfirmSubmission(params: {
     p1Games: p1Val,
     p2Games: p2Val,
     matchFormat,
-    tiebreakScore: tiebreakComplete ? { player1: tiebreakP1Num, player2: tiebreakP2Num } : null,
+    tiebreakScore: (tiebreakComplete || tiebreakP1Num > 0 || tiebreakP2Num > 0)
+      ? { player1: tiebreakP1Num, player2: tiebreakP2Num }
+      : null,
     completedSets: allCompletedSetsForServer,
   }) || currentServer;
 
@@ -120,20 +122,21 @@ async function applyFullSetSubmission(params: {
   isSetTrulyCompleted: boolean;
   p1Val: number;
   p2Val: number;
-  onConfirm: (sets: SetEditData[], server: "player1" | "player2") => void | Promise<void>;
+  onConfirm: (sets: SetEditData[], server: "player1" | "player2", note?: string) => void | Promise<void>;
   onMatchFinished?: (winner: "player1" | "player2") => void;
   setState: React.Dispatch<React.SetStateAction<EditScoreModalState>>;
   inputTouchedRef: React.MutableRefObject<{ p1: boolean; p2: boolean }>;
+  state?: EditScoreModalState;
 }) {
-  const { submission, validation, matchWouldEnd, isSetTrulyCompleted, p1Val, p2Val, onConfirm, onMatchFinished, setState, inputTouchedRef } = params;
-  await onConfirm(submission.allSets, submission.nextServer);
+  const { submission, validation, matchWouldEnd, isSetTrulyCompleted, p1Val, p2Val, onConfirm, onMatchFinished, setState, inputTouchedRef, state } = params;
+  await onConfirm(submission.allSets, submission.nextServer, state?.note);
 
   if (matchWouldEnd && isSetTrulyCompleted && onMatchFinished) {
     const winner = getEffectiveSetWinner(validation) ?? (p1Val > p2Val ? "player1" : "player2");
     await onMatchFinished(winner);
   }
 
-  setState((prev) => ({
+  setState((prev: EditScoreModalState) => ({
     ...prev,
     newSets: [...prev.newSets, submission.setData],
     p1Input: "",
@@ -172,7 +175,7 @@ export async function executeConfirmFlow(params: {
   isPotentialMTSet: boolean;
   currentSets: { player1: number; player2: number };
   matchWouldEnd: boolean;
-  onConfirm: (sets: SetEditData[], server: "player1" | "player2") => void | Promise<void>;
+  onConfirm: (sets: SetEditData[], server: "player1" | "player2", note?: string) => void | Promise<void>;
   onMatchFinished?: (winner: "player1" | "player2") => void;
   setState: React.Dispatch<React.SetStateAction<EditScoreModalState>>;
   setConfirmError: (err: string | null) => void;
@@ -195,7 +198,7 @@ export async function executeConfirmFlow(params: {
   if (existingPayload.shouldSave) {
     params.setIsConfirming(true);
     try {
-      await params.onConfirm(existingPayload.existingSets, existingPayload.recalculatedServer);
+      await params.onConfirm(existingPayload.existingSets, existingPayload.recalculatedServer, params.state.note);
     } finally {
       params.setIsConfirming(false);
     }
@@ -276,6 +279,7 @@ export async function executeConfirmFlow(params: {
       onMatchFinished: params.onMatchFinished,
       setState: params.setState,
       inputTouchedRef: params.inputTouchedRef,
+      state: params.state,
     });
   } finally {
     params.setIsConfirming(false);

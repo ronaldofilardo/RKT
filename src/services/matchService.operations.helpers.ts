@@ -104,7 +104,7 @@ export async function recordScoreEditSegment(
       matchId,
       editedByUserId: options?.editedByUserId ?? null,
       note: options?.note ?? null,
-      previousScoreState: previousScoreState as any,
+      previousScoreState: (previousScoreState ?? {}) as any,
       newScoreState: newScoreState as any,
     },
   });

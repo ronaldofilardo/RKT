@@ -3,9 +3,8 @@
 > Diário de bordo técnico · Metodologia RE-DOC (Fase 4 — Auditoria de Qualidade e Histórico)
 > **Este é um dos 6 arquivos-canônicos do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
 
-**Última Atualização:** 2026-10-01
-**Analisado por:** engenharia reversa automática sobre `main`
-**Commit de referência:** `c53ae98` — *feat: enforce telemetry guardrails, simplify theme toggle to binary light/dark, and sanitize legacy dead code*
+**Última Atualização:** 2026-10-05
+**Analisado por:** engenharia reversa e implementação sobre `main`
 
 ---
 
@@ -13,19 +12,18 @@
 
 | Dimensão | Situação |
 |---|---|
-| Branch | `main` (sincronizada com `origin/main`) |
-| Working tree | **Limpa** (nenhuma alteração pendente, nenhum stash) |
-| Commits totais | 86 (primeiro: `2026-08-02 chore: initial commit of current codebase`; histórico prévio preservado em migrações desde 2026-06-01) |
-| Última atividade | 2026-10-01 (guardrails de design) |
-| Foco atual | **Design System Telemetry + dual theme** e saneamento de legado |
-| Docs de processo | `AGENTS.md` (índice) + estritamente os 6 arquivos-canônicos em `docs/` (ADRs e TDs consolidados; pasta `docs/adr/` eliminada) |
+| Branch | `main` |
+| Working tree | Em validação / pronto para commit |
+| Foco atual | **Correção Integral do Modal "Editar Placar" & Regras de Tênis / Abandono** |
+| Docs de processo | `AGENTS.md` (índice) + estritamente os 6 arquivos-canônicos em `docs/` |
 
 ---
 
 ## 2. Últimos Commits (linha do tempo recente)
 
-| Data | Hash | Resumo |
+| Data | Hash / Ref | Resumo |
 |---|---|---|
+| 2026-10-05 | *WIP* | Correção do modal Editar Placar: regra de piso de abandono, alternância ITF de tiebreak, Deuce/Adv, auditoria de notas e blindagem Prisma |
 | 2026-10-01 | `c53ae98` | Guardrails do Telemetry, toggle binário light/dark, saneamento de código morto legado |
 | 2026-09-30 | `30ec07d` | Dual-theme, ações no header de card do dashboard, opacidade de fonte |
 | 2026-09-30 | `77890d0` | Conflito de offline sync e fronteiras de papel (role boundary) |
@@ -55,16 +53,16 @@
 ---
 
 ## 4. Saúde Técnica
-
+ 
 | Verificação | Estado |
 |---|---|
-| `pnpm typecheck` | ✅ **Executado em 2026-10-01 — sem erros** |
-| `pnpm lint` | ✅ **Executado em 2026-10-01 — "No ESLint warnings or errors"** (nota: `next lint` está deprecado no Next 16; migrar para ESLint CLI quando atualizar) |
-| `pnpm test:design` | ✅ **Executado em 2026-10-01 — 3 suites / 26 testes passando** |
-| `pnpm test` / coverage | ⚙️ Não executado nesta análise; thresholds: 65% stmts / 80% branches / 60% functions / 65% lines |
+| `pnpm typecheck` | ✅ **Executado em 2026-10-05 — sem erros** |
+| `pnpm lint` | ✅ **Executado em 2026-10-05 — sem erros** |
+| `pnpm test:design` | ✅ **Executado em 2026-10-05 — 3 suites / 26 testes passando** |
+| `pnpm test` / coverage | ✅ **Executado em 2026-10-05 — 277 suites / 3056 testes passando (100%)** |
 | CI (`quality.yml`) | ✅ Configurado: typecheck → no-skipped-tests → test:strict → coverage (Postgres 16) |
 | Mutation testing | ⚠️ Configurado (≥80% high) mas **fora do CI** (TD-015) |
-| E2E | 6 specs (ciclo completo, sessão, offline ×2, undo, conflito) + a11y — não executados nesta análise |
+| E2E | 6 specs (ciclo completo, sessão, offline ×2, undo, conflito) + a11y |
 
 ---
 

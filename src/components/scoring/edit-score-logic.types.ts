@@ -20,6 +20,7 @@ export interface EditScoreState {
   tiebreakP1: string;
   tiebreakP2: string;
   newSets: SetEditData[];
+  note?: string;
 }
 
 export interface EditScoreValidation {

@@ -21,6 +21,7 @@ interface UseEditScoreCalculatorParams {
   tiebreakP1: string;
   tiebreakP2: string;
   currentSets?: { player1: number; player2: number };
+  floorCurrentSets?: { player1: number; player2: number } | null;
 }
 
 interface EditScoreCalculations {
@@ -119,10 +120,10 @@ function checkZeroOrEmptyAllowed(
 function checkScoreBoundsAndTiebreak(
   p1Val: number,
   p2Val: number,
-  currentSets: { player1: number; player2: number } | undefined,
+  floorCurrentSets: { player1: number; player2: number } | null | undefined,
   tiebreakImpossible: boolean,
 ): boolean {
-  if (currentSets && (p1Val < currentSets.player1 || p2Val < currentSets.player2)) {
+  if (floorCurrentSets && (p1Val < floorCurrentSets.player1 || p2Val < floorCurrentSets.player2)) {
     return false;
   }
   if (tiebreakImpossible) {
@@ -154,8 +155,9 @@ function evaluateCanConfirm(params: {
   p2Points: string;
   completedSetsCount: number;
   tiebreakImpossible: boolean;
+  floorCurrentSets?: { player1: number; player2: number } | null;
 }): boolean {
-  const { validation, matchState, newSetsCount, p1Points, p2Points, completedSetsCount, tiebreakImpossible } = params;
+  const { validation, matchState, newSetsCount, p1Points, p2Points, completedSetsCount, tiebreakImpossible, floorCurrentSets } = params;
   const hasNewSets = newSetsCount > 0;
   const hasCompletedSets = completedSetsCount > 0;
   const hasGamePoints = p1Points !== "0" || p2Points !== "0";
@@ -170,7 +172,7 @@ function evaluateCanConfirm(params: {
   );
   if (emptyOrZeroResult !== null) return emptyOrZeroResult;
 
-  if (!checkScoreBoundsAndTiebreak(validation.p1Val, validation.p2Val, matchState.currentSets, tiebreakImpossible)) {
+  if (!checkScoreBoundsAndTiebreak(validation.p1Val, validation.p2Val, floorCurrentSets, tiebreakImpossible)) {
     return false;
   }
 
@@ -208,6 +210,7 @@ export function useEditScoreCalculator({
   tiebreakP1,
   tiebreakP2,
   currentSets,
+  floorCurrentSets,
 }: UseEditScoreCalculatorParams): EditScoreCalculations {
   const effectiveCompletedCount = editableCompletedSets?.length ?? completedSets.length;
 
@@ -260,8 +263,9 @@ export function useEditScoreCalculator({
       p2Points: state.p2Points,
       completedSetsCount: completedSets.length,
       tiebreakImpossible: tiebreakValidation.tiebreakImpossible,
+      floorCurrentSets,
     }),
-    [validation, matchState, state.newSets.length, state.p1Points, state.p2Points, completedSets.length, tiebreakValidation.tiebreakImpossible],
+    [validation, matchState, state.newSets.length, state.p1Points, state.p2Points, completedSets.length, tiebreakValidation.tiebreakImpossible, floorCurrentSets],
   );
 
   const partial = validation.bothFilled && !validation.isSetTrulyCompleted;
@@ -272,9 +276,9 @@ export function useEditScoreCalculator({
   );
 
   const currentScoreBelowOriginal = useMemo(() => {
-    if (!currentSets) return false;
-    return validation.bothFilled && (validation.p1Val < currentSets.player1 || validation.p2Val < currentSets.player2);
-  }, [currentSets, validation.bothFilled, validation.p1Val, validation.p2Val]);
+    if (!floorCurrentSets) return false;
+    return validation.bothFilled && (validation.p1Val < floorCurrentSets.player1 || validation.p2Val < floorCurrentSets.player2);
+  }, [floorCurrentSets, validation.bothFilled, validation.p1Val, validation.p2Val]);
 
   return {
     validation,
