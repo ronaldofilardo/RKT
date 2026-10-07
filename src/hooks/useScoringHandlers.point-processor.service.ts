@@ -152,6 +152,11 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
 
         if (result.success && result.serverResponse?.scoreState) {
           return applySuccessResult(result.serverResponse);
+        } else if (result.needsLogin) {
+          // 401 - token expirado: não tenta novamente, apenas enfileira para offline
+          // e mostra mensagem para o usuário fazer login novamente
+          await pointSync.queuePointForOffline(enqueue, flow);
+          // O erro já foi setado pelo handleUnauthorizedResponse
         } else if (result.needsResync) {
           await fetchMatch(true);
           const retrySeq = ++pointSequenceRef.current;
@@ -175,6 +180,9 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
             setError(
               "Falha ao sincronizar com o servidor — o ponto foi salvo neste dispositivo e será reenviado automaticamente.",
             );
+          } else if (retryResult.needsLogin) {
+            // 401 no retry: enfileira para offline
+            await pointSync.queuePointForOffline(enqueue, flow);
           }
         }
       } else {

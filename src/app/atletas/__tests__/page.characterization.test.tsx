@@ -174,7 +174,7 @@ describe('AtletasPage (characterization)', () => {
     mockSessionStorage = new SessionStorageMock({
       access_token: 'mock-token-123',
       user_id: 'user-456',
-      user_role: 'COACH',
+      user_role: 'ADMIN',
     });
     mockSessionStorage.install();
 
@@ -203,7 +203,7 @@ describe('AtletasPage (characterization)', () => {
     });
 
     it('deve redirecionar para /login quando não há access_token', async () => {
-      mockSessionStorage.setItem('user_role', 'COACH');
+      mockSessionStorage.setItem('user_role', 'ADMIN');
       mockSessionStorage.setItem('access_token', null);
 
       render(<AtletasPage />);

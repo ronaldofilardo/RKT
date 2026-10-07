@@ -17,7 +17,7 @@ async function checkCanModifyMatchState(
   user?: { id?: string; role?: string } | null,
 ): Promise<boolean> {
   const currentUserId = user?.id;
-  const isStaff = user?.role === 'ADMIN' || user?.role === 'GESTOR' || user?.role === 'COACH';
+  const isStaff = user?.role === 'ADMIN';
   const isParticipant =
     match.player1Id === currentUserId ||
     match.player2Id === currentUserId ||

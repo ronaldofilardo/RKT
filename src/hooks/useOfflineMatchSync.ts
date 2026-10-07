@@ -43,7 +43,7 @@ export function useOfflineMatchSync() {
 
         logger.sync.starting(pendingSyncs.length);
 
-        const token = sessionStorage.getItem("access_token");
+        
         const failedSyncs: PendingMatchSync[] = [];
 
         const processedMatchIds = new Set(pendingSyncs.map((s) => s.matchId));
@@ -64,7 +64,6 @@ export function useOfflineMatchSync() {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                ...(token ? { Authorization: `Bearer ${token}` } : {}),
               },
               body: JSON.stringify({
                 winnerId: sync.winnerId,

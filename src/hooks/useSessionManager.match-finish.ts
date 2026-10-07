@@ -15,15 +15,13 @@ export async function finishMatch(
   scoreState: ScoringState,
   options?: { isManualScoreEdit?: boolean; note?: string }
 ): Promise<{ success: boolean; error?: string }> {
-  const { matchId, tokenRef, matchVersion } = config;
+  const { matchId, matchVersion } = config;
 
   try {
-    const token = tokenRef.current;
     const response = await fetch(`/api/matches/${matchId}/finish`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({
         winnerId: winnerId,

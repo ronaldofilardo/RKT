@@ -113,9 +113,8 @@ export default function DashboardPage() {
     setSetSummaryMatch(match);
     setSetSummaryTimelinePoints([]);
     try {
-      const accessToken = sessionStorage.getItem("access_token");
-      const res = await fetch(`/api/matches/${match.id}/report`, {
-        headers: accessToken ? { authorization: `Bearer ${accessToken}` } : {},
+            const res = await fetch(`/api/matches/${match.id}/report`, {
+        headers: {},
       });
       if (res.ok) {
         const data = await res.json();
@@ -150,12 +149,10 @@ export default function DashboardPage() {
     if (!selectedMatchForServer) return;
     setStartingMatch(true);
     try {
-      const accessToken = sessionStorage.getItem("access_token");
-      const response = await fetch(`/api/matches/${selectedMatchForServer.id}/state`, {
+            const response = await fetch(`/api/matches/${selectedMatchForServer.id}/state`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           state: "IN_PROGRESS",

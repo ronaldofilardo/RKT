@@ -44,13 +44,11 @@ export default function LoginPage() {
 
       const data = await res.json();
       writeToSessionOnly({
-        accessToken: data.accessToken,
         userId: data.user.id,
         userRole: data.user.role,
       });
 
       const isSecure = window.location.protocol === "https:";
-      document.cookie = `access_token=${data.accessToken}; path=/; max-age=${2 * 60 * 60}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
       document.cookie = `user_role=${data.user.role}; path=/; max-age=${2 * 60 * 60}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
 
       if (data.user.role === "ADMIN") {

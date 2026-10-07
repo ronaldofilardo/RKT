@@ -15,7 +15,6 @@ export function useScoringLifecycleEffects({
 }: ScoringLifecycleEffectsParams) {
   const {
     matchId,
-    tokenRef,
     isOnline,
     scoreState,
     setElapsed,
@@ -32,10 +31,6 @@ export function useScoringLifecycleEffects({
   } = state;
 
   useEffect(() => {
-    const freshToken = sessionStorage.getItem("access_token");
-    if (freshToken !== tokenRef.current) {
-      tokenRef.current = freshToken;
-    }
   });
 
   const initialFetchDoneRef = useRef<string | null>(null);

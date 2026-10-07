@@ -6,7 +6,6 @@
  * concordem sobre o estado de autenticacao.
  */
 
-const ACCESS_TOKEN_KEY = 'access_token';
 const USER_ROLE_KEY = 'user_role';
 const USER_ID_KEY = 'user_id';
 const COOKIE_MAX_AGE_SECONDS = 2 * 60 * 60; // 2h
@@ -17,13 +16,11 @@ function buildCookie(name: string, value: string): string {
 }
 
 export function writeToSessionOnly(data: {
-  accessToken: string;
-  userId: string;
+    userId: string;
   userRole: string;
 }): void {
   if (typeof window === 'undefined') return;
-  sessionStorage.setItem(ACCESS_TOKEN_KEY, data.accessToken);
-  sessionStorage.setItem(USER_ID_KEY, data.userId);
+    sessionStorage.setItem(USER_ID_KEY, data.userId);
   sessionStorage.setItem(USER_ROLE_KEY, data.userRole);
   clearRedirectingFlag();
 }
@@ -33,26 +30,21 @@ export function writeToSessionOnly(data: {
  */
 export function ensureAuthCookie(): boolean {
   if (typeof window === 'undefined') return false;
-  const accessToken = sessionStorage.getItem(ACCESS_TOKEN_KEY);
-  const userRole = sessionStorage.getItem(USER_ROLE_KEY);
-  if (!accessToken || !userRole) return false;
-  document.cookie = buildCookie('access_token', accessToken);
-  document.cookie = buildCookie('rkt_access_token', accessToken);
-  document.cookie = buildCookie('user_role', userRole);
+    const userRole = sessionStorage.getItem(USER_ROLE_KEY);
+  if (!userRole) return false;
+      document.cookie = buildCookie('user_role', userRole);
   return true;
 }
 
 export function readAuthState(): {
-  accessToken: string | null;
-  userId: string | null;
+    userId: string | null;
   userRole: string | null;
 } {
   if (typeof window === 'undefined') {
-    return { accessToken: null, userId: null, userRole: null };
+    return { userId: null, userRole: null };
   }
   return {
-    accessToken: sessionStorage.getItem(ACCESS_TOKEN_KEY),
-    userId: sessionStorage.getItem(USER_ID_KEY),
+        userId: sessionStorage.getItem(USER_ID_KEY),
     userRole: sessionStorage.getItem(USER_ROLE_KEY),
   };
 }
@@ -63,8 +55,7 @@ export function readAuthState(): {
  */
 export function clearAuthState(): void {
   if (typeof window === 'undefined') return;
-  sessionStorage.removeItem(ACCESS_TOKEN_KEY);
-  sessionStorage.removeItem(USER_ID_KEY);
+    sessionStorage.removeItem(USER_ID_KEY);
   sessionStorage.removeItem(USER_ROLE_KEY);
   document.cookie = 'access_token=; path=/; max-age=0; SameSite=Lax';
   document.cookie = 'rkt_access_token=; path=/; max-age=0; SameSite=Lax';

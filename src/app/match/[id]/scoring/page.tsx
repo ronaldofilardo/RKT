@@ -199,11 +199,17 @@ function ScoringPageInner() {
           role="status"
           aria-live="polite"
           className={`text-white text-center text-sm py-1 px-4 font-semibold ${
-            state.syncStatus === "offline" ? "bg-amber-600" : "bg-blue-600"
+            state.syncStatus === "offline"
+              ? "bg-amber-600"
+              : state.syncStatus === "auth-required"
+              ? "bg-red-600"
+              : "bg-blue-600"
           }`}
         >
           {state.syncStatus === "offline"
             ? "🔴 Modo Offline — sincronizando ao reconectar"
+            : state.syncStatus === "auth-required"
+            ? "🔐 Sessão expirada — faça login novamente para sincronizar os pontos"
             : "🔄 Sincronizando pontos pendentes..."}
         </div>
       )}

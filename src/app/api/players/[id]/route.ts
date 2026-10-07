@@ -34,7 +34,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
       const user = getRLSUser();
       const isOwner = user?.id === id;
-      const isStaff = user?.role === 'ADMIN' || user?.role === 'GESTOR';
+      const isStaff = user?.role === 'ADMIN';
       const isCreator = existing.createdByUserId && user?.id === existing.createdByUserId;
 
       if (!isOwner && !isStaff && !isCreator) {

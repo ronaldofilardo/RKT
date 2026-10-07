@@ -32,7 +32,7 @@ export default function AguardandoAnotadorPage() {
         const match = await res.json();
         if (match.openForAnnotation || match.state === 'IN_PROGRESS') {
           const userRole = sessionStorage.getItem('user_role');
-          const isScorerOrStaff = userRole === 'COACH' || userRole === 'ADMIN' || userRole === 'GESTOR';
+          const isScorerOrStaff = userRole === 'ADMIN';
           if (isScorerOrStaff) {
             router.push(`/match/${matchId}/scoring` as any);
           } else {

@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { logger } from "@/lib/logger";
-import { isTokenExpired } from "@/lib/jwt-client";
 import { TIMEOUTS } from "@/lib/constants";
 import {
   ensureAuthCookie,
@@ -11,22 +10,17 @@ import type { Match } from "../dashboard.types";
 import { flushPendingAbandons } from "@/hooks/useSessionManager.pending-abandon";
 
 function checkAuthAndGetToken(router: any, setLoading: (v: boolean) => void) {
-  const { accessToken } = readAuthState();
+  const { userRole } = readAuthState();
   const cookieOk = ensureAuthCookie();
   
-  if (!accessToken || !cookieOk) {
+  if (!userRole || !cookieOk) {
     setLoading(false);
     redirectToLogin(router);
     return null;
   }
   
-  if (isTokenExpired(accessToken)) {
-    setLoading(false);
-    redirectToLogin(router);
-    return null;
-  }
-  
-  return accessToken;
+    
+  return true;
 }
 
 const fetchWithTimeout = (url: string, options: RequestInit = {}, ms = TIMEOUTS.MATCH_FETCH_TIMEOUT_MS, abortController?: AbortController) => {
@@ -36,11 +30,9 @@ const fetchWithTimeout = (url: string, options: RequestInit = {}, ms = TIMEOUTS.
     .finally(() => clearTimeout(timer));
 };
 
-const fetchMatchesEndpoint = async (url: string, accessToken: string, router: any, setLoading: (v: boolean) => void, abortController?: AbortController) => {
+const fetchMatchesEndpoint = async (url: string, router: any, setLoading: (v: boolean) => void, abortController?: AbortController) => {
   try {
-    const res = await fetchWithTimeout(url, {
-      headers: { authorization: `Bearer ${accessToken}` },
-    }, TIMEOUTS.MATCH_FETCH_TIMEOUT_MS, abortController);
+    const res = await fetchWithTimeout(url, {}, TIMEOUTS.MATCH_FETCH_TIMEOUT_MS, abortController);
 
     if (res.status === 401) {
       setLoading(false);
@@ -67,8 +59,8 @@ export function useDashboardData(router?: any) {
   const dashboardAbortRef = useRef<AbortController | null>(null);
 
   const performFetch = useCallback(async (abortController: AbortController, isInitial = false) => {
-    const accessToken = checkAuthAndGetToken(routerRef.current, setLoading);
-    if (!accessToken) return;
+    const hasAuth = checkAuthAndGetToken(routerRef.current, setLoading);
+    if (!hasAuth) return;
 
     if (isInitial) {
       flushPendingAbandons().catch((e) =>
@@ -76,8 +68,8 @@ export function useDashboardData(router?: any) {
       );
     }
 
-    const matchPromise = fetchMatchesEndpoint("/api/matches", accessToken, routerRef.current, setLoading, abortController);
-    const suspendedPromise = fetchMatchesEndpoint("/api/matches/suspended-sessions", accessToken, routerRef.current, setLoading, abortController);
+    const matchPromise = fetchMatchesEndpoint("/api/matches", routerRef.current, setLoading, abortController);
+    const suspendedPromise = fetchMatchesEndpoint("/api/matches/suspended-sessions", routerRef.current, setLoading, abortController);
 
     try {
       const [matchList, suspendedList] = await Promise.all([matchPromise, suspendedPromise]);

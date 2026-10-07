@@ -1,8 +1,7 @@
 export async function startMatch(createdMatchId: string, serverId: string) {
-  const accessToken = sessionStorage.getItem('access_token');
-  const response = await fetch(`/api/matches/${createdMatchId}/state`, {
+    const response = await fetch(`/api/matches/${createdMatchId}/state`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', authorization: `Bearer ${accessToken}` },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ state: 'IN_PROGRESS', initialServerId: serverId }),
   });
   const data = await response.json();

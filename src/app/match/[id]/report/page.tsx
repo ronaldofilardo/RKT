@@ -18,15 +18,12 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
     if (fetchedMatchIdRef.current === matchId) return;
     fetchedMatchIdRef.current = matchId;
 
-    const token = sessionStorage.getItem('access_token');
-    if (!token) {
+        if (false) {
       router.push('/login');
       return;
     }
 
-    fetch(`/api/matches/${matchId}/report`, {
-      headers: { authorization: `Bearer ${token}` },
-    })
+    fetch(`/api/matches/${matchId}/report`)
       .then(async res => {
         if (!res.ok) {
           const data = await res.json();

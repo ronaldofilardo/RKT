@@ -69,7 +69,6 @@ export async function flushPendingAbandons(): Promise<void> {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(entry.token ? { Authorization: `Bearer ${entry.token}` } : {}),
           },
           body: JSON.stringify({ matchStateSnapshot: entry.matchStateSnapshot }),
         }

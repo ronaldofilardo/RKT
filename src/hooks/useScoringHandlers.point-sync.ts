@@ -18,6 +18,7 @@ interface PointSyncResult {
   success: boolean;
   needsResync?: boolean;
   serverResponse?: ServerResponse;
+  needsLogin?: boolean;
 }
 
 interface ServerResponse {
@@ -110,6 +111,13 @@ async function handleErrorResponse(
   return { success: false, needsResync: true };
 }
 
+async function handleUnauthorizedResponse(
+  setError: (msg: string) => void,
+): Promise<PointSyncResult> {
+  setError("Sessão expirada — o ponto foi salvo localmente. Faça login novamente para sincronizar.");
+  return { success: false, needsResync: false, needsLogin: true };
+}
+
 function handleFetchCatch(err: unknown, setError: (msg: string) => void): PointSyncResult {
   if (err instanceof Error && err.name === "AbortError") {
     logger.point.requestTimeout();
@@ -163,6 +171,10 @@ export function createPointSyncService(config: PointSyncConfig) {
 
       if (res.status === 409) {
         return await handleConflictResponse(res, pointSequenceRef, setError);
+      }
+
+      if (res.status === 401) {
+        return await handleUnauthorizedResponse(setError);
       }
 
       return await handleErrorResponse(res, setError);

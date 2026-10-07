@@ -44,9 +44,7 @@ export async function abandonCurrentSession(
       const stateResponse = await fetch(`/api/matches/${mid}/state`, {
         method: "PATCH",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+          "Content-Type": "application/json",        },
         body: JSON.stringify({
           state: "FINISHED",
           scoreState: state,
@@ -69,9 +67,7 @@ export async function abandonCurrentSession(
         const sessionResponse = await fetch(`/api/matches/${mid}/sessions/${sid}`, {
           method: "PATCH",
           headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+            "Content-Type": "application/json",          },
           body: JSON.stringify({
             status: "COMPLETED",
             finalState: state,
@@ -95,9 +91,7 @@ export async function abandonCurrentSession(
           method: "POST",
           keepalive: true,
           headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+            "Content-Type": "application/json",          },
           body: JSON.stringify({ matchStateSnapshot: stateSnapshot }),
         });
 

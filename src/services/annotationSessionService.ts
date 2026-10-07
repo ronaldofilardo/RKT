@@ -3,8 +3,7 @@ import { logger } from "@/lib/logger";
 
 interface SessionServiceConfig {
   baseUrl: string;
-  getToken: () => Promise<string | null>;
-}
+  }
 
 function createSessionService(config: SessionServiceConfig) {
   async function makeRequest<T>(
@@ -12,10 +11,8 @@ function createSessionService(config: SessionServiceConfig) {
     options: RequestInit = {},
     errorMessage: string
   ): Promise<T> {
-    const token = await config.getToken();
-    const headers: HeadersInit = {
+        const headers: HeadersInit = {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     };
 
@@ -88,8 +85,7 @@ function createSessionService(config: SessionServiceConfig) {
       }
     ): Promise<boolean> => {
       const { matchId, sessionId, matchStateSnapshot } = params;
-      const token = await config.getToken();
-      const url = `${config.baseUrl}/matches/${matchId}/sessions/${sessionId}/abandon`;
+            const url = `${config.baseUrl}/matches/${matchId}/sessions/${sessionId}/abandon`;
 
       try {
         const response = await fetch(url, {
@@ -98,7 +94,6 @@ function createSessionService(config: SessionServiceConfig) {
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({ matchStateSnapshot }),
         });
@@ -126,8 +121,7 @@ function createClientService(): ReturnType<typeof createSessionService> {
 
   return createSessionService({
     baseUrl: "/api",
-    getToken: () => Promise.resolve(sessionStorage.getItem("access_token")),
-  });
+      });
 }
 
 let clientServiceInstance: ReturnType<typeof createSessionService> | null = null;

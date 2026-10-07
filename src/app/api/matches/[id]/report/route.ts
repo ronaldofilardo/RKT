@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { withRLSHandler, getRLSUser } from '@/lib/auth';
-import type { Role } from '@/schemas/contracts';
+
 import type { TimelinePoint } from '@/core/scoring/types';
 import {
   rebuildTimelineFromPointLogs,
@@ -88,7 +88,7 @@ export async function GET(
         return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
       }
 
-      const isStaff = (['ADMIN', 'GESTOR', 'COACH'] as Role[]).includes(user.role as Role);
+      const isStaff = user.role === 'ADMIN';
 
       const match = await getMatch(id);
 

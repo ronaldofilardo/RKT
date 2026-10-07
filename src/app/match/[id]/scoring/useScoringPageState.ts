@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useReducer } from "react";
+import { useState, useRef, useReducer, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ScoringEngine } from "@/core/scoring/engine";
 import type { ScoringState, TimelinePoint } from "@/core/scoring/types";
@@ -87,8 +87,8 @@ export interface ScoringPageState {
   clearQueueForMatch: (matchId: string) => Promise<void>;
   removeLastAction: (matchId: string) => Promise<boolean>;
   syncPendingMatches: () => Promise<void>;
-  syncStatus: "offline" | "syncing" | "synced";
-  setSyncStatus: React.Dispatch<React.SetStateAction<"offline" | "syncing" | "synced">>;
+  syncStatus: "offline" | "syncing" | "synced" | "auth-required";
+  setSyncStatus: React.Dispatch<React.SetStateAction<"offline" | "syncing" | "synced" | "auth-required">>;
   toast: (options: { type: import("@/components/Toast").ToastType; message: string }) => void;
   gamePointToDisplay: (p: number) => string;
   timelinePoints: TimelinePoint[];
@@ -105,9 +105,33 @@ export function useScoringPageState(matchId: string): ScoringPageState {
   const { syncPendingMatches } = useOfflineMatchSync();
   const { toast } = useToast();
 
-  const [syncStatus, setSyncStatus] = useState<"offline" | "syncing" | "synced">(
+  const [syncStatus, setSyncStatus] = useState<"offline" | "syncing" | "synced" | "auth-required">(
     isOnline ? "synced" : "offline"
   );
+
+  // Listen for auth-required event from offline sync
+  useEffect(() => {
+    const handleAuthRequired = () => {
+      setSyncStatus("auth-required");
+    };
+    window.addEventListener("offline-sync-auth-required", handleAuthRequired);
+    return () => {
+      window.removeEventListener("offline-sync-auth-required", handleAuthRequired);
+    };
+  }, []);
+
+  // Also reset auth-required when sync completes
+  useEffect(() => {
+    const handleSyncComplete = () => {
+      if (syncStatus === "auth-required") {
+        setSyncStatus(isOnline ? "synced" : "offline");
+      }
+    };
+    window.addEventListener("offline-sync-complete", handleSyncComplete);
+    return () => {
+      window.removeEventListener("offline-sync-complete", handleSyncComplete);
+    };
+  }, [isOnline, syncStatus]);
 
   const [match, setMatch] = useState<MatchData | null>(null);
   const [isLoading, setIsLoading] = useState(true);

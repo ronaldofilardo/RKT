@@ -5,10 +5,9 @@ export async function saveOfflineMatch(matchData: Record<string, unknown>): Prom
 }
 
 export async function createMatchRequest(payload: Record<string, unknown>, force = false) {
-  const accessToken = sessionStorage.getItem('access_token');
-  const response = await fetch('/api/matches', {
+    const response = await fetch('/api/matches', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', authorization: `Bearer ${accessToken}` },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(force ? { ...payload, force: true } : payload),
   });
   const data = await response.json();

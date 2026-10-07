@@ -6,12 +6,12 @@ const STORE_NAME = 'optimistic-queue';
 
 type SequenceMap = Map<string, number>;
 
-export async function fetchMatchSequence(matchId: string, accessToken: string): Promise<number> {
+export async function fetchMatchSequence(matchId: string): Promise<number> {
   try {
     const response = await fetch(`/api/matches/${matchId}`, {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
+        
       },
     });
     if (!response.ok) return 0;
@@ -26,21 +26,20 @@ export async function fetchMatchSequence(matchId: string, accessToken: string): 
 
 export async function ensureMatchSequence(
   matchId: string,
-  accessToken: string,
   sequences: SequenceMap,
 ): Promise<number> {
   if (!sequences.has(matchId)) {
-    sequences.set(matchId, await fetchMatchSequence(matchId, accessToken));
+    sequences.set(matchId, await fetchMatchSequence(matchId));
   }
   return sequences.get(matchId) || 0;
 }
 
-export function createPointRequest(action: QueuedAction, accessToken: string, sequenceNumber: number): RequestInit {
+export function createPointRequest(action: QueuedAction, sequenceNumber: number): RequestInit {
   return {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
+      
     },
     body: JSON.stringify({ ...action.payload, sequenceNumber }),
   };
@@ -59,7 +58,6 @@ export async function markActionSynced(
 export async function retrySequenceConflict(
   db: IDBPDatabase,
   action: QueuedAction,
-  accessToken: string,
   response: Response,
   sequences: SequenceMap,
 ): Promise<boolean> {
@@ -69,7 +67,7 @@ export async function retrySequenceConflict(
   sequences.set(action.matchId, expectedSequence - 1);
   const retryResponse = await fetch(
     `/api/matches/${action.matchId}/point`,
-    createPointRequest(action, accessToken, expectedSequence),
+    createPointRequest(action, expectedSequence),
   );
   if (!retryResponse.ok) return false;
   await markActionSynced(db, action, expectedSequence, sequences);
@@ -84,6 +82,17 @@ export async function markActionPendingOrFailed(
     ...action,
     status: action.retries >= 3 ? 'FAILED' : 'PENDING',
     retries: action.retries + 1,
+  });
+}
+
+export async function markActionPausedForAuth(
+  db: IDBPDatabase,
+  action: QueuedAction,
+): Promise<void> {
+  await db.put(STORE_NAME, {
+    ...action,
+    status: 'PENDING',
+    // não incrementa retries - espera novo login
   });
 }
 

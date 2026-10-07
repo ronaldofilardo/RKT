@@ -59,11 +59,7 @@ export function useNewMatchState() {
 
   useEffect(() => {
     if (typeof fetch !== 'function') return;
-    const token = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers.authorization = `Bearer ${token}`;
-    }
+        const headers: Record<string, string> = {};
     fetch('/api/players?limit=100', { headers })
       .then((response) => response.json())
       .then((json: { data?: { players?: Athlete[] }; players?: Athlete[] }) => {

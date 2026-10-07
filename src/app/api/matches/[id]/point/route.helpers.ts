@@ -31,7 +31,7 @@ export async function validateMatchAnnotatorPermission(
   currentUserRole?: string,
   tx?: any,
 ): Promise<void> {
-  const isPrivilegedStaff = currentUserRole === 'ADMIN' || currentUserRole === 'GESTOR';
+  const isPrivilegedStaff = currentUserRole === 'ADMIN';
   const isPlayer =
     match.player1Id === currentUserId ||
     match.player2Id === currentUserId ||

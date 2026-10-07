@@ -1,6 +1,15 @@
 import '@testing-library/jest-dom';
 import { TextDecoder, TextEncoder } from 'node:util';
 
+// Mock crypto.randomUUID for environments that don't have it (like jsdom)
+if (typeof globalThis.crypto === 'undefined') {
+  globalThis.crypto = {} as any;
+}
+if (typeof globalThis.crypto.randomUUID === 'undefined') {
+  let counter = 0;
+  globalThis.crypto.randomUUID = () => `test-uuid-${Date.now()}-${counter++}`;
+}
+
 if (typeof globalThis.TextEncoder === 'undefined') {
   globalThis.TextEncoder = TextEncoder as typeof globalThis.TextEncoder;
 }

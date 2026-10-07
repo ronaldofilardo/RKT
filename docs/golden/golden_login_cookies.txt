@@ -1,0 +1,36 @@
+﻿
+
+Comment    : 
+CommentUri : 
+HttpOnly   : True
+Discard    : False
+Domain     : localhost
+Expired    : False
+Expires    : 07/10/2026 13:43:29
+Name       : rkt_access_token
+Path       : /
+Port       : 
+Secure     : False
+TimeStamp  : 07/10/2026 11:43:29
+Value      : eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjbXR5aHFvZXgwMDAxenptb3lyNHplc3N0Iiwicm9sZSI6IkFOTk9UQVRPUiIsImlhdCI6MTc5M
+             TM4NDIwOSwiZXhwIjoxNzkxMzkxNDA5fQ.vtKnuvTdHHdYImUJmL2A6Q2k8SXVsc45NsgX_OlYbLw
+Version    : 0
+
+Comment    : 
+CommentUri : 
+HttpOnly   : False
+Discard    : False
+Domain     : localhost
+Expired    : False
+Expires    : 07/10/2026 13:43:29
+Name       : access_token
+Path       : /
+Port       : 
+Secure     : False
+TimeStamp  : 07/10/2026 11:43:29
+Value      : eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjbXR5aHFvZXgwMDAxenptb3lyNHplc3N0Iiwicm9sZSI6IkFOTk9UQVRPUiIsImlhdCI6MTc5M
+             TM4NDIwOSwiZXhwIjoxNzkxMzkxNDA5fQ.vtKnuvTdHHdYImUJmL2A6Q2k8SXVsc45NsgX_OlYbLw
+Version    : 0
+
+
+

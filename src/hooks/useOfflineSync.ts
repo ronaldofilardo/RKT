@@ -12,6 +12,7 @@ import {
   retrySequenceConflict,
   markActionPendingOrFailed,
   markActionPending,
+  markActionPausedForAuth,
 } from "./useOfflineSync.helpers";
 
 const DB_NAME = "racket-offline-db";
@@ -132,7 +133,7 @@ export function useOfflineSync() {
     }
   }, []);
 
-  const flush = useCallback(async (accessToken: string) => {
+  const flush = useCallback(async () => {
     if (isFlushingRef.current) {
       logger.log(
         "[flush] Sincronização offline já em andamento — ignorando chamada concorrente",
@@ -159,13 +160,14 @@ export function useOfflineSync() {
 
       const matchSequences = new Map<string, number>();
       const failedMatches = new Set<string>();
+      const authPausedMatches = new Set<string>();
 
       for (const action of toSync) {
         if (failedMatches.has(action.matchId)) continue;
+        if (authPausedMatches.has(action.matchId)) continue;
         try {
           const currentSequence = await ensureMatchSequence(
             action.matchId,
-            accessToken,
             matchSequences,
           );
           const nextSequence = currentSequence + 1;
@@ -174,7 +176,7 @@ export function useOfflineSync() {
 
           const response = await fetch(
             `/api/matches/${action.matchId}/point`,
-            createPointRequest(action, accessToken, nextSequence),
+            createPointRequest(action, nextSequence),
           );
 
           if (response.ok) {
@@ -183,10 +185,23 @@ export function useOfflineSync() {
             continue;
           }
 
+          if (response.status === 401) {
+            // Token expirado: pausa a sincronização desta partida
+            // mantém como PENDING sem incrementar retries
+            await markActionPausedForAuth(db, action);
+            authPausedMatches.add(action.matchId);
+            // Notifica a UI que precisa fazer login
+            window.dispatchEvent(
+              new CustomEvent("offline-sync-auth-required", {
+                detail: { matchId: action.matchId },
+              }),
+            );
+            continue;
+          }
+
           const retried = await retrySequenceConflict(
             db,
             action,
-            accessToken,
             response,
             matchSequences,
           );
@@ -244,8 +259,7 @@ export function useOfflineSync() {
   useEffect(() => {
     const handleOnline = () => {
       setOnline(true);
-      const token = sessionStorage.getItem("access_token");
-      if (token) flush(token);
+      flush();
     };
 
     const handleOffline = () => {
@@ -255,18 +269,16 @@ export function useOfflineSync() {
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
-    const token = sessionStorage.getItem("access_token");
-
+    
     // Tentar flush na inicialização (e periodicamente quando online)
-    if (online && token) {
-      flush(token);
+    if (online) {
+      flush();
     }
 
     let intervalId: NodeJS.Timeout;
     if (online) {
       intervalId = setInterval(() => {
-        const currentToken = sessionStorage.getItem("access_token");
-        if (currentToken) flush(currentToken);
+        flush();
       }, 30000); // Tentar a cada 30 segundos
     }
 
