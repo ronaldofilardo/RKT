@@ -36,9 +36,9 @@ export function LiveCountersBar({
   return (
     <div
       data-testid="live-counters-bar"
-      className="bg-telemetry-card border border-white/10 rounded-xl px-2.5 py-1.5 shadow-sm text-xs select-none transition-all my-1 relative z-10"
+      className="bg-telemetry-card border border-white/10 rounded-xl px-2 py-1 shadow-sm text-xs select-none transition-all relative z-10"
     >
-      <div className="flex items-center justify-between gap-1 mb-1">
+      <div className="flex items-center justify-between gap-1">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 text-[11px] font-bold text-telemetry-text-primary">
             <span className="text-telemetry-volt">⚡</span>
@@ -48,7 +48,7 @@ export function LiveCountersBar({
             <button
               type="button"
               onClick={onOpenSetSummary}
-              className="text-[10px] bg-telemetry-volt/15 border border-telemetry-volt/30 text-telemetry-volt font-bold px-1.5 py-0.5 rounded hover:bg-telemetry-volt/25 transition-all flex items-center gap-1"
+              className="text-[10px] bg-telemetry-volt/15 border border-telemetry-volt/30 text-telemetry-volt font-bold px-1.5 py-0 rounded hover:bg-telemetry-volt/25 transition-all flex items-center gap-1"
               title="Ver análise gráfica detalhada dos sets finalizados"
             >
               📊 Resumo do Set
@@ -58,7 +58,7 @@ export function LiveCountersBar({
         <button
           type="button"
           onClick={() => setCollapsed(!collapsed)}
-          className="text-[10px] text-telemetry-text-muted hover:text-telemetry-text-primary px-1.5 py-0.5 rounded hover:bg-white/5 transition-colors"
+          className="text-[10px] text-telemetry-text-muted hover:text-telemetry-text-primary px-1.5 py-0 rounded hover:bg-white/5 transition-colors"
           aria-label={collapsed ? 'Expandir estatísticas' : 'Recolher estatísticas'}
         >
           {collapsed ? '▼ Ver' : '▲ Ocultar'}
@@ -66,11 +66,11 @@ export function LiveCountersBar({
       </div>
 
       {!collapsed && (
-        <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center pt-1 border-t border-white/5">
+        <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center mt-0.5 pt-0.5 border-t border-white/5">
           {/* Aces */}
-          <div className="bg-telemetry-elevated/70 rounded p-1 border border-white/5">
+          <div className="bg-telemetry-elevated/70 rounded px-1 py-0.5 border border-white/5">
             <span className="text-[10px] text-telemetry-text-muted block font-medium">Aces</span>
-            <div className="flex justify-around items-center font-space-grotesk font-bold text-xs mt-0.5">
+            <div className="flex justify-around items-center font-space-grotesk font-bold text-xs">
               <span className="text-telemetry-blue" title={`${p1Short}: ${counters.aces.p1}`}>{counters.aces.p1}</span>
               <span className="text-telemetry-text-muted/60 text-[10px]">:</span>
               <span className="text-telemetry-error" title={`${p2Short}: ${counters.aces.p2}`}>{counters.aces.p2}</span>
@@ -78,9 +78,9 @@ export function LiveCountersBar({
           </div>
 
           {/* Duplas Faltas */}
-          <div className="bg-telemetry-elevated/70 rounded p-1 border border-white/5">
+          <div className="bg-telemetry-elevated/70 rounded px-1 py-0.5 border border-white/5">
             <span className="text-[10px] text-telemetry-text-muted block font-medium">Duplas Faltas</span>
-            <div className="flex justify-around items-center font-space-grotesk font-bold text-xs mt-0.5">
+            <div className="flex justify-around items-center font-space-grotesk font-bold text-xs">
               <span className="text-telemetry-alert" title={`${p1Short}: ${counters.doubleFaults.p1}`}>{counters.doubleFaults.p1}</span>
               <span className="text-telemetry-text-muted/60 text-[10px]">:</span>
               <span className="text-telemetry-alert" title={`${p2Short}: ${counters.doubleFaults.p2}`}>{counters.doubleFaults.p2}</span>
@@ -88,9 +88,9 @@ export function LiveCountersBar({
           </div>
 
           {/* Break Points */}
-          <div className="bg-telemetry-elevated/70 rounded p-1 border border-white/5">
+          <div className="bg-telemetry-elevated/70 rounded px-1 py-0.5 border border-white/5">
             <span className="text-[10px] text-telemetry-text-muted block font-medium">Break Points</span>
-            <div className="flex justify-around items-center font-space-grotesk font-bold text-xs mt-0.5">
+            <div className="flex justify-around items-center font-space-grotesk font-bold text-xs">
               <span className="text-telemetry-volt" title={`${p1Short}: ${counters.breakPoints.p1.converted}/${counters.breakPoints.p1.total}`}>
                 {counters.breakPoints.p1.converted}/{counters.breakPoints.p1.total}
               </span>
@@ -102,9 +102,9 @@ export function LiveCountersBar({
           </div>
 
           {/* Erros (EF / ENF) */}
-          <div className="bg-telemetry-elevated/70 rounded p-1 border border-white/5">
+          <div className="bg-telemetry-elevated/70 rounded px-1 py-0.5 border border-white/5">
             <span className="text-[10px] text-telemetry-text-muted block font-medium">EF / ENF</span>
-            <div className="flex justify-around items-center font-space-grotesk font-bold text-xs mt-0.5">
+            <div className="flex justify-around items-center font-space-grotesk font-bold text-xs">
               <span className="text-telemetry-text-primary" title={`${p1Short}: ${counters.forcedErrors.p1} EF / ${counters.unforcedErrors.p1} ENF`}>
                 {counters.forcedErrors.p1}/{counters.unforcedErrors.p1}
               </span>

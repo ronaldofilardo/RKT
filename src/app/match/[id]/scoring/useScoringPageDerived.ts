@@ -46,8 +46,8 @@ function derivePointBadges(
     return { isMatchPoint: false, isSetPoint: false, isBreakPoint: false };
   }
   const isMatchPoint = checkMatchPoint(effectiveScoreState, format);
-  const isSetPoint = !isMatchPoint && checkSetPoint(effectiveScoreState);
-  const isBreakPoint = !isMatchPoint && !isSetPoint && checkBreakPoint(effectiveScoreState);
+  const isSetPoint = !isMatchPoint && checkSetPoint(effectiveScoreState, format);
+  const isBreakPoint = !isMatchPoint && !isSetPoint && checkBreakPoint(effectiveScoreState, format);
 
   return { isMatchPoint, isSetPoint, isBreakPoint };
 }

@@ -7,7 +7,6 @@ import type { TimelinePoint } from "@/core/scoring/types";
 
 interface ScoringTimelineViewProps {
   fontScale: number;
-  elapsed: number;
   isFinished: boolean;
   abandonCurrentSession: (snapshot?: string) => Promise<unknown>;
   onCloseTimeline: () => void;
@@ -22,7 +21,6 @@ interface ScoringTimelineViewProps {
 
 export function ScoringTimelineView({
   fontScale,
-  elapsed,
   isFinished,
   abandonCurrentSession,
   onCloseTimeline,
@@ -40,7 +38,6 @@ export function ScoringTimelineView({
       style={{ fontSize: `${fontScale * 100}%` }}
     >
       <MatchHeader
-        elapsedSeconds={elapsed}
         onClose={async () => {
           await abandonCurrentSession();
           onNavigateDashboard();

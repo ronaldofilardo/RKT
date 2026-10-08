@@ -109,7 +109,7 @@ export function PlayerCard({ player, side, scoreState, isServing, isWinner, onPo
 
   return (
     <button
-      className={`relative flex flex-col items-center p-3 sm:p-4 rounded-2xl border transition-all select-none min-h-[140px] sm:min-h-[160px] w-full
+      className={`relative flex flex-col items-center justify-center p-2 sm:p-4 rounded-2xl border transition-all select-none h-full w-full
         bg-telemetry-card border-white/10
         ${isServing ? 'ring-2 ring-telemetry-volt ring-offset-2 ring-offset-telemetry-base' : ''}
         ${isWinner ? 'bg-telemetry-blue/20 border-telemetry-blue ring-2 ring-telemetry-blue' : ''}
@@ -134,14 +134,14 @@ export function PlayerCard({ player, side, scoreState, isServing, isWinner, onPo
         />
       </div>
 
-      <div className="flex gap-1 mb-1">
+      <div className="flex gap-1 mt-1 empty:hidden">
         {Array.from({ length: setsWon }).map((_, i) => (
           <span key={i} className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-telemetry-text-primary" />
         ))}
       </div>
 
       {!disabled && !isWinner && (
-        <span className="text-[9px] sm:text-[10px] text-telemetry-text-muted font-medium mt-0.5">Toque para marcar ponto</span>
+        <span className="text-[9px] sm:text-[10px] text-telemetry-text-muted font-medium [@media(max-height:680px)]:hidden">Toque para marcar ponto</span>
       )}
     </button>
   );

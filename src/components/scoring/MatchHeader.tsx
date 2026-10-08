@@ -1,90 +1,52 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { getFormatLabel } from '@/core/scoring/format-labels';
+
+// Cabeçalho compacto de /scoring (~36px): seta de voltar + nome do app.
+// Cronômetro, ThemeToggle e botão de timeline foram removidos daqui:
+// o tema agora é um botão único no rodapé (ActionFooter) e a timeline
+// continua acessível pelo relatório.
 
 interface MatchHeaderProps {
-  elapsedSeconds?: number;
-  startedAt?: number | string | Date | null;
   onClose: () => void;
   onEditMatch?: () => void;
   onStats?: () => void;
+  /**
+   * Mantido apenas por compatibilidade com o fluxo existente em page.tsx
+   * (handleOpenTimeline). O ícone da timeline NÃO é mais renderizado no header.
+   */
   onTimeline?: () => void;
   canEdit?: boolean;
   isFinished?: boolean;
-  format?: string;
 }
 
-import { ThemeToggle } from '@/components/ThemeToggle';
-
-function formatTime(elapsedSeconds: number): string {
-  const mins = Math.floor(elapsedSeconds / 60);
-  const secs = elapsedSeconds % 60;
-  const hours = Math.floor(mins / 60);
-  if (hours > 0) {
-    return `${hours}h ${mins % 60}:${String(secs).padStart(2, '0')}`;
-  }
-  return `${mins}:${String(secs).padStart(2, '0')}`;
-}
+const APP_NAME = 'RKT app';
 
 export function MatchHeader({
-  elapsedSeconds: initialElapsed = 0,
-  startedAt,
   onClose,
   onEditMatch,
   onStats,
-  onTimeline,
   canEdit,
   isFinished,
-  format,
 }: MatchHeaderProps) {
-  const [localElapsed, setLocalElapsed] = useState(() => {
-    if (startedAt) {
-      const ms = typeof startedAt === 'number' ? startedAt : new Date(startedAt).getTime();
-      return Math.max(0, Math.floor((Date.now() - ms) / 1000));
-    }
-    return initialElapsed;
-  });
-
-  useEffect(() => {
-    if (!startedAt || isFinished) return;
-    const ms = typeof startedAt === 'number' ? startedAt : new Date(startedAt).getTime();
-    setLocalElapsed(Math.max(0, Math.floor((Date.now() - ms) / 1000)));
-
-    const timer = setInterval(() => {
-      setLocalElapsed(Math.max(0, Math.floor((Date.now() - ms) / 1000)));
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [startedAt, isFinished]);
-
-  const displayElapsed = startedAt ? localElapsed : initialElapsed;
-
   return (
-    <div className="bg-telemetry-card border-b border-white/10 px-2 sm:px-4 py-2 sm:py-3">
-      <div className="flex items-center justify-between gap-1 sm:gap-2">
-        {!isFinished && (
-          <button onClick={onClose} className="p-1.5 sm:p-2 text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/10 rounded-lg transition-colors -ml-1.5 sm:-ml-2 min-h-[36px] min-w-[36px] flex items-center justify-center" aria-label="Fechar">
-            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-        )}
-
-        <div className="flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0">
-          {format && (
-            <span className="text-[10px] sm:text-xs font-medium text-telemetry-text-muted whitespace-nowrap hidden xs:inline">
-              Modo de jogo: <span className="font-semibold text-telemetry-text-primary">{getFormatLabel(format)}</span>
-            </span>
+    <div className="bg-telemetry-card border-b border-white/10 px-2 sm:px-4 py-0.5 flex-shrink-0">
+      <div className="flex items-center justify-between gap-1 sm:gap-2 min-h-[32px]">
+        <div className="w-8 flex-shrink-0">
+          {!isFinished && (
+            <button onClick={onClose} className="p-1 text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/10 rounded-lg transition-colors -ml-1 min-h-[32px] min-w-[32px] flex items-center justify-center" aria-label="Fechar">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
           )}
-          <span className="text-[10px] sm:text-xs font-mono font-semibold text-telemetry-text-muted whitespace-nowrap">
-            {formatTime(displayElapsed)}
-          </span>
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-          <ThemeToggle />
+        <span className="flex-1 min-w-0 text-center text-xs sm:text-sm font-semibold tracking-wide text-telemetry-text-muted truncate select-none">
+          {APP_NAME}
+        </span>
+
+        <div className="min-w-8 flex items-center justify-end gap-1 sm:gap-2 flex-shrink-0">
           {canEdit && onEditMatch && (
-            <button onClick={onEditMatch} className="p-1.5 sm:p-2 text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/10 rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center" aria-label="Editar partida">
+            <button onClick={onEditMatch} className="p-1 text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/10 rounded-lg transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center" aria-label="Editar partida">
               <svg className="w-3.5 sm:w-4 h-3.5 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -92,12 +54,7 @@ export function MatchHeader({
             </button>
           )}
           {onStats && (
-            <button onClick={onStats} className="p-1.5 sm:p-2 text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/10 rounded-lg transition-colors text-base sm:text-lg leading-none min-h-[36px] min-w-[36px] flex items-center justify-center" aria-label="Estatísticas">≡</button>
-          )}
-          {onTimeline && (
-            <button onClick={onTimeline} className="px-1.5 sm:px-2 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold text-telemetry-blue bg-telemetry-blue/10 hover:bg-telemetry-blue/20 rounded border border-telemetry-blue/30 min-h-[32px] transition-colors" aria-label="Linha do tempo">
-              📊
-            </button>
+            <button onClick={onStats} className="p-1 text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/10 rounded-lg transition-colors text-base sm:text-lg leading-none min-h-[32px] min-w-[32px] flex items-center justify-center" aria-label="Estatísticas">≡</button>
           )}
         </div>
       </div>

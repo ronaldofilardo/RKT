@@ -61,13 +61,16 @@ export function ScoringPlayArea({
   onNavigateReport,
   onRegisterAndExit,
 }: ScoringPlayAreaProps) {
+  // flex-1 min-h-0: ocupa o espaço entre header e ActionBar; os cards dos jogadores
+  // absorvem a sobra/falta de altura. overflow-y-auto é só rede de segurança para
+  // telas muito baixas (o ActionBar fica sempre visível, fora desta área).
   return (
-    <div className="flex-1 flex flex-col gap-0 sm:gap-1 px-2 sm:px-3 py-1 sm:py-2 relative overflow-hidden">
+    <div className="flex-1 min-h-0 flex flex-col gap-1 px-2 sm:px-3 py-1 sm:py-2 relative overflow-y-auto overflow-x-hidden">
       <div className="absolute inset-0 opacity-20 pointer-events-none">
         <CourtBackground courtType={match.courtType} />
       </div>
 
-      <div className="my-1 sm:my-2 flex-shrink-0">
+      <div className="my-0.5 sm:my-2 flex-shrink-0">
         <ScoreboardCard
           player1={match.player1}
           player2={match.player2}
@@ -78,7 +81,7 @@ export function ScoringPlayArea({
       </div>
 
       {/* Boxes de Estatísticas ao Vivo e Insight Tático */}
-      <div className="flex flex-col gap-1 my-0.5 flex-shrink-0">
+      <div className="flex flex-col gap-1 flex-shrink-0">
         <LiveCountersBar
           counters={liveCounters}
           player1Name={match.player1.name}
@@ -89,8 +92,8 @@ export function ScoringPlayArea({
         <TacticalInsightBanner insights={tacticalInsights} />
       </div>
 
-      <div className="flex items-center gap-1 sm:gap-2 flex-1 relative z-10 min-h-0">
-        <div className="flex-1 min-w-0">
+      <div className="flex items-stretch gap-1 sm:gap-2 flex-1 relative z-10 min-h-[104px]">
+        <div className="flex-1 min-w-0 flex">
           <PlayerCard
             player={match.player1}
             side="player1"
@@ -105,9 +108,9 @@ export function ScoringPlayArea({
           />
         </div>
 
-        <div className="w-px h-full bg-white/10 flex-shrink-0" />
+        <div className="w-px self-stretch bg-white/10 flex-shrink-0" />
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 flex">
           <PlayerCard
             player={match.player2}
             side="player2"

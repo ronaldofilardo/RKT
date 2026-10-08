@@ -6,7 +6,6 @@ import { MatchHeader } from '../MatchHeader';
 
 describe('MatchHeader', () => {
   const mockProps = {
-    elapsedSeconds: 0,
     onClose: jest.fn(),
     isFinished: false,
   };
@@ -23,25 +22,28 @@ describe('MatchHeader', () => {
     expect(closeButton).not.toBeInTheDocument();
   });
 
-  it('renders elapsed time in MM:SS format', () => {
-    render(<MatchHeader {...mockProps} elapsedSeconds={125} />);
-    expect(screen.getByText('2:05')).toBeInTheDocument();
+  it('renders the app name in the header (also when finished)', () => {
+    const { rerender } = render(<MatchHeader {...mockProps} />);
+    expect(screen.getByText('RKT app')).toBeInTheDocument();
+    rerender(<MatchHeader {...mockProps} isFinished />);
+    expect(screen.getByText('RKT app')).toBeInTheDocument();
   });
 
-  it('renders elapsed time in H:MM:SS format when over an hour', () => {
-    render(<MatchHeader {...mockProps} elapsedSeconds={3665} />);
-    expect(screen.getByText('1h 1:05')).toBeInTheDocument();
+  it('does not render the elapsed timer anymore', () => {
+    render(<MatchHeader {...mockProps} />);
+    expect(screen.queryByText(/^\d+:\d{2}$/)).not.toBeInTheDocument();
   });
 
-  it('renders elapsed time with zero padding for seconds', () => {
-    render(<MatchHeader {...mockProps} elapsedSeconds={65} />);
-    expect(screen.getByText('1:05')).toBeInTheDocument();
-  });
-
-  it('renders timeline button when onTimeline is provided', () => {
+  it('does not render the timeline icon even when onTimeline is provided', () => {
     render(<MatchHeader {...mockProps} onTimeline={jest.fn()} />);
-    const timelineButton = screen.getByText('📊');
-    expect(timelineButton).toBeInTheDocument();
+    expect(screen.queryByText('📊')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /linha do tempo/i })).not.toBeInTheDocument();
+  });
+
+  it('does not render the theme toggle (moved to the ActionBar footer)', () => {
+    render(<MatchHeader {...mockProps} />);
+    expect(screen.queryByTestId('theme-toggle-light')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('theme-toggle-dark')).not.toBeInTheDocument();
   });
 
   it('renders edit button when canEdit and onEditMatch are provided', () => {
@@ -62,11 +64,5 @@ describe('MatchHeader', () => {
     const closeButton = screen.getByRole('button', { name: /fechar/i });
     closeButton.click();
     expect(onClose).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders elapsed time calculated from startedAt prop', () => {
-    const startedAt = Date.now() - 75000; // 1 min 15 sec ago
-    render(<MatchHeader {...mockProps} startedAt={startedAt} />);
-    expect(screen.getByText('1:15')).toBeInTheDocument();
   });
 });

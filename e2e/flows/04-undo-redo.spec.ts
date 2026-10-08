@@ -93,7 +93,7 @@ test.describe('TEST-03.1: Undo/Redo Annotation (regressão crítica de anotaçã
     await expectNoAxeViolations(page, { logLowerSeverity: true });
   });
 
-  test('redo deve ter botão na UI — engine expõe replayCurrentPoint com wire-up', async ({
+  test('botão Refazer (sempre desabilitado) foi removido do rodapé de /scoring', async ({
     page,
   }) => {
     await ctx.authenticatePage(page, 'athlete1');
@@ -101,11 +101,10 @@ test.describe('TEST-03.1: Undo/Redo Annotation (regressão crítica de anotaçã
     await page.goto(`/match/${matchId}/scoring`);
     await page.waitForLoadState('networkidle');
 
-    const redoButton = page.getByTestId('redo-button');
-
-    await redoButton.first().waitFor({ state: 'attached', timeout: 10000 });
-    const count = await redoButton.count();
-    expect(count).toBeGreaterThan(0);
+    // O botão "Refazer" nunca foi funcional (sem wire-up) e foi removido para
+    // liberar espaço no rodapé mobile. O undo continua em data-testid="undo-button".
+    await page.getByTestId('undo-button').first().waitFor({ state: 'attached', timeout: 10000 });
+    expect(await page.getByTestId('redo-button').count()).toBe(0);
 
     await expectNoAxeViolations(page, { logLowerSeverity: true });
   });

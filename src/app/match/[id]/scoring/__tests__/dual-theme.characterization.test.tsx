@@ -87,13 +87,15 @@ describe('Dual Theme Design System (Light & Dark)', () => {
   describe('Scoring Dual Theme Support', () => {
     it('suporta modo claro na pagina de scoring sem travar classe dark estatica', () => {
       const scoringPage = fs.readFileSync(path.resolve(process.cwd(), 'src/app/match/[id]/scoring/page.tsx'), 'utf-8');
-      expect(scoringPage).toContain('className="min-h-screen bg-telemetry-base flex flex-col"');
+      expect(scoringPage).toContain('className="h-screen h-dvh overflow-hidden bg-telemetry-base flex flex-col"');
       expect(scoringPage).not.toContain('className="dark min-h-screen');
     });
 
-    it('inclui ThemeToggle no cabecalho MatchHeader para alternar tema diretamente no scoring', () => {
+    it('inclui o botao unico de tema (ThemeToggleButton) no rodape ActionFooter para alternar tema diretamente no scoring', () => {
+      const sections = fs.readFileSync(path.resolve(process.cwd(), 'src/components/scoring/ActionBar.sections.tsx'), 'utf-8');
+      expect(sections).toContain('<ThemeToggleButton />');
       const matchHeader = fs.readFileSync(path.resolve(process.cwd(), 'src/components/scoring/MatchHeader.tsx'), 'utf-8');
-      expect(matchHeader).toContain('<ThemeToggle />');
+      expect(matchHeader).not.toContain('<ThemeToggle');
     });
   });
 });

@@ -38,57 +38,81 @@ export function isSetCompleted(
   return false;
 }
 
-export function checkMatchPoint(state: ScoringState, format?: string): boolean {
-  if (!state || state.isFinished) return false;
-  if (!state.sets || !state.setsWon) return false;
-  const p1SetsWon = state.setsWon.player1;
-  const p2SetsWon = state.setsWon.player2;
+function isPlayerOnePointAway(state: ScoringState, player: 'player1' | 'player2', format?: string): boolean {
+  const set = state.sets[state.sets.length - 1];
+  if (!set) return false;
+  const opponent = player === 'player1' ? 'player2' : 'player1';
 
+  if (set.isTiebreak) {
+    const tb = set.tiebreakScore;
+    if (!tb) return false;
+    const pPts = tb[player];
+    const oPts = tb[opponent];
+    const tbMin = getTiebreakMinimumForSet(format as TennisFormat, state.sets.length - 1, state.setsWon);
+    return pPts >= tbMin - 1 && pPts - oPts >= 1;
+  } else {
+    const game = state.currentGame;
+    if (!game) return false;
+    if (game.isDeuce) {
+      return game.advantage === player || game.advantage === null;
+    }
+    return game[player] >= 3 && game[opponent] <= 2;
+  }
+}
+
+function isPlayerOneGameAwayFromWinningSet(state: ScoringState, player: 'player1' | 'player2', format?: string): boolean {
+  const set = state.sets[state.sets.length - 1];
+  if (!set) return false;
+  if (set.isTiebreak) return true;
+
+  const simulatedSet = {
+    ...set,
+    [player]: set[player] + 1
+  };
+  return isSetCompleted(simulatedSet, format as TennisFormat, state.sets.length - 1, state.setsWon);
+}
+
+function isPlayerOneSetAwayFromWinningMatch(state: ScoringState, player: 'player1' | 'player2', format?: string): boolean {
+  if (!state.setsWon) return false;
   let setsToWin = 2;
   if (format === 'BEST_OF_5' || format === 'BEST_OF_5_MATCH_TB') setsToWin = 3;
   else if (format === 'MATCH_TB_10') setsToWin = 1;
 
-  const p1OnMatchPoint = p1SetsWon === setsToWin - 1;
-  const p2OnMatchPoint = p2SetsWon === setsToWin - 1;
-
-  if (!p1OnMatchPoint && !p2OnMatchPoint) return false;
-
-  const setIndex = state.sets.length - 1;
-  const set = state.sets[setIndex];
-  if (!set) return false;
-
-  const setWinner = set.player1 > set.player2 ? 'player1' : 'player2';
-  const setLoser = setWinner === 'player1' ? 'player2' : 'player1';
-  const leaderGames = set[setWinner];
-  const loserGames = set[setLoser];
-
-  const isRegularSet = leaderGames >= 6 && leaderGames - loserGames >= 2;
-  const tbMin = getTiebreakMinimumForSet(format as TennisFormat, setIndex, state.setsWon);
-  const isTiebreakWin = set.isTiebreak && set.tiebreakScore &&
-    ((set.tiebreakScore.player1 >= tbMin && set.tiebreakScore.player1 - set.tiebreakScore.player2 >= 2) ||
-     (set.tiebreakScore.player2 >= tbMin && set.tiebreakScore.player2 - set.tiebreakScore.player1 >= 2));
-  const setAlmostWon = leaderGames >= 5 && leaderGames - loserGames >= 1;
-
-  return (p1OnMatchPoint || p2OnMatchPoint) && (isRegularSet || !!isTiebreakWin || setAlmostWon);
+  return state.setsWon[player] === setsToWin - 1;
 }
 
-export function checkSetPoint(state: ScoringState): boolean {
-  if (!state || state.isFinished || !state.sets || !state.setsWon) return false;
-  const set = state.sets[state.sets.length - 1];
-  if (!set) return false;
-  return (
-    (set.player1 >= 5 && set.player1 - set.player2 >= 1) ||
-    (set.player2 >= 5 && set.player2 - set.player1 >= 1)
-  );
+export function checkMatchPoint(state: ScoringState, format?: string): boolean {
+  if (!state || state.isFinished || !state.sets) return false;
+  for (const player of ['player1', 'player2'] as const) {
+    if (
+      isPlayerOnePointAway(state, player, format) &&
+      isPlayerOneGameAwayFromWinningSet(state, player, format) &&
+      isPlayerOneSetAwayFromWinningMatch(state, player, format)
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
-export function checkBreakPoint(state: ScoringState): boolean {
-  if (!state || state.isFinished || !state.sets || checkSetPoint(state))
-    return false;
+export function checkSetPoint(state: ScoringState, format?: string): boolean {
+  if (!state || state.isFinished || !state.sets) return false;
+  for (const player of ['player1', 'player2'] as const) {
+    if (
+      isPlayerOnePointAway(state, player, format) &&
+      isPlayerOneGameAwayFromWinningSet(state, player, format)
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function checkBreakPoint(state: ScoringState, format?: string): boolean {
+  if (!state || state.isFinished || !state.sets) return false;
   const set = state.sets[state.sets.length - 1];
-  if (!set) return false;
-  const server = state.server;
-  const serverGames = server === "player1" ? set.player1 : set.player2;
-  const receiverGames = server === "player1" ? set.player2 : set.player1;
-  return receiverGames >= serverGames;
+  if (!set || set.isTiebreak) return false;
+  
+  const receiver = state.server === 'player1' ? 'player2' : 'player1';
+  return isPlayerOnePointAway(state, receiver, format);
 }

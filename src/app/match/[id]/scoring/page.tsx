@@ -122,7 +122,6 @@ function ScoringPageInner() {
     suspendedSession,
     sessionIdRef,
     sessionActive,
-    elapsed,
     serveErrorState,
     setViewMode,
     setFontScale,
@@ -172,7 +171,6 @@ function ScoringPageInner() {
     return (
       <ScoringTimelineView
         fontScale={fontScale}
-        elapsed={elapsed}
         isFinished={isFinished}
         abandonCurrentSession={abandonCurrentSession}
         onCloseTimeline={() => setViewMode("scoring")}
@@ -189,7 +187,7 @@ function ScoringPageInner() {
 
   return (
     <div
-      className="min-h-screen bg-telemetry-base flex flex-col"
+      className="h-screen h-dvh overflow-hidden bg-telemetry-base flex flex-col"
       style={{ fontSize: `${fontScale * 100}%` }}
     >
       {state.syncStatus !== "synced" && (
@@ -215,7 +213,6 @@ function ScoringPageInner() {
       )}
 
       <MatchHeader
-        elapsedSeconds={elapsed}
         onClose={async () => {
           await abandonCurrentSession();
           router.push("/dashboard");

@@ -100,15 +100,15 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
       <table className="w-full table-fixed border-collapse">
         <thead>
           <tr className="text-[10px] text-telemetry-text-muted font-space-grotesk">
-            <th scope="col" aria-label="Jogador" className="text-left py-1.5 px-3 w-[80px] sm:w-[100px] bg-telemetry-elevated border-b border-white/10"></th>
-            <th scope="col" aria-label="Vencedor" className="w-6 bg-telemetry-elevated border-l border-b border-white/10"></th>
+            <th scope="col" aria-label="Jogador" className="text-left py-0.5 px-2 w-[110px] sm:w-[120px] bg-telemetry-elevated border-b border-white/10"></th>
+            <th scope="col" aria-label="Vencedor" className="w-5 sm:w-6 bg-telemetry-elevated border-l border-b border-white/10"></th>
             {Array.from({ length: numSets }).map((_, i) => {
               const set = sets[i];
               const isCurrent = i === currentSetIndex;
               const isComplete = set && isSetCompleted(set, tennisFormat, i, setsWon);
 
               return (
-                <th key={i} scope="col" aria-label={`Set ${i + 1}`} className={`text-center px-1 py-1.5 w-10 sm:w-12 bg-telemetry-elevated border-l border-b border-white/10 ${isCurrent ? 'font-bold text-telemetry-volt' : ''}`}>
+                <th key={i} scope="col" aria-label={`Set ${i + 1}`} className={`text-center px-1 py-0.5 w-8 sm:w-12 bg-telemetry-elevated border-l border-b border-white/10 ${isCurrent ? 'font-bold text-telemetry-volt' : ''}`}>
                   {isCurrent ? 'atual' : (isComplete ? i + 1 : '')}
                 </th>
               );
@@ -117,10 +117,10 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
         </thead>
         <tbody>
           <tr className="text-xs">
-            <td className={`text-left py-2.5 px-3 font-bold tracking-wide border-b border-white/10 ${nameBgP1}`}>
+            <td title={player1.name} className={`text-left py-1 px-2 font-bold tracking-wide whitespace-nowrap truncate border-b border-white/10 ${nameBgP1}`}>
               {player1.name}
             </td>
-            <td className="text-center py-2.5 bg-telemetry-card border-l border-b border-white/10">
+            <td className="text-center py-1 bg-telemetry-card border-l border-b border-white/10">
               {winner === 'player1' && <span className="text-telemetry-volt font-bold text-sm">✓</span>}
             </td>
             {Array.from({ length: numSets }).map((_, i) => {
@@ -131,7 +131,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
               return (
                 <td
                   key={i}
-                  className={`text-center px-1 py-2.5 text-sm font-space-grotesk font-semibold border-l border-b border-white/10 ${style}`}
+                  className={`text-center px-1 py-1 text-sm font-space-grotesk font-semibold border-l border-b border-white/10 ${style}`}
                 >
                   {renderSetScore(set, 'player1')}
                 </td>
@@ -140,10 +140,10 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
           </tr>
 
           <tr className="text-xs">
-            <td className={`text-left py-2.5 px-3 font-bold tracking-wide ${nameBgP2}`}>
+            <td title={player2.name} className={`text-left py-1 px-2 font-bold tracking-wide whitespace-nowrap truncate ${nameBgP2}`}>
               {player2.name}
             </td>
-            <td className="text-center py-2.5 bg-telemetry-card border-l border-white/10">
+            <td className="text-center py-1 bg-telemetry-card border-l border-white/10">
               {winner === 'player2' && <span className="text-telemetry-volt font-bold text-sm">✓</span>}
             </td>
             {Array.from({ length: numSets }).map((_, i) => {
@@ -154,7 +154,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
               return (
                 <td
                   key={i}
-                  className={`text-center px-1 py-2.5 text-sm font-space-grotesk font-semibold border-l border-white/10 ${style}`}
+                  className={`text-center px-1 py-1 text-sm font-space-grotesk font-semibold border-l border-white/10 ${style}`}
                 >
                   {renderSetScore(set, 'player2')}
                 </td>

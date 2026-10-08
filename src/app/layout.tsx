@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-geist' });
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space-grotesk' });
 
 export const metadata: Metadata = {
-  title: 'Racket App',
+  title: 'RKT app',
   description: 'Sistema de gestão e pontuação de tênis',
 };
 
