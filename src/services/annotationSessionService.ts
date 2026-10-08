@@ -11,7 +11,7 @@ function createSessionService(config: SessionServiceConfig) {
     options: RequestInit = {},
     errorMessage: string
   ): Promise<T> {
-        const headers: HeadersInit = {
+    const headers: HeadersInit = {
       "Content-Type": "application/json",
       ...options.headers,
     };
@@ -19,6 +19,7 @@ function createSessionService(config: SessionServiceConfig) {
     const response = await fetch(`${config.baseUrl}${endpoint}`, {
       ...options,
       headers,
+      credentials: 'include',
     });
 
     if (!response.ok) {

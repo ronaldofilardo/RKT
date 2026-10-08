@@ -214,11 +214,9 @@ export function useEditScoreModal(
       isMatchTiebreakSet,
       handleConfirm,
       handleAddSet,
-      setState,
       inputTouchedRef,
-      matchFormat,
     );
-  }, [canConfirmSetCalc, isMatchTiebreakSet, handleAddSet, handleConfirm, inputTouchedRef, matchFormat]);
+  }, [canConfirmSetCalc, isMatchTiebreakSet, handleAddSet, handleConfirm, inputTouchedRef]);
 
   const resetState = useCallback(() => {
     setState({

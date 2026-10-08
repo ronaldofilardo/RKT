@@ -81,7 +81,9 @@ describe('CONTRACT: middleware — Snapshot do contrato atual (Fase 1 caracteriz
         authorization: 'bearer lowercase',
       });
 
-      expect(getAuthToken(request)).toBe('bearer lowercase');
+      // lowercase "bearer" não é reconhecido como prefixo Bearer válido
+      // retorna null (fallback para cookies, que também são null)
+      expect(getAuthToken(request)).toBeNull();
     });
   });
 

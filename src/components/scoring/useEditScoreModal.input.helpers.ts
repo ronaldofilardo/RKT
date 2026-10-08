@@ -158,9 +158,7 @@ export function performConfirmSet(
   isMatchTiebreakSet: boolean,
   handleConfirm: () => Promise<void>,
   handleAddSet: () => void,
-  setState: React.Dispatch<React.SetStateAction<EditScoreModalState>>,
-  inputTouchedRef: React.MutableRefObject<{ p1: boolean; p2: boolean }>,
-  matchFormat: TennisFormat
+  inputTouchedRef: React.MutableRefObject<{ p1: boolean; p2: boolean }>
 ) {
   if (!canConfirmSetCalc) return;
   if (isMatchTiebreakSet) {

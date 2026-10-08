@@ -67,8 +67,9 @@ describe('annotationSessionService (characterization)', () => {
         `/api/matches/${matchId}/sessions`,
         expect.objectContaining({
           headers: expect.objectContaining({
-            Authorization: `Bearer ${mockToken}`,
+            'Content-Type': 'application/json',
           }),
+          credentials: 'include',
         })
       );
     });
@@ -109,13 +110,14 @@ describe('annotationSessionService (characterization)', () => {
 
       await serviceModule.listSessions(matchId);
 
-      // Comportamento corrigido: NÃO inclui Authorization header quando token é null
+      // Comportamento corrigido: usa cookies (credentials: include) em vez de Authorization header
       expect(global.fetch).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
-          headers: expect.not.objectContaining({
-            Authorization: expect.anything(),
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
           }),
+          credentials: 'include',
         })
       );
     });
@@ -136,8 +138,8 @@ describe('annotationSessionService (characterization)', () => {
           method: 'POST',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${mockToken}`,
           }),
+          credentials: 'include',
           body: JSON.stringify({ autoStarted: false }),
         })
       );
@@ -199,8 +201,8 @@ describe('annotationSessionService (characterization)', () => {
           method: 'PATCH',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${mockToken}`,
           }),
+          credentials: 'include',
           body: JSON.stringify({ status: 'ABANDONED' }),
         })
       );
@@ -286,8 +288,8 @@ describe('annotationSessionService (characterization)', () => {
           method: 'POST',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${mockToken}`,
           }),
+          credentials: 'include',
           body: JSON.stringify({}),
         })
       );
@@ -338,7 +340,6 @@ describe('annotationSessionService (characterization)', () => {
           credentials: 'include',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${mockToken}`,
           }),
           body: JSON.stringify({ matchStateSnapshot: '{"sets":[]}' }),
         })
@@ -381,12 +382,14 @@ describe('annotationSessionService (characterization)', () => {
 
       const result = await serviceModule.markSessionAbandoned({ matchId, sessionId });
 
+      // Comportamento: usa cookies (credentials: include) em vez de Authorization header
       expect(global.fetch).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
-          headers: expect.not.objectContaining({
-            Authorization: expect.anything(),
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
           }),
+          credentials: 'include',
         })
       );
       expect(result).toBe(true);
