@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { PointFlowInputSchema } from '@/schemas/contracts';
-import { withRLSHandler, getRLSUser } from '@/lib/auth';
+import { withRLSHandler } from '@/lib/auth';
 import type { ScoringState } from '@/core/scoring/types';
 import { emitMatchEvent } from '@/lib/match-events';
 import { logger } from '@/lib/logger';
@@ -19,7 +19,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'ANNOTATOR', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async (user) => {
     let requestId = '';
     let requestClientEventId: string | undefined;
     try {
@@ -72,7 +72,7 @@ export async function POST(
           throw new TransactionError('Partida não encontrada', 404, 'MATCH_NOT_FOUND');
         }
 
-        const currentUser = getRLSUser();
+        const currentUser = user;
         await validateMatchAnnotatorPermission(match, id, currentUser?.id, currentUser?.role, tx);
 
         if (parsed.data.clientEventId) {
@@ -165,9 +165,11 @@ export async function POST(
         }
 
         const isMatchFinished = newState.isFinished;
-        const snapshot = JSON.parse(engine.serialize()) as {
-          state: ScoringState;
-          history: unknown[];
+        // Performance fix: persiste snapshot enxuto { state: newState, history: [] } no caminho quente,
+        // eliminando o custo quadrático de serializar e persistir histórico acumulado a cada ponto.
+        const snapshot = {
+          state: newState,
+          history: [],
         };
 
         const envelopeParsed = ScoreEnvelopeSchema.safeParse(snapshot);
@@ -191,7 +193,7 @@ export async function POST(
         await tx.match.update({
           where: { id, version: expectedVersion },
           data: {
-            scoreState: snapshot as Prisma.InputJsonValue,
+            scoreState: snapshot as unknown as Prisma.InputJsonValue,
             version: { increment: 1 },
             ...finishData,
           },

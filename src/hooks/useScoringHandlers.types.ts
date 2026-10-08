@@ -17,6 +17,7 @@ export interface MatchData {
   startedAt?: string | Date | null;
   version?: number;
   _count?: { pointLog: number };
+  recentWinnerIds?: string[];
 }
 
 export interface ScoringHandlersContext {

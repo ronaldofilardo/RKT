@@ -9,7 +9,7 @@ import { ScoringEngine } from '@/core/scoring/engine';
 import { enrichPointsFromHistory } from '@/core/scoring/scoring-logic';
 import { pointLogToFlow } from './timeline-rebuild.helpers';
 
-interface TimelineScoreEdit {
+export interface TimelineScoreEdit {
   editedAt: Date;
   newScoreState: any;
 }
@@ -114,7 +114,7 @@ export function rebuildTimelineFromPointLogs(
  * problemático recebe o último `stateBefore` conhecido como fallback, de
  * modo que a UI ainda renderize um placar coerente em vez de zeros.
  */
-function simulateScoreFromPointLogs(
+export function simulateScoreFromPointLogs(
   pointLogs: PointLogRow[],
   config: ScoringEngineConfig,
   scoreEdits: TimelineScoreEdit[] = [],

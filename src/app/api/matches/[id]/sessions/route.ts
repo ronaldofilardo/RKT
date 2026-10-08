@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withRLSHandler, withPermissionHandler, getRLSUser } from '@/lib/auth';
+import { withRLSHandler, withPermissionHandler } from '@/lib/auth';
 import {
   listSessions,
   checkMatchExists,
@@ -13,7 +13,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'ANNOTATOR', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async (_user) => {
     try {
       const { id: matchId } = await params;
       const sessions = await listSessions(matchId);
@@ -32,10 +32,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withPermissionHandler(request, 'annotate:session', async () => {
+  return withPermissionHandler(request, 'annotate:session', async (user) => {
     try {
       const { id: matchId } = await params;
-      const user = getRLSUser();
       if (!user) {
         return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
       }

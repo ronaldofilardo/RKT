@@ -5,7 +5,7 @@ import type { MutableRefObject, Dispatch, SetStateAction } from "react";
 import { ScoringEngine } from "@/core/scoring/engine";
 import type { ScoringState } from "@/core/scoring/types";
 import type { SetEditData } from "@/components/scoring/editScoreHelpers";
-import { startSession } from "@/services/annotationSessionService";
+import { startSession, renewSession } from "@/services/annotationSessionService";
 import type { ScoreAction } from "@/hooks/useScoreReducer";
 import type { MatchData } from "@/hooks/useScoringHandlers";
 import { useToast } from "@/components/Toast";
@@ -172,6 +172,20 @@ export function useSessionManager(ctx: SessionManagerContext) {
       doAbandon();
     };
   }, [matchId, sessionIdRef, engineRef, tokenRef, toast]);
+
+  // Renovação deslizante de sessão (Sliding Window)
+  useEffect(() => {
+    if (!matchId) return;
+
+    const intervalId = setInterval(() => {
+      const sid = sessionIdRef.current;
+      if (sid && document.visibilityState !== "hidden") {
+        renewSession(matchId, sid).catch(() => {});
+      }
+    }, 5 * 60 * 1000); // 5 minutos
+
+    return () => clearInterval(intervalId);
+  }, [matchId, sessionIdRef]);
 
   // Hook de suspended session foi extraído para useSuspendedSession.ts
   useSuspendedSession({

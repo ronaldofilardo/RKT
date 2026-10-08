@@ -76,7 +76,7 @@ export function restoreEngineFromMatch(match: {
     const ss = scoreStateToUse as Record<string, unknown>;
     const innerState = (ss.state ?? ss) as Record<string, unknown>;
     if (innerState?.isFinished === true) {
-      logger.point.matchAlreadyFinished(innerState?.winner);
+      logger.point.matchAlreadyFinished(innerState?.winner as string | undefined);
       throw new TransactionError('Partida já finalizada', 422, 'MATCH_ALREADY_FINISHED');
     }
   }
@@ -111,7 +111,7 @@ export function restoreEngineFromMatch(match: {
   if (engine.getHistoryLength() === 0) {
     const originalHistory = extractHistory(match.scoreState);
     if (originalHistory && originalHistory.length > 0) {
-      engine.restorePointHistory(originalHistory);
+      engine.restorePointHistory(originalHistory as unknown as Parameters<typeof engine.restorePointHistory>[0]);
     }
   }
 

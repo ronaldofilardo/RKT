@@ -118,11 +118,12 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
         });
 
         if (forceEngineReset && engineRef.current) {
-          // Lê do engine com histórico restaurado — antes lia do engine
-          // recém-criado (sempre vazio) e zerava os badges de pontos.
+          // Lê do engine com histórico restaurado ou do recente de PointLogs do servidor
           const engineHistory = engineRef.current.getPointHistory();
           const synced = engineHistory.slice(-20).map((entry: any) => entry.point.winnerId);
-          setPointsHistory(synced.length > 0 ? synced : []);
+          const serverRecent = Array.isArray(data.recentWinnerIds) ? data.recentWinnerIds : [];
+          const finalBadges = synced.length > 0 ? synced : serverRecent;
+          setPointsHistory(finalBadges.length > 0 ? finalBadges : []);
         }
       }
 

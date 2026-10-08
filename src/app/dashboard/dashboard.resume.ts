@@ -1,6 +1,7 @@
 import type { TennisFormat } from "@/lib/matchConfig";
 import { isSetCompleted } from "@/app/match/[id]/scoring/scoringHelpers";
 import { isCurrentSetMatchTiebreak } from "@/components/dashboard/match-card-utils";
+import { logger } from "@/lib/logger";
 
 interface ResumeSessionOptions {
   router: any;

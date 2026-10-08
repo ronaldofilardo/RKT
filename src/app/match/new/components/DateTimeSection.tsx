@@ -99,6 +99,12 @@ export function DateTimeSection({ date, time, onDateChange, onTimeChange }: Date
           role="button"
           tabIndex={-1}
           aria-label="Fechar modal"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleCancel();
+            }
+          }}
         />
         <div className="relative bg-telemetry-elevated rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 text-center">
           <div className="text-4xl mb-4">📅</div>

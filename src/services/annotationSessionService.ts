@@ -77,6 +77,16 @@ function createSessionService(config: SessionServiceConfig) {
         "Failed to endorse session"
       ),
 
+    renewSession: (matchId: string, sessionId: string): Promise<unknown> =>
+      makeRequest(
+        `/matches/${matchId}/sessions/${sessionId}/renew`,
+        {
+          method: "POST",
+          body: JSON.stringify({}),
+        },
+        "Failed to renew session"
+      ),
+
     markSessionAbandoned: async (
       params: {
         matchId: string;
@@ -152,6 +162,10 @@ export async function endSession(
 
 export async function endorseSession(matchId: string, sessionId: string): Promise<unknown> {
   return getClientService().endorseSession(matchId, sessionId);
+}
+
+export async function renewSession(matchId: string, sessionId: string): Promise<unknown> {
+  return getClientService().renewSession(matchId, sessionId);
 }
 
 export async function markSessionAbandoned(params: {

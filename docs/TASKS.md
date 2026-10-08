@@ -58,6 +58,11 @@
 
 ## 3. Débito Técnico Arquitetural
 
+### TD-056. Desacoplamento de history em Match.scoreState e Eliminação do Custo Quadrático ✅
+- **Status:** Concluído (2026-10-08)
+- **Contexto:** `POST /point` serializava e regravava o envelope com histórico acumulado a cada ponto, gerando custo quadrático de dados e processamento no PostgreSQL.
+- **Implementado:** Snapshot enxuto no `POST /point` (`{ state: newState, history: [] }`), correção atômica de Undo sincronizando anulação de `PointLog` (`voidLastPoint`/`isUndo`), script de backfill idempotente para tiebreaks legados (`scripts/backfill-tiebreak-scores.ts`), motor e script de Shadow Mode (`src/core/scoring/shadow-replay.ts` e `scripts/shadow-replay-validator.ts`), e reidratação de badges no `GET /matches/[id]` via `recentWinnerIds`.
+
 ### A8. Separar lógica de negócio dos componentes React ⏳
 - **Prioridade:** Alta
 - **Contexto:** Componentes com 300+ linhas misturando UI e lógica
@@ -152,11 +157,9 @@
 - **Impacto:** Vulnerável a DDoS e abuso
 - **Solução:** Middleware com `@upstash/ratelimit` ou similar
 
-#### TD-003. Habilitar RLS (Row Level Security) no Neon Console 🔴
-- **Risco:** Crítico
-- **Impacto:** Dados acessíveis sem autorização adequada
-- **Solução:** Políticas RLS por tabela + testes de autorização
-- **Nota:** Duplica C2, priorizar
+#### TD-003. Habilitar RLS (Row Level Security) no Neon Console ✅
+- **Status:** Concluído (Fase da aplicação resolvida).
+- **Impacto:** Propagação de contexto RLS (`getRLSUser`) estava falhando. Foi corrigido injetando o objeto `user` diretamente nos callbacks dos handlers de permissão.
 
 #### TD-004. Implementar rotação de secrets/tokens ⏳
 - **Risco:** Médio

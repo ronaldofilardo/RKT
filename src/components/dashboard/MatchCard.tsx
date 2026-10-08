@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useCallback } from "react";
-import { normalizeScoreState, isMatchTiebreakFormat, isCurrentSetMatchTiebreak, isSetIndexMatchTiebreak, type TennisFormat, getSinglePointDisplay, formatCompactSetScore } from "./match-card-utils";
+import { normalizeScoreState, isMatchTiebreakFormat, isCurrentSetMatchTiebreak, isSetIndexMatchTiebreak, type TennisFormat, type NormalizedScoreState, getSinglePointDisplay, formatCompactSetScore } from "./match-card-utils";
 import { MatchStatusBadge, MatchActions, FormatLabel } from "./match-card-components";
 
 const COURT_COLORS: Record<string, { bar: string; score: string }> = {
@@ -53,8 +53,8 @@ export function MatchCard({
   const isLiveOrSuspended =
     match.state === 'IN_PROGRESS' || isSuspendedAnnotation || Boolean(match.suspendedSessionId);
 
-  const scoreState = useMemo(() => {
-    if (match.scoreSummary) return match.scoreSummary;
+  const scoreState = useMemo<NormalizedScoreState | null>(() => {
+    if (match.scoreSummary) return match.scoreSummary as NormalizedScoreState;
     const normalizedFromScoreState = normalizeScoreState(match.scoreState, match.format as TennisFormat);
     if (normalizedFromScoreState) return normalizedFromScoreState;
     return normalizeScoreState(match.matchStateSnapshot, match.format as TennisFormat);

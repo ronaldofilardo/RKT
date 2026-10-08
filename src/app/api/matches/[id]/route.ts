@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
-import { withRLSHandler, getRLSUser } from '@/lib/auth';
+import { withRLSHandler } from '@/lib/auth';
 import { updateMatch, deleteMatch } from '@/services/matchService';
 import { DeleteMatchInputSchema } from '@/schemas/contracts';
 
@@ -9,8 +9,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'ANNOTATOR', async () => {
-    const user = getRLSUser();
+  return withRLSHandler(request, 'ANNOTATOR', async (user) => {
     if (!user) {
       return NextResponse.json(
         { error: 'UNAUTHORIZED', message: 'Contexto RLS ausente' },
@@ -94,7 +93,15 @@ export async function GET(
       });
       const lastPointSequence = maxSequenceRow._max.sequenceNumber ?? 0;
 
-      return NextResponse.json({ ...match, lastPointSequence });
+      const recentLogs = await prisma.pointLog.findMany({
+        where: { matchId: id, voidedAt: null },
+        orderBy: { sequenceNumber: 'desc' },
+        take: 20,
+        select: { winnerId: true },
+      });
+      const recentWinnerIds = recentLogs.reverse().map((l) => l.winnerId);
+
+      return NextResponse.json({ ...match, lastPointSequence, recentWinnerIds });
     } catch (error) {
       logger.error('[MATCH GET]', error);
       return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });
@@ -106,8 +113,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'ANNOTATOR', async () => {
-    const user = getRLSUser();
+  return withRLSHandler(request, 'ANNOTATOR', async (user) => {
     if (!user) {
       return NextResponse.json(
         { error: 'UNAUTHORIZED', message: 'Contexto RLS ausente' },
@@ -174,8 +180,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'ANNOTATOR', async () => {
-    const user = getRLSUser();
+  return withRLSHandler(request, 'ANNOTATOR', async (user) => {
     if (!user) {
       return NextResponse.json(
         { error: 'UNAUTHORIZED', message: 'Contexto RLS ausente' },

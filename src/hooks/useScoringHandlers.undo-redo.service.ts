@@ -16,6 +16,8 @@ interface UndoRedoDeps {
       allowScoreEdit?: boolean;
       isManualScoreEdit?: boolean;
       voidPointLogId?: string;
+      voidLastPoint?: boolean;
+      isUndo?: boolean;
     },
   ) => Promise<{ success: boolean; needsResync?: boolean }>;
   closeAll: () => void;
@@ -81,6 +83,8 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
       const pointLogIdToVoid = lastPointLogIdRef.current;
       const result = await persistState(newState, "undo", {
         voidPointLogId: pointLogIdToVoid ?? undefined,
+        voidLastPoint: !pointLogIdToVoid,
+        isUndo: true,
       });
 
       if (result.success) {
@@ -92,7 +96,11 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
         await persistState(
           engineRef.current?.getState() as ScoringState,
           "undo-retry",
-          { voidPointLogId: pointLogIdToVoid ?? undefined },
+          {
+            voidPointLogId: pointLogIdToVoid ?? undefined,
+            voidLastPoint: !pointLogIdToVoid,
+            isUndo: true,
+          },
         );
         lastPointLogIdRef.current = null;
         pointSequenceRef.current = Math.max(0, pointSequenceRef.current - 1);

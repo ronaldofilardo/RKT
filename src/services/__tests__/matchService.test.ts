@@ -1,6 +1,8 @@
 jest.mock('@/lib/prisma', () => {
   const matchUpdate = jest.fn();
   const pointLogUpdateMany = jest.fn().mockResolvedValue({ count: 1 });
+  const pointLogFindFirst = jest.fn();
+  const pointLogUpdate = jest.fn();
   const match = {
     findMany: jest.fn(),
     findFirst: jest.fn(),
@@ -11,14 +13,23 @@ jest.mock('@/lib/prisma', () => {
   return {
     prisma: {
       match,
-      pointLog: { deleteMany: jest.fn(), updateMany: pointLogUpdateMany },
+      pointLog: {
+        deleteMany: jest.fn(),
+        updateMany: pointLogUpdateMany,
+        findFirst: pointLogFindFirst,
+        update: pointLogUpdate,
+      },
       matchAnnotationSession: { findFirst: jest.fn(), deleteMany: jest.fn() },
       $transaction: jest.fn((operation: unknown) => {
         if (typeof operation === 'function') {
           return operation({
             match: { update: matchUpdate },
             matchScoreEdit: { create: jest.fn().mockResolvedValue({ id: 'edit-1' }) },
-            pointLog: { updateMany: pointLogUpdateMany },
+            pointLog: {
+              updateMany: pointLogUpdateMany,
+              findFirst: pointLogFindFirst,
+              update: pointLogUpdate,
+            },
           });
         }
         return Promise.all(operation as Promise<unknown>[]);
@@ -914,5 +925,63 @@ it('deve criar partida com scheduledAt', async () => {
       );
 
       expect(result).toEqual({ error: 'VERSION_CONFLICT' });
+    });
+
+    it('deve anular o ultimo pointLog quando voidLastPoint ou isUndo=true for informado sem voidPointLogId', async () => {
+      const { transitionMatchState } = await import('@/services/matchService');
+
+      mockPrisma.match.findFirst.mockResolvedValue({
+        id: 'm1',
+        state: 'IN_PROGRESS',
+        player1Id: 'p1',
+        player2Id: 'p2',
+        format: 'BEST_OF_3',
+        initialServerId: 'p1',
+        version: 5,
+        scoreState: null,
+      });
+
+      mockPrisma.pointLog.findFirst.mockResolvedValue({
+        id: 'point-last-999',
+        matchId: 'm1',
+        sequenceNumber: 10,
+      });
+
+      mockPrisma.pointLog.update.mockResolvedValue({
+        id: 'point-last-999',
+        voidedAt: new Date(),
+        sequenceNumber: null,
+      });
+
+      mockPrisma.match.update.mockResolvedValue({
+        id: 'm1',
+        version: 6,
+      });
+
+      const result = await transitionMatchState(
+        'm1',
+        'IN_PROGRESS',
+        undefined,
+        null,
+        {
+          allowScoreEdit: true,
+          expectedVersion: 5,
+          isUndo: true,
+        },
+      );
+
+      expect(result).toEqual({ id: 'm1', version: 6 });
+      expect(mockPrisma.pointLog.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { matchId: 'm1', voidedAt: null },
+          orderBy: { sequenceNumber: 'desc' },
+        }),
+      );
+      expect(mockPrisma.pointLog.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'point-last-999' },
+          data: expect.objectContaining({ sequenceNumber: null }),
+        }),
+      );
     });
   });

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-import { withRLSHandler, getRLSUser } from '@/lib/auth';
+import { withRLSHandler } from '@/lib/auth';
 import { finishMatch } from '@/services/matchService';
 import { FinishMatchInputSchema } from '@/schemas/contracts';
 import { emitMatchEvent } from '@/lib/match-events';
@@ -9,7 +9,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'ANNOTATOR', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async (user) => {
     try {
       const { id } = await params;
       const body = await request.json();
@@ -21,8 +21,6 @@ export async function POST(
           { status: 400 }
         );
       }
-
-      const user = getRLSUser();
 
       // Bug (2026-09-06): winnerId e isManualScoreEdit eram validados pelo
       // schema (agora) mas nunca chegavam a matchService.finishMatch — toda

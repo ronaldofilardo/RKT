@@ -64,7 +64,7 @@ function parseRawScoreState(rawScoreState: unknown): Record<string, unknown> | n
   }
   // Snapshot serializado contém { state, history } — extrair só o state.
   if (parsed?.state && Array.isArray(parsed?.history)) {
-    parsed = parsed.state;
+    parsed = parsed.state as Record<string, unknown>;
   }
   return parsed;
 }
@@ -108,7 +108,8 @@ function reconstructTiebreakFromHistory(
     if (!Array.isArray(sets)) continue;
     const set = sets[setIndex];
     if (set && set.isTiebreak && set.tiebreakScore) {
-      return { player1: set.tiebreakScore.player1, player2: set.tiebreakScore.player2 };
+      const tb = set.tiebreakScore as { player1: number; player2: number };
+      return { player1: tb.player1, player2: tb.player2 };
     }
   }
   return null;

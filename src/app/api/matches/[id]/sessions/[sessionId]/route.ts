@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withRLSHandler, getRLSUser } from '@/lib/auth';
+import { withRLSHandler } from '@/lib/auth';
 import { EndSessionInputSchema } from '@/schemas/contracts';
 import { getSessionWithMatch, getMatchScoreState, updateSession } from '@/services/sessionService';
 import { logger } from '@/lib/logger';
@@ -8,10 +8,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; sessionId: string }> }
 ) {
-  return withRLSHandler(request, 'ANNOTATOR', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async (user) => {
     try {
       const { id: matchId, sessionId } = await params;
-      const user = getRLSUser();
       if (!user) {
         return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
       }
@@ -72,6 +71,7 @@ export async function PATCH(
 
       if (newStatus === 'IN_PROGRESS') {
         updateData.isActive = true;
+        updateData.updatedAt = new Date();
       }
 
       if (newStatus === 'ABANDONED') {

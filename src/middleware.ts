@@ -13,8 +13,12 @@ const BYPASS_ROUTES = ['/_next/', '/favicon'];
 
 export function getAuthToken(request: Pick<NextRequest, 'headers' | 'cookies'>) {
   const authHeader = request.headers.get('authorization');
+  let bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+  if (bearerToken === 'null' || bearerToken === 'undefined') {
+    bearerToken = null;
+  }
   return (
-    authHeader?.replace('Bearer ', '') ??
+    bearerToken ??
     request.cookies.get('rkt_access_token')?.value ??
     request.cookies.get('access_token')?.value ??
     null

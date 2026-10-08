@@ -216,11 +216,23 @@ export async function transitionMatchState(
       await recordScoreEditSegment(tx, id, options, match.scoreState, scoreState);
 
       if (options?.voidPointLogId) {
-        await tx.pointLog.updateMany({
+        const updateResult = await tx.pointLog.updateMany({
           where: { id: options.voidPointLogId, matchId: id, voidedAt: null },
           data: { voidedAt: new Date(), sequenceNumber: null },
         });
-      } else if (options?.voidLastPoint) {
+        if (updateResult.count === 0 && (options?.voidLastPoint || options?.isUndo)) {
+          const lastLog = await tx.pointLog.findFirst({
+            where: { matchId: id, voidedAt: null },
+            orderBy: { sequenceNumber: 'desc' },
+          });
+          if (lastLog) {
+            await tx.pointLog.update({
+              where: { id: lastLog.id },
+              data: { voidedAt: new Date(), sequenceNumber: null },
+            });
+          }
+        }
+      } else if (options?.voidLastPoint || options?.isUndo) {
         const lastLog = await tx.pointLog.findFirst({
           where: { matchId: id, voidedAt: null },
           orderBy: { sequenceNumber: 'desc' },

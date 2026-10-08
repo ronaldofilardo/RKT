@@ -132,6 +132,9 @@ export function useScoringHandlers(
         allowScoreEdit?: boolean;
         isManualScoreEdit?: boolean;
         voidPointLogId?: string;
+        voidLastPoint?: boolean;
+        isUndo?: boolean;
+        history?: HistoryEntry[];
         note?: string;
       },
     ): Promise<{
@@ -145,7 +148,9 @@ export function useScoringHandlers(
             getPointHistory?: () => HistoryEntry[];
           } & typeof engineRef.current)
         | null;
-      const history = engineAny?.getPointHistory?.();
+      const history = persistOptions?.history !== undefined
+        ? persistOptions.history
+        : engineAny?.getPointHistory?.();
 
       const currentVersion = matchVersionRef.current ?? match?.version;
       const matchToUse = match ? { ...match, version: currentVersion } : null;
@@ -160,6 +165,8 @@ export function useScoringHandlers(
         isManualScoreEdit: persistOptions?.isManualScoreEdit,
         note: persistOptions?.note,
         voidPointLogId: persistOptions?.voidPointLogId,
+        voidLastPoint: persistOptions?.voidLastPoint,
+        isUndo: persistOptions?.isUndo ?? (label === "undo" || label === "undo-retry"),
         history,
       });
 

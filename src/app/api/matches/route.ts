@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CreateMatchInputSchema, MatchStateSchema } from '@/schemas/contracts';
-import { withRLSHandler, withPermissionHandler, getRLSUser } from '@/lib/auth';
+import { withRLSHandler, withPermissionHandler } from '@/lib/auth';
 import { listMatches, createMatch } from '@/services/matchService';
 import { findDuplicateMatch } from '@/services/matchSuggestionService';
 import { validatedRequest, handleApiError, extractPagination } from '@/lib/api-helpers';
@@ -9,9 +9,8 @@ import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
-  return withRLSHandler(request, 'ANNOTATOR', async () => {
+  return withRLSHandler(request, 'ANNOTATOR', async (user) => {
     try {
-      const user = getRLSUser();
       if (!user || user.role !== 'ANNOTATOR') {
         return NextResponse.json({ data: { matches: [], nextCursor: null } });
       }
@@ -56,11 +55,11 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  return withPermissionHandler(request, 'play:match', async () => {
+  return withPermissionHandler(request, 'play:match', async (user) => {
     try {
       const { force, ...input } = await validatedRequest(request, CreateMatchInputSchema);
 
-      const currentUserId = getRLSUser()?.id;
+      const currentUserId = user?.id;
       logger.match.created(currentUserId ?? "anonymous");
 
       if (!force) {

@@ -29,6 +29,8 @@ interface PersistStateOptions {
    * ID do PointLog a ser anulado atomicamente junto com a atualização de estado.
    */
   voidPointLogId?: string;
+  voidLastPoint?: boolean;
+  isUndo?: boolean;
   note?: string;
 }
 
@@ -88,6 +90,8 @@ export async function persistStateWithRetry(
           isManualScoreEdit,
           note: options.note,
           voidPointLogId: options.voidPointLogId,
+          voidLastPoint: options.voidLastPoint,
+          isUndo: options.isUndo ?? (label === "undo" || label === "undo-retry"),
         }),
       });
 
