@@ -462,9 +462,9 @@ describe('engine.flow — Characterization Tests', () => {
   });
 
   describe('shouldStartTiebreak', () => {
-    it('returns true at 4-4 for SHORT_SET_2V2_NO_AD', () => {
+    it('returns true at 3-3 for SHORT_SET_2V2_NO_AD', () => {
       const config = createConfig('SHORT_SET_2V2_NO_AD');
-      const set = createSetScore(4, 4);
+      const set = createSetScore(3, 3);
       const state = createInitialState(config);
       expect(shouldStartTiebreak(set, state, config)).toBe(true);
     });
@@ -529,9 +529,9 @@ describe('engine.flow — Characterization Tests', () => {
       expect(shouldStartTiebreak(set9, state, config)).toBe(true);
     });
 
-    it('uses 4-4 for SHORT_SET_2V2_NO_AD', () => {
+    it('uses 3-3 for SHORT_SET_2V2_NO_AD', () => {
       const config = createConfig('SHORT_SET_2V2_NO_AD');
-      const set = createSetScore(4, 4);
+      const set = createSetScore(3, 3);
       const state = createInitialState(config);
       expect(shouldStartTiebreak(set, state, config)).toBe(true);
     });
@@ -661,8 +661,8 @@ describe('engine.flow — Characterization Tests', () => {
       expect(getGamesToTiebreak(createConfig('PRO_SET_8'))).toBe(9);
     });
 
-    it('returns 4 for SHORT_SET_2V2_NO_AD', () => {
-      expect(getGamesToTiebreak(createConfig('SHORT_SET_2V2_NO_AD'))).toBe(4);
+    it('returns 3 for SHORT_SET_2V2_NO_AD', () => {
+      expect(getGamesToTiebreak(createConfig('SHORT_SET_2V2_NO_AD'))).toBe(3);
     });
 
     it('returns 6 for other formats', () => {

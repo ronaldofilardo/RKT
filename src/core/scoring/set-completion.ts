@@ -24,7 +24,7 @@ function isTiebreakComplete(
 ): boolean {
   const tbMax = Math.max(tb.player1, tb.player2);
   const tbDiff = Math.abs(tb.player1 - tb.player2);
-  const tbMin = isMatchTiebreakSet(format, setsCount) ? 10 : 7;
+  const tbMin = isMatchTiebreakSet(format, setsCount) ? 10 : (format === 'SHORT_SET_2V2_NO_AD' ? 5 : 7);
   return tbMax >= tbMin && tbDiff >= 2;
 }
 

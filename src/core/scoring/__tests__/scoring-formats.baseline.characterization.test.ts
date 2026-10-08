@@ -132,22 +132,22 @@ describe("Scoring Formats Specification Tests", () => {
       expect(state.sets[0].player2).toBe(2);
     });
 
-    it("deve ativar tiebreak em 4x4 para SHORT_SET_2V2_NO_AD", () => {
+    it("deve ativar tiebreak em 3x3 para SHORT_SET_2V2_NO_AD", () => {
       const config = {
         format: "SHORT_SET_2V2_NO_AD" as const,
         player1Id: defaultPlayer1,
         player2Id: defaultPlayer2,
       };
 
-      const setAt4x4 = {
-        player1: 4,
-        player2: 4,
+      const setAt3x3 = {
+        player1: 3,
+        player2: 3,
         isTiebreak: false,
         tiebreakScore: null,
       };
 
       const dummyState = {
-        sets: [setAt4x4],
+        sets: [setAt3x3],
         currentGame: { player1: 0, player2: 0, isDeuce: false },
         setsWon: { player1: 0, player2: 0 },
         server: "player1" as const,
@@ -155,7 +155,7 @@ describe("Scoring Formats Specification Tests", () => {
         winner: null,
       };
 
-      expect(shouldStartTiebreak(setAt4x4, dummyState as any, config)).toBe(true);
+      expect(shouldStartTiebreak(setAt3x3, dummyState as any, config)).toBe(true);
     });
   });
 

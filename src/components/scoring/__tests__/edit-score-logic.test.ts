@@ -424,16 +424,16 @@ describe('edit-score-logic - isMatchTiebreakSet', () => {
         expect(result.winner).toBe('player1');
       });
 
-      it('deve validar set completo 5-4 com tiebreak', () => {
-        const result = validateSetResult({ p1Games: 5, p2Games: 4 }, 'SHORT_SET_2V2_NO_AD');
+      it('deve validar set completo 4-3 com tiebreak', () => {
+        const result = validateSetResult({ p1Games: 4, p2Games: 3 }, 'SHORT_SET_2V2_NO_AD');
         
         expect(result.isValid).toBe(true);
         expect(result.winner).toBe('player1');
         expect(result.hasTiebreak).toBe(true);
       });
 
-      it('deve requerer tiebreak em 4-4', () => {
-        const result = validateSetResult({ p1Games: 4, p2Games: 4 }, 'SHORT_SET_2V2_NO_AD');
+      it('deve requerer tiebreak em 3-3', () => {
+        const result = validateSetResult({ p1Games: 3, p2Games: 3 }, 'SHORT_SET_2V2_NO_AD');
         
         expect(result.isValid).toBe(false);
         expect(result.tiebreakRequired).toBe(true);
@@ -446,8 +446,8 @@ describe('edit-score-logic - isMatchTiebreakSet', () => {
         expect(result.isPartial).toBe(true);
       });
 
-      it('deve retornar erro para 6-4 (máximo 5 games)', () => {
-        const result = validateSetResult({ p1Games: 6, p2Games: 4 }, 'SHORT_SET_2V2_NO_AD');
+      it('deve retornar erro para 5-4 (máximo 4 games)', () => {
+        const result = validateSetResult({ p1Games: 5, p2Games: 4 }, 'SHORT_SET_2V2_NO_AD');
         
         expect(result.isValid).toBe(false);
         expect(result.error).toContain('Maximum');

@@ -82,15 +82,15 @@ describe('validateSetResult - Bug 7x7 inválido em formatos com tiebreak', () =>
       expect(result.winner).toBeUndefined();
     });
 
-    it('deve exigir tiebreak em 4x4', () => {
-      const result = validateSetResult({ p1Games: 4, p2Games: 4 }, 'SHORT_SET_2V2_NO_AD');
+    it('deve exigir tiebreak em 3x3', () => {
+      const result = validateSetResult({ p1Games: 3, p2Games: 3 }, 'SHORT_SET_2V2_NO_AD');
 
       expect(result.isValid).toBe(false);
       expect(result.tiebreakRequired).toBe(true);
     });
 
-    it('deve aceitar 5x4 como set com tiebreak (player1 vence)', () => {
-      const result = validateSetResult({ p1Games: 5, p2Games: 4 }, 'SHORT_SET_2V2_NO_AD');
+    it('deve aceitar 4x3 como set com tiebreak (player1 vence)', () => {
+      const result = validateSetResult({ p1Games: 4, p2Games: 3 }, 'SHORT_SET_2V2_NO_AD');
 
       expect(result.isValid).toBe(true);
       expect(result.hasTiebreak).toBe(true);

@@ -12,6 +12,7 @@ import {
   isMatchTiebreakSetIndex,
 } from "./scoringHelpers";
 import { resolveDisplayScore } from "./resolveDisplayScore";
+import { getInitialGames } from "@/core/scoring/format-rules";
 
 export interface ScoringPageDerived {
   effectiveScoreState: ScoringState | null;
@@ -84,10 +85,19 @@ function deriveTiebreakState(
 
 function deriveEditScoreCurrentSets(
   effectiveScoreState: ScoringState | null,
+  format?: string,
 ): { player1: number; player2: number } {
-  if (!effectiveScoreState) return { player1: 0, player2: 0 };
+  const initialVal = format ? getInitialGames(format as TennisFormat) : 0;
+  
+  if (!effectiveScoreState) return { player1: initialVal, player2: initialVal };
+  
   const lastSet = effectiveScoreState.sets[effectiveScoreState.sets.length - 1];
-  if (!lastSet) return { player1: 0, player2: 0 };
+  if (!lastSet) return { player1: initialVal, player2: initialVal };
+  
+  // Se o último set já está finalizado, significa que estamos num set NOVO (que ainda não foi pro array de sets)
+  if (isSetCompleted(lastSet, format as TennisFormat, effectiveScoreState.sets.length - 1, effectiveScoreState.setsWon)) {
+    return { player1: initialVal, player2: initialVal };
+  }
 
   if (lastSet.isTiebreak && lastSet.tiebreakScore) {
     if (lastSet.player1 > 0 || lastSet.player2 > 0) {
@@ -157,7 +167,7 @@ export function useScoringPageDerived(
   const isSetupNeeded = activeModal === "setup" && !match?.initialServerId;
   const isProcessingPoint = isProcessing === true;
 
-  const editScoreCurrentSets = deriveEditScoreCurrentSets(effectiveScoreState);
+  const editScoreCurrentSets = deriveEditScoreCurrentSets(effectiveScoreState, match?.format);
   const editScoreCompletedSets = deriveEditScoreCompletedSets(effectiveScoreState, match?.format);
 
   const serverEffectWinnerName = match && effectiveScoreState

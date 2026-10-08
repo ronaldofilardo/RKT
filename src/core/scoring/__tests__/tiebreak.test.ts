@@ -268,15 +268,15 @@ describe('shouldStartTiebreak', () => {
     expect(shouldStartTiebreak(set, state, config)).toBe(false);
   });
 
-  it('deve retornar true em 4-4 para SHORT_SET_2V2_NO_AD', () => {
-    const set = makeSet({ player1: 4, player2: 4 });
+  it('deve retornar true em 3-3 para SHORT_SET_2V2_NO_AD', () => {
+    const set = makeSet({ player1: 3, player2: 3 });
     const state = createBaseState();
     const config = createConfig({ format: 'SHORT_SET_2V2_NO_AD' });
     expect(shouldStartTiebreak(set, state, config)).toBe(true);
   });
 
-  it('deve retornar false quando SHORT_SET_2V2_NO_AD não está em 4-4', () => {
-    const set = makeSet({ player1: 3, player2: 4 });
+  it('deve retornar false quando SHORT_SET_2V2_NO_AD não está em 3-3', () => {
+    const set = makeSet({ player1: 2, player2: 3 });
     const state = createBaseState();
     const config = createConfig({ format: 'SHORT_SET_2V2_NO_AD' });
     expect(shouldStartTiebreak(set, state, config)).toBe(false);

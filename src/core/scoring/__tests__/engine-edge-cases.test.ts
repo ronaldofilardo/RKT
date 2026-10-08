@@ -183,17 +183,15 @@ describe('ScoringEngine - SHORT_SET_2V2_NO_AD', () => {
     expect(state.sets[0].player2).toBe(2);
   });
 
-  it('deve iniciar tiebreak em 4-4 no SHORT_SET_2V2_NO_AD', () => {
+  it('deve iniciar tiebreak em 3-3 no SHORT_SET_2V2_NO_AD', () => {
     const engine = new ScoringEngine(makeConfig('SHORT_SET_2V2_NO_AD'));
 
     winGame(engine, 'player-1-id');
     winGame(engine, 'player-2-id');
-    winGame(engine, 'player-1-id');
-    winGame(engine, 'player-2-id');
 
     expect(engine.getState().sets[0].isTiebreak).toBe(true);
-    expect(engine.getState().sets[0].player1).toBe(4);
-    expect(engine.getState().sets[0].player2).toBe(4);
+    expect(engine.getState().sets[0].player1).toBe(3);
+    expect(engine.getState().sets[0].player2).toBe(3);
   });
 });
 
