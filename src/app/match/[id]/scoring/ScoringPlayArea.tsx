@@ -92,7 +92,7 @@ export function ScoringPlayArea({
         <TacticalInsightBanner insights={tacticalInsights} />
       </div>
 
-      <div className="flex items-stretch gap-1 sm:gap-2 flex-1 relative z-10 min-h-[104px]">
+      <div className="flex items-stretch gap-1 sm:gap-2 flex-1 relative z-10 min-h-[120px] max-h-[180px]">
         <div className="flex-1 min-w-0 flex">
           <PlayerCard
             player={match.player1}

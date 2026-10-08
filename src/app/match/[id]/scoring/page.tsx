@@ -187,7 +187,7 @@ function ScoringPageInner() {
 
   return (
     <div
-      className="h-screen h-dvh overflow-hidden bg-telemetry-base flex flex-col"
+      className="fixed inset-0 overflow-hidden bg-telemetry-base flex flex-col"
       style={{ fontSize: `${fontScale * 100}%` }}
     >
       {state.syncStatus !== "synced" && (
