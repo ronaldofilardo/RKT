@@ -29,9 +29,9 @@ describe('annotationSessionService (Real Service Calls)', () => {
       expect(global.fetch).toHaveBeenCalledWith(
         '/api/matches/match-1/sessions',
         expect.objectContaining({
-          headers: expect.objectContaining({
-            Authorization: 'Bearer test-session-token',
-          }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
         })
       );
       expect(result).toEqual(mockSessions);

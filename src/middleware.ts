@@ -33,6 +33,32 @@ export async function middleware(request: NextRequest) {
   requestHeaders.delete('x-user-id');
   requestHeaders.delete('x-user-role');
 
+  // Fase 5: Verificação de Origem contra CSRF em Mutações de API
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method) && pathname.startsWith('/api/')) {
+    const origin = request.headers.get('origin');
+    const referer = request.headers.get('referer');
+    const host = request.headers.get('host');
+
+    let sourceUrl: URL | null = null;
+    try {
+      if (origin) sourceUrl = new URL(origin);
+      else if (referer) sourceUrl = new URL(referer);
+    } catch (e) {
+      // URL malformada ignora silenciosamente (sourceUrl fica null)
+    }
+
+    // Ambiente de testes locais (Jest) ou chamadas servidor-servidor que não enviam origin/referer
+    // podem precisar de bypass, mas browsers sempre enviam.
+    if (process.env.NODE_ENV !== 'test') {
+      if (!sourceUrl || sourceUrl.host !== host) {
+        return NextResponse.json(
+          { error: 'CSRF_VIOLATION', message: 'Origem da requisição não permitida' },
+          { status: 403 }
+        );
+      }
+    }
+  }
+
   const isPublic = PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
   if (isPublic) return NextResponse.next({ request: { headers: requestHeaders } });
 

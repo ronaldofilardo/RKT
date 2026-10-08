@@ -52,12 +52,12 @@ export function isMatchTiebreakSetIndex(
   );
 }
 
-function parseRawScoreState(rawScoreState: any): any | null {
+function parseRawScoreState(rawScoreState: unknown): Record<string, unknown> | null {
   if (!rawScoreState) return null;
-  let parsed = rawScoreState;
+  let parsed = rawScoreState as Record<string, unknown>;
   if (typeof parsed === 'string') {
     try {
-      parsed = JSON.parse(parsed);
+      parsed = JSON.parse(parsed as string);
     } catch {
       return null;
     }
@@ -73,12 +73,12 @@ function parseRawScoreState(rawScoreState: any): any | null {
  * Extrai o array history do rawScoreState (antes de extrair só o state).
  * Usado para reconstruir tiebreakScore de sets corrompidos.
  */
-export function extractHistory(rawScoreState: any): any[] | null {
+export function extractHistory(rawScoreState: unknown): Record<string, unknown>[] | null {
   if (!rawScoreState) return null;
-  let parsed = rawScoreState;
+  let parsed = rawScoreState as Record<string, unknown>;
   if (typeof parsed === 'string') {
     try {
-      parsed = JSON.parse(parsed);
+      parsed = JSON.parse(parsed as string);
     } catch {
       return null;
     }
@@ -96,14 +96,15 @@ export function extractHistory(rawScoreState: any): any[] | null {
  * `setIndex` tinha isTiebreak: true e tiebreakScore preenchido.
  */
 function reconstructTiebreakFromHistory(
-  history: any[] | null,
+  history: Record<string, unknown>[] | null,
   setIndex: number,
 ): { player1: number; player2: number } | null {
   if (!history || !Array.isArray(history)) return null;
 
   for (let i = history.length - 1; i >= 0; i--) {
     const entry = history[i];
-    const sets = entry?.stateBefore?.sets;
+    const stateBefore = entry?.stateBefore as Record<string, unknown> | undefined;
+    const sets = stateBefore?.sets as Record<string, unknown>[] | undefined;
     if (!Array.isArray(sets)) continue;
     const set = sets[setIndex];
     if (set && set.isTiebreak && set.tiebreakScore) {
@@ -123,7 +124,7 @@ function looksLikeMatchTiebreakFormat(format: TennisFormat): boolean {
   );
 }
 
-function sanitizeMatchTiebreakSet(set: any): any {
+function sanitizeMatchTiebreakSet(set: Record<string, unknown>): Record<string, unknown> {
   return {
     ...set,
     tiebreakScore: { player1: set.player1, player2: set.player2 },
@@ -134,21 +135,21 @@ function sanitizeMatchTiebreakSet(set: any): any {
 }
 
 function updateSetsWon(
-  set: any,
+  set: Record<string, unknown>,
   counts: { p1Won: number; p2Won: number },
 ): void {
   if (!set) return;
   const isSetFinished =
     !set.isTiebreak || (set.isTiebreak && set.tiebreakScore);
   if (isSetFinished) {
-    if (set.player1 > set.player2) counts.p1Won++;
-    else if (set.player2 > set.player1) counts.p2Won++;
+    if ((set.player1 as number) > (set.player2 as number)) counts.p1Won++;
+    else if ((set.player2 as number) > (set.player1 as number)) counts.p2Won++;
   }
 }
 
-function normalizeMatchTiebreakSets(sets: any[], format: TennisFormat): any[] {
+function normalizeMatchTiebreakSets(sets: Record<string, unknown>[], format: TennisFormat): Record<string, unknown>[] {
   const counts = { p1Won: 0, p2Won: 0 };
-  return sets.map((set: any, idx: number) => {
+  return sets.map((set: Record<string, unknown>, idx: number) => {
     const isMtSet = isMatchTiebreakSetIndex(
       idx,
       sets.length,
@@ -159,7 +160,7 @@ function normalizeMatchTiebreakSets(sets: any[], format: TennisFormat): any[] {
     const isCorruptedMt =
       isMtSet &&
       set &&
-      (set.player1 > 0 || set.player2 > 0) &&
+      ((set.player1 as number) > 0 || (set.player2 as number) > 0) &&
       !set.isTiebreak &&
       !set.tiebreakScore;
 
@@ -172,9 +173,9 @@ function normalizeMatchTiebreakSets(sets: any[], format: TennisFormat): any[] {
   });
 }
 
-function normalizeRegularTiebreakSets(sets: any[], rawScoreState: any): any[] {
+function normalizeRegularTiebreakSets(sets: Record<string, unknown>[], rawScoreState: unknown): Record<string, unknown>[] {
   const history = extractHistory(rawScoreState);
-  return sets.map((set: any, idx: number) => {
+  return sets.map((set: Record<string, unknown>, idx: number) => {
     if (!set || set.tiebreakScore != null) return set;
     const is76 = set.player1 === 7 && set.player2 === 6;
     const is67 = set.player1 === 6 && set.player2 === 7;
@@ -184,7 +185,7 @@ function normalizeRegularTiebreakSets(sets: any[], rawScoreState: any): any[] {
   });
 }
 
-function ensureDefaultCurrentGame(parsed: any): NormalizedScoreState {
+function ensureDefaultCurrentGame(parsed: Record<string, unknown>): NormalizedScoreState {
   return {
     ...parsed,
     currentGame: parsed.currentGame ?? {
@@ -204,7 +205,7 @@ function ensureDefaultCurrentGame(parsed: any): NormalizedScoreState {
  * Converte: pontos vão para tiebreakScore, games voltam a 0, isTiebreak: true.
  */
 export function normalizeScoreState(
-  rawScoreState: any,
+  rawScoreState: unknown,
   format?: TennisFormat,
 ): NormalizedScoreState | null {
   const parsed = parseRawScoreState(rawScoreState);

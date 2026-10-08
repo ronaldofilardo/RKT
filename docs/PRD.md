@@ -2,7 +2,7 @@
 
 > Documento gerado por engenharia reversa (metodologia RE-DOC) sobre o código-fonte do repositório.
 > **Este é um dos 6 arquivos-canônico do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
-> **Data da análise:** 2026-10-01 · **Commit de referência:** `c53ae98` (main)
+> **Data da atualização:** 2026-10-07 (Fase de Endurecimento)
 > Este documento descreve **apenas** o que o código atual entrega ou estruturou. Nenhuma funcionalidade foi inventada.
 
 ---

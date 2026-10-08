@@ -28,7 +28,6 @@ describe('annotationSessionService - Regressoes Reais', () => {
       'http://localhost:3000/api/matches/m1/sessions',
       expect.objectContaining({
         headers: expect.objectContaining({
-          Authorization: 'Bearer mock-jwt-token',
           'Content-Type': 'application/json',
         }),
       })

@@ -80,11 +80,10 @@ describe('fetchMatchSequence', () => {
 
   it('sends correct headers', async () => {
     mockFetch({ _count: { pointLog: 1 } });
-    await fetchMatchSequence('m1', 'tok123');
+    await fetchMatchSequence('m1');
     expect(global.fetch).toHaveBeenCalledWith('/api/matches/m1', {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: 'Bearer tok123',
       },
     });
   });
@@ -94,21 +93,21 @@ describe('ensureMatchSequence', () => {
   it('fetches and caches sequence for new matchId', async () => {
     mockFetch({ lastPointSequence: 10 });
     const seq = new Map<string, number>();
-    const result = await ensureMatchSequence('m1', 'token', seq);
+    const result = await ensureMatchSequence('m1', seq);
     expect(result).toBe(10);
     expect(seq.get('m1')).toBe(10);
   });
 
   it('returns cached value without fetching', async () => {
     const seq = new Map<string, number>([['m1', 5]]);
-    const result = await ensureMatchSequence('m1', 'token', seq);
+    const result = await ensureMatchSequence('m1', seq);
     expect(result).toBe(5);
     expect(global.fetch).toBeUndefined();
   });
 
   it('returns 0 if sequence map has entry of 0', async () => {
     const seq = new Map<string, number>([['m1', 0]]);
-    const result = await ensureMatchSequence('m1', 'token', seq);
+    const result = await ensureMatchSequence('m1', seq);
     expect(result).toBe(0);
   });
 });
@@ -116,11 +115,10 @@ describe('ensureMatchSequence', () => {
 describe('createPointRequest', () => {
   it('returns correct method, headers, and body', () => {
     const action = baseAction({ payload: { winner: 'p1' } });
-    const result = createPointRequest(action, 'tok', 7);
+    const result = createPointRequest(action, 7);
     expect(result.method).toBe('POST');
     expect(result.headers).toEqual({
       'Content-Type': 'application/json',
-      Authorization: 'Bearer tok',
     });
     const body = JSON.parse(result.body as string);
     expect(body).toEqual({ winner: 'p1', sequenceNumber: 7 });
@@ -145,7 +143,7 @@ describe('retrySequenceConflict', () => {
     const db = mockDB();
     const seq = new Map<string, number>();
     const response = { json: jest.fn().mockResolvedValue({ error: 'OTHER' }) } as any;
-    const result = await retrySequenceConflict(db, baseAction(), 'token', response, seq);
+    const result = await retrySequenceConflict(db, baseAction(), response, seq);
     expect(result).toBe(false);
   });
 
@@ -153,7 +151,7 @@ describe('retrySequenceConflict', () => {
     const db = mockDB();
     const seq = new Map<string, number>();
     const response = { json: jest.fn().mockRejectedValue(new Error('bad')) } as any;
-    const result = await retrySequenceConflict(db, baseAction(), 'token', response, seq);
+    const result = await retrySequenceConflict(db, baseAction(), response, seq);
     expect(result).toBe(false);
   });
 
@@ -173,7 +171,7 @@ describe('retrySequenceConflict', () => {
       json: jest.fn().mockResolvedValue({}),
     } as any);
 
-    const result = await retrySequenceConflict(db, action, 'token', errorResponse, seq);
+    const result = await retrySequenceConflict(db, action, errorResponse, seq);
     expect(result).toBe(true);
     expect(seq.get('match-1')).toBe(10);
     expect(db.delete).toHaveBeenCalled();
@@ -190,7 +188,7 @@ describe('retrySequenceConflict', () => {
 
     global.fetch = jest.fn().mockResolvedValue({ ok: false } as any);
 
-    const result = await retrySequenceConflict(db, action, 'token', errorResponse, seq);
+    const result = await retrySequenceConflict(db, action, errorResponse, seq);
     expect(result).toBe(false);
   });
 });

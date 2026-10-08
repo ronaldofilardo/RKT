@@ -2,7 +2,7 @@
 
 > Gerado por engenharia reversa (RE-DOC) a partir do código-fonte.
 > **Este é um dos 6 arquivos-canônicos do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
-> **Data da análise:** 2026-10-01 · **Commit:** `c53ae98` (branch `main`)
+> **Data da atualização:** 2026-10-07 (Fase de Endurecimento)
 
 ---
 

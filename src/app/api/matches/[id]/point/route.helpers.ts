@@ -29,7 +29,7 @@ export async function validateMatchAnnotatorPermission(
   id: string,
   currentUserId?: string,
   currentUserRole?: string,
-  tx?: any,
+  tx?: Prisma.TransactionClient,
 ): Promise<void> {
   const isPrivilegedStaff = currentUserRole === 'ADMIN';
   const isPlayer =
@@ -41,9 +41,9 @@ export async function validateMatchAnnotatorPermission(
     return;
   }
 
-  const hasSessionModel = typeof tx?.matchAnnotationSession?.findFirst === 'function';
+  const hasSessionModel = typeof (tx as any)?.matchAnnotationSession?.findFirst === 'function';
   const activeSession = hasSessionModel
-    ? await tx.matchAnnotationSession.findFirst({
+    ? await (tx as any).matchAnnotationSession.findFirst({
         where: { matchId: id, isActive: true, annotatorUserId: currentUserId },
       })
     : null;
@@ -66,15 +66,15 @@ export function restoreEngineFromMatch(match: {
 }): ScoringEngine {
   let scoreStateToUse = match.scoreState;
   if (scoreStateToUse && typeof scoreStateToUse === 'object') {
-    const normalized = normalizeScoreState(scoreStateToUse, match.format as any);
+    const normalized = normalizeScoreState(scoreStateToUse, match.format as Parameters<typeof normalizeScoreState>[1]);
     if (normalized) {
-      scoreStateToUse = normalized as any;
+      scoreStateToUse = normalized;
     }
   }
 
   if (scoreStateToUse && typeof scoreStateToUse === 'object') {
-    const ss = scoreStateToUse as any;
-    const innerState = ss.state ?? ss;
+    const ss = scoreStateToUse as Record<string, unknown>;
+    const innerState = (ss.state ?? ss) as Record<string, unknown>;
     if (innerState?.isFinished === true) {
       logger.point.matchAlreadyFinished(innerState?.winner);
       throw new TransactionError('Partida já finalizada', 422, 'MATCH_ALREADY_FINISHED');
@@ -82,7 +82,7 @@ export function restoreEngineFromMatch(match: {
   }
 
   const engineConfig = {
-    format: match.format as any,
+    format: match.format as NonNullable<Parameters<typeof ScoringEngine.fromSerialized>[0]['format']>,
     player1Id: match.player1Id,
     player2Id: match.player2Id,
     initialServerId: match.initialServerId,

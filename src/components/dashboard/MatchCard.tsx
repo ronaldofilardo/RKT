@@ -11,29 +11,32 @@ const COURT_COLORS: Record<string, { bar: string; score: string }> = {
 };
 const DEFAULT_COURT_COLOR = { bar: '#1e4d7b', score: '#1a2a4a' };
 
+export interface DashboardMatchPayload {
+  id: string;
+  state: string;
+  format: string;
+  courtType?: string | null;
+  player1: { name: string; id?: string };
+  player2: { name: string; id?: string };
+  scheduledAt?: string | null;
+  scoreState?: unknown;
+  scoreSummary?: unknown;
+  suspendedSessionId?: string;
+  matchStateSnapshot?: string | null;
+  initialServerId?: string | null;
+  finishReason?: string | null;
+  status?: string | null;
+}
+
 interface MatchCardProps {
-  match: {
-    id: string;
-    state: string;
-    format: string;
-    courtType?: string | null;
-    player1: { name: string; id?: string };
-    player2: { name: string; id?: string };
-    scheduledAt?: string | null;
-    scoreState?: any;
-    suspendedSessionId?: string;
-    matchStateSnapshot?: string | null;
-    initialServerId?: string | null;
-    finishReason?: string | null;
-    status?: string | null;
-  };
-  onClick?: (match: any) => void;
-  onReport?: (match: any) => void;
-  onFinish?: (match: any) => void;
-  onDelete?: (match: any) => void;
-  onEditScore?: (match: any) => void;
-  onResumeMatch?: (match: any) => void;
-  onSetSummary?: (match: any) => void;
+  match: DashboardMatchPayload;
+  onClick?: (match: DashboardMatchPayload) => void;
+  onReport?: (match: DashboardMatchPayload) => void;
+  onFinish?: (match: DashboardMatchPayload) => void;
+  onDelete?: (match: DashboardMatchPayload) => void;
+  onEditScore?: (match: DashboardMatchPayload) => void;
+  onResumeMatch?: (match: DashboardMatchPayload) => void;
+  onSetSummary?: (match: DashboardMatchPayload) => void;
 }
 
 export function MatchCard({
@@ -51,10 +54,11 @@ export function MatchCard({
     match.state === 'IN_PROGRESS' || isSuspendedAnnotation || Boolean(match.suspendedSessionId);
 
   const scoreState = useMemo(() => {
+    if (match.scoreSummary) return match.scoreSummary;
     const normalizedFromScoreState = normalizeScoreState(match.scoreState, match.format as TennisFormat);
     if (normalizedFromScoreState) return normalizedFromScoreState;
     return normalizeScoreState(match.matchStateSnapshot, match.format as TennisFormat);
-  }, [match.scoreState, match.matchStateSnapshot, match.format]);
+  }, [match.scoreSummary, match.scoreState, match.matchStateSnapshot, match.format]);
 
   const suspendedAnnotationScore = useMemo(() => {
     if (!match.matchStateSnapshot) return null;

@@ -5,6 +5,8 @@ import { withRLSHandler, getRLSUser } from '@/lib/auth';
 import type { ScoringState } from '@/core/scoring/types';
 import { emitMatchEvent } from '@/lib/match-events';
 import { logger } from '@/lib/logger';
+import { ScoreEnvelopeSchema } from '@/schemas/score';
+import { Prisma } from '@prisma/client';
 import {
   TransactionError,
   validateMatchAnnotatorPermission,
@@ -145,7 +147,7 @@ export async function POST(
         const nextVersion = match.version + 1;
 
         logger.point.engineCreated();
-        const engine = restoreEngineFromMatch(match as any);
+        const engine = restoreEngineFromMatch(match as Parameters<typeof restoreEngineFromMatch>[0]);
 
         logger.point.applying(parsed.data);
         let newState: ScoringState;
@@ -168,6 +170,15 @@ export async function POST(
           history: unknown[];
         };
 
+        const envelopeParsed = ScoreEnvelopeSchema.safeParse(snapshot);
+        if (!envelopeParsed.success) {
+          logger.warn({
+            message: "ScoreEnvelope format anomaly detected",
+            matchId: id,
+            issues: envelopeParsed.error.issues,
+          });
+        }
+
         logger.point.updatingMatch({ version: match.version, isFinished: isMatchFinished });
         const finishData = isMatchFinished
           ? {
@@ -180,7 +191,7 @@ export async function POST(
         await tx.match.update({
           where: { id, version: expectedVersion },
           data: {
-            scoreState: snapshot as any,
+            scoreState: snapshot as Prisma.InputJsonValue,
             version: { increment: 1 },
             ...finishData,
           },

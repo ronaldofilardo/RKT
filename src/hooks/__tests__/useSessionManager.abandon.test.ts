@@ -217,15 +217,6 @@ describe("abandonCurrentSession", () => {
       );
     });
 
-    it("inclui Authorization header com o token", async () => {
-      const ctx = makeCtx({ token: "tok-xyz" });
-      (global.fetch as jest.Mock).mockResolvedValueOnce({ ok: true, status: 200 });
-
-      await abandonCurrentSession(ctx, makeDeps());
-
-      const headers = (global.fetch as jest.Mock).mock.calls[0][1].headers;
-      expect(headers.Authorization).toBe("Bearer tok-xyz");
-    });
 
     it("retorna false e enfileira quando POST /abandon falha com erro HTTP", async () => {
       const ctx = makeCtx();

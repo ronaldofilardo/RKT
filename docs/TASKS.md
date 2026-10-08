@@ -1,6 +1,6 @@
 # 📋 Tarefas do Projeto RKT
 
-> **Última atualização:** 2025-01-01  
+> **Última atualização:** 2026-10-07  
 > **Fonte única de verdade para o backlog do projeto.**
 
 ---
@@ -12,10 +12,10 @@
 - **Contexto:** 25 rotas API sem cobertura de integração
 - **DoD:** Suite Playwright rodando em CI com >80% de cobertura das rotas críticas
 
-### C2. Corrigir implementação de RLS no Supabase 🔴
+### C2. Testes de End-to-End para Offline 🔴
 - **Prioridade:** Crítica
-- **Contexto:** Políticas RLS desabilitadas em produção (security gap)
-- **DoD:** Todas as tabelas com RLS ativo + testes de autorização passando
+- **Contexto:** O fluxo offline (IndexedDB + PWA) e descarga da fila precisam de testes E2E obrigatórios.
+- **DoD:** Cenários de PWA offline com Playwright funcionando.
 
 ### C3. Implementar testes de mutação (Stryker) ⏳
 - **Prioridade:** Média
@@ -29,34 +29,30 @@
 ### A1. Página de Estatísticas do Jogador 🔴
 - **Status:** Não iniciada
 - **Rota:** `/players/[id]/stats`
-- **DoD:** Exibir histórico de partidas, médias de pontos/rebotes/assistências
+- **DoD:** Exibir histórico de partidas, médias de pontos e métricas de saque.
 
 ### A2. Exportação de Dados (PDF/Excel) 🔴
 - **Status:** Não iniciada
 - **Contexto:** Requisito do PRD não implementado
 - **DoD:** Exportar relatórios de partidas e estatísticas em PDF e Excel
 
-### A3. Notificações em Tempo Real 🔴
-- **Status:** Não iniciada
-- **Contexto:** Supabase Realtime disponível mas não utilizado
-- **DoD:** Notificações de eventos de partida via WebSocket
+### A3. Funcionalidade de Áudio Otimizada 🔴
+- **Status:** Refatorada (Fase 4.2 concluída)
+- **Contexto:** Migramos o áudio do PointLog.
+- **DoD:** Testar a exibição da nota de áudio isoladamente no dashboard e otimizar fetch.
 
 ### A4. Filtros Avançados (Partidas/Jogadores) ⏳
 - **Status:** Parcial (filtro básico existe)
 - **DoD:** Filtros por data, clube, estatísticas, status da partida
 
-### A5. Modo Offline (Service Worker) 🔴
-- **Status:** Removido em 2025-08-02
-- **Decisão:** Reavaliar necessidade com usuários reais
+### A5. Modo Offline (Service Worker) 🟢
+- **Status:** Em aprimoramento contínuo
+- **Decisão:** O IndexedDB já cuida do enfileiramento, focar agora na sincronização sem atritos (Fila de Requests).
 
-### A6. Gestão de Temporadas 🔴
-- **Status:** Modelo existe (tabela `Season`) mas sem UI
-- **DoD:** CRUD de temporadas + associação com partidas
-
-### A7. Sistema de Permissões Granulares 🔴
-- **Status:** Apenas 2 roles (ADMIN/ANNOTATOR)
-- **Contexto:** `specs/` mencionava 4 roles não implementados
-- **DoD:** Definir modelo real de permissões baseado em uso
+### A6. Sistema de Permissões Granulares 🟢
+- **Status:** Refatorado (Fase 3 concluída)
+- **Contexto:** Removidos roles fantasmas (GESTOR/COACH). Foco absoluto em ADMIN e ANNOTATOR.
+- **DoD:** Manter simplicidade. No futuro, avaliar se precisaremos expandir a modelagem.
 
 ---
 
@@ -156,7 +152,7 @@
 - **Impacto:** Vulnerável a DDoS e abuso
 - **Solução:** Middleware com `@upstash/ratelimit` ou similar
 
-#### TD-003. Habilitar RLS (Row Level Security) no Supabase 🔴
+#### TD-003. Habilitar RLS (Row Level Security) no Neon Console 🔴
 - **Risco:** Crítico
 - **Impacto:** Dados acessíveis sem autorização adequada
 - **Solução:** Políticas RLS por tabela + testes de autorização
@@ -262,10 +258,6 @@
 #### TD-022. Adicionar monitoring e observability 🔴
 - **Contexto:** Sem logs centralizados ou métricas
 - **Solução:** Sentry (erros) + Vercel Analytics (performance)
-
-#### TD-023. Implementar backup automático do banco ⏳
-- **Contexto:** Supabase tem backups, mas não testados
-- **Solução:** Script de restore + teste trimestral
 
 #### TD-024. Adicionar health checks nas APIs 🔴
 - **Contexto:** Sem endpoint `/health` ou `/ready`

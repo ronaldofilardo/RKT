@@ -16,7 +16,7 @@ export async function GET(
         where: { matchId: id, voidedAt: null },
         select: {
           id: true,
-          audioNote: true,
+          hasAudioNote: true,
           audioNoteDuration: true,
         },
         orderBy: { timestamp: 'asc' },
@@ -25,7 +25,7 @@ export async function GET(
       return NextResponse.json({
         pointLogs: pointLogs.map(pl => ({
           pointLogId: pl.id,
-          hasAudioNote: pl.audioNote !== null,
+          hasAudioNote: pl.hasAudioNote,
           audioNoteDuration: pl.audioNoteDuration,
         })),
       });

@@ -34,7 +34,7 @@ function makePointLog(
       rallyDetails,
       ...overrides,
     },
-    audioNote: audio ? Buffer.from([1, 2, 3]) : null,
+    hasAudioNote: audio,
     audioNoteDuration: audio ? 1500 : null,
   };
 }

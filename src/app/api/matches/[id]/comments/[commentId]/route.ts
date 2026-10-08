@@ -137,6 +137,7 @@ export async function DELETE(
           audioNote: null,
           audioNoteMime: null,
           audioNoteDuration: null,
+          hasAudioNote: false,
         },
       });
 

@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 
+import 'fake-indexeddb/auto';
 import { renderHook, act } from '@testing-library/react';
 import { useOfflineSync } from '../useOfflineSync';
 

@@ -27,8 +27,27 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await validatedRequest(request, LoginPayloadSchema);
     const identifier = (payload.identifier || payload.email || '').trim();
+    const ip = request.headers.get('x-forwarded-for') || 'unknown';
+
+    if (process.env.ENABLE_LOGIN_RATELIMIT === 'true') {
+      const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
+      const recentFails = await import('@/lib/prisma').then((m) => m.prisma.loginAttempt.count({
+        where: { ip, success: false, createdAt: { gte: fiveMinsAgo } }
+      })).catch(() => 0);
+
+      if (recentFails > 3) {
+        const delayMs = Math.min((recentFails - 3) * 1000, 8000);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
 
     const user = await authenticateUser(identifier, payload.password);
+
+    if (process.env.ENABLE_LOGIN_RATELIMIT === 'true') {
+      await import('@/lib/prisma').then((m) => m.prisma.loginAttempt.create({
+        data: { ip, cpf: identifier, success: !!user }
+      })).catch(() => {});
+    }
 
     if (!user) {
       logger.warn('[LOGIN POST] credenciais inválidas');

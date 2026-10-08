@@ -129,7 +129,7 @@ export function useResumeSession(options: ResumeSessionOptions) {
         : `/match/${match.id}/scoring`;
       router.push(targetUrl);
     } catch (err) {
-      console.error("[handleResumeSuspended] ERROR:", err);
+      logger.error("[handleResumeSuspended] ERROR:", err);
     }
   };
 

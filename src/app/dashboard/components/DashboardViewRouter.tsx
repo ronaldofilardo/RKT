@@ -1,22 +1,22 @@
-import { MatchCard } from "@/components/dashboard/MatchCard";
+import { MatchCard, type DashboardMatchPayload } from "@/components/dashboard/MatchCard";
 
 interface DashboardViewRouterProps {
   view: "dashboard" | "annotated" | "live" | "pending" | "history";
   loading: boolean;
-  finishedMatches: any[];
-  liveMatches: any[];
-  pendingMatches: any[];
-  historyMatches: any[];
-  visibleMatches: any[];
-  suspendedFromApi: any[];
-  handleNavigate: (v: any) => void;
-  handleMatchClick: (m: any) => void;
-  handleMatchReport: (m: any) => void;
-  handleMatchFinish: (m: any) => void;
-  handleMatchDelete: (m: any) => void;
-  handleMatchEditScore?: (m: any) => void;
-  handleMatchResume?: (m: any) => void;
-  handleMatchSetSummary?: (m: any) => void;
+  finishedMatches: DashboardMatchPayload[];
+  liveMatches: DashboardMatchPayload[];
+  pendingMatches: DashboardMatchPayload[];
+  historyMatches: DashboardMatchPayload[];
+  visibleMatches: DashboardMatchPayload[];
+  suspendedFromApi: DashboardMatchPayload[];
+  handleNavigate: (v: "dashboard" | "annotated" | "live" | "pending" | "history") => void;
+  handleMatchClick: (m: DashboardMatchPayload) => void;
+  handleMatchReport: (m: DashboardMatchPayload) => void;
+  handleMatchFinish: (m: DashboardMatchPayload) => void;
+  handleMatchDelete: (m: DashboardMatchPayload) => void;
+  handleMatchEditScore?: (m: DashboardMatchPayload) => void;
+  handleMatchResume?: (m: DashboardMatchPayload) => void;
+  handleMatchSetSummary?: (m: DashboardMatchPayload) => void;
 }
 
 export function DashboardViewRouter(props: DashboardViewRouterProps) {
@@ -68,7 +68,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
           </p>
         ) : (
           <div className="space-y-3">
-            {finishedMatches.map((m: any) => (
+            {finishedMatches.map((m: DashboardMatchPayload) => (
               <MatchCard
                 key={m.id}
                 match={m}
@@ -100,7 +100,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
           </p>
         ) : (
           <div className="space-y-3">
-            {liveMatches.map((m: any) => (
+            {liveMatches.map((m: DashboardMatchPayload) => (
               <MatchCard
                 key={m.id}
                 match={m}
@@ -136,7 +136,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
           </p>
         ) : (
           <div className="space-y-3">
-            {pendingMatches.map((m: any) => (
+            {pendingMatches.map((m: DashboardMatchPayload) => (
               <MatchCard
                 key={m.id}
                 match={m}
@@ -168,7 +168,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
           </p>
         ) : (
           <div className="space-y-3">
-            {historyMatches.map((m: any) => (
+            {historyMatches.map((m: DashboardMatchPayload) => (
               <MatchCard
                 key={m.id}
                 match={m}
@@ -192,7 +192,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
               Anotações Suspensas
             </h3>
             <div className="space-y-3">
-              {suspendedFromApi.map((m: any) => (
+              {suspendedFromApi.map((m: DashboardMatchPayload) => (
                 <MatchCard
                   key={m.id ?? m.suspendedSessionId}
                   match={m}
@@ -212,7 +212,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
               Nenhuma partida encontrada.
             </p>
           ) : (
-            visibleMatches.map((m: any) => (
+            visibleMatches.map((m: DashboardMatchPayload) => (
               <MatchCard
                 key={m.id}
                 match={m}

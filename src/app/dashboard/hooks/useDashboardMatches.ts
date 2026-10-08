@@ -6,20 +6,20 @@ import {
   readAuthState,
   redirectToLogin,
 } from "@/lib/auth-client";
-import type { Match } from "../dashboard.types";
 import { flushPendingAbandons } from "@/hooks/useSessionManager.pending-abandon";
+import type { DashboardMatchPayload } from "@/components/dashboard/MatchCard";
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
-function checkAuthAndGetToken(router: any, setLoading: (v: boolean) => void) {
+function checkAuthAndGetToken(router: AppRouterInstance | null, setLoading: (v: boolean) => void) {
   const { userRole } = readAuthState();
   const cookieOk = ensureAuthCookie();
   
   if (!userRole || !cookieOk) {
     setLoading(false);
-    redirectToLogin(router);
+    if (router) redirectToLogin(router);
     return null;
   }
   
-    
   return true;
 }
 
@@ -30,32 +30,32 @@ const fetchWithTimeout = (url: string, options: RequestInit = {}, ms = TIMEOUTS.
     .finally(() => clearTimeout(timer));
 };
 
-const fetchMatchesEndpoint = async (url: string, router: any, setLoading: (v: boolean) => void, abortController?: AbortController) => {
+const fetchMatchesEndpoint = async (url: string, router: AppRouterInstance | null, setLoading: (v: boolean) => void, abortController?: AbortController): Promise<DashboardMatchPayload[] | null> => {
   try {
     const res = await fetchWithTimeout(url, {}, TIMEOUTS.MATCH_FETCH_TIMEOUT_MS, abortController);
 
     if (res.status === 401) {
       setLoading(false);
-      redirectToLogin(router);
+      if (router) redirectToLogin(router);
       return null;
     }
     if (!res.ok) return [];
     const json = await res.json();
     return json?.data?.matches ?? json?.matches ?? [];
-  } catch (error: any) {
-    if (error?.name === 'AbortError') return [];
+  } catch (error: unknown) {
+    if (error instanceof Error && error.name === 'AbortError') return [];
     logger.error(`[fetchDashboardData] fetch error for ${url}:`, error);
     return [];
   }
 };
 
-export function useDashboardData(router?: any) {
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [suspendedFromApi, setSuspendedFromApi] = useState<any[]>([]);
+export function useDashboardData(router?: AppRouterInstance) {
+  const [matches, setMatches] = useState<DashboardMatchPayload[]>([]);
+  const [suspendedFromApi, setSuspendedFromApi] = useState<DashboardMatchPayload[]>([]);
   const [loading, setLoading] = useState(true);
   const fetchedRef = useRef(false);
-  const routerRef = useRef(router);
-  routerRef.current = router;
+  const routerRef = useRef(router ?? null);
+  routerRef.current = router ?? null;
   const dashboardAbortRef = useRef<AbortController | null>(null);
 
   const performFetch = useCallback(async (abortController: AbortController, isInitial = false) => {
@@ -75,12 +75,12 @@ export function useDashboardData(router?: any) {
       const [matchList, suspendedList] = await Promise.all([matchPromise, suspendedPromise]);
       if (matchList === null || suspendedList === null) return;
 
-      const suspendedIds = new Set(suspendedList.map((m: any) => m.id));
-      const dedupedMatches = matchList.filter((m: any) => !suspendedIds.has(m.id));
+      const suspendedIds = new Set(suspendedList.map((m: DashboardMatchPayload) => m.id));
+      const dedupedMatches = matchList.filter((m: DashboardMatchPayload) => !suspendedIds.has(m.id));
       setMatches(dedupedMatches);
       setSuspendedFromApi(suspendedList);
-    } catch (error: any) {
-      if (error?.name !== "AbortError") {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name !== "AbortError") {
         logger.error("[fetchDashboardData] Error:", error);
       }
     } finally {
@@ -114,31 +114,31 @@ export function useDashboardData(router?: any) {
   return { matches, setMatches, suspendedFromApi, setSuspendedFromApi, loading, fetchDashboardData };
 }
 
-export function useDashboardMatchFilters(matches: Match[], suspendedFromApi: any[]) {
+export function useDashboardMatchFilters(matches: DashboardMatchPayload[], suspendedFromApi: DashboardMatchPayload[]) {
   const finishedMatches = useMemo(
-    () => matches.filter((m: any) => m.state === "FINISHED"),
+    () => matches.filter((m: DashboardMatchPayload) => m.state === "FINISHED"),
     [matches],
   );
 
   const liveMatches = useMemo(
-    () => matches.filter((m: any) => m.state === "IN_PROGRESS"),
+    () => matches.filter((m: DashboardMatchPayload) => m.state === "IN_PROGRESS"),
     [matches],
   );
 
   const pendingMatches = useMemo(
-    () => matches.filter((m: any) => m.state === "SCHEDULED"),
+    () => matches.filter((m: DashboardMatchPayload) => m.state === "SCHEDULED"),
     [matches],
   );
 
   const historyMatches = useMemo(
-    () => matches.filter((m: any) => m.state === "FINISHED" || m.state === "CANCELLED"),
+    () => matches.filter((m: DashboardMatchPayload) => m.state === "FINISHED" || m.state === "CANCELLED"),
     [matches],
   );
 
   const visibleMatches = useMemo(() => {
     if (suspendedFromApi.length === 0) return matches;
-    const suspendedIds = new Set(suspendedFromApi.map((m: any) => m.id));
-    return matches.filter((m: any) => !suspendedIds.has(m.id));
+    const suspendedIds = new Set(suspendedFromApi.map((m: DashboardMatchPayload) => m.id));
+    return matches.filter((m: DashboardMatchPayload) => !suspendedIds.has(m.id));
   }, [matches, suspendedFromApi]);
 
   return {

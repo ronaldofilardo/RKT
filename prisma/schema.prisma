@@ -29,6 +29,18 @@ model User {
   @@map("users")
 }
 
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  ip        String
+  cpf       String?
+  createdAt DateTime @default(now())
+  success   Boolean  @default(false)
+
+  @@index([ip, createdAt])
+  @@index([cpf, createdAt])
+  @@map("login_attempts")
+}
+
 model Player {
   id                 String                   @id @default(cuid())
   name               String
@@ -94,6 +106,7 @@ model Match {
 
   @@index([state])
   @@index([deletedAt])
+  @@index([createdByUserId, createdAt(sort: Desc)])
 }
 
 model PointLog {
@@ -107,6 +120,7 @@ model PointLog {
   audioNote         Bytes?
   audioNoteMime     String?
   audioNoteDuration Int?
+  hasAudioNote      Boolean   @default(false)
   sequenceNumber   Int?
   clientEventId     String?
   voidedAt         DateTime?
@@ -164,6 +178,7 @@ model MatchComment {
   audioNote         Bytes?
   audioNoteMime     String?
   audioNoteDuration Int?
+  hasAudioNote      Boolean   @default(false)
 
   @@index([matchId, createdAt])
   @@map("match_comments")
@@ -187,6 +202,7 @@ model MatchAnnotationSession {
   @@index([matchId])
   @@index([annotatorUserId])
   @@index([isActive])
+  @@index([matchId, isActive])
   @@map("match_annotation_sessions")
 }
 

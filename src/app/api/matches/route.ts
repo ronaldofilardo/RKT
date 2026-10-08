@@ -38,7 +38,16 @@ export async function GET(request: NextRequest) {
       const matches = await listMatches(state, cursor, limit, user.id);
       const nextCursor = matches.length === limit ? matches[matches.length - 1].id : null;
 
-      return NextResponse.json({ data: { matches, nextCursor } });
+      const { normalizeScoreState } = await import('@/core/scoring/score-normalizer');
+      const payloadMatches = matches.map(m => {
+        const { scoreState, ...rest } = m;
+        return {
+          ...rest,
+          scoreSummary: scoreState ? normalizeScoreState(scoreState, m.format as any) : null
+        };
+      });
+
+      return NextResponse.json({ data: { matches: payloadMatches, nextCursor } });
     } catch (error) {
       logger.error('[MATCHES GET]', error);
       return handleApiError(error);

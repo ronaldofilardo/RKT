@@ -50,17 +50,17 @@ async function getDb(): Promise<IDBPDatabase> {
       }
     },
     blocked() {
-      console.warn("[IndexedDB] Connection blocked");
+      logger.warn("[IndexedDB] Connection blocked");
     },
     blocking() {
-      console.warn("[IndexedDB] Connection blocking - closing");
+      logger.warn("[IndexedDB] Connection blocking - closing");
       if (cachedDb) {
         cachedDb.close();
         cachedDb = null;
       }
     },
     terminated() {
-      console.warn("[IndexedDB] Connection terminated");
+      logger.warn("[IndexedDB] Connection terminated");
       cachedDb = null;
     },
   });

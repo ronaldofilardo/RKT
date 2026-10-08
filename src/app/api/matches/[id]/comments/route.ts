@@ -140,7 +140,15 @@ export async function GET(
 
       const comments = await prisma.matchComment.findMany({
         where,
-        include: { author: { select: { name: true } } },
+        select: {
+          id: true,
+          content: true,
+          category: true,
+          author: { select: { name: true } },
+          createdAt: true,
+          hasAudioNote: true,
+          audioNoteDuration: true,
+        },
         orderBy: { createdAt: 'desc' },
         take: limit + 1,
       });
@@ -158,7 +166,7 @@ export async function GET(
           category: c.category,
           authorName: c.author.name,
           createdAt: c.createdAt.toISOString(),
-          hasAudioNote: c.audioNote !== null,
+          hasAudioNote: c.hasAudioNote,
           audioNoteDuration: c.audioNoteDuration,
         })),
         nextCursor,

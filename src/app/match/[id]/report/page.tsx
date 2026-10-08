@@ -18,13 +18,12 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
     if (fetchedMatchIdRef.current === matchId) return;
     fetchedMatchIdRef.current = matchId;
 
-        if (false) {
-      router.push('/login');
-      return;
-    }
-
     fetch(`/api/matches/${matchId}/report`)
       .then(async res => {
+        if (res.status === 401) {
+          router.push('/login');
+          return new Promise<never>(() => {});
+        }
         if (!res.ok) {
           const data = await res.json();
           throw new Error(data.error || 'Erro ao carregar relatório');

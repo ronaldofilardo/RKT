@@ -25,6 +25,7 @@ export function AnnotationSessionPanel({ sessionId, matchId, isActive, onStart, 
 
     let cancelled = false;
     const poll = async () => {
+      if (document.visibilityState === 'hidden') return;
       try {
         const sessions = await listSessions(matchId);
         if (cancelled) return;

@@ -53,13 +53,13 @@ describe('ReportPage', () => {
     global.fetch = jest.fn();
   });
 
-  it('redireciona para /login se não houver token no sessionStorage', async () => {
+  it('redireciona para /login se a rota retornar 401', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ status: 401 });
     render(<ReportPage params={mockParams} />);
 
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/login');
     });
-    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it('faz fetch de /api/matches/[id]/report apenas uma vez graças a fetchedMatchIdRef', async () => {
@@ -77,6 +77,11 @@ describe('ReportPage', () => {
         { winner: 'PLAYER_1' },
       ],
     };
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockReportData)
+    });
 
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
