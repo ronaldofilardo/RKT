@@ -146,12 +146,27 @@ export function useScoringPageDerived(
   const { suspendedSession, session } = state;
   const pendingEditScore = session.pendingEditScore;
 
-  const effectiveScoreState = resolveDisplayScore(
+  let effectiveScoreState = resolveDisplayScore(
     activeModal,
     scoreState,
     pendingEditScore,
     suspendedSession,
   );
+
+  if (effectiveScoreState && effectiveScoreState.sets.length === 0 && match?.format) {
+    const initGames = getInitialGames(match.format as TennisFormat);
+    effectiveScoreState = {
+      ...effectiveScoreState,
+      sets: [
+        {
+          player1: initGames,
+          player2: initGames,
+          isTiebreak: false,
+          tiebreakScore: null,
+        },
+      ],
+    };
+  }
 
   const p1IsServing = effectiveScoreState?.server === "player1";
   const p2IsServing = effectiveScoreState?.server === "player2";

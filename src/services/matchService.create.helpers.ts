@@ -1,6 +1,7 @@
 import type { CreateMatchInput, MatchFormat } from '@/schemas/contracts';
 import { ValidationError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+import { getInitialGames } from '@/core/scoring/format-rules';
 
 export function validateCreateMatchPlayers(data: CreateMatchInput): void {
   if (data.player1Id === data.player2Id) {
@@ -37,12 +38,25 @@ function buildCreateMetadataFields(data: CreateMatchInput) {
 }
 
 function buildCreateDefaults(data: CreateMatchInput) {
+  const initGames = getInitialGames(data.format as MatchFormat);
+  const initialScoreState = {
+    sets: initGames > 0 ? [{ player1: initGames, player2: initGames, isTiebreak: false, tiebreakScore: null }] : [],
+    currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+    server: data.initialServerId || data.player1Id, // fallback until proper initialServer is set
+    isFinished: false,
+    winner: null,
+    setsWon: { player1: 0, player2: 0 },
+    startedAt: null,
+    secondServe: false,
+  };
+
   return {
     ...buildCreateFormatFields(data),
     ...buildCreateMetadataFields(data),
     state: 'SCHEDULED' as const,
     player1Id: data.player1Id,
     player2Id: data.player2Id,
+    scoreState: initialScoreState as any,
   };
 }
 

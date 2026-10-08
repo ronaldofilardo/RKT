@@ -4,6 +4,8 @@ import { validateSetResult, getMaxValidGames } from "./editScoreHelpers";
 import type { CompletedSet } from "./edit-score-logic";
 import type { SetEditData } from "./editScoreHelpers";
 import { calculateNextServer } from "./edit-score-logic";
+import { getInitialGames } from "@/core/scoring/format-rules";
+import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from "@/hooks/useSessionManager.utils";
 import { toCompletedSetsForServer } from "./useEditScoreModal.confirm.helpers";
 import type { EditScoreModalState } from "./useEditScoreModal.types";
 
@@ -120,11 +122,21 @@ export function performAddSet(params: {
     isMatchTiebreakSet: params.isMatchTiebreakSet,
   });
 
+  const nextSetIndex = params.completedSets.length + params.state.newSets.length + 1;
+  const mockSetResults = [
+    ...params.completedSets.map(cs => ({ p1Games: cs.games.player1, p2Games: cs.games.player2, isPartial: false, tiebreakScore: cs.tiebreakScore ?? undefined })),
+    ...params.state.newSets,
+    setData,
+  ];
+  const isNextMT = isMatchTiebreakSetUtil(nextSetIndex, mockSetResults, params.matchFormat);
+  const initGames = (params.matchFormat && !isNextMT) ? getInitialGames(params.matchFormat) : 0;
+  const resetStr = initGames > 0 ? String(initGames) : "";
+
   params.setState((prev) => ({
     ...prev,
     newSets: [...prev.newSets, setData],
-    p1Input: "",
-    p2Input: "",
+    p1Input: resetStr,
+    p2Input: resetStr,
     tiebreakP1: "",
     tiebreakP2: "",
     nextServer: calculateNextServer({
@@ -146,6 +158,7 @@ export function performConfirmSet(
   handleAddSet: () => void,
   setState: React.Dispatch<React.SetStateAction<EditScoreModalState>>,
   inputTouchedRef: React.MutableRefObject<{ p1: boolean; p2: boolean }>,
+  matchFormat: TennisFormat
 ) {
   if (!canConfirmSetCalc) return;
   if (isMatchTiebreakSet) {
@@ -153,10 +166,12 @@ export function performConfirmSet(
     return;
   }
   handleAddSet();
+  const initGames = getInitialGames(matchFormat);
+  const resetStr = initGames > 0 ? String(initGames) : "";
   setState((prev) => ({
     ...prev,
-    p1Input: "",
-    p2Input: "",
+    p1Input: resetStr,
+    p2Input: resetStr,
     tiebreakP1: "",
     tiebreakP2: "",
     p1Points: "0",

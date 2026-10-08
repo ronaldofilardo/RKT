@@ -66,8 +66,6 @@ export function getTiebreakAtForFormat(format: TennisFormat): number {
   switch (format) {
     case 'PRO_SET_8':
       return 9;
-    case 'SHORT_SET_2V2_NO_AD':
-      return 3;
     default:
       return 6;
   }

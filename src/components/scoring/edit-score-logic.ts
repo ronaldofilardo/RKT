@@ -25,10 +25,13 @@ export {
 } from './edit-score-validation';
 import { isPotentialMTSet } from './edit-score-validation';
 
-export function createInitialEditScoreState(currentServer: Player): EditScoreState {
+import { getInitialGames } from '@/core/scoring/format-rules';
+
+export function createInitialEditScoreState(currentServer: Player, format?: TennisFormat, isMatchTiebreakSet?: boolean): EditScoreState {
+  const init = (format && !isMatchTiebreakSet) ? getInitialGames(format) : 0;
   return {
-    p1Input: '',
-    p2Input: '',
+    p1Input: init > 0 ? String(init) : '',
+    p2Input: init > 0 ? String(init) : '',
     p1Points: '0',
     p2Points: '0',
     nextServer: currentServer,

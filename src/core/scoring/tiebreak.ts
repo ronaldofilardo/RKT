@@ -79,7 +79,7 @@ export function processTiebreakPoint(
     (config.format === 'BEST_OF_3_MATCH_TB' && state.sets.length === 3) ||
     (config.format === 'BEST_OF_3_NO_AD' && state.sets.length === 3) ||
     (config.format === 'SHORT_SET_2V2_NO_AD' && state.sets.length === 3);
-  const tbMin = isMatchTb ? 10 : (config.format === 'SHORT_SET_2V2_NO_AD' ? 5 : 7);
+  const tbMin = isMatchTb ? 10 : 7;
 
   if (newTb.player1 >= tbMin && newTb.player1 - newTb.player2 >= 2) {
     const nextSetServer = isMatchTb

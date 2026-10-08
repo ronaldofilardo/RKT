@@ -56,8 +56,7 @@ export function validateSetResult(
   const hasTiebreak = shouldHaveTiebreak(format);
   const tiebreakAt = getTiebreakAtForFormat(format);
 
-  const gamesNeeded = format === 'PRO_SET_8' ? 8
-    : (format === 'SHORT_SET_2V2_NO_AD' ? 4 : 6);
+  const gamesNeeded = format === 'PRO_SET_8' ? 8 : 6;
 
   return validateStandardSet(p1Games, p2Games, gamesNeeded, true, hasTiebreak, tiebreakAt);
 }

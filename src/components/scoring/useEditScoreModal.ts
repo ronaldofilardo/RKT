@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import type { SetEditData } from "./editScoreHelpers";
 import { createInitialEditScoreState } from "./edit-score-logic";
+import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from '@/hooks/useSessionManager.utils';
 import { useEditScoreCalculator } from "./use-edit-score-calculator";
 import {
   computeGameInputChange,
@@ -40,15 +41,19 @@ export function useEditScoreModal(
     onRefreshFloor,
   } = options;
 
-  const [state, setState] = useState<EditScoreModalState>(() => ({
-    ...createInitialEditScoreState(currentServer),
-    editableCompletedSets: completedSets.map((cs) => ({
+  const [state, setState] = useState<EditScoreModalState>(() => {
+    const editableCompletedSets = completedSets.map((cs) => ({
       p1Games: cs.games.player1,
       p2Games: cs.games.player2,
       isPartial: false,
       tiebreakScore: cs.tiebreakScore ?? undefined,
-    })),
-  }));
+    }));
+    const isMT = isMatchTiebreakSetUtil(completedSets.length, editableCompletedSets, matchFormat);
+    return {
+      ...createInitialEditScoreState(currentServer, matchFormat, isMT),
+      editableCompletedSets,
+    };
+  });
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [floorValidationError, setFloorValidationError] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -211,12 +216,13 @@ export function useEditScoreModal(
       handleAddSet,
       setState,
       inputTouchedRef,
+      matchFormat,
     );
-  }, [canConfirmSetCalc, isMatchTiebreakSet, handleAddSet, handleConfirm, inputTouchedRef]);
+  }, [canConfirmSetCalc, isMatchTiebreakSet, handleAddSet, handleConfirm, inputTouchedRef, matchFormat]);
 
   const resetState = useCallback(() => {
     setState({
-      ...createInitialEditScoreState(currentServer),
+      ...createInitialEditScoreState(currentServer, matchFormat),
       editableCompletedSets: completedSets.map((cs) => ({
         p1Games: cs.games.player1,
         p2Games: cs.games.player2,
@@ -227,7 +233,7 @@ export function useEditScoreModal(
     setConfirmError(null);
     setFloorValidationError(null);
     initializedRef.current = false;
-  }, [currentServer, completedSets, initializedRef]);
+  }, [currentServer, completedSets, initializedRef, matchFormat]);
 
   return {
     state,

@@ -69,10 +69,10 @@ const FORMAT_DEFINITIONS: Record<
   },
   SHORT_SET_2V2_NO_AD: {
     setsToWin: 2,
-    gamesPerSet: 4,
+    gamesPerSet: 6,
     useAdvantage: false,
     useTiebreak: true,
-    tiebreakAt: 4,
+    tiebreakAt: 6,
     tiebreakPoints: 7,
     matchTiebreakPoints: 10,
     useNoAd: true,

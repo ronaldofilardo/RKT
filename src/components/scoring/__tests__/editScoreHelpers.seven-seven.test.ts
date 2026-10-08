@@ -73,24 +73,24 @@ describe('validateSetResult - Bug 7x7 inválido em formatos com tiebreak', () =>
     });
   });
 
-  describe('SHORT_SET_2V2_NO_AD (gamesNeeded 4, tiebreak no 4, teto 5)', () => {
-    it('deve rejeitar 5x5 (empate no teto do tiebreak)', () => {
-      const result = validateSetResult({ p1Games: 5, p2Games: 5 }, 'SHORT_SET_2V2_NO_AD');
+  describe('SHORT_SET_2V2_NO_AD (gamesNeeded 6, tiebreak no 6, teto 7)', () => {
+    it('deve rejeitar 7x7 (empate no teto do tiebreak)', () => {
+      const result = validateSetResult({ p1Games: 7, p2Games: 7 }, 'SHORT_SET_2V2_NO_AD');
 
       expect(result.isValid).toBe(false);
       expect(result.isPartial).toBeUndefined();
       expect(result.winner).toBeUndefined();
     });
 
-    it('deve exigir tiebreak em 3x3', () => {
-      const result = validateSetResult({ p1Games: 3, p2Games: 3 }, 'SHORT_SET_2V2_NO_AD');
+    it('deve exigir tiebreak em 6x6', () => {
+      const result = validateSetResult({ p1Games: 6, p2Games: 6 }, 'SHORT_SET_2V2_NO_AD');
 
       expect(result.isValid).toBe(false);
       expect(result.tiebreakRequired).toBe(true);
     });
 
-    it('deve aceitar 4x3 como set com tiebreak (player1 vence)', () => {
-      const result = validateSetResult({ p1Games: 4, p2Games: 3 }, 'SHORT_SET_2V2_NO_AD');
+    it('deve aceitar 7x6 como set com tiebreak (player1 vence)', () => {
+      const result = validateSetResult({ p1Games: 7, p2Games: 6 }, 'SHORT_SET_2V2_NO_AD');
 
       expect(result.isValid).toBe(true);
       expect(result.hasTiebreak).toBe(true);

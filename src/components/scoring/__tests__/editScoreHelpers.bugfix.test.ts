@@ -167,14 +167,14 @@ describe("editScoreHelpers - Validações e Server Rotation", () => {
       expect(result.hasTiebreak).toBe(true);
     });
 
-    it("deve validar SHORT_SET 4-2", () => {
-      const result = validateSetResult({ p1Games: 4, p2Games: 2 }, "SHORT_SET_2V2_NO_AD");
+    it("deve validar SHORT_SET 6-2", () => {
+      const result = validateSetResult({ p1Games: 6, p2Games: 2 }, "SHORT_SET_2V2_NO_AD");
       expect(result.isValid).toBe(true);
       expect(result.winner).toBe("player1");
     });
 
-    it("deve requerer tiebreak em 3-3 no SHORT_SET", () => {
-      const result = validateSetResult({ p1Games: 3, p2Games: 3 }, "SHORT_SET_2V2_NO_AD");
+    it("deve requerer tiebreak em 6-6 no SHORT_SET", () => {
+      const result = validateSetResult({ p1Games: 6, p2Games: 6 }, "SHORT_SET_2V2_NO_AD");
       expect(result.isValid).toBe(false);
       expect(result.tiebreakRequired).toBe(true);
     });

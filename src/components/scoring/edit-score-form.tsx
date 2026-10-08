@@ -122,7 +122,7 @@ export function SetInputForm({
     );
   }
 
-  const tbAt = matchFormat === 'PRO_SET_8' ? 9 : matchFormat === 'SHORT_SET_2V2_NO_AD' ? 4 : 6;
+  const tbAt = matchFormat === 'PRO_SET_8' ? 9 : 6;
   const isTiebreakInputVisible =
     !isMatchTiebreakSet &&
     hasTiebreak &&
