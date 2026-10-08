@@ -41,7 +41,7 @@ export interface PointLogRow {
       }
 
     | null;
-  hasAudioNote: boolean;
+  hasAudioNote?: boolean;
   audioNoteDuration: number | null;
 }
 
@@ -280,7 +280,7 @@ function mergeWithPointLog(p: TimelinePoint, log: PointLogRow, pointNumber: numb
     firstFault: firstFaultDetail,
     firstServeOutcome,
     secondServeOutcome,
-    hasAudioNote: log.hasAudioNote,
+    hasAudioNote: Boolean(log.hasAudioNote ?? (log.audioNoteDuration != null)),
     audioNoteDuration: log.audioNoteDuration ?? undefined,
     pointDetails: {
       ...p.pointDetails,

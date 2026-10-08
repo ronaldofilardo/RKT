@@ -147,7 +147,6 @@ export async function POST(
           audioNote: audioBuffer,
           audioNoteMime: mime,
           audioNoteDuration: durationMs,
-          hasAudioNote: true,
         },
       });
 
@@ -196,7 +195,6 @@ export async function DELETE(
           audioNote: null,
           audioNoteMime: null,
           audioNoteDuration: null,
-          hasAudioNote: false,
         },
       });
 

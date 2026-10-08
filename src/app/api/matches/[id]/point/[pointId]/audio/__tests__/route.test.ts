@@ -118,7 +118,6 @@ describe('POST /api/matches/[id]/point/[pointId]/audio', () => {
       data: expect.objectContaining({
         audioNoteMime: 'audio/webm',
         audioNoteDuration: 5000,
-        hasAudioNote: true,
       }),
     });
   });
@@ -192,7 +191,7 @@ describe('DELETE /api/matches/[id]/point/[pointId]/audio', () => {
     expect(res.status).toBe(204);
     expect(mockPointLog.update).toHaveBeenCalledWith({
       where: { id: 'point1' },
-      data: { audioNote: null, audioNoteMime: null, audioNoteDuration: null, hasAudioNote: false },
+      data: { audioNote: null, audioNoteMime: null, audioNoteDuration: null },
     });
   });
 

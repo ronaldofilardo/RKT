@@ -132,8 +132,6 @@ export async function GET(
           sequenceNumber: true,
           clientEventId: true,
           annotations: true,
-
-          hasAudioNote: true,
           audioNoteDuration: true,
         },
       }) as PointLogRow[];
@@ -205,7 +203,6 @@ export async function GET(
           category: true,
           author: { select: { name: true } },
           createdAt: true,
-          hasAudioNote: true,
           audioNoteDuration: true,
         },
         orderBy: { createdAt: 'asc' },
@@ -235,7 +232,7 @@ export async function GET(
           category: c.category,
           authorName: c.author.name,
           createdAt: c.createdAt.toISOString(),
-          hasAudioNote: c.hasAudioNote,
+          hasAudioNote: c.audioNoteDuration != null,
           audioNoteDuration: c.audioNoteDuration,
         })),
         summary,

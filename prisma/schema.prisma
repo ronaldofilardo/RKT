@@ -120,7 +120,6 @@ model PointLog {
   audioNote         Bytes?
   audioNoteMime     String?
   audioNoteDuration Int?
-  hasAudioNote      Boolean   @default(false)
   sequenceNumber   Int?
   clientEventId     String?
   voidedAt         DateTime?
@@ -178,7 +177,6 @@ model MatchComment {
   audioNote         Bytes?
   audioNoteMime     String?
   audioNoteDuration Int?
-  hasAudioNote      Boolean   @default(false)
 
   @@index([matchId, createdAt])
   @@map("match_comments")
