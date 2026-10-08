@@ -661,8 +661,8 @@ describe('engine.flow — Characterization Tests', () => {
       expect(getGamesToTiebreak(createConfig('PRO_SET_8'))).toBe(9);
     });
 
-    it('returns 3 for SHORT_SET_2V2_NO_AD', () => {
-      expect(getGamesToTiebreak(createConfig('SHORT_SET_2V2_NO_AD'))).toBe(3);
+    it('returns 6 for SHORT_SET_2V2_NO_AD', () => {
+      expect(getGamesToTiebreak(createConfig('SHORT_SET_2V2_NO_AD'))).toBe(6);
     });
 
     it('returns 6 for other formats', () => {

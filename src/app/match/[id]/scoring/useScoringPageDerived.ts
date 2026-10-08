@@ -87,16 +87,22 @@ function deriveEditScoreCurrentSets(
   effectiveScoreState: ScoringState | null,
   format?: string,
 ): { player1: number; player2: number } {
-  const initialVal = format ? getInitialGames(format as TennisFormat) : 0;
+  const defaultInitialVal = format ? getInitialGames(format as TennisFormat) : 0;
   
-  if (!effectiveScoreState) return { player1: initialVal, player2: initialVal };
+  if (!effectiveScoreState) return { player1: defaultInitialVal, player2: defaultInitialVal };
   
   const lastSet = effectiveScoreState.sets[effectiveScoreState.sets.length - 1];
-  if (!lastSet) return { player1: initialVal, player2: initialVal };
+  if (!lastSet) return { player1: defaultInitialVal, player2: defaultInitialVal };
   
   // Se o último set já está finalizado, significa que estamos num set NOVO (que ainda não foi pro array de sets)
   if (isSetCompleted(lastSet, format as TennisFormat, effectiveScoreState.sets.length - 1, effectiveScoreState.setsWon)) {
-    return { player1: initialVal, player2: initialVal };
+    const isNextMtSet = isMatchTiebreakSetIndex(
+      format as TennisFormat | undefined,
+      effectiveScoreState.sets.length,
+      effectiveScoreState.setsWon,
+    );
+    const initialGames = isNextMtSet ? 0 : defaultInitialVal;
+    return { player1: initialGames, player2: initialGames };
   }
 
   if (lastSet.isTiebreak && lastSet.tiebreakScore) {

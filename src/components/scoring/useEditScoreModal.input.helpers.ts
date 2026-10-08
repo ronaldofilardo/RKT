@@ -139,6 +139,8 @@ export function performAddSet(params: {
     p2Input: resetStr,
     tiebreakP1: "",
     tiebreakP2: "",
+    p1Points: "0",
+    p2Points: "0",
     nextServer: calculateNextServer({
       currentServer: params.currentServer,
       initialServer: params.initialServer,
@@ -166,17 +168,6 @@ export function performConfirmSet(
     return;
   }
   handleAddSet();
-  const initGames = getInitialGames(matchFormat);
-  const resetStr = initGames > 0 ? String(initGames) : "";
-  setState((prev) => ({
-    ...prev,
-    p1Input: resetStr,
-    p2Input: resetStr,
-    tiebreakP1: "",
-    tiebreakP2: "",
-    p1Points: "0",
-    p2Points: "0",
-  }));
   inputTouchedRef.current = { p1: false, p2: false };
 }
 
