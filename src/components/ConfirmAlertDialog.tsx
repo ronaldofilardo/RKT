@@ -89,6 +89,7 @@ export function ConfirmAlertDialog({
   return createPortal(
     <div className="fixed inset-0 z-[60] flex items-center justify-center px-4" data-testid="confirm-alert-dialog-overlay">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" aria-hidden="true" />
+      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
       <div
         ref={dialogRef}
         role="alertdialog"
@@ -96,6 +97,7 @@ export function ConfirmAlertDialog({
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
         onKeyDown={handleKeyDown}
+        tabIndex={-1}
         className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-telemetry-card p-6 text-center shadow-2xl"
       >
         <h2 id={titleId} className="mb-2 text-xl font-bold text-telemetry-text-primary">
