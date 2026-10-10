@@ -202,15 +202,19 @@ describe('AtletasPage (characterization)', () => {
       });
     });
 
-    it('deve redirecionar para /login quando não há access_token', async () => {
+    it('NÃO deve redirecionar para /login quando só falta access_token no sessionStorage (o token vive no cookie httpOnly)', async () => {
       mockSessionStorage.setItem('user_role', 'ADMIN');
       mockSessionStorage.setItem('access_token', null);
 
       render(<AtletasPage />);
 
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith('/login');
+        expect(global.fetch).toHaveBeenCalledWith(
+          '/api/players?userId=user-456',
+          expect.anything(),
+        );
       });
+      expect(mockPush).not.toHaveBeenCalledWith('/login');
     });
 
 

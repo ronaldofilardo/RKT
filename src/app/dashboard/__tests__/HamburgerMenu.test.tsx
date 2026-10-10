@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import DashboardPage from '@/app/dashboard/page';
 import { useRouter, usePathname } from 'next/navigation';
 
@@ -259,8 +259,9 @@ describe('DashboardPage - Menu Hamburguer (TD-046)', () => {
   it('deve chamar handleLogout ao clicar no item Sair', async () => {
     const sessionStorageMock = setupSessionStorage('user-123', 'ATHLETE');
 
-    // Mock do confirm para retornar true
-    window.confirm = jest.fn(() => true);
+    // O logout usa um alertdialog integrado ao sistema; window.confirm nativo não pode ser usado
+    const confirmSpy = jest.fn(() => true);
+    window.confirm = confirmSpy;
 
     render(<DashboardPage />);
 
@@ -271,10 +272,33 @@ describe('DashboardPage - Menu Hamburguer (TD-046)', () => {
     const logoutItem = sairItems[1];
     fireEvent.click(logoutItem);
 
+    // Ainda não saiu: aguardando a confirmação no alertdialog
+    const dialog = await screen.findByRole('alertdialog');
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(mockRouter.replace).not.toHaveBeenCalledWith('/login');
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Sair' }));
+
     // clearAuthState chama removeItem para cada chave
     expect(sessionStorageMock.removeItem).toHaveBeenCalled();
     // Verifica se navegou para /login
     expect(mockRouter.replace).toHaveBeenCalledWith('/login');
+  });
+
+  it('deve cancelar o logout pelo alertdialog sem limpar a sessão', async () => {
+    setupSessionStorage('user-123', 'ATHLETE');
+
+    render(<DashboardPage />);
+
+    await openMenu();
+
+    fireEvent.click(screen.getAllByText(/sair/i)[1]);
+
+    const dialog = await screen.findByRole('alertdialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
+
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(mockRouter.replace).not.toHaveBeenCalledWith('/login');
   });
 
   it('deve renderizar itens de menu com estilo adequado', async () => {

@@ -20,6 +20,7 @@ import { DashboardSidebar } from "./components/DashboardSidebar";
 import { DashboardViewRouter } from "./components/DashboardViewRouter";
 import { ServerSelectionModal } from "@/app/match/new/components/ServerSelectionModal";
 import { SetSummaryModal } from "@/components/scoring/SetSummaryModal";
+import { ConfirmAlertDialog } from "@/components/ConfirmAlertDialog";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -28,6 +29,7 @@ export default function DashboardPage() {
   const { setSession, setPendingEdit } = useSession();
   const [selectedMatchForServer, setSelectedMatchForServer] = useState<any | null>(null);
   const [startingMatch, setStartingMatch] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [setSummaryMatch, setSetSummaryMatch] = useState<any | null>(null);
   const [setSummaryTimelinePoints, setSetSummaryTimelinePoints] = useState<any[]>([]);
 
@@ -185,14 +187,17 @@ export default function DashboardPage() {
 
   const handleLogout = useCallback(() => {
     logger.info("[DashboardPage] logout click");
-    if (window.confirm("Deseja realmente sair?")) {
-      try {
-        clearAuthState();
-      } catch (err) {
-        logger.error("[logout] Erro ao limpar auth state", err);
-      }
-      router.replace("/login");
+    setLogoutConfirmOpen(true);
+  }, []);
+
+  const confirmLogout = useCallback(() => {
+    setLogoutConfirmOpen(false);
+    try {
+      clearAuthState();
+    } catch (err) {
+      logger.error("[logout] Erro ao limpar auth state", err);
     }
+    router.replace("/login");
   }, [router]);
 
   const isAdmin = user?.role === "ADMIN";
@@ -278,6 +283,15 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      <ConfirmAlertDialog
+        open={logoutConfirmOpen}
+        title="Sair?"
+        description="Deseja realmente sair?"
+        confirmLabel="Sair"
+        onConfirm={confirmLogout}
+        onCancel={() => setLogoutConfirmOpen(false)}
+      />
 
       {selectedMatchForServer && (
         <ServerSelectionModal

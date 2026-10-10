@@ -67,9 +67,12 @@ export default function AtletasPage() {
   }, []);
 
   useEffect(() => {
+    // A autenticação real é o cookie httpOnly `rkt_access_token` (validado pelo
+    // middleware e pela API). O sessionStorage guarda apenas user_id/user_role —
+    // `access_token` NÃO é mais gravado no login, então exigi-lo aqui mandava o
+    // usuário SEMPRE de volta para /login ao abrir "Atletas" pelo menu.
     const userRole = sessionStorage.getItem('user_role');
-    const accessToken = sessionStorage.getItem('access_token');
-    if (!userRole || !accessToken) {
+    if (!userRole) {
       router.push('/login');
       return;
     }

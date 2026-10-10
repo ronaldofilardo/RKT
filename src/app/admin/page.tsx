@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { ConfirmAlertDialog } from '@/components/ConfirmAlertDialog';
 
 export interface User {
   id: string;
@@ -24,14 +25,19 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [newRole, setNewRole] = useState('');
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [deletingUser, setDeletingUser] = useState(false);
 
   const token = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
 
   useEffect(() => {
+    // O token real vive no cookie httpOnly `rkt_access_token` (middleware/API);
+    // o sessionStorage guarda só user_id/user_role. Exigir `access_token` aqui
+    // redirecionava para /login mesmo com sessão válida.
     const userRole = sessionStorage.getItem('user_role');
-    const accessToken = sessionStorage.getItem('access_token');
 
-    if (!userRole || !accessToken) {
+    if (!userRole) {
       router.push('/login');
       return;
     }
@@ -46,7 +52,11 @@ export default function AdminPage() {
   }, [router]);
 
   const handleLogout = () => {
-    if (!confirm('Tem certeza que deseja sair?')) return;
+    setLogoutConfirmOpen(true);
+  };
+
+  const confirmLogout = () => {
+    setLogoutConfirmOpen(false);
     sessionStorage.clear();
     router.push('/login');
   };
@@ -83,11 +93,16 @@ export default function AdminPage() {
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
+  const handleDeleteUser = (u: User) => {
+    setUserToDelete(u);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
     setError(null);
+    setDeletingUser(true);
     try {
-      const res = await fetch(`/api/admin/users/${userId}`, {
+      const res = await fetch(`/api/admin/users/${userToDelete.id}`, {
         method: 'DELETE',
         headers: { authorization: `Bearer ${token}` },
       });
@@ -95,6 +110,9 @@ export default function AdminPage() {
       await loadUsers();
     } catch {
       setError('Erro ao excluir usuário');
+    } finally {
+      setDeletingUser(false);
+      setUserToDelete(null);
     }
   };
 
@@ -198,7 +216,7 @@ export default function AdminPage() {
                               Alterar Perfil
                             </button>
                             <button
-                              onClick={() => handleDeleteUser(u.id)}
+                              onClick={() => handleDeleteUser(u)}
                               className="text-xs text-red-600 hover:underline ml-2"
                             >
                               Excluir
@@ -220,6 +238,31 @@ export default function AdminPage() {
           </button>
         </div>
       </main>
+
+      <ConfirmAlertDialog
+        open={logoutConfirmOpen}
+        title="Sair?"
+        description="Tem certeza que deseja sair?"
+        confirmLabel="Sair"
+        onConfirm={confirmLogout}
+        onCancel={() => setLogoutConfirmOpen(false)}
+      />
+
+      <ConfirmAlertDialog
+        open={userToDelete !== null}
+        title="Excluir usuário?"
+        description={
+          userToDelete
+            ? `${userToDelete.name} (${userToDelete.email}) será excluído. Esta ação não pode ser desfeita.`
+            : undefined
+        }
+        confirmLabel="Excluir"
+        loadingLabel="Excluindo..."
+        variant="danger"
+        loading={deletingUser}
+        onConfirm={confirmDeleteUser}
+        onCancel={() => setUserToDelete(null)}
+      />
     </div>
   );
 }
