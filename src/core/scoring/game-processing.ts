@@ -103,6 +103,8 @@ function validateGameWinner(gameWinner: 'player1' | 'player2', currentSet: SetSc
 function resolveActiveSet(state: ScoringState, config: ScoringEngineConfig): {
   currentSet: SetScore;
   currentSetIndex: number;
+  /** true quando o set ativo ainda NÃO existe em state.sets (deve ser empilhado). */
+  isNewSet: boolean;
 } {
   const currentSetIndex = state.sets.length === 0 ? 0 : state.sets.length - 1;
   let currentSet = state.sets[currentSetIndex] ?? createEmptySetForFormat(config.format);
@@ -114,11 +116,13 @@ function resolveActiveSet(state: ScoringState, config: ScoringEngineConfig): {
     !currentSet.isTiebreak &&
     (currentSet.player1 > initGames || currentSet.player2 > initGames);
 
+  const isNewSet = state.sets.length === 0 || lastSetAlreadyDecided || isPreviousComplete;
+
   if (lastSetAlreadyDecided || isPreviousComplete) {
     currentSet = createEmptySetForFormat(config.format);
   }
 
-  return { currentSet, currentSetIndex };
+  return { currentSet, currentSetIndex, isNewSet };
 }
 
 function shouldTriggerTiebreak(newSet: SetScore, state: ScoringState, config: ScoringEngineConfig): boolean {
@@ -171,7 +175,7 @@ export function handleGameWon(
   state: ScoringState,
   config: ScoringEngineConfig,
 ): ScoringState {
-  const { currentSet, currentSetIndex } = resolveActiveSet(state, config);
+  const { currentSet, currentSetIndex, isNewSet } = resolveActiveSet(state, config);
   validateGameWinner(gameWinner, currentSet);
 
   const newSet: SetScore = {
@@ -187,7 +191,16 @@ export function handleGameWon(
 
   const initGames = getInitialGames(config.format);
   const newSets = [...state.sets];
-  if (currentSet.player1 === initGames && currentSet.player2 === initGames && !currentSet.isTiebreak) {
+  // Formatos com placar inicial (Sets Curtos 2/2): o set em andamento já existe
+  // em state.sets com o placar inicial (2-2) e deve ser SUBSTITUÍDO pelo novo
+  // placar — só empilha quando o set ainda não existe no array. Antes, o 2-2
+  // inicial era confundido com "set novo" e empilhado, gerando um set fantasma
+  // 2-2 e deslocando todas as checagens baseadas em sets.length.
+  // Demais formatos (início em 0-0) mantêm a regra original.
+  const startsNewSet = initGames > 0
+    ? isNewSet
+    : currentSet.player1 === 0 && currentSet.player2 === 0 && !currentSet.isTiebreak;
+  if (startsNewSet) {
     newSets.push(newSet);
   } else {
     newSets[currentSetIndex] = newSet;

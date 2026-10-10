@@ -109,8 +109,6 @@ export function processTiebreakPoint(
 export function shouldStartTiebreak(set: SetScore, state: ScoringState, config: ScoringEngineConfig): boolean {
   const isFinalSet_ = isFinalSet(config);
 
-  if (config.format === 'SHORT_SET_2V2_NO_AD') return set.player1 === 3 && set.player2 === 3;
-
   if (isFinalSet_) {
     const games = getGamesToTiebreak(config);
     return set.player1 === games && set.player2 === games;
@@ -131,7 +129,11 @@ export function shouldStartTiebreak(set: SetScore, state: ScoringState, config: 
     return set.player1 === 6 && set.player2 === 6;
   }
 
-  if (config.format === 'BEST_OF_3_MATCH_TB' || config.format === 'BEST_OF_3_NO_AD') {
+  if (
+    config.format === 'BEST_OF_3_MATCH_TB' ||
+    config.format === 'BEST_OF_3_NO_AD' ||
+    config.format === 'SHORT_SET_2V2_NO_AD'
+  ) {
     const setsWon = state.setsWon;
     if (state.sets.length >= 2 && setsWon.player1 === 1 && setsWon.player2 === 1) {
       return false;

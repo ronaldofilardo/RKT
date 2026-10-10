@@ -1,9 +1,12 @@
 import type { ScoringEngineConfig, ScoringState, GameScore, HistoryEntry } from './types';
+import { getInitialGames, createEmptySetForFormat } from './format-rules';
 
 export function createInitialState(config: ScoringEngineConfig): ScoringState {
   const server = config.initialServerId === config.player1Id ? 'player1' : 'player2';
   return {
-    sets: [],
+    // Formatos com placar inicial (Sets Curtos 2/2) já nascem com o set 1 em 2-2,
+    // igual ao scoreState criado em matchService (buildCreateDefaults).
+    sets: getInitialGames(config.format) > 0 ? [createEmptySetForFormat(config.format)] : [],
     currentGame: {
       player1: 0,
       player2: 0,

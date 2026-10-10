@@ -173,25 +173,51 @@ describe('ScoringEngine - SHORT_SET_2V2_NO_AD', () => {
     expect(state.sets[0].player1).toBe(2);
   });
 
-  it('deve completar set em 4 games com diff 2 no SHORT_SET (iniciando em 2-2)', () => {
+  it('deve completar o set em 6 (4 games a partir do 2-2) com diff 2 no SHORT_SET', () => {
     const engine = new ScoringEngine(makeConfig('SHORT_SET_2V2_NO_AD'));
     for (let g = 0; g < 2; g++) winGame(engine, 'player-1-id');
 
-    const state = engine.getState();
-    expect(state.setsWon.player1).toBe(1);
+    // 4-2: o set NÃO termina (a regra de 4 games foi removida)
+    let state = engine.getState();
+    expect(state.setsWon.player1).toBe(0);
+    expect(state.sets).toHaveLength(1);
     expect(state.sets[0].player1).toBe(4);
     expect(state.sets[0].player2).toBe(2);
+
+    for (let g = 0; g < 2; g++) winGame(engine, 'player-1-id');
+
+    state = engine.getState();
+    expect(state.setsWon.player1).toBe(1);
+    expect(state.sets[0].player1).toBe(6);
+    expect(state.sets[0].player2).toBe(2);
+    // O set seguinte já nasce em 2-2 (sem set fantasma)
+    expect(state.sets).toHaveLength(2);
+    expect(state.sets[1].player1).toBe(2);
+    expect(state.sets[1].player2).toBe(2);
   });
 
-  it('deve iniciar tiebreak em 3-3 no SHORT_SET_2V2_NO_AD', () => {
+  it('não deve iniciar tiebreak em 3-3 nem 4-4 e deve iniciar em 6-6 no SHORT_SET_2V2_NO_AD', () => {
     const engine = new ScoringEngine(makeConfig('SHORT_SET_2V2_NO_AD'));
 
     winGame(engine, 'player-1-id');
     winGame(engine, 'player-2-id');
-
-    expect(engine.getState().sets[0].isTiebreak).toBe(true);
+    expect(engine.getState().sets[0].isTiebreak).toBe(false);
     expect(engine.getState().sets[0].player1).toBe(3);
     expect(engine.getState().sets[0].player2).toBe(3);
+
+    winGame(engine, 'player-1-id');
+    winGame(engine, 'player-2-id');
+    expect(engine.getState().sets[0].isTiebreak).toBe(false);
+
+    winGame(engine, 'player-1-id');
+    winGame(engine, 'player-2-id');
+    winGame(engine, 'player-1-id');
+    winGame(engine, 'player-2-id');
+
+    const state = engine.getState();
+    expect(state.sets[0].isTiebreak).toBe(true);
+    expect(state.sets[0].player1).toBe(6);
+    expect(state.sets[0].player2).toBe(6);
   });
 });
 

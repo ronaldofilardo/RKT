@@ -186,6 +186,28 @@ function normalizeRegularTiebreakSets(sets: Record<string, unknown>[], rawScoreS
   });
 }
 
+/**
+ * Legado — Sets Curtos 2/2: versões antigas do motor empilhavam o placar
+ * inicial 2-2 como se fosse um set (ex.: [2-2, 4-2, 4-2]). Um set 2-2 sem
+ * tiebreak que NÃO é o último item do array nunca é um set real (um set
+ * concluído não termina em 2-2), então é descartado para que a posição de
+ * cada set volte a bater com o número do set.
+ */
+function stripLegacyInitialPlaceholder(
+  sets: Record<string, unknown>[],
+  format?: TennisFormat,
+): Record<string, unknown>[] {
+  if (format !== 'SHORT_SET_2V2_NO_AD' || sets.length < 2) return sets;
+  const first = sets[0];
+  const isPlaceholder =
+    first &&
+    first.player1 === 2 &&
+    first.player2 === 2 &&
+    !first.isTiebreak &&
+    first.tiebreakScore == null;
+  return isPlaceholder ? sets.slice(1) : sets;
+}
+
 function ensureDefaultCurrentGame(parsed: Record<string, unknown>): NormalizedScoreState {
   return {
     ...parsed,
@@ -212,7 +234,7 @@ export function normalizeScoreState(
   const parsed = parseRawScoreState(rawScoreState);
   if (!parsed || !parsed.sets || !Array.isArray(parsed.sets)) return null;
 
-  let currentSets = parsed.sets;
+  let currentSets = stripLegacyInitialPlaceholder(parsed.sets, format);
 
   if (format && looksLikeMatchTiebreakFormat(format)) {
     currentSets = normalizeMatchTiebreakSets(currentSets, format);

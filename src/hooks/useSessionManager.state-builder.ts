@@ -3,7 +3,8 @@ import type { SetEditData } from "@/components/scoring/editScoreHelpers";
 import type { TennisFormat } from "@/core/scoring/types";
 import { parsePointValue } from "@/core/scoring/point-utils";
 import { isMatchTiebreakSet, calculateSetsWon } from "./useSessionManager.utils";
-import { getMatchFormatRules, validateSetScore } from "@/lib/matchConfig";
+import { getMatchFormatRules, validateSetScore, isMatchTiebreakSetIndex as isMatchTiebreakSetIndexCanonical } from "@/lib/matchConfig";
+import { createEmptySetForFormat } from "@/core/scoring/format-rules";
 
 interface BuildNewStateOptions {
   setResults: SetEditData[];
@@ -66,12 +67,7 @@ export function buildNewScoringState(options: BuildNewStateOptions): ScoringStat
     const lastEditSet = setResults[lastIdx];
     const lastIsFinalized = isLastSetEditFinalized(lastEditSet, format, setResults, lastIdx);
     if (lastIsFinalized) {
-      builtSets.push({
-        player1: 0,
-        player2: 0,
-        isTiebreak: false,
-        tiebreakScore: null,
-      });
+      builtSets.push(buildNextEmptySet(format, setsWon, builtSets.length));
     }
   }
 
@@ -85,6 +81,24 @@ export function buildNewScoringState(options: BuildNewStateOptions): ScoringStat
     startedAt: Date.now(),
     secondServe: false,
   };
+}
+
+// Set "em andamento" vazio que entra no array depois de um set finalizado.
+// Sets Curtos 2/2: o próximo set nasce em 2-2 (e não 0-0) — ou como Match
+// Tiebreak (games 0-0, tiebreak 0-0) quando a partida está 1x1. Demais
+// formatos mantêm o set vazio 0-0.
+function buildNextEmptySet(
+  format: TennisFormat,
+  setsWon: { player1: number; player2: number },
+  nextIndex: number,
+): ScoringState["sets"][number] {
+  if (format === "SHORT_SET_2V2_NO_AD") {
+    if (isMatchTiebreakSetIndexCanonical(nextIndex, setsWon, format)) {
+      return { player1: 0, player2: 0, isTiebreak: true, tiebreakScore: { player1: 0, player2: 0 } };
+    }
+    return createEmptySetForFormat(format);
+  }
+  return { player1: 0, player2: 0, isTiebreak: false, tiebreakScore: null };
 }
 
 // Verifica se o último SetEditData confirmado pelo usuário está "finalizado"

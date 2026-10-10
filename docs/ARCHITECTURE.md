@@ -187,6 +187,7 @@ As decisões arquiteturais estruturantes do projeto foram consolidadas diretamen
 - **Problema:** Regras de 7 formatos de partida dispersas em múltiplos switches (`engine.flow.ts`, `lib/matchConfig.ts`, `components/scoring/editScoreHelpers.ts`).
 - **Decisão:** Unificação via Strategy (`format-rules.ts` / interface de regras de formato). Cada formato encapsula: `setsToWin`, `gamesToTiebreak`, `usesNoAd`, `isMatchTiebreak`, `initialGames` e ativação de tiebreak no set final.
 - **Formatos suportados:** `BEST_OF_3`, `BEST_OF_3_NO_AD`, `BEST_OF_3_MATCH_TB`, `BEST_OF_5`, `MATCH_TB_10`, `PRO_SET_8`, `SHORT_SET_2V2_NO_AD`.
+- **`SHORT_SET_2V2_NO_AD` ("Sets Curtos 2/2"):** sem vantagem (ponto decisivo em 40-40). Os sets 1 e 2 **começam em 2-2** (`getInitialGames`) e terminam em **6** (por 2 de diferença; 6-6 → tiebreak de 7 pontos, set 7-6). O 3º set (quando 1x1) é um Match Tiebreak de 10 pontos. O set em andamento sempre existe em `scoreState.sets` (o 2-2 inicial é substituído pelo primeiro game, nunca empilhado). A antiga regra de "4 games / tiebreak em 3-3" foi removida.
 
 ### ADR-0004 — Repository Pattern para Acesso a Dados
 - **Problema:** Singleton global do `PrismaClient` importado indiscriminadamente em controllers e services, violando DIP e dificultando mocks unitários.

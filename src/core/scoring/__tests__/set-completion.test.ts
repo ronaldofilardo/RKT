@@ -277,16 +277,32 @@ describe('isSetComplete', () => {
   });
 
   describe('No-Ad format', () => {
-    it('deve retornar true para SHORT_SET_2V2_NO_AD com 4+ games e diff >= 2', () => {
-      const set: SetScore = { player1: 4, player2: 2, isTiebreak: false, tiebreakScore: null };
+    it('deve retornar true para SHORT_SET_2V2_NO_AD com 6+ games e diff >= 2', () => {
       const config = createConfig({ format: 'SHORT_SET_2V2_NO_AD' });
-      expect(isSetComplete(set, { player1: 0, player2: 0 }, config, [])).toBe(true);
+      const set62: SetScore = { player1: 6, player2: 2, isTiebreak: false, tiebreakScore: null };
+      const set75: SetScore = { player1: 7, player2: 5, isTiebreak: false, tiebreakScore: null };
+      expect(isSetComplete(set62, { player1: 0, player2: 0 }, config, [])).toBe(true);
+      expect(isSetComplete(set75, { player1: 0, player2: 0 }, config, [])).toBe(true);
     });
 
-    it('deve retornar false para SHORT_SET_2V2_NO_AD com diff < 2', () => {
-      const set: SetScore = { player1: 3, player2: 2, isTiebreak: false, tiebreakScore: null };
+    it('deve retornar false para SHORT_SET_2V2_NO_AD com menos de 6 games (a regra de 4 games foi removida)', () => {
+      const config = createConfig({ format: 'SHORT_SET_2V2_NO_AD' });
+      const set42: SetScore = { player1: 4, player2: 2, isTiebreak: false, tiebreakScore: null };
+      const set52: SetScore = { player1: 5, player2: 2, isTiebreak: false, tiebreakScore: null };
+      expect(isSetComplete(set42, { player1: 0, player2: 0 }, config, [])).toBe(false);
+      expect(isSetComplete(set52, { player1: 0, player2: 0 }, config, [])).toBe(false);
+    });
+
+    it('deve retornar false para SHORT_SET_2V2_NO_AD com diff < 2 (6-5)', () => {
+      const set: SetScore = { player1: 6, player2: 5, isTiebreak: false, tiebreakScore: null };
       const config = createConfig({ format: 'SHORT_SET_2V2_NO_AD' });
       expect(isSetComplete(set, { player1: 0, player2: 0 }, config, [])).toBe(false);
+    });
+
+    it('deve retornar true para SHORT_SET_2V2_NO_AD decidido por tiebreak em 7-6', () => {
+      const set: SetScore = { player1: 7, player2: 6, isTiebreak: false, tiebreakScore: { player1: 7, player2: 4 } };
+      const config = createConfig({ format: 'SHORT_SET_2V2_NO_AD' });
+      expect(isSetComplete(set, { player1: 0, player2: 0 }, config, [])).toBe(true);
     });
 
     it('deve retornar true para BEST_OF_3_NO_AD com 6+ games e diff >= 2', () => {
@@ -314,5 +330,54 @@ describe('isSetComplete', () => {
       const config = createConfig({ format: 'PRO_SET_8' });
       expect(isSetComplete(set, { player1: 0, player2: 0 }, config, [])).toBe(false);
     });
+  });
+});
+
+describe('completeSet — encerramento e Sets Curtos 2/2', () => {
+  it('deve zerar currentGame quando a partida termina (sem game residual)', () => {
+    const state = createBaseState({
+      setsWon: { player1: 1, player2: 0 },
+      currentGame: { player1: 3, player2: 1, isDeuce: false, advantage: null, secondServe: false },
+    });
+    const config = createConfig();
+    const sets = [{ player1: 6, player2: 3, isTiebreak: false, tiebreakScore: null }];
+
+    const result = completeSet('player1', sets[0], sets, 'player2', state, config);
+    expect(result.isFinished).toBe(true);
+    expect(result.currentGame).toEqual({ player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false });
+  });
+
+  it('SHORT_SET_2V2_NO_AD: após o set 1 empilha o set 2 já em 2-2', () => {
+    const state = createBaseState();
+    const config = createConfig({ format: 'SHORT_SET_2V2_NO_AD' });
+    const sets = [{ player1: 6, player2: 2, isTiebreak: false, tiebreakScore: null }];
+
+    const result = completeSet('player1', sets[0], sets, 'player2', state, config);
+    expect(result.setsWon).toEqual({ player1: 1, player2: 0 });
+    expect(result.sets).toHaveLength(2);
+    expect(result.sets[1]).toEqual({ player1: 2, player2: 2, isTiebreak: false, tiebreakScore: null });
+  });
+
+  it('SHORT_SET_2V2_NO_AD: com 1x1 empilha o Match Tiebreak (e não um set 2-2)', () => {
+    const state = createBaseState({ setsWon: { player1: 1, player2: 0 } });
+    const config = createConfig({ format: 'SHORT_SET_2V2_NO_AD' });
+    const sets = [
+      { player1: 6, player2: 2, isTiebreak: false, tiebreakScore: null },
+      { player1: 2, player2: 6, isTiebreak: false, tiebreakScore: null },
+    ];
+
+    const result = completeSet('player2', sets[1], sets, 'player1', state, config);
+    expect(result.setsWon).toEqual({ player1: 1, player2: 1 });
+    expect(result.sets).toHaveLength(3);
+    expect(result.sets[2]).toMatchObject({ isTiebreak: true, tiebreakScore: { player1: 0, player2: 0 } });
+  });
+
+  it('formatos que iniciam em 0-0 não empilham set vazio ao completar o set', () => {
+    const state = createBaseState();
+    const config = createConfig({ format: 'BEST_OF_3' });
+    const sets = [{ player1: 6, player2: 4, isTiebreak: false, tiebreakScore: null }];
+
+    const result = completeSet('player1', sets[0], sets, 'player2', state, config);
+    expect(result.sets).toHaveLength(1);
   });
 });

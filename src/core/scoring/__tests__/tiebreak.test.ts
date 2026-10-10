@@ -268,18 +268,19 @@ describe('shouldStartTiebreak', () => {
     expect(shouldStartTiebreak(set, state, config)).toBe(false);
   });
 
-  it('deve retornar true em 3-3 para SHORT_SET_2V2_NO_AD', () => {
-    const set = makeSet({ player1: 3, player2: 3 });
+  it('deve retornar true em 6-6 para SHORT_SET_2V2_NO_AD', () => {
+    const set = makeSet({ player1: 6, player2: 6 });
     const state = createBaseState();
     const config = createConfig({ format: 'SHORT_SET_2V2_NO_AD' });
     expect(shouldStartTiebreak(set, state, config)).toBe(true);
   });
 
-  it('deve retornar false quando SHORT_SET_2V2_NO_AD não está em 3-3', () => {
-    const set = makeSet({ player1: 2, player2: 3 });
+  it('deve retornar false em 3-3 e 4-4 para SHORT_SET_2V2_NO_AD (regra de 4 games removida)', () => {
     const state = createBaseState();
     const config = createConfig({ format: 'SHORT_SET_2V2_NO_AD' });
-    expect(shouldStartTiebreak(set, state, config)).toBe(false);
+    expect(shouldStartTiebreak(makeSet({ player1: 3, player2: 3 }), state, config)).toBe(false);
+    expect(shouldStartTiebreak(makeSet({ player1: 4, player2: 4 }), state, config)).toBe(false);
+    expect(shouldStartTiebreak(makeSet({ player1: 2, player2: 3 }), state, config)).toBe(false);
   });
 
   it('deve retornar true em 6-6 para BEST_OF_3_MATCH_TB quando 0-0 com 1 set', () => {

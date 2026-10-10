@@ -5,6 +5,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { RoundSelector } from '../RoundSelector';
 
 const ALL_OPTIONS = [
+  { value: 'round robin', label: 'Round Robin' },
   { value: '1a rodada', label: '1a Rodada' },
   { value: 'oitavas', label: 'Oitavas' },
   { value: 'quartas', label: 'Quartas' },
@@ -39,9 +40,10 @@ describe('RoundSelector', () => {
       expect(screen.queryByText('Selecione a rodada')).not.toBeInTheDocument();
     });
 
-    it('deve renderizar exatamente as 5 opções padrão (sem "Outras")', () => {
+    it('deve renderizar exatamente as 6 opções padrão (sem "Outras")', () => {
       render(<RoundSelector value="" onChange={mockOnChange} />);
 
+      expect(screen.getByText('Round Robin')).toBeInTheDocument();
       expect(screen.getByText('1a Rodada')).toBeInTheDocument();
       expect(screen.getByText('Oitavas')).toBeInTheDocument();
       expect(screen.getByText('Quartas')).toBeInTheDocument();
@@ -63,11 +65,19 @@ describe('RoundSelector', () => {
       expect(values).not.toContain('outras');
     });
 
-    it('total de options = 1 placeholder + 5 opções = 6', () => {
+    it('total de options = 1 placeholder + 6 opções = 7', () => {
       render(<RoundSelector value="" onChange={mockOnChange} />);
 
       const select = screen.getByRole('combobox') as HTMLSelectElement;
-      expect(select.options.length).toBe(6);
+      expect(select.options.length).toBe(7);
+    });
+
+    it('deve listar "Round Robin" (value="round robin") logo após o placeholder', () => {
+      render(<RoundSelector value="" onChange={mockOnChange} />);
+
+      const select = screen.getByRole('combobox') as HTMLSelectElement;
+      expect(select.options[1].value).toBe('round robin');
+      expect(select.options[1].textContent).toBe('Round Robin');
     });
   });
 

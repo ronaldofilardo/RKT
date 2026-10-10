@@ -150,7 +150,8 @@ describe('ScoringEngine - Format SHORT_SET_2V2_NO_AD', () => {
     });
 
     const state = engine.getState();
-    expect(state.sets).toEqual([]);
+    // Sets Curtos 2/2: o set 1 já nasce em 2-2
+    expect(state.sets).toEqual([{ player1: 2, player2: 2, isTiebreak: false, tiebreakScore: null }]);
     expect(state.isFinished).toBe(false);
   });
 });

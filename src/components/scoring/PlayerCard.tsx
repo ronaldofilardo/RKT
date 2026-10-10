@@ -52,6 +52,10 @@ function formatScore(state: ScoreState | null, side: 'player1' | 'player2'): str
     return String(side === 'player1' ? set.tiebreakScore.player1 : set.tiebreakScore.player2);
   }
 
+  // Partida encerrada: não há game em andamento (também protege partidas
+  // antigas, salvas com o último game "preso" no scoreState, ex.: 40-15).
+  if (state.isFinished) return '-';
+
   if (game.isDeuce) {
     if (game.advantage === side) return 'ADV';
     if (game.advantage !== null) return '40';
@@ -70,6 +74,8 @@ function getGameProgress(state: ScoreState | null, side: 'player1' | 'player2'):
     const pts = side === 'player1' ? set.tiebreakScore.player1 : set.tiebreakScore.player2;
     return Math.min(pts / 7, 1);
   }
+
+  if (state.isFinished) return 0;
 
   if (game.isDeuce) {
     if (game.advantage === side) return 1;

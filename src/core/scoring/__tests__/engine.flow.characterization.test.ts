@@ -462,11 +462,12 @@ describe('engine.flow — Characterization Tests', () => {
   });
 
   describe('shouldStartTiebreak', () => {
-    it('returns true at 3-3 for SHORT_SET_2V2_NO_AD', () => {
+    it('returns false at 3-3 and 4-4 and true at 6-6 for SHORT_SET_2V2_NO_AD (regra de 4 games removida)', () => {
       const config = createConfig('SHORT_SET_2V2_NO_AD');
-      const set = createSetScore(3, 3);
       const state = createInitialState(config);
-      expect(shouldStartTiebreak(set, state, config)).toBe(true);
+      expect(shouldStartTiebreak(createSetScore(3, 3), state, config)).toBe(false);
+      expect(shouldStartTiebreak(createSetScore(4, 4), state, config)).toBe(false);
+      expect(shouldStartTiebreak(createSetScore(6, 6), state, config)).toBe(true);
     });
 
     it('returns false at 4-4 and true at 6-6 for BEST_OF_3_NO_AD', () => {
@@ -529,9 +530,9 @@ describe('engine.flow — Characterization Tests', () => {
       expect(shouldStartTiebreak(set9, state, config)).toBe(true);
     });
 
-    it('uses 3-3 for SHORT_SET_2V2_NO_AD', () => {
+    it('uses 6-6 for SHORT_SET_2V2_NO_AD', () => {
       const config = createConfig('SHORT_SET_2V2_NO_AD');
-      const set = createSetScore(3, 3);
+      const set = createSetScore(6, 6);
       const state = createInitialState(config);
       expect(shouldStartTiebreak(set, state, config)).toBe(true);
     });
@@ -598,10 +599,12 @@ describe('engine.flow — Characterization Tests', () => {
       expect(isSetComplete(set, { player1: 0, player2: 0 }, config, [set])).toBe(true);
     });
 
-    it('uses No-Ad rules (4 games, 2 margin) for SHORT_SET_2V2_NO_AD', () => {
+    it('uses 6 games with 2 margin for SHORT_SET_2V2_NO_AD (4-2 ainda não encerra o set)', () => {
       const config = createConfig('SHORT_SET_2V2_NO_AD');
-      const set = createSetScore(4, 2);
-      expect(isSetComplete(set, { player1: 0, player2: 0 }, config, [set])).toBe(true);
+      const set62 = createSetScore(6, 2);
+      const set42 = createSetScore(4, 2);
+      expect(isSetComplete(set62, { player1: 0, player2: 0 }, config, [set62])).toBe(true);
+      expect(isSetComplete(set42, { player1: 0, player2: 0 }, config, [set42])).toBe(false);
     });
 
     it('uses 8 games for PRO_SET_8', () => {

@@ -1,6 +1,6 @@
 import type { ScoringEngineConfig, ScoringState, SetScore } from './types';
 import { createEmptyGame } from './engine.state';
-import { getSetsToWin, usesNoAd, isFinalSet, getGamesToTiebreak } from './format-rules';
+import { getSetsToWin, isFinalSet, getGamesToTiebreak, getInitialGames, createEmptySetForFormat } from './format-rules';
 
 const DECISIVE_MATCH_TB_FORMATS = new Set([
   'BEST_OF_3_MATCH_TB',
@@ -28,10 +28,13 @@ function isTiebreakComplete(
   return tbMax >= tbMin && tbDiff >= 2;
 }
 
+/**
+ * Games que o vencedor precisa alcançar para fechar um set (por 2 de diferença,
+ * ou 7-6 via tiebreak). É sempre o PLACAR FINAL do set, não a quantidade de
+ * games disputados: no formato Sets Curtos 2/2 o set começa em 2-2 e termina
+ * em 6 — a regra de "4 games" é legado e não existe mais.
+ */
 function getRequiredGamesToWinSet(config: ScoringEngineConfig): number {
-  if (usesNoAd(config)) {
-    return config.format === 'SHORT_SET_2V2_NO_AD' ? 4 : 6;
-  }
   if (isFinalSet(config)) {
     return config.format === 'PRO_SET_8' ? 8 : getGamesToTiebreak(config);
   }
@@ -79,11 +82,19 @@ export function completeSet(
   if (matchWinner) {
     state.isFinished = true;
     state.winner = matchWinner;
+    // Partida encerrada: não existe game em andamento. Sem isso o último game
+    // (ex.: 40-15) ficava "preso" no placar da partida finalizada.
+    state.currentGame = createEmptyGame();
     return state;
   }
 
   if (DECISIVE_MATCH_TB_FORMATS.has(config.format) && setsWon.player1 === 1 && setsWon.player2 === 1) {
     newSets.push(createMatchTiebreakSet());
+  } else if (getInitialGames(config.format) > 0) {
+    // Formatos com placar inicial (Sets Curtos 2/2): o próximo set já nasce
+    // com o placar inicial (2-2), mantendo a invariante "último item de
+    // sets[] = set em andamento" (timeline e scoreboard dependem dela).
+    newSets.push(createEmptySetForFormat(config.format));
   }
 
   state.currentGame = createEmptyGame();
@@ -122,7 +133,7 @@ export function isSetComplete(
   }
 
   // Se o set tem tiebreakScore, mas isTiebreak=false, ele foi decidido por tiebreak e já concluído.
-  // Nesse caso, o vencedor tem 1 game de vantagem (ex: 7-6 ou 5-4 em short sets).
+  // Nesse caso, o vencedor tem 1 game de vantagem (ex: 7-6).
   if (!set.isTiebreak && set.tiebreakScore) {
     const diff = Math.abs(set.player1 - set.player2);
     const needed = getRequiredGamesToWinSet(config);
