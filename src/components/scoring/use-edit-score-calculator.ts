@@ -22,6 +22,7 @@ interface UseEditScoreCalculatorParams {
   tiebreakP2: string;
   currentSets?: { player1: number; player2: number };
   floorCurrentSets?: { player1: number; player2: number } | null;
+  floorTiebreak?: { player1: number; player2: number } | null;
 }
 
 interface EditScoreCalculations {
@@ -122,9 +123,19 @@ function checkScoreBoundsAndTiebreak(
   p2Val: number,
   floorCurrentSets: { player1: number; player2: number } | null | undefined,
   tiebreakImpossible: boolean,
+  floorTiebreak?: { player1: number; player2: number } | null,
+  hasTiebreak?: boolean,
+  isSetTrulyCompleted?: boolean,
+  tbP1Num?: number,
+  tbP2Num?: number,
 ): boolean {
   if (floorCurrentSets && (p1Val < floorCurrentSets.player1 || p2Val < floorCurrentSets.player2)) {
     return false;
+  }
+  if (floorTiebreak && hasTiebreak && !isSetTrulyCompleted && tbP1Num !== undefined && tbP2Num !== undefined) {
+    if (tbP1Num < floorTiebreak.player1 || tbP2Num < floorTiebreak.player2) {
+      return false;
+    }
   }
   if (tiebreakImpossible) {
     return false;
@@ -156,8 +167,23 @@ function evaluateCanConfirm(params: {
   completedSetsCount: number;
   tiebreakImpossible: boolean;
   floorCurrentSets?: { player1: number; player2: number } | null;
+  floorTiebreak?: { player1: number; player2: number } | null;
+  tiebreakP1Num: number;
+  tiebreakP2Num: number;
 }): boolean {
-  const { validation, matchState, newSetsCount, p1Points, p2Points, completedSetsCount, tiebreakImpossible, floorCurrentSets } = params;
+  const {
+    validation,
+    matchState,
+    newSetsCount,
+    p1Points,
+    p2Points,
+    completedSetsCount,
+    tiebreakImpossible,
+    floorCurrentSets,
+    floorTiebreak,
+    tiebreakP1Num,
+    tiebreakP2Num,
+  } = params;
   const hasNewSets = newSetsCount > 0;
   const hasCompletedSets = completedSetsCount > 0;
   const hasGamePoints = p1Points !== "0" || p2Points !== "0";
@@ -172,7 +198,19 @@ function evaluateCanConfirm(params: {
   );
   if (emptyOrZeroResult !== null) return emptyOrZeroResult;
 
-  if (!checkScoreBoundsAndTiebreak(validation.p1Val, validation.p2Val, floorCurrentSets, tiebreakImpossible)) {
+  if (
+    !checkScoreBoundsAndTiebreak(
+      validation.p1Val,
+      validation.p2Val,
+      floorCurrentSets,
+      tiebreakImpossible,
+      floorTiebreak,
+      validation.hasTiebreak,
+      validation.isSetTrulyCompleted,
+      tiebreakP1Num,
+      tiebreakP2Num,
+    )
+  ) {
     return false;
   }
 
@@ -211,6 +249,7 @@ export function useEditScoreCalculator({
   tiebreakP2,
   currentSets,
   floorCurrentSets,
+  floorTiebreak,
 }: UseEditScoreCalculatorParams): EditScoreCalculations {
   const effectiveCompletedCount = editableCompletedSets?.length ?? completedSets.length;
 
@@ -264,8 +303,11 @@ export function useEditScoreCalculator({
       completedSetsCount: completedSets.length,
       tiebreakImpossible: tiebreakValidation.tiebreakImpossible,
       floorCurrentSets,
+      floorTiebreak,
+      tiebreakP1Num: tiebreakValidation.tiebreakP1Num,
+      tiebreakP2Num: tiebreakValidation.tiebreakP2Num,
     }),
-    [validation, matchState, state.newSets.length, state.p1Points, state.p2Points, completedSets.length, tiebreakValidation.tiebreakImpossible, floorCurrentSets],
+    [validation, matchState, state.newSets.length, state.p1Points, state.p2Points, completedSets.length, tiebreakValidation.tiebreakImpossible, tiebreakValidation.tiebreakP1Num, tiebreakValidation.tiebreakP2Num, floorCurrentSets, floorTiebreak],
   );
 
   const partial = validation.bothFilled && !validation.isSetTrulyCompleted;
@@ -276,9 +318,14 @@ export function useEditScoreCalculator({
   );
 
   const currentScoreBelowOriginal = useMemo(() => {
-    if (!floorCurrentSets) return false;
-    return validation.bothFilled && (validation.p1Val < floorCurrentSets.player1 || validation.p2Val < floorCurrentSets.player2);
-  }, [floorCurrentSets, validation.bothFilled, validation.p1Val, validation.p2Val]);
+    const gamesBelow = floorCurrentSets
+      ? validation.bothFilled && (validation.p1Val < floorCurrentSets.player1 || validation.p2Val < floorCurrentSets.player2)
+      : false;
+    const tbBelow = floorTiebreak && validation.hasTiebreak && !validation.isSetTrulyCompleted
+      ? (tiebreakValidation.tiebreakP1Num < floorTiebreak.player1 || tiebreakValidation.tiebreakP2Num < floorTiebreak.player2)
+      : false;
+    return gamesBelow || tbBelow;
+  }, [floorCurrentSets, floorTiebreak, validation.bothFilled, validation.p1Val, validation.p2Val, validation.hasTiebreak, validation.isSetTrulyCompleted, tiebreakValidation.tiebreakP1Num, tiebreakValidation.tiebreakP2Num]);
 
   return {
     validation,

@@ -60,6 +60,7 @@ export function validateConfirmForm(params: {
   tiebreakP1Num: number;
   tiebreakP2Num: number;
   floorCurrentSets?: { player1: number; player2: number } | null;
+  floorTiebreak?: { player1: number; player2: number } | null;
   initialGame: { player1: string; player2: string } | null;
   isMatchTiebreakSet: boolean;
   currentSets: { player1: number; player2: number };
@@ -78,6 +79,7 @@ export function validateConfirmForm(params: {
     tiebreakP1Num,
     tiebreakP2Num,
     floorCurrentSets,
+    floorTiebreak,
     initialGame,
     isMatchTiebreakSet,
     currentSets,
@@ -102,8 +104,8 @@ export function validateConfirmForm(params: {
   const floorError = getFloorError(p1Val, p2Val, floorCurrentSets);
   if (floorError) return floorError;
 
-  if (hasTiebreak && floorCurrentSets && !isSetTrulyCompleted) {
-    const tbFloorErr = validateTiebreakFloor(state, floorCurrentSets);
+  if (hasTiebreak && floorTiebreak && !isSetTrulyCompleted) {
+    const tbFloorErr = validateTiebreakFloor(state, floorTiebreak);
     if (tbFloorErr) return tbFloorErr;
   }
 

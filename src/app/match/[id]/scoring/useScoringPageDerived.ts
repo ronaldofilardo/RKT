@@ -174,6 +174,32 @@ export function useScoringPageDerived(
     };
   }
 
+  if (effectiveScoreState && match) {
+    let resolvedServer = effectiveScoreState.server;
+    if (resolvedServer === (match.player2.id as any)) {
+      resolvedServer = "player2";
+    } else if (resolvedServer === (match.player1.id as any)) {
+      resolvedServer = "player1";
+    } else if (resolvedServer !== "player1" && resolvedServer !== "player2") {
+      resolvedServer = match.initialServerId === match.player2.id ? "player2" : "player1";
+    }
+
+    const totalGames = (effectiveScoreState.sets ?? []).reduce(
+      (acc, s) => acc + (s.player1 || 0) + (s.player2 || 0),
+      0
+    );
+    if (totalGames === 0 && match.initialServerId) {
+      resolvedServer = match.initialServerId === match.player2.id ? "player2" : "player1";
+    }
+
+    if (effectiveScoreState.server !== resolvedServer) {
+      effectiveScoreState = {
+        ...effectiveScoreState,
+        server: resolvedServer,
+      };
+    }
+  }
+
   const p1IsServing = effectiveScoreState?.server === "player1";
   const p2IsServing = effectiveScoreState?.server === "player2";
   const { isMatchPoint, isSetPoint, isBreakPoint } = derivePointBadges(effectiveScoreState, match?.format);

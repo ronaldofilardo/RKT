@@ -245,7 +245,7 @@ export async function transitionMatchState(
         }
       }
 
-      const updateData = buildTransitionUpdateData(newState, initialServerId, scoreState);
+      const updateData = buildTransitionUpdateData(newState, initialServerId, scoreState, match);
 
       return tx.match.update({
         where: whereClause,

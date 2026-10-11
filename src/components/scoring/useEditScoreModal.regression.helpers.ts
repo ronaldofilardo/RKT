@@ -2,15 +2,15 @@ import { parsePointValue, pointToProgress } from "@/core/scoring/point-utils";
 
 export function validateTiebreakFloor(
   state: { tiebreakP1: string; tiebreakP2: string },
-  floorCurrentSets?: { player1: number; player2: number } | null,
+  floorTiebreak?: { player1: number; player2: number } | null,
 ): string | null {
-  if (!floorCurrentSets) return null;
-  const tbFloorP1 = floorCurrentSets.player1;
-  const tbFloorP2 = floorCurrentSets.player2;
+  if (!floorTiebreak) return null;
+  const tbFloorP1 = floorTiebreak.player1;
+  const tbFloorP2 = floorTiebreak.player2;
   const currentTbP1 = Number(state.tiebreakP1) || 0;
   const currentTbP2 = Number(state.tiebreakP2) || 0;
   if (currentTbP1 < tbFloorP1 || currentTbP2 < tbFloorP2) {
-    return `Placar do tiebreak não pode ser inferior ao ponto de parada (${tbFloorP1}x${tbFloorP2}).`;
+    return `Placar do tiebreak não pode ser inferior ao placar atual (${tbFloorP1}x${tbFloorP2}).`;
   }
   return null;
 }

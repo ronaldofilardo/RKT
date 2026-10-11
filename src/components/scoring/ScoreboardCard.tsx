@@ -51,6 +51,9 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
   const numSets = Math.max(sets.length, maxSetsForFormat);
 
   const winner = scoreState?.winner as 'player1' | 'player2' | null | undefined;
+  const currentServer = normalized?.server ?? scoreState?.server;
+  const isServingP1 = !winner && (currentServer === 'player1' || currentServer === player1?.id);
+  const isServingP2 = !winner && (currentServer === 'player2' || currentServer === player2?.id);
 
   const getSetCellStyle = (set: any, _i: number, player: 'player1' | 'player2', isCurrent: boolean) => {
     if (!set) {
@@ -120,8 +123,12 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
             <td title={player1.name} className={`text-left py-1 px-2 font-bold tracking-wide whitespace-nowrap truncate border-b border-white/10 ${nameBgP1}`}>
               {player1.name}
             </td>
-            <td className="text-center py-1 bg-telemetry-card border-l border-b border-white/10">
-              {winner === 'player1' && <span className="text-telemetry-volt font-bold text-sm">✓</span>}
+            <td className="text-center py-1 bg-telemetry-card border-l border-b border-white/10 text-xs">
+              {winner === 'player1' ? (
+                <span className="text-telemetry-volt font-bold text-sm">✓</span>
+              ) : isServingP1 ? (
+                <span title="Sacador" aria-label="Sacador" role="img" className="text-xs select-none">🎾</span>
+              ) : null}
             </td>
             {Array.from({ length: numSets }).map((_, i) => {
               const set = sets[i];
@@ -143,8 +150,12 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
             <td title={player2.name} className={`text-left py-1 px-2 font-bold tracking-wide whitespace-nowrap truncate ${nameBgP2}`}>
               {player2.name}
             </td>
-            <td className="text-center py-1 bg-telemetry-card border-l border-white/10">
-              {winner === 'player2' && <span className="text-telemetry-volt font-bold text-sm">✓</span>}
+            <td className="text-center py-1 bg-telemetry-card border-l border-white/10 text-xs">
+              {winner === 'player2' ? (
+                <span className="text-telemetry-volt font-bold text-sm">✓</span>
+              ) : isServingP2 ? (
+                <span title="Sacador" aria-label="Sacador" role="img" className="text-xs select-none">🎾</span>
+              ) : null}
             </td>
             {Array.from({ length: numSets }).map((_, i) => {
               const set = sets[i];

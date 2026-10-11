@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import type { TennisFormat } from "@/core/scoring/types";
 import type { SetEditData } from "./editScoreHelpers";
 import { getFormatLabel } from "@/core/scoring/format-labels";
@@ -34,6 +35,7 @@ interface EditScoreModalProps {
   // modal pré-preencha o campo "Tie-Break" em vez de "Pontos no Game Atual".
   isTiebreak?: boolean;
   floorCurrentSets?: { player1: number; player2: number } | null;
+  floorTiebreak?: { player1: number; player2: number } | null;
   onConfirm: (setResults: SetEditData[], server: Player) => void | Promise<void>;
   onCancel: () => void;
   onMatchFinished?: (winner: "player1" | "player2") => void;
@@ -61,11 +63,23 @@ export function EditScoreModal({
   currentGamePoints,
   isTiebreak = false,
   floorCurrentSets = null,
+  floorTiebreak,
   onConfirm,
   onCancel,
   onMatchFinished,
   onRefreshFloor,
 }: EditScoreModalProps) {
+  const effectiveFloorTiebreak = useMemo(() => {
+    if (floorTiebreak !== undefined) return floorTiebreak;
+    if (isTiebreak && currentGamePoints) {
+      return {
+        player1: Number(currentGamePoints.player1) || 0,
+        player2: Number(currentGamePoints.player2) || 0,
+      };
+    }
+    return null;
+  }, [floorTiebreak, isTiebreak, currentGamePoints]);
+
   const {
     state,
     setState,
@@ -92,6 +106,7 @@ export function EditScoreModal({
       currentGamePoints,
       isTiebreak,
       floorCurrentSets,
+      floorTiebreak: effectiveFloorTiebreak,
       onRefreshFloor,
       playerNames,
     },
@@ -189,6 +204,7 @@ export function EditScoreModal({
             tiebreakP1={state.tiebreakP1}
             tiebreakP2={state.tiebreakP2}
             floorCurrentSets={floorCurrentSets}
+            floorTiebreak={effectiveFloorTiebreak}
             floorValidationError={floorValidationError}
             isMatchTiebreakSet={isMatchTiebreakSet}
             isPotentialMTSet={calculations.isPotentialMTSet}

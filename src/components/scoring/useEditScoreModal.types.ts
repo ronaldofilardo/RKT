@@ -26,6 +26,7 @@ export interface UseEditScoreModalOptions {
   currentGamePoints?: { player1: number | string; player2: number | string };
   isTiebreak?: boolean;
   floorCurrentSets?: { player1: number; player2: number } | null;
+  floorTiebreak?: { player1: number; player2: number } | null;
   onRefreshFloor?: () => Promise<{ player1: number; player2: number } | null>;
 }
 

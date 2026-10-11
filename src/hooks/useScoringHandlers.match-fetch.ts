@@ -87,7 +87,21 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
           if (!targetObj.setsWon) {
             targetObj.setsWon = { player1: 0, player2: 0 };
           }
-          engineRef.current = ScoringEngine.fromSerialized(config, JSON.stringify(scoreStateToUse));
+
+          const hasHistory = Array.isArray(scoreStateToUse?.history) && scoreStateToUse.history.length > 0;
+          const hasPointsInGame = Boolean(
+            targetObj?.currentGame && (targetObj.currentGame.player1 > 0 || targetObj.currentGame.player2 > 0)
+          );
+          const hasGamesInSets = (targetObj?.sets ?? []).some(
+            (s: any) => (s.player1 || 0) > 0 || (s.player2 || 0) > 0
+          );
+          const hasStartedScoring = hasHistory || hasPointsInGame || hasGamesInSets;
+
+          if (data.initialServerId || hasStartedScoring) {
+            engineRef.current = ScoringEngine.fromSerialized(config, JSON.stringify(scoreStateToUse));
+          } else {
+            openRef.current('setup');
+          }
         } else if (data.initialServerId) {
           engineRef.current = new ScoringEngine(config);
         } else {

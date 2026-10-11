@@ -292,3 +292,17 @@ describe('PlayerCard — aria-label', () => {
     expect(screen.getByRole('button')).toHaveAttribute('aria-label', '+ Ponto Jogador A');
   });
 });
+
+describe('PlayerCard — isServing', () => {
+  it('exibe a bolinha de tênis 🎾 e indicador de saque quando isServing é true', () => {
+    renderPlayerCard({ isServing: true });
+    const serverElement = screen.getByLabelText('Sacador');
+    expect(serverElement).toBeInTheDocument();
+    expect(serverElement.textContent).toBe('🎾');
+  });
+
+  it('NÃO exibe a bolinha de tênis quando isServing é false', () => {
+    renderPlayerCard({ isServing: false });
+    expect(screen.queryByLabelText('Sacador')).toBeNull();
+  });
+});

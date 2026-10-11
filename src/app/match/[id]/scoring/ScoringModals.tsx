@@ -115,7 +115,19 @@ export function ScoringModals({
                 ),
           }}
           isTiebreak={isTiebreak}
-          floorCurrentSets={floorCurrentSets}
+          floorCurrentSets={floorCurrentSets ?? editScoreCurrentSets}
+          floorTiebreak={
+            isTiebreak
+              ? {
+                  player1:
+                    effectiveScoreState.sets[effectiveScoreState.sets.length - 1]
+                      ?.tiebreakScore?.player1 ?? 0,
+                  player2:
+                    effectiveScoreState.sets[effectiveScoreState.sets.length - 1]
+                      ?.tiebreakScore?.player2 ?? 0,
+                }
+              : null
+          }
           suspendedSession={suspendedSession}
           onConfirm={handleEditScore}
           onCancel={() => {

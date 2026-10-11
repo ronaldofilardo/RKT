@@ -162,6 +162,7 @@ export async function executeConfirmFlow(params: {
   tiebreakImpossible?: boolean;
   onRefreshFloor?: () => Promise<{ player1: number; player2: number } | null>;
   floorCurrentSets?: { player1: number; player2: number } | null;
+  floorTiebreak?: { player1: number; player2: number } | null;
   isSetTrulyCompleted: boolean;
   validation: any;
   floorValidationError: string | null;
@@ -237,6 +238,7 @@ export async function executeConfirmFlow(params: {
     tiebreakP1Num: params.tiebreakP1Num,
     tiebreakP2Num: params.tiebreakP2Num,
     floorCurrentSets: params.floorCurrentSets,
+    floorTiebreak: params.floorTiebreak,
     initialGame: params.initialGame,
     isMatchTiebreakSet: params.isMatchTiebreakSet,
     currentSets: params.currentSets,

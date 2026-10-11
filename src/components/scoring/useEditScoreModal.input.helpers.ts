@@ -17,8 +17,9 @@ export function computeGameInputChange(params: {
   currentSets: { player1: number; player2: number };
   player: 'p1' | 'p2';
   currentInputVal: string;
+  minGames?: number;
 }): { shouldSet: boolean; valueToSet: string; clearTiebreak: boolean } {
-  const { value, isMatchTiebreakSet, matchFormat, otherInput } = params;
+  const { value, isMatchTiebreakSet, matchFormat, otherInput, minGames } = params;
   if (value === "") {
     return { shouldSet: true, valueToSet: "", clearTiebreak: true };
   }
@@ -26,6 +27,10 @@ export function computeGameInputChange(params: {
     return { shouldSet: false, valueToSet: "", clearTiebreak: false };
   }
   const num = parseInt(value, 10);
+
+  if (minGames !== undefined && minGames > 0 && num < minGames) {
+    return { shouldSet: true, valueToSet: String(minGames), clearTiebreak: false };
+  }
 
   const otherGames = otherInput ? (parseInt(otherInput, 10) || 0) : 0;
   const maxGames = isMatchTiebreakSet
@@ -41,14 +46,18 @@ export function computeTiebreakInputChange(params: {
   player: 'p1' | 'p2';
   currentGamePoints?: { player1: number | string; player2: number | string };
   currentTbInputVal: string;
+  minPoints?: number;
 }): { shouldSet: boolean; valueToSet: string } {
-  const { value } = params;
+  const { value, minPoints } = params;
   if (value === '') {
     return { shouldSet: true, valueToSet: '' };
   }
   const v = parseInt(value, 10);
   if (isNaN(v) || v < 0) {
     return { shouldSet: false, valueToSet: '' };
+  }
+  if (minPoints !== undefined && minPoints > 0 && v < minPoints) {
+    return { shouldSet: true, valueToSet: String(minPoints) };
   }
   const capped = Math.min(v, SCORING_LIMITS.TIEBREAK_INPUT_CAP);
   return { shouldSet: true, valueToSet: String(capped) };
@@ -61,15 +70,10 @@ function validateCompletedSetEdit(params: {
   originalSet?: CompletedSet;
   floorCurrentSets?: { player1: number; player2: number } | null;
 }): string | null {
-  const { p1Games, p2Games, matchFormat, floorCurrentSets } = params;
+  const { p1Games, p2Games, matchFormat } = params;
   const validation = validateSetResult({ p1Games, p2Games }, matchFormat);
   if (validation.error && !validation.isPartial) {
     return validation.error;
-  }
-  if (floorCurrentSets) {
-    if (p1Games < floorCurrentSets.player1 || p2Games < floorCurrentSets.player2) {
-      return `Placar não pode ser inferior ao ponto de parada (${floorCurrentSets.player1}x${floorCurrentSets.player2}).`;
-    }
   }
   return null;
 }

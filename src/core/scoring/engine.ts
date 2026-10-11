@@ -207,6 +207,23 @@ export class ScoringEngine {
     } else {
       state = parsed as ScoringState;
     }
+
+    if (state.server === (config.player2Id as any)) {
+      state.server = 'player2';
+    } else if (state.server === (config.player1Id as any)) {
+      state.server = 'player1';
+    } else if (state.server !== 'player1' && state.server !== 'player2') {
+      state.server = config.initialServerId === config.player2Id ? 'player2' : 'player1';
+    }
+
+    const totalCompletedGames = (state.sets ?? []).reduce(
+      (acc, s) => acc + (s.player1 || 0) + (s.player2 || 0),
+      0
+    );
+    if (totalCompletedGames === 0 && config.initialServerId) {
+      state.server = config.initialServerId === config.player2Id ? 'player2' : 'player1';
+    }
+
     const engine = new ScoringEngine(config, state);
     if (history.length > 0) {
       engine.restorePointHistory(history);

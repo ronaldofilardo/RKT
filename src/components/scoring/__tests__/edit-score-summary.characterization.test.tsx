@@ -32,7 +32,7 @@ describe('edit-score-summary Characterization', () => {
     expect(screen.getByText('Set 2')).toBeInTheDocument();
     expect(screen.getAllByText('6').length).toBeGreaterThan(0);
     expect(screen.getAllByText('4').length).toBeGreaterThan(0);
-    expect(screen.getByText('Alcaraz')).toBeInTheDocument();
-    expect(screen.getByText('Sinner')).toBeInTheDocument();
+    expect(screen.getAllByText('Alcaraz').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Sinner').length).toBeGreaterThan(0);
   });
 });

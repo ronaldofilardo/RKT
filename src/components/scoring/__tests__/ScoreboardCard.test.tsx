@@ -306,4 +306,81 @@ describe('ScoreboardCard', () => {
       expect(screen.queryByText('atual')).toBeNull();
     });
   });
+
+  describe('Indicador de Sacador (🎾)', () => {
+    it('exibe a bolinha de tênis 🎾 na linha do sacador quando player1 está sacando', () => {
+      const state = {
+        sets: [{ player1: 0, player2: 0, isTiebreak: false, tiebreakScore: null }],
+        server: 'player1' as const,
+        isFinished: false,
+        winner: null,
+      };
+      render(
+        <ScoreboardCard
+          player1={mockPlayer1}
+          player2={mockPlayer2}
+          scoreState={state}
+        />
+      );
+      const serverBall = screen.getByLabelText('Sacador');
+      expect(serverBall).toBeInTheDocument();
+      expect(serverBall.textContent).toBe('🎾');
+    });
+
+    it('exibe a bolinha de tênis 🎾 na linha do sacador quando player2 está sacando', () => {
+      const state = {
+        sets: [{ player1: 0, player2: 0, isTiebreak: false, tiebreakScore: null }],
+        server: 'player2' as const,
+        isFinished: false,
+        winner: null,
+      };
+      render(
+        <ScoreboardCard
+          player1={mockPlayer1}
+          player2={mockPlayer2}
+          scoreState={state}
+        />
+      );
+      const serverBall = screen.getByLabelText('Sacador');
+      expect(serverBall).toBeInTheDocument();
+      expect(serverBall.textContent).toBe('🎾');
+    });
+
+    it('exibe a bolinha de tênis 🎾 mesmo quando server no scoreState contém o ID do jogador', () => {
+      const state = {
+        sets: [{ player1: 0, player2: 0, isTiebreak: false, tiebreakScore: null }],
+        server: mockPlayer2.id as any,
+        isFinished: false,
+        winner: null,
+      };
+      render(
+        <ScoreboardCard
+          player1={mockPlayer1}
+          player2={mockPlayer2}
+          scoreState={state}
+        />
+      );
+      const serverBall = screen.getByLabelText('Sacador');
+      expect(serverBall).toBeInTheDocument();
+      expect(serverBall.textContent).toBe('🎾');
+    });
+
+    it('NÃO exibe a bolinha de tênis quando a partida está finalizada', () => {
+      const state = {
+        sets: [{ player1: 6, player2: 3, isTiebreak: false, tiebreakScore: null }],
+        server: 'player1' as const,
+        isFinished: true,
+        winner: 'player1' as const,
+      };
+      render(
+        <ScoreboardCard
+          player1={mockPlayer1}
+          player2={mockPlayer2}
+          scoreState={state}
+        />
+      );
+      expect(screen.queryByLabelText('Sacador')).toBeNull();
+      expect(screen.getByText('✓')).toBeInTheDocument();
+    });
+  });
 });

@@ -114,6 +114,7 @@ export function buildTransitionUpdateData(
   newState: string,
   initialServerId?: string,
   scoreState?: unknown,
+  existingMatch?: { player1Id: string; player2Id: string; scoreState: unknown } | null,
 ): Record<string, unknown> {
   const updateData: Record<string, unknown> = {
     state: newState,
@@ -126,7 +127,18 @@ export function buildTransitionUpdateData(
   }
   if (newState === 'FINISHED') updateData.finishedAt = new Date();
   if (initialServerId) updateData.initialServerId = initialServerId;
-  if (scoreState) updateData.scoreState = scoreState as any;
+  if (scoreState) {
+    updateData.scoreState = scoreState as any;
+  } else if (initialServerId && existingMatch?.scoreState) {
+    try {
+      const parsed = typeof existingMatch.scoreState === 'string'
+        ? JSON.parse(existingMatch.scoreState)
+        : JSON.parse(JSON.stringify(existingMatch.scoreState));
+      const target = parsed.state ?? parsed;
+      target.server = initialServerId === existingMatch.player2Id ? 'player2' : 'player1';
+      updateData.scoreState = parsed;
+    } catch {}
+  }
   return updateData;
 }
 

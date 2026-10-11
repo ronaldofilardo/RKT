@@ -38,6 +38,7 @@ export function useEditScoreModal(
     currentGamePoints,
     isTiebreak,
     floorCurrentSets,
+    floorTiebreak,
     onRefreshFloor,
   } = options;
 
@@ -67,6 +68,7 @@ export function useEditScoreModal(
     tiebreakP2: state.tiebreakP2,
     currentSets,
     floorCurrentSets,
+    floorTiebreak,
   });
 
   const { validation, tiebreakValidation, matchState, canAddNextSet, canConfirmSet: canConfirmSetCalc, partial, isPotentialMTSet } = calculations;
@@ -95,6 +97,8 @@ export function useEditScoreModal(
     setConfirmError(null);
     setFloorValidationError(null);
 
+    const minGames = floorCurrentSets ? (player === 'p1' ? floorCurrentSets.player1 : floorCurrentSets.player2) : undefined;
+
     const result = computeGameInputChange({
       value,
       isMatchTiebreakSet,
@@ -103,6 +107,7 @@ export function useEditScoreModal(
       currentSets,
       player,
       currentInputVal: player === 'p1' ? state.p1Input : state.p2Input,
+      minGames,
     });
 
     if (result.shouldSet) {
@@ -111,23 +116,26 @@ export function useEditScoreModal(
         setState((prev) => ({ ...prev, tiebreakP1: "", tiebreakP2: "" }));
       }
     }
-  }, [matchFormat, isMatchTiebreakSet, currentSets, state.p1Input, state.p2Input, inputTouchedRef]);
+  }, [matchFormat, isMatchTiebreakSet, currentSets, floorCurrentSets, state.p1Input, state.p2Input, inputTouchedRef]);
 
   const handleTiebreakInputChange = useCallback((value: string, player: 'p1' | 'p2'): void => {
     setConfirmError(null);
     setFloorValidationError(null);
+
+    const minPoints = floorTiebreak ? (player === 'p1' ? floorTiebreak.player1 : floorTiebreak.player2) : undefined;
 
     const result = computeTiebreakInputChange({
       value,
       player,
       currentGamePoints,
       currentTbInputVal: player === 'p1' ? state.tiebreakP1 : state.tiebreakP2,
+      minPoints,
     });
 
     if (result.shouldSet) {
       setState((prev) => ({ ...prev, [player === 'p1' ? 'tiebreakP1' : 'tiebreakP2']: result.valueToSet }));
     }
-  }, [currentGamePoints, state.tiebreakP1, state.tiebreakP2]);
+  }, [currentGamePoints, floorTiebreak, state.tiebreakP1, state.tiebreakP2]);
 
   const handleConfirm = useCallback(async () => {
     await executeConfirmFlow({
@@ -142,6 +150,7 @@ export function useEditScoreModal(
       tiebreakImpossible,
       onRefreshFloor,
       floorCurrentSets,
+      floorTiebreak,
       isSetTrulyCompleted,
       validation,
       floorValidationError,
@@ -163,7 +172,7 @@ export function useEditScoreModal(
       inputTouchedRef,
     });
   }, [
-    onRefreshFloor, floorCurrentSets, isSetTrulyCompleted, p1Val, p2Val,
+    onRefreshFloor, floorCurrentSets, floorTiebreak, isSetTrulyCompleted, p1Val, p2Val,
     floorValidationError, validation, partial, hasTiebreak, tiebreakComplete, tiebreakImpossible,
     tiebreakP1Num, tiebreakP2Num, matchWouldEnd, currentServer, initialServer, state, completedSets, matchFormat,
     bothFilled, isMatchTiebreakSet, isPotentialMTSet, currentSets, onConfirm, onMatchFinished,

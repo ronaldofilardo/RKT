@@ -14,42 +14,58 @@ interface SetsSummaryProps {
 export function SetsSummary({ title, sets, playerNames, startIndex = 0 }: SetsSummaryProps) {
   if (sets.length === 0) return null;
 
-  // Bug #3 (2026-08-07): alinhar estilo ao padrão do ScoreboardCard (dark bg,
-  // highlight do vencedor em roxo/cinza, font-mono). Antes usava estilo claro.
   return (
     <div className="space-y-2">
       <p className="text-xs font-semibold text-telemetry-text-muted uppercase tracking-wide">
         {title}
       </p>
-      <div className="space-y-1.5 rounded-lg border border-white/5 bg-gray-700/50 px-3 py-2">
+      <div className="space-y-1.5 rounded-xl border border-white/10 bg-telemetry-elevated/40 p-3">
+        {/* Cabeçalho claro de colunas dos jogadores */}
+        <div className="flex items-center gap-2 pb-2 border-b border-white/10 text-xs font-semibold text-telemetry-text-muted">
+          <span className="w-12 sm:w-14">Set</span>
+          <div className="flex-1 flex items-center justify-center gap-2">
+            <span className="w-16 sm:w-20 text-center truncate text-telemetry-text-primary font-bold" title={playerNames.p1}>
+              {playerNames.p1}
+            </span>
+            <span className="w-3 text-center opacity-30">×</span>
+            <span className="w-16 sm:w-20 text-center truncate text-telemetry-text-primary font-bold" title={playerNames.p2}>
+              {playerNames.p2}
+            </span>
+          </div>
+          <span className="w-20 sm:w-28 text-right text-[11px] font-medium text-telemetry-text-muted">Vencedor</span>
+        </div>
+
         {sets.map((set, idx) => {
           const isWinnerP1 = set.winner === 'player1';
           const isWinnerP2 = set.winner === 'player2';
           const p1CellClass = isWinnerP1
             ? 'bg-purple-700 text-white font-bold'
             : isWinnerP2
-              ? 'bg-white/5 dark:bg-gray-700 text-telemetry-text-primary dark:text-gray-200'
+              ? 'bg-white/5 text-telemetry-text-muted'
               : 'text-telemetry-text-muted';
           const p2CellClass = isWinnerP2
             ? 'bg-purple-700 text-white font-bold'
             : isWinnerP1
-              ? 'bg-white/5 dark:bg-gray-700 text-telemetry-text-primary dark:text-gray-200'
+              ? 'bg-white/5 text-telemetry-text-muted'
               : 'text-telemetry-text-muted';
           return (
             <div
               key={idx}
-              className="flex items-center gap-3 text-sm"
+              className="flex items-center gap-2 text-sm py-1"
             >
-              <span className="text-telemetry-text-muted w-14 font-medium text-xs">Set {startIndex + idx + 1}</span>
-              <span className={`font-mono font-semibold px-2 py-1 rounded ${p1CellClass}`}>
-                {set.p1Games}
-              </span>
-              <span className="text-telemetry-text-muted">×</span>
-              <span className={`font-mono font-semibold px-2 py-1 rounded ${p2CellClass}`}>
-                {set.p2Games}
-              </span>
+              <span className="text-telemetry-text-muted w-12 sm:w-14 font-medium text-xs">Set {startIndex + idx + 1}</span>
+              <div className="flex-1 flex items-center justify-center gap-2">
+                <span className={`w-16 sm:w-20 text-center font-space-grotesk font-semibold px-2 py-1 rounded-lg ${p1CellClass}`}>
+                  {set.p1Games}
+                </span>
+                <span className="text-telemetry-text-muted text-xs w-3 text-center">×</span>
+                <span className={`w-16 sm:w-20 text-center font-space-grotesk font-semibold px-2 py-1 rounded-lg ${p2CellClass}`}>
+                  {set.p2Games}
+                </span>
+              </div>
               <span
-                className={`text-xs font-semibold ${isWinnerP1 ? 'text-telemetry-blue dark:text-sky-400' : isWinnerP2 ? 'text-emerald-600 dark:text-emerald-400' : 'text-telemetry-text-muted'}`}
+                className={`w-20 sm:w-28 text-right text-xs font-semibold truncate ${isWinnerP1 ? 'text-telemetry-blue' : isWinnerP2 ? 'text-emerald-400' : 'text-telemetry-text-muted'}`}
+                title={isWinnerP1 ? playerNames.p1 : isWinnerP2 ? playerNames.p2 : 'Em andamento'}
               >
                 {isWinnerP1 ? playerNames.p1 : isWinnerP2 ? playerNames.p2 : 'Em andamento'}
               </span>
@@ -82,15 +98,27 @@ interface EditableSetsSummaryProps {
 export function EditableSetsSummary({ title, sets, playerNames, startIndex = 0, onEditSet, validationErrors }: EditableSetsSummaryProps) {
   if (sets.length === 0) return null;
 
-  // Bug #3 (2026-08-07): alinhar estilo ao padrão do ScoreboardCard (dark bg,
-  // highlight do vencedor em roxo/cinza, font-mono). Antes usava estilo claro
-  // (bg-white/5, text-telemetry-text-primary) que destoava da tela ao vivo.
   return (
     <div className="space-y-2">
       <p className="text-xs font-semibold text-telemetry-text-muted uppercase tracking-wide">
         {title}
       </p>
-      <div className="space-y-1.5 rounded-lg border border-white/5 bg-gray-700/50 px-3 py-2">
+      <div className="space-y-1.5 rounded-xl border border-white/10 bg-telemetry-elevated/40 p-3">
+        {/* Cabeçalho claro de colunas dos jogadores */}
+        <div className="flex items-center gap-2 pb-2 border-b border-white/10 text-xs font-semibold text-telemetry-text-muted">
+          <span className="w-12 sm:w-14">Set</span>
+          <div className="flex-1 flex items-center justify-center gap-2">
+            <span className="w-16 sm:w-20 text-center truncate text-telemetry-text-primary font-bold" title={playerNames.p1}>
+              {playerNames.p1}
+            </span>
+            <span className="w-3 text-center opacity-30">×</span>
+            <span className="w-16 sm:w-20 text-center truncate text-telemetry-text-primary font-bold" title={playerNames.p2}>
+              {playerNames.p2}
+            </span>
+          </div>
+          <span className="w-20 sm:w-28 text-right text-[11px] font-medium text-telemetry-text-muted">Vencedor</span>
+        </div>
+
         {sets.map((set, idx) => {
           const isWinnerP1 = set.winner === 'player1';
           const isWinnerP2 = set.winner === 'player2';
@@ -98,42 +126,49 @@ export function EditableSetsSummary({ title, sets, playerNames, startIndex = 0, 
           const p1CellClass = isWinnerP1
             ? 'bg-purple-700 text-white font-bold'
             : isWinnerP2
-              ? 'bg-white/5 dark:bg-gray-700 text-telemetry-text-primary dark:text-gray-200'
+              ? 'bg-telemetry-card text-telemetry-text-muted'
               : hasValidationError
-                ? 'bg-gray-700 border border-red-500 text-white'
-                : 'bg-gray-700 border border-white/10 text-white';
+                ? 'bg-telemetry-card border border-red-500 text-white'
+                : 'bg-telemetry-card border border-white/10 text-white';
           const p2CellClass = isWinnerP2
             ? 'bg-purple-700 text-white font-bold'
             : isWinnerP1
-              ? 'bg-white/5 dark:bg-gray-700 text-telemetry-text-primary dark:text-gray-200'
+              ? 'bg-telemetry-card text-telemetry-text-muted'
               : hasValidationError
-                ? 'bg-gray-700 border border-red-500 text-white'
-                : 'bg-gray-700 border border-white/10 text-white';
+                ? 'bg-telemetry-card border border-red-500 text-white'
+                : 'bg-telemetry-card border border-white/10 text-white';
           return (
             <div
               key={idx}
-              className="flex items-center gap-3 text-sm"
+              className="flex items-center gap-2 text-sm py-1"
             >
-              <span className="text-telemetry-text-muted w-14 font-medium text-xs">Set {startIndex + idx + 1}</span>
-              <input
-                type="number"
-                value={set.p1Games}
-                onChange={(e) => onEditSet(set.index, parseInt(e.target.value, 10) || 0, set.p2Games)}
-                className={`w-16 text-center rounded-lg px-2 py-1 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${p1CellClass}`}
-              />
-              <span className="text-telemetry-text-muted">×</span>
-              <input
-                type="number"
-                value={set.p2Games}
-                onChange={(e) => onEditSet(set.index, set.p1Games, parseInt(e.target.value, 10) || 0)}
-                className={`w-16 text-center rounded-lg px-2 py-1 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${p2CellClass}`}
-              />
-              <span
-                className={`text-xs font-semibold min-w-[80px] ${isWinnerP1 ? 'text-telemetry-blue dark:text-sky-400' : isWinnerP2 ? 'text-emerald-600 dark:text-emerald-400' : 'text-telemetry-text-muted'}`}
-              >
-                {isWinnerP1 ? playerNames.p1 : isWinnerP2 ? playerNames.p2 : 'Em andamento'}
-              </span>
-              {hasValidationError && <span className="text-xs text-red-400 ml-1" title={validationErrors?.[set.index]}>!</span>}
+              <span className="text-telemetry-text-muted w-12 sm:w-14 font-medium text-xs">Set {startIndex + idx + 1}</span>
+              <div className="flex-1 flex items-center justify-center gap-2">
+                <input
+                  type="number"
+                  value={set.p1Games}
+                  onChange={(e) => onEditSet(set.index, parseInt(e.target.value, 10) || 0, set.p2Games)}
+                  className={`w-16 sm:w-20 text-center rounded-lg px-2 py-1 text-sm font-space-grotesk font-semibold focus:outline-none focus:ring-2 focus:ring-telemetry-volt ${p1CellClass}`}
+                  aria-label={`${playerNames.p1} Set ${startIndex + idx + 1}`}
+                />
+                <span className="text-telemetry-text-muted text-xs w-3 text-center">×</span>
+                <input
+                  type="number"
+                  value={set.p2Games}
+                  onChange={(e) => onEditSet(set.index, set.p1Games, parseInt(e.target.value, 10) || 0)}
+                  className={`w-16 sm:w-20 text-center rounded-lg px-2 py-1 text-sm font-space-grotesk font-semibold focus:outline-none focus:ring-2 focus:ring-telemetry-volt ${p2CellClass}`}
+                  aria-label={`${playerNames.p2} Set ${startIndex + idx + 1}`}
+                />
+              </div>
+              <div className="w-20 sm:w-28 text-right flex items-center justify-end gap-1">
+                <span
+                  className={`text-xs font-semibold truncate ${isWinnerP1 ? 'text-telemetry-blue' : isWinnerP2 ? 'text-emerald-400' : 'text-telemetry-text-muted'}`}
+                  title={isWinnerP1 ? playerNames.p1 : isWinnerP2 ? playerNames.p2 : 'Em andamento'}
+                >
+                  {isWinnerP1 ? playerNames.p1 : isWinnerP2 ? playerNames.p2 : 'Em andamento'}
+                </span>
+                {hasValidationError && <span className="text-xs text-red-400 font-bold" title={validationErrors?.[set.index]}>!</span>}
+              </div>
             </div>
           );
         })}
@@ -156,17 +191,24 @@ export function MatchSummary({ playerNames, p1SetsWon, p2SetsWon, setsToWin }: M
   const winner = p1SetsWon >= setsToWin ? playerNames.p1 : p2SetsWon >= setsToWin ? playerNames.p2 : null;
 
   return (
-    <div className="space-y-2 pt-1">
-      <div className="flex items-center justify-center gap-4 text-sm font-semibold text-telemetry-text-primary">
-        <span>{playerNames.p1}</span>
-        <span className="text-lg font-mono text-telemetry-text-primary">
+    <div className="space-y-2 pt-1 pb-1">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-3 py-2 rounded-xl bg-telemetry-elevated/40 border border-white/5">
+        <span className="text-sm font-bold text-telemetry-text-primary text-center truncate" title={playerNames.p1}>
+          {playerNames.p1}
+        </span>
+        <span className="text-base font-space-grotesk font-bold text-telemetry-volt px-2">
           {p1SetsWon} — {p2SetsWon}
         </span>
-        <span>{playerNames.p2}</span>
+        <span className="text-sm font-bold text-telemetry-text-primary text-center truncate" title={playerNames.p2}>
+          {playerNames.p2}
+        </span>
       </div>
       {matchEnded ? (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700 text-center">
-          {winner} venceu a partida
+        <div className="flex justify-center">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-telemetry-volt/15 text-telemetry-volt border border-telemetry-volt/30">
+            <span>🏆</span>
+            <span>{winner} venceu a partida</span>
+          </span>
         </div>
       ) : null}
     </div>

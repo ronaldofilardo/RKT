@@ -128,7 +128,12 @@ export function PlayerCard({ player, side, scoreState, isServing, isWinner, onPo
     >
       <div className="flex items-center gap-1.5 sm:gap-2 mb-1 min-w-0 w-full justify-center">
         <span className="font-bold text-sm sm:text-lg text-telemetry-text-primary truncate max-w-[70%]">{player.name}</span>
-        {isServing && <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-telemetry-volt animate-pulse flex-shrink-0 shadow-[0_0_8px_rgba(204,255,0,0.6)]" aria-label="Sacando" />}
+        {isServing && (
+          <span className="inline-flex items-center gap-1 flex-shrink-0" aria-label="Sacando">
+            <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-telemetry-volt animate-pulse shadow-[0_0_8px_rgba(204,255,0,0.6)]" />
+            <span role="img" aria-label="Sacador" className="text-xs sm:text-sm select-none leading-none">🎾</span>
+          </span>
+        )}
       </div>
 
       <span className="text-4xl sm:text-5xl font-space-grotesk font-black text-telemetry-text-primary tabular-nums leading-none mb-1">{score}</span>

@@ -108,15 +108,22 @@ describe('matchService.create.helpers', () => {
       );
     });
 
-    it('deve incluir initialServerId quando fornecido', () => {
-      const result = buildCreateMatchData({
+    it('deve incluir initialServerId quando fornecido e mapear scoreState.server para player1 ou player2', () => {
+      const resultP1 = buildCreateMatchData({
         ...baseData,
         initialServerId: 'p1',
       } as any);
 
-      expect(result).toEqual(
+      expect(resultP1).toEqual(
         expect.objectContaining({ initialServerId: 'p1' })
       );
+      expect((resultP1.scoreState as any).server).toBe('player1');
+
+      const resultP2 = buildCreateMatchData({
+        ...baseData,
+        initialServerId: 'p2',
+      } as any);
+      expect((resultP2.scoreState as any).server).toBe('player2');
     });
 
     it('deve incluir createdByUserId quando fornecido', () => {
