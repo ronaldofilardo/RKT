@@ -133,7 +133,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 ## 5. Definition of Done
 
 - [x] Zero `catch` vazio em código de produção (R-08) — Fase 1.
-- [x] Zero `any` em fronteiras públicas de servidor (R-06) — Fase 2 (restantes em `core/scoring/**` → Fase 3).
+- [x] Zero `any` em fronteiras públicas de servidor (R-06) — Fase 2 + 3.1 (`any` em produção: 0).
 - [x] Zero `fetch` direto em componente `.tsx` (R-04) — Fase 2F.
 - [x] `pnpm test:strict` verde ao fim de cada fase — Fase 1 e 2.
 - [x] `pnpm test:design` verde ao fim da Fase 2 — 3/3 suites, 26/26 testes.
@@ -176,6 +176,17 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-13 | 2F-3 | `auth-client.loginRequest` + `login/page.tsx`; `matchesClient.getReport/.listMatches/.getAudio` + `report/page.tsx`, `locate/page.tsx`, `aguardandoanotador/page.tsx`, `AudioNotePlayer.tsx` | Concluído |
 | 2026-10-13 | 2F-4 | `SectionRenderer.tsx` (`React.Dispatch<Action>`), `rls-context.ts` (4 `any` → `unknown`/`readonly string[]`) | Concluído |
 | 2026-10-13 | Fase 2 DoD | `typecheck` verde · `test:strict` 291/294 (3191/3196, zero regressão) · `test:design` 3/3 (26/26) · `lint` 0 erros · **0 `fetch` em `.tsx`** · **0 `any` em fronteiras** (restantes 11: `core/scoring/**` + `test-helpers` → Fase 3) | Concluído |
+| 2026-10-13 | Commit F1+F2 | `bca1fe7` — 78 arquivos, +1330/−487 | Concluído |
+| 2026-10-13 | 3.1a | `state-envelope.ts` (novo) — `unwrapStateEnvelope` tipado; aplicado em `scoring-logic` e `timeline-rebuild`; `TimelineScoreEdit.newScoreState: any → unknown` | Concluído |
+| 2026-10-13 | 3.1b | `engine.ts` (`loadState` + `rawServer` widening) e `match-tiebreak.ts` (`as any` removido — `MATCH_TB_10` já na união). **`any` em produção: 0** (R-06 fechado) | Concluído |
+| 2026-10-13 | 3.2 | `point-context.ts` (novo) — predicados `isBreakPoint/isGameBall/isSetBall` migrados (re-exportados) + `derivePointSnapshot` + `deriveServeOutcomes`; `enrichPointsFromHistory` 178→63 linhas, CC >10 | Concluído |
+| 2026-10-13 | 3.3 | `point-log-merge.ts` (novo) — `PointLogRow` (re-exportado), `buildPointDetailsFromLog`, `mergeWithPointLog`; `timeline-rebuild.ts` 294→153 linhas; `timeline-rebuild.helpers.ts` quebra import circular de tipo | Concluído |
+| 2026-10-13 | 3.4 | `game-errors.ts` (novo) — `classifyPointError` deduplica classificação P1/P2; `computeGameErrors` CC 21→13; `set-summary-stats.ts` re-exporta `GameErrorEntry`/`computeGameErrors` | Concluído |
+| 2026-10-13 | 3.5 | `tiebreak.ts` — `isMatchTiebreakFormat` + `hasTiebreakBeenWon` extraídos; `processTiebreakPoint` CC 19→<10 (ramos p1/p2 unificados via `winner`) | Concluído |
+| 2026-10-13 | 3.6 | `game-processing.ts` — `processNoAdPoint` + `processAdvantagePoint`; `processStandardPoint` CC 16→<10; removidas 2 atribuições redundantes de `state.currentGame` | Concluído |
+| 2026-10-13 | Fase 3 DoD | `typecheck` verde · `test:strict` 291/294 (3191/3196, zero regressão) · `test:design` 3/3 (26/26) · `lint` 0 erros · **nenhuma função de `core/scoring` excede CC 15** (tolerância R-03) · **`any` em produção: 0** | Concluído |
 
-> **Status Fase 2: CONCLUÍDA.** Próxima: Fase 3 — monólitos >100 linhas (priorizar `core/scoring/**`), depois Fase 4 — scratch files na raiz.
+> **Status Fase 3 (escopo `core/scoring/**`): CONCLUÍDA.** 6 fatias atômicas, 6 commits (`b6ce6a1`, `945655c`, `15dd841`, `40c10d1`, `600f5df`, `f9cdae2`, `181d58e`).
+> Próxima: **Fase 4** — scratch files na raiz (`scratch_contract_phase2*.js`, `phase4_indexes.sql`), depois varredura de monólitos de UI >100 linhas (`MatchTimelineView.tsx` 535, `MatchCard.tsx` 409, etc.).
+
 
