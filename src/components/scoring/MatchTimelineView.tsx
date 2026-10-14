@@ -5,152 +5,16 @@ import type { TimelinePoint } from '@/core/scoring/types';
 import {
   filterTimelinePoints,
   countByFilter,
-  isSetDecidingPoint,
 } from './timeline-utils';
 import type { FilterKey, FilterCriteria } from './timeline-types';
 import { FilterBar } from './timeline-filters';
 import { SetGroup } from './timeline-rows';
 import { AudioNotePlayer } from './AudioNotePlayer';
+import { getSetResults } from './timeline-set-results';
 
-export interface SetResult {
-  setNumber: number;
-  p1: number;
-  p2: number;
-  tiebreak?: { p1: number; p2: number };
-}
-
-/** Forma mínima de set lida por esta extração. */
-interface RawSet {
-  player1?: number;
-  player2?: number;
-  isTiebreak?: boolean;
-  tiebreakScore?: { player1?: number; player2?: number } | null;
-}
-
-/** Envelope `{state, history}` que o scoreState pode trazer. */
-interface RawScoreStateEnvelope {
-  state?: { sets?: RawSet[] };
-  sets?: RawSet[];
-}
-
-export function extractSetsFromScoreState(scoreState: unknown): SetResult[] | null {
-  if (!scoreState) return null;
-  let raw = scoreState;
-  if (typeof raw === 'string') {
-    try {
-      raw = JSON.parse(raw);
-    } catch {
-      return null;
-    }
-  }
-  if (!raw || typeof raw !== 'object') return null;
-
-  const envelope = raw as RawScoreStateEnvelope;
-  const stateObj = envelope.state && typeof envelope.state === 'object' ? envelope.state : envelope;
-
-  const sets = stateObj.sets;
-  if (!Array.isArray(sets) || sets.length === 0) return null;
-
-  const hasScores = sets.some(
-    (s) =>
-      (s.player1 ?? 0) > 0 ||
-      (s.player2 ?? 0) > 0 ||
-      Boolean(s.tiebreakScore && ((s.tiebreakScore.player1 ?? 0) > 0 || (s.tiebreakScore.player2 ?? 0) > 0)),
-  );
-  if (!hasScores) return null;
-
-  return sets.map((s, idx) => {
-    const tb = s.tiebreakScore;
-    const hasTb = Boolean(s.isTiebreak) || Boolean(tb && ((tb.player1 ?? 0) > 0 || (tb.player2 ?? 0) > 0));
-    return {
-      setNumber: idx + 1,
-      p1: s.player1 ?? 0,
-      p2: s.player2 ?? 0,
-      tiebreak: hasTb && tb ? { p1: tb.player1 ?? 0, p2: tb.player2 ?? 0 } : undefined,
-    };
-  });
-}
-
-export function computeSetResultsFromPoints(points: TimelinePoint[]): SetResult[] {
-  if (!points || points.length === 0) return [];
-
-  const setOrder: number[] = [];
-  const pointsBySet = new Map<number, TimelinePoint[]>();
-
-  for (const p of points) {
-    if (!pointsBySet.has(p.setNumber)) {
-      setOrder.push(p.setNumber);
-      pointsBySet.set(p.setNumber, []);
-    }
-    pointsBySet.get(p.setNumber)!.push(p);
-  }
-
-  const results: SetResult[] = [];
-
-  for (let sIdx = 0; sIdx < setOrder.length; sIdx++) {
-    const setNum = setOrder[sIdx];
-    const setPoints = pointsBySet.get(setNum)!;
-    if (setPoints.length === 0) continue;
-
-    const lastPoint = setPoints[setPoints.length - 1];
-    const isLastSet = sIdx === setOrder.length - 1;
-
-    // Se há um set posterior na lista de pontos, o set anterior com certeza encerrou no último ponto.
-    // Se é o último set, verifica se o ponto foi definidor de game/set.
-    const isGameFinished = !isLastSet || isSetDecidingPoint(lastPoint);
-
-    if (lastPoint.isTiebreak) {
-      const winner = lastPoint.winner;
-      const tbP1 = (lastPoint.gameScore?.player1 ?? 0) + (winner === 'PLAYER_1' ? 1 : 0);
-      const tbP2 = (lastPoint.gameScore?.player2 ?? 0) + (winner === 'PLAYER_2' ? 1 : 0);
-
-      const lastRegular = [...setPoints].reverse().find(p => !p.isTiebreak);
-      if (lastRegular) {
-        const regularWinner = lastRegular.winner;
-        const regP1 = lastRegular.gamesScore.player1 + (regularWinner === 'PLAYER_1' ? 1 : 0);
-        const regP2 = lastRegular.gamesScore.player2 + (regularWinner === 'PLAYER_2' ? 1 : 0);
-        const baseGames = Math.max(regP1, regP2);
-
-        results.push({
-          setNumber: setNum,
-          p1: winner === 'PLAYER_1' ? baseGames + 1 : baseGames,
-          p2: winner === 'PLAYER_2' ? baseGames + 1 : baseGames,
-          tiebreak: { p1: tbP1, p2: tbP2 },
-        });
-      } else {
-        results.push({
-          setNumber: setNum,
-          p1: winner === 'PLAYER_1' ? 1 : 0,
-          p2: winner === 'PLAYER_2' ? 1 : 0,
-          tiebreak: { p1: tbP1, p2: tbP2 },
-        });
-      }
-    } else {
-      const winner = lastPoint.winner;
-      const p1 = lastPoint.gamesScore.player1 + (isGameFinished && winner === 'PLAYER_1' ? 1 : 0);
-      const p2 = lastPoint.gamesScore.player2 + (isGameFinished && winner === 'PLAYER_2' ? 1 : 0);
-
-      results.push({
-        setNumber: setNum,
-        p1,
-        p2,
-      });
-    }
-  }
-
-  return results;
-}
-
-export function getSetResults(
-  points: TimelinePoint[],
-  scoreState?: unknown,
-): SetResult[] {
-  const fromState = extractSetsFromScoreState(scoreState);
-  if (fromState && fromState.length > 0) {
-    return fromState;
-  }
-  return computeSetResultsFromPoints(points);
-}
+// Re-exports de compatibilidade (domínio movido para ./timeline-set-results).
+export { getSetResults, computeSetResultsFromPoints, extractSetsFromScoreState } from './timeline-set-results';
+export type { SetResult } from './timeline-set-results';
 
 export interface MatchInfoData {
   tournamentName?: string | null;
