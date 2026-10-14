@@ -1,5 +1,12 @@
 import type { TimelinePoint } from './types';
-import { isSecondServePoint, computeCompletedGames } from '../report/serve-return-stats';
+import type { GameErrorEntry } from './game-errors';
+import { isSecondServePoint } from '../report/serve-return-stats';
+import { classifyPointError, computeGameErrors } from './game-errors';
+
+// Fonte canônica dos erros por game movida para `game-errors.ts`.
+// Re-exportados para manter a API pública existente.
+export type { GameErrorEntry };
+export { computeGameErrors };
 
 interface PlayerSetStats {
   totalServicePoints: number;
@@ -22,24 +29,6 @@ interface PlayerSetStats {
   totalErrors: number;
   unforcedErrors: number;
   forcedErrors: number;
-}
-
-export interface GameErrorEntry {
-  gameIndex: number; // 1-based (Game 1, Game 2, ...)
-  server: 'player1' | 'player2';
-  scoreLabel: string; // Ex: "1-0", "1-1"
-  isTiebreak: boolean;
-  winner: 'player1' | 'player2';
-  p1Errors: {
-    unforced: number;
-    forced: number;
-    total: number;
-  };
-  p2Errors: {
-    unforced: number;
-    forced: number;
-    total: number;
-  };
 }
 
 export interface SetSummaryReport {
@@ -157,13 +146,11 @@ function calculatePlayerErrors(
   for (const p of points) {
     if (p.winner === targetWinner) continue;
 
-    const tipo = p.rallyDetails?.tipo;
-    const isUnforced = tipo === 'erro_nao_forcado' || p.type === 'UNFORCED_ERROR' || (p.type === 'DOUBLE_FAULT' && p.server === targetServer);
-    const isForced = tipo === 'erro_forcado' || p.type === 'FORCED_ERROR';
-
-    if (isUnforced) {
+    // target perdeu o ponto → target é o ofensor.
+    const kind = classifyPointError(p, targetServer);
+    if (kind === 'unforced') {
       unforcedErrors++;
-    } else if (isForced) {
+    } else if (kind === 'forced') {
       forcedErrors++;
     }
   }
@@ -191,73 +178,6 @@ function calculatePlayerStats(points: TimelinePoint[], player: 'player1' | 'play
     ...errorStats,
     totalPointsWon,
   };
-}
-
-export function computeGameErrors(points: TimelinePoint[]): GameErrorEntry[] {
-  if (points.length === 0) return [];
-
-  const completedGames = computeCompletedGames(points);
-  const result: GameErrorEntry[] = [];
-
-  for (let gIdx = 0; gIdx < completedGames.length; gIdx++) {
-    const g = completedGames[gIdx];
-    const gamePoints = points.slice(g.startIdx, g.endIdx + 1);
-    if (gamePoints.length === 0) continue;
-
-    const lastPoint = gamePoints[gamePoints.length - 1];
-    let p1Unforced = 0;
-    let p1Forced = 0;
-    let p2Unforced = 0;
-    let p2Forced = 0;
-
-    for (const p of gamePoints) {
-      const tipo = p.rallyDetails?.tipo;
-      const isP1Point = p.winner === 'PLAYER_1';
-
-      if (!isP1Point) {
-        // P1 cometeu o erro
-        if (tipo === 'erro_nao_forcado' || p.type === 'UNFORCED_ERROR' || (p.type === 'DOUBLE_FAULT' && p.server === 'player1')) {
-          p1Unforced++;
-        } else if (tipo === 'erro_forcado' || p.type === 'FORCED_ERROR') {
-          p1Forced++;
-        }
-      } else {
-        // P2 cometeu o erro
-        if (tipo === 'erro_nao_forcado' || p.type === 'UNFORCED_ERROR' || (p.type === 'DOUBLE_FAULT' && p.server === 'player2')) {
-          p2Unforced++;
-        } else if (tipo === 'erro_forcado' || p.type === 'FORCED_ERROR') {
-          p2Forced++;
-        }
-      }
-    }
-
-    const winner: 'player1' | 'player2' = g.winner === 'PLAYER_1' ? 'player1' : 'player2';
-    const beforeP1 = lastPoint.gamesScore.player1;
-    const beforeP2 = lastPoint.gamesScore.player2;
-    const afterP1 = winner === 'player1' ? beforeP1 + 1 : beforeP1;
-    const afterP2 = winner === 'player2' ? beforeP2 + 1 : beforeP2;
-    const scoreLabel = `${afterP1}-${afterP2}`;
-
-    result.push({
-      gameIndex: gIdx + 1,
-      server: g.server,
-      scoreLabel,
-      isTiebreak: g.isTiebreak,
-      winner,
-      p1Errors: {
-        unforced: p1Unforced,
-        forced: p1Forced,
-        total: p1Unforced + p1Forced,
-      },
-      p2Errors: {
-        unforced: p2Unforced,
-        forced: p2Forced,
-        total: p2Unforced + p2Forced,
-      },
-    });
-  }
-
-  return result;
 }
 
 export function computeSetSummary(
