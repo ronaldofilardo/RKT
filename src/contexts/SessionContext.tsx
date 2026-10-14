@@ -3,6 +3,7 @@
 import { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react';
 import type { ScoringState } from '@/core/scoring/types';
 import type { SnapshotStatus } from '@/lib/snapshot-utils';
+import { logger } from '@/lib/logger';
 
 export interface SessionData {
   matchId: string | null;
@@ -145,7 +146,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         preservedSnapshot = existing.matchStateSnapshot ?? null;
         preservedSessionId = existing.suspendedSessionId ?? null;
       }
-    } catch {}
+    } catch (error) {
+      logger.warn('[SESSION STORAGE] Falha ao reparsar sessão existente; snapshot e sessionId não preservados:', error);
+    }
     sessionStorage.setItem(
       `${SESSION_STORAGE_KEY_PREFIX}${matchId}`,
       JSON.stringify({

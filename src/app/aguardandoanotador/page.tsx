@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import type { AppRouteInput } from '@/lib/app-router';
+import { matchesClient } from '@/services/matchesClient';
 import { logger } from '@/lib/logger';
 
 export default function AguardandoAnotadorPage() {
@@ -25,18 +27,17 @@ export default function AguardandoAnotadorPage() {
     const poll = setInterval(async () => {
       try {
         const token = sessionStorage.getItem('access_token');
-        const res = await fetch(`/api/matches/${matchId}`, {
-          headers: { authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error('MATCH_NOT_FOUND');
-        const match = await res.json();
+        const match = await matchesClient.getMatch(matchId, token) as {
+          openForAnnotation?: boolean;
+          state?: string;
+        };
         if (match.openForAnnotation || match.state === 'IN_PROGRESS') {
           const userRole = sessionStorage.getItem('user_role');
           const isScorerOrStaff = userRole === 'ADMIN';
           if (isScorerOrStaff) {
-            router.push(`/match/${matchId}/scoring` as any);
+            router.push(`/match/${matchId}/scoring` as AppRouteInput);
           } else {
-            router.push(`/match/${matchId}` as any);
+            router.push(`/match/${matchId}` as AppRouteInput);
           }
         }
       } catch {

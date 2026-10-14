@@ -9,10 +9,27 @@ interface Player {
   name: string;
 }
 
+/** Forma mínima de set lida pelo card. */
+interface ScoreboardSet {
+  player1: number;
+  player2: number;
+  isTiebreak?: boolean;
+  tiebreakScore?: { player1: number; player2: number } | null;
+}
+
+/** Forma mínima de estado lida pelo card (o normalizador cobre as variantes). */
+interface ScoreboardScoreState {
+  sets?: ScoreboardSet[];
+  setsWon?: { player1: number; player2: number };
+  isFinished?: boolean;
+  winner?: 'player1' | 'player2' | null;
+  server?: 'player1' | 'player2' | string | null;
+}
+
 interface ScoreboardCardProps {
   player1: Player;
   player2: Player;
-  scoreState: any;
+  scoreState?: ScoreboardScoreState | null;
   isSuspended?: boolean;
   format?: string;
 }
@@ -31,7 +48,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
   );
   const setsWon = normalized?.setsWon;
 
-  const displayedSets = useMemo(() => {
+  const displayedSets = useMemo<ScoreboardSet[]>(() => {
     const rawSets = sets;
     const isFinished = Boolean(scoreState?.isFinished);
     if (tennisFormat === 'SHORT_SET_2V2_NO_AD' && !isFinished) {
@@ -103,7 +120,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
   const isServingP1 = !winner && (currentServer === 'player1' || currentServer === player1?.id);
   const isServingP2 = !winner && (currentServer === 'player2' || currentServer === player2?.id);
 
-  const getSetCellStyle = (set: any, _i: number, player: 'player1' | 'player2', isCurrent: boolean) => {
+  const getSetCellStyle = (set: ScoreboardSet | undefined, _i: number, player: 'player1' | 'player2', isCurrent: boolean) => {
     if (!set) {
       return 'text-telemetry-text-muted bg-telemetry-card';
     }
@@ -126,7 +143,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
     }
   };
 
-  const renderSetScore = (set: any, player: 'player1' | 'player2') => {
+  const renderSetScore = (set: ScoreboardSet | undefined, player: 'player1' | 'player2') => {
     if (!set) return '-';
     const score = set[player];
     if (set.tiebreakScore) {

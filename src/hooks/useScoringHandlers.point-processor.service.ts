@@ -1,18 +1,24 @@
 import { ScoringEngine } from "@/core/scoring/engine";
 import { logger } from "@/lib/logger";
-import type { PointFlow, ScoringState, RallyDetails } from "@/core/scoring/types";
+import type {
+  HistoryEntry,
+  PointFlow,
+  RallyDetails,
+  ScoringState,
+  TennisFormat,
+} from "@/core/scoring/types";
+import type { QueuedAction } from "@/schemas/rally";
+import type { ScoreboardUIState } from "@/hooks/useScoreboardUIState";
+import type { ScoreAction } from "@/hooks/useScoreReducer";
 import type { MatchData } from "./useScoringHandlers.types";
 import type { createPointSyncService } from "./useScoringHandlers.point-sync";
 
 interface PointProcessorDeps {
   match: MatchData | null;
   isOnline: boolean;
-  enqueue: (action: {
-    matchId: string;
-    type: "POINT";
-    payload: any;
-    timestamp: number;
-  }) => Promise<any>;
+  enqueue: (
+    action: Omit<QueuedAction, "id" | "status" | "retries">
+  ) => Promise<QueuedAction>;
   engineRef: React.MutableRefObject<ScoringEngine | null>;
   tokenRef: React.MutableRefObject<string | null>;
   modalParamsRef: React.MutableRefObject<Record<string, string>>;
@@ -20,13 +26,13 @@ interface PointProcessorDeps {
   matchVersionRef: React.MutableRefObject<number | null>;
   lastPointLogIdRef: React.MutableRefObject<string | null>;
   isProcessingRef: React.MutableRefObject<boolean>;
-  serveErrorState: any;
+  serveErrorState: ScoreboardUIState;
   serverHelpers: {
     getServerId: () => string;
   };
   pointSync: ReturnType<typeof createPointSyncService>;
   closeAll: () => void;
-  setScoreState: (action: any) => void;
+  setScoreState: (action: ScoreAction) => void;
   setPointsHistory: React.Dispatch<React.SetStateAction<string[]>>;
   setMatch: React.Dispatch<React.SetStateAction<MatchData | null>>;
   setShowFinishedBanner: React.Dispatch<React.SetStateAction<boolean>>;
@@ -80,12 +86,21 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
     const currentHistory = engineRef.current!.getPointHistory();
     const localState = engineRef.current!.getState();
     const rawServerState = serverResponse.scoreState!;
-    const isEnvelope = !!(rawServerState as any).state && Array.isArray((rawServerState as any).history);
-    const serverState = isEnvelope ? (rawServerState as any).state : rawServerState;
-    const historyToRestore = isEnvelope ? (rawServerState as any).history : currentHistory;
 
-    const localInTiebreak = localState.sets?.some((s: any) => s.isTiebreak && s.tiebreakScore);
-    const serverHasTiebreak = serverState.sets?.some((s: any) => s.isTiebreak && s.tiebreakScore);
+    // O servidor pode devolver o estado plano ou o envelope `{state, history}`
+    // (ver `persistStateWithRetry`). Detecção estrutural em runtime.
+    const envelopeCandidate = rawServerState as unknown as {
+      state?: ScoringState;
+      history?: HistoryEntry[];
+    } | null;
+    const isEnvelope = Boolean(envelopeCandidate?.state) && Array.isArray(envelopeCandidate?.history);
+    const serverState: ScoringState =
+      isEnvelope && envelopeCandidate?.state ? envelopeCandidate.state : (rawServerState as unknown as ScoringState);
+    const historyToRestore: HistoryEntry[] =
+      isEnvelope && envelopeCandidate?.history ? envelopeCandidate.history : currentHistory;
+
+    const localInTiebreak = localState.sets?.some((s) => Boolean(s.isTiebreak) && Boolean(s.tiebreakScore));
+    const serverHasTiebreak = serverState.sets?.some((s) => Boolean(s.isTiebreak) && Boolean(s.tiebreakScore));
 
     if (localInTiebreak && !serverHasTiebreak) {
       logger.warn("[processPoint] server response missing tiebreak info — keeping local state", {
@@ -96,7 +111,7 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
       setScoreState({ type: "POINT_APPLIED", payload: serverState });
       engineRef.current = ScoringEngine.fromSerialized(
         {
-          format: match!.format as any,
+          format: match!.format as TennisFormat,
           player1Id: match!.player1.id,
           player2Id: match!.player2.id,
           initialServerId: match!.initialServerId || match!.player1.id,

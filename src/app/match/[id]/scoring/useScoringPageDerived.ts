@@ -175,10 +175,11 @@ export function useScoringPageDerived(
   }
 
   if (effectiveScoreState && match) {
-    let resolvedServer = effectiveScoreState.server;
-    if (resolvedServer === (match.player2.id as any)) {
+    // O `server` pode chegar como id de jogador (persistido) ou como lado.
+    let resolvedServer: string = effectiveScoreState.server;
+    if (resolvedServer === match.player2.id) {
       resolvedServer = "player2";
-    } else if (resolvedServer === (match.player1.id as any)) {
+    } else if (resolvedServer === match.player1.id) {
       resolvedServer = "player1";
     } else if (resolvedServer !== "player1" && resolvedServer !== "player2") {
       resolvedServer = match.initialServerId === match.player2.id ? "player2" : "player1";
@@ -192,10 +193,11 @@ export function useScoringPageDerived(
       resolvedServer = match.initialServerId === match.player2.id ? "player2" : "player1";
     }
 
-    if (effectiveScoreState.server !== resolvedServer) {
+    const serverSide: "player1" | "player2" = resolvedServer === "player2" ? "player2" : "player1";
+    if (effectiveScoreState.server !== serverSide) {
       effectiveScoreState = {
         ...effectiveScoreState,
-        server: resolvedServer,
+        server: serverSide,
       };
     }
   }

@@ -1,6 +1,7 @@
 import type { TennisFormat } from "@/core/scoring/types";
 import type { CompletedSet } from "./edit-score-logic";
 import type { SetEditData } from "./editScoreHelpers";
+import type { EditScoreModalState } from "./useEditScoreModal.types";
 import { calculateNextServer } from "./edit-score-logic";
 import { getCompletedSets, getFloorError } from "./useEditScoreModal.confirm.helpers";
 import {
@@ -146,7 +147,7 @@ function calculateServerForExistingSets(
 
 function appendPartialGamePointsSet(
   existingSets: SetEditData[],
-  state: any,
+  state: EditScoreModalState,
   scoresAreZero: boolean,
 ) {
   const hasGamePointsChanged = (Number(state.p1Points) || 0) > 0 || (Number(state.p2Points) || 0) > 0;
@@ -162,7 +163,7 @@ function appendPartialGamePointsSet(
 }
 
 export function buildExistingSetsPayload(params: {
-  state: any;
+  state: EditScoreModalState;
   completedSets: CompletedSet[];
   matchFormat: TennisFormat;
   currentServer: "player1" | "player2";

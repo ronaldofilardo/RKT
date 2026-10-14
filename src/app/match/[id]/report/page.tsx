@@ -4,6 +4,8 @@ import { useEffect, useState, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { ReportPageView } from './ReportPage.view';
 import type { ReportData } from './report.types';
+import { matchesClient, UnauthorizedError } from '@/services/matchesClient';
+import type { AppRouteInput } from '@/lib/app-router';
 
 export default function ReportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: matchId } = use(params);
@@ -18,24 +20,17 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
     if (fetchedMatchIdRef.current === matchId) return;
     fetchedMatchIdRef.current = matchId;
 
-    fetch(`/api/matches/${matchId}/report`)
-      .then(async res => {
-        if (res.status === 401) {
-          router.push('/login');
-          return new Promise<never>(() => {});
-        }
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || 'Erro ao carregar relatório');
-        }
-        return res.json();
-      })
-      .then((data: ReportData) => {
-        setReport(data);
+    matchesClient.getReport(matchId)
+      .then((data) => {
+        setReport(data as ReportData);
         setLoading(false);
       })
       .catch(err => {
-        setError(err.message);
+        if (err instanceof UnauthorizedError) {
+          router.push('/login' as AppRouteInput);
+          return new Promise<never>(() => {});
+        }
+        setError(err instanceof Error ? err.message : 'Erro ao carregar relatório');
         setLoading(false);
       });
   }, [matchId, router]);

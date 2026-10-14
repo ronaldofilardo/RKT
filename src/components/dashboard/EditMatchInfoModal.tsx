@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { DashboardMatchPayload } from './MatchCard';
 import { useToast } from '@/components/Toast';
+import { matchesClient } from '@/services/matchesClient';
 import { COURT_TYPES } from '@/app/match/new/matchConstants';
 
 interface EditMatchInfoModalProps {
@@ -78,18 +79,7 @@ export function EditMatchInfoModal({
         version: match.version,
       };
 
-      const res = await fetch(`/api/matches/${match.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || errorData.error || 'Erro ao atualizar informações');
-      }
+      await matchesClient.updateMatchInfo(match.id, payload);
 
       toast({
         type: 'success',
@@ -97,10 +87,10 @@ export function EditMatchInfoModal({
       });
       onSuccess();
       onClose();
-    } catch (err: any) {
+    } catch (error) {
       toast({
         type: 'error',
-        message: err.message || 'Falha ao salvar alterações da partida',
+        message: (error instanceof Error ? error.message : undefined) || 'Falha ao salvar altera����es da partida',
       });
     } finally {
       setSaving(false);
@@ -161,7 +151,8 @@ export function EditMatchInfoModal({
                     try {
                       e.currentTarget.showPicker?.();
                     } catch {
-                      // ignore
+                      // ste-exception R-08: showPicker() lança quando o browser não
+                      // suporta ou o picker já está aberto. Degradação silenciosa esperada.
                     }
                   }}
                   className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-card text-slate-900 dark:text-telemetry-text-primary cursor-pointer"
@@ -180,7 +171,8 @@ export function EditMatchInfoModal({
                     try {
                       e.currentTarget.showPicker?.();
                     } catch {
-                      // ignore
+                      // ste-exception R-08: showPicker() lança quando o browser não
+                      // suporta ou o picker já está aberto. Degradação silenciosa esperada.
                     }
                   }}
                   className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-card text-slate-900 dark:text-telemetry-text-primary cursor-pointer"

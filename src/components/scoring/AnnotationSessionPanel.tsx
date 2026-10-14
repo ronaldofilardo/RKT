@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 import { listSessions } from '@/services/annotationSessionService';
 import type { AnnotationSession, AnnotationEndorsement } from '@/schemas/contracts';
 
@@ -33,8 +34,8 @@ export function AnnotationSessionPanel({ sessionId, matchId, isActive, onStart, 
         if (current?.endorsements) {
           setEndorsements(current.endorsements);
         }
-      } catch {
-        // silent — keep stale data
+      } catch (error) {
+        logger.warn('[ANNOTATION PANEL] Falha ao atualizar endorsements; mantendo dados anteriores:', error);
       }
     };
 

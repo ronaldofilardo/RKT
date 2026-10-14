@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { logger } from "@/lib/logger";
 import { ensureAuthCookie, readAuthState, redirectToLogin } from "@/lib/auth-client";
+import type { DeletableMatch, FinishableMatch, RouterLike } from "../dashboard.types";
 
 export function useModalState() {
   const [showNewAthleteModal, setShowNewAthleteModal] = useState(false);
-  const [matchToDelete, setMatchToDelete] = useState<any | null>(null);
-  const [matchToFinish, setMatchToFinish] = useState<any | null>(null);
+  const [matchToDelete, setMatchToDelete] = useState<DeletableMatch | null>(null);
+  const [matchToFinish, setMatchToFinish] = useState<FinishableMatch | null>(null);
 
   return {
     showNewAthleteModal,
@@ -17,7 +18,7 @@ export function useModalState() {
   };
 }
 
-export function useUserAuth(router: any) {
+export function useUserAuth(router: RouterLike) {
   const [user, setUser] = useState<{
     id: string;
     name: string;

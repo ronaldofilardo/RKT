@@ -3,7 +3,7 @@
 import { logger } from "@/lib/logger";
 import type { MutableRefObject, Dispatch, SetStateAction } from "react";
 import type { ScoringEngine } from "@/core/scoring/engine";
-import type { ScoringState, TennisFormat } from "@/core/scoring/types";
+import type { HistoryEntry, ScoringState, TennisFormat } from "@/core/scoring/types";
 import type { SetEditData } from "@/components/scoring/editScoreHelpers";
 import type { ScoreAction } from "@/hooks/useScoreReducer";
 import type { MatchData } from "@/hooks/useScoringHandlers";
@@ -27,7 +27,7 @@ interface ExecuteEditScoreOptions {
   persistState: (
     state: ScoringState,
     label: string,
-    persistOptions?: { allowScoreEdit?: boolean; isManualScoreEdit?: boolean; history?: any[]; note?: string },
+    persistOptions?: { allowScoreEdit?: boolean; isManualScoreEdit?: boolean; history?: HistoryEntry[]; note?: string },
   ) => Promise<{ success: boolean; needsResync?: boolean }>;
   fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
   setScoreState: Dispatch<ScoreAction>;

@@ -1,3 +1,18 @@
+import type { Prisma } from "@prisma/client";
+import { logger } from '../lib/logger';
+
+/**
+ * Guarda de envelope de scoreState: `{ state, history }` com history array
+ * e state truthy. Equivalente tipado do padrão `as any` anterior.
+ */
+function isScoreStateEnvelope(
+  value: unknown,
+): value is { state: unknown; history: unknown[] } {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as { state?: unknown; history?: unknown };
+  return Array.isArray(candidate.history) && Boolean(candidate.state);
+}
+
 export const ALLOWED_MATCH_FIELDS = [
   'nickname', 'sportType', 'courtType', 'visibility', 'openForAnnotation',
   'scheduledAt', 'initialServerId', 'tournamentName', 'clubName', 'category', 'roundName', 'round',
@@ -59,15 +74,8 @@ export function resolvePersistedScoreState(
   incomingScoreState: unknown,
   existingScoreState: unknown,
 ): unknown | undefined {
-  const receivedHasHistory =
-    incomingScoreState && typeof incomingScoreState === 'object' &&
-    Array.isArray((incomingScoreState as any).history) &&
-    (incomingScoreState as any).state;
-
-  const existingHasHistory =
-    existingScoreState && typeof existingScoreState === 'object' &&
-    Array.isArray((existingScoreState as any).history) &&
-    (existingScoreState as any).state;
+  const receivedHasHistory = isScoreStateEnvelope(incomingScoreState);
+  const existingHasHistory = isScoreStateEnvelope(existingScoreState);
 
   if (receivedHasHistory) {
     return incomingScoreState;
@@ -78,7 +86,7 @@ export function resolvePersistedScoreState(
   if (incomingScoreState && existingScoreState && !receivedHasHistory && existingHasHistory) {
     return {
       state: incomingScoreState,
-      history: (existingScoreState as any).history,
+      history: existingScoreState.history,
     };
   }
   // Se incoming não existe mas existing existe, manter existing
@@ -89,7 +97,7 @@ export function resolvePersistedScoreState(
 }
 
 export async function recordScoreEditSegment(
-  tx: any,
+  tx: Prisma.TransactionClient,
   matchId: string,
   options?: {
     isManualScoreEdit?: boolean;
@@ -107,8 +115,8 @@ export async function recordScoreEditSegment(
       matchId,
       editedByUserId: options?.editedByUserId ?? null,
       note: options?.note ?? null,
-      previousScoreState: (previousScoreState ?? {}) as any,
-      newScoreState: newScoreState as any,
+      previousScoreState: (previousScoreState ?? {}) as Prisma.InputJsonValue,
+      newScoreState: newScoreState as Prisma.InputJsonValue,
     },
   });
 }
@@ -131,7 +139,7 @@ export function buildTransitionUpdateData(
   if (newState === 'FINISHED') updateData.finishedAt = new Date();
   if (initialServerId) updateData.initialServerId = initialServerId;
   if (scoreState) {
-    updateData.scoreState = scoreState as any;
+    updateData.scoreState = scoreState;
   } else if (initialServerId && existingMatch?.scoreState) {
     try {
       const parsed = typeof existingMatch.scoreState === 'string'
@@ -140,7 +148,9 @@ export function buildTransitionUpdateData(
       const target = parsed.state ?? parsed;
       target.server = initialServerId === existingMatch.player2Id ? 'player2' : 'player1';
       updateData.scoreState = parsed;
-    } catch {}
+    } catch (error) {
+      logger.warn('[MATCH UPDATE] Falha ao reparsar scoreState existente para troca de servidor inicial:', error);
+    }
   }
   return updateData;
 }

@@ -4,6 +4,7 @@ import React from "react";
 import { MatchHeader } from "@/components/scoring/MatchHeader";
 import { MatchTimelineView } from "@/components/scoring/MatchTimelineView";
 import type { TimelinePoint } from "@/core/scoring/types";
+import type { MatchCommentData } from "./useScoringTimelineSync";
 
 interface ScoringTimelineViewProps {
   fontScale: number;
@@ -14,7 +15,7 @@ interface ScoringTimelineViewProps {
   timelinePoints: TimelinePoint[];
   player1Name: string;
   player2Name: string;
-  comments?: any[];
+  comments?: MatchCommentData[];
   onNavigateReport: () => void;
   onNavigateDashboard: () => void;
 }

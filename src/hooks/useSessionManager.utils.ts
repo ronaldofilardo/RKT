@@ -1,18 +1,35 @@
 import type { SetEditData } from "@/components/scoring/editScoreHelpers";
 import { isMatchTiebreakSetIndex as isMatchTiebreakSetIndexCanonical, type TennisFormat } from "@/lib/matchConfig";
 
-export function normalizeMatchTiebreakState(scoreState: any, format: string): any {
+/** Forma mínima de set que esta normalização manipula. */
+interface TiebreakNormalizableSet {
+  player1: number;
+  player2: number;
+  isTiebreak?: boolean;
+  tiebreakScore?: { player1: number; player2: number } | null;
+}
+
+/** Forma mínima de estado que esta normalização manipula (snapshot/bank). */
+interface TiebreakNormalizableState {
+  sets?: TiebreakNormalizableSet[];
+}
+
+export function normalizeMatchTiebreakState(
+  scoreState: TiebreakNormalizableState | null | undefined,
+  format: string,
+): TiebreakNormalizableState | null | undefined {
   if (!scoreState) return scoreState;
-  
+
   const isMatchTiebreakFormat = isMatchTiebreakFormatType(format);
   if (!isMatchTiebreakFormat) return scoreState;
+
+  const result: TiebreakNormalizableState = { ...scoreState };
   
-  const result = { ...scoreState };
-  
-  if (result.sets?.length >= 1) {
-    const setIndex = format === 'MATCH_TB_10' ? 0 : result.sets.length - 1;
-    const set = result.sets[setIndex];
-    
+  const sets = result.sets;
+  if (sets && sets.length >= 1) {
+    const setIndex = format === 'MATCH_TB_10' ? 0 : sets.length - 1;
+    const set = sets[setIndex];
+
     if (set && (set.player1 > 0 || set.player2 > 0) && !set.isTiebreak && !set.tiebreakScore) {
       const newSet = {
         ...set,
@@ -21,11 +38,11 @@ export function normalizeMatchTiebreakState(scoreState: any, format: string): an
         player2: 0,
         isTiebreak: true,
       };
-      
+
       if (format === 'MATCH_TB_10') {
         result.sets = [newSet];
       } else {
-        result.sets[setIndex] = newSet;
+        sets[setIndex] = newSet;
       }
     }
   }

@@ -1,6 +1,7 @@
 import type { TennisFormat } from "@/core/scoring/types";
 import type { SetEditData } from "./editScoreHelpers";
 import type { CompletedSet } from "./edit-score-logic";
+import type { useEditScoreCalculator } from "./use-edit-score-calculator";
 
 export interface EditScoreModalState {
   p1Input: string;
@@ -36,7 +37,7 @@ export interface UseEditScoreModalReturn {
   confirmError: string | null;
   floorValidationError: string | null;
   isConfirming: boolean;
-  calculations: any;
+  calculations: ReturnType<typeof useEditScoreCalculator>;
   handleGameInputChange: (value: string, setter: (v: string) => void, player: 'p1' | 'p2', otherInput?: string) => void;
   handleTiebreakInputChange: (value: string, player: 'p1' | 'p2') => void;
   handleConfirm: () => Promise<void>;

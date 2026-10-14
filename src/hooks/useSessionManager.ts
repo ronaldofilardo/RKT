@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { MutableRefObject, Dispatch, SetStateAction } from "react";
 import { ScoringEngine } from "@/core/scoring/engine";
-import type { ScoringState } from "@/core/scoring/types";
+import type { HistoryEntry, ScoringState } from "@/core/scoring/types";
 import type { SetEditData } from "@/components/scoring/editScoreHelpers";
 import { startSession, renewSession } from "@/services/annotationSessionService";
 import type { ScoreAction } from "@/hooks/useScoreReducer";
@@ -35,7 +35,7 @@ export interface SessionManagerContext {
 
   suspendedSession: SuspendedSessionState | null;
   fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
-  persistState: (state: ScoringState, label: string, persistOptions?: { allowScoreEdit?: boolean; isManualScoreEdit?: boolean; history?: any[]; note?: string }) => Promise<{ success: boolean; needsResync?: boolean }>;
+  persistState: (state: ScoringState, label: string, persistOptions?: { allowScoreEdit?: boolean; isManualScoreEdit?: boolean; history?: HistoryEntry[]; note?: string }) => Promise<{ success: boolean; needsResync?: boolean }>;
 
   setScoreState: Dispatch<ScoreAction>;
   setSessionActive: Dispatch<SetStateAction<boolean>>;

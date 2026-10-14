@@ -8,6 +8,16 @@ interface PillsProps<T extends string> {
   btnActive?: string;
 }
 
+/**
+ * `Object.fromEntries` devolve `{[k: string]: string}` e não infere a união de
+ * chaves. Este helper preserva o tipo de `value` no `Record` resultante.
+ */
+export function toLabelMap<T extends string>(
+  options: readonly { value: T; label: string }[],
+): Record<T, string> {
+  return Object.fromEntries(options.map((o) => [o.value, o.label])) as Record<T, string>;
+}
+
 const defaultBtnBase = 'px-3 py-2 text-sm rounded-xl border-2 transition-all select-none';
 const defaultBtnNormal = 'bg-white/5 border-white/10 text-telemetry-text-muted hover:border-gray-400 hover:text-telemetry-text-primary dark:bg-gray-800 dark:border-gray-700 dark:text-telemetry-text-muted dark:hover:border-gray-500 dark:hover:text-telemetry-text-muted';
 const defaultBtnActive = 'bg-blue-50 border-blue-500 text-blue-700 shadow-[0_0_8px_rgba(59,130,246,0.3)] dark:bg-blue-900/30 dark:border-blue-600 dark:text-blue-400';

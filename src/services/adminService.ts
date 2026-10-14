@@ -1,6 +1,24 @@
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
 import type { Role } from '@/schemas/contracts';
 import bcrypt from 'bcryptjs';
+
+/**
+ * Extrai `code` e `meta.target` do erro do Prisma sem depender de `any`.
+ * Espelha `err?.code` / `err?.meta?.target` sobre valores arbitrários.
+ */
+function readPrismaError(error: unknown): { code?: string; target?: unknown } {
+  if (typeof error !== 'object' || error === null) return {};
+  const candidate = error as { code?: unknown; meta?: unknown };
+  const meta =
+    typeof candidate.meta === 'object' && candidate.meta !== null
+      ? (candidate.meta as { target?: unknown })
+      : undefined;
+  return {
+    code: typeof candidate.code === 'string' ? candidate.code : undefined,
+    target: meta?.target,
+  };
+}
 
 export async function listAllUsers(options?: {
   cursor?: string;
@@ -71,9 +89,9 @@ export async function createUser(data: {
         createdAt: true,
       },
     });
-  } catch (err: any) {
-    if (err?.code === 'P2002') {
-      const target = err?.meta?.target;
+  } catch (err) {
+    const { code, target } = readPrismaError(err);
+    if (code === 'P2002') {
       if (Array.isArray(target) && target.includes('cpf')) {
         return { error: 'CPF_ALREADY_EXISTS' };
       }
@@ -90,7 +108,7 @@ export async function updateUser(
   const user = await prisma.user.findUnique({ where: { id } });
   if (!user) return { error: 'USER_NOT_FOUND' };
 
-  const updateData: Record<string, any> = {};
+  const updateData: Prisma.UserUpdateInput = {};
   if (data.name !== undefined) updateData.name = data.name;
   if (data.email !== undefined) updateData.email = data.email.trim().toLowerCase();
   if (data.cpf !== undefined) updateData.cpf = data.cpf.replace(/\D/g, '');
@@ -104,8 +122,8 @@ export async function updateUser(
       data: updateData,
       select: { id: true, name: true, email: true, cpf: true, role: true, club: true, isActive: true },
     });
-  } catch (err: any) {
-    if (err?.code === 'P2002') {
+  } catch (err) {
+    if (readPrismaError(err).code === 'P2002') {
       return { error: 'DUPLICATE_ENTRY' };
     }
     throw err;

@@ -1,3 +1,5 @@
+import { logger } from './logger';
+
 export type SnapshotStatus = 'IN_SYNC' | 'SNAPSHOT_AHEAD' | 'BANK_AHEAD';
 
 /**
@@ -20,7 +22,9 @@ export function computeSnapshotStatus(
     try {
       const parsed = JSON.parse(matchStateSnapshot);
       snapshotPointCount = Array.isArray(parsed?.history) ? parsed.history.length : 0;
-    } catch {}
+    } catch (error) {
+      logger.warn('[SNAPSHOT_STATUS] Falha ao parsear matchStateSnapshot; contagem zerada:', error);
+    }
   }
   // Usar pointLogCount (contagem real de pontos) quando disponível.
   // matchVersion pode ser inflado por edit-score/undo que não criam PointLog.

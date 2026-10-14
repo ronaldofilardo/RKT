@@ -1,9 +1,15 @@
 "use client";
-import type { Athlete } from "../types";
+
+/** Fronteira mínima consumida pelo modal: apenas identificação do jogador. */
+interface SelectablePlayer {
+  id?: string;
+  name: string;
+}
+
 interface ServerSelectionModalProps {
   isOpen: boolean;
-  selectedP1: Athlete | null;
-  selectedP2: Athlete | null;
+  selectedP1: SelectablePlayer | null;
+  selectedP2: SelectablePlayer | null;
   startingMatch: boolean;
   onSelectServer: (serverId: string) => void;
   onClose: () => void;
@@ -42,8 +48,8 @@ export function ServerSelectionModal({
           {" "}
           <button
             type="button"
-            onClick={() => onSelectServer(selectedP1.id)}
-            disabled={startingMatch}
+            onClick={() => { if (selectedP1.id) onSelectServer(selectedP1.id); }}
+            disabled={startingMatch || !selectedP1.id}
             className="w-full py-4 px-4 bg-telemetry-blue hover:bg-telemetry-active disabled:bg-sky-300 text-white font-bold rounded-xl text-lg transition-all active:scale-95"
           >
             {" "}
@@ -51,8 +57,8 @@ export function ServerSelectionModal({
           </button>{" "}
           <button
             type="button"
-            onClick={() => onSelectServer(selectedP2.id)}
-            disabled={startingMatch}
+            onClick={() => { if (selectedP2.id) onSelectServer(selectedP2.id); }}
+            disabled={startingMatch || !selectedP2.id}
             className="w-full py-4 px-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-300 text-white font-bold rounded-xl text-lg transition-all active:scale-95"
           >
             {" "}

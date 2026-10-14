@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import type { AppRouteInput } from '@/lib/app-router';
+import { matchesClient } from '@/services/matchesClient';
 
 export interface Match {
   id: string;
@@ -17,16 +19,17 @@ export default function LocateMatchesPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'ALL' | 'SCHEDULED' | 'IN_PROGRESS' | 'FINISHED'>('ALL');
+type LocateFilterStatus = typeof filterStatus;
   const [filterTournament, setFilterTournament] = useState('');
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch('/api/matches', { signal: controller.signal })
-      .then(res => res.json())
-      .then(data => {
-        setMatches(data?.data?.matches ?? data?.matches ?? []);
+    matchesClient.listMatches(controller.signal)
+      .then((data) => {
+        const payload = data as { data?: { matches?: Match[] }; matches?: Match[] };
+        setMatches(payload?.data?.matches ?? payload?.matches ?? []);
         setLoading(false);
       })
       .catch(() => {
@@ -91,7 +94,7 @@ export default function LocateMatchesPage() {
             {/* Status */}
             <div>
               <label htmlFor="locate-status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select id="locate-status" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as any)}
+              <select id="locate-status" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as LocateFilterStatus)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500">
                 <option value="ALL">Todos</option>
                 <option value="SCHEDULED">Agendadas</option>
@@ -167,13 +170,13 @@ export default function LocateMatchesPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       {match.state === 'SCHEDULED' && (
-                        <button onClick={() => router.push(`/match/${match.id}/scoring` as any)}
+                        <button onClick={() => router.push(`/match/${match.id}/scoring` as AppRouteInput)}
                           className="px-4 py-2 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700 transition-colors">
                           Anotar
                         </button>
                       )}
                       {match.state === 'IN_PROGRESS' && (
-                        <button onClick={() => router.push(`/match/${match.id}` as any)}
+                        <button onClick={() => router.push(`/match/${match.id}` as AppRouteInput)}
                           className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
                           Ver Placar
                         </button>

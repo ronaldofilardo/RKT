@@ -60,7 +60,8 @@ export function DateTimeSection({ date, time, onDateChange, onTimeChange }: Date
               try {
                 e.currentTarget.showPicker?.();
               } catch {
-                // browser sem suporte ou já aberto
+                // ste-exception R-08: showPicker() lança quando o browser não
+                // suporta ou o picker já está aberto. Degradação silenciosa esperada.
               }
             }}
             className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-elevated text-slate-900 dark:text-telemetry-text-primary cursor-pointer"
@@ -79,7 +80,8 @@ export function DateTimeSection({ date, time, onDateChange, onTimeChange }: Date
               try {
                 e.currentTarget.showPicker?.();
               } catch {
-                // browser sem suporte ou já aberto
+                // ste-exception R-08: showPicker() lança quando o browser não
+                // suporta ou o picker já está aberto. Degradação silenciosa esperada.
               }
             }}
             className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-elevated text-slate-900 dark:text-telemetry-text-primary cursor-pointer"

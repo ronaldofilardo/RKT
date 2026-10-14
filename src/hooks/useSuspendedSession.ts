@@ -3,6 +3,12 @@ import { logger } from "@/lib/logger";
 
 import { useEffect, useRef } from "react";
 import { ScoringEngine } from "@/core/scoring/engine";
+import type {
+  HistoryEntry,
+  ScoringEngineConfig,
+  ScoringState,
+  TennisFormat,
+} from "@/core/scoring/types";
 import type { SuspendedSessionState } from "./useSessionManager";
 import type { MatchData } from "@/hooks/useScoringHandlers";
 import { normalizeMatchTiebreakState } from "./useSessionManager.utils";
@@ -15,7 +21,7 @@ interface SuspendedSessionConfig {
   fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
   sessionIdRef: React.MutableRefObject<string | null>;
   tokenRef: React.MutableRefObject<string | null>;
-  engineRef: React.MutableRefObject<any>;
+  engineRef: React.MutableRefObject<ScoringEngine | null>;
   setScoreState: (action: ScoreAction) => void;
   setSessionActive: (active: boolean) => void;
   setSuspendedSession: (state: SuspendedSessionState | null) => void;
@@ -53,8 +59,8 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
 
     (async () => {
       try {
-        const engineConfig = {
-          format: match.format as any,
+        const engineConfig: ScoringEngineConfig = {
+          format: match.format as TennisFormat,
           player1Id: match.player1.id,
           player2Id: match.player2.id,
           initialServerId: match.initialServerId || match.player1.id,
@@ -83,14 +89,14 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
       controller.abort();
     };
 
-    async function resumeFromSnapshotAhead(engineConfig: any, signal?: AbortSignal) {
+    async function resumeFromSnapshotAhead(engineConfig: ScoringEngineConfig, signal?: AbortSignal) {
       const session = await startSession(matchId, false);
       sessionIdRef.current = session.id;
       setSessionActive(true);
 
       if (suspendedSession?.matchStateSnapshot) {
         const parsed = JSON.parse(suspendedSession.matchStateSnapshot);
-        const history: any[] = Array.isArray(parsed?.history) ? parsed.history : [];
+        const history: HistoryEntry[] = Array.isArray(parsed?.history) ? parsed.history : [];
         const offlinePoints = history.slice(suspendedSession.bankPointCount);
         
         // Buscar sequência atual do servidor antes de replayar pontos.
@@ -106,7 +112,9 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
             const seqData = await seqRes.json();
             serverSequence = seqData._count?.pointLog ?? seqData.version ?? 0;
           }
-        } catch {}
+        } catch (error) {
+          logger.warn('[SUSPENDED RESUME] Falha ao obter sequence do servidor; replay inicia em 0:', error);
+        }
 
         for (let i = 0; i < offlinePoints.length; i++) {
           const entry = offlinePoints[i];
@@ -161,13 +169,13 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
               engineConfig,
               JSON.stringify(freshData.scoreState),
             );
-            setScoreState({ type: "RESYNCED_FROM_SERVER", payload: engineRef.current.getState() as any });
+            setScoreState({ type: "RESYNCED_FROM_SERVER", payload: engineRef.current.getState() });
           }
         }
       }
     }
 
-    async function resumeFromBankAhead(engineConfig: any) {
+    async function resumeFromBankAhead(engineConfig: ScoringEngineConfig) {
       const session = await startSession(matchId, false);
       sessionIdRef.current = session.id;
       setSessionActive(true);
@@ -184,7 +192,7 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
           engineRef.current.reconcileWithCanonicalState(canonicalState, canonicalVersion);
           setScoreState({ type: "RESYNCED_FROM_SERVER", payload: canonicalState });
         } else {
-          const restored = engineRef.current.getState() as any;
+          const restored = engineRef.current.getState();
           setScoreState({ type: "RESYNCED_FROM_SERVER", payload: restored });
         }
       } else if (suspendedSession?.bankScoreState && match) {
@@ -193,12 +201,12 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
           engineConfig,
           JSON.stringify(normalizedBankState),
         );
-        setScoreState({ type: "RESYNCED_FROM_SERVER", payload: engineRef.current.getState() as any });
+        setScoreState({ type: "RESYNCED_FROM_SERVER", payload: engineRef.current.getState() });
       }
     }
 
     function cleanupAfterResume() {
-      const engineState = engineRef.current?.getState() as any | null;
+      const engineState: ScoringState | null = engineRef.current?.getState() ?? null;
       const lastSet = engineState?.sets?.[engineState.sets.length - 1];
       let currentFloorSets = lastSet
         ? (lastSet.isTiebreak && lastSet.tiebreakScore

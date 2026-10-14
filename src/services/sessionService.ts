@@ -1,5 +1,6 @@
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import type { AnnotationSessionStatus } from "@/schemas/contracts";
 
 export async function listSessions(matchId: string) {
@@ -74,6 +75,7 @@ export async function updateSession(
     endedAt?: Date;
     matchStateSnapshot?: string | null;
     finalStateSnapshot?: string | null;
+    updatedAt?: Date;
   },
 ) {
   return prisma.matchAnnotationSession.update({
@@ -143,11 +145,14 @@ export async function reactivateOrCreateSession(
 ) {
   return prisma.$transaction(async (tx) => {
     const lockKey = `session_${matchId}_${userId}`;
-    if (typeof (tx as any).$executeRaw === 'function') {
+    const txWithRawSql = tx as Prisma.TransactionClient & {
+      $executeRaw?: (strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown>;
+    };
+    if (typeof txWithRawSql.$executeRaw === 'function') {
       try {
-        await (tx as any).$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
-      } catch {
-        // Ignora se dialeto não suportar pg_advisory_xact_lock (ex.: testes)
+        await txWithRawSql.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
+      } catch (error) {
+        logger.warn('[SESSION] Dialeto sem pg_advisory_xact_lock; lock de sessão ignorado:', error);
       }
     }
 

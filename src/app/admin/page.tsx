@@ -4,15 +4,9 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ConfirmAlertDialog } from '@/components/ConfirmAlertDialog';
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  cpf?: string;
-  role: string;
-  club: string | null;
-  createdAt: string;
-}
+import { adminClient, type AdminUser } from '@/services/adminClient';
+
+export type User = AdminUser;
 
 const ROLES = ['ADMIN', 'ANNOTATOR'];
 
@@ -64,11 +58,7 @@ export default function AdminPage() {
   const loadUsers = useCallback(async () => {
     setError(null);
     try {
-      const res = await fetch('/api/admin/users', {
-        headers: { authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Erro ao carregar usuários');
-      const data = await res.json();
+      const data = await adminClient.listUsers(token);
       setUsers(data.data?.users ?? data.users ?? []);
     } catch {
       setError('Erro ao carregar usuários');
@@ -79,12 +69,7 @@ export default function AdminPage() {
     if (!newRole) return;
     setError(null);
     try {
-      const res = await fetch(`/api/admin/users/${userId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', authorization: `Bearer ${token}` },
-        body: JSON.stringify({ role: newRole }),
-      });
-      if (!res.ok) throw new Error('Erro ao atualizar role');
+      await adminClient.updateUserRole(userId, newRole, token);
       setEditingUser(null);
       setNewRole('');
       await loadUsers();
@@ -102,11 +87,7 @@ export default function AdminPage() {
     setError(null);
     setDeletingUser(true);
     try {
-      const res = await fetch(`/api/admin/users/${userToDelete.id}`, {
-        method: 'DELETE',
-        headers: { authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Erro ao excluir usuário');
+      await adminClient.deleteUser(userToDelete.id, token);
       await loadUsers();
     } catch {
       setError('Erro ao excluir usuário');

@@ -13,16 +13,19 @@ import {
 export type { TennisFormat };
 export type NormalizedScoreState = UnifiedNormalizedScoreState;
 
-export function normalizeScoreState(rawScoreState: any, format?: TennisFormat): NormalizedScoreState | null {
-  return normalizeScoreStateUnified(rawScoreState, format);
-}
-
-export function formatSetScore(set: {
+/** Forma de set aceita pelos helpers de exibição do card. */
+export interface SetCellScore {
   player1: number;
   player2: number;
   isTiebreak?: boolean;
   tiebreakScore?: { player1: number; player2: number } | null;
-}): string {
+}
+
+export function normalizeScoreState(rawScoreState: unknown, format?: TennisFormat): NormalizedScoreState | null {
+  return normalizeScoreStateUnified(rawScoreState, format);
+}
+
+export function formatSetScore(set: SetCellScore): string {
   if (set.isTiebreak && set.tiebreakScore) {
     const loser = Math.min(set.tiebreakScore.player1, set.tiebreakScore.player2);
     return `${set.player1}/${set.player2}(${loser})`;
@@ -87,7 +90,7 @@ export function isMatchTiebreakFormat(format: string): boolean {
  * A notação é compacta para caber nas colunas de 3.5rem do grid.
  */
 export function formatCompactSetScore(
-  set: { player1: number; player2: number; isTiebreak?: boolean; tiebreakScore?: { player1: number; player2: number } | null },
+  set: SetCellScore,
   player: 'player1' | 'player2',
   isDecisiveMatchTiebreak = false,
 ): string {

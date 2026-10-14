@@ -2,9 +2,22 @@ import { prisma } from "@/lib/prisma";
 import type { PrismaClient } from "@prisma/client";
 import type {
   MatchState,
+  MatchFormat,
   CreateMatchInput,
   MatchFinishReason,
 } from "@/schemas/contracts";
+
+/**
+ * Extrai o código de erro do Prisma sem depender de `any`.
+ * Espelha o comportamento de `error?.code` sobre valores arbitrários.
+ */
+function getPrismaErrorCode(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null || !("code" in error)) {
+    return undefined;
+  }
+  const code = (error as { code?: unknown }).code;
+  return typeof code === "string" ? code : undefined;
+}
 import { listMatches, getMatch, findAbandonedSessionSnapshot } from "./matchRepository";
 import { validateFinishMatch, validateTransitionState } from "./matchValidator";
 import {
@@ -59,8 +72,8 @@ export async function updateMatch(
       data: { ...updateData, version: { increment: 1 } },
       include: { player1: true, player2: true },
     });
-  } catch (error: any) {
-    if (error?.code === 'P2025') return { error: 'VERSION_CONFLICT' } as const;
+  } catch (error) {
+    if (getPrismaErrorCode(error) === 'P2025') return { error: 'VERSION_CONFLICT' } as const;
     throw error;
   }
 }
@@ -132,7 +145,7 @@ export async function finishMatch(
 
   const validation = validateFinishMatch(
     {
-      format: match.format as any,
+      format: match.format as MatchFormat,
       player1Id: match.player1Id,
       player2Id: match.player2Id,
       initialServerId: match.initialServerId,
@@ -146,7 +159,7 @@ export async function finishMatch(
   if (!validation.valid) return { error: validation.error } as const;
 
   const resolvedScoreState = options?.isManualScoreEdit
-    ? { ...((scoreState as any) || {}), history: [] }
+    ? { ...(scoreState as Record<string, unknown> | undefined), history: [] }
     : resolvePersistedScoreState(scoreState, match.scoreState);
 
   const updateData = buildFinishUpdateData(
@@ -163,8 +176,8 @@ export async function finishMatch(
       await recordScoreEditSegment(tx, id, options, match.scoreState, scoreState);
       return tx.match.update({ where: whereClause, data: updateData, include: { player1: true, player2: true } });
     });
-  } catch (error: any) {
-    if (error?.code === 'P2025' && options?.expectedVersion !== undefined) {
+  } catch (error) {
+    if (getPrismaErrorCode(error) === 'P2025' && options?.expectedVersion !== undefined) {
       return { error: 'VERSION_CONFLICT' } as const;
     }
     throw error;
@@ -195,7 +208,7 @@ export async function transitionMatchState(
 
   const validation = validateTransitionState(
     {
-      format: match.format as any,
+      format: match.format as MatchFormat,
       player1Id: match.player1Id,
       player2Id: match.player2Id,
       initialServerId: match.initialServerId,
@@ -253,8 +266,8 @@ export async function transitionMatchState(
         include: { player1: true, player2: true },
       });
     });
-  } catch (error: any) {
-    if (error?.code === 'P2025') {
+  } catch (error) {
+    if (getPrismaErrorCode(error) === 'P2025') {
       return { error: 'VERSION_CONFLICT' } as const;
     }
     throw error;

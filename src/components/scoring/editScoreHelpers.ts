@@ -282,7 +282,7 @@ export function getNextServerAfterSet(params: {
   const isMatchTiebreakSet = isMatchTiebreakSetIndexCanonical(
     lastSetIndex,
     { player1: p1Sets, player2: p2Sets },
-    format as any,
+    format,
   );
 
   // For Match Tiebreak: server alternates every 2 points (standard tiebreak).

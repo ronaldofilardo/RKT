@@ -1,6 +1,6 @@
 "use client";
 
-import type { RallyDetails } from "@/core/scoring/types";
+import type { RallyDetails, RallyEfeito } from "@/core/scoring/types";
 import type { RallyDirecao } from "@/schemas/contracts";
 import type { ScoreboardUIState } from "@/hooks/useScoreboardUIState";
 
@@ -12,6 +12,11 @@ interface ModalHandlersConfig {
 function mapDirection(direction?: string): RallyDirecao | undefined {
   if (!direction) return undefined;
   return direction as RallyDirecao;
+}
+
+function mapEffect(effect?: string): RallyEfeito | undefined {
+  if (!effect) return undefined;
+  return effect as RallyEfeito;
 }
 
 export function createModalHandlersService(config: ModalHandlersConfig) {
@@ -39,7 +44,7 @@ export function createModalHandlersService(config: ModalHandlersConfig) {
     situacao: "saque",
     tipo: "winner",
     golpe: "saque",
-    efeito: effect as any,
+    efeito: mapEffect(effect),
     direcao: mapDirection(direction),
     previewBalls: 1,
   });
@@ -60,7 +65,7 @@ export function createModalHandlersService(config: ModalHandlersConfig) {
     tipo: "dupla_falta",
     golpe: "saque",
     subtipo2: errorType === "net" ? "net" : "out",
-    efeito: effect as any,
+    efeito: mapEffect(effect),
     direcao: mapDirection(direction),
     previewBalls: 1,
   });

@@ -6,6 +6,8 @@ import { findDuplicateMatch } from '@/services/matchSuggestionService';
 import { validatedRequest, handleApiError, extractPagination } from '@/lib/api-helpers';
 import { ConflictError, ApiError } from '@/lib/errors';
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
+import type { TennisFormat } from '@/core/scoring/types';
 import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
@@ -42,7 +44,7 @@ export async function GET(request: NextRequest) {
         const { scoreState, ...rest } = m;
         return {
           ...rest,
-          scoreSummary: scoreState ? normalizeScoreState(scoreState, m.format as any) : null
+          scoreSummary: scoreState ? normalizeScoreState(scoreState, m.format as TennisFormat) : null
         };
       });
 
@@ -66,11 +68,14 @@ export async function POST(request: NextRequest) {
         const match = await prisma.$transaction(async (tx) => {
           const [firstPlayer, secondPlayer] = [input.player1Id, input.player2Id].sort();
           const lockKey = `match_create_${firstPlayer}_${secondPlayer}`;
-          if (typeof (tx as any).$executeRaw === 'function') {
+          const txWithRawSql = tx as Prisma.TransactionClient & {
+            $executeRaw?: (strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown>;
+          };
+          if (typeof txWithRawSql.$executeRaw === 'function') {
             try {
-              await (tx as any).$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
-            } catch {
-              // Ignora se dialeto do banco não suportar pg_advisory_xact_lock (ex.: testes)
+              await txWithRawSql.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
+            } catch (error) {
+              logger.warn('[MATCH CREATE] Dialeto sem pg_advisory_xact_lock; lock de criação ignorado:', error);
             }
           }
 

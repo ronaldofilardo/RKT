@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
+import { logger } from "@/lib/logger";
 import type { ScoringEngine } from "@/core/scoring/engine";
 import type { ScoringState, TimelinePoint } from "@/core/scoring/types";
 import type { MatchData } from "@/hooks/useScoringHandlers";
@@ -54,8 +55,8 @@ export function useScoringTimelineSync({
           setServerTimelinePoints(data.timelinePoints);
         }
       }
-    } catch {
-      // Silently fail — fallback to engine history
+    } catch (error) {
+      logger.warn('[TIMELINE SYNC] Falha ao carregar timeline do servidor; usando history do engine:', error);
     }
   }, [matchId, tokenRef]);
 
@@ -116,8 +117,8 @@ export function useScoringTimelineSync({
         const data = await res.json();
         setPointLogAudioMeta(data.pointLogs ?? []);
       }
-    } catch {
-      // Silently fail — audio is non-critical
+    } catch (error) {
+      logger.warn('[TIMELINE SYNC] Falha ao carregar metadados de áudio; mantendo lista vazia:', error);
     }
   }, [match, matchId, tokenRef]);
 
@@ -132,8 +133,8 @@ export function useScoringTimelineSync({
         const data = await res.json();
         setComments(data.comments ?? []);
       }
-    } catch {
-      // Silently fail — comments are non-critical
+    } catch (error) {
+      logger.warn('[TIMELINE SYNC] Falha ao carregar comentários; mantendo lista vazia:', error);
     }
   }, [match, matchId, tokenRef]);
 

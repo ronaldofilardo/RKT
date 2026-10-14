@@ -3,10 +3,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { NewAthleteModal } from '@/app/match/new/components/NewAthleteModal';
-import { EditAthleteModal } from './EditAthleteModal';
+import { EditAthleteModal, type EditAthleteSavePayload } from './EditAthleteModal';
 import { AthleteSearchHeader } from './components/AthleteSearchHeader';
 import { AthleteListTable } from './components/AthleteListTable';
 import { logger } from '@/lib/logger';
+import { playersClient } from '@/services/playersClient';
 
 interface RankingEntry {
   category?: string;
@@ -51,14 +52,7 @@ export default function AtletasPage() {
         return;
       }
 
-      const res = await fetch(`/api/players?userId=${encodeURIComponent(currentUserId)}`, {
-        headers: { authorization: `Bearer ${currentToken}` },
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.message || 'Erro ao carregar atletas');
-      }
-      const json = await res.json();
+      const json = await playersClient.list(currentUserId, currentToken);
       const players = json?.data?.players ?? json?.players ?? [];
       setAthletes(Array.isArray(players) ? players : []);
     } catch (err) {
@@ -79,23 +73,12 @@ export default function AtletasPage() {
     loadAthletes().finally(() => setLoading(false));
   }, [router, loadAthletes]);
 
-  const handleSave = async (data: any) => {
+  const handleSave = async (data: EditAthleteSavePayload) => {
     if (!editingAthlete) return;
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/players/${editingAthlete.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const json = await res.json();
-        throw new Error(json.message || 'Erro ao salvar');
-      }
+      await playersClient.update(editingAthlete.id, data, token);
       setEditingAthlete(null);
       await loadAthletes();
     } catch (err) {
@@ -111,14 +94,7 @@ export default function AtletasPage() {
     setDeleting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/players/${athleteToDelete.id}`, {
-        method: 'DELETE',
-        headers: { authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.message || 'Erro ao excluir atleta');
-      }
+      await playersClient.remove(athleteToDelete.id, token);
       setAthleteToDelete(null);
       await loadAthletes();
     } catch (err) {
@@ -161,7 +137,7 @@ export default function AtletasPage() {
       </main>
 
       <EditAthleteModal
-        athlete={editingAthlete as any}
+        athlete={editingAthlete}
         isOpen={!!editingAthlete}
         onClose={() => setEditingAthlete(null)}
         onSave={handleSave}

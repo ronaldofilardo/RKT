@@ -1,6 +1,6 @@
 'use client';
 
-import type { PointDetailsForm, Vencedor } from './point-details-logic';
+import type { PointDetailsForm, Vencedor, Action } from './point-details-logic';
 import {
   getTipoOptions,
   getGolpeOptions,
@@ -20,12 +20,12 @@ import {
   GOLPE_ESP_LABELS,
 } from './point-details-logic';
 import { Section } from './point-details-section';
-import { Pills } from './pills-component';
+import { Pills, toLabelMap } from './pills-component';
 
 interface SectionRendererProps {
   form: PointDetailsForm;
   vencedor: Vencedor;
-  dispatch: React.Dispatch<any>;
+  dispatch: React.Dispatch<Action>;
   refs: {
     tipoRef: React.RefObject<HTMLDivElement>;
     golpeRef: React.RefObject<HTMLDivElement>;
@@ -59,7 +59,7 @@ export function SectionRenderer({
           options={SITUACAO_OPTIONS.map(o => o.value)}
           selected={form.situacao}
           onChange={v => dispatch({ type: 'SET_SITUACAO', value: v })}
-          labelMap={Object.fromEntries(SITUACAO_OPTIONS.map(o => [o.value, o.label])) as any}
+          labelMap={toLabelMap(SITUACAO_OPTIONS)}
         />
       </Section>
 
@@ -94,7 +94,7 @@ export function SectionRenderer({
             options={SUBTIPO1_OPTIONS.map(o => o.value)}
             selected={form.subtipo1}
             onChange={v => dispatch({ type: 'SET_SUBTIPO1', value: v })}
-            labelMap={Object.fromEntries(SUBTIPO1_OPTIONS.map(o => [o.value, o.label])) as any}
+            labelMap={toLabelMap(SUBTIPO1_OPTIONS)}
           />
         </Section>
       )}
@@ -105,7 +105,7 @@ export function SectionRenderer({
             options={EFEITO_OPTIONS.map(o => o.value)}
             selected={form.efeito}
             onChange={v => dispatch({ type: 'SET_EFEITO', value: v })}
-            labelMap={Object.fromEntries(EFEITO_OPTIONS.map(o => [o.value, o.label])) as any}
+            labelMap={toLabelMap(EFEITO_OPTIONS)}
           />
         </Section>
       )}
@@ -147,7 +147,7 @@ export function SectionRenderer({
             options={DURACAO_OPTIONS.map(o => o.value)}
             selected={form.duracao}
             onChange={v => dispatch({ type: 'SET_DURACAO', value: v })}
-            labelMap={Object.fromEntries(DURACAO_OPTIONS.map(o => [o.value, o.label])) as any}
+            labelMap={toLabelMap(DURACAO_OPTIONS)}
           />
         </Section>
       )}

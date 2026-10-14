@@ -3,6 +3,7 @@ import { RankingForm } from '@/app/atletas/RankingForm';
 import { computeClassesForType, type RankingState } from '@/app/atletas/rankingLogic';
 import { getMatchCategoriesForAge, MATCH_CATEGORY_LABELS, MATCH_CATEGORY_AGE_LABELS } from '@/lib/ranking/rankingConstants';
 import type { RankingType } from '@/lib/ranking/rankingConstants';
+import type { AthleteForm } from '@/app/atletas/types';
 
 const fieldIds = {
   name: 'new-athlete-name',
@@ -16,8 +17,8 @@ const fieldIds = {
 };
 
 interface NewAthleteModalFormProps {
-  form: any;
-  setForm: React.Dispatch<React.SetStateAction<any>>;
+  form: AthleteForm;
+  setForm: React.Dispatch<React.SetStateAction<AthleteForm>>;
   rankings: Record<RankingType, RankingState>;
   setRankings: React.Dispatch<React.SetStateAction<Record<RankingType, RankingState>>>;
   age: number | null;
@@ -37,8 +38,8 @@ export function NewAthleteModalForm({
   onRankingToggle,
   onRankingFieldChange
 }: NewAthleteModalFormProps) {
-  const handleChange = (field: string, value: string) => {
-    setForm((prev: any) => ({ ...prev, [field]: value }));
+  const handleChange = (field: keyof AthleteForm, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   return (

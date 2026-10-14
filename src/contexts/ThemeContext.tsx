@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { logger } from '@/lib/logger';
 
 export type ThemePreference = 'light' | 'dark' | 'system';
 
@@ -25,8 +26,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       if (saved === 'light' || saved === 'dark' || saved === 'system') {
         setThemeState(saved);
       }
-    } catch {
-      // Ignorar erros de localStorage (ex: SSR / modo privado)
+    } catch (error) {
+      logger.warn('[THEME] Falha ao ler preferência de tema do localStorage:', error);
     }
   }, []);
 
@@ -77,8 +78,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setThemeState(newTheme);
     try {
       localStorage.setItem(THEME_STORAGE_KEY, newTheme);
-    } catch {
-      // Ignorar erros de escrita
+    } catch (error) {
+      logger.warn('[THEME] Falha ao gravar preferência de tema no localStorage:', error);
     }
   };
 

@@ -143,8 +143,9 @@ export function simulateScoreFromPointLogs(
           engine.loadState(unpacked);
           lastStateBefore = engine.getState();
         }
-      } catch (e) {
-        // Ignora erros de carga de estado
+      } catch {
+        // ste-exception R-08: domínio puro (R-05) — I/O proibido.
+        // Entrada corrompida degrada para o último estado válido reconstruído.
       }
       nextEditIndex++;
     }

@@ -1,17 +1,26 @@
 import { logger } from '@/lib/logger';
 import { ScoringEngine } from '@/core/scoring/engine';
-import type { ScoringState } from '@/core/scoring/types';
+import type { HistoryEntry, ScoringState, TennisFormat } from '@/core/scoring/types';
+import type { ScoreAction } from '@/hooks/useScoreReducer';
 import type { MatchData } from './useScoringHandlers.types';
+
+/** Envelope que o servidor pode devolver no `scoreState` (ver persistStateWithRetry). */
+type ScoreStateEnvelope = { state?: ScoringState; history?: HistoryEntry[] };
+
+/** Campo defensivo: alguns servidores podem devolver além do schema atual. */
+type MatchDataWithSequence = MatchData & { lastPointSequence?: number };
 
 interface MatchFetchDeps {
   matchId: string;
   tokenRef: React.MutableRefObject<string | null>;
   matchVersionRef: React.MutableRefObject<number | null>;
   pointSequenceRef: React.MutableRefObject<number>;
-  engineRef: React.MutableRefObject<any>;
-  openRef: React.MutableRefObject<(modal: any) => void>;
+  engineRef: React.MutableRefObject<ScoringEngine | null>;
+  openRef: React.MutableRefObject<
+    (modal: string, params?: Record<string, string>) => void
+  >;
   setMatch: (match: MatchData) => void;
-  setScoreState: (action: any) => void;
+  setScoreState: (action: ScoreAction) => void;
   setPointsHistory: React.Dispatch<React.SetStateAction<string[]>>;
   setIsLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -41,7 +50,7 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || `Erro ao buscar partida: ${res.status}`);
       }
-      const data: MatchData = await res.json();
+      const data = (await res.json()) as MatchDataWithSequence;
       setMatch(data);
 
       if (typeof data.version === 'number') {
@@ -53,15 +62,15 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
         matchVersionRef.current = data.version;
       }
 
-      if ((data as any).lastPointSequence !== undefined) {
-        pointSequenceRef.current = (data as any).lastPointSequence;
+      if (data.lastPointSequence !== undefined) {
+        pointSequenceRef.current = data.lastPointSequence;
       } else if (typeof data.version === 'number') {
         pointSequenceRef.current = data.version;
       }
 
       if (forceEngineReset || !engineRef.current) {
         const config = {
-          format: data.format as any,
+          format: data.format as TennisFormat,
           player1Id: data.player1.id,
           player2Id: data.player2.id,
           initialServerId: data.initialServerId || data.player1.id,
@@ -75,25 +84,31 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
         // no mesmo padrão de applySuccessResult (point-processor.service).
         const previousHistory = engineRef.current?.getPointHistory?.() ?? [];
 
-        let scoreStateToUse: any = data.scoreState;
+        let scoreStateToUse: ScoringState | ScoreStateEnvelope | string | null = data.scoreState;
 
         if (scoreStateToUse) {
           if (typeof scoreStateToUse === 'string') {
             try {
-              scoreStateToUse = JSON.parse(scoreStateToUse);
-            } catch {}
+              scoreStateToUse = JSON.parse(scoreStateToUse) as ScoringState | ScoreStateEnvelope;
+            } catch (error) {
+              logger.warn('[MATCH FETCH] Falha ao parsear scoreState string; seguindo com o valor original:', error);
+            }
           }
-          const targetObj = scoreStateToUse.state ? scoreStateToUse.state : scoreStateToUse;
+          const envelope: ScoreStateEnvelope | null =
+            typeof scoreStateToUse === 'object' && scoreStateToUse !== null
+              ? (scoreStateToUse as ScoreStateEnvelope)
+              : null;
+          const targetObj = (envelope?.state ? envelope.state : (scoreStateToUse as ScoringState))!;
           if (!targetObj.setsWon) {
             targetObj.setsWon = { player1: 0, player2: 0 };
           }
 
-          const hasHistory = Array.isArray(scoreStateToUse?.history) && scoreStateToUse.history.length > 0;
+          const hasHistory = Array.isArray(envelope?.history) && envelope.history.length > 0;
           const hasPointsInGame = Boolean(
             targetObj?.currentGame && (targetObj.currentGame.player1 > 0 || targetObj.currentGame.player2 > 0)
           );
           const hasGamesInSets = (targetObj?.sets ?? []).some(
-            (s: any) => (s.player1 || 0) > 0 || (s.player2 || 0) > 0
+            (s) => (s.player1 || 0) > 0 || (s.player2 || 0) > 0
           );
           const hasStartedScoring = hasHistory || hasPointsInGame || hasGamesInSets;
 
@@ -119,8 +134,8 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
         // menos pontos do que os realmente jogados até um novo ponto local
         // reconstruir o resto. Agora comparamos os tamanhos e mantemos o
         // histórico mais completo dos dois.
-        const serverHistoryLength = Array.isArray(scoreStateToUse?.history)
-          ? scoreStateToUse.history.length
+        const serverHistoryLength = Array.isArray((scoreStateToUse as ScoreStateEnvelope | null)?.history)
+          ? ((scoreStateToUse as ScoreStateEnvelope).history as HistoryEntry[]).length
           : 0;
         if (engineRef.current && previousHistory.length > serverHistoryLength) {
           engineRef.current.restorePointHistory(previousHistory);
@@ -134,7 +149,7 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
         if (forceEngineReset && engineRef.current) {
           // Lê do engine com histórico restaurado ou do recente de PointLogs do servidor
           const engineHistory = engineRef.current.getPointHistory();
-          const synced = engineHistory.slice(-20).map((entry: any) => entry.point.winnerId);
+          const synced = engineHistory.slice(-20).map((entry) => entry.point.winnerId);
           const serverRecent = Array.isArray(data.recentWinnerIds) ? data.recentWinnerIds : [];
           const finalBadges = synced.length > 0 ? synced : serverRecent;
           setPointsHistory(finalBadges.length > 0 ? finalBadges : []);

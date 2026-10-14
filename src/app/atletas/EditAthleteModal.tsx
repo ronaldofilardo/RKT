@@ -17,6 +17,15 @@ import {
   rankingsStateToPayload,
 } from './edit-athlete-modal.helpers';
 
+export interface EditAthleteSavePayload {
+  name: string;
+  gender?: string;
+  birthDate?: string;
+  dominance?: string;
+  backhand?: string;
+  rankings?: Record<string, RankingEntry>;
+}
+
 interface EditAthleteModalProps {
   athlete: {
     id: string;
@@ -30,14 +39,7 @@ interface EditAthleteModalProps {
   } | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: {
-    name: string;
-    gender?: string;
-    birthDate?: string;
-    dominance?: string;
-    backhand?: string;
-    rankings?: Record<string, RankingEntry>;
-  }) => Promise<void>;
+  onSave: (data: EditAthleteSavePayload) => Promise<void>;
 }
 
 export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthleteModalProps) {

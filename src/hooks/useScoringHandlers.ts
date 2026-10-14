@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import type {
   ScoringState,
   PointFlow,
+  RallyDetails,
   HistoryEntry,
 } from "@/core/scoring/types";
 import type {
@@ -246,7 +247,7 @@ export function useScoringHandlers(
   );
 
   const handlePointDetailsConfirm = useCallback(
-    (details: any, audio?: { blob: Blob; durationMs: number }) => {
+    (details: RallyDetails, audio?: { blob: Blob; durationMs: number }) => {
       pointProcessorService.handlePointDetailsConfirm(details, audio);
     },
     [pointProcessorService],
@@ -303,7 +304,7 @@ export function useScoringHandlers(
     persistState,
     getServerId: serverHelpers.getServerId,
     getWinnerId: serverHelpers.getWinnerId,
-    processPoint: async (flow: any) => {
+    processPoint: async (flow: PointFlow) => {
       await processPoint(flow);
     },
     fetchMatch,

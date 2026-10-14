@@ -1,8 +1,9 @@
 import type { MatchFinishReason } from "@/schemas/contracts";
 import type { ToastType } from "@/components/Toast";
+import type { DeletableMatch, FinishableMatch } from "./dashboard.types";
 
 interface DeleteMatchOptions {
-  matchToDelete: any;
+  matchToDelete: DeletableMatch | null;
   fetchDashboardData: () => void;
   toast: (opts: { type: ToastType; message: string }) => void;
 }
@@ -41,10 +42,11 @@ export function useDeleteMatch(options: DeleteMatchOptions) {
       });
 
       fetchDashboardData();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         type: "error",
-        message: error.message || "Erro ao excluir partida",
+        message:
+          (error instanceof Error ? error.message : "") || "Erro ao excluir partida",
       });
     }
   };
@@ -53,7 +55,7 @@ export function useDeleteMatch(options: DeleteMatchOptions) {
 }
 
 interface FinishMatchOptions {
-  matchToFinish: any;
+  matchToFinish: FinishableMatch | null;
   fetchDashboardData: () => void;
   toast: (opts: { type: ToastType; message: string }) => void;
 }
@@ -95,10 +97,11 @@ export function useFinishMatch(options: FinishMatchOptions) {
       });
 
       fetchDashboardData();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         type: "error",
-        message: error.message || "Erro ao encerrar partida",
+        message:
+          (error instanceof Error ? error.message : "") || "Erro ao encerrar partida",
       });
     }
   };

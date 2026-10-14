@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import type { AppRouteInput } from '@/lib/app-router';
 
 interface ModalParams {
   [key: string]: string;
@@ -61,12 +62,12 @@ function useRouterModalStack() {
 
   const open = useCallback((name: string, params?: ModalParams) => {
     const url = buildModalUrl(pathnameRef.current, searchParamsRef.current, name, params);
-    routerRef.current.push(url as any);
+    routerRef.current.push(url as AppRouteInput);
   }, []);
 
   const replace = useCallback((name: string, params?: ModalParams) => {
     const url = buildModalUrl(pathnameRef.current, searchParamsRef.current, name, params);
-    routerRef.current.replace(url as any);
+    routerRef.current.replace(url as AppRouteInput);
   }, []);
 
   const close = useCallback(() => {
@@ -78,7 +79,7 @@ function useRouterModalStack() {
     sp.delete('modal');
     const qs = sp.toString();
     const url = qs ? `${pathnameRef.current}?${qs}` : pathnameRef.current;
-    routerRef.current.replace(url as any);
+    routerRef.current.replace(url as AppRouteInput);
   }, []);
 
   return {

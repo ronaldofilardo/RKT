@@ -1,5 +1,6 @@
 import type { TennisFormat } from "@/core/scoring/types";
 import type { CompletedSet } from "./edit-score-logic";
+import type { EditScoreValidation } from "./edit-score-logic.types";
 import type { SetEditData } from "./editScoreHelpers";
 import { calculateNextServer, createSetEditData, getEffectiveSetWinner } from "./edit-score-logic";
 import { getCompletedSets, toCompletedSetsForServer, getFreshFloorError } from "./useEditScoreModal.confirm.helpers";
@@ -7,7 +8,7 @@ import { validateConfirmForm, buildExistingSetsPayload } from "./useEditScoreMod
 import type { EditScoreModalState } from "./useEditScoreModal.types";
 
 function buildConfirmSubmission(params: {
-  state: any;
+  state: EditScoreModalState;
   completedSets: CompletedSet[];
   matchFormat: TennisFormat;
   currentServer: "player1" | "player2";
@@ -22,7 +23,7 @@ function buildConfirmSubmission(params: {
   const { state, completedSets, matchFormat, currentServer, setData, p1Val, p2Val, tiebreakComplete, tiebreakP1Num, tiebreakP2Num } = params;
   const allCompletedSetsForServer: CompletedSet[] = [
     ...toCompletedSetsForServer(state, completedSets, matchFormat),
-    ...state.newSets.map((ns: any) => ({
+    ...state.newSets.map((ns) => ({
       games: { player1: ns.p1Games, player2: ns.p2Games } as Record<'player1' | 'player2', number>,
       winner: (ns.p1Games > ns.p2Games ? 'player1' : 'player2') as 'player1' | 'player2',
       tiebreakScore: ns.tiebreakScore,
@@ -56,7 +57,7 @@ function prepareFullSetSubmission(params: {
   tiebreakP2Num: number;
   isMatchTiebreakSet: boolean;
   isPotentialMTSet: boolean;
-  state: any;
+  state: EditScoreModalState;
   currentSets: { player1: number; player2: number };
   matchFormat: TennisFormat;
   completedSets: CompletedSet[];
@@ -117,7 +118,7 @@ function prepareFullSetSubmission(params: {
 
 async function applyFullSetSubmission(params: {
   submission: ReturnType<typeof prepareFullSetSubmission>;
-  validation: any;
+  validation: EditScoreValidation;
   matchWouldEnd: boolean;
   isSetTrulyCompleted: boolean;
   p1Val: number;
@@ -164,7 +165,7 @@ export async function executeConfirmFlow(params: {
   floorCurrentSets?: { player1: number; player2: number } | null;
   floorTiebreak?: { player1: number; player2: number } | null;
   isSetTrulyCompleted: boolean;
-  validation: any;
+  validation: EditScoreValidation;
   floorValidationError: string | null;
   partial: boolean;
   hasTiebreak: boolean;

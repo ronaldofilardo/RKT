@@ -13,8 +13,13 @@ import {
   useUserAuth,
   useDashboardMatchFilters,
 } from "./dashboard.hooks";
-import { useResumeSession } from "./dashboard.resume";
+import { useResumeSession, unwrapDashboardScoreState, type ResumableMatch } from "./dashboard.resume";
+import type { DeletableMatch, FinishableMatch } from "./dashboard.types";
+import type { DashboardMatchPayload } from "@/components/dashboard/MatchCard";
+import type { TimelinePoint } from "@/core/scoring/types";
+import type { AppRouteInput } from "@/lib/app-router";
 import { useDeleteMatch, useFinishMatch } from "./dashboard.actions";
+import { matchesClient } from "@/services/matchesClient";
 import { DashboardTopBar } from "./components/DashboardTopBar";
 import { DashboardSidebar } from "./components/DashboardSidebar";
 import { DashboardViewRouter } from "./components/DashboardViewRouter";
@@ -28,12 +33,12 @@ export default function DashboardPage() {
   const pathname = usePathname();
   const { toast } = useToast();
   const { setSession, setPendingEdit } = useSession();
-  const [selectedMatchForServer, setSelectedMatchForServer] = useState<any | null>(null);
+  const [selectedMatchForServer, setSelectedMatchForServer] = useState<DashboardMatchPayload | null>(null);
   const [startingMatch, setStartingMatch] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
-  const [setSummaryMatch, setSetSummaryMatch] = useState<any | null>(null);
-  const [setSummaryTimelinePoints, setSetSummaryTimelinePoints] = useState<any[]>([]);
-  const [matchToEditInfo, setMatchToEditInfo] = useState<any | null>(null);
+  const [setSummaryMatch, setSetSummaryMatch] = useState<DashboardMatchPayload | null>(null);
+  const [setSummaryTimelinePoints, setSetSummaryTimelinePoints] = useState<TimelinePoint[]>([]);
+  const [matchToEditInfo, setMatchToEditInfo] = useState<DashboardMatchPayload | null>(null);
 
   logger.info("[DashboardPage] mount pathname=", pathname, "menuOpen=", false);
 
@@ -81,50 +86,45 @@ export default function DashboardPage() {
 
   const filters = useDashboardMatchFilters(matches, suspendedFromApi);
 
-  const handleMatchClick = useCallback((match: any) => {
+  const handleMatchClick = useCallback((match: ResumableMatch) => {
     logger.info("[DashboardPage] match click", match.id, match.state);
     if (match.state === "FINISHED") {
-      router.push(`/match/${match.id}/report`);
+      router.push(`/match/${match.id}/report` as AppRouteInput);
     } else if (match.suspendedSessionId || match.matchStateSnapshot) {
       handleResumeSuspended(match, { openEditModal: false });
     } else if (match.state === "SCHEDULED" || !match.initialServerId) {
       setSelectedMatchForServer(match);
     } else {
-      router.push(`/match/${match.id}/scoring`);
+      router.push(`/match/${match.id}/scoring` as AppRouteInput);
     }
   }, [router, handleResumeSuspended]);
 
-  const handleMatchResume = useCallback((match: any) => {
+  const handleMatchResume = useCallback((match: ResumableMatch) => {
     logger.info("[DashboardPage] resume match directly", match.id);
     if (match.suspendedSessionId || match.matchStateSnapshot) {
       handleResumeSuspended(match, { openEditModal: false });
     } else {
-      router.push(`/match/${match.id}/scoring`);
+      router.push(`/match/${match.id}/scoring` as AppRouteInput);
     }
   }, [router, handleResumeSuspended]);
 
-  const handleMatchEditScore = useCallback((match: any) => {
+  const handleMatchEditScore = useCallback((match: ResumableMatch) => {
     logger.info("[DashboardPage] edit score match", match.id);
     if (match.suspendedSessionId || match.matchStateSnapshot) {
       handleResumeSuspended(match, { openEditModal: true });
     } else {
-      router.push(`/match/${match.id}/scoring?modal=edit-score`);
+      router.push(`/match/${match.id}/scoring?modal=edit-score` as AppRouteInput);
     }
   }, [router, handleResumeSuspended]);
 
-  const handleMatchSetSummary = useCallback(async (match: any) => {
+  const handleMatchSetSummary = useCallback(async (match: DashboardMatchPayload) => {
     logger.info("[DashboardPage] open set summary", match.id);
     setSetSummaryMatch(match);
     setSetSummaryTimelinePoints([]);
     try {
-            const res = await fetch(`/api/matches/${match.id}/report`, {
-        headers: {},
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data.timelinePoints)) {
-          setSetSummaryTimelinePoints(data.timelinePoints);
-        }
+      const data = await matchesClient.getReportTimeline(match.id);
+      if (Array.isArray(data.timelinePoints)) {
+        setSetSummaryTimelinePoints(data.timelinePoints);
       }
     } catch (err) {
       logger.error("[DashboardPage] Erro ao buscar pontos para análise do set", err);
@@ -132,17 +132,18 @@ export default function DashboardPage() {
   }, []);
 
   const completedSetsCount = useMemo(() => {
-    if (!setSummaryMatch?.scoreState?.sets) return 1;
-    const sets = setSummaryMatch.scoreState.sets;
-    const count = sets.filter((s: any) => {
-      return (s.player1 >= 6 || s.player2 >= 6) && Math.abs(s.player1 - s.player2) >= 2 || s.isTiebreak || s.tiebreakScore;
+    const sets = unwrapDashboardScoreState(setSummaryMatch?.scoreState)?.sets;
+    if (!sets) return 1;
+    const count = sets.filter((s) => {
+      return (s.player1 >= 6 || s.player2 >= 6) && Math.abs(s.player1 - s.player2) >= 2 || Boolean(s.isTiebreak) || Boolean(s.tiebreakScore);
     }).length;
     return count || sets.length || 1;
   }, [setSummaryMatch]);
 
   const completedSetsData = useMemo(() => {
-    if (!setSummaryMatch?.scoreState?.sets) return [];
-    return setSummaryMatch.scoreState.sets.map((s: any) => ({
+    const sets = unwrapDashboardScoreState(setSummaryMatch?.scoreState)?.sets;
+    if (!sets) return [];
+    return sets.map((s) => ({
       games: { player1: s.player1 ?? 0, player2: s.player2 ?? 0 },
       winner: (s.player1 > s.player2 ? 'player1' : 'player2') as 'player1' | 'player2',
       tiebreakScore: s.tiebreakScore ?? undefined,
@@ -153,21 +154,11 @@ export default function DashboardPage() {
     if (!selectedMatchForServer) return;
     setStartingMatch(true);
     try {
-            const response = await fetch(`/api/matches/${selectedMatchForServer.id}/state`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          state: "IN_PROGRESS",
-          initialServerId: serverId,
-        }),
+      await matchesClient.startMatch(selectedMatchForServer.id, {
+        state: "IN_PROGRESS",
+        initialServerId: serverId,
       });
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data?.error || "Erro ao iniciar partida");
-      }
-      router.push(`/match/${selectedMatchForServer.id}/scoring`);
+      router.push(`/match/${selectedMatchForServer.id}/scoring` as AppRouteInput);
     } catch (err) {
       logger.error("[DashboardPage handleSelectServer]", err);
       toast({ type: "error", message: "Erro ao iniciar partida" });
@@ -175,20 +166,20 @@ export default function DashboardPage() {
     }
   };
 
-  const handleMatchReport = useCallback((match: any) => {
-    router.push(`/match/${match.id}/report`);
+  const handleMatchReport = useCallback((match: DashboardMatchPayload) => {
+    router.push(`/match/${match.id}/report` as AppRouteInput);
   }, [router]);
 
-  const handleMatchFinish = useCallback((match: any) => {
+  const handleMatchFinish = useCallback((match: FinishableMatch) => {
     setMatchToFinish(match);
   }, [setMatchToFinish]);
 
-  const handleMatchEditInfo = useCallback((match: any) => {
+  const handleMatchEditInfo = useCallback((match: DashboardMatchPayload) => {
     logger.info("[DashboardPage] edit match info", match.id);
     setMatchToEditInfo(match);
   }, []);
 
-  const handleMatchDelete = useCallback((match: any) => {
+  const handleMatchDelete = useCallback((match: DeletableMatch) => {
     setMatchToDelete(match);
   }, [setMatchToDelete]);
 

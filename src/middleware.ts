@@ -47,8 +47,9 @@ export async function middleware(request: NextRequest) {
     try {
       if (origin) sourceUrl = new URL(origin);
       else if (referer) sourceUrl = new URL(referer);
-    } catch (e) {
-      // URL malformada ignora silenciosamente (sourceUrl fica null)
+    } catch {
+      // ste-exception R-08: `new URL` lança sobre Origin/Referer malformados.
+      // Comportamento desejado: sourceUrl fica null e a checagem CSRs segue.
     }
 
     // Ambiente de testes locais (Jest) ou chamadas servidor-servidor que não enviam origin/referer

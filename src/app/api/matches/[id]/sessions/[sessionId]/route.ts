@@ -65,7 +65,7 @@ export async function PATCH(
         return typeof state === 'string' ? state : JSON.stringify(state);
       };
 
-      const updateData: Record<string, unknown> = {
+      const updateData: Parameters<typeof updateSession>[1] = {
         status: newStatus,
       };
 
@@ -85,7 +85,7 @@ export async function PATCH(
         updateData.finalStateSnapshot = serializeState(parsed.data.finalState || match?.scoreState);
       }
 
-      const updated = await updateSession(sessionId, updateData as any);
+      const updated = await updateSession(sessionId, updateData);
       return NextResponse.json(updated);
     } catch (error) {
       logger.error('[PATCH /api/matches/:id/sessions/:sessionId] Error:', error);

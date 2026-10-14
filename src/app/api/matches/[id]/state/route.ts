@@ -27,10 +27,18 @@ async function checkCanModifyMatchState(
     return true;
   }
 
-  const hasSessionModel = typeof (prisma as any).matchAnnotationSession?.findFirst === 'function';
-  if (!hasSessionModel) return true;
+  // Detecção em runtime: o modelo pode ausentar em clientes Prisma desatualizados.
+  const prismaWithSessions = prisma as unknown as {
+    matchAnnotationSession?: {
+      findFirst: (args: {
+        where: { matchId?: string; isActive: boolean; annotatorUserId?: string };
+      }) => Promise<unknown>;
+    };
+  };
+  const sessionModel = prismaWithSessions.matchAnnotationSession;
+  if (typeof sessionModel?.findFirst !== 'function') return true;
 
-  const activeSession = await (prisma as any).matchAnnotationSession.findFirst({
+  const activeSession = await sessionModel.findFirst({
     where: { matchId, isActive: true, annotatorUserId: currentUserId },
   });
   return Boolean(activeSession);

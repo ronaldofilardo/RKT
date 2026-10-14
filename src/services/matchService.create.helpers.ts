@@ -1,4 +1,5 @@
 import type { CreateMatchInput, MatchFormat } from '@/schemas/contracts';
+import type { Prisma } from '@prisma/client';
 import { ValidationError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { getInitialGames } from '@/core/scoring/format-rules';
@@ -29,7 +30,7 @@ function buildCreateFormatFields(data: CreateMatchInput) {
 function buildCreateMetadataFields(data: CreateMatchInput) {
   return {
     tournamentName: data.tournamentName || null,
-    clubName: (data as any).clubName || null,
+    clubName: data.clubName || null,
     category: data.category || null,
     round: data.round || data.roundName || null,
     bracketType: data.bracketType || null,
@@ -59,7 +60,7 @@ function buildCreateDefaults(data: CreateMatchInput) {
     state: 'SCHEDULED' as const,
     player1Id: data.player1Id,
     player2Id: data.player2Id,
-    scoreState: initialScoreState as any,
+    scoreState: initialScoreState as Prisma.InputJsonValue,
   };
 }
 

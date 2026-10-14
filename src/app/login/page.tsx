@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoginPayloadSchema } from "@/schemas/contracts";
-import { writeToSessionOnly } from "@/lib/auth-client";
+import { writeToSessionOnly, loginRequest } from "@/lib/auth-client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,20 +29,7 @@ export default function LoginPage() {
     }
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsed.data),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.message || data.error || "Erro ao fazer login");
-        setIsLoading(false);
-        return;
-      }
-
-      const data = await res.json();
+      const data = await loginRequest(parsed.data);
       writeToSessionOnly({
         userId: data.user.id,
         userRole: data.user.role,
@@ -56,8 +43,16 @@ export default function LoginPage() {
       } else {
         router.push("/dashboard");
       }
-    } catch {
-      setError("Erro de conexão com o servidor");
+    } catch (err) {
+      // Resposta do servidor rejeitada mostra a mensagem retornada;
+      // falha de rede mostra mensagem generica.
+      if (err instanceof Error && err.message !== "Erro ao fazer login") {
+        setError(err.message);
+      } else if (err instanceof TypeError) {
+        setError("Erro de conexao com o servidor");
+      } else {
+        setError("Erro ao fazer login");
+      }
       setIsLoading(false);
     }
   }

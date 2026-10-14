@@ -1,4 +1,5 @@
 import { TIMEOUTS } from './constants';
+import { logger } from './logger';
 
 const LOCK_KEY = "pendingMatchSyncs.lock";
 
@@ -27,8 +28,8 @@ export function releaseLocalStorageLock(): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.removeItem(LOCK_KEY);
-  } catch {
-    // ignore
+  } catch (error) {
+    logger.warn('[OFFLINE SYNC] Falha ao liberar lock no localStorage:', error);
   }
 }
 
@@ -52,8 +53,8 @@ export function writePendingMatchSyncs<T>(items: T[]): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem("pendingMatchSyncs", JSON.stringify(items));
-  } catch {
-    // ignore quota errors
+  } catch (error) {
+    logger.warn('[OFFLINE SYNC] Falha ao gravar pendências no localStorage (quota?):', error);
   }
 }
 

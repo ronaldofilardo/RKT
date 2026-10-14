@@ -41,9 +41,18 @@ export async function validateMatchAnnotatorPermission(
     return;
   }
 
-  const hasSessionModel = typeof (tx as any)?.matchAnnotationSession?.findFirst === 'function';
+  // Detecção em runtime: o modelo pode ausentar em clientes Prisma desatualizados.
+  const txWithSessions = tx as unknown as {
+    matchAnnotationSession?: {
+      findFirst: (args: {
+        where: { matchId?: string; isActive: boolean; annotatorUserId?: string };
+      }) => Promise<unknown>;
+    };
+  };
+  const sessionModel = txWithSessions.matchAnnotationSession;
+  const hasSessionModel = typeof sessionModel?.findFirst === 'function';
   const activeSession = hasSessionModel
-    ? await (tx as any).matchAnnotationSession.findFirst({
+    ? await sessionModel.findFirst({
         where: { matchId: id, isActive: true, annotatorUserId: currentUserId },
       })
     : null;

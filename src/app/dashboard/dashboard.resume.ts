@@ -2,18 +2,52 @@ import type { TennisFormat } from "@/lib/matchConfig";
 import { isSetCompleted } from "@/app/match/[id]/scoring/scoringHelpers";
 import { isCurrentSetMatchTiebreak } from "@/components/dashboard/match-card-utils";
 import { logger } from "@/lib/logger";
+import type { ScoringState } from "@/core/scoring/types";
+import type { SessionData } from "@/contexts/SessionContext";
+import type { AppRouteInput } from "@/lib/app-router";
+import type { DashboardMatchPayload } from "@/components/dashboard/MatchCard";
+import type { RouterLike } from "./dashboard.types";
+
+type FloorSets = { player1: number; player2: number } | null;
+type ResumableSession = Omit<SessionData, "pendingEditScore">;
+
+/**
+ * O `scoreState` do dashboard pode chegar plano (com `sets`/`currentGame`)
+ * ou como envelope `{state, history}`. Detecção estrutural em runtime.
+ */
+export function unwrapDashboardScoreState(raw: unknown): ScoringState | null {
+  if (!raw || typeof raw !== "object") return null;
+  const candidate = raw as Partial<ScoringState> & {
+    state?: Partial<ScoringState>;
+    history?: unknown[];
+  };
+  if (candidate.sets && candidate.currentGame) {
+    return candidate as ScoringState;
+  }
+  if (candidate.state && Array.isArray(candidate.history)) {
+    return candidate.state as ScoringState;
+  }
+  return null;
+}
+
+/** Partida do dashboard enriquecida com os campos da sessão suspensa. */
+export interface ResumableMatch extends DashboardMatchPayload {
+  snapshotStatus?: SessionData["snapshotStatus"];
+  snapshotPointCount?: number;
+  bankPointCount?: number;
+}
 
 interface ResumeSessionOptions {
-  router: any;
-  setSession: (session: any) => void;
-  setPendingEdit: (scoreState: any, floorSets: any) => void;
+  router: RouterLike;
+  setSession: (session: ResumableSession) => void;
+  setPendingEdit: (scoreState: ScoringState, floorSets: FloorSets) => void;
 }
 
 export function useResumeSession(options: ResumeSessionOptions) {
   const { router, setSession, setPendingEdit } = options;
 
   const handleResumeSuspended = (
-    match: any,
+    match: ResumableMatch,
     resumeOptions?: { openEditModal?: boolean },
   ) => {
     // Partida finalizada não deve voltar para /scoring: mesmo que exista um
@@ -29,20 +63,9 @@ export function useResumeSession(options: ResumeSessionOptions) {
         match.matchStateSnapshot && match.suspendedSessionId,
       );
 
-      const rawScoreState = match.scoreState;
-      let scoreState: any = null;
-      if (rawScoreState) {
-        if (rawScoreState.sets && rawScoreState.currentGame) {
-          scoreState = rawScoreState;
-        } else if (
-          rawScoreState.state &&
-          Array.isArray(rawScoreState.history)
-        ) {
-          scoreState = rawScoreState.state;
-        }
-      }
+      const scoreState = unwrapDashboardScoreState(match.scoreState);
 
-      const floorSets = scoreState?.sets?.length
+      const floorSets: FloorSets = scoreState?.sets?.length
         ? (() => {
             // Find the current set being played (last set in array)
             const lastSet = scoreState.sets[scoreState.sets.length - 1];
@@ -84,7 +107,7 @@ export function useResumeSession(options: ResumeSessionOptions) {
         matchId: match.id,
         sessionId: match.suspendedSessionId ?? null,
         bankScoreState: scoreState,
-        matchStateSnapshot: match.matchStateSnapshot,
+        matchStateSnapshot: match.matchStateSnapshot ?? null,
         snapshotStatus: match.snapshotStatus ?? "IN_SYNC",
         snapshotPointCount: match.snapshotPointCount ?? 0,
         bankPointCount: match.bankPointCount ?? 0,
@@ -95,7 +118,7 @@ export function useResumeSession(options: ResumeSessionOptions) {
         setPendingEdit(scoreState, floorSets);
       }
 
-      const sessionStorageData: Record<string, any> = {
+      const sessionStorageData: Record<string, unknown> = {
         bankScoreState: scoreState,
         matchStateSnapshot: match.matchStateSnapshot,
         snapshotStatus: match.snapshotStatus ?? "IN_SYNC",
@@ -117,7 +140,9 @@ export function useResumeSession(options: ResumeSessionOptions) {
                 parsed.snapshotPointCount ?? 0;
               sessionStorageData.bankPointCount = parsed.bankPointCount ?? 0;
             }
-          } catch {}
+          } catch (error) {
+            logger.warn('[DASHBOARD RESUME] Falha ao parsear sessão suspensa do sessionStorage:', error);
+          }
         }
       }
 
@@ -128,7 +153,7 @@ export function useResumeSession(options: ResumeSessionOptions) {
       const targetUrl = shouldOpenEditModal
         ? `/match/${match.id}/scoring?modal=edit-score`
         : `/match/${match.id}/scoring`;
-      router.push(targetUrl);
+      router.push(targetUrl as AppRouteInput);
     } catch (err) {
       logger.error("[handleResumeSuspended] ERROR:", err);
     }

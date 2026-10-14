@@ -1,6 +1,7 @@
 import type { MutableRefObject, Dispatch, SetStateAction } from "react";
 import { ScoringEngine } from "@/core/scoring/engine";
-import type { ScoringState } from "@/core/scoring/types";
+import type { PointFlow, RallyDetails, ScoringState } from "@/core/scoring/types";
+import type { QueuedAction } from "@/schemas/rally";
 import type { ScoreboardUIState } from "@/hooks/useScoreboardUIState";
 import type { ScoreAction } from "@/hooks/useScoreReducer";
 
@@ -24,12 +25,9 @@ export interface ScoringHandlersContext {
   matchId: string;
   match: MatchData | null;
   isOnline: boolean;
-  enqueue: (action: {
-    matchId: string;
-    type: "POINT";
-    payload: any;
-    timestamp: number;
-  }) => Promise<any>;
+  enqueue: (
+    action: Omit<QueuedAction, "id" | "status" | "retries">
+  ) => Promise<QueuedAction>;
 
   engineRef: MutableRefObject<ScoringEngine | null>;
   tokenRef: MutableRefObject<string | null>;
@@ -77,7 +75,7 @@ export interface ScoringHandlersReturn {
   ) => Promise<{ success: boolean; needsResync?: boolean }>;
   getServerId: () => string;
   getWinnerId: (isServer: boolean) => string;
-  processPoint: (flow: any) => Promise<void>;
+  processPoint: (flow: PointFlow) => Promise<void>;
   fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
   handleSetupConfirm: (serverId: string) => Promise<void>;
   handleUndo: () => void;
@@ -99,6 +97,9 @@ export interface ScoringHandlersReturn {
     step: "first" | "second"
   ) => void;
   handleServeErrorCancel: () => void;
-  handlePointDetailsConfirm: (details: any, audio?: { blob: Blob; durationMs: number }) => void;
+  handlePointDetailsConfirm: (
+    details: RallyDetails,
+    audio?: { blob: Blob; durationMs: number }
+  ) => void;
   isProcessing: boolean;
 }

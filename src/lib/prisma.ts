@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { getRLSUser } from './rls-context';
+import { logger } from './logger';
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
@@ -20,8 +21,8 @@ prisma.$use(async (params, next) => {
         user.id,
         user.role,
       );
-    } catch {
-      // RLS context is best-effort — queries still work without it
+    } catch (error) {
+      logger.warn('[PRISMA RLS] Falha ao aplicar contexto RLS via set_config; query segue sem isolamento:', error);
     }
   }
   return next(params);

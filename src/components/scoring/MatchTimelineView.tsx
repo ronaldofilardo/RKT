@@ -19,6 +19,20 @@ export interface SetResult {
   tiebreak?: { p1: number; p2: number };
 }
 
+/** Forma mínima de set lida por esta extração. */
+interface RawSet {
+  player1?: number;
+  player2?: number;
+  isTiebreak?: boolean;
+  tiebreakScore?: { player1?: number; player2?: number } | null;
+}
+
+/** Envelope `{state, history}` que o scoreState pode trazer. */
+interface RawScoreStateEnvelope {
+  state?: { sets?: RawSet[] };
+  sets?: RawSet[];
+}
+
 export function extractSetsFromScoreState(scoreState: unknown): SetResult[] | null {
   if (!scoreState) return null;
   let raw = scoreState;
@@ -31,25 +45,23 @@ export function extractSetsFromScoreState(scoreState: unknown): SetResult[] | nu
   }
   if (!raw || typeof raw !== 'object') return null;
 
-  const stateObj =
-    'state' in (raw as any) && (raw as any).state && typeof (raw as any).state === 'object'
-      ? (raw as any).state
-      : raw;
+  const envelope = raw as RawScoreStateEnvelope;
+  const stateObj = envelope.state && typeof envelope.state === 'object' ? envelope.state : envelope;
 
   const sets = stateObj.sets;
   if (!Array.isArray(sets) || sets.length === 0) return null;
 
   const hasScores = sets.some(
-    (s: any) =>
+    (s) =>
       (s.player1 ?? 0) > 0 ||
       (s.player2 ?? 0) > 0 ||
-      (s.tiebreakScore && ((s.tiebreakScore.player1 ?? 0) > 0 || (s.tiebreakScore.player2 ?? 0) > 0)),
+      Boolean(s.tiebreakScore && ((s.tiebreakScore.player1 ?? 0) > 0 || (s.tiebreakScore.player2 ?? 0) > 0)),
   );
   if (!hasScores) return null;
 
-  return sets.map((s: any, idx: number) => {
+  return sets.map((s, idx) => {
     const tb = s.tiebreakScore;
-    const hasTb = s.isTiebreak || (tb && ((tb.player1 ?? 0) > 0 || (tb.player2 ?? 0) > 0));
+    const hasTb = Boolean(s.isTiebreak) || Boolean(tb && ((tb.player1 ?? 0) > 0 || (tb.player2 ?? 0) > 0));
     return {
       setNumber: idx + 1,
       p1: s.player1 ?? 0,

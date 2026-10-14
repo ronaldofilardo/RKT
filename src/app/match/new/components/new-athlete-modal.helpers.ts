@@ -1,6 +1,7 @@
 import { RankingState, rankingsStateToPayload } from '@/app/atletas/rankingLogic';
+import type { AthleteForm } from '@/app/atletas/types';
 
-export function buildAthletePayload(form: any, rankings: Record<string, RankingState>) {
+export function buildAthletePayload(form: AthleteForm, rankings: Record<string, RankingState>) {
   const rankingsPayload = rankingsStateToPayload(rankings);
   
   const birthDate = form.birthYear && form.birthMonth && form.birthDay
@@ -17,7 +18,7 @@ export function buildAthletePayload(form: any, rankings: Record<string, RankingS
   };
 }
 
-export function validateAthleteForm(form: any): string | null {
+export function validateAthleteForm(form: AthleteForm): string | null {
   if (!form.name || !form.name.trim()) {
     return 'Nome é obrigatório.';
   }

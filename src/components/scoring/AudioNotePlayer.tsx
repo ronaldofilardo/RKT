@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { matchesClient } from '@/services/matchesClient';
 
 interface AudioNotePlayerProps {
   matchId: string;
@@ -64,21 +65,14 @@ export function AudioNotePlayer({ matchId, pointId, commentId, durationMs, token
     setIsLoading(true);
 
     try {
-      const audioUrl = commentId
-        ? `/api/matches/${matchId}/comments/${commentId}/audio`
-        : `/api/matches/${matchId}/point/${pointId}/audio`;
-      const res = await fetch(audioUrl, {
-        headers: token ? { authorization: `Bearer ${token}` } : {},
+      const audioBlob = await matchesClient.getAudio(matchId, {
+        pointId,
+        commentId,
+        token,
         signal: controller.signal,
       });
 
-      if (!res.ok) {
-        setIsLoading(false);
-        return;
-      }
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(audioBlob);
       objectUrlRef.current = url;
 
       const audio = new Audio(url);

@@ -13,6 +13,7 @@ import {
 } from '@/app/atletas/rankingLogic';
 import { NewAthleteModalForm } from './NewAthleteModalForm';
 import { buildAthletePayload, validateAthleteForm } from './new-athlete-modal.helpers';
+import { playersClient } from '@/services/playersClient';
 
 interface NewAthleteModalProps {
   isOpen: boolean;
@@ -66,22 +67,7 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
       const userId = sessionStorage.getItem('user_id');
       const payload = buildAthletePayload(form, rankings);
 
-      const res = await fetch('/api/players', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          authorization: `Bearer ${token}`,
-          'x-user-id': userId || '',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || 'Erro ao criar atleta');
-      }
-
-      const json = await res.json();
+      const json = await playersClient.create(payload, token, userId);
       const player = json?.data || json;
 
       onCreated({

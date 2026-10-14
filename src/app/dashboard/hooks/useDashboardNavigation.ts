@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import { logger } from "@/lib/logger";
-import type { DashboardView } from "../dashboard.types";
+import type { DashboardView, RouterLike } from "../dashboard.types";
 
-export function useDashboardNavigation(router: any) {
+export function useDashboardNavigation(router: RouterLike) {
   const handleNavigate = useCallback(
     (view: DashboardView) => {
       logger.info("[DashboardNavigation] navigating to", view);

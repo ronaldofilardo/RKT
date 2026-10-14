@@ -1,5 +1,6 @@
 
 import { getFormatLabel } from '@/core/scoring/format-labels';
+import type { DashboardMatchPayload } from './MatchCard';
 
 const STATUS_LABELS: Record<string, string> = {
   SCHEDULED: 'Agendada',
@@ -33,10 +34,10 @@ export function MatchStatusBadge({ isSuspended, state }: MatchStatusBadgeProps) 
 }
 
 interface MatchActionsProps {
-  match: any;
-  onReport?: (match: any) => void;
-  onFinish?: (match: any) => void;
-  onDelete?: (match: any) => void;
+  match: DashboardMatchPayload;
+  onReport?: (match: DashboardMatchPayload) => void;
+  onFinish?: (match: DashboardMatchPayload) => void;
+  onDelete?: (match: DashboardMatchPayload) => void;
 }
 
 export function MatchActions({ match, onReport, onFinish, onDelete }: MatchActionsProps) {

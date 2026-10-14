@@ -1,5 +1,11 @@
 import { ScoringEngine } from "@/core/scoring/engine";
 import type { MatchFormat, MatchState, MatchFinishReason } from "@/schemas/contracts";
+import type { MatchScoreState, MatchScoreStateEnvelope } from "@/schemas/match";
+
+/** Derivados de MatchScoreState para casar exatamente com o que flui das rotas. */
+type MatchSetScore = MatchScoreState["sets"][number];
+type MatchGameScore = MatchScoreState["currentGame"];
+type TiebreakScore = NonNullable<MatchSetScore["tiebreakScore"]>;
 
 /**
  * Aceita tanto `MatchScoreState` (plano) quanto o envelope
@@ -8,12 +14,14 @@ import type { MatchFormat, MatchState, MatchFinishReason } from "@/schemas/contr
  * e `MatchStateInputSchema` (scoreState: union). Retorna o estado
  * plano extraído do envelope (ou o próprio input se já for plano).
  */
-export function unwrapScoreState(scoreState: any): any {
-  if (!scoreState) return scoreState;
-  if (scoreState.state && Array.isArray(scoreState.history)) {
-    return scoreState.state;
+export function unwrapScoreState(scoreState: unknown): MatchScoreState | null {
+  if (!scoreState || typeof scoreState !== "object") return null;
+  const candidate = scoreState as Partial<MatchScoreStateEnvelope> &
+    Partial<MatchScoreState>;
+  if (candidate.state && Array.isArray(candidate.history)) {
+    return candidate.state;
   }
-  return scoreState;
+  return scoreState as MatchScoreState;
 }
 
 export interface MatchData {
@@ -211,7 +219,10 @@ export function validateTransitionState(
   return { valid: true };
 }
 
-export function getGameProgress(cg: any, player: string): number {
+export function getGameProgress(
+  cg: MatchGameScore | null | undefined,
+  player: "player1" | "player2",
+): number {
   if (!cg) return 0;
   const p = typeof cg[player] === "number" ? cg[player] : 0;
   if (cg.isDeuce) {
@@ -221,7 +232,10 @@ export function getGameProgress(cg: any, player: string): number {
   return p;
 }
 
-export function isCurrentGameRegressing(oldCG: any, newCG: any): boolean {
+export function isCurrentGameRegressing(
+  oldCG: MatchGameScore | null | undefined,
+  newCG: MatchGameScore | null | undefined,
+): boolean {
   if (!oldCG || !newCG) return false;
 
   const oldP1 = getGameProgress(oldCG, "player1");
@@ -244,7 +258,7 @@ function isCoordinateRegressing(
   );
 }
 
-function isSameWinnerCorrection(oldTb: any, newTb: any): boolean {
+function isSameWinnerCorrection(oldTb: TiebreakScore, newTb: TiebreakScore): boolean {
   const oldWinner =
     oldTb.player1 === oldTb.player2
       ? null
@@ -260,7 +274,10 @@ function isSameWinnerCorrection(oldTb: any, newTb: any): boolean {
   return oldWinner !== null && oldWinner === newWinner;
 }
 
-export function isTiebreakRegressing(oldSet: any, newSet: any): boolean {
+export function isTiebreakRegressing(
+  oldSet: MatchSetScore | null | undefined,
+  newSet: MatchSetScore | null | undefined,
+): boolean {
   if (!oldSet || !newSet) return false;
 
   const oldTb = oldSet.tiebreakScore;

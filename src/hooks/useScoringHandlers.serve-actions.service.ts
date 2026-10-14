@@ -1,22 +1,29 @@
 import { logger } from "@/lib/logger";
 import { TIMEOUTS } from "@/lib/constants";
+import { type ScoringEngine } from "@/core/scoring/engine";
 import type { PointFlow } from "@/core/scoring/types";
+import type { ScoreboardUIState } from "@/hooks/useScoreboardUIState";
 import type { MatchData } from "./useScoringHandlers.types";
+import type { createModalHandlersService } from "./useScoringHandlers.modals.service";
 
 interface ServeActionsDeps {
   match: MatchData | null;
-  serveErrorState: any;
+  serveErrorState: ScoreboardUIState;
   serverHelpers: {
     getServerId: () => string;
     getWinnerId: (isServerWinner: boolean) => string;
   };
-  modalService: any;
+  modalService: ReturnType<typeof createModalHandlersService>;
   processPoint: (flow: PointFlow) => Promise<string | undefined>;
-  engineRef: React.MutableRefObject<any>;
+  engineRef: React.MutableRefObject<ScoringEngine | null>;
   isProcessingRef: React.MutableRefObject<boolean>;
   debounceTimerRef: React.MutableRefObject<NodeJS.Timeout | null>;
   closeAll: () => void;
-  handleFirstServeErrorSet: (val: any) => void;
+  handleFirstServeErrorSet: (val: {
+    errorType: "out" | "net";
+    serveEffect?: string;
+    direction?: string;
+  }) => void;
   handleFirstServeErrorClear: () => void;
   handleServeErrorOpen: (
     errorType: "out" | "net",

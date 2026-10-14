@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useCallback } from "react";
-import { normalizeScoreState, isMatchTiebreakFormat, isCurrentSetMatchTiebreak, isSetIndexMatchTiebreak, type TennisFormat, type NormalizedScoreState, getSinglePointDisplay, formatCompactSetScore } from "./match-card-utils";
+import { normalizeScoreState, isMatchTiebreakFormat, isCurrentSetMatchTiebreak, isSetIndexMatchTiebreak, type TennisFormat, type NormalizedScoreState, getSinglePointDisplay, formatCompactSetScore, type SetCellScore } from "./match-card-utils";
 import { MatchStatusBadge, MatchActions, FormatLabel } from "./match-card-components";
 
 const COURT_COLORS: Record<string, { bar: string; score: string }> = {
@@ -88,7 +88,7 @@ export function MatchCard({
   // No formato SHORT_SET_2V2_NO_AD, uma partida começa os dois sets em 2x2.
   // Enquanto a partida não estiver finalizada e houver apenas 1 set registrado,
   // projetamos visualmente o segundo set começando em 2x2.
-  const displayedSets = useMemo(() => {
+  const displayedSets = useMemo<SetCellScore[]>(() => {
     const rawSets = scoreState?.sets || [];
     if (match.format === 'SHORT_SET_2V2_NO_AD' && !isFinished) {
       if (rawSets.length === 0) {
@@ -266,7 +266,7 @@ export function MatchCard({
             </div>
             <div style={{ display: 'table-cell', borderLeft: '2px solid #111827' }}>
               <div className="flex items-stretch">
-                {displayedSets.map((s: any, idx: number) => (
+                {displayedSets.map((s, idx: number) => (
                   <div
                     key={idx}
                     className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm font-semibold text-white min-w-[2.5rem]"
@@ -309,7 +309,7 @@ export function MatchCard({
             </div>
             <div style={{ display: 'table-cell', borderLeft: '2px solid #111827' }}>
               <div className="flex items-stretch">
-                {displayedSets.map((s: any, idx: number) => (
+                {displayedSets.map((s, idx: number) => (
                   <div
                     key={idx}
                     className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm font-semibold text-white min-w-[2.5rem]"

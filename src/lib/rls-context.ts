@@ -11,7 +11,7 @@ let rlsStorage = new AsyncLocalStorage<RLSUser>();
 const VALID_ROLES = ['ADMIN', 'ANNOTATOR'] as const;
 
 function isValidRole(role: string): role is typeof VALID_ROLES[number] {
-  return VALID_ROLES.includes(role as any);
+  return (VALID_ROLES as readonly string[]).includes(role);
 }
 
 function isValidRLSUser(user: RLSUser | null): user is RLSUser {
@@ -160,7 +160,7 @@ export function runWithRLSSync<T>(user: RLSUser | null, fn: () => T): T {
  */
 export function withRLSMiddleware<T>(
   getUser: (context: T) => RLSUser | null,
-  handler: (context: T, user: RLSUser | null) => any
+  handler: (context: T, user: RLSUser | null) => unknown
 ) {
   return async (context: T) => {
     const user = getUser(context);
@@ -197,7 +197,7 @@ export function withRLSMiddleware<T>(
  *   (query) => ({ ...query, where: { ...query.where, createdByUserId: getRLSUser()?.id } })
  * );
  */
-export function withRLSFilter<T extends { where?: Record<string, any> }>(
+export function withRLSFilter<T extends { where?: Record<string, unknown> }>(
   query: T,
   applyFilter: (query: T) => T
 ): T {

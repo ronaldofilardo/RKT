@@ -12,7 +12,7 @@ function getTiebreakMinimumForSet(format: TennisFormat | undefined, setIndex: nu
 }
 
 export function isSetCompleted(
-  set: { player1: number; player2: number; isTiebreak: boolean; tiebreakScore?: { player1: number; player2: number } | null },
+  set: { player1: number; player2: number; isTiebreak?: boolean; tiebreakScore?: { player1: number; player2: number } | null },
   format?: TennisFormat,
   setIndex?: number,
   setsWon?: { player1: number; player2: number },
@@ -29,7 +29,10 @@ export function isSetCompleted(
     try {
       const rules = getMatchFormatRules(format);
       return validateSetScore(set.player1, set.player2, rules).complete;
-    } catch {}
+    } catch {
+      // ste-exception R-08: função de domínio puro (R-05) — I/O proibido.
+      // Formato desconhecido degrada deliberadamente para a regra padrão de 6 jogos.
+    }
   }
   // Fallback: standard 6-game rules
   const diff = Math.abs(set.player1 - set.player2);

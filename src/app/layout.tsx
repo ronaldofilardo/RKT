@@ -46,7 +46,9 @@ export default function RootLayout({
                     document.documentElement.classList.add('dark');
                     document.documentElement.setAttribute('data-theme', 'dark');
                   }
-                } catch (e) {}
+                } catch (e) {
+                  console.warn('[THEME-INIT] Falha ao ler preferência de tema do localStorage:', e);
+                }
               })();
             `,
           }}

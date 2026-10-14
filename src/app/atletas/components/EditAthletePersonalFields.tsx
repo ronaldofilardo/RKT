@@ -1,16 +1,9 @@
 import React from 'react';
+import type { AthleteForm } from '../types';
 
 interface EditAthletePersonalFieldsProps {
-  form: {
-    name: string;
-    gender: string;
-    birthDay: string;
-    birthMonth: string;
-    birthYear: string;
-    dominance: string;
-    backhand: string;
-  };
-  setForm: React.Dispatch<React.SetStateAction<any>>;
+  form: AthleteForm;
+  setForm: React.Dispatch<React.SetStateAction<AthleteForm>>;
   saving: boolean;
 }
 
@@ -25,7 +18,7 @@ export function EditAthletePersonalFields({ form, setForm, saving }: EditAthlete
           id="edit-athlete-name"
           type="text"
           value={form.name}
-          onChange={(e) => setForm((p: any) => ({ ...p, name: e.target.value }))}
+          onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
           disabled={saving}
           className="w-full px-2 py-1.5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary text-sm"
         />
@@ -37,7 +30,7 @@ export function EditAthletePersonalFields({ form, setForm, saving }: EditAthlete
           <select
             id="edit-athlete-gender"
             value={form.gender}
-            onChange={(e) => setForm((p: any) => ({ ...p, gender: e.target.value }))}
+            onChange={(e) => setForm((p) => ({ ...p, gender: e.target.value }))}
             disabled={saving}
             className="w-full px-2 py-1.5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary text-xs"
           >
@@ -50,17 +43,17 @@ export function EditAthletePersonalFields({ form, setForm, saving }: EditAthlete
           <label htmlFor="edit-athlete-birthday" className="block text-xs font-medium text-telemetry-text-primary mb-0.5">Data de Nascimento</label>
           <div className="flex items-center gap-1">
             <input id="edit-athlete-birthday" type="number" min="1" max="31" value={form.birthDay}
-              onChange={(e) => setForm((p: any) => ({ ...p, birthDay: e.target.value }))}
+              onChange={(e) => setForm((p) => ({ ...p, birthDay: e.target.value }))}
               disabled={saving} placeholder="DD" maxLength={2}
               className="w-12 px-1 py-1.5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary placeholder-telemetry-text-muted/50 text-center text-xs" />
             <span className="text-telemetry-text-muted font-medium text-xs">/</span>
             <input aria-label="Mês de nascimento" type="number" min="1" max="12" value={form.birthMonth}
-              onChange={(e) => setForm((p: any) => ({ ...p, birthMonth: e.target.value }))}
+              onChange={(e) => setForm((p) => ({ ...p, birthMonth: e.target.value }))}
               disabled={saving} placeholder="MM" maxLength={2}
               className="w-12 px-1 py-1.5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary placeholder-telemetry-text-muted/50 text-center text-xs" />
             <span className="text-telemetry-text-muted font-medium text-xs">/</span>
             <input aria-label="Ano de nascimento" type="number" min="1900" max="2030" value={form.birthYear}
-              onChange={(e) => setForm((p: any) => ({ ...p, birthYear: e.target.value }))}
+              onChange={(e) => setForm((p) => ({ ...p, birthYear: e.target.value }))}
               disabled={saving} placeholder="AAAA" maxLength={4}
               className="w-16 px-1 py-1.5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary placeholder-telemetry-text-muted/50 text-center text-xs" />
           </div>
@@ -73,7 +66,7 @@ export function EditAthletePersonalFields({ form, setForm, saving }: EditAthlete
           <select
             id="edit-athlete-dominance"
             value={form.dominance}
-            onChange={(e) => setForm((p: any) => ({ ...p, dominance: e.target.value }))}
+            onChange={(e) => setForm((p) => ({ ...p, dominance: e.target.value }))}
             disabled={saving}
             className="w-full px-2 py-1.5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary text-xs"
           >
@@ -87,7 +80,7 @@ export function EditAthletePersonalFields({ form, setForm, saving }: EditAthlete
           <select
             id="edit-athlete-backhand"
             value={form.backhand}
-            onChange={(e) => setForm((p: any) => ({ ...p, backhand: e.target.value }))}
+            onChange={(e) => setForm((p) => ({ ...p, backhand: e.target.value }))}
             disabled={saving}
             className="w-full px-2 py-1.5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary text-xs"
           >

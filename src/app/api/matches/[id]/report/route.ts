@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { withRLSHandler, getRLSUser } from '@/lib/auth';
 
-import type { TimelinePoint } from '@/core/scoring/types';
+import type { TimelinePoint, TennisFormat } from '@/core/scoring/types';
 import {
   rebuildTimelineFromPointLogs,
   type PointLogRow,
@@ -109,7 +109,7 @@ export async function GET(
       const player1Id = match.player1.id;
       const player2Id = match.player2.id;
       const initialServerId = match.initialServerId ?? player1Id;
-      const format = match.format as any;
+      const format = match.format as TennisFormat;
 
       // Os `PointLog` são a fonte imutável e completa das anotações
       // (rallyDetails, firstFault, áudio, etc.) — e a ÚNICA fonte usada
