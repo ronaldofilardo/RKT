@@ -223,7 +223,7 @@ export function EditMatchInfoModal({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label htmlFor="edit-category" className="block text-xs font-medium text-telemetry-text-muted mb-1">
                     Categoria
@@ -247,6 +247,19 @@ export function EditMatchInfoModal({
                     value={round}
                     onChange={(e) => setRound(e.target.value)}
                     placeholder="Ex: Final, Quartas"
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-card text-slate-900 dark:text-telemetry-text-primary placeholder-telemetry-text-muted/40"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="edit-bracket-type" className="block text-xs font-medium text-telemetry-text-muted mb-1">
+                    Chave
+                  </label>
+                  <input
+                    id="edit-bracket-type"
+                    type="text"
+                    value={bracketType}
+                    onChange={(e) => setBracketType(e.target.value)}
+                    placeholder="Ex: Principal"
                     className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-card text-slate-900 dark:text-telemetry-text-primary placeholder-telemetry-text-muted/40"
                   />
                 </div>
