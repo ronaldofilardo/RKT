@@ -1,5 +1,6 @@
 import type { ScoringState, HistoryEntry, TimelinePoint } from './types';
 import { GAME_POINTS } from './point-utils';
+import { unwrapStateEnvelope } from './state-envelope';
 
 export function getGameScoreLabel(
   p1: number, p2: number,
@@ -73,10 +74,7 @@ export function enrichPointsFromHistory(
   for (let i = 0; i < history.length; i++) {
     const entry = history[i];
     const rawState = entry?.stateBefore;
-    const stateBefore: ScoringState =
-      rawState && typeof rawState === 'object' && 'state' in rawState && (rawState as any).state
-        ? (rawState as any).state
-        : rawState;
+    const stateBefore: ScoringState = unwrapStateEnvelope(rawState);
     const pt = entry.point;
 
     const winner: 'PLAYER_1' | 'PLAYER_2' =

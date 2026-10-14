@@ -7,11 +7,13 @@ import type {
 } from '@/core/scoring/types';
 import { ScoringEngine } from '@/core/scoring/engine';
 import { enrichPointsFromHistory } from '@/core/scoring/scoring-logic';
+import { unwrapStateEnvelope } from '@/core/scoring/state-envelope';
 import { pointLogToFlow } from './timeline-rebuild.helpers';
 
 export interface TimelineScoreEdit {
   editedAt: Date;
-  newScoreState: any;
+  /** Estado cru, envelope `{state, history}` ou string JSON serializada. */
+  newScoreState: unknown;
 }
 
 /**
@@ -134,11 +136,8 @@ export function simulateScoreFromPointLogs(
     ) {
       try {
         const raw = scoreEdits[nextEditIndex].newScoreState;
-        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-        const unpacked =
-          parsed && typeof parsed === 'object' && 'state' in parsed && (parsed as any).state
-            ? (parsed as any).state
-            : parsed;
+        const parsed: unknown = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        const unpacked = unwrapStateEnvelope(parsed);
         if (unpacked && Array.isArray(unpacked.sets)) {
           engine.loadState(unpacked);
           lastStateBefore = engine.getState();
