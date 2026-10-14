@@ -56,4 +56,26 @@ describe('NewAthleteModal — regressões reais', () => {
     expect(screen.getByLabelText('Posição')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Remover' })).toBeInTheDocument();
   });
+
+  it('possui container de modal configurado com max-w-xl', () => {
+    const { container } = renderModal();
+    const modalBox = container.querySelector('.max-w-xl');
+    expect(modalBox).toBeInTheDocument();
+  });
+
+  it('exibe Posição Ranking Juvenil para atleta juvenil de 17 anos', () => {
+    renderModal();
+    const year = new Date().getFullYear() - 17;
+    fireEvent.change(screen.getByPlaceholderText('DD'), { target: { value: '01' } });
+    fireEvent.change(screen.getByPlaceholderText('MM'), { target: { value: '05' } });
+    fireEvent.change(screen.getByPlaceholderText('AAAA'), { target: { value: String(year) } });
+    fireEvent.change(screen.getByLabelText('Sexo'), { target: { value: 'MALE' } });
+
+    fireEvent.click(screen.getByLabelText('Estadual'));
+    fireEvent.change(screen.getByLabelText('Categoria'), { target: { value: '17-18' } });
+
+    expect(screen.getByLabelText('Posição Ranking Juvenil')).toBeInTheDocument();
+    expect(screen.getByLabelText('Posição')).toBeInTheDocument();
+    expect(screen.getByLabelText('Categoria')).toBeInTheDocument();
+  });
 });

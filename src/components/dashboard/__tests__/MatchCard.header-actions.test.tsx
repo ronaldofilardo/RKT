@@ -64,7 +64,27 @@ describe('MatchCard - Botões de Ação no Header (Editar Placar, Retomar Partid
     expect(handleCardClick).not.toHaveBeenCalled();
   });
 
-  it('não deve exibir os botões de ação em partidas FINISHED', () => {
+  it('deve renderizar o botão Info quando onEditInfo é fornecido e partida não está FINISHED', () => {
+    const handleEditInfo = jest.fn();
+    const handleCardClick = jest.fn();
+
+    render(
+      <MatchCard
+        match={baseMatch}
+        onClick={handleCardClick}
+        onEditInfo={handleEditInfo}
+      />
+    );
+
+    const infoBtn = screen.getByTestId('match-card-edit-info-match-test-123');
+    expect(infoBtn).toBeInTheDocument();
+
+    fireEvent.click(infoBtn);
+    expect(handleEditInfo).toHaveBeenCalledWith(baseMatch);
+    expect(handleCardClick).not.toHaveBeenCalled();
+  });
+
+  it('não deve exibir os botões de ação e Info em partidas FINISHED', () => {
     const finishedMatch = {
       ...baseMatch,
       id: 'match-finished-456',
@@ -77,11 +97,39 @@ describe('MatchCard - Botões de Ação no Header (Editar Placar, Retomar Partid
         onEditScore={jest.fn()}
         onResumeMatch={jest.fn()}
         onSetSummary={jest.fn()}
+        onEditInfo={jest.fn()}
       />
     );
 
     expect(screen.queryByTestId('match-card-edit-score-match-finished-456')).not.toBeInTheDocument();
     expect(screen.queryByTestId('match-card-resume-match-finished-456')).not.toBeInTheDocument();
     expect(screen.queryByTestId('match-card-set-summary-match-finished-456')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('match-card-edit-info-match-finished-456')).not.toBeInTheDocument();
+  });
+
+  it('no formato sets curtos 2/2 (SHORT_SET_2V2_NO_AD) deve mostrar 2-2 nos dois sets desde a criação da partida', () => {
+    const shortSetMatch = {
+      id: 'short-set-match-1',
+      state: 'SCHEDULED',
+      format: 'SHORT_SET_2V2_NO_AD',
+      player1: { id: 'p1', name: 'Atleta A' },
+      player2: { id: 'p2', name: 'Atleta B' },
+      scoreState: {
+        sets: [
+          { player1: 2, player2: 2, isTiebreak: false, tiebreakScore: null },
+        ],
+        setsWon: { player1: 0, player2: 0 },
+        server: 'player1',
+        currentGame: { player1: 0, player2: 0 },
+      },
+    };
+
+    const { container } = render(<MatchCard match={shortSetMatch} />);
+
+    // Deve renderizar duas colunas de sets com "2" para cada jogador
+    const scoreCells = container.querySelectorAll('.tabular-nums');
+    // Filtrando células de texto "2" (devem ter 4 células com "2", 2 para cada jogador)
+    const twoCells = Array.from(scoreCells).filter(el => el.textContent === '2');
+    expect(twoCells.length).toBe(4);
   });
 });

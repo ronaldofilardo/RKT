@@ -87,6 +87,10 @@ export class ScoringEngine {
       throw new Error('MATCH_ALREADY_FINISHED');
     }
 
+    if (!this.state.startedAt) {
+      this.state.startedAt = flow.timestamp || Date.now();
+    }
+
     const isFaultFirst = Boolean(flow.type === 'FAULT_FIRST' || flow.firstFault);
     const winner = resolveWinner(flow, this.config, isFaultFirst);
     const isSecondServeState = Boolean(this.state.secondServe || this.state.currentGame?.secondServe);

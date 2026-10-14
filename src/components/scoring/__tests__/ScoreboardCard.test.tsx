@@ -57,27 +57,19 @@ describe('ScoreboardCard', () => {
     expect(currentSetScoresP2[0]).toBeInTheDocument();
   });
 
-  it('marks current set with "atual" label', () => {
+  it('marks current set with highlighted styling and set title', () => {
     render(
       <ScoreboardCard
         player1={mockPlayer1}
         player2={mockPlayer2}
         scoreState={mockScoreState}
+        format="BEST_OF_3"
       />
     );
-    expect(screen.getByText('atual')).toBeInTheDocument();
-  });
-
-  it('renders sets won summary correctly', () => {
-    render(
-      <ScoreboardCard
-        player1={mockPlayer1}
-        player2={mockPlayer2}
-        scoreState={mockScoreState}
-      />
-    );
-    const setHeaders = screen.getAllByText('1');
-    expect(setHeaders.length).toBeGreaterThan(0);
+    expect(screen.getByText('Set 1')).toBeInTheDocument();
+    const set2Header = screen.getByText('Set 2');
+    expect(set2Header).toBeInTheDocument();
+    expect(set2Header).toHaveClass('text-telemetry-volt');
   });
 
   it('displays checkmark for match winner', () => {
@@ -219,12 +211,11 @@ describe('ScoreboardCard', () => {
         scoreState={multiSetScoreState}
       />
     );
-    const set1Headers = screen.getAllByText('1');
-    const set2Headers = screen.getAllByText('2');
-    const atualLabels = screen.getAllByText('atual');
-    expect(set1Headers.length).toBeGreaterThan(0);
-    expect(set2Headers.length).toBeGreaterThan(0);
-    expect(atualLabels.length).toBeGreaterThan(0);
+    expect(screen.getByText('Set 1')).toBeInTheDocument();
+    expect(screen.getByText('Set 2')).toBeInTheDocument();
+    const set3Header = screen.getByText('Set 3');
+    expect(set3Header).toBeInTheDocument();
+    expect(set3Header).toHaveClass('text-telemetry-volt');
   });
 
   // ─── Caracterização do bug do "set atual" (2026-08-13) ───────────────
@@ -255,12 +246,12 @@ describe('ScoreboardCard', () => {
           format="BEST_OF_3"
         />
       );
-      // O set finalizado deve ser rotulado como '1', NÃO como 'atual'
-      expect(screen.queryByText('atual')).toBeNull();
-      expect(screen.getAllByText('1').length).toBeGreaterThanOrEqual(1);
+      // O set finalizado (Set 1) não deve estar destacado como atual; Set 2 é o atual
+      expect(screen.getByText('Set 1')).not.toHaveClass('text-telemetry-volt');
+      expect(screen.getByText('Set 2')).toHaveClass('text-telemetry-volt');
     });
 
-    it('marca o set em andamento (não-finalizado) como "atual"', () => {
+    it('destaca a coluna do set em andamento (Set 2)', () => {
       // Estado correto: 1 set finalizado + 1 set em andamento (recém-criado vazio)
       const goodScoreState = {
         sets: [
@@ -279,12 +270,11 @@ describe('ScoreboardCard', () => {
           format="BEST_OF_3"
         />
       );
-      expect(screen.getByText('atual')).toBeInTheDocument();
+      expect(screen.getByText('Set 2')).toHaveClass('text-telemetry-volt');
     });
 
-    it('NÃO marca set finalizado (2-sets) como "atual" quando partida ainda não acabou', () => {
+    it('NÃO destaca nenhum set como "atual" quando partida finalizou', () => {
       // BEST_OF_3: 6-4 / 6-3 → venceu player1 2x0 → partida finalizada.
-      // Nesse caso não há "atual"; tela de placar finalizado deve exibir números.
       const finishedScoreState = {
         sets: [
           { player1: 6, player2: 4, isTiebreak: false, tiebreakScore: null },
@@ -302,8 +292,71 @@ describe('ScoreboardCard', () => {
           format="BEST_OF_3"
         />
       );
-      // Quando finalizado, todos os sets têm números - nenhum "atual"
-      expect(screen.queryByText('atual')).toBeNull();
+      expect(screen.getByText('Set 1')).not.toHaveClass('text-telemetry-volt');
+      expect(screen.getByText('Set 2')).not.toHaveClass('text-telemetry-volt');
+    });
+  });
+
+  describe('Títulos de colunas dinâmicos e projeção de formatos', () => {
+    it('formato MATCH_TB_10 exibe apenas a coluna TB', () => {
+      render(
+        <ScoreboardCard
+          player1={mockPlayer1}
+          player2={mockPlayer2}
+          scoreState={{ sets: [], isFinished: false }}
+          format="MATCH_TB_10"
+        />
+      );
+      expect(screen.getByText('TB')).toBeInTheDocument();
+      expect(screen.queryByText('Set 1')).toBeNull();
+    });
+
+    it('formato BEST_OF_3_MATCH_TB exibe Set 1, Set 2 e TB', () => {
+      render(
+        <ScoreboardCard
+          player1={mockPlayer1}
+          player2={mockPlayer2}
+          scoreState={{ sets: [], isFinished: false }}
+          format="BEST_OF_3_MATCH_TB"
+        />
+      );
+      expect(screen.getByText('Set 1')).toBeInTheDocument();
+      expect(screen.getByText('Set 2')).toBeInTheDocument();
+      expect(screen.getByText('TB')).toBeInTheDocument();
+    });
+
+    it('formato BEST_OF_5 exibe 5 sets', () => {
+      render(
+        <ScoreboardCard
+          player1={mockPlayer1}
+          player2={mockPlayer2}
+          scoreState={{ sets: [], isFinished: false }}
+          format="BEST_OF_5"
+        />
+      );
+      expect(screen.getByText('Set 1')).toBeInTheDocument();
+      expect(screen.getByText('Set 2')).toBeInTheDocument();
+      expect(screen.getByText('Set 3')).toBeInTheDocument();
+      expect(screen.getByText('Set 4')).toBeInTheDocument();
+      expect(screen.getByText('Set 5')).toBeInTheDocument();
+    });
+
+    it('formato SHORT_SET_2V2_NO_AD projeta 2 a 2 para ambos os atletas nos dois sets desde a criação', () => {
+      render(
+        <ScoreboardCard
+          player1={mockPlayer1}
+          player2={mockPlayer2}
+          scoreState={{ sets: [], isFinished: false }}
+          format="SHORT_SET_2V2_NO_AD"
+        />
+      );
+      expect(screen.getByText('Set 1')).toBeInTheDocument();
+      expect(screen.getByText('Set 2')).toBeInTheDocument();
+      expect(screen.getByText('TB')).toBeInTheDocument();
+
+      // Devem existir pelo menos 4 ocorrências de '2' (P1 Set 1, P1 Set 2, P2 Set 1, P2 Set 2)
+      const twos = screen.getAllByText('2');
+      expect(twos.length).toBeGreaterThanOrEqual(4);
     });
   });
 

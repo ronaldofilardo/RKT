@@ -315,7 +315,15 @@ body {
   select.bg-telemetry-card,
   select.bg-telemetry-base,
   .bg-telemetry-card select,
-  .bg-telemetry-elevated select {
+  .bg-telemetry-elevated select,
+  .dark select,
+  .dark input,
+  [data-theme="dark"] select,
+  [data-theme="dark"] input,
+  input.bg-telemetry-elevated,
+  input.bg-telemetry-card,
+  .bg-telemetry-card input,
+  .bg-telemetry-elevated input {
     color-scheme: dark;
     background-color: #1E293B;
     color: #F8FAFC;
@@ -325,7 +333,9 @@ body {
   select.bg-telemetry-card option,
   select.bg-telemetry-base option,
   .bg-telemetry-card select option,
-  .bg-telemetry-elevated select option {
+  .bg-telemetry-elevated select option,
+  .dark select option,
+  [data-theme="dark"] select option {
     color-scheme: dark;
     background-color: #1E293B;
     color: #ffffff;
@@ -347,8 +357,66 @@ body {
   select.bg-telemetry-card:focus,
   select.bg-telemetry-base:focus,
   .bg-telemetry-card select:focus,
-  .bg-telemetry-elevated select:focus {
+  .bg-telemetry-elevated select:focus,
+  .dark select:focus,
+  .dark input:focus,
+  [data-theme="dark"] select:focus,
+  [data-theme="dark"] input:focus,
+  input.bg-telemetry-elevated:focus,
+  input.bg-telemetry-card:focus,
+  .bg-telemetry-card input:focus,
+  .bg-telemetry-elevated input:focus {
     background-color: #1E293B;
     color: #F8FAFC;
+  }
+
+  /* Light mode inputs e selects */
+  .light select,
+  .light input,
+  [data-theme="light"] select,
+  [data-theme="light"] input {
+    color-scheme: light;
+    background-color: #ffffff;
+    color: #0F172A;
+  }
+
+  .light select:focus,
+  .light input:focus,
+  [data-theme="light"] select:focus,
+  [data-theme="light"] input:focus {
+    background-color: #ffffff;
+    color: #0F172A;
+  }
+
+  /* Indicador de data e relógio de inputs nativos com opacidade e contraste adequados */
+  input[type="time"]::-webkit-calendar-picker-indicator,
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 1 !important;
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px;
+  }
+
+  /* No dark mode: ícone claro/branco vibrante contrastando com o fundo escuro */
+  .dark input[type="time"]::-webkit-calendar-picker-indicator,
+  .dark input[type="date"]::-webkit-calendar-picker-indicator,
+  [data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator,
+  [data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+  .bg-telemetry-card input[type="time"]::-webkit-calendar-picker-indicator,
+  .bg-telemetry-card input[type="date"]::-webkit-calendar-picker-indicator,
+  .bg-telemetry-elevated input[type="time"]::-webkit-calendar-picker-indicator,
+  .bg-telemetry-elevated input[type="date"]::-webkit-calendar-picker-indicator,
+  input.bg-telemetry-elevated::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(1.2);
+    opacity: 1 !important;
+  }
+
+  /* No light mode: ícone escuro/preto bem visível contrastando com o fundo claro */
+  .light input[type="time"]::-webkit-calendar-picker-indicator,
+  .light input[type="date"]::-webkit-calendar-picker-indicator,
+  [data-theme="light"] input[type="time"]::-webkit-calendar-picker-indicator,
+  [data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0) brightness(0.2);
+    opacity: 1 !important;
   }
 }

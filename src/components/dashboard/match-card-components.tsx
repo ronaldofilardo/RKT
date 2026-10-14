@@ -91,8 +91,8 @@ interface FormatLabelProps {
 
 export function FormatLabel({ format }: FormatLabelProps) {
   return (
-    <span className="text-xs text-telemetry-text-muted font-medium">
-      Modo de jogo: {getFormatLabel(format)}
+    <span className="text-xs text-telemetry-text-muted font-medium text-right whitespace-nowrap">
+      {getFormatLabel(format)}
     </span>
   );
 }

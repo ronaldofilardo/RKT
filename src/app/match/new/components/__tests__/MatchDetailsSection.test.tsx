@@ -13,6 +13,7 @@ describe('MatchDetailsSection', () => {
     temperature: '',
     humidity: '',
     tags: '',
+    details: '',
     onVisibilityChange: jest.fn(),
     onAnotadorChange: jest.fn(),
     onVenueChange: jest.fn(),
@@ -20,6 +21,7 @@ describe('MatchDetailsSection', () => {
     onTemperatureChange: jest.fn(),
     onHumidityChange: jest.fn(),
     onTagsChange: jest.fn(),
+    onDetailsChange: jest.fn(),
   };
 
   beforeEach(() => {
@@ -69,5 +71,15 @@ describe('MatchDetailsSection', () => {
 
     fireEvent.change(select, { target: { value: 'PUBLIC' } });
     expect(defaultProps.onVisibilityChange).toHaveBeenCalledWith('PUBLIC');
+  });
+
+  it('deve renderizar campo livre para Detalhes e disparar onDetailsChange', () => {
+    render(<MatchDetailsSection {...defaultProps} />);
+
+    const textarea = screen.getByPlaceholderText('Observações ou detalhes adicionais da partida');
+    expect(textarea).toBeInTheDocument();
+
+    fireEvent.change(textarea, { target: { value: 'Quadra coberta, bolas novas' } });
+    expect(defaultProps.onDetailsChange).toHaveBeenCalledWith('Quadra coberta, bolas novas');
   });
 });

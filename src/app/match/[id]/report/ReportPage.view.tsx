@@ -155,5 +155,32 @@ function MiniStat({ label, p1, p2, names }: { label: string; p1: number; p2: num
 
 function ReportTimeline({ report, matchId, onContinue }: { report: ReportData; matchId: string; onContinue: () => void }) {
   if (!report.timelinePoints.length) return <div className="bg-telemetry-card rounded-xl border border-white/10 p-12 text-center"><p className="text-telemetry-text-muted">Nenhum ponto registrado nesta partida.</p>{report.state !== 'FINISHED' && <button onClick={onContinue} className="mt-4 text-telemetry-blue font-semibold underline">Iniciar anotação</button>}</div>;
-  return <div className="bg-telemetry-card rounded-xl border border-white/10 p-4"><MatchTimelineView points={report.timelinePoints} player1Name={report.player1.name} player2Name={report.player2.name} matchId={matchId} hideFilters showFinalResult comments={report.comments} /></div>;
+  return (
+    <div className="bg-telemetry-card rounded-xl border border-white/10 p-4">
+      <MatchTimelineView
+        points={report.timelinePoints}
+        player1Name={report.player1.name}
+        player2Name={report.player2.name}
+        matchId={matchId}
+        hideFilters
+        showFinalResult
+        scoreState={report.scoreState}
+        comments={report.comments}
+        matchInfo={{
+          tournamentName: report.tournamentName,
+          round: report.round,
+          category: report.category,
+          courtType: report.courtType,
+          format: report.format,
+          temperature: report.temperature,
+          humidity: report.humidity,
+          startedAt: report.startedAt,
+          finishedAt: report.finishedAt,
+          state: report.state,
+          details: report.details,
+          finishNote: report.finishNote,
+        }}
+      />
+    </div>
+  );
 }

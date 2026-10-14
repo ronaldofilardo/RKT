@@ -48,4 +48,27 @@ describe('EditAthleteModal Real Tests', () => {
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('possui container de modal configurado com max-w-xl e permite interagir com ranking', () => {
+    const { container } = render(
+      <EditAthleteModal
+        athlete={athlete as any}
+        isOpen={true}
+        onClose={jest.fn()}
+        onSave={jest.fn()}
+      />
+    );
+
+    const modalBox = container.querySelector('.max-w-xl');
+    expect(modalBox).toBeInTheDocument();
+
+    // Ativa Estadual no modal de edição
+    const estadualCheckbox = screen.getByLabelText('Estadual');
+    fireEvent.click(estadualCheckbox);
+
+    // Campos são renderizados na linha
+    expect(screen.getByLabelText('Classe')).toBeInTheDocument();
+    expect(screen.getByLabelText('Posição')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remover' })).toBeInTheDocument();
+  });
 });

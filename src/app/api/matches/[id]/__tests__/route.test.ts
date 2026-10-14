@@ -12,6 +12,7 @@ jest.mock('@/lib/prisma', () => ({
     },
     pointLog: {
       aggregate: jest.fn().mockResolvedValue({ _max: { sequenceNumber: null } }),
+      findMany: jest.fn().mockResolvedValue([]),
     },
     matchAnnotationSession: {
       count: jest.fn().mockResolvedValue(0),

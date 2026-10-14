@@ -103,9 +103,19 @@ describe('matchService.create.helpers', () => {
           bracketType: null,
           temperature: null,
           humidity: null,
+          details: null,
           scheduledAt: null,
         })
       );
+    });
+
+    it('deve repassar details quando fornecido', () => {
+      const result = buildCreateMatchData({
+        ...baseData,
+        details: 'Observação da partida',
+      } as any);
+
+      expect(result.details).toBe('Observação da partida');
     });
 
     it('deve incluir initialServerId quando fornecido e mapear scoreState.server para player1 ou player2', () => {

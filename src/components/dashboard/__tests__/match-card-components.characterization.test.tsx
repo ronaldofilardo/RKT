@@ -38,6 +38,7 @@ describe('src/components/dashboard/match-card-components.tsx Caracterizacao', ()
     const { container } = render(<FormatLabel format="BEST_OF_3" />);
     const label = container.querySelector('span');
     expect(label?.className).toContain('text-telemetry-text-muted');
-    expect(screen.getByText(/Modo de jogo:/i)).toBeInTheDocument();
+    expect(screen.getByText('Melhor de 3 Sets')).toBeInTheDocument();
+    expect(screen.queryByText(/Modo de jogo:/i)).toBeNull();
   });
 });

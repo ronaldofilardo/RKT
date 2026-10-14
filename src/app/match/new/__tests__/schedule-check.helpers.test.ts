@@ -6,6 +6,8 @@ describe('isMatchScheduledForFuture', () => {
 
   it('retorna true quando a data for diferente da atual (dia seguinte)', () => {
     expect(isMatchScheduledForFuture('2026-10-01', '10:00', baseNow)).toBe(true);
+    expect(isMatchScheduledForFuture('2026-10-01', '', baseNow)).toBe(true);
+    expect(isMatchScheduledForFuture('2026-10-01', undefined, baseNow)).toBe(true);
   });
 
   it('retorna true quando a data for diferente da atual (dia anterior)', () => {

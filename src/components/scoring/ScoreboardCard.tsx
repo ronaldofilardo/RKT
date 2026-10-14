@@ -30,13 +30,35 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
     [normalized, scoreState],
   );
   const setsWon = normalized?.setsWon;
+
+  const displayedSets = useMemo(() => {
+    const rawSets = sets;
+    const isFinished = Boolean(scoreState?.isFinished);
+    if (tennisFormat === 'SHORT_SET_2V2_NO_AD' && !isFinished) {
+      if (rawSets.length === 0) {
+        return [
+          { player1: 2, player2: 2, isTiebreak: false, tiebreakScore: null },
+          { player1: 2, player2: 2, isTiebreak: false, tiebreakScore: null },
+        ];
+      }
+      if (rawSets.length === 1) {
+        return [
+          rawSets[0],
+          { player1: 2, player2: 2, isTiebreak: false, tiebreakScore: null },
+        ];
+      }
+    }
+    return rawSets;
+  }, [sets, tennisFormat, scoreState?.isFinished]);
+
   const currentSetIndex = useMemo(() => {
+    if (scoreState?.isFinished) return -1;
     if (sets.length === 0) return 0;
-    for (let i = sets.length - 1; i >= 0; i--) {
+    for (let i = 0; i < sets.length; i++) {
       if (!isSetCompleted(sets[i], tennisFormat, i, setsWon)) return i;
     }
-    return -1;
-  }, [sets, tennisFormat, setsWon]);
+    return sets.length;
+  }, [sets, tennisFormat, setsWon, scoreState?.isFinished]);
 
   const maxSetsForFormat = useMemo(() => {
     if (!tennisFormat) return 4;
@@ -48,7 +70,33 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
     }
   }, [tennisFormat]);
 
-  const numSets = Math.max(sets.length, maxSetsForFormat);
+  const columnTitles = useMemo(() => {
+    if (tennisFormat === 'MATCH_TB_10') {
+      return ['TB'];
+    }
+    if (
+      tennisFormat === 'BEST_OF_3_MATCH_TB' ||
+      tennisFormat === 'SHORT_SET_2V2_NO_AD' ||
+      tennisFormat === 'BEST_OF_3_NO_AD'
+    ) {
+      return ['Set 1', 'Set 2', 'TB'];
+    }
+    if (tennisFormat === 'BEST_OF_5') {
+      return ['Set 1', 'Set 2', 'Set 3', 'Set 4', 'Set 5'];
+    }
+    if (tennisFormat === 'PRO_SET_8') {
+      return ['Set 1'];
+    }
+    if (tennisFormat === 'BEST_OF_3') {
+      return ['Set 1', 'Set 2', 'Set 3'];
+    }
+    return Array.from(
+      { length: Math.max(displayedSets.length, maxSetsForFormat) },
+      (_, i) => `Set ${i + 1}`,
+    );
+  }, [tennisFormat, displayedSets.length, maxSetsForFormat]);
+
+  const numSets = Math.max(displayedSets.length, columnTitles.length);
 
   const winner = scoreState?.winner as 'player1' | 'player2' | null | undefined;
   const currentServer = normalized?.server ?? scoreState?.server;
@@ -102,17 +150,23 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
     <div className={`rounded-xl border overflow-hidden mx-4 sm:mx-auto max-w-md ${isSuspended ? 'border-telemetry-alert' : 'border-white/10 shadow-md bg-telemetry-card'}`}>
       <table className="w-full table-fixed border-collapse">
         <thead>
-          <tr className="text-[10px] text-telemetry-text-muted font-space-grotesk">
+          <tr className="text-[10px] font-space-grotesk">
             <th scope="col" aria-label="Jogador" className="text-left py-0.5 px-2 w-[110px] sm:w-[120px] bg-telemetry-elevated border-b border-white/10"></th>
             <th scope="col" aria-label="Vencedor" className="w-5 sm:w-6 bg-telemetry-elevated border-l border-b border-white/10"></th>
             {Array.from({ length: numSets }).map((_, i) => {
-              const set = sets[i];
+              const title = columnTitles[i] ?? `Set ${i + 1}`;
               const isCurrent = i === currentSetIndex;
-              const isComplete = set && isSetCompleted(set, tennisFormat, i, setsWon);
 
               return (
-                <th key={i} scope="col" aria-label={`Set ${i + 1}`} className={`text-center px-1 py-0.5 w-8 sm:w-12 bg-telemetry-elevated border-l border-b border-white/10 ${isCurrent ? 'font-bold text-telemetry-volt' : ''}`}>
-                  {isCurrent ? 'atual' : (isComplete ? i + 1 : '')}
+                <th
+                  key={i}
+                  scope="col"
+                  aria-label={title}
+                  className={`text-center px-1 py-0.5 w-8 sm:w-12 bg-telemetry-elevated border-l border-b border-white/10 ${
+                    isCurrent ? 'font-bold text-telemetry-volt' : 'text-telemetry-text-muted'
+                  }`}
+                >
+                  {title}
                 </th>
               );
             })}
@@ -131,7 +185,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
               ) : null}
             </td>
             {Array.from({ length: numSets }).map((_, i) => {
-              const set = sets[i];
+              const set = displayedSets[i];
               const isCurrent = i === currentSetIndex;
               const style = getSetCellStyle(set, i, 'player1', isCurrent);
 
@@ -158,7 +212,7 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
               ) : null}
             </td>
             {Array.from({ length: numSets }).map((_, i) => {
-              const set = sets[i];
+              const set = displayedSets[i];
               const isCurrent = i === currentSetIndex;
               const style = getSetCellStyle(set, i, 'player2', isCurrent);
 

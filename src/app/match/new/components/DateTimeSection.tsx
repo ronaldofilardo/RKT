@@ -16,16 +16,16 @@ export function DateTimeSection({ date, time, onDateChange, onTimeChange }: Date
   const [modalData, setModalData] = useState({ date: '', time: '' });
 
   useEffect(() => {
-    if (date && time && isMatchScheduledForFuture(date, time)) {
+    if (date && isMatchScheduledForFuture(date, time)) {
       const currentVal = `${date}-${time}`;
       if (lastAlertedRef.current !== currentVal) {
         lastAlertedRef.current = currentVal;
         const [year, month, day] = date.split('-');
         const formattedDate = `${day}/${month}/${year}`;
-        setModalData({ date: formattedDate, time });
+        setModalData({ date: formattedDate, time: time || '--:--' });
         setShowModal(true);
       }
-    } else if (date && time && !isMatchScheduledForFuture(date, time)) {
+    } else if (date && !isMatchScheduledForFuture(date, time)) {
       lastAlertedRef.current = null;
     }
   }, [date, time]);
@@ -47,26 +47,42 @@ export function DateTimeSection({ date, time, onDateChange, onTimeChange }: Date
   return (
     <>
       <section className="bg-telemetry-card rounded-xl border border-white/10 p-4">
-      <h2 className="text-base font-semibold text-telemetry-text-primary mb-3">DATA E HORÁRIO *</h2>
+      <h2 className="text-base font-semibold text-telemetry-text-primary mb-3">DATA E HORÁRIO</h2>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="match-date" className="block text-sm font-medium text-telemetry-text-muted mb-1">Data</label>
+          <label htmlFor="match-date" className="block text-sm font-medium text-telemetry-text-muted mb-1">Data *</label>
           <input
             id="match-date"
             type="date"
             value={date}
             onChange={(e) => onDateChange(e.target.value)}
-            className="w-full px-3 py-2 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary"
+            onClick={(e) => {
+              try {
+                e.currentTarget.showPicker?.();
+              } catch {
+                // browser sem suporte ou já aberto
+              }
+            }}
+            className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-elevated text-slate-900 dark:text-telemetry-text-primary cursor-pointer"
           />
         </div>
         <div>
-          <label htmlFor="match-time" className="block text-sm font-medium text-telemetry-text-muted mb-1">Horário</label>
+          <label htmlFor="match-time" className="block text-sm font-medium text-telemetry-text-muted mb-1">
+            Horário <span className="font-normal">(opcional)</span>
+          </label>
           <input
             id="match-time"
             type="time"
             value={time}
             onChange={(e) => onTimeChange(e.target.value)}
-            className="w-full px-3 py-2 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary"
+            onClick={(e) => {
+              try {
+                e.currentTarget.showPicker?.();
+              } catch {
+                // browser sem suporte ou já aberto
+              }
+            }}
+            className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-elevated text-slate-900 dark:text-telemetry-text-primary cursor-pointer"
           />
         </div>
       </div>
@@ -110,7 +126,7 @@ export function DateTimeSection({ date, time, onDateChange, onTimeChange }: Date
           <div className="text-4xl mb-4">📅</div>
           <h2 className="text-xl font-bold text-telemetry-text-primary mb-2">Agendar Partida</h2>
           <p className="text-sm text-telemetry-text-muted mb-6">
-            A partida será agendada para o dia <strong>{modalData.date}</strong> às <strong>{modalData.time}</strong>. Tem certeza?
+            A partida será agendada para o dia <strong>{modalData.date}</strong>{modalData.time && modalData.time !== '--:--' ? <> às <strong>{modalData.time}</strong></> : ''}. Tem certeza?
           </p>
           <div className="flex flex-col gap-2">
             <button

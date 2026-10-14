@@ -91,6 +91,8 @@ model Match {
   version            Int                      @default(0)
   category           String?
   winnerId           String?
+  details            String?
+  clubName           String?
   deletedAt          DateTime?
   deletedBy          String?
   finishNote         String?

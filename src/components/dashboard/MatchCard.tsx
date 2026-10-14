@@ -26,6 +26,16 @@ export interface DashboardMatchPayload {
   initialServerId?: string | null;
   finishReason?: string | null;
   status?: string | null;
+  tournamentName?: string | null;
+  category?: string | null;
+  round?: string | null;
+  bracketType?: string | null;
+  temperature?: number | null;
+  humidity?: number | null;
+  visibility?: string | null;
+  details?: string | null;
+  clubName?: string | null;
+  version?: number;
 }
 
 interface MatchCardProps {
@@ -37,6 +47,7 @@ interface MatchCardProps {
   onEditScore?: (match: DashboardMatchPayload) => void;
   onResumeMatch?: (match: DashboardMatchPayload) => void;
   onSetSummary?: (match: DashboardMatchPayload) => void;
+  onEditInfo?: (match: DashboardMatchPayload) => void;
 }
 
 export function MatchCard({
@@ -48,6 +59,7 @@ export function MatchCard({
   onEditScore,
   onResumeMatch,
   onSetSummary,
+  onEditInfo,
 }: MatchCardProps) {
   const isSuspendedAnnotation = Boolean(match.suspendedSessionId);
   const isLiveOrSuspended =
@@ -72,6 +84,28 @@ export function MatchCard({
   }, [match.matchStateSnapshot]);
 
   const isFinished = match.state === 'FINISHED';
+
+  // No formato SHORT_SET_2V2_NO_AD, uma partida começa os dois sets em 2x2.
+  // Enquanto a partida não estiver finalizada e houver apenas 1 set registrado,
+  // projetamos visualmente o segundo set começando em 2x2.
+  const displayedSets = useMemo(() => {
+    const rawSets = scoreState?.sets || [];
+    if (match.format === 'SHORT_SET_2V2_NO_AD' && !isFinished) {
+      if (rawSets.length === 0) {
+        return [
+          { player1: 2, player2: 2, isTiebreak: false, tiebreakScore: null },
+          { player1: 2, player2: 2, isTiebreak: false, tiebreakScore: null },
+        ];
+      }
+      if (rawSets.length === 1) {
+        return [
+          rawSets[0],
+          { player1: 2, player2: 2, isTiebreak: false, tiebreakScore: null },
+        ];
+      }
+    }
+    return rawSets;
+  }, [scoreState?.sets, match.format, isFinished]);
 
   const currentServer = useMemo(() => {
     const s = scoreState?.server || suspendedAnnotationScore?.server;
@@ -112,13 +146,13 @@ export function MatchCard({
 
   const hasScore = scoreState != null || suspendedAnnotationScore != null;
   const isMatchTiebreak = isMatchTiebreakFormat(match.format);
-  const isCurrentSetMT = isMatchTiebreak && scoreState?.sets && scoreState.sets.length > 0
-    ? isCurrentSetMatchTiebreak(scoreState.sets, match.format as TennisFormat)
+  const isCurrentSetMT = isMatchTiebreak && displayedSets && displayedSets.length > 0
+    ? isCurrentSetMatchTiebreak(displayedSets, match.format as TennisFormat)
     : false;
-  const lastSet = scoreState?.sets && scoreState.sets.length > 0 ? scoreState.sets[scoreState.sets.length - 1] : null;
+  const lastSet = displayedSets && displayedSets.length > 0 ? displayedSets[displayedSets.length - 1] : null;
   const lastSetTiebreakScore = !isCurrentSetMT && lastSet?.isTiebreak && lastSet?.tiebreakScore ? lastSet.tiebreakScore : null;
 
-  const numSets = scoreState?.sets?.length ?? 0;
+  const numSets = displayedSets?.length ?? 0;
   const courtColors = COURT_COLORS[match.courtType ?? ''] ?? DEFAULT_COURT_COLOR;
   const barBg = isSuspendedAnnotation ? '#92400e' : courtColors.bar;
   const scoreBg = isSuspendedAnnotation ? '#78350f' : courtColors.score;
@@ -198,13 +232,29 @@ export function MatchCard({
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto shrink-0 justify-end">
+          {!isFinished && onEditInfo && (
+            <button
+              type="button"
+              data-testid={`match-card-edit-info-${match.id}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditInfo(match);
+              }}
+              className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-xs font-semibold rounded-lg bg-telemetry-elevated hover:bg-telemetry-active border border-telemetry-border/15 text-telemetry-text-primary transition-colors flex items-center gap-1 shadow-sm"
+              title="Editar Informações da Partida"
+              aria-label="Editar Informações"
+            >
+              <span aria-hidden="true">⚙️</span>
+              <span className="hidden sm:inline">Info</span>
+            </button>
+          )}
           <MatchActions match={match} onReport={onReport} onFinish={onFinish} onDelete={onDelete} />
           <FormatLabel format={match.format} />
         </div>
       </div>
 
-      {hasScore && scoreState?.sets && numSets > 0 ? (
+      {hasScore && displayedSets && numSets > 0 ? (
         <div className="px-4 pb-3" style={{ display: 'table', width: '100%', borderCollapse: 'collapse' }}>
           {/* Player 1 row */}
           <div style={{ display: 'table-row' }}>
@@ -216,13 +266,13 @@ export function MatchCard({
             </div>
             <div style={{ display: 'table-cell', borderLeft: '2px solid #111827' }}>
               <div className="flex items-stretch">
-                {scoreState.sets.map((s: any, idx: number) => (
+                {displayedSets.map((s: any, idx: number) => (
                   <div
                     key={idx}
                     className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm font-semibold text-white min-w-[2.5rem]"
                     style={{ backgroundColor: scoreBg, color: '#ffffff', borderRight: idx < numSets - 1 ? '1px solid #111827' : 'none' }}
                   >
-                    {formatCompactSetScore(s, 'player1', isSetIndexMatchTiebreak(scoreState.sets, idx, match.format as TennisFormat))}
+                    {formatCompactSetScore(s, 'player1', isSetIndexMatchTiebreak(displayedSets, idx, match.format as TennisFormat))}
                   </div>
                 ))}
                 {!isFinished && (
@@ -259,13 +309,13 @@ export function MatchCard({
             </div>
             <div style={{ display: 'table-cell', borderLeft: '2px solid #111827' }}>
               <div className="flex items-stretch">
-                {scoreState.sets.map((s: any, idx: number) => (
+                {displayedSets.map((s: any, idx: number) => (
                   <div
                     key={idx}
                     className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm font-semibold text-white min-w-[2.5rem]"
                     style={{ backgroundColor: scoreBg, color: '#ffffff', borderRight: idx < numSets - 1 ? '1px solid #111827' : 'none' }}
                   >
-                    {formatCompactSetScore(s, 'player2', isSetIndexMatchTiebreak(scoreState.sets, idx, match.format as TennisFormat))}
+                    {formatCompactSetScore(s, 'player2', isSetIndexMatchTiebreak(displayedSets, idx, match.format as TennisFormat))}
                   </div>
                 ))}
                 {!isFinished && (

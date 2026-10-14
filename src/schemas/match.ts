@@ -127,6 +127,7 @@ export const CreateMatchInputSchema = z
     scheduledAt: z.coerce.date().nullish(),
     initialServerId: z.string().min(1).nullish(),
     tournamentName: z.string().nullish(),
+    clubName: z.string().nullish(),
     category: z.string().nullish(),
     round: z.string().nullish(),
     roundName: z.string().nullish(),
@@ -134,6 +135,7 @@ export const CreateMatchInputSchema = z
     temperature: z.number().nullish(),
     humidity: z.number().nullish(),
     force: z.boolean().optional(),
+    details: z.string().nullish(),
   })
   .refine((data) => data.player1Id !== data.player2Id, {
     message: "Jogador 2 deve ser diferente do Jogador 1",

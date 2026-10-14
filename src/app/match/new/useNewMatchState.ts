@@ -33,6 +33,7 @@ export function useNewMatchState() {
   const [temperature, setTemperature] = useState('');
   const [humidity, setHumidity] = useState('');
   const [tags, setTags] = useState('');
+  const [details, setDetails] = useState('');
   const [openForAnnotation, setOpenForAnnotation] = useState(false);
   const [showTournamentDropdown, setShowTournamentDropdown] = useState(false);
   const tournamentSuggestions = useTournamentSuggestions(tournamentName);
@@ -78,7 +79,7 @@ export function useNewMatchState() {
     anotadorEmail, setAnotadorEmail, tournamentName, setTournamentName, clubName, setClubName,
     category, setCategory, roundName, setRoundName, bracketType, venueId, setVenueId,
     publicMatchCode, setPublicMatchCode, temperature, setTemperature, humidity, setHumidity,
-    tags, setTags, openForAnnotation, showTournamentDropdown, setShowTournamentDropdown,
+    tags, setTags, details, setDetails, openForAnnotation, showTournamentDropdown, setShowTournamentDropdown,
     tournamentSuggestions, showServerModal, setShowServerModal, createdMatchId, setCreatedMatchId,
     startingMatch, setStartingMatch, pendingPayload, setPendingPayload, showDuplicateModal,
     setShowDuplicateModal, duplicateInfo, setDuplicateInfo,

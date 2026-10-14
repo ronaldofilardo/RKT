@@ -100,7 +100,7 @@ describe('useNewMatchSubmissionActions - Partidas Agendadas vs Imediatas', () =>
     expect(mockRouter.push).toHaveBeenCalledWith('/dashboard');
   });
 
-  it('quando a partida for imediata (mesmo horário atual), abre o modal de escolha do sacador', async () => {
+  it('quando a partida for imediata (mesmo horário atual ou sem horário), NÃO abre o modal de escolha do sacador e vai para o dashboard', async () => {
     const now = new Date();
     const yyyy = now.getFullYear();
     const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -120,12 +120,30 @@ describe('useNewMatchSubmissionActions - Partidas Agendadas vs Imediatas', () =>
       await result.current.handleSubmit(fakeEvent);
     });
 
-    expect(mockState.setCreatedMatchId).toHaveBeenCalledWith('match-scheduled-1');
-    expect(mockState.setShowServerModal).toHaveBeenCalledWith(true);
+    expect(mockState.setShowServerModal).not.toHaveBeenCalled();
     expect(mockToast).toHaveBeenCalledWith({
       type: 'success',
-      message: 'Partida criada! Escolha o primeiro sacador.',
+      message: 'Partida criada com sucesso!',
     });
-    expect(mockRouter.push).not.toHaveBeenCalled();
+    expect(mockRouter.push).toHaveBeenCalledWith('/dashboard');
+  });
+
+  it('quando o campo horário não for preenchido, validação não bloqueia e partida é criada com sucesso', async () => {
+    mockState.date = '2026-10-15';
+    mockState.time = '';
+
+    const { result } = renderHook(() =>
+      useNewMatchSubmissionActions(mockState, mockRouter, mockToast)
+    );
+
+    expect(result.current.validateFields()).toEqual([]);
+
+    const fakeEvent = { preventDefault: jest.fn() } as any;
+    await act(async () => {
+      await result.current.handleSubmit(fakeEvent);
+    });
+
+    expect(mockState.setShowServerModal).not.toHaveBeenCalled();
+    expect(mockRouter.push).toHaveBeenCalledWith('/dashboard');
   });
 });

@@ -14,6 +14,7 @@ describe('MatchDetailsSection Real Tests', () => {
     temperature: '25',
     humidity: '60',
     tags: 'torneio, final',
+    details: 'Jogo decisivo',
     onVisibilityChange: jest.fn(),
     onAnotadorChange: jest.fn(),
     onVenueChange: jest.fn(),
@@ -21,6 +22,7 @@ describe('MatchDetailsSection Real Tests', () => {
     onTemperatureChange: jest.fn(),
     onHumidityChange: jest.fn(),
     onTagsChange: jest.fn(),
+    onDetailsChange: jest.fn(),
   };
 
   beforeEach(() => {
@@ -36,6 +38,7 @@ describe('MatchDetailsSection Real Tests', () => {
     expect(screen.getByDisplayValue('25')).toBeInTheDocument();
     expect(screen.getByDisplayValue('60')).toBeInTheDocument();
     expect(screen.getByDisplayValue('torneio, final')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Jogo decisivo')).toBeInTheDocument();
   });
 
   it('notifica alterações em campos de texto', () => {
@@ -45,5 +48,10 @@ describe('MatchDetailsSection Real Tests', () => {
     fireEvent.change(tagsInput, { target: { value: 'semi-final' } });
 
     expect(defaultProps.onTagsChange).toHaveBeenCalledWith('semi-final');
+
+    const detailsInput = screen.getByDisplayValue('Jogo decisivo');
+    fireEvent.change(detailsInput, { target: { value: 'Jogo alterado' } });
+
+    expect(defaultProps.onDetailsChange).toHaveBeenCalledWith('Jogo alterado');
   });
 });

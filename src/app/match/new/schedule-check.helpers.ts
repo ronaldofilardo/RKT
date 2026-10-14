@@ -8,12 +8,11 @@ export function isMatchScheduledForFuture(
   timeStr?: string,
   now: Date = new Date(),
 ): boolean {
-  if (!dateStr || !timeStr) return false;
+  if (!dateStr) return false;
 
   const [year, month, day] = dateStr.split('-').map(Number);
-  const [hours, minutes] = timeStr.split(':').map(Number);
 
-  if (!year || !month || !day || isNaN(hours) || isNaN(minutes)) {
+  if (!year || !month || !day) {
     return false;
   }
 
@@ -26,7 +25,15 @@ export function isMatchScheduledForFuture(
     return true;
   }
 
-  // 2. Mesma data, mas horário com mais de 5 minutos da hora atual:
+  // 2. Mesma data: horário é opcional. Se não houver horário, não é considerado agendado para o futuro
+  if (!timeStr) return false;
+
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  if (isNaN(hours) || isNaN(minutes)) {
+    return false;
+  }
+
+  // Mesma data, mas horário com mais de 5 minutos da hora atual:
   const scheduledTime = new Date(year, month - 1, day, hours, minutes, 0, 0);
   const diffMs = scheduledTime.getTime() - now.getTime();
   const fiveMinutesMs = 5 * 60 * 1000;

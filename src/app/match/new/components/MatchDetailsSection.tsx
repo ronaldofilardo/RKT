@@ -10,6 +10,7 @@ interface MatchDetailsSectionProps {
   temperature: string;
   humidity: string;
   tags: string;
+  details: string;
   onVisibilityChange: (value: string) => void;
   onAnotadorChange: (value: string) => void;
   onVenueChange: (value: string) => void;
@@ -17,6 +18,7 @@ interface MatchDetailsSectionProps {
   onTemperatureChange: (value: string) => void;
   onHumidityChange: (value: string) => void;
   onTagsChange: (value: string) => void;
+  onDetailsChange: (value: string) => void;
 }
 
 export function MatchDetailsSection({
@@ -27,6 +29,7 @@ export function MatchDetailsSection({
   temperature,
   humidity,
   tags,
+  details,
   onVisibilityChange,
   onAnotadorChange,
   onVenueChange,
@@ -34,6 +37,7 @@ export function MatchDetailsSection({
   onTemperatureChange,
   onHumidityChange,
   onTagsChange,
+  onDetailsChange,
 }: MatchDetailsSectionProps) {
   return (
     <>
@@ -150,6 +154,22 @@ export function MatchDetailsSection({
             onChange={(e) => onTagsChange(e.target.value)}
             placeholder="Ex: juvenil, treino, amistoso"
             className="flex-1 px-3 py-2 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary placeholder-telemetry-text-muted/50"
+          />
+        </div>
+      </section>
+
+      {/* DETALHES */}
+      <section className="bg-telemetry-card rounded-xl border border-white/10 p-4">
+        <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+          <h2 className="text-base font-semibold text-telemetry-text-primary w-40 shrink-0">
+            Detalhes <span className="text-telemetry-text-muted font-normal">(opcional)</span>
+          </h2>
+          <textarea
+            value={details}
+            onChange={(e) => onDetailsChange(e.target.value)}
+            placeholder="Observações ou detalhes adicionais da partida"
+            rows={3}
+            className="flex-1 px-3 py-2 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary placeholder-telemetry-text-muted/50 resize-y"
           />
         </div>
       </section>

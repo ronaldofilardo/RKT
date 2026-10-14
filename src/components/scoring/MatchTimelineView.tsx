@@ -5,32 +5,155 @@ import type { TimelinePoint } from '@/core/scoring/types';
 import {
   filterTimelinePoints,
   countByFilter,
+  isSetDecidingPoint,
 } from './timeline-utils';
 import type { FilterKey, FilterCriteria } from './timeline-types';
 import { FilterBar } from './timeline-filters';
 import { SetGroup } from './timeline-rows';
 import { AudioNotePlayer } from './AudioNotePlayer';
 
-function getSetResults(points: TimelinePoint[]): { setNumber: number; p1: number; p2: number; tiebreak?: { p1: number; p2: number } }[] {
-  const results: { setNumber: number; p1: number; p2: number; tiebreak?: { p1: number; p2: number } }[] = [];
+export interface SetResult {
+  setNumber: number;
+  p1: number;
+  p2: number;
+  tiebreak?: { p1: number; p2: number };
+}
+
+export function extractSetsFromScoreState(scoreState: unknown): SetResult[] | null {
+  if (!scoreState) return null;
+  let raw = scoreState;
+  if (typeof raw === 'string') {
+    try {
+      raw = JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+  if (!raw || typeof raw !== 'object') return null;
+
+  const stateObj =
+    'state' in (raw as any) && (raw as any).state && typeof (raw as any).state === 'object'
+      ? (raw as any).state
+      : raw;
+
+  const sets = stateObj.sets;
+  if (!Array.isArray(sets) || sets.length === 0) return null;
+
+  const hasScores = sets.some(
+    (s: any) =>
+      (s.player1 ?? 0) > 0 ||
+      (s.player2 ?? 0) > 0 ||
+      (s.tiebreakScore && ((s.tiebreakScore.player1 ?? 0) > 0 || (s.tiebreakScore.player2 ?? 0) > 0)),
+  );
+  if (!hasScores) return null;
+
+  return sets.map((s: any, idx: number) => {
+    const tb = s.tiebreakScore;
+    const hasTb = s.isTiebreak || (tb && ((tb.player1 ?? 0) > 0 || (tb.player2 ?? 0) > 0));
+    return {
+      setNumber: idx + 1,
+      p1: s.player1 ?? 0,
+      p2: s.player2 ?? 0,
+      tiebreak: hasTb && tb ? { p1: tb.player1 ?? 0, p2: tb.player2 ?? 0 } : undefined,
+    };
+  });
+}
+
+export function computeSetResultsFromPoints(points: TimelinePoint[]): SetResult[] {
+  if (!points || points.length === 0) return [];
+
+  const setOrder: number[] = [];
+  const pointsBySet = new Map<number, TimelinePoint[]>();
+
   for (const p of points) {
-    const existing = results.find(r => r.setNumber === p.setNumber);
-    if (existing) {
-      existing.p1 = p.gamesScore.player1;
-      existing.p2 = p.gamesScore.player2;
-      if (p.isTiebreak) {
-        existing.tiebreak = { p1: p.gameScore.player1, p2: p.gameScore.player2 };
+    if (!pointsBySet.has(p.setNumber)) {
+      setOrder.push(p.setNumber);
+      pointsBySet.set(p.setNumber, []);
+    }
+    pointsBySet.get(p.setNumber)!.push(p);
+  }
+
+  const results: SetResult[] = [];
+
+  for (let sIdx = 0; sIdx < setOrder.length; sIdx++) {
+    const setNum = setOrder[sIdx];
+    const setPoints = pointsBySet.get(setNum)!;
+    if (setPoints.length === 0) continue;
+
+    const lastPoint = setPoints[setPoints.length - 1];
+    const isLastSet = sIdx === setOrder.length - 1;
+
+    // Se há um set posterior na lista de pontos, o set anterior com certeza encerrou no último ponto.
+    // Se é o último set, verifica se o ponto foi definidor de game/set.
+    const isGameFinished = !isLastSet || isSetDecidingPoint(lastPoint);
+
+    if (lastPoint.isTiebreak) {
+      const winner = lastPoint.winner;
+      const tbP1 = (lastPoint.gameScore?.player1 ?? 0) + (winner === 'PLAYER_1' ? 1 : 0);
+      const tbP2 = (lastPoint.gameScore?.player2 ?? 0) + (winner === 'PLAYER_2' ? 1 : 0);
+
+      const lastRegular = [...setPoints].reverse().find(p => !p.isTiebreak);
+      if (lastRegular) {
+        const regularWinner = lastRegular.winner;
+        const regP1 = lastRegular.gamesScore.player1 + (regularWinner === 'PLAYER_1' ? 1 : 0);
+        const regP2 = lastRegular.gamesScore.player2 + (regularWinner === 'PLAYER_2' ? 1 : 0);
+        const baseGames = Math.max(regP1, regP2);
+
+        results.push({
+          setNumber: setNum,
+          p1: winner === 'PLAYER_1' ? baseGames + 1 : baseGames,
+          p2: winner === 'PLAYER_2' ? baseGames + 1 : baseGames,
+          tiebreak: { p1: tbP1, p2: tbP2 },
+        });
+      } else {
+        results.push({
+          setNumber: setNum,
+          p1: winner === 'PLAYER_1' ? 1 : 0,
+          p2: winner === 'PLAYER_2' ? 1 : 0,
+          tiebreak: { p1: tbP1, p2: tbP2 },
+        });
       }
     } else {
+      const winner = lastPoint.winner;
+      const p1 = lastPoint.gamesScore.player1 + (isGameFinished && winner === 'PLAYER_1' ? 1 : 0);
+      const p2 = lastPoint.gamesScore.player2 + (isGameFinished && winner === 'PLAYER_2' ? 1 : 0);
+
       results.push({
-        setNumber: p.setNumber,
-        p1: p.gamesScore.player1,
-        p2: p.gamesScore.player2,
-        tiebreak: p.isTiebreak ? { p1: p.gameScore.player1, p2: p.gameScore.player2 } : undefined,
+        setNumber: setNum,
+        p1,
+        p2,
       });
     }
   }
+
   return results;
+}
+
+export function getSetResults(
+  points: TimelinePoint[],
+  scoreState?: unknown,
+): SetResult[] {
+  const fromState = extractSetsFromScoreState(scoreState);
+  if (fromState && fromState.length > 0) {
+    return fromState;
+  }
+  return computeSetResultsFromPoints(points);
+}
+
+export interface MatchInfoData {
+  tournamentName?: string | null;
+  clubName?: string | null;
+  round?: string | null;
+  category?: string | null;
+  courtType?: string | null;
+  format?: string | null;
+  temperature?: number | null;
+  humidity?: number | null;
+  startedAt?: string | null;
+  finishedAt?: string | null;
+  state?: string | null;
+  details?: string | null;
+  finishNote?: string | null;
 }
 
 interface MatchTimelineViewProps {
@@ -40,6 +163,8 @@ interface MatchTimelineViewProps {
   matchId: string;
   hideFilters?: boolean;
   showFinalResult?: boolean;
+  scoreState?: unknown;
+  matchInfo?: MatchInfoData | null;
   comments?: Array<{
     id: string;
     content: string;
@@ -51,7 +176,17 @@ interface MatchTimelineViewProps {
   }>;
 }
 
-export function MatchTimelineView({ points, player1Name, player2Name, matchId, hideFilters, showFinalResult, comments = [] }: MatchTimelineViewProps) {
+export function MatchTimelineView({
+  points,
+  player1Name,
+  player2Name,
+  matchId,
+  hideFilters,
+  showFinalResult,
+  scoreState,
+  matchInfo,
+  comments = [],
+}: MatchTimelineViewProps) {
   const [activeFilters, setActiveFilters] = useState<Set<FilterKey>>(new Set());
 
   const toggleFilter = (key: FilterKey) => {
@@ -223,7 +358,7 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId, h
                   />
                 ))}
                 {showFinalResult && (() => {
-                  const setResults = getSetResults(points);
+                  const setResults = getSetResults(points, scoreState);
                   return (
                     <tr className="bg-telemetry-elevated border-t border-white/10 font-bold">
                       <td colSpan={3} className="px-1.5 py-2 text-[10px] text-telemetry-text-primary sticky left-0 bg-telemetry-elevated z-10 border-r border-white/10 text-right pr-3">
@@ -248,6 +383,8 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId, h
           </div>
         </div>
       </div>
+
+      {matchInfo && <MatchInfoLine info={matchInfo} />}
 
       {comments.length > 0 && (
         <div className="mt-3 bg-telemetry-alert/10 border border-telemetry-alert/20 rounded-lg px-3 py-2">
@@ -293,6 +430,93 @@ export function MatchTimelineView({ points, player1Name, player2Name, matchId, h
         <p><strong>SITUAÇÃO</strong> (DEV, FQ, Rede, Pass, Sq) / <strong>GOLPE</strong> (FH, BH, VFH, VBH, Sm) / <strong>EFEITO</strong> (Top, Sl, Flat) / <strong>DIREÇÃO</strong> (X, Parl, Ce, In Out, In In, Ab, Fe) descrevem como o ponto terminou.</p>
         <p><strong>ESPECIAL</strong> = golpe especial (Lob, Drop, SV, bate-pronto).</p>
         <p><strong>RALLY</strong> = faixa de bolas trocadas conforme duração marcada (3-6, 7-10, 11+).</p>
+      </div>
+    </div>
+  );
+}
+
+function MatchInfoLine({ info }: { info: MatchInfoData }) {
+  const courtTypeMap: Record<string, string> = {
+    GRASS: 'Grama',
+    CLAY: 'Saibro',
+    HARD: 'Piso duro',
+    CARPET: 'Carpete',
+    INDOOR: 'Indoor',
+  };
+
+  const stateLabels: Record<string, string> = {
+    FINISHED: 'Finalizada',
+    IN_PROGRESS: 'Em andamento',
+    SCHEDULED: 'Agendada',
+    CANCELLED: 'Cancelada',
+  };
+
+  const items: Array<{ label?: string; value: string; isHighlight?: boolean }> = [];
+
+  if (info.tournamentName) items.push({ label: 'Torneio', value: info.tournamentName });
+  if (info.clubName) items.push({ label: 'Clube', value: info.clubName });
+  if (info.round) items.push({ label: 'Rodada', value: info.round });
+  if (info.category) items.push({ label: 'Categoria', value: info.category });
+  if (info.courtType) {
+    const court = courtTypeMap[info.courtType.toUpperCase()] ?? info.courtType;
+    items.push({ label: 'Quadra', value: court });
+  }
+  if (info.format) items.push({ label: 'Formato', value: info.format.replace(/_/g, ' ') });
+  if (info.temperature != null) items.push({ label: 'Temp', value: `${info.temperature}°C` });
+  if (info.humidity != null) items.push({ label: 'Umidade', value: `${info.humidity}%` });
+  if (info.startedAt) {
+    items.push({
+      label: 'Início',
+      value: new Date(info.startedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }),
+    });
+  }
+  if (info.finishedAt) {
+    items.push({
+      label: 'Fim',
+      value: new Date(info.finishedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }),
+    });
+  }
+  if (info.state) {
+    items.push({ label: 'Status', value: stateLabels[info.state] ?? info.state });
+  }
+  if (info.details) {
+    items.push({ label: 'Detalhes', value: info.details, isHighlight: true });
+  }
+  if (info.finishNote) {
+    items.push({ label: 'Nota', value: info.finishNote });
+  }
+
+  if (items.length === 0) return null;
+
+  return (
+    <div
+      data-testid="timeline-match-info"
+      className="mt-3 bg-telemetry-elevated/80 border border-white/10 rounded-lg px-3 py-2 text-[11px]"
+    >
+      {/* Linha 1: Título */}
+      <div className="font-semibold text-telemetry-text-primary text-[11px] mb-2 flex items-center gap-1.5">
+        <span>ℹ️ Informações da Partida</span>
+      </div>
+      {/* Linhas 2 e 3: Rótulos na linha 2 e Valores na linha 3 */}
+      <div className="flex items-start gap-5 overflow-x-auto whitespace-nowrap scrollbar-thin pb-1">
+        {items.map((item, idx) => (
+          <div key={idx} className="flex flex-col shrink-0 min-w-max">
+            {/* Linha 2: Rótulo */}
+            <span className="text-[10px] uppercase font-semibold tracking-wider text-telemetry-text-muted">
+              {item.label}
+            </span>
+            {/* Linha 3: Valor */}
+            <span
+              className={
+                item.isHighlight
+                  ? "text-[11px] font-bold text-telemetry-volt mt-0.5"
+                  : "text-[11px] font-medium text-telemetry-text-primary mt-0.5"
+              }
+            >
+              {item.value}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );

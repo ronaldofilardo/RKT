@@ -118,7 +118,7 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
         aria-label="Fechar modal"
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose(); }}
       />
-      <div className="relative bg-telemetry-card border border-white/10 rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-auto">
+      <div className="relative bg-telemetry-card border border-white/10 rounded-2xl shadow-2xl max-w-xl w-full mx-4 max-h-[90vh] overflow-auto">
         <div className="sticky top-0 bg-telemetry-elevated border-b border-white/10 px-6 py-4 flex items-center justify-between z-10">
           <div>
             <h2 className="text-xl font-bold text-telemetry-text-primary">Novo Atleta</h2>

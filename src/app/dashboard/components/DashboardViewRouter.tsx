@@ -17,6 +17,7 @@ interface DashboardViewRouterProps {
   handleMatchEditScore?: (m: DashboardMatchPayload) => void;
   handleMatchResume?: (m: DashboardMatchPayload) => void;
   handleMatchSetSummary?: (m: DashboardMatchPayload) => void;
+  handleMatchEditInfo?: (m: DashboardMatchPayload) => void;
 }
 
 export function DashboardViewRouter(props: DashboardViewRouterProps) {
@@ -37,6 +38,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
     handleMatchEditScore,
     handleMatchResume,
     handleMatchSetSummary,
+    handleMatchEditInfo,
   } = props;
 
   if (loading) {
@@ -110,6 +112,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
                 onEditScore={handleMatchEditScore}
                 onResumeMatch={handleMatchResume}
                 onSetSummary={handleMatchSetSummary}
+                onEditInfo={handleMatchEditInfo}
               />
             ))}
           </div>
@@ -142,6 +145,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
                 match={m}
                 onClick={handleMatchClick}
                 onDelete={handleMatchDelete}
+                onEditInfo={handleMatchEditInfo}
               />
             ))}
           </div>
@@ -201,6 +205,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
                   onEditScore={handleMatchEditScore}
                   onResumeMatch={handleMatchResume}
                   onSetSummary={handleMatchSetSummary}
+                  onEditInfo={handleMatchEditInfo}
                 />
               ))}
             </div>
@@ -223,6 +228,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
                 onEditScore={handleMatchEditScore}
                 onResumeMatch={handleMatchResume}
                 onSetSummary={handleMatchSetSummary}
+                onEditInfo={handleMatchEditInfo}
               />
             ))
           )}

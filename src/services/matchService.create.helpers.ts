@@ -29,11 +29,13 @@ function buildCreateFormatFields(data: CreateMatchInput) {
 function buildCreateMetadataFields(data: CreateMatchInput) {
   return {
     tournamentName: data.tournamentName || null,
+    clubName: (data as any).clubName || null,
     category: data.category || null,
     round: data.round || data.roundName || null,
     bracketType: data.bracketType || null,
     temperature: data.temperature || null,
     humidity: data.humidity || null,
+    details: data.details || null,
   };
 }
 

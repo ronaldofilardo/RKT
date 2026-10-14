@@ -104,8 +104,16 @@ export function useScoringLifecycleEffects({
 
   useEffect(() => {
     if (scoreState?.startedAt) {
-      const startedAtMs = scoreState.startedAt;
-      setElapsed(Math.max(0, Math.floor((Date.now() - startedAtMs) / 1000)));
+      const startedAtMs =
+        typeof scoreState.startedAt === "number"
+          ? scoreState.startedAt
+          : new Date(scoreState.startedAt).getTime();
+      const update = () => {
+        setElapsed(Math.max(0, Math.floor((Date.now() - startedAtMs) / 1000)));
+      };
+      update();
+      const interval = setInterval(update, 1000);
+      return () => clearInterval(interval);
     } else {
       setElapsed(0);
     }

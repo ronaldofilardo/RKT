@@ -190,12 +190,17 @@ export async function POST(
             }
           : {};
 
+        const startedAtData = !match.startedAt
+          ? { startedAt: new Date(newState.startedAt ?? Date.now()) }
+          : {};
+
         await tx.match.update({
           where: { id, version: expectedVersion },
           data: {
             scoreState: snapshot as unknown as Prisma.InputJsonValue,
             version: { increment: 1 },
             ...finishData,
+            ...startedAtData,
           },
         });
 

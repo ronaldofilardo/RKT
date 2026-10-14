@@ -2,12 +2,16 @@ type MatchPayloadFields = {
   sportType: string; format: string; courtType: string; player1Id?: string; player2Id?: string;
   nickname: string; visibility: string; openForAnnotation: boolean; anotadorEmail: string; date: string; time: string;
   venueId: string; publicMatchCode: string; tournamentName: string; clubName: string; category: string; roundName: string;
-  bracketType: string; temperature: string; humidity: string; tags: string;
+  bracketType: string; temperature: string; humidity: string; tags: string; details: string;
 };
 
 const optionalText = (value: string) => value || null;
 const optionalNumber = (value: string) => value ? parseFloat(value) : null;
-const scheduledAt = (date: string, time: string) => date && time ? new Date(`${date}T${time}`).toISOString() : undefined;
+const scheduledAt = (date: string, time: string) => {
+  if (!date) return undefined;
+  if (time) return new Date(`${date}T${time}`).toISOString();
+  return new Date(`${date}T00:00:00`).toISOString();
+};
 
 export function buildMatchPayload(fields: MatchPayloadFields, overrides?: Record<string, unknown>) {
   return {
@@ -31,6 +35,7 @@ export function buildMatchPayload(fields: MatchPayloadFields, overrides?: Record
     temperature: optionalNumber(fields.temperature),
     humidity: optionalNumber(fields.humidity),
     tags: optionalText(fields.tags),
+    details: optionalText(fields.details),
     ...overrides,
   };
 }

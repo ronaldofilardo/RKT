@@ -19,6 +19,7 @@ export interface ReportData {
   winnerId?: string | null;
   finishReason?: string | null;
   finishNote?: string | null;
+  details?: string | null;
   scoreState: unknown;
   timelinePoints: TimelinePoint[];
   summary: ReportSummary;

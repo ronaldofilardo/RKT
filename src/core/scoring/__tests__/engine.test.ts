@@ -42,6 +42,20 @@ describe('ScoringEngine', () => {
     expect(() => e.applyPoint({ winnerId: 'player-1-id', type: 'WINNER', serverId: 'player-1-id' })).toThrow('MATCH_ALREADY_FINISHED');
   });
 
+  it('deve iniciar o cronometro interno (startedAt) ao marcar o 1o ponto em nova partida', () => {
+    const e = new ScoringEngine(config);
+    expect(e.getState().startedAt).toBeNull();
+
+    const timestamp = 1700000000000;
+    const state = e.applyPoint({
+      winnerId: 'player-1-id',
+      type: 'WINNER',
+      serverId: 'player-1-id',
+      timestamp,
+    });
+    expect(state.startedAt).toBe(timestamp);
+  });
+
   it('deve lançar INVALID_WINNER para winnerId desconhecido', () => {
     const e = new ScoringEngine(config);
     expect(() => e.applyPoint({ winnerId: 'unknown-player', type: 'WINNER', serverId: 'player-1-id' })).toThrow('INVALID_WINNER');

@@ -45,7 +45,7 @@ function handleTransitionGameEnd(current: TimelinePoint, next: TimelinePoint): G
   };
 }
 
-function isSetDecidingPoint(point: TimelinePoint): boolean {
+export function isSetDecidingPoint(point: TimelinePoint): boolean {
   if (point.isTiebreak) return true;
   const isP1 = point.winner === 'PLAYER_1';
   const myScore = isP1 ? point.gameScore.player1 : point.gameScore.player2;

@@ -156,4 +156,47 @@ describe('MatchTimelineView — edge cases', () => {
     expect(screen.getByText('1º Saque')).toBeInTheDocument();
     expect(screen.getByText('2º Saque')).toBeInTheDocument();
   });
+
+  it('renderiza informações da partida em linha única incluindo campo detalhes acima de comentários', () => {
+    const points = [makePoint({ pointNumber: 1, setNumber: 1 })];
+    const matchInfo = {
+      tournamentName: 'Roland Garros',
+      round: 'Final',
+      category: 'Adulto',
+      courtType: 'CLAY',
+      format: 'BEST_OF_3',
+      temperature: 26,
+      humidity: 55,
+      details: 'Quadra central Philippe-Chatrier, bolas novas',
+    };
+    const comments = [
+      {
+        id: 'c1',
+        content: 'Ótimo primeiro set',
+        authorName: 'Treinador',
+        createdAt: '2026-10-13T10:00:00Z',
+      },
+    ];
+
+    render(
+      <MatchTimelineView
+        {...defaultProps}
+        points={points}
+        matchInfo={matchInfo}
+        comments={comments}
+      />
+    );
+
+    const infoContainer = screen.getByTestId('timeline-match-info');
+    expect(infoContainer).toBeInTheDocument();
+    expect(screen.getByText('ℹ️ Informações da Partida')).toBeInTheDocument();
+    expect(infoContainer.querySelector('.whitespace-nowrap')).toBeInTheDocument();
+
+    expect(screen.getByText('Roland Garros')).toBeInTheDocument();
+    expect(screen.getByText('Final')).toBeInTheDocument();
+    expect(screen.getByText('Saibro')).toBeInTheDocument();
+    expect(screen.getByText('Quadra central Philippe-Chatrier, bolas novas')).toBeInTheDocument();
+    expect(screen.getByText('💬 Comentários')).toBeInTheDocument();
+  });
 });
+

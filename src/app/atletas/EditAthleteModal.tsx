@@ -152,7 +152,7 @@ export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthle
         aria-label="Fechar modal"
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose(); }}
       />
-      <div className="relative bg-telemetry-card border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="relative bg-telemetry-card border border-white/10 rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col">
         <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-telemetry-elevated">
           <div>
             <h2 className="text-base font-bold text-telemetry-text-primary">Editar Atleta</h2>

@@ -1,7 +1,7 @@
 export const ALLOWED_MATCH_FIELDS = [
   'nickname', 'sportType', 'courtType', 'visibility', 'openForAnnotation',
-  'scheduledAt', 'initialServerId', 'tournamentName', 'category', 'roundName',
-  'bracketType', 'temperature', 'humidity',
+  'scheduledAt', 'initialServerId', 'tournamentName', 'clubName', 'category', 'roundName', 'round',
+  'bracketType', 'temperature', 'humidity', 'details',
 ] as const;
 
 type AllowedField = (typeof ALLOWED_MATCH_FIELDS)[number];
@@ -27,11 +27,14 @@ export function buildMatchUpdateData(sanitized: Partial<Record<AllowedField, unk
   if (sanitized.scheduledAt !== undefined) result.scheduledAt = new Date(sanitized.scheduledAt as string);
   assign('initialServerId');
   assign('tournamentName');
+  assign('clubName');
   assign('category');
-  assign('roundName');
+  if (sanitized.roundName !== undefined) result.roundName = sanitized.roundName;
+  if (sanitized.round !== undefined) result.round = sanitized.round;
   assign('bracketType');
   assign('temperature');
   assign('humidity');
+  assign('details');
   return result;
 }
 

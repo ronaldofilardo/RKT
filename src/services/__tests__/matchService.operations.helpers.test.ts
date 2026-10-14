@@ -21,6 +21,7 @@ describe('matchService.operations.helpers', () => {
       expect(ALLOWED_MATCH_FIELDS).toContain('bracketType');
       expect(ALLOWED_MATCH_FIELDS).toContain('temperature');
       expect(ALLOWED_MATCH_FIELDS).toContain('humidity');
+      expect(ALLOWED_MATCH_FIELDS).toContain('details');
     });
   });
 

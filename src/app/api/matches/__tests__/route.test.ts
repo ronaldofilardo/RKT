@@ -112,6 +112,8 @@ describe('GET /api/matches', () => {
           version: true,
           scoreState: true,
           initialServerId: true,
+          clubName: true,
+          details: true,
           player1: { select: { id: true, name: true } },
           player2: { select: { id: true, name: true } },
           createdByUserId: true,

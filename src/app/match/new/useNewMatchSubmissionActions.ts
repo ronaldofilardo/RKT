@@ -22,7 +22,7 @@ export function useNewMatchSubmissionActions(
     anotadorEmail: state.anotadorEmail, date: state.date, time: state.time, venueId: state.venueId,
     publicMatchCode: state.publicMatchCode, tournamentName: state.tournamentName, clubName: state.clubName,
     category: state.category, roundName: state.roundName, bracketType: state.bracketType,
-    temperature: state.temperature, humidity: state.humidity, tags: state.tags,
+    temperature: state.temperature, humidity: state.humidity, tags: state.tags, details: state.details,
   }, overrides), [state]);
 
   const validateFields = useCallback((): string[] => {
@@ -33,9 +33,8 @@ export function useNewMatchSubmissionActions(
     if (!state.selectedP1) missing.push('Jogador 1');
     if (!state.selectedP2) missing.push('Jogador 2');
     if (!state.date) missing.push('Data');
-    if (!state.time) missing.push('Horário');
     return missing;
-  }, [state.sportType, state.format, state.courtType, state.selectedP1, state.selectedP2, state.date, state.time]);
+  }, [state.sportType, state.format, state.courtType, state.selectedP1, state.selectedP2, state.date]);
 
   const handleForceCreate = async () => {
     if (!state.pendingPayload || state.submittingRef.current) return;
@@ -49,12 +48,10 @@ export function useNewMatchSubmissionActions(
       const isScheduled = isMatchScheduledForFuture(state.date, state.time);
       if (isScheduled) {
         toast({ type: 'success', message: 'Partida agendada com sucesso!' });
-        router.push('/dashboard');
-        return;
+      } else {
+        toast({ type: 'success', message: 'Partida criada com sucesso!' });
       }
-      state.setCreatedMatchId(match.data.id);
-      state.setShowServerModal(true);
-      toast({ type: 'success', message: 'Partida criada! Escolha o primeiro sacador.' });
+      router.push('/dashboard');
     } catch (err) {
       logger.error('[handleForceCreate] Error:', err);
       state.setError('Erro ao criar partida');
@@ -95,12 +92,10 @@ export function useNewMatchSubmissionActions(
       const isScheduled = isMatchScheduledForFuture(state.date, state.time);
       if (isScheduled) {
         toast({ type: 'success', message: 'Partida agendada com sucesso!' });
-        router.push('/dashboard');
-        return;
+      } else {
+        toast({ type: 'success', message: 'Partida criada com sucesso!' });
       }
-      state.setCreatedMatchId(result.data.data.id);
-      state.setShowServerModal(true);
-      toast({ type: 'success', message: 'Partida criada! Escolha o primeiro sacador.' });
+      router.push('/dashboard');
     } catch (err) {
       state.setError('Erro ao criar partida');
       toast({ type: 'error', message: 'Erro ao criar partida' });

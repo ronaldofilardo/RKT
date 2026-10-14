@@ -20,6 +20,7 @@ import { DashboardSidebar } from "./components/DashboardSidebar";
 import { DashboardViewRouter } from "./components/DashboardViewRouter";
 import { ServerSelectionModal } from "@/app/match/new/components/ServerSelectionModal";
 import { SetSummaryModal } from "@/components/scoring/SetSummaryModal";
+import { EditMatchInfoModal } from "@/components/dashboard/EditMatchInfoModal";
 import { ConfirmAlertDialog } from "@/components/ConfirmAlertDialog";
 
 export default function DashboardPage() {
@@ -32,6 +33,7 @@ export default function DashboardPage() {
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [setSummaryMatch, setSetSummaryMatch] = useState<any | null>(null);
   const [setSummaryTimelinePoints, setSetSummaryTimelinePoints] = useState<any[]>([]);
+  const [matchToEditInfo, setMatchToEditInfo] = useState<any | null>(null);
 
   logger.info("[DashboardPage] mount pathname=", pathname, "menuOpen=", false);
 
@@ -181,6 +183,11 @@ export default function DashboardPage() {
     setMatchToFinish(match);
   }, [setMatchToFinish]);
 
+  const handleMatchEditInfo = useCallback((match: any) => {
+    logger.info("[DashboardPage] edit match info", match.id);
+    setMatchToEditInfo(match);
+  }, []);
+
   const handleMatchDelete = useCallback((match: any) => {
     setMatchToDelete(match);
   }, [setMatchToDelete]);
@@ -248,6 +255,7 @@ export default function DashboardPage() {
           handleMatchEditScore={handleMatchEditScore}
           handleMatchResume={handleMatchResume}
           handleMatchSetSummary={handleMatchSetSummary}
+          handleMatchEditInfo={handleMatchEditInfo}
         />
       </main>
 
@@ -320,6 +328,17 @@ export default function DashboardPage() {
           completedSetsCount={completedSetsCount}
           isMatchFinished={setSummaryMatch.state === "FINISHED"}
           completedSetsData={completedSetsData}
+        />
+      )}
+
+      {matchToEditInfo && (
+        <EditMatchInfoModal
+          match={matchToEditInfo}
+          onClose={() => setMatchToEditInfo(null)}
+          onSuccess={() => {
+            fetchDashboardData();
+            setMatchToEditInfo(null);
+          }}
         />
       )}
     </div>

@@ -216,6 +216,7 @@ export async function GET(
         sportType: match.sportType,
         courtType: match.courtType ?? null,
         tournamentName: match.tournamentName ?? null,
+        clubName: match.clubName ?? null,
         category: match.category ?? null,
         round: match.round ?? null,
         bracketType: match.bracketType ?? null,
@@ -224,6 +225,7 @@ export async function GET(
         winnerId: match.winnerId ?? null,
         finishReason: match.finishReason ?? null,
         finishNote: match.finishNote ?? null,
+        details: match.details ?? null,
         scoreState: responseScoreState,
         timelinePoints,
         comments: comments.map((c) => ({

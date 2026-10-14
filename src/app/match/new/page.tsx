@@ -56,6 +56,8 @@ export default function NewMatchPage() {
     setHumidity,
     tags,
     setTags,
+    details,
+    setDetails,
     showTournamentDropdown,
     setShowTournamentDropdown,
     tournamentSuggestions,
@@ -201,6 +203,7 @@ export default function NewMatchPage() {
             temperature={temperature}
             humidity={humidity}
             tags={tags}
+            details={details}
             onVisibilityChange={setVisibility}
             onAnotadorChange={setAnotadorEmail}
             onVenueChange={setVenueId}
@@ -208,6 +211,7 @@ export default function NewMatchPage() {
             onTemperatureChange={setTemperature}
             onHumidityChange={setHumidity}
             onTagsChange={setTags}
+            onDetailsChange={setDetails}
           />
 
           <div className="flex gap-3 pt-4">
