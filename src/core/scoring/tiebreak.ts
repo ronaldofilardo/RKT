@@ -52,6 +52,31 @@ export function computeServerForNextSetAfterTiebreak(
   return initialServer === 'player1' ? 'player2' : 'player1';
 }
 
+/**
+ * Determina se o tiebreak atual é um Match Tiebreak (mínimo 10 pontos)
+ * em vez do tiebreak comum de 7 pontos.
+ */
+function isMatchTiebreakFormat(config: ScoringEngineConfig, setsLength: number): boolean {
+  return (
+    config.format === 'MATCH_TB_10' ||
+    (config.format === 'BEST_OF_5' && setsLength === 5) ||
+    (config.format === 'BEST_OF_3_MATCH_TB' && setsLength === 3) ||
+    (config.format === 'BEST_OF_3_NO_AD' && setsLength === 3) ||
+    (config.format === 'SHORT_SET_2V2_NO_AD' && setsLength === 3)
+  );
+}
+
+/** O vencedor indicado já atingiu o mínimo com 2 pontos de vantagem? */
+function hasTiebreakBeenWon(
+  tb: { player1: number; player2: number },
+  winner: 'player1' | 'player2',
+  tbMin: number,
+): boolean {
+  const w = tb[winner];
+  const l = winner === 'player1' ? tb.player2 : tb.player1;
+  return w >= tbMin && w - l >= 2;
+}
+
 export function processTiebreakPoint(
   state: ScoringState,
   winner: 'player1' | 'player2',
@@ -74,24 +99,16 @@ export function processTiebreakPoint(
     ? state.server
     : (state.server === 'player1' ? 'player2' : 'player1');
 
-  const isMatchTb = config.format === 'MATCH_TB_10' ||
-    (config.format === 'BEST_OF_5' && state.sets.length === 5) ||
-    (config.format === 'BEST_OF_3_MATCH_TB' && state.sets.length === 3) ||
-    (config.format === 'BEST_OF_3_NO_AD' && state.sets.length === 3) ||
-    (config.format === 'SHORT_SET_2V2_NO_AD' && state.sets.length === 3);
+  const isMatchTb = isMatchTiebreakFormat(config, state.sets.length);
   const tbMin = isMatchTb ? 10 : 7;
 
-  if (newTb.player1 >= tbMin && newTb.player1 - newTb.player2 >= 2) {
+  if (hasTiebreakBeenWon(newTb, winner, tbMin)) {
+    // Em Match Tiebreak não há set seguinte — o "próximo sacador" é só o
+    // alternador corrente. No tiebreak comum, ancora em initialServerId.
     const nextSetServer = isMatchTb
       ? newServer
-      : computeServerForNextSetAfterTiebreak(state, config, currentSetIndex, currentSet, 'player1');
-    return completeSetWithTiebreak('player1', newTb, nextSetServer, state, config);
-  }
-  if (newTb.player2 >= tbMin && newTb.player2 - newTb.player1 >= 2) {
-    const nextSetServer = isMatchTb
-      ? newServer
-      : computeServerForNextSetAfterTiebreak(state, config, currentSetIndex, currentSet, 'player2');
-    return completeSetWithTiebreak('player2', newTb, nextSetServer, state, config);
+      : computeServerForNextSetAfterTiebreak(state, config, currentSetIndex, currentSet, winner);
+    return completeSetWithTiebreak(winner, newTb, nextSetServer, state, config);
   }
 
   const newSet: SetScore = { ...currentSet, tiebreakScore: newTb };
