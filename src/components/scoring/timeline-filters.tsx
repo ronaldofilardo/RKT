@@ -37,22 +37,24 @@ function Chip({ label, active, color, onClick }: ChipProps) {
   );
 }
 
+export interface FilterCounts {
+  p1: number;
+  p2: number;
+  bp: number;
+  winners?: number;
+  errors?: number;
+  ace?: number;
+  winner?: number;
+  forcedError?: number;
+  unforcedError?: number;
+  doubleFault?: number;
+}
+
 interface FilterBarProps {
   activeFilters: Set<FilterKey>;
   onToggleFilter: (key: FilterKey) => void;
   onClearFilters: () => void;
-  counts: {
-    p1: number;
-    p2: number;
-    bp: number;
-    winners?: number;
-    errors?: number;
-    ace?: number;
-    winner?: number;
-    forcedError?: number;
-    unforcedError?: number;
-    doubleFault?: number;
-  };
+  counts: FilterCounts;
   playerNames: { p1: string; p2: string };
 }
 
