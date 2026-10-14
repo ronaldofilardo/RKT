@@ -6,36 +6,41 @@ import { shouldStartTiebreak } from './tiebreak';
 import { shouldStartMatchTiebreak } from './match-tiebreak';
 import { completeSet, isSetComplete } from './set-completion';
 
-function processStandardPoint(
-  winner: 'player1' | 'player2',
+/**
+ * Ponto em formato "no-ad": ao empatar em 3-3 (40-40) o game NÃO encerra —
+ * entra em Ponto Decisivo (Deuce) para ser decidido no próximo ponto único.
+ * Caso contrário, quem chegar a 4 pontos vence direto.
+ */
+function processNoAdPoint(
+  game: GameScore,
   state: ScoringState,
   config: ScoringEngineConfig,
 ): ScoringState {
-  const game = { ...state.currentGame };
-
-  if (winner === 'player1') game.player1++;
-  else game.player2++;
-
-  if (usesNoAd(config)) {
-    if (game.player1 >= 3 && game.player2 >= 3) {
-      // "No-ad": ao empatar em 3-3 (40-40), o game NÃO encerra.
-      // Entra em Ponto Decisivo (Deuce) para ser decidido no próximo ponto único.
-      game.isDeuce = true;
-      game.player1 = 3;
-      game.player2 = 3;
-      return { ...state, currentGame: game };
-    }
-    const needed = 4;
-    if (game.player1 >= needed || game.player2 >= needed) {
-      const gameWinner = game.player1 >= needed ? 'player1' : 'player2';
-      return handleGameWon(gameWinner, game, state, config);
-    }
+  if (game.player1 >= 3 && game.player2 >= 3) {
+    game.isDeuce = true;
+    game.player1 = 3;
+    game.player2 = 3;
     return { ...state, currentGame: game };
   }
+  const needed = 4;
+  if (game.player1 >= needed || game.player2 >= needed) {
+    const gameWinner = game.player1 >= needed ? 'player1' : 'player2';
+    return handleGameWon(gameWinner, game, state, config);
+  }
+  return { ...state, currentGame: game };
+}
 
+/**
+ * Ponto em formato com vantagem (tradicional): 40-40 vira Deuce, precisa de
+ * 2 pontos de diferença a partir de 3-3 para fechar o game.
+ */
+function processAdvantagePoint(
+  game: GameScore,
+  state: ScoringState,
+  config: ScoringEngineConfig,
+): ScoringState {
   if (game.player1 === 3 && game.player2 === 3) {
     game.isDeuce = true;
-    state.currentGame = game;
     return { ...state, currentGame: game };
   }
 
@@ -50,11 +55,24 @@ function processStandardPoint(
     game.isDeuce = true;
     game.player1 = 3;
     game.player2 = 3;
-    state.currentGame = game;
     return { ...state, currentGame: game };
   }
 
   return { ...state, currentGame: game };
+}
+
+function processStandardPoint(
+  winner: 'player1' | 'player2',
+  state: ScoringState,
+  config: ScoringEngineConfig,
+): ScoringState {
+  const game = { ...state.currentGame };
+
+  if (winner === 'player1') game.player1++;
+  else game.player2++;
+
+  if (usesNoAd(config)) return processNoAdPoint(game, state, config);
+  return processAdvantagePoint(game, state, config);
 }
 
 function processDeucePoint(
