@@ -110,7 +110,7 @@ export function shouldStartMatchTiebreak(state: ScoringState, config: ScoringEng
 }
 
 export function isMatchTiebreakActive(state: ScoringState, config: ScoringEngineConfig): boolean {
-  const format = config.format as any;
+  const format = config.format;
   const currentSetNum = state.sets.length;
   const p1Sets = state.sets.filter(s => !s.isTiebreak && s.player1 > s.player2).length;
   const p2Sets = state.sets.filter(s => !s.isTiebreak && s.player2 > s.player1).length;

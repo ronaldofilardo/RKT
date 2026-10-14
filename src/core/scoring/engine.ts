@@ -8,6 +8,7 @@ import {
   processMatchTiebreak as processMatchTiebreakFlow,
   isMatchTiebreakActive,
 } from './engine.flow';
+import { unwrapStateEnvelope } from './state-envelope';
 
 function resolveWinner(
   flow: PointFlow,
@@ -186,9 +187,7 @@ export class ScoringEngine {
 
   loadState(newState: ScoringState | unknown): void {
     const raw = typeof newState === 'string' ? JSON.parse(newState) : newState;
-    const unpacked = (raw && typeof raw === 'object' && 'state' in raw && (raw as any).state)
-      ? (raw as any).state
-      : raw;
+    const unpacked = unwrapStateEnvelope(raw);
     this.state = JSON.parse(JSON.stringify(unpacked));
     this.history = [];
   }
@@ -212,11 +211,14 @@ export class ScoringEngine {
       state = parsed as ScoringState;
     }
 
-    if (state.server === (config.player2Id as any)) {
+    // `state.server` é tipado como 'player1' | 'player2', mas dados legados
+    // gravavam o userId cru. Alarga para string apenas para a comparação.
+    const rawServer = state.server as string;
+    if (rawServer === config.player2Id) {
       state.server = 'player2';
-    } else if (state.server === (config.player1Id as any)) {
+    } else if (rawServer === config.player1Id) {
       state.server = 'player1';
-    } else if (state.server !== 'player1' && state.server !== 'player2') {
+    } else if (rawServer !== 'player1' && rawServer !== 'player2') {
       state.server = config.initialServerId === config.player2Id ? 'player2' : 'player1';
     }
 
