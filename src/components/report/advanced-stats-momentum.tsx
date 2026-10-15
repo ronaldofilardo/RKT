@@ -1,0 +1,49 @@
+'use client';
+
+import { Section, type AdvancedStatsSectionProps } from './advanced-stats-primitives';
+
+export function MomentumSection({ stats }: { stats: AdvancedStatsSectionProps['stats'] }) {
+  const { momentum } = stats;
+  return (
+    <Section title="Momentum">
+      <div className="grid grid-cols-2 gap-4 text-center">
+        <div className="bg-telemetry-blue/10 rounded-lg p-3">
+          <div className="text-2xl font-black text-telemetry-blue">{momentum.longestWinningStreak}</div>
+          <div className="text-xs text-telemetry-blue">Sequência Máx. Pontos Ganhos (J1)</div>
+        </div>
+        <div className="bg-telemetry-error/10 rounded-lg p-3">
+          <div className="text-2xl font-black text-telemetry-error">{momentum.longestLosingStreak}</div>
+          <div className="text-xs text-telemetry-error">Sequência Máx. Pontos Ganhos (J2)</div>
+        </div>
+      </div>
+      <div className="mt-3 text-center">
+        <div className="text-xs text-telemetry-text-muted">Sequência atual: </div>
+        <div className={`text-lg font-bold ${momentum.currentStreak > 0 ? 'text-telemetry-blue' : 'text-telemetry-error'}`}>
+          {momentum.currentStreak > 0 ? `${momentum.currentStreak} pts` : `${Math.abs(momentum.currentStreak)} pts`}
+          <span className="text-xs text-telemetry-text-muted ml-1">
+            {momentum.currentStreak > 0 ? '(J1)' : '(J2)'}
+          </span>
+        </div>
+      </div>
+      {momentum.scoringRuns.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-white/10">
+          <div className="text-xs font-semibold text-telemetry-text-primary mb-2">Sequências de 3+ Pontos</div>
+          <div className="flex flex-wrap gap-1">
+            {momentum.scoringRuns.slice(0, 5).map((run, i) => (
+              <span
+                key={i}
+                className={`text-xs px-2 py-0.5 rounded-full ${
+                  run.player === 'PLAYER_1'
+                    ? 'bg-telemetry-blue/20 text-telemetry-blue-light'
+                    : 'bg-telemetry-error/20 text-telemetry-error-light'
+                }`}
+              >
+                {run.length}x {run.player === 'PLAYER_1' ? 'J1' : 'J2'}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </Section>
+  );
+}
