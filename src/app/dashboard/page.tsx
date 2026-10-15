@@ -1,155 +1,66 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { useToast } from "@/components/Toast";
-import { useSession } from "@/contexts/SessionContext";
-import { logger } from "@/lib/logger";
-import { ensureAuthCookie, clearRedirectingFlag } from "@/lib/auth-client";
-import {
-  useDashboardNavigation,
-  useDashboardData,
-  useModalState,
-  useUserAuth,
-  useDashboardMatchFilters,
-} from "./dashboard.hooks";
-import { useResumeSession } from "./dashboard.resume";
-import { useDeleteMatch, useFinishMatch } from "./dashboard.actions";
-import { useDashboardMatchActions } from "./use-dashboard-match-actions";
-import { useDashboardSetSummary } from "./use-dashboard-set-summary";
 import { DashboardChrome } from "./components/DashboardChrome";
 import { DashboardViewRouter } from "./components/DashboardViewRouter";
 import { DashboardMatchModals } from "./components/DashboardMatchModals";
+import { useDashboardPageModel } from "./use-dashboard-page-model";
+import { useDashboardMatchActions } from "./use-dashboard-match-actions";
+import { useDashboardSetSummary } from "./use-dashboard-set-summary";
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const { toast } = useToast();
-  const { setSession, setPendingEdit } = useSession();
-
-  logger.info("[DashboardPage] mount pathname=", pathname, "menuOpen=", false);
-
-  useEffect(() => {
-    logger.info("[DashboardPage] pathname changed to", pathname);
-    clearRedirectingFlag();
-    ensureAuthCookie();
-  }, [pathname]);
-
-  const { user } = useUserAuth(router);
-  const { handleNavigate } = useDashboardNavigation(router);
-  const { matches, suspendedFromApi, loading, fetchDashboardData } = useDashboardData(router);
-  const { matchToDelete, setMatchToDelete, matchToFinish, setMatchToFinish } = useModalState();
-
-  const { handleResumeSuspended } = useResumeSession({
-    router,
-    setSession,
-    setPendingEdit,
-  });
-
-  const { confirmDeleteMatch } = useDeleteMatch({
-    matchToDelete,
-    fetchDashboardData,
-    toast,
-  });
-
-  useFinishMatch({
-    matchToFinish,
-    fetchDashboardData,
-    toast,
-  });
-
-  const view: "dashboard" | "annotated" | "live" | "pending" | "history" =
-    pathname?.startsWith("/partidasanotadas")
-      ? "annotated"
-      : pathname?.startsWith("/partidasaovivo")
-        ? "live"
-        : pathname?.startsWith("/aguardandoanotador")
-          ? "pending"
-          : pathname?.startsWith("/historico")
-            ? "history"
-            : "dashboard";
-
-  const filters = useDashboardMatchFilters(matches, suspendedFromApi);
-
-  const {
-    selectedMatchForServer,
-    setSelectedMatchForServer,
-    startingMatch,
-    matchToEditInfo,
-    setMatchToEditInfo,
-    handleMatchClick,
-    handleMatchResume,
-    handleMatchEditScore,
-    handleSelectServer,
-    handleMatchReport,
-    handleMatchFinish,
-    handleMatchEditInfo,
-    handleMatchDelete,
-  } = useDashboardMatchActions({
-    router,
-    handleResumeSuspended,
-    setMatchToDelete,
-    setMatchToFinish,
-  });
-
-  const {
-    setSummaryMatch,
-    setSetSummaryMatch,
-    setSummaryTimelinePoints,
-    handleMatchSetSummary,
-    completedSetsCount,
-    completedSetsData,
-  } = useDashboardSetSummary();
+  const model = useDashboardPageModel();
+  const actions = useDashboardMatchActions(model);
+  const summary = useDashboardSetSummary();
 
   return (
     <div className="min-h-screen bg-telemetry-base text-telemetry-text-primary">
-      <DashboardChrome user={user} handleNavigate={handleNavigate} />
+      <DashboardChrome user={model.user} handleNavigate={model.handleNavigate} />
 
       <main className="max-w-4xl mx-auto px-4 py-6">
         <DashboardViewRouter
-          view={view}
-          loading={loading}
-          {...filters}
-          suspendedFromApi={suspendedFromApi}
-          handleNavigate={handleNavigate}
-          handleMatchClick={handleMatchClick}
-          handleMatchReport={handleMatchReport}
-          handleMatchFinish={handleMatchFinish}
-          handleMatchDelete={handleMatchDelete}
-          handleMatchEditScore={handleMatchEditScore}
-          handleMatchResume={handleMatchResume}
-          handleMatchSetSummary={handleMatchSetSummary}
-          handleMatchEditInfo={handleMatchEditInfo}
+          view={model.view}
+          loading={model.loading}
+          {...model.filters}
+          suspendedFromApi={model.suspendedFromApi}
+          handleNavigate={model.handleNavigate}
+          handleMatchClick={actions.handleMatchClick}
+          handleMatchReport={actions.handleMatchReport}
+          handleMatchFinish={actions.handleMatchFinish}
+          handleMatchDelete={actions.handleMatchDelete}
+          handleMatchEditScore={actions.handleMatchEditScore}
+          handleMatchResume={actions.handleMatchResume}
+          handleMatchSetSummary={summary.handleMatchSetSummary}
+          handleMatchEditInfo={actions.handleMatchEditInfo}
         />
       </main>
 
       <DashboardMatchModals
-        matchToDelete={matchToDelete}
-        onCancelDelete={() => setMatchToDelete(null)}
+        matchToDelete={model.matchToDelete}
+        onCancelDelete={() => model.setMatchToDelete(null)}
         onConfirmDelete={() => {
-          confirmDeleteMatch("hard");
-          setMatchToDelete(null);
+          model.confirmDeleteMatch("hard");
+          model.setMatchToDelete(null);
         }}
-        serverMatch={selectedMatchForServer}
-        startingMatch={startingMatch}
-        onSelectServer={handleSelectServer}
-        onCloseServer={() => setSelectedMatchForServer(null)}
-        setSummaryMatch={setSummaryMatch}
-        setSummaryTimelinePoints={setSummaryTimelinePoints}
-        completedSetsCount={completedSetsCount}
-        completedSetsData={completedSetsData}
-        onCloseSetSummary={() => setSetSummaryMatch(null)}
+        serverMatch={actions.selectedMatchForServer}
+        startingMatch={actions.startingMatch}
+        onSelectServer={actions.handleSelectServer}
+        onCloseServer={() => actions.setSelectedMatchForServer(null)}
+        setSummaryMatch={summary.setSummaryMatch}
+        setSummaryTimelinePoints={summary.setSummaryTimelinePoints}
+        completedSetsCount={summary.completedSetsCount}
+        completedSetsData={summary.completedSetsData}
+        onCloseSetSummary={() => summary.setSetSummaryMatch(null)}
         onResumeSetSummary={() => {
-          if (!setSummaryMatch) return;
-          const m = setSummaryMatch;
-          setSetSummaryMatch(null);
-          handleMatchResume(m);
+          if (!summary.setSummaryMatch) return;
+          const m = summary.setSummaryMatch;
+          summary.setSetSummaryMatch(null);
+          actions.handleMatchResume(m);
         }}
-        editMatch={matchToEditInfo}
-        onCloseEditInfo={() => setMatchToEditInfo(null)}
+        editMatch={actions.matchToEditInfo}
+        onCloseEditInfo={() => actions.setMatchToEditInfo(null)}
         onSuccessEditInfo={() => {
-          fetchDashboardData();
-          setMatchToEditInfo(null);
+          model.fetchDashboardData();
+          actions.setMatchToEditInfo(null);
         }}
       />
     </div>
