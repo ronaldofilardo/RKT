@@ -1,8 +1,6 @@
 'use client';
 
 import type { TimelinePoint } from '@/core/scoring/types';
-import { FilterBar } from './timeline-filters';
-import { AudioNotePlayer } from './AudioNotePlayer';
 import { TimelineTable } from './timeline-table';
 import { MatchInfoLine } from './timeline-match-info';
 import { TimelineComments } from './timeline-comments';
@@ -66,17 +64,19 @@ export function MatchTimelineView({
 
   return (
     <div>
-       <TimelineHeader
-         activeFilters={activeFilters}
-         onToggleFilter={toggleFilter}
-         onClearFilters={clearFilters}
-         counts={counts}
-         player1Name={player1Name}
-         player2Name={player2Name}
-         filteredCount={filteredPoints.length}
-         totalCount={points.length}
-         hasActiveFilters={hasActiveFilters}
-       />
+      {!hideFilters && (
+        <TimelineHeader
+          activeFilters={activeFilters}
+          onToggleFilter={toggleFilter}
+          onClearFilters={clearFilters}
+          counts={counts}
+          player1Name={player1Name}
+          player2Name={player2Name}
+          filteredCount={filteredPoints.length}
+          totalCount={points.length}
+          hasActiveFilters={hasActiveFilters}
+        />
+      )}
 
       <TimelineTable
         groupedBySet={groupedBySet}
@@ -92,9 +92,9 @@ export function MatchTimelineView({
 
       {matchInfo && <MatchInfoLine info={matchInfo} />}
 
-       <TimelineComments comments={comments} matchId={matchId} />
+      <TimelineComments comments={comments} matchId={matchId} />
 
-       <TimelineLegend player1Name={player1Name} player2Name={player2Name} />
+      <TimelineLegend player1Name={player1Name} player2Name={player2Name} />
     </div>
   );
 }
