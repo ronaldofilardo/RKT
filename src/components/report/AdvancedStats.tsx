@@ -1,108 +1,20 @@
 'use client';
 
-import type { AdvancedMatchStats } from '@/core/report/compute-stats';
+import {
+  PlayerColumnHeader,
+  Section,
+  StatRow,
+  type AdvancedStatsSectionProps,
+} from './advanced-stats-primitives';
+import { ServeSection, ReturnSection, PressureSection } from './advanced-stats-basic-sections';
 
-interface Props {
-  stats: AdvancedMatchStats;
-  player1Name: string;
-  player2Name: string;
-}
-
-function StatRow({ label, p1, p2, format = 'number' }: {
-  label: string;
-  p1: number | string;
-  p2: number | string;
-  format?: 'number' | 'pct';
-}) {
-  const fmt = (v: number | string) => format === 'pct' ? `${Number(v).toFixed(1)}%` : String(v);
-  return (
-    <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center py-1 border-b border-white/5 last:border-0">
-      <span className="text-right font-mono text-sm text-telemetry-blue">{fmt(p1)}</span>
-      <span className="text-xs text-telemetry-text-muted text-center min-w-[120px]">{label}</span>
-      <span className="font-mono text-sm text-telemetry-error">{fmt(p2)}</span>
-    </div>
-  );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="bg-telemetry-elevated rounded-xl border border-white/10 p-4 mb-4">
-      <h3 className="text-sm font-bold text-telemetry-text-primary uppercase tracking-wide mb-3">{title}</h3>
-      {children}
-    </div>
-  );
-}
-
-function ServeSection({ stats, player1Name, player2Name }: Props) {
-  const { serve } = stats;
-  return (
-    <Section title="Análise de Saque">
-      <div className="grid grid-cols-[1fr_120px_1fr] gap-1 text-xs text-telemetry-text-muted mb-2 px-1">
-        <span className="text-right">{player1Name}</span>
-        <span></span>
-        <span>{player2Name}</span>
-      </div>
-      <StatRow label="1º Saque (%)" p1={serve.player1.firstServePct} p2={serve.player2.firstServePct} format="pct" />
-      <StatRow label="Pts ganhos 1º Saque" p1={serve.player1.firstServePointsWonPct} p2={serve.player2.firstServePointsWonPct} format="pct" />
-      <StatRow label="Pts ganhos 2º Saque" p1={serve.player1.secondServePointsWonPct} p2={serve.player2.secondServePointsWonPct} format="pct" />
-      <StatRow label="Aces" p1={serve.player1.aces} p2={serve.player2.aces} />
-      <StatRow label="Duplas Faltas" p1={serve.player1.doubleFaults} p2={serve.player2.doubleFaults} />
-      <StatRow label="Games de Saque" p1={`${serve.player1.serviceGamesWon}/${serve.player1.serviceGamesPlayed}`} p2={`${serve.player2.serviceGamesWon}/${serve.player2.serviceGamesPlayed}`} />
-      <StatRow label="% Games de Saque" p1={serve.player1.serviceGamesWonPct} p2={serve.player2.serviceGamesWonPct} format="pct" />
-      <StatRow label="Break Points Defendidos" p1={`${serve.player1.breakPointsSaved}/${serve.player1.breakPointsFaced}`} p2={`${serve.player2.breakPointsSaved}/${serve.player2.breakPointsFaced}`} />
-      <StatRow label="% BP Defendidos" p1={serve.player1.breakPointsSavedPct} p2={serve.player2.breakPointsSavedPct} format="pct" />
-    </Section>
-  );
-}
-
-function ReturnSection({ stats, player1Name, player2Name }: Props) {
-  const { returnStats } = stats;
-  return (
-    <Section title="Análise de Retorno">
-      <div className="grid grid-cols-[1fr_120px_1fr] gap-1 text-xs text-telemetry-text-muted mb-2 px-1">
-        <span className="text-right">{player1Name}</span>
-        <span></span>
-        <span>{player2Name}</span>
-      </div>
-      <StatRow label="Pts ganhos retorno 1º Saque" p1={returnStats.player1.firstServeReturnPointsWonPct} p2={returnStats.player2.firstServeReturnPointsWonPct} format="pct" />
-      <StatRow label="Pts ganhos retorno 2º Saque" p1={returnStats.player1.secondServeReturnPointsWonPct} p2={returnStats.player2.secondServeReturnPointsWonPct} format="pct" />
-      <StatRow label="Games de Retorno" p1={`${returnStats.player1.returnGamesWon}/${returnStats.player1.returnGamesPlayed}`} p2={`${returnStats.player2.returnGamesWon}/${returnStats.player2.returnGamesPlayed}`} />
-      <StatRow label="% Games de Retorno" p1={returnStats.player1.returnGamesWonPct} p2={returnStats.player2.returnGamesWonPct} format="pct" />
-      <StatRow label="Oportunidades de Break" p1={returnStats.player1.breakPointOpportunities} p2={returnStats.player2.breakPointOpportunities} />
-      <StatRow label="Breaks Convertidos" p1={`${returnStats.player1.breakPointsConverted}/${returnStats.player1.breakPointOpportunities}`} p2={`${returnStats.player2.breakPointsConverted}/${returnStats.player2.breakPointOpportunities}`} />
-      <StatRow label="% Conversão de Break" p1={returnStats.player1.breakPointsConvertedPct} p2={returnStats.player2.breakPointsConvertedPct} format="pct" />
-    </Section>
-  );
-}
-
-function PressureSection({ stats, player1Name, player2Name }: Props) {
-  const { pressure } = stats;
-  return (
-    <Section title="Pontos de Pressão">
-      <div className="grid grid-cols-[1fr_120px_1fr] gap-1 text-xs text-telemetry-text-muted mb-2 px-1">
-        <span className="text-right">{player1Name}</span>
-        <span></span>
-        <span>{player2Name}</span>
-      </div>
-      <StatRow label="Game Points" p1={`${pressure.player1.gamePointsWon}/${pressure.player1.gamePointsTotal}`} p2={`${pressure.player2.gamePointsWon}/${pressure.player2.gamePointsTotal}`} />
-      <StatRow label="% Game Points" p1={pressure.player1.gamePointsWonPct} p2={pressure.player2.gamePointsWonPct} format="pct" />
-      <StatRow label="Set Points" p1={`${pressure.player1.setPointsWon}/${pressure.player1.setPointsTotal}`} p2={`${pressure.player2.setPointsWon}/${pressure.player2.setPointsTotal}`} />
-      <StatRow label="% Set Points" p1={pressure.player1.setPointsWonPct} p2={pressure.player2.setPointsWonPct} format="pct" />
-      <StatRow label="Tiebreaks" p1={`${pressure.player1.tiebreaksWon}/${pressure.player1.tiebreaksPlayed}`} p2={`${pressure.player2.tiebreaksWon}/${pressure.player2.tiebreaksPlayed}`} />
-      <StatRow label="Total de Pontos Ganhos" p1={pressure.player1.totalPointsWon} p2={pressure.player2.totalPointsWon} />
-    </Section>
-  );
-}
+type Props = AdvancedStatsSectionProps;
 
 function ShotSection({ stats, player1Name, player2Name }: Props) {
   const { shots } = stats;
   return (
     <Section title="Análise de Lances">
-      <div className="grid grid-cols-[1fr_120px_1fr] gap-1 text-xs text-telemetry-text-muted mb-2 px-1">
-        <span className="text-right">{player1Name}</span>
-        <span></span>
-        <span>{player2Name}</span>
-      </div>
+      <PlayerColumnHeader player1Name={player1Name} player2Name={player2Name} />
       <StatRow label="Winners" p1={shots.player1.winners} p2={shots.player2.winners} />
       <StatRow label="Erros Forçados" p1={shots.player1.forcedErrors} p2={shots.player2.forcedErrors} />
       <StatRow label="Erros Não Forçados" p1={shots.player1.unforcedErrors} p2={shots.player2.unforcedErrors} />
@@ -193,7 +105,7 @@ function ShotSection({ stats, player1Name, player2Name }: Props) {
   );
 }
 
-function MomentumSection({ stats }: { stats: AdvancedMatchStats }) {
+function MomentumSection({ stats }: { stats: AdvancedStatsSectionProps['stats'] }) {
   const { momentum } = stats;
   return (
     <Section title="Momentum">
