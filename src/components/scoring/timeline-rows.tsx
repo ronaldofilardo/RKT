@@ -1,23 +1,13 @@
 import { Fragment } from 'react';
 import type { TimelinePoint } from '@/core/scoring/types';
-import { AudioNotePlayer } from './AudioNotePlayer';
+import { direcaoLabel, efeitoLabel, getGameEndInfo } from './timeline-utils';
+import { getPlayerInitials } from './timeline-row-utils';
 import {
-  situacaoLabel,
-  golpeLabel,
-  direcaoLabel,
-  efeitoLabel,
-  golpeEspLabel,
-  duracaoLabel,
-  subtipo1Label,
-  subtipo2Label,
-  getGameEndInfo,
-} from './timeline-utils';
-import {
-  BADGE_COLORS,
-  getGameScoreLabelForPoint,
-  getPlayerInitials,
-  getPointBadge,
-} from './timeline-row-utils';
+  IdentityCells,
+  NoteCell,
+  RallyDetailCells,
+  ServeOutcomeCells,
+} from './timeline-row-cells';
 
 // Re-exports de compatibilidade (helpers movidos para ./timeline-row-utils).
 export { getPlayerInitials } from './timeline-row-utils';
@@ -35,7 +25,6 @@ interface PointRowProps {
 
 export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPointOfGame, player1Name, player2Name }: PointRowProps) {
   const rd = p.rallyDetails;
-  const badge = getPointBadge(p);
   const isServeDecidedPoint = p.type === 'ACE' || p.type === 'DOUBLE_FAULT' || p.type === 'FAULT_FIRST';
 
   const rowClass = [
@@ -54,102 +43,26 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPo
 
   const cells = (
     <>
-      {/* no. — pointNumber */}
-      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-primary font-semibold sticky left-0 bg-telemetry-base z-10 border-r border-white/10">
-        {p.pointNumber}
-      </td>
-      {/* SAC — sacador (iniciais do atleta) */}
-      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${serverNumber === 1 ? 'text-telemetry-blue' : 'text-telemetry-error'}`}>
-        {serverInitials}
-      </td>
-      {/* Venc — ganhador do ponto (iniciais do atleta) */}
-      <td className={`px-1.5 py-1.5 text-[10px] text-center font-bold ${winnerNumber === 1 ? 'text-telemetry-blue' : 'text-telemetry-error'}`}>
-        {winnerInitials}
-      </td>
-      {/* GAMES — placar de games (ou tiebreak score quando isTiebreak) */}
-      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-primary font-semibold text-center">
-        {p.isTiebreak
-          ? `${p.gamesScore.player1}x${p.gamesScore.player2}`
-          : isFirstPointOfGame ? p.gamesScore.player1 + p.gamesScore.player2 + 1 : '–'}
-      </td>
-      {/* PONTOS — placar de pontos dentro do game */}
-      <td className="px-1.5 py-1.5 text-[10px] font-bold text-telemetry-text-primary">{getGameScoreLabelForPoint(p)}</td>
-      {/* 1º Saque — ACE */}
-      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${firstOutcome === 'ace' ? 'text-green-400' : 'text-telemetry-text-muted/50'}`}>
-        {firstOutcome === 'ace' ? 'ACE' : '–'}
-      </td>
-      {/* 1º Saque — OUT */}
-      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${firstOutcome === 'out' ? 'text-telemetry-error' : 'text-telemetry-text-muted/50'}`}>
-        {firstOutcome === 'out' ? 'OUT' : '–'}
-      </td>
-      {/* 1º Saque — NET */}
-      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${firstOutcome === 'net' ? 'text-telemetry-alert' : 'text-telemetry-text-muted/50'}`}>
-        {firstOutcome === 'net' ? 'NET' : '–'}
-      </td>
-      {/* 1º Saque — Efeito */}
-      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">
-        {firstOutcome === 'ace' ? efeitoLabel(rd?.efeito) : firstOutcome ? efeitoLabel(p.firstFault?.serveEffect) : '–'}
-      </td>
-      {/* 1º Saque — Direção */}
-      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">
-        {firstOutcome === 'ace' ? direcaoLabel(rd?.direcao) : firstOutcome ? direcaoLabel(p.firstFault?.direction) : '–'}
-      </td>
-      {/* 2º Saque — ACE */}
-      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${secondOutcome === 'ace' ? 'text-green-400' : 'text-telemetry-text-muted/50'}`}>
-        {secondOutcome === 'ace' ? 'ACE' : '–'}
-      </td>
-      {/* 2º Saque — OUT */}
-      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${secondOutcome === 'out' ? 'text-telemetry-error' : 'text-telemetry-text-muted/50'}`}>
-        {secondOutcome === 'out' ? 'OUT' : '–'}
-      </td>
-      {/* 2º Saque — NET */}
-      <td className={`px-1.5 py-1.5 text-[10px] text-center font-semibold ${secondOutcome === 'net' ? 'text-telemetry-alert' : 'text-telemetry-text-muted/50'}`}>
-        {secondOutcome === 'net' ? 'NET' : '–'}
-      </td>
-      {/* 2º Saque — Efeito */}
-      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">
-        {secondOutcome ? efeitoLabel(rd?.efeito) : '–'}
-      </td>
-      {/* 2º Saque — Direção */}
-      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">
-        {secondOutcome ? direcaoLabel(rd?.direcao) : '–'}
-      </td>
-      {/* SITUAÇÃO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">{isServeDecidedPoint ? '–' : situacaoLabel(rd?.situacao)}</td>
-      {/* TIPO badge (ENF/EF/W) */}
-      <td className="px-1.5 py-1.5 text-[10px] border-l border-white/10">
-        <span className={`px-1.5 py-0.5 rounded-full font-semibold ${BADGE_COLORS[badge.color]}`}>
-          {badge.label}
-        </span>
-      </td>
-      {/* SUBTIPO1 — Tipo de Erro (Rede) */}
-      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">{isServeDecidedPoint ? '–' : subtipo1Label(rd?.subtipo1)}</td>
-      {/* SUBTIPO2 — Onde Errou? */}
-      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">{isServeDecidedPoint ? '–' : subtipo2Label(rd?.subtipo2)}</td>
-      {/* GOLPE */}
-      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">{isServeDecidedPoint ? '–' : golpeLabel(rd?.golpe)}</td>
-      {/* EFEITO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">{isServeDecidedPoint ? '–' : efeitoLabel(rd?.efeito)}</td>
-      {/* DIREÇÃO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">{isServeDecidedPoint ? '–' : direcaoLabel(rd?.direcao)}</td>
-      {/* GOLPES ESPECIAIS */}
-      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted">{isServeDecidedPoint ? '–' : golpeEspLabel(rd?.golpe_esp)}</td>
-      {/* RALLY */}
-      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted/70">{isServeDecidedPoint ? '–' : duracaoLabel(rd?.duracao)}</td>
-      {/* OBSERVAÇÃO */}
-      <td className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted whitespace-normal break-words">
-        <div className="flex flex-col gap-1">
-          {p.note && !/^SET\s+\d+$/i.test(p.note) ? <span>📝 {p.note.replace(/Match Tie-?break/ig, 'MTB').replace(/Tie-?break/ig, 'TB').replace(/Match Tie-?brake/ig, 'MTB').replace(/Tie-?brake/ig, 'TB')}</span> : null}
-          {p.hasAudioNote && p.pointId ? (
-            <AudioNotePlayer
-              matchId={matchId}
-              pointId={p.pointId}
-              durationMs={p.audioNoteDuration}
-            />
-          ) : null}
-          {( (!p.note || /^SET\s+\d+$/i.test(p.note)) && !p.hasAudioNote ) ? '–' : null}
-        </div>
-      </td>
+      <IdentityCells
+        p={p}
+        serverNumber={serverNumber}
+        winnerNumber={winnerNumber}
+        serverInitials={serverInitials}
+        winnerInitials={winnerInitials}
+        isFirstPointOfGame={isFirstPointOfGame}
+      />
+      <ServeOutcomeCells
+        outcome={firstOutcome}
+        effect={firstOutcome === 'ace' ? efeitoLabel(rd?.efeito) : firstOutcome ? efeitoLabel(p.firstFault?.serveEffect) : '–'}
+        direction={firstOutcome === 'ace' ? direcaoLabel(rd?.direcao) : firstOutcome ? direcaoLabel(p.firstFault?.direction) : '–'}
+      />
+      <ServeOutcomeCells
+        outcome={secondOutcome}
+        effect={secondOutcome ? efeitoLabel(rd?.efeito) : '–'}
+        direction={secondOutcome ? direcaoLabel(rd?.direcao) : '–'}
+      />
+      <RallyDetailCells p={p} isServeDecidedPoint={isServeDecidedPoint} />
+      <NoteCell p={p} matchId={matchId} />
     </>
   );
 
