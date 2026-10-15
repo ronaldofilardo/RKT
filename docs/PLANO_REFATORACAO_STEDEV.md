@@ -137,7 +137,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 - [x] Zero `fetch` direto em componente `.tsx` (R-04) — Fase 2F.
 - [x] `pnpm test:strict` verde ao fim de cada fase — Fases 1, 2, 3 e UI-1 (291/294, baseline).
 - [x] `pnpm test:design` verde ao fim da Fase 2 — 3/3 suites, 26/26 testes.
-- [ ] `docs/glossario.md` criado com termos mapeados (R-01) — **pendente** (anterior removido por mojibake).
+- [x] `docs/glossario.md` criado com termos mapeados (R-01) — recriado em UTF-8 limpo (147 linhas; o anterior tinha mojibake).
 - [x] Toda exceção registrada via `// ste-exception R-XX: <motivo>` — Fase 1 (7× R-08).
 - [~] Nenhum arquivo UI/componente >100 linhas (R-03) — **parcial**: `MatchTimelineView.tsx` 535→96 ✓; restam 43 arquivos `.tsx` >100L (backlog).
 
@@ -194,10 +194,11 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-14 | UI-fix | `ee666cc` não estava verde: restaurado condicional `hideFilters` (consumido por `ReportPage.view.tsx:165`) e removidos imports órfãos `FilterBar`/`AudioNotePlayer`. Commit `907f956` | Concluído |
 | 2026-10-14 | UI-DoD | `typecheck` verde · `test:strict` 291/294 (3191/3196, baseline) · `test:design` 3/3 (26/26) · `lint` 0 erros | Concluído |
 | 2026-10-14 | Revert | Extrações de UI não commitadas de sessão anterior (dashboard, AdvancedStats, SetSummaryModal, NewMatchForm) estavam com **34 erros de typecheck** — descartadas conforme decisão do usuário. `docs/glossario.md` (R-01) também removido: 220 linhas com encoding corrompido (mojibake) | Descartado |
+| 2026-10-14 | R-01 | `docs/glossario.md` recriado em UTF-8 limpo (147 linhas): papéis, entidades Prisma, enums, domínio de scoring, rally details, siglas de UI. Termos extraídos de `schema.prisma`, `src/schemas/*.ts` e `core/scoring/types.ts`. Roundtrip UTF-8 verificado, sem BOM | Concluído |
 
 > **Status Fase UI-1: CONCLUÍDA.** `MatchTimelineView.tsx` 535 → 96 linhas (R-03 ✓), 6 commits atômicos.
 > **Pendências do plano:**
-> 1. **R-01** — recriar `docs/glossario.md` (o anterior tinha mojibake; usar UTF-8 limpo).
+> 1. ~~**R-01** — recriar `docs/glossario.md`~~ — **CONCLUÍDO** (UTF-8 limpo, 147 linhas).
 > 2. **R-03 backlog** — 43 arquivos `.tsx` ainda >100 linhas. Maiores: `scoring/page.tsx` 339, `dashboard/page.tsx` 338, `edit-score-form.tsx` 322, `CommentModal.tsx` 293, `EditScoreModal.tsx` 261, `ScoreboardCard.tsx` 251.
 > 3. Ordem sugerida: `MatchCard.tsx` (409, já tipado na 2E) → `EditMatchInfoModal.tsx` (370) → `timeline-rows.tsx` (342) → páginas `app/**` (extrair formulários para componentes).
 
