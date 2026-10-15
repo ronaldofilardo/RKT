@@ -3,6 +3,10 @@
 import { useMemo, useCallback } from "react";
 import { normalizeScoreState, isMatchTiebreakFormat, isCurrentSetMatchTiebreak, isSetIndexMatchTiebreak, type TennisFormat, type NormalizedScoreState, getSinglePointDisplay, formatCompactSetScore, type SetCellScore } from "./match-card-utils";
 import { MatchStatusBadge, MatchActions, FormatLabel } from "./match-card-components";
+import type { MatchCardProps } from "./match-card-types";
+
+// Re-export de compatibilidade (tipo movido para ./match-card-types).
+export type { DashboardMatchPayload, MatchCardProps } from "./match-card-types";
 
 const COURT_COLORS: Record<string, { bar: string; score: string }> = {
   CLAY:  { bar: '#b5543a', score: '#4a2a1a' },
@@ -10,45 +14,6 @@ const COURT_COLORS: Record<string, { bar: string; score: string }> = {
   HARD:  { bar: '#1e4d7b', score: '#1a2a4a' },
 };
 const DEFAULT_COURT_COLOR = { bar: '#1e4d7b', score: '#1a2a4a' };
-
-export interface DashboardMatchPayload {
-  id: string;
-  state: string;
-  format: string;
-  courtType?: string | null;
-  player1: { name: string; id?: string };
-  player2: { name: string; id?: string };
-  scheduledAt?: string | null;
-  scoreState?: unknown;
-  scoreSummary?: unknown;
-  suspendedSessionId?: string;
-  matchStateSnapshot?: string | null;
-  initialServerId?: string | null;
-  finishReason?: string | null;
-  status?: string | null;
-  tournamentName?: string | null;
-  category?: string | null;
-  round?: string | null;
-  bracketType?: string | null;
-  temperature?: number | null;
-  humidity?: number | null;
-  visibility?: string | null;
-  details?: string | null;
-  clubName?: string | null;
-  version?: number;
-}
-
-interface MatchCardProps {
-  match: DashboardMatchPayload;
-  onClick?: (match: DashboardMatchPayload) => void;
-  onReport?: (match: DashboardMatchPayload) => void;
-  onFinish?: (match: DashboardMatchPayload) => void;
-  onDelete?: (match: DashboardMatchPayload) => void;
-  onEditScore?: (match: DashboardMatchPayload) => void;
-  onResumeMatch?: (match: DashboardMatchPayload) => void;
-  onSetSummary?: (match: DashboardMatchPayload) => void;
-  onEditInfo?: (match: DashboardMatchPayload) => void;
-}
 
 export function MatchCard({
   match,
