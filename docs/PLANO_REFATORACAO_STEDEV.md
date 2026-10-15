@@ -135,11 +135,11 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 - [x] Zero `catch` vazio em código de produção (R-08) — Fase 1.
 - [x] Zero `any` em fronteiras públicas de servidor (R-06) — Fase 2 + 3.1 (`any` em produção: 0).
 - [x] Zero `fetch` direto em componente `.tsx` (R-04) — Fase 2F.
-- [x] `pnpm test:strict` verde ao fim de cada fase — Fases 1, 2, 3, UI-1 e UI-2 (291/294, baseline).
+- [x] `pnpm test:strict` verde ao fim de cada fase — Fases 1, 2, 3, UI-1, UI-2 e UI-3 (291/294, baseline).
 - [x] `pnpm test:design` verde ao fim da Fase 2 — 3/3 suites, 26/26 testes.
 - [x] `docs/glossario.md` criado com termos mapeados (R-01) — recriado em UTF-8 limpo (147 linhas; o anterior tinha mojibake).
 - [x] Toda exceção registrada via `// ste-exception R-XX: <motivo>` — Fase 1 (7× R-08).
-- [~] Nenhum arquivo UI/componente >100 linhas (R-03) — **parcial**: `MatchTimelineView.tsx` 535→96 ✓ e `MatchCard.tsx` 409→86 ✓ (7 arquivos ≤100L); restam **43 arquivos `.tsx` de produção** >100L (backlog; testes excluídos).
+- [~] Nenhum arquivo UI/componente >100 linhas (R-03) — **parcial**: `MatchTimelineView.tsx` 535→96 ✓, `MatchCard.tsx` 409→86 ✓, `EditMatchInfoModal.tsx` 370→97 ✓; restam **42 arquivos `.tsx` de produção** >100L (backlog; testes excluídos).
 
 
 ---
@@ -200,13 +200,17 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-14 | UI-2c | `match-card-header.tsx` (99L: `MatchStatusBadge` + 4 botões unificados em `HeaderButton` com `BTN_BASE`/`VARIANT` + `MatchActions` + `FormatLabel`); `MatchCard.tsx` 234→167. Commit `057e3fb` | Concluído |
 | 2026-10-14 | UI-2d | `use-match-card-data.ts` (91L: `scoreState`, `suspendedAnnotationScore`, `displayedSets` com projeção `SHORT_SET_2V2_NO_AD`, `currentServer`, `isCurrentSetMT`, `lastSetTiebreakScore`, cores de quadra, `setsWon`); `MatchCard.tsx` 167→**86**. Commit `bc72bbd` | Concluído |
 | 2026-10-14 | UI-2 DoD | `typecheck` verde · `test:strict` 291/294 (3191/3196, baseline) · `test:design` 3/3 (26/26) · `lint` 0 erros · **R-03 ✓ para MatchCard**: 7 arquivos ≤100L (`MatchCard.tsx` 86, `match-card-types.ts` 39, `match-card-player-row.tsx` 91, `match-card-score.tsx` 86, `match-card-score-table.tsx` 98, `match-card-header.tsx` 99, `use-match-card-data.ts` 91) | Concluído |
+| 2026-10-15 | UI-3a | `edit-match-info-submission.ts` (novo, domínio puro, 97L) — `EditMatchInfoFormValues`, `initialFormValues`, `buildScheduledAt`, `buildUpdateInfoPayload`; 12 `useState` agrupados num objeto com `setValue` genérico; `handleSubmit` fino. CC máxima 4. Commit `b2dd8de` | Concluído |
+| 2026-10-15 | UI-3b | `edit-match-info-fields.tsx` (100L: `FormField`, `TextInput` com `openPicker`/ste-exception R-08, `SelectField`, `TextareaField` — deduplica as 12 classNames), `edit-match-info-sections.tsx` (99L: DateTime, Tournament, Details, `FormFooter`), `edit-match-info-grid-sections.tsx` (46L: Court, Weather); `EditMatchInfoModal.tsx` 330→**97**. Commit `f18ae3c` | Concluído |
+| 2026-10-15 | UI-3 DoD | `typecheck` verde · `test:strict` 291/294 (3191/3196, baseline) · `test:design` 3/3 (26/26) · `lint` 0 erros · **R-03 ✓ para EditMatchInfoModal**: 5 arquivos ≤100L (`EditMatchInfoModal.tsx` 97, `edit-match-info-fields.tsx` 100, `edit-match-info-sections.tsx` 99, `edit-match-info-grid-sections.tsx` 46, `edit-match-info-submission.ts` 97) | Concluído |
 
 > **Status Fase UI-1: CONCLUÍDA.** `MatchTimelineView.tsx` 535 → 96 linhas (R-03 ✓), 6 commits atômicos.
 > **Status Fase UI-2: CONCLUÍDA.** `MatchCard.tsx` 409 → 86 linhas (R-03 ✓), 4 commits atômicos (`ecadac2`, `40951dd`, `057e3fb`, `bc72bbd`).
+> **Status Fase UI-3: CONCLUÍDA.** `EditMatchInfoModal.tsx` 370 → 97 linhas (R-03 ✓), 2 commits atômicos (`b2dd8de`, `f18ae3c`).
 > **Pendências do plano:**
 > 1. ~~**R-01** — recriar `docs/glossario.md`~~ — **CONCLUÍDO** (UTF-8 limpo, 147 linhas).
-> 2. **R-03 backlog** — **43 arquivos `.tsx` de produção** ainda >100 linhas (medido 2026-10-14, testes excluídos). Maiores: `EditMatchInfoModal.tsx` 370, `timeline-rows.tsx` 342, `scoring/page.tsx` 339, `dashboard/page.tsx` 337, `SetSummaryModal.tsx` 327, `edit-score-form.tsx` 320, `AdvancedStats.tsx` 316.
-> 3. Ordem sugerida: `EditMatchInfoModal.tsx` (370, já tipado na 2E) → `timeline-rows.tsx` (342) → `scoring/page.tsx` (339) → `dashboard/page.tsx` (337) → formulários `edit-score-form.tsx`/`EditScoreModal.tsx`. Padrão de referência: UI-1 (timeline-*) e UI-2 (match-card-*).
+> 2. **R-03 backlog** — **42 arquivos `.tsx` de produção** ainda >100 linhas (medido 2026-10-15, testes excluídos). Maiores: `timeline-rows.tsx` 342, `scoring/page.tsx` 339, `dashboard/page.tsx` 337, `SetSummaryModal.tsx` 327, `edit-score-form.tsx` 320, `AdvancedStats.tsx` 316, `CommentModal.tsx` 293.
+> 3. Ordem sugerida: `timeline-rows.tsx` (342) → `scoring/page.tsx` (339) → `dashboard/page.tsx` (337) → `SetSummaryModal.tsx` (327) → formulários `edit-score-form.tsx`/`EditScoreModal.tsx`. Padrão de referência: UI-1 (timeline-*), UI-2 (match-card-*), UI-3 (edit-match-info-*).
 
 
 
