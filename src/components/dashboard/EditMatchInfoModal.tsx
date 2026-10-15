@@ -1,7 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import type { DashboardMatchPayload } from './MatchCard';
+import type { DashboardMatchPayload } from './match-card-types';
+import {
+  buildUpdateInfoPayload,
+  initialFormValues,
+} from './edit-match-info-submission';
 import { useToast } from '@/components/Toast';
 import { matchesClient } from '@/services/matchesClient';
 import { COURT_TYPES } from '@/app/match/new/matchConstants';
@@ -20,66 +24,21 @@ export function EditMatchInfoModal({
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
 
-  // Extrai data e hora iniciais de scheduledAt
-  const initialDate = match.scheduledAt
-    ? new Date(match.scheduledAt).toISOString().split('T')[0]
-    : '';
-  const initialTime = match.scheduledAt
-    ? new Date(match.scheduledAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-    : '';
+  const [values, setValues] = useState(() => initialFormValues(match));
+  const setValue = <K extends keyof typeof values>(key: K, value: (typeof values)[K]) =>
+    setValues((prev) => ({ ...prev, [key]: value }));
 
-  const [date, setDate] = useState(initialDate);
-  const [time, setTime] = useState(initialTime);
-  const [tournamentName, setTournamentName] = useState(match.tournamentName || '');
-  const [clubName, setClubName] = useState(match.clubName || '');
-  const [category, setCategory] = useState(match.category || '');
-  const [round, setRound] = useState(match.round || '');
-  const [bracketType, setBracketType] = useState(match.bracketType || '');
-  const [courtType, setCourtType] = useState(match.courtType || 'CLAY');
-  const [visibility, setVisibility] = useState(match.visibility || 'PUBLIC');
-  const [temperature, setTemperature] = useState(
-    match.temperature != null ? String(match.temperature) : ''
-  );
-  const [humidity, setHumidity] = useState(
-    match.humidity != null ? String(match.humidity) : ''
-  );
-  const [details, setDetails] = useState(match.details || '');
+  const { date, time, tournamentName, clubName, category, round, bracketType, courtType, visibility, temperature, humidity, details } = values;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
     try {
-      let scheduledAt: string | null = null;
-      if (date) {
-        if (time && time.includes(':')) {
-          const [hours, minutes] = time.split(':');
-          const d = new Date(date);
-          d.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
-          scheduledAt = d.toISOString();
-        } else {
-          const d = new Date(date);
-          d.setHours(12, 0, 0, 0);
-          scheduledAt = d.toISOString();
-        }
-      }
-
-      const payload: Record<string, unknown> = {
-        scheduledAt,
-        tournamentName: tournamentName.trim() || null,
-        clubName: clubName.trim() || null,
-        category: category.trim() || null,
-        round: round.trim() || null,
-        bracketType: bracketType.trim() || null,
-        courtType: courtType || null,
-        visibility: visibility || 'PUBLIC',
-        temperature: temperature !== '' ? parseFloat(temperature) : null,
-        humidity: humidity !== '' ? parseFloat(humidity) : null,
-        details: details.trim() || null,
-        version: match.version,
-      };
-
-      await matchesClient.updateMatchInfo(match.id, payload);
+      await matchesClient.updateMatchInfo(
+        match.id,
+        buildUpdateInfoPayload(values, match.version)
+      );
 
       toast({
         type: 'success',
@@ -90,7 +49,9 @@ export function EditMatchInfoModal({
     } catch (error) {
       toast({
         type: 'error',
-        message: (error instanceof Error ? error.message : undefined) || 'Falha ao salvar altera����es da partida',
+        message:
+          (error instanceof Error ? error.message : undefined) ||
+          'Falha ao salvar alterações da partida',
       });
     } finally {
       setSaving(false);
@@ -146,7 +107,7 @@ export function EditMatchInfoModal({
                   id="edit-match-date"
                   type="date"
                   value={date}
-                  onChange={(e) => setDate(e.target.value)}
+                  onChange={(e) => setValue('date', e.target.value)}
                   onClick={(e) => {
                     try {
                       e.currentTarget.showPicker?.();
@@ -166,7 +127,7 @@ export function EditMatchInfoModal({
                   id="edit-match-time"
                   type="time"
                   value={time}
-                  onChange={(e) => setTime(e.target.value)}
+                  onChange={(e) => setValue('time', e.target.value)}
                   onClick={(e) => {
                     try {
                       e.currentTarget.showPicker?.();
@@ -195,7 +156,7 @@ export function EditMatchInfoModal({
                   id="edit-tournament"
                   type="text"
                   value={tournamentName}
-                  onChange={(e) => setTournamentName(e.target.value)}
+                  onChange={(e) => setValue('tournamentName', e.target.value)}
                   placeholder="Ex: Torneio Aberto"
                   className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-card text-slate-900 dark:text-telemetry-text-primary placeholder-telemetry-text-muted/40"
                 />
@@ -209,7 +170,7 @@ export function EditMatchInfoModal({
                   id="edit-club"
                   type="text"
                   value={clubName}
-                  onChange={(e) => setClubName(e.target.value)}
+                  onChange={(e) => setValue('clubName', e.target.value)}
                   placeholder="Nome do clube"
                   className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-card text-slate-900 dark:text-telemetry-text-primary placeholder-telemetry-text-muted/40"
                 />
@@ -224,7 +185,7 @@ export function EditMatchInfoModal({
                     id="edit-category"
                     type="text"
                     value={category}
-                    onChange={(e) => setCategory(e.target.value)}
+                    onChange={(e) => setValue('category', e.target.value)}
                     placeholder="Ex: 1ª Classe"
                     className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-card text-slate-900 dark:text-telemetry-text-primary placeholder-telemetry-text-muted/40"
                   />
@@ -237,7 +198,7 @@ export function EditMatchInfoModal({
                     id="edit-round"
                     type="text"
                     value={round}
-                    onChange={(e) => setRound(e.target.value)}
+                    onChange={(e) => setValue('round', e.target.value)}
                     placeholder="Ex: Final, Quartas"
                     className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-card text-slate-900 dark:text-telemetry-text-primary placeholder-telemetry-text-muted/40"
                   />
@@ -250,7 +211,7 @@ export function EditMatchInfoModal({
                     id="edit-bracket-type"
                     type="text"
                     value={bracketType}
-                    onChange={(e) => setBracketType(e.target.value)}
+                    onChange={(e) => setValue('bracketType', e.target.value)}
                     placeholder="Ex: Principal"
                     className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-card text-slate-900 dark:text-telemetry-text-primary placeholder-telemetry-text-muted/40"
                   />
@@ -268,7 +229,7 @@ export function EditMatchInfoModal({
               <select
                 id="edit-court-type"
                 value={courtType}
-                onChange={(e) => setCourtType(e.target.value)}
+                onChange={(e) => setValue('courtType', e.target.value)}
                 className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-card text-slate-900 dark:text-telemetry-text-primary cursor-pointer"
               >
                 {COURT_TYPES.map((court) => (
@@ -285,7 +246,7 @@ export function EditMatchInfoModal({
               <select
                 id="edit-visibility"
                 value={visibility}
-                onChange={(e) => setVisibility(e.target.value)}
+                onChange={(e) => setValue('visibility', e.target.value)}
                 className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-card text-slate-900 dark:text-telemetry-text-primary cursor-pointer"
               >
                 <option value="PUBLIC">Pública</option>
@@ -308,7 +269,7 @@ export function EditMatchInfoModal({
                   id="edit-temp"
                   type="number"
                   value={temperature}
-                  onChange={(e) => setTemperature(e.target.value)}
+                  onChange={(e) => setValue('temperature', e.target.value)}
                   placeholder="Ex: 25"
                   className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-card text-slate-900 dark:text-telemetry-text-primary placeholder-telemetry-text-muted/40"
                 />
@@ -321,7 +282,7 @@ export function EditMatchInfoModal({
                   id="edit-humidity"
                   type="number"
                   value={humidity}
-                  onChange={(e) => setHumidity(e.target.value)}
+                  onChange={(e) => setValue('humidity', e.target.value)}
                   placeholder="Ex: 60"
                   className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-card text-slate-900 dark:text-telemetry-text-primary placeholder-telemetry-text-muted/40"
                 />
@@ -337,7 +298,7 @@ export function EditMatchInfoModal({
             <textarea
               id="edit-details"
               value={details}
-              onChange={(e) => setDetails(e.target.value)}
+              onChange={(e) => setValue('details', e.target.value)}
               placeholder="Observações ou detalhes adicionais da partida"
               rows={3}
               className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-card text-slate-900 dark:text-telemetry-text-primary placeholder-telemetry-text-muted/40 resize-y"
