@@ -3,21 +3,15 @@
 import React, { useRef, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { MatchHeader } from "@/components/scoring/MatchHeader";
-import { ActionBar } from "@/components/scoring/ActionBar";
-import { AnnotationSessionPanel } from "@/components/scoring/AnnotationSessionPanel";
 import { useScoringPageState } from "./useScoringPageState";
 import { useScoringPageEffects } from "./useScoringPageEffects";
 import { useScoringPageDerived } from "./useScoringPageDerived";
 import { useScoringPageChrome } from "./use-scoring-page-chrome";
 import { ScoringTimelineView } from "./ScoringTimelineView";
-import { ScoringPlayArea } from "./ScoringPlayArea";
 import { ScoringModals } from "./ScoringModals";
-import {
-  ErrorScreen,
-  LoadingScreen,
-  SyncStatusBanner,
-  TimelineLoadingOverlay,
-} from "./scoring-page-screens";
+import { ScoringPagePlayArea } from "./scoring-page-play-area";
+import { ScoringPageControls } from "./scoring-page-controls";
+import { ErrorScreen, LoadingScreen, SyncStatusBanner, TimelineLoadingOverlay } from "./scoring-page-screens";
 
 function ScoringPageInner() {
   const params = useParams();
@@ -41,15 +35,7 @@ function ScoringPageInner() {
   const state = useScoringPageState(matchId);
   const handlers = useScoringPageEffects(state);
   const derived = useScoringPageDerived(state, handlers);
-
-  const {
-    isTimelineLoading,
-    liveCounters,
-    tacticalInsights,
-    setSummaryModalState,
-    setSetSummaryModalState,
-    handleOpenTimeline,
-  } = useScoringPageChrome(state, handlers, derived);
+  const chrome = useScoringPageChrome(state, handlers, derived);
 
   if (state.isLoading) return <LoadingScreen />;
 
@@ -62,47 +48,9 @@ function ScoringPageInner() {
     );
   }
 
-  const {
-    match,
-    scoreState,
-    fontScale,
-    viewMode,
-    activeModal,
-    pointsHistory,
-    suspendedSession,
-    sessionIdRef,
-    sessionActive,
-    serveErrorState,
-    setViewMode,
-    setFontScale,
-  } = state;
-
-  const {
-    handleVoltar,
-    openAceModal,
-    handleAceDirect,
-    handleServeErrorDirect,
-    handlePointFromCard,
-    handleServeErrorWithModal,
-    abandonCurrentSession,
-  } = handlers;
-
-  const {
-    effectiveScoreState,
-    p1IsServing,
-    p2IsServing,
-    isMatchPoint,
-    isSetPoint,
-    isBreakPoint,
-    isTiebreak,
-    isSuperTiebreak,
-    isFinished,
-    winner,
-    canUndo,
-    isSetupNeeded,
-    isProcessingPoint,
-    timelinePoints,
-  } = derived;
+  const { match, fontScale, viewMode, activeModal, setViewMode } = state;
+  const { abandonCurrentSession } = handlers;
+  const { isFinished, isSetupNeeded, timelinePoints } = derived;
 
   if (viewMode === "timeline" && !isSetupNeeded && activeModal === null) {
     return (
@@ -134,87 +82,24 @@ function ScoringPageInner() {
           await abandonCurrentSession();
           router.push("/dashboard");
         }}
-        onTimeline={handleOpenTimeline}
+        onTimeline={chrome.handleOpenTimeline}
         isFinished={isFinished}
       />
 
-      {isTimelineLoading && <TimelineLoadingOverlay />}
+      {chrome.isTimelineLoading && <TimelineLoadingOverlay />}
 
-      <ScoringPlayArea
+      <ScoringPagePlayArea
+        state={state}
+        handlers={handlers}
+        derived={derived}
+        chrome={chrome}
         match={match}
-        effectiveScoreState={effectiveScoreState}
-        suspendedSession={suspendedSession}
-        liveCounters={liveCounters}
-        tacticalInsights={tacticalInsights}
-        completedSetsCount={derived.editScoreCompletedSets?.length ?? 0}
-        p1IsServing={p1IsServing}
-        p2IsServing={p2IsServing}
-        isSetPoint={isSetPoint}
-        isBreakPoint={isBreakPoint}
-        isMatchPoint={isMatchPoint}
-        isTiebreak={isTiebreak}
-        isSuperTiebreak={isSuperTiebreak}
-        winner={winner}
-        pointsHistory={pointsHistory}
-        scoreState={scoreState}
-        isFinished={isFinished}
         matchId={matchId}
-        onOpenSetSummary={() =>
-          setSetSummaryModalState({
-            isOpen: true,
-            setNumber: derived.editScoreCompletedSets?.length || 1,
-          })
-        }
-        onPoint={handlePointFromCard}
-        onSwipeUndo={() => state.open("undo")}
         onNavigateReport={() => router.push(`/match/${matchId}/report`)}
-        onRegisterAndExit={async () => {
-          if (isFinished) {
-            await abandonCurrentSession();
-          }
-          router.push("/dashboard");
-        }}
+        onNavigateDashboard={() => router.push("/dashboard")}
       />
 
-      <ActionBar
-        secondServe={false}
-        serveStep={serveErrorState.serveStep}
-        canUndo={canUndo}
-        canEdit={!isFinished}
-        fontScale={fontScale}
-        isFinished={isFinished}
-        isProcessing={isProcessingPoint}
-        onAceDirect={handleAceDirect}
-        onAceWithDetails={openAceModal}
-        onOut={(step) => handleServeErrorWithModal("out", step)}
-        onNet={(step) => handleServeErrorWithModal("net", step)}
-        onOutDirect={(step) => handleServeErrorDirect("out", step)}
-        onNetDirect={(step) => handleServeErrorDirect("net", step)}
-        onVoltar={handleVoltar}
-        onFontSmaller={() => setFontScale((f) => Math.max(0.6, f - 0.1))}
-        onFontBigger={() => setFontScale((f) => Math.min(2, f + 0.1))}
-        onEditScore={() => state.open("edit-score")}
-        onComment={
-          process.env.NEXT_PUBLIC_COMMENT_FEATURE === "true"
-            ? () => state.open("comment")
-            : undefined
-        }
-      />
-
-      {sessionIdRef.current && (
-        <AnnotationSessionPanel
-          sessionId={sessionIdRef.current}
-          matchId={matchId}
-          isActive={sessionActive}
-          onStart={() => state.setSessionActive(true)}
-          onPause={() => state.setSessionActive(false)}
-          onEnd={async () => {
-            await abandonCurrentSession();
-            state.setSessionActive(false);
-          }}
-          annotatorCount={1}
-        />
-      )}
+      <ScoringPageControls state={state} handlers={handlers} derived={derived} matchId={matchId} />
 
       <ScoringModals
         state={state}
@@ -223,9 +108,9 @@ function ScoringPageInner() {
         match={match}
         matchId={matchId}
         cameFromDashboard={cameFromDashboardRef.current}
-        setSummaryModalState={setSummaryModalState}
+        setSummaryModalState={chrome.setSummaryModalState}
         onCloseSetSummary={() =>
-          setSetSummaryModalState((prev) => ({ ...prev, isOpen: false }))
+          chrome.setSetSummaryModalState((prev) => ({ ...prev, isOpen: false }))
         }
         onNavigateDashboard={() => router.push("/dashboard")}
         onNavigateReport={() => router.push(`/match/${matchId}/report`)}
