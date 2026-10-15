@@ -5,6 +5,8 @@ import type { TimelinePoint } from '@/core/scoring/types';
 import { computeSetSummary, type SetSummaryReport } from '@/core/scoring/set-summary-stats';
 import { GameErrorsHistogram } from './GameErrorsHistogram';
 import { SetSummaryStatsSections } from './set-summary-stats-sections';
+import { SetSummaryHeader } from './set-summary-header';
+import { SetSummaryScoreCard } from './set-summary-score-card';
 
 interface Props {
   isOpen: boolean;
@@ -79,80 +81,17 @@ export function SetSummaryModal({
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in"
     >
       <div className="bg-telemetry-card border border-white/15 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[92vh] overflow-hidden text-telemetry-text-primary">
-        {/* Cabeçalho */}
-        <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between bg-telemetry-elevated/70">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-telemetry-volt px-2 py-0.5 rounded bg-telemetry-volt/10 border border-telemetry-volt/20">
-                Análise do Set
-              </span>
-              {summary.durationMinutes && (
-                <span className="text-xs text-telemetry-text-muted">
-                  ⏱ {summary.durationMinutes} min
-                </span>
-              )}
-            </div>
-            <h2 id="set-summary-title" className="text-lg font-bold text-telemetry-text-primary mt-1">
-              Resumo do {selectedSet}º Set
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Fechar resumo"
-            className="p-1.5 rounded-lg text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-telemetry-elevated transition-colors"
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Abas se houver mais de um set */}
-        {availableSets.length > 1 && (
-          <div className="flex border-b border-white/10 bg-telemetry-elevated/40 px-3 pt-2 gap-1">
-            {availableSets.map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setSelectedSet(s)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-t-lg transition-all ${
-                  selectedSet === s
-                    ? 'bg-telemetry-card text-telemetry-text-primary border-t border-x border-white/15 shadow-sm'
-                    : 'text-telemetry-text-muted hover:text-telemetry-text-primary'
-                }`}
-              >
-                Set {s}
-              </button>
-            ))}
-          </div>
-        )}
+        <SetSummaryHeader
+          selectedSet={selectedSet}
+          durationMinutes={summary.durationMinutes}
+          availableSets={availableSets}
+          onSelectSet={setSelectedSet}
+          onClose={onClose}
+        />
 
         {/* Conteúdo rolável */}
         <div className="p-4 sm:p-5 overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-white/10">
-          {/* Card do Placar do Set */}
-          <div className="bg-telemetry-elevated/60 border border-white/10 rounded-xl p-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-telemetry-blue inline-block" />
-              <span className="font-bold text-sm text-telemetry-text-primary">{player1Name}</span>
-            </div>
-            <div className="flex items-center gap-2 text-xl font-mono font-black">
-              <span className={summary.winner === 'player1' ? 'text-telemetry-volt' : 'text-telemetry-text-primary'}>
-                {summary.score.player1}
-              </span>
-              <span className="text-telemetry-text-muted text-sm">×</span>
-              <span className={summary.winner === 'player2' ? 'text-telemetry-volt' : 'text-telemetry-text-primary'}>
-                {summary.score.player2}
-              </span>
-              {summary.score.tiebreakScore && (
-                <span className="text-xs text-telemetry-text-muted font-sans ml-1">
-                  ({Math.min(summary.score.tiebreakScore.player1, summary.score.tiebreakScore.player2)})
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-sm text-telemetry-text-primary">{player2Name}</span>
-              <span className="w-3 h-3 rounded-full bg-telemetry-error inline-block" />
-            </div>
-          </div>
+          <SetSummaryScoreCard summary={summary} player1Name={player1Name} player2Name={player2Name} />
 
           <SetSummaryStatsSections p1={p1} p2={p2} />
 
