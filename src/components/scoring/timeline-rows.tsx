@@ -1,6 +1,5 @@
 import { Fragment } from 'react';
 import type { TimelinePoint } from '@/core/scoring/types';
-import { GAME_POINTS } from '@/core/scoring/point-utils';
 import { AudioNotePlayer } from './AudioNotePlayer';
 import {
   situacaoLabel,
@@ -11,9 +10,17 @@ import {
   duracaoLabel,
   subtipo1Label,
   subtipo2Label,
-  getPointDetailSummary,
   getGameEndInfo,
 } from './timeline-utils';
+import {
+  BADGE_COLORS,
+  getGameScoreLabelForPoint,
+  getPlayerInitials,
+  getPointBadge,
+} from './timeline-row-utils';
+
+// Re-exports de compatibilidade (helpers movidos para ./timeline-row-utils).
+export { getPlayerInitials } from './timeline-row-utils';
 
 interface PointRowProps {
   point: TimelinePoint;
@@ -24,42 +31,6 @@ interface PointRowProps {
   isFirstPointOfGame: boolean;
   player1Name: string;
   player2Name: string;
-}
-
-/**
- * Iniciais do atleta para as colunas "P/" e "SAC":
- * - Nome + sobrenome (2+ palavras): iniciais de cada um, ex. "Rafael Nadal" → "R.N.".
- * - Um único nome: as 3 primeiras letras, ex. "Djokovic" → "Djo".
- */
-export function getPlayerInitials(fullName: string): string {
-  const parts = fullName.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '–';
-  if (parts.length >= 2) {
-    const first = parts[0].charAt(0).toUpperCase();
-    const last = parts[parts.length - 1].charAt(0).toUpperCase();
-    return `${first}.${last}.`;
-  }
-  const single = parts[0];
-  const letters = single.slice(0, 3);
-  return letters.charAt(0).toUpperCase() + letters.slice(1).toLowerCase();
-}
-
-const BADGE_COLORS = {
-  green: 'bg-green-500/20 text-green-400',
-  red: 'bg-telemetry-error/20 text-telemetry-error',
-  amber: 'bg-telemetry-alert/20 text-telemetry-alert',
-  gray: 'bg-white/10 text-telemetry-text-primary',
-} as const;
-
-function getPointBadge(p: TimelinePoint): { label: string; color: 'green' | 'red' | 'amber' | 'gray' } {
-  // Evento (PointFlow.type) tem precedência sobre rd.tipo para saques
-  if (p.type === 'ACE') return { label: 'Ace', color: 'green' };
-  if (p.type === 'DOUBLE_FAULT') return { label: 'DF', color: 'red' };
-  if (p.type === 'WINNER') return { label: 'W', color: 'green' };
-  if (p.type === 'UNFORCED_ERROR') return { label: 'ENF', color: 'red' };
-  if (p.type === 'FORCED_ERROR') return { label: 'EF', color: 'amber' };
-  // Fallback: usa classificação detalhada do rallyDetails
-  return getPointDetailSummary(p.rallyDetails);
 }
 
 export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPointOfGame, player1Name, player2Name }: PointRowProps) {
@@ -327,15 +298,3 @@ export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLa
   );
 }
 
-function getGameScoreLabelForPoint(p: TimelinePoint): string {
-  if (p.isTiebreak) {
-    return `${p.gameScore.player1}x${p.gameScore.player2}`;
-  }
-  if (p.gameIsDeuce) return 'Deuce';
-  if (p.gameAdvantage === 'player1') return 'Adv. P1';
-  if (p.gameAdvantage === 'player2') return 'Adv. P2';
-
-  const p1Score = GAME_POINTS[Math.min(p.gameScore.player1, 3)] ?? String(p.gameScore.player1);
-  const p2Score = GAME_POINTS[Math.min(p.gameScore.player2, 3)] ?? String(p.gameScore.player2);
-  return `${p1Score}-${p2Score}`;
-}
