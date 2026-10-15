@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import type { TimelinePoint } from '@/core/scoring/types';
 import { getGameEndInfo } from './timeline-utils';
+import { GameEndRow } from './timeline-game-end-row';
 import { PointRow } from './timeline-point-row';
 
 // Re-exports de compatibilidade (módulo movido para ./timeline-point-row).
@@ -64,42 +65,12 @@ export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLa
               player2Name={player2Name}
             />
             {gameEnd && (
-              <tr
-                data-testid={`game-end-${p.setNumber}-${p.pointNumber}`}
-                aria-label={`Placar final do game: ${gameEnd.gameFinalScore.player1}x${gameEnd.gameFinalScore.player2}`}
-                className="bg-telemetry-elevated/70 border-y border-white/10 font-bold"
-              >
-                <td
-                  colSpan={3}
-                  className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted sticky left-0 bg-telemetry-elevated z-10 border-r border-white/10 text-right pr-3"
-                >
-                  {p.isTiebreak ? 'Fim do Tiebreak' : 'Fim do Game'}
-                </td>
-                <td colSpan={2} className="px-1.5 py-1.5 text-[10px] text-center text-telemetry-text-primary border-r border-white/10">
-                  <span className="font-bold tracking-wide">
-                    {gameEnd.gameFinalScore.player1}x{gameEnd.gameFinalScore.player2}
-                  </span>
-                </td>
-                <td colSpan={20} className="px-2 py-1.5 text-[10px] text-telemetry-text-muted font-normal">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-telemetry-text-primary">
-                      {winnerName}
-                    </span>
-                    {gameEnd.isBreak ? (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-semibold">
-                        Quebra de saque
-                      </span>
-                    ) : !p.isTiebreak ? (
-                      <span className="text-[9px] text-telemetry-text-muted/60">
-                        Confirmou o saque
-                      </span>
-                    ) : null}
-                    <span className="text-telemetry-text-muted/50 text-[9px]">
-                      · Placar final: {gameEnd.gameFinalScore.player1}x{gameEnd.gameFinalScore.player2}
-                    </span>
-                  </div>
-                </td>
-              </tr>
+              <GameEndRow
+                point={p}
+                winnerName={winnerName}
+                gameFinalScore={gameEnd.gameFinalScore}
+                isBreak={gameEnd.isBreak}
+              />
             )}
           </Fragment>
         );
