@@ -33,6 +33,7 @@ export default function LoginPage() {
       writeToSessionOnly({
         userId: data.user.id,
         userRole: data.user.role,
+        userName: data.user.name,
       });
 
       const isSecure = window.location.protocol === "https:";

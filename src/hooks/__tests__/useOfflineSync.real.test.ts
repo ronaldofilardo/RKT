@@ -3,15 +3,17 @@
  */
 
 import 'fake-indexeddb/auto';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useOfflineSync } from '../useOfflineSync';
 
 describe('useOfflineSync - Regressoes Reais', () => {
-  it('deve inicializar com isOnline=true e reagir aos eventos de online/offline do navegador', () => {
+  it('deve inicializar com isOnline=true e reagir aos eventos de online/offline do navegador', async () => {
     const { result } = renderHook(() => useOfflineSync());
 
     expect(result.current.isOnline).toBe(true);
-    expect(result.current.isSyncing).toBe(false);
+    await waitFor(() => {
+      expect(result.current.isSyncing).toBe(false);
+    });
     expect(typeof result.current.enqueue).toBe('function');
     expect(typeof result.current.flush).toBe('function');
 

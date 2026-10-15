@@ -8,6 +8,7 @@
 
 const USER_ROLE_KEY = 'user_role';
 const USER_ID_KEY = 'user_id';
+const USER_NAME_KEY = 'user_name';
 const COOKIE_MAX_AGE_SECONDS = 2 * 60 * 60; // 2h
 
 function buildCookie(name: string, value: string): string {
@@ -16,12 +17,16 @@ function buildCookie(name: string, value: string): string {
 }
 
 export function writeToSessionOnly(data: {
-    userId: string;
+  userId: string;
   userRole: string;
+  userName?: string;
 }): void {
   if (typeof window === 'undefined') return;
-    sessionStorage.setItem(USER_ID_KEY, data.userId);
+  sessionStorage.setItem(USER_ID_KEY, data.userId);
   sessionStorage.setItem(USER_ROLE_KEY, data.userRole);
+  if (data.userName) {
+    sessionStorage.setItem(USER_NAME_KEY, data.userName);
+  }
   clearRedirectingFlag();
 }
 
@@ -30,22 +35,24 @@ export function writeToSessionOnly(data: {
  */
 export function ensureAuthCookie(): boolean {
   if (typeof window === 'undefined') return false;
-    const userRole = sessionStorage.getItem(USER_ROLE_KEY);
+  const userRole = sessionStorage.getItem(USER_ROLE_KEY);
   if (!userRole) return false;
-      document.cookie = buildCookie('user_role', userRole);
+  document.cookie = buildCookie('user_role', userRole);
   return true;
 }
 
 export function readAuthState(): {
-    userId: string | null;
+  userId: string | null;
   userRole: string | null;
+  userName: string | null;
 } {
   if (typeof window === 'undefined') {
-    return { userId: null, userRole: null };
+    return { userId: null, userRole: null, userName: null };
   }
   return {
-        userId: sessionStorage.getItem(USER_ID_KEY),
+    userId: sessionStorage.getItem(USER_ID_KEY),
     userRole: sessionStorage.getItem(USER_ROLE_KEY),
+    userName: sessionStorage.getItem(USER_NAME_KEY),
   };
 }
 
@@ -55,8 +62,9 @@ export function readAuthState(): {
  */
 export function clearAuthState(): void {
   if (typeof window === 'undefined') return;
-    sessionStorage.removeItem(USER_ID_KEY);
+  sessionStorage.removeItem(USER_ID_KEY);
   sessionStorage.removeItem(USER_ROLE_KEY);
+  sessionStorage.removeItem(USER_NAME_KEY);
   document.cookie = 'access_token=; path=/; max-age=0; SameSite=Lax';
   document.cookie = 'rkt_access_token=; path=/; max-age=0; SameSite=Lax';
   document.cookie = 'user_role=; path=/; max-age=0; SameSite=Lax';
@@ -83,7 +91,14 @@ export function clearRedirectingFlag(): void {
 }
 
 export interface LoginResponse {
-  user: { id: string; role: string };
+  accessToken?: string;
+  user: {
+    id: string;
+    role: string;
+    name?: string;
+    email?: string;
+    cpf?: string;
+  };
 }
 
 /**

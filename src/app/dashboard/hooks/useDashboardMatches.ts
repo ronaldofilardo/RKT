@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { logger } from "@/lib/logger";
 import { TIMEOUTS } from "@/lib/constants";
+import { isTokenExpired } from "@/lib/jwt-client";
 import {
   ensureAuthCookie,
   readAuthState,
@@ -11,12 +12,19 @@ import type { DashboardMatchPayload } from "@/components/dashboard/MatchCard";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 function checkAuthAndGetToken(router: AppRouterInstance | null, setLoading: (v: boolean) => void) {
+  const token = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
+  if (token && isTokenExpired(token)) {
+    setLoading(false);
+    redirectToLogin(router);
+    return null;
+  }
+
   const { userRole } = readAuthState();
   const cookieOk = ensureAuthCookie();
   
   if (!userRole || !cookieOk) {
     setLoading(false);
-    if (router) redirectToLogin(router);
+    redirectToLogin(router);
     return null;
   }
   

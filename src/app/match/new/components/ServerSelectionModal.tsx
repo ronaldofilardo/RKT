@@ -1,7 +1,7 @@
 "use client";
 
 /** Fronteira mínima consumida pelo modal: apenas identificação do jogador. */
-interface SelectablePlayer {
+export interface SelectablePlayer {
   id?: string;
   name: string;
 }

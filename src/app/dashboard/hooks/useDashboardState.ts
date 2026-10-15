@@ -30,7 +30,7 @@ export function useUserAuth(router: RouterLike) {
 
   useEffect(() => {
     ensureAuthCookie();
-    const { userId, userRole } = readAuthState();
+    const { userId, userRole, userName } = readAuthState();
 
     if (!userId || !userRole) {
       logger.warn("[useUserAuth] missing user_id/user_role, redirecting to /login");
@@ -40,10 +40,26 @@ export function useUserAuth(router: RouterLike) {
 
     setUser({
       id: userId,
-      name: "Usuário",
+      name: userName || "",
       email: "",
       role: userRole,
     });
+
+    if (!userName && typeof window !== "undefined" && process.env.NODE_ENV !== "test") {
+      fetch("/api/auth/me")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data?.user?.name) {
+            if (typeof window !== "undefined") {
+              sessionStorage.setItem("user_name", data.user.name);
+            }
+            setUser((prev) =>
+              prev ? { ...prev, name: data.user.name, email: data.user.email || "" } : null
+            );
+          }
+        })
+        .catch(() => {});
+    }
   }, []);
 
   return { user, setUser };

@@ -10,6 +10,8 @@ interface DashboardTopBarProps {
 }
 
 export function DashboardTopBar({ menuOpen, setMenuOpen, user, onNewMatch, onLogout }: DashboardTopBarProps) {
+  const firstName = user?.name ? user.name.trim().split(/\s+/)[0] : '';
+
   return (
     <header className="bg-telemetry-card border-b border-telemetry-border/10 sticky top-0 z-40">
       <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -55,7 +57,9 @@ export function DashboardTopBar({ menuOpen, setMenuOpen, user, onNewMatch, onLog
               >
                 + Nova Partida
               </button>
-              <span className="hidden md:inline text-sm text-telemetry-text-muted font-medium">{user.name}</span>
+              {firstName && (
+                <span className="hidden md:inline text-sm text-telemetry-text-muted font-medium">{firstName}</span>
+              )}
               {user.role === "ADMIN" && (
                 <span className="text-xs px-2 py-0.5 rounded bg-telemetry-alert text-telemetry-base font-bold">
                   Admin
