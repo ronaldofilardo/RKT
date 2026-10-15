@@ -1,21 +1,22 @@
-"use client";
+'use client';
 
-import { useMemo } from "react";
-import type { TennisFormat } from "@/core/scoring/types";
-import type { SetEditData } from "./editScoreHelpers";
-import { getFormatLabel } from "@/core/scoring/format-labels";
-import type { CompletedSet } from "./edit-score-logic";
-import { useEditScoreModal } from "./useEditScoreModal";
-import { MatchSummary, EditableSetsSummary } from "./edit-score-summary";
-import { SetInputForm } from "./edit-score-form";
+import { useMemo } from 'react';
+import type { TennisFormat } from '@/core/scoring/types';
+import type { SetEditData } from './editScoreHelpers';
+import type { CompletedSet } from './edit-score-logic';
+import { useEditScoreModal } from './useEditScoreModal';
+import { MatchSummary, EditableSetsSummary } from './edit-score-summary';
+import { SetInputForm } from './edit-score-form';
 import {
   getAllCompletedSets,
   computeCompletedSetValidationErrors,
   buildEditableCompletedSets,
-} from "./edit-score-modal.helpers";
-import { EditScoreModalFooter } from "./EditScoreModalFooter";
+} from './edit-score-modal.helpers';
+import { EditScoreModalFooter } from './EditScoreModalFooter';
+import { EditScoreModalShell } from './edit-score-modal-shell';
+import { EditScoreNoteField } from './edit-score-note-field';
 
-type Player = "player1" | "player2";
+type Player = 'player1' | 'player2';
 
 interface EditScoreModalProps {
   isOpen: boolean;
@@ -38,7 +39,7 @@ interface EditScoreModalProps {
   floorTiebreak?: { player1: number; player2: number } | null;
   onConfirm: (setResults: SetEditData[], server: Player) => void | Promise<void>;
   onCancel: () => void;
-  onMatchFinished?: (winner: "player1" | "player2") => void;
+  onMatchFinished?: (winner: 'player1' | 'player2') => void;
   suspendedSession?: {
     bankScoreState?: {
       sets?: Array<{
@@ -139,123 +140,83 @@ export function EditScoreModal({
   const hasErrors = Boolean(confirmError || floorValidationError);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-        role="button"
-        tabIndex={-1}
-        aria-label="Fechar modal"
-        onClick={isConfirming ? undefined : handleCancel}
-        onKeyDown={(e) => {
-          if (!isConfirming && (e.key === 'Escape' || e.key === 'Enter')) handleCancel();
-        }}
-      />
-      <div className="relative bg-telemetry-card border border-white/10 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col">
-        {isConfirming && (
-          <div className="absolute inset-0 z-10 bg-black/60 flex items-center justify-center rounded-2xl">
-            <div className="flex items-center gap-3 px-6 py-3 bg-telemetry-elevated border border-white/10 rounded-xl shadow-lg">
-              <svg className="animate-spin h-5 w-5 text-telemetry-volt" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              <span className="text-sm font-medium text-telemetry-text-primary">Salvando placar...</span>
-            </div>
+    <EditScoreModalShell isConfirming={isConfirming} matchFormat={matchFormat} onCancel={handleCancel}>
+      <div className="p-6 overflow-y-auto flex-1 space-y-5">
+        {hasErrors && (
+          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            {confirmError || floorValidationError}
           </div>
         )}
-        <div className="px-6 py-4 border-b border-white/10">
-          <h2 className="text-xl font-bold text-telemetry-text-primary">Editar Placar</h2>
-          <p className="text-sm text-telemetry-text-muted mt-1">
-            Modo de jogo: {getFormatLabel(matchFormat)}
-          </p>
-        </div>
 
-        <div className="p-6 overflow-y-auto flex-1 space-y-5">
-          {hasErrors && (
-            <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-              {confirmError || floorValidationError}
-            </div>
-          )}
+        <EditableSetsSummary
+          title="Sets Completados"
+          sets={editableCompletedSets}
+          playerNames={playerNames}
+          startIndex={0}
+          onEditSet={handleEditCompletedSet}
+          validationErrors={completedSetValidationErrors}
+        />
 
-          <EditableSetsSummary
-            title="Sets Completados"
-            sets={editableCompletedSets}
-            playerNames={playerNames}
-            startIndex={0}
-            onEditSet={handleEditCompletedSet}
-            validationErrors={completedSetValidationErrors}
-          />
+        <MatchSummary
+          p1SetsWon={p1SetsWon}
+          p2SetsWon={p2SetsWon}
+          setsToWin={setsToWin}
+          playerNames={playerNames}
+        />
 
-          <MatchSummary
-            p1SetsWon={p1SetsWon}
-            p2SetsWon={p2SetsWon}
-            setsToWin={setsToWin}
-            playerNames={playerNames}
-          />
+        <SetInputForm
+          matchFormat={matchFormat}
+          totalEditedSets={totalEditedSets}
+          currentServer={currentServer}
+          playerNames={playerNames}
+          p1Input={state.p1Input}
+          p2Input={state.p2Input}
+          p1Points={state.p1Points}
+          p2Points={state.p2Points}
+          tiebreakP1={state.tiebreakP1}
+          tiebreakP2={state.tiebreakP2}
+          floorCurrentSets={floorCurrentSets}
+          floorTiebreak={effectiveFloorTiebreak}
+          floorValidationError={floorValidationError}
+          isMatchTiebreakSet={isMatchTiebreakSet}
+          isPotentialMTSet={calculations.isPotentialMTSet}
+          hasTiebreak={hasTiebreak}
+          isSetTrulyCompleted={isSetTrulyCompleted}
+          tiebreakComplete={tiebreakComplete}
+          tiebreakImpossible={tiebreakValidation.tiebreakImpossible}
+          partial={!!partial}
+          p1Val={p1Val}
+          p2Val={p2Val}
+          validationError={validation.setValidationError}
+          matchAlreadyOver={matchState.matchAlreadyOver}
+          matchWouldEnd={matchWouldEnd}
+          p1SetsWon={p1SetsWon}
+          p2SetsWon={p2SetsWon}
+          maxSets={matchState.maxSets}
+          showGamePointsAtZero={calculations.showGamePointsAtZero}
+          canConfirmSet={canConfirmSet}
+          onConfirmSet={handleConfirmSet}
+          onP1InputChange={(v: string) => handleGameInputChange(v, (val: string) => setState(prev => ({ ...prev, p1Input: val })), 'p1', state.p2Input)}
+          onP2InputChange={(v: string) => handleGameInputChange(v, (val: string) => setState(prev => ({ ...prev, p2Input: val })), 'p2', state.p1Input)}
+          onP1PointsChange={(v: string) => handlePointsChange(v, state.p2Points)}
+          onP2PointsChange={(v: string) => handlePointsChange(state.p1Points, v)}
+          onTiebreakInputChange={handleTiebreakInputChange}
+          currentScoreBelowOriginal={calculations.currentScoreBelowOriginal}
+        />
 
-          <SetInputForm
-            matchFormat={matchFormat}
-            totalEditedSets={totalEditedSets}
-            currentServer={currentServer}
-            playerNames={playerNames}
-            p1Input={state.p1Input}
-            p2Input={state.p2Input}
-            p1Points={state.p1Points}
-            p2Points={state.p2Points}
-            tiebreakP1={state.tiebreakP1}
-            tiebreakP2={state.tiebreakP2}
-            floorCurrentSets={floorCurrentSets}
-            floorTiebreak={effectiveFloorTiebreak}
-            floorValidationError={floorValidationError}
-            isMatchTiebreakSet={isMatchTiebreakSet}
-            isPotentialMTSet={calculations.isPotentialMTSet}
-            hasTiebreak={hasTiebreak}
-            isSetTrulyCompleted={isSetTrulyCompleted}
-            tiebreakComplete={tiebreakComplete}
-            tiebreakImpossible={tiebreakValidation.tiebreakImpossible}
-            partial={!!partial}
-            p1Val={p1Val}
-            p2Val={p2Val}
-            validationError={validation.setValidationError}
-            matchAlreadyOver={matchState.matchAlreadyOver}
-            matchWouldEnd={matchWouldEnd}
-            p1SetsWon={p1SetsWon}
-            p2SetsWon={p2SetsWon}
-            maxSets={matchState.maxSets}
-            showGamePointsAtZero={calculations.showGamePointsAtZero}
-            canConfirmSet={canConfirmSet}
-            onConfirmSet={handleConfirmSet}
-            onP1InputChange={(v: string) => handleGameInputChange(v, (val: string) => setState(prev => ({ ...prev, p1Input: val })), 'p1', state.p2Input)}
-            onP2InputChange={(v: string) => handleGameInputChange(v, (val: string) => setState(prev => ({ ...prev, p2Input: val })), 'p2', state.p1Input)}
-            onP1PointsChange={(v: string) => handlePointsChange(v, state.p2Points)}
-            onP2PointsChange={(v: string) => handlePointsChange(state.p1Points, v)}
-            onTiebreakInputChange={handleTiebreakInputChange}
-            currentScoreBelowOriginal={calculations.currentScoreBelowOriginal}
-          />
-
-          <div className="space-y-1.5 pt-2 border-t border-white/5">
-            <label htmlFor="edit-score-note" className="text-xs font-medium text-telemetry-text-muted">
-              Motivo da correção (opcional)
-            </label>
-            <input
-              id="edit-score-note"
-              type="text"
-              maxLength={500}
-              placeholder="Ex.: Correção de placar após verificação com o árbitro"
-              value={state.note ?? ""}
-              onChange={(e) => setState((prev) => ({ ...prev, note: e.target.value }))}
-              className="w-full px-3 py-2 text-sm bg-telemetry-elevated border border-white/10 rounded-lg text-telemetry-text-primary placeholder:text-telemetry-text-muted/50 focus:outline-none focus:border-telemetry-volt transition-colors"
-            />
-          </div>
-        </div>
-
-        <EditScoreModalFooter
-          isConfirming={isConfirming}
-          canConfirm={canConfirm}
-          hasErrors={hasErrors}
-          onCancel={handleCancel}
-          onConfirm={handleConfirm}
+        <EditScoreNoteField
+          value={state.note ?? ''}
+          onChange={(v) => setState((prev) => ({ ...prev, note: v }))}
         />
       </div>
-    </div>
+
+      <EditScoreModalFooter
+        isConfirming={isConfirming}
+        canConfirm={canConfirm}
+        hasErrors={hasErrors}
+        onCancel={handleCancel}
+        onConfirm={handleConfirm}
+      />
+    </EditScoreModalShell>
   );
 }
