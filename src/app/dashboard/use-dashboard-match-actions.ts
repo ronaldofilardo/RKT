@@ -3,12 +3,11 @@
 import { useCallback, useState, type Dispatch, type SetStateAction } from 'react';
 import type { useRouter } from 'next/navigation';
 import { logger } from '@/lib/logger';
-import { useToast } from '@/components/Toast';
-import { matchesClient } from '@/services/matchesClient';
 import type { DashboardMatchPayload } from '@/components/dashboard/MatchCard';
 import type { AppRouteInput } from '@/lib/app-router';
 import type { ResumableMatch } from './dashboard.resume';
 import type { DeletableMatch, FinishableMatch } from './dashboard.types';
+import { useDashboardServerStart } from './use-dashboard-server-start';
 
 type AppRouter = ReturnType<typeof useRouter>;
 type Resume = (match: ResumableMatch, options?: { openEditModal?: boolean }) => void;
@@ -22,8 +21,8 @@ interface UseDashboardMatchActionsArgs {
 
 /**
  * Callbacks de match do dashboard (clique, retomar, editar placar/infos,
- * relatório, finalizar, excluir) + o estado de seleção de sacador e do modal
- * de edição de informações.
+ * relatório, finalizar, excluir) + modal de edição de informações, compondo
+ * a seleção de sacador inicial (useDashboardServerStart).
  */
 export function useDashboardMatchActions({
   router,
@@ -31,9 +30,8 @@ export function useDashboardMatchActions({
   setMatchToDelete,
   setMatchToFinish,
 }: UseDashboardMatchActionsArgs) {
-  const { toast } = useToast();
-  const [selectedMatchForServer, setSelectedMatchForServer] = useState<DashboardMatchPayload | null>(null);
-  const [startingMatch, setStartingMatch] = useState(false);
+  const serverStart = useDashboardServerStart(router);
+  const { setSelectedMatchForServer } = serverStart;
   const [matchToEditInfo, setMatchToEditInfo] = useState<DashboardMatchPayload | null>(null);
 
   const handleMatchClick = useCallback((match: ResumableMatch) => {
@@ -47,7 +45,7 @@ export function useDashboardMatchActions({
     } else {
       router.push(`/match/${match.id}/scoring` as AppRouteInput);
     }
-  }, [router, handleResumeSuspended]);
+  }, [router, handleResumeSuspended, setSelectedMatchForServer]);
 
   const handleMatchResume = useCallback((match: ResumableMatch) => {
     logger.info('[DashboardPage] resume match directly', match.id);
@@ -67,22 +65,6 @@ export function useDashboardMatchActions({
     }
   }, [router, handleResumeSuspended]);
 
-  const handleSelectServer = async (serverId: string) => {
-    if (!selectedMatchForServer) return;
-    setStartingMatch(true);
-    try {
-      await matchesClient.startMatch(selectedMatchForServer.id, {
-        state: 'IN_PROGRESS',
-        initialServerId: serverId,
-      });
-      router.push(`/match/${selectedMatchForServer.id}/scoring` as AppRouteInput);
-    } catch (err) {
-      logger.error('[DashboardPage handleSelectServer]', err);
-      toast({ type: 'error', message: 'Erro ao iniciar partida' });
-      setStartingMatch(false);
-    }
-  };
-
   const handleMatchReport = useCallback((match: DashboardMatchPayload) => {
     router.push(`/match/${match.id}/report` as AppRouteInput);
   }, [router]);
@@ -101,15 +83,12 @@ export function useDashboardMatchActions({
   }, [setMatchToDelete]);
 
   return {
-    selectedMatchForServer,
-    setSelectedMatchForServer,
-    startingMatch,
+    ...serverStart,
     matchToEditInfo,
     setMatchToEditInfo,
     handleMatchClick,
     handleMatchResume,
     handleMatchEditScore,
-    handleSelectServer,
     handleMatchReport,
     handleMatchFinish,
     handleMatchEditInfo,
