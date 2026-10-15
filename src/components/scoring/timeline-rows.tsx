@@ -1,115 +1,12 @@
 import { Fragment } from 'react';
 import type { TimelinePoint } from '@/core/scoring/types';
-import { direcaoLabel, efeitoLabel, getGameEndInfo } from './timeline-utils';
-import { getPlayerInitials } from './timeline-row-utils';
-import {
-  IdentityCells,
-  NoteCell,
-  RallyDetailCells,
-  ServeOutcomeCells,
-} from './timeline-row-cells';
+import { getGameEndInfo } from './timeline-utils';
+import { PointRow } from './timeline-point-row';
 
+// Re-exports de compatibilidade (módulo movido para ./timeline-point-row).
+export { PointRow } from './timeline-point-row';
 // Re-exports de compatibilidade (helpers movidos para ./timeline-row-utils).
 export { getPlayerInitials } from './timeline-row-utils';
-
-interface PointRowProps {
-  point: TimelinePoint;
-  hasGap: boolean;
-  isLast: boolean;
-  matchId: string;
-  /** Quando true, esta linha é o primeiro ponto do game atual. */
-  isFirstPointOfGame: boolean;
-  player1Name: string;
-  player2Name: string;
-}
-
-export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPointOfGame, player1Name, player2Name }: PointRowProps) {
-  const rd = p.rallyDetails;
-  const isServeDecidedPoint = p.type === 'ACE' || p.type === 'DOUBLE_FAULT' || p.type === 'FAULT_FIRST';
-
-  const rowClass = [
-    'border-b border-white/5 hover:bg-white/5 transition-colors',
-    p.winner === 'PLAYER_1' ? 'border-l-[3px] border-l-telemetry-blue' : 'border-l-[3px] border-l-telemetry-error',
-    p.isBreakPoint ? 'bg-telemetry-alert/10' : '',
-  ].join(' ');
-
-  const serverNumber = p.server === 'player1' ? 1 : 2;
-  const winnerNumber = p.winner === 'PLAYER_1' ? 1 : 2;
-  const winnerInitials = getPlayerInitials(winnerNumber === 1 ? player1Name : player2Name);
-  const serverInitials = getPlayerInitials(serverNumber === 1 ? player1Name : player2Name);
-
-  const firstOutcome = p.firstServeOutcome;
-  const secondOutcome = p.secondServeOutcome;
-
-  const cells = (
-    <>
-      <IdentityCells
-        p={p}
-        serverNumber={serverNumber}
-        winnerNumber={winnerNumber}
-        serverInitials={serverInitials}
-        winnerInitials={winnerInitials}
-        isFirstPointOfGame={isFirstPointOfGame}
-      />
-      <ServeOutcomeCells
-        outcome={firstOutcome}
-        effect={firstOutcome === 'ace' ? efeitoLabel(rd?.efeito) : firstOutcome ? efeitoLabel(p.firstFault?.serveEffect) : '–'}
-        direction={firstOutcome === 'ace' ? direcaoLabel(rd?.direcao) : firstOutcome ? direcaoLabel(p.firstFault?.direction) : '–'}
-      />
-      <ServeOutcomeCells
-        outcome={secondOutcome}
-        effect={secondOutcome ? efeitoLabel(rd?.efeito) : '–'}
-        direction={secondOutcome ? direcaoLabel(rd?.direcao) : '–'}
-      />
-      <RallyDetailCells p={p} isServeDecidedPoint={isServeDecidedPoint} />
-      <NoteCell p={p} matchId={matchId} />
-    </>
-  );
-
-  if (p.segmentBreak) {
-    const editedAtLabel = new Date(p.segmentBreak.editedAt).toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-    return (
-      <>
-        <tr>
-          <td colSpan={25} className="text-center py-2 bg-telemetry-alert/10 border-y border-dashed border-telemetry-alert/30">
-            <span className="text-[10px] text-telemetry-alert">
-              ⏸ Partida interrompida em <strong>{p.segmentBreak.previousLabel}</strong> · placar ajustado para <strong>{p.segmentBreak.newLabel}</strong> em {editedAtLabel}
-            </span>
-          </td>
-        </tr>
-        <tr className={rowClass} aria-label={`Ponto: ${p.winner === 'PLAYER_1' ? 'P1' : 'P2'} venceu`}>
-          {cells}
-        </tr>
-      </>
-    );
-  }
-
-  if (hasGap) {
-    return (
-      <>
-        <tr>
-          <td colSpan={25} className="text-center py-1.5">
-            <span className="text-[10px] italic text-telemetry-text-muted/50 border-t border-dashed border-b border-dashed border-white/20 px-2">marcação interrompida</span>
-          </td>
-        </tr>
-        <tr className={rowClass} aria-label={`Ponto: ${p.winner === 'PLAYER_1' ? 'P1' : 'P2'} venceu`}>
-          {cells}
-        </tr>
-      </>
-    );
-  }
-
-  return (
-    <tr className={rowClass} aria-label={`Ponto: ${p.winner === 'PLAYER_1' ? 'P1' : 'P2'} venceu`}>
-      {cells}
-    </tr>
-  );
-}
 
 interface SetGroupProps {
   setNumber: number;
@@ -210,4 +107,3 @@ export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLa
     </>
   );
 }
-
