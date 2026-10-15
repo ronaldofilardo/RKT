@@ -15,6 +15,12 @@ import { useScoringPageDerived } from "./useScoringPageDerived";
 import { ScoringTimelineView } from "./ScoringTimelineView";
 import { ScoringPlayArea } from "./ScoringPlayArea";
 import { ScoringModals } from "./ScoringModals";
+import {
+  ErrorScreen,
+  LoadingScreen,
+  SyncStatusBanner,
+  TimelineLoadingOverlay,
+} from "./scoring-page-screens";
 
 function ScoringPageInner() {
   const params = useParams();
@@ -86,29 +92,14 @@ function ScoringPageInner() {
     completedSetsCountRef.current = currentCompleted;
   }, [derived.editScoreCompletedSets?.length]);
 
-  if (state.isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600" />
-      </div>
-    );
-  }
+  if (state.isLoading) return <LoadingScreen />;
 
   if (state.error || !state.match) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <p className="text-red-600 font-semibold">
-            {state.error || "Partida não encontrada"}
-          </p>
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="mt-4 text-sky-600 underline"
-          >
-            Voltar ao dashboard
-          </button>
-        </div>
-      </div>
+      <ErrorScreen
+        message={state.error || "Partida não encontrada"}
+        onBack={() => router.push("/dashboard")}
+      />
     );
   }
 
@@ -190,27 +181,7 @@ function ScoringPageInner() {
       className="fixed inset-0 overflow-hidden bg-telemetry-base flex flex-col"
       style={{ fontSize: `${fontScale * 100}%` }}
     >
-      {state.syncStatus !== "synced" && (
-        <div
-          data-testid="sync-status"
-          data-sync-state={state.syncStatus}
-          role="status"
-          aria-live="polite"
-          className={`text-white text-center text-sm py-1 px-4 font-semibold ${
-            state.syncStatus === "offline"
-              ? "bg-amber-600"
-              : state.syncStatus === "auth-required"
-              ? "bg-red-600"
-              : "bg-blue-600"
-          }`}
-        >
-          {state.syncStatus === "offline"
-            ? "🔴 Modo Offline — sincronizando ao reconectar"
-            : state.syncStatus === "auth-required"
-            ? "🔐 Sessão expirada — faça login novamente para sincronizar os pontos"
-            : "🔄 Sincronizando pontos pendentes..."}
-        </div>
-      )}
+      <SyncStatusBanner syncStatus={state.syncStatus} />
 
       <MatchHeader
         onClose={async () => {
@@ -221,16 +192,7 @@ function ScoringPageInner() {
         isFinished={isFinished}
       />
 
-      {isTimelineLoading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-telemetry-card border border-white/10 rounded-2xl px-6 py-5 flex flex-col items-center gap-3">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500" />
-            <p className="text-sm text-telemetry-text-primary font-medium">
-              Carregando linha do tempo completa...
-            </p>
-          </div>
-        </div>
-      )}
+      {isTimelineLoading && <TimelineLoadingOverlay />}
 
       <ScoringPlayArea
         match={match}
