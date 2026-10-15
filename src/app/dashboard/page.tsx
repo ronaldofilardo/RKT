@@ -19,9 +19,7 @@ import { useDashboardMatchActions } from "./use-dashboard-match-actions";
 import { useDashboardSetSummary } from "./use-dashboard-set-summary";
 import { DashboardChrome } from "./components/DashboardChrome";
 import { DashboardViewRouter } from "./components/DashboardViewRouter";
-import { ServerSelectionModal } from "@/app/match/new/components/ServerSelectionModal";
-import { SetSummaryModal } from "@/components/scoring/SetSummaryModal";
-import { EditMatchInfoModal } from "@/components/dashboard/EditMatchInfoModal";
+import { DashboardMatchModals } from "./components/DashboardMatchModals";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -125,81 +123,35 @@ export default function DashboardPage() {
         />
       </main>
 
-      {matchToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            onClick={() => setMatchToDelete(null)}
-            aria-hidden="true"
-          />
-          <div className="relative bg-telemetry-card rounded-lg p-6 max-w-sm border border-white/10">
-            <h3 className="font-bold mb-2 text-telemetry-text-primary">Excluir partida?</h3>
-            <p className="text-sm text-telemetry-text-muted mb-4">
-              Esta ação não pode ser desfeita.
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setMatchToDelete(null)}
-                className="flex-1 py-2 rounded-lg bg-telemetry-elevated hover:bg-telemetry-active text-telemetry-text-primary transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => {
-                  confirmDeleteMatch("hard");
-                  setMatchToDelete(null);
-                }}
-                className="flex-1 py-2 rounded-lg bg-telemetry-error hover:bg-red-500 text-white transition-colors"
-              >
-                Excluir
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-
-
-      {selectedMatchForServer && (
-        <ServerSelectionModal
-          isOpen={!!selectedMatchForServer}
-          selectedP1={selectedMatchForServer.player1}
-          selectedP2={selectedMatchForServer.player2}
-          startingMatch={startingMatch}
-          onSelectServer={handleSelectServer}
-          onClose={() => setSelectedMatchForServer(null)}
-        />
-      )}
-
-      {setSummaryMatch && (
-        <SetSummaryModal
-          isOpen={Boolean(setSummaryMatch)}
-          onClose={() => setSetSummaryMatch(null)}
-          onResumeMatch={() => {
-            const m = setSummaryMatch;
-            setSetSummaryMatch(null);
-            handleMatchResume(m);
-          }}
-          timelinePoints={setSummaryTimelinePoints}
-          player1Name={setSummaryMatch.player1?.name ?? "Jogador 1"}
-          player2Name={setSummaryMatch.player2?.name ?? "Jogador 2"}
-          initialSetNumber={completedSetsCount || 1}
-          completedSetsCount={completedSetsCount}
-          isMatchFinished={setSummaryMatch.state === "FINISHED"}
-          completedSetsData={completedSetsData}
-        />
-      )}
-
-      {matchToEditInfo && (
-        <EditMatchInfoModal
-          match={matchToEditInfo}
-          onClose={() => setMatchToEditInfo(null)}
-          onSuccess={() => {
-            fetchDashboardData();
-            setMatchToEditInfo(null);
-          }}
-        />
-      )}
+      <DashboardMatchModals
+        matchToDelete={matchToDelete}
+        onCancelDelete={() => setMatchToDelete(null)}
+        onConfirmDelete={() => {
+          confirmDeleteMatch("hard");
+          setMatchToDelete(null);
+        }}
+        serverMatch={selectedMatchForServer}
+        startingMatch={startingMatch}
+        onSelectServer={handleSelectServer}
+        onCloseServer={() => setSelectedMatchForServer(null)}
+        setSummaryMatch={setSummaryMatch}
+        setSummaryTimelinePoints={setSummaryTimelinePoints}
+        completedSetsCount={completedSetsCount}
+        completedSetsData={completedSetsData}
+        onCloseSetSummary={() => setSetSummaryMatch(null)}
+        onResumeSetSummary={() => {
+          if (!setSummaryMatch) return;
+          const m = setSummaryMatch;
+          setSetSummaryMatch(null);
+          handleMatchResume(m);
+        }}
+        editMatch={matchToEditInfo}
+        onCloseEditInfo={() => setMatchToEditInfo(null)}
+        onSuccessEditInfo={() => {
+          fetchDashboardData();
+          setMatchToEditInfo(null);
+        }}
+      />
     </div>
   );
 }
