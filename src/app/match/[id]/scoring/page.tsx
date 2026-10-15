@@ -1,17 +1,14 @@
 "use client";
 
-import React, { useState, useMemo, useRef, useEffect, Suspense } from "react";
+import React, { useRef, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { MatchHeader } from "@/components/scoring/MatchHeader";
 import { ActionBar } from "@/components/scoring/ActionBar";
 import { AnnotationSessionPanel } from "@/components/scoring/AnnotationSessionPanel";
-import {
-  computeLiveCounters,
-  detectTacticalTrends,
-} from "@/core/scoring/live-tactical-insights";
 import { useScoringPageState } from "./useScoringPageState";
 import { useScoringPageEffects } from "./useScoringPageEffects";
 import { useScoringPageDerived } from "./useScoringPageDerived";
+import { useScoringPageChrome } from "./use-scoring-page-chrome";
 import { ScoringTimelineView } from "./ScoringTimelineView";
 import { ScoringPlayArea } from "./ScoringPlayArea";
 import { ScoringModals } from "./ScoringModals";
@@ -41,56 +38,18 @@ function ScoringPageInner() {
   // forçamos um fetchMatch(true) ANTES de trocar para a view de timeline,
   // com um popup de carregamento enquanto isso, para garantir que ela
   // sempre abra já completa.
-  const [isTimelineLoading, setIsTimelineLoading] = useState(false);
-
   const state = useScoringPageState(matchId);
   const handlers = useScoringPageEffects(state);
   const derived = useScoringPageDerived(state, handlers);
 
-  const liveCounters = useMemo(
-    () => computeLiveCounters(derived.timelinePoints),
-    [derived.timelinePoints]
-  );
-
-  const currentSetNumber = derived.effectiveScoreState?.sets?.length || 1;
-
-  const tacticalInsights = useMemo(
-    () =>
-      detectTacticalTrends(
-        derived.timelinePoints,
-        state.match?.player1?.name ?? "Jogador 1",
-        state.match?.player2?.name ?? "Jogador 2",
-        currentSetNumber
-      ),
-    [
-      derived.timelinePoints,
-      state.match?.player1?.name,
-      state.match?.player2?.name,
-      currentSetNumber,
-    ]
-  );
-
-  const [setSummaryModalState, setSetSummaryModalState] = useState<{
-    isOpen: boolean;
-    setNumber: number;
-  }>({ isOpen: false, setNumber: 1 });
-  const completedSetsCountRef = useRef<number>(
-    derived.editScoreCompletedSets?.length ?? 0
-  );
-
-  useEffect(() => {
-    const currentCompleted = derived.editScoreCompletedSets?.length ?? 0;
-    if (
-      currentCompleted > completedSetsCountRef.current &&
-      currentCompleted > 0
-    ) {
-      setSetSummaryModalState({
-        isOpen: true,
-        setNumber: currentCompleted,
-      });
-    }
-    completedSetsCountRef.current = currentCompleted;
-  }, [derived.editScoreCompletedSets?.length]);
+  const {
+    isTimelineLoading,
+    liveCounters,
+    tacticalInsights,
+    setSummaryModalState,
+    setSetSummaryModalState,
+    handleOpenTimeline,
+  } = useScoringPageChrome(state, handlers, derived);
 
   if (state.isLoading) return <LoadingScreen />;
 
@@ -119,7 +78,6 @@ function ScoringPageInner() {
   } = state;
 
   const {
-    fetchMatch,
     handleVoltar,
     openAceModal,
     handleAceDirect,
@@ -145,18 +103,6 @@ function ScoringPageInner() {
     isProcessingPoint,
     timelinePoints,
   } = derived;
-
-  const handleOpenTimeline = async () => {
-    if (isTimelineLoading) return;
-    setIsTimelineLoading(true);
-    try {
-      await fetchMatch(true);
-      await state.fetchTimelinePoints();
-    } finally {
-      setViewMode("timeline");
-      setIsTimelineLoading(false);
-    }
-  };
 
   if (viewMode === "timeline" && !isSetupNeeded && activeModal === null) {
     return (
