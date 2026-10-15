@@ -139,7 +139,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 - [x] `pnpm test:design` verde ao fim da Fase 2 — 3/3 suites, 26/26 testes.
 - [x] `docs/glossario.md` criado com termos mapeados (R-01) — recriado em UTF-8 limpo (147 linhas; o anterior tinha mojibake).
 - [x] Toda exceção registrada via `// ste-exception R-XX: <motivo>` — Fase 1 (7× R-08).
-- [~] Nenhum arquivo UI/componente >100 linhas (R-03) — **parcial**: `MatchTimelineView.tsx` 535→96 ✓, `MatchCard.tsx` 409→86 ✓, `EditMatchInfoModal.tsx` 370→97 ✓, `timeline-rows.tsx` 342→81 ✓; restam **41 arquivos `.tsx` de produção** >100L (backlog; testes excluídos).
+- [~] Nenhum arquivo UI/componente >100 linhas (R-03) — **parcial**: `MatchTimelineView.tsx` 535→96 ✓, `MatchCard.tsx` 409→86 ✓, `EditMatchInfoModal.tsx` 370→97 ✓, `timeline-rows.tsx` 342→81 ✓, `scoring/page.tsx` 339→94 ✓, `dashboard/page.tsx` 337→69 ✓; restam **39 arquivos `.tsx` de produção** >100L (backlog; testes excluídos).
 
 
 ---
@@ -208,15 +208,27 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-15 | UI-4c | `timeline-point-row.tsx` (87L: `PointRow`) + `timeline-row-inserts.tsx` (48L: `SegmentBreakCell`, `GapCell`, `PointRowWithInsert`); `timeline-rows.tsx` 214→110. Commit `55571ae` | Concluído |
 | 2026-10-15 | UI-4d | `timeline-game-end-row.tsx` (44L: linha de placar final); `timeline-rows.tsx` 110→**81**. Commit `b51681d` | Concluído |
 | 2026-10-15 | UI-4 DoD | `typecheck` verde · `test:strict` 291/294 (3191/3196, baseline) · `test:design` 3/3 (26/26) · `lint` 0 erros · **R-03 ✓ para timeline-rows**: 7 arquivos ≤100L (`timeline-rows.tsx` 81, `timeline-point-row.tsx` 87, `timeline-row-cells.tsx` 99, `timeline-row-utils.ts` 54, `timeline-row-inserts.tsx` 48, `timeline-game-end-row.tsx` 44, `timeline-row-note-cell.tsx` 33) | Concluído |
+| 2026-10-15 | UI-5a | `scoring-page-screens.tsx` (novo, 71L) — `LoadingScreen`, `ErrorScreen`, `SyncStatusBanner` (mapa `BANNER`), `TimelineLoadingOverlay`; `scoring/page.tsx` 339→301. Commit `69e50d5` | Concluído |
+| 2026-10-15 | UI-5b | `use-scoring-page-chrome.ts` (novo, 88L, CC 5) — `liveCounters`, `tacticalInsights`, `setSummaryModalState` + effect, `isTimelineLoading`, `handleOpenTimeline`; exporta os tipos `ScoringPageState`/`ScoringPageEffects`/`ScoringPageDerived` via `ReturnType`; `page.tsx` 301→247. Commit `914a245` | Concluído |
+| 2026-10-15 | UI-5c | `scoring-page-play-area.tsx` (86L, prop `match: NonNullable<ScoringPageState['match']>` em vez de asserção `!`) + `scoring-page-controls.tsx` (70L: ActionBar + AnnotationSessionPanel); `page.tsx` 247→132. Commit `087d5c9` | Concluído |
+| 2026-10-15 | UI-5d | `scoring-page-layout.tsx` (95L: raiz com fontScale, banner, header, overlay, PlayArea, Controls e ScoringModals; `match` já estreitado pela página); `page.tsx` 132→**94**; `dual-theme.characterization.test.tsx` passou a ler `page.tsx` + `scoring-page-layout.tsx` (comportamento inalterado). Commit `a66caf2` | Concluído |
+| 2026-10-15 | UI-6a | `use-dashboard-match-actions.ts` (119L: clique, retomar, editar placar/infos, iniciar, relatório, finalizar, excluir + modal de edição) e `use-dashboard-set-summary.ts` (70L: fetch de análise de set + `completedSetsCount`/`completedSetsData` em helpers puros); `dashboard/page.tsx` 337→262. Commit `20ddd92` | Concluído |
+| 2026-10-15 | UI-6b | `components/DashboardChrome.tsx` (84L, CC 3) — TopBar, Sidebar, `menuItems` (Admin condicional ao role), estado do menu hambúrguer e fluxo completo de logout (`ConfirmAlertDialog` + `clearAuthState` + redirect); `page.tsx` 262→205. Commit `9649b49` | Concluído |
+| 2026-10-15 | UI-6c | `components/ConfirmDeleteMatchDialog.tsx` (40L) + `components/DashboardMatchModals.tsx` (94L, CC 6: exclusão, seleção de sacador, resumo de set, edição de infos com props tipadas); `page.tsx` 205→157. Commit `9331a37` | Concluído |
+| 2026-10-15 | UI-6d | `use-dashboard-page-model.ts` (novo, 90L, CC 5/1) — auth, navegação, dados, modais, retomada, exclusão/finalização, filtros e `resolveDashboardView`; `page.tsx` 157→**69** (composição `model` + `actions` + `summary`). Commit `93a6cda` | Concluído |
+| 2026-10-15 | UI-6e | `use-dashboard-server-start.ts` (novo, 43L: seleção de sacador + `startMatch`) extraído das ações; `use-dashboard-match-actions.ts` 119→98 (compõe via spread). Commit `2000533` | Concluído |
+| 2026-10-15 | UI-5/6 DoD | `typecheck` verde · `test:strict` 291/294 (3191/3196, baseline — 3 falhas pré-existentes) · `test:design` 3/3 (26/26) · `lint` 0 erros · **R-03 ✓** para `scoring/page.tsx` (6 arquivos ≤100L) e `dashboard/page.tsx` (8 arquivos ≤100L) · fatias de `scoring`: 133 suites/1650 testes verdes; de `dashboard`: 20 suites (falha única = baseline) | Concluído |
 
 > **Status Fase UI-1: CONCLUÍDA.** `MatchTimelineView.tsx` 535 → 96 linhas (R-03 ✓), 6 commits atômicos.
 > **Status Fase UI-2: CONCLUÍDA.** `MatchCard.tsx` 409 → 86 linhas (R-03 ✓), 4 commits atômicos (`ecadac2`, `40951dd`, `057e3fb`, `bc72bbd`).
 > **Status Fase UI-3: CONCLUÍDA.** `EditMatchInfoModal.tsx` 370 → 97 linhas (R-03 ✓), 2 commits atômicos (`b2dd8de`, `f18ae3c`).
 > **Status Fase UI-4: CONCLUÍDA.** `timeline-rows.tsx` 342 → 81 linhas (R-03 ✓), 4 commits atômicos (`7e1a2ac`, `69065db`, `55571ae`, `b51681d`).
+> **Status Fase UI-5: CONCLUÍDA.** `scoring/page.tsx` 339 → 94 linhas (R-03 ✓), 4 commits atômicos (`69e50d5`, `914a245`, `087d5c9`, `a66caf2`).
+> **Status Fase UI-6: CONCLUÍDA.** `dashboard/page.tsx` 337 → 69 linhas (R-03 ✓), 5 commits atômicos (`20ddd92`, `9649b49`, `9331a37`, `2000533`, `93a6cda`).
 > **Pendências do plano:**
 > 1. ~~**R-01** — recriar `docs/glossario.md`~~ — **CONCLUÍDO** (UTF-8 limpo, 147 linhas).
-> 2. **R-03 backlog** — **41 arquivos `.tsx` de produção** ainda >100 linhas (medido 2026-10-15, testes excluídos). Maiores: `scoring/page.tsx` 339, `dashboard/page.tsx` 337, `SetSummaryModal.tsx` 327, `edit-score-form.tsx` 320, `AdvancedStats.tsx` 316, `CommentModal.tsx` 293.
-> 3. Ordem sugerida: `scoring/page.tsx` (339) → `dashboard/page.tsx` (337) → `SetSummaryModal.tsx` (327) → `AdvancedStats.tsx` (316) → formulários `edit-score-form.tsx`/`EditScoreModal.tsx`. Padrão de referência: UI-1 (timeline-*), UI-2 (match-card-*), UI-3 (edit-match-info-*), UI-4 (timeline-rows-*).
+> 2. **R-03 backlog** — **39 arquivos `.tsx` de produção** ainda >100 linhas (medido 2026-10-15, testes excluídos). Maiores: `SetSummaryModal.tsx` 327, `edit-score-form.tsx` 320, `AdvancedStats.tsx` 316, `CommentModal.tsx` 293, `EditScoreModal.tsx` 261.
+> 3. Ordem sugerida: `SetSummaryModal.tsx` (327) → `AdvancedStats.tsx` (316) → `edit-score-form.tsx` (320) → `EditScoreModal.tsx` (261). Padrão de referência: UI-1 (timeline-*), UI-2 (match-card-*), UI-3 (edit-match-info-*), UI-4 (timeline-rows-*), UI-5 (scoring-page-*), UI-6 (dashboard-*).
 
 
 
