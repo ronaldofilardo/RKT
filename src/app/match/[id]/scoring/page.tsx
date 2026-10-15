@@ -2,16 +2,13 @@
 
 import React, { useRef, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { MatchHeader } from "@/components/scoring/MatchHeader";
 import { useScoringPageState } from "./useScoringPageState";
 import { useScoringPageEffects } from "./useScoringPageEffects";
 import { useScoringPageDerived } from "./useScoringPageDerived";
 import { useScoringPageChrome } from "./use-scoring-page-chrome";
 import { ScoringTimelineView } from "./ScoringTimelineView";
-import { ScoringModals } from "./ScoringModals";
-import { ScoringPagePlayArea } from "./scoring-page-play-area";
-import { ScoringPageControls } from "./scoring-page-controls";
-import { ErrorScreen, LoadingScreen, SyncStatusBanner, TimelineLoadingOverlay } from "./scoring-page-screens";
+import { ScoringPageLayout } from "./scoring-page-layout";
+import { ErrorScreen, LoadingScreen } from "./scoring-page-screens";
 
 function ScoringPageInner() {
   const params = useParams();
@@ -71,51 +68,16 @@ function ScoringPageInner() {
   }
 
   return (
-    <div
-      className="fixed inset-0 overflow-hidden bg-telemetry-base flex flex-col"
-      style={{ fontSize: `${fontScale * 100}%` }}
-    >
-      <SyncStatusBanner syncStatus={state.syncStatus} />
-
-      <MatchHeader
-        onClose={async () => {
-          await abandonCurrentSession();
-          router.push("/dashboard");
-        }}
-        onTimeline={chrome.handleOpenTimeline}
-        isFinished={isFinished}
-      />
-
-      {chrome.isTimelineLoading && <TimelineLoadingOverlay />}
-
-      <ScoringPagePlayArea
-        state={state}
-        handlers={handlers}
-        derived={derived}
-        chrome={chrome}
-        match={match}
-        matchId={matchId}
-        onNavigateReport={() => router.push(`/match/${matchId}/report`)}
-        onNavigateDashboard={() => router.push("/dashboard")}
-      />
-
-      <ScoringPageControls state={state} handlers={handlers} derived={derived} matchId={matchId} />
-
-      <ScoringModals
-        state={state}
-        handlers={handlers}
-        derived={derived}
-        match={match}
-        matchId={matchId}
-        cameFromDashboard={cameFromDashboardRef.current}
-        setSummaryModalState={chrome.setSummaryModalState}
-        onCloseSetSummary={() =>
-          chrome.setSetSummaryModalState((prev) => ({ ...prev, isOpen: false }))
-        }
-        onNavigateDashboard={() => router.push("/dashboard")}
-        onNavigateReport={() => router.push(`/match/${matchId}/report`)}
-      />
-    </div>
+    <ScoringPageLayout
+      state={state}
+      handlers={handlers}
+      derived={derived}
+      chrome={chrome}
+      match={match}
+      matchId={matchId}
+      cameFromDashboard={cameFromDashboardRef.current}
+      router={router}
+    />
   );
 }
 

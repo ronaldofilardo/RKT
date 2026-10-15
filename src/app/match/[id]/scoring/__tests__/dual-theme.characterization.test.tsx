@@ -86,7 +86,10 @@ describe('Dual Theme Design System (Light & Dark)', () => {
 
   describe('Scoring Dual Theme Support', () => {
     it('suporta modo claro na pagina de scoring sem travar classe dark estatica', () => {
-      const scoringPage = fs.readFileSync(path.resolve(process.cwd(), 'src/app/match/[id]/scoring/page.tsx'), 'utf-8');
+      const dir = path.resolve(process.cwd(), 'src/app/match/[id]/scoring');
+      const scoringPage = ['page.tsx', 'scoring-page-layout.tsx']
+        .map((file) => fs.readFileSync(path.join(dir, file), 'utf-8'))
+        .join('\n');
       expect(scoringPage).toContain('className="fixed inset-0 overflow-hidden bg-telemetry-base flex flex-col"');
       expect(scoringPage).not.toContain('className="dark min-h-screen');
     });
