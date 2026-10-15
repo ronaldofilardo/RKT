@@ -3,6 +3,8 @@ import type { TennisFormat } from '@/core/scoring/types';
 import { EditScoreTiebreakInputs } from './edit-score-tiebreak-inputs';
 import { EditScoreGamePoints } from './edit-score-game-points';
 import { EditScoreGamesGrid } from './edit-score-games-grid';
+import { EditScoreFormErrors, EditScoreFormFeedback } from './edit-score-form-feedback';
+import { EditScoreFormActions } from './edit-score-form-actions';
 
 export interface SetInputFormProps {
   matchFormat: TennisFormat;
@@ -90,27 +92,6 @@ export function SetInputForm({
     p1InputRef.current?.focus();
   }, []);
 
-  const getStatusMessage = () => {
-    if (!p1Input && !p2Input) return null;
-
-    const p1Num = parseInt(p1Input, 10);
-    const p2Num = parseInt(p2Input, 10);
-    const winner = p1Num > p2Num ? playerNames.p1 : playerNames.p2;
-
-    if (isMatchTiebreakSet) {
-      if (isSetTrulyCompleted) {
-        return `${winner} venceu o match tiebreak — partida encerrada`;
-      }
-      return null;
-    }
-
-    if (isSetTrulyCompleted) {
-      return `${winner} venceu o set`;
-    }
-
-    return `Set ${totalEditedSets + 1} em andamento — informe os games`;
-  };
-
   // Don't show input form when match is already over
   if (isMatchOver) {
     return (
@@ -171,15 +152,10 @@ export function SetInputForm({
         onP2InputChange={onP2InputChange}
       />
 
-      {floorValidationError && (
-        <p className="text-xs text-red-400">{floorValidationError}</p>
-      )}
-
-      {currentScoreBelowOriginal && (
-        <p className="text-xs text-red-400">
-          Placar não pode ser inferior ao placar atual da partida
-        </p>
-      )}
+      <EditScoreFormErrors
+        floorValidationError={floorValidationError}
+        currentScoreBelowOriginal={currentScoreBelowOriginal}
+      />
 
       {isTiebreakInputVisible && (
         <EditScoreTiebreakInputs
@@ -194,77 +170,44 @@ export function SetInputForm({
         />
       )}
 
-      {hasTiebreak && p1Input && p2Input && isSetTrulyCompleted && !tiebreakComplete && (
-        <p className="text-xs text-amber-400">
-          Tiebreak necessário - informe os pontos para completar o set
-        </p>
-      )}
+      <EditScoreFormFeedback
+        p1Input={p1Input}
+        p2Input={p2Input}
+        playerNames={playerNames}
+        totalEditedSets={totalEditedSets}
+        isMatchTiebreakSet={isMatchTiebreakSet}
+        isSetTrulyCompleted={isSetTrulyCompleted}
+        hasTiebreak={hasTiebreak}
+        tiebreakComplete={tiebreakComplete}
+        validationError={validationError}
+      />
 
-      {p1Input && p2Input && validationError && (
-        <p className="text-xs text-red-400 mt-1">{validationError}</p>
-      )}
-
-      {p1Input && p2Input && !validationError && (
-        <div
-          className={`text-center text-xs py-1 px-2 rounded-md ${
-            isSetTrulyCompleted
-              ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 font-medium'
-              : 'text-amber-400 bg-amber-500/10'
-          }`}
-        >
-          {getStatusMessage()}
-        </div>
-      )}
-
-      {isSetTrulyCompleted && !matchWouldEnd && !isMatchOver && (
-        <button
-          type="button"
-          onClick={onConfirmSet}
-          disabled={!canConfirmSet}
-          className="w-full mt-2 px-4 py-2.5 bg-telemetry-blue text-white font-medium rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm text-sm"
-        >
-          Confirmar Set {totalEditedSets + 1}
-        </button>
-      )}
-
-      {isSetTrulyCompleted && matchWouldEnd && (
-        <div className="bg-telemetry-volt/10 border border-telemetry-volt/30 rounded-lg px-3 py-3 mt-2">
-          <p className="text-sm font-semibold text-telemetry-volt flex items-center gap-2">
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Partida encerrada — confirmar para finalizar
-          </p>
-          <p className="text-xs text-telemetry-volt mt-1 opacity-80">
-            {p1Val > p2Val ? playerNames.p1 : playerNames.p2} venceu por {p1SetsWon}-{p2SetsWon} sets
-          </p>
-        </div>
-      )}
-
-      {partial &&
-        floorCurrentSets &&
-        (p1Val < floorCurrentSets.player1 || p2Val < floorCurrentSets.player2) && (
-          <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2 mb-2">
-            <p className="text-xs text-amber-300">
-              Ponto de parada: {floorCurrentSets.player1}x{floorCurrentSets.player2} — placar não pode ser inferior a este valor.
-            </p>
-          </div>
+      <EditScoreFormActions
+        isSetTrulyCompleted={isSetTrulyCompleted}
+        matchWouldEnd={matchWouldEnd}
+        isMatchOver={isMatchOver}
+        canConfirmSet={canConfirmSet}
+        totalEditedSets={totalEditedSets}
+        onConfirmSet={onConfirmSet}
+        p1Val={p1Val}
+        p2Val={p2Val}
+        playerNames={playerNames}
+        p1SetsWon={p1SetsWon}
+        p2SetsWon={p2SetsWon}
+        partial={partial}
+        floorCurrentSets={floorCurrentSets}
+      >
+        {(partial || showGamePointsAtZero) && !isMatchTiebreakSet && !hasTiebreak && (
+          <EditScoreGamePoints
+            playerNames={playerNames}
+            currentServer={currentServer}
+            p1Points={p1Points}
+            p2Points={p2Points}
+            onP1PointsChange={onP1PointsChange}
+            onP2PointsChange={onP2PointsChange}
+          />
         )}
-
-      {(partial || showGamePointsAtZero) && !isMatchTiebreakSet && !hasTiebreak && (
-        <EditScoreGamePoints
-          playerNames={playerNames}
-          currentServer={currentServer}
-          p1Points={p1Points}
-          p2Points={p2Points}
-          onP1PointsChange={onP1PointsChange}
-          onP2PointsChange={onP2PointsChange}
-        />
-      )}
+      </EditScoreFormActions>
     </div>
   );
 }
