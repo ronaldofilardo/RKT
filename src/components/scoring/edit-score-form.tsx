@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import type { TennisFormat } from '@/core/scoring/types';
 import { EditScoreTiebreakInputs } from './edit-score-tiebreak-inputs';
 import { EditScoreGamePoints } from './edit-score-game-points';
+import { EditScoreGamesGrid } from './edit-score-games-grid';
 
 export interface SetInputFormProps {
   matchFormat: TennisFormat;
@@ -155,71 +156,20 @@ export function SetInputForm({
         </p>
       )}
 
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 pt-1">
-        {/* Jogador 1 (sempre à esquerda) */}
-        <div className="flex flex-col items-center gap-1.5 min-w-0">
-          <div className="flex items-center justify-center gap-1.5 w-full text-xs font-semibold text-telemetry-text-primary px-1">
-            {currentServer === 'player1' && (
-              <span
-                className="w-2 h-2 rounded-full bg-telemetry-volt flex-shrink-0 shadow-[0_0_8px_rgba(204,255,0,0.6)]"
-                aria-label="Sacando"
-                title="Sacando"
-              />
-            )}
-            <span className="truncate text-center" title={playerNames.p1}>
-              {playerNames.p1}
-            </span>
-          </div>
-          <input
-            type="number"
-            className={`w-20 text-center bg-telemetry-elevated border rounded-lg px-2 py-2 text-telemetry-text-primary text-base font-space-grotesk focus:outline-none focus:ring-2 focus:ring-telemetry-volt ${
-              p1Input && p2Input && p1Val > p2Val
-                ? 'border-telemetry-volt'
-                : 'border-white/10'
-            }`}
-            value={p1Input}
-            onChange={(e) => onP1InputChange(e.target.value)}
-            placeholder="0"
-            ref={p1InputRef}
-            min={floorCurrentSets?.player1 ?? 0}
-            max={isMatchTiebreakSet ? 30 : matchFormat === 'PRO_SET_8' ? 10 : 7}
-            aria-label={`Games ${playerNames.p1}`}
-          />
-        </div>
-
-        {/* Separador */}
-        <span className="text-telemetry-text-muted text-sm font-space-grotesk opacity-40 self-end mb-2.5">×</span>
-
-        {/* Jogador 2 (sempre à direita) */}
-        <div className="flex flex-col items-center gap-1.5 min-w-0">
-          <div className="flex items-center justify-center gap-1.5 w-full text-xs font-semibold text-telemetry-text-primary px-1">
-            <span className="truncate text-center" title={playerNames.p2}>
-              {playerNames.p2}
-            </span>
-            {currentServer === 'player2' && (
-              <span
-                className="w-2 h-2 rounded-full bg-telemetry-volt flex-shrink-0 shadow-[0_0_8px_rgba(204,255,0,0.6)]"
-                aria-label="Sacando"
-                title="Sacando"
-              />
-            )}
-          </div>
-          <input
-            type="number"
-            className={`w-20 text-center bg-telemetry-elevated border rounded-lg px-2 py-2 text-telemetry-text-primary text-base font-space-grotesk focus:outline-none focus:ring-2 focus:ring-telemetry-volt ${
-              p1Input && p2Input && p2Val > p1Val
-                ? 'border-telemetry-volt'
-                : 'border-white/10'
-            }`}
-            value={p2Input}
-            onChange={(e) => onP2InputChange(e.target.value)}
-            placeholder="0"
-            min={floorCurrentSets?.player2 ?? 0}
-            max={isMatchTiebreakSet ? 30 : matchFormat === 'PRO_SET_8' ? 10 : 7}
-            aria-label={`Games ${playerNames.p2}`}
-          />
-        </div>
-      </div>
+      <EditScoreGamesGrid
+        matchFormat={matchFormat}
+        currentServer={currentServer}
+        playerNames={playerNames}
+        p1Input={p1Input}
+        p2Input={p2Input}
+        p1Val={p1Val}
+        p2Val={p2Val}
+        floorCurrentSets={floorCurrentSets}
+        isMatchTiebreakSet={isMatchTiebreakSet}
+        p1InputRef={p1InputRef}
+        onP1InputChange={onP1InputChange}
+        onP2InputChange={onP2InputChange}
+      />
 
       {floorValidationError && (
         <p className="text-xs text-red-400">{floorValidationError}</p>
