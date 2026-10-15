@@ -68,14 +68,6 @@ export default function LoginPage() {
           Acesse com seu e-mail ou CPF
         </p>
 
-        <p className="text-xs text-center text-gray-400 mb-4">
-          Anotador: <code className="text-gray-600">anotador@rkt.com</code> ou <code className="text-gray-600">04703084945</code>
-          <br />
-          Admin: <code className="text-gray-600">admin@rkt.com</code> ou <code className="text-gray-600">87545772920</code>
-          <br />
-          Senha padrão: <code className="text-gray-600">123456</code>
-        </p>
-
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
             {error}
