@@ -135,10 +135,11 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 - [x] Zero `catch` vazio em código de produção (R-08) — Fase 1.
 - [x] Zero `any` em fronteiras públicas de servidor (R-06) — Fase 2 + 3.1 (`any` em produção: 0).
 - [x] Zero `fetch` direto em componente `.tsx` (R-04) — Fase 2F.
-- [x] `pnpm test:strict` verde ao fim de cada fase — Fase 1 e 2.
+- [x] `pnpm test:strict` verde ao fim de cada fase — Fases 1, 2, 3 e UI-1 (291/294, baseline).
 - [x] `pnpm test:design` verde ao fim da Fase 2 — 3/3 suites, 26/26 testes.
-- [ ] `docs/glossario.md` criado com termos mapeados (R-01) — pendente.
+- [ ] `docs/glossario.md` criado com termos mapeados (R-01) — **pendente** (anterior removido por mojibake).
 - [x] Toda exceção registrada via `// ste-exception R-XX: <motivo>` — Fase 1 (7× R-08).
+- [~] Nenhum arquivo UI/componente >100 linhas (R-03) — **parcial**: `MatchTimelineView.tsx` 535→96 ✓; restam 43 arquivos `.tsx` >100L (backlog).
 
 
 ---
@@ -185,8 +186,20 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-13 | 3.5 | `tiebreak.ts` — `isMatchTiebreakFormat` + `hasTiebreakBeenWon` extraídos; `processTiebreakPoint` CC 19→<10 (ramos p1/p2 unificados via `winner`) | Concluído |
 | 2026-10-13 | 3.6 | `game-processing.ts` — `processNoAdPoint` + `processAdvantagePoint`; `processStandardPoint` CC 16→<10; removidas 2 atribuições redundantes de `state.currentGame` | Concluído |
 | 2026-10-13 | Fase 3 DoD | `typecheck` verde · `test:strict` 291/294 (3191/3196, zero regressão) · `test:design` 3/3 (26/26) · `lint` 0 erros · **nenhuma função de `core/scoring` excede CC 15** (tolerância R-03) · **`any` em produção: 0** | Concluído |
+| 2026-10-14 | 4 | Scratch files órfãos removidos da raiz (`scratch_contract_phase2*.js` ×3, `phase4_indexes.sql` — índices já no `schema.prisma`). Commit `d05bc60` | Concluído |
+| 2026-10-14 | UI-1a | `timeline-set-results.ts` (novo, domínio) — `extractSetsFromScoreState`/`computeSetResultsFromPoints` particionadas em helpers (CC 20 e 22 → todas ≤10); re-exports em `MatchTimelineView.tsx` (535→399). Commit `132bd11` | Concluído |
+| 2026-10-14 | UI-1b | `timeline-match-info.tsx` (86L, `MatchInfoData`+`buildInfoItems`+`MatchInfoLine`) e `use-timeline-filters.ts` (72L); `MatchTimelineView.tsx` 399→251. Commit `8ba86da` | Concluído |
+| 2026-10-14 | UI-1c | `timeline-table-head.tsx` (58L, colgroup como array + thead) e `timeline-table.tsx` (84L, `FinalResultRow` extraído); `MatchTimelineView.tsx` 251→146. Commit `3f3b4dd` | Concluído |
+| 2026-10-14 | UI-1d/e | `timeline-comments.tsx`, `timeline-legend.tsx`, `timeline-header.tsx`; `MatchTimelineView.tsx` 146→96. Commit `ee666cc` | Concluído |
+| 2026-10-14 | UI-fix | `ee666cc` não estava verde: restaurado condicional `hideFilters` (consumido por `ReportPage.view.tsx:165`) e removidos imports órfãos `FilterBar`/`AudioNotePlayer`. Commit `907f956` | Concluído |
+| 2026-10-14 | UI-DoD | `typecheck` verde · `test:strict` 291/294 (3191/3196, baseline) · `test:design` 3/3 (26/26) · `lint` 0 erros | Concluído |
+| 2026-10-14 | Revert | Extrações de UI não commitadas de sessão anterior (dashboard, AdvancedStats, SetSummaryModal, NewMatchForm) estavam com **34 erros de typecheck** — descartadas conforme decisão do usuário. `docs/glossario.md` (R-01) também removido: 220 linhas com encoding corrompido (mojibake) | Descartado |
 
-> **Status Fase 3 (escopo `core/scoring/**`): CONCLUÍDA.** 6 fatias atômicas, 6 commits (`b6ce6a1`, `945655c`, `15dd841`, `40c10d1`, `600f5df`, `f9cdae2`, `181d58e`).
-> Próxima: **Fase 4** — scratch files na raiz (`scratch_contract_phase2*.js`, `phase4_indexes.sql`), depois varredura de monólitos de UI >100 linhas (`MatchTimelineView.tsx` 535, `MatchCard.tsx` 409, etc.).
+> **Status Fase UI-1: CONCLUÍDA.** `MatchTimelineView.tsx` 535 → 96 linhas (R-03 ✓), 6 commits atômicos.
+> **Pendências do plano:**
+> 1. **R-01** — recriar `docs/glossario.md` (o anterior tinha mojibake; usar UTF-8 limpo).
+> 2. **R-03 backlog** — 43 arquivos `.tsx` ainda >100 linhas. Maiores: `scoring/page.tsx` 339, `dashboard/page.tsx` 338, `edit-score-form.tsx` 322, `CommentModal.tsx` 293, `EditScoreModal.tsx` 261, `ScoreboardCard.tsx` 251.
+> 3. Ordem sugerida: `MatchCard.tsx` (409, já tipado na 2E) → `EditMatchInfoModal.tsx` (370) → `timeline-rows.tsx` (342) → páginas `app/**` (extrair formulários para componentes).
+
 
 
