@@ -2,7 +2,7 @@
 
 import { useMemo, useCallback } from "react";
 import { normalizeScoreState, isMatchTiebreakFormat, isCurrentSetMatchTiebreak, type TennisFormat, type NormalizedScoreState, type SetCellScore } from "./match-card-utils";
-import { MatchStatusBadge, MatchActions, FormatLabel } from "./match-card-components";
+import { MatchCardHeader } from "./match-card-header";
 import { MatchCardScore } from "./match-card-score";
 import type { MatchCardProps } from "./match-card-types";
 
@@ -121,86 +121,19 @@ export function MatchCard({
         }
       }}
     >
-      <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-3 pb-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <MatchStatusBadge isSuspended={isSuspendedAnnotation} state={match.state} />
-          {isLiveOrSuspended && (
-            <div className="flex items-center gap-1 sm:gap-1.5">
-              {onEditScore && (
-                <button
-                  type="button"
-                  data-testid={`match-card-edit-score-${match.id}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEditScore(match);
-                  }}
-                  className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-xs font-semibold rounded-lg bg-telemetry-elevated hover:bg-telemetry-active border border-telemetry-border/15 text-telemetry-text-primary transition-colors flex items-center gap-1 shadow-sm"
-                  title="Editar placar"
-                  aria-label="Editar placar"
-                >
-                  <span aria-hidden="true">✏️</span>
-                  <span className="hidden sm:inline">Editar Placar</span>
-                  <span className="sm:hidden">Placar</span>
-                </button>
-              )}
-              {onResumeMatch && (
-                <button
-                  type="button"
-                  data-testid={`match-card-resume-${match.id}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onResumeMatch(match);
-                  }}
-                  className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-xs font-semibold rounded-lg bg-telemetry-blue hover:bg-telemetry-blue-light text-white shadow-sm transition-colors flex items-center gap-1"
-                  title="Retomar partida"
-                  aria-label="Retomar partida"
-                >
-                  <span aria-hidden="true">▶</span>
-                  <span className="hidden sm:inline">Retomar Partida</span>
-                  <span className="sm:hidden">Retomar</span>
-                </button>
-              )}
-              {onSetSummary && (
-                <button
-                  type="button"
-                  data-testid={`match-card-set-summary-${match.id}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSetSummary(match);
-                  }}
-                  className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-xs font-semibold rounded-lg bg-telemetry-elevated hover:bg-telemetry-active border border-telemetry-border/15 text-telemetry-text-primary transition-colors flex items-center gap-1 shadow-sm"
-                  title="Análise do set"
-                  aria-label="Análise do set"
-                >
-                  <span aria-hidden="true">📊</span>
-                  <span className="hidden sm:inline">Análise do Set</span>
-                  <span className="sm:hidden">Análise</span>
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-        <div className="flex items-center gap-2 ml-auto shrink-0 justify-end">
-          {!isFinished && onEditInfo && (
-            <button
-              type="button"
-              data-testid={`match-card-edit-info-${match.id}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                onEditInfo(match);
-              }}
-              className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-xs font-semibold rounded-lg bg-telemetry-elevated hover:bg-telemetry-active border border-telemetry-border/15 text-telemetry-text-primary transition-colors flex items-center gap-1 shadow-sm"
-              title="Editar Informações da Partida"
-              aria-label="Editar Informações"
-            >
-              <span aria-hidden="true">⚙️</span>
-              <span className="hidden sm:inline">Info</span>
-            </button>
-          )}
-          <MatchActions match={match} onReport={onReport} onFinish={onFinish} onDelete={onDelete} />
-          <FormatLabel format={match.format} />
-        </div>
-      </div>
+      <MatchCardHeader
+        match={match}
+        isSuspended={isSuspendedAnnotation}
+        isFinished={isFinished}
+        isLiveOrSuspended={isLiveOrSuspended}
+        onReport={onReport}
+        onFinish={onFinish}
+        onDelete={onDelete}
+        onEditScore={onEditScore}
+        onResumeMatch={onResumeMatch}
+        onSetSummary={onSetSummary}
+        onEditInfo={onEditInfo}
+      />
 
       <MatchCardScore
         playerName1={match.player1.name}
