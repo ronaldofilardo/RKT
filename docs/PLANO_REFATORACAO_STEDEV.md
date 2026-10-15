@@ -139,7 +139,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 - [x] `pnpm test:design` verde ao fim da Fase 2 — 3/3 suites, 26/26 testes.
 - [x] `docs/glossario.md` criado com termos mapeados (R-01) — recriado em UTF-8 limpo (147 linhas; o anterior tinha mojibake).
 - [x] Toda exceção registrada via `// ste-exception R-XX: <motivo>` — Fase 1 (7× R-08).
-- [~] Nenhum arquivo UI/componente >100 linhas (R-03) — **parcial**: `MatchTimelineView.tsx` 535→96 ✓, `MatchCard.tsx` 409→86 ✓, `EditMatchInfoModal.tsx` 370→97 ✓, `timeline-rows.tsx` 342→81 ✓, `scoring/page.tsx` 339→94 ✓, `dashboard/page.tsx` 337→69 ✓; restam **39 arquivos `.tsx` de produção** >100L (backlog; testes excluídos).
+- [~] Nenhum arquivo UI/componente >100 linhas (R-03) — **parcial**: `MatchTimelineView.tsx` 535→96 ✓, `MatchCard.tsx` 409→86 ✓, `EditMatchInfoModal.tsx` 370→97 ✓, `timeline-rows.tsx` 342→81 ✓, `scoring/page.tsx` 339→94 ✓, `dashboard/page.tsx` 337→69 ✓, `SetSummaryModal.tsx` 327→91 ✓, `AdvancedStats.tsx` 316→23 ✓; restam **37 arquivos `.tsx` de produção** >100L (backlog; testes excluídos).
 
 
 ---
@@ -218,6 +218,15 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-15 | UI-6d | `use-dashboard-page-model.ts` (novo, 90L, CC 5/1) — auth, navegação, dados, modais, retomada, exclusão/finalização, filtros e `resolveDashboardView`; `page.tsx` 157→**69** (composição `model` + `actions` + `summary`). Commit `93a6cda` | Concluído |
 | 2026-10-15 | UI-6e | `use-dashboard-server-start.ts` (novo, 43L: seleção de sacador + `startMatch`) extraído das ações; `use-dashboard-match-actions.ts` 119→98 (compõe via spread). Commit `2000533` | Concluído |
 | 2026-10-15 | UI-5/6 DoD | `typecheck` verde · `test:strict` 291/294 (3191/3196, baseline — 3 falhas pré-existentes) · `test:design` 3/3 (26/26) · `lint` 0 erros · **R-03 ✓** para `scoring/page.tsx` (6 arquivos ≤100L) e `dashboard/page.tsx` (8 arquivos ≤100L) · fatias de `scoring`: 133 suites/1650 testes verdes; de `dashboard`: 20 suites (falha única = baseline) | Concluído |
+| 2026-10-15 | UI-7a | `set-summary-stat-bar.tsx` (novo, 48L) — `StatBarBilateral` extraída com `StatBarBilateralProps`; `SetSummaryModal.tsx` 327→283. Commit `9ba9637` | Concluído |
+| 2026-10-15 | UI-7b | `set-summary-stats-sections.tsx` (novo, 88L) — Saque & Eficiência + Break Points (`p1`/`p2` via `SetSummaryReport["player1"]`); `SetSummaryModal.tsx` 283→213. Commit `58db88a` | Concluído |
+| 2026-10-15 | UI-7c | `set-summary-header.tsx` (68L: badge, duração, título, fechar e abas de set) + `set-summary-score-card.tsx` (40L: placar com vencedor/tiebreak); `SetSummaryModal.tsx` 213→152. Commit `81d2b38` | Concluído |
+| 2026-10-15 | UI-7d | `use-set-summary-report.ts` (58L: sets disponíveis, set selecionado sincronizado e `summary` via `computeSetSummary`; exporta `CompletedSetData`) + `set-summary-footer.tsx` (63L: concluir/relatório, fechar, retomar); `SetSummaryModal.tsx` 151→**91**. Commit `c102365` | Concluído |
+| 2026-10-15 | UI-7 DoD | `typecheck` verde · `test:strict` 291/294 (3191/3196, baseline) · `test:design` 3/3 (26/26) · `lint` 0 erros · **R-03 ✓ para SetSummaryModal**: 7 arquivos ≤100L (`SetSummaryModal.tsx` 91, `set-summary-stat-bar.tsx` 48, `set-summary-stats-sections.tsx` 88, `set-summary-header.tsx` 68, `set-summary-score-card.tsx` 40, `set-summary-footer.tsx` 63, `use-set-summary-report.ts` 58) · 133 suites/1650 testes de scoring verdes | Concluído |
+| 2026-10-15 | UI-8a | `advanced-stats-primitives.tsx` (novo, 50L: `StatRow`, `Section`, `PlayerColumnHeader` deduplicando o cabeçalho de colunas repetido em 4 seções, `AdvancedStatsSectionProps`) + `advanced-stats-basic-sections.tsx` (58L: Serve/Return/Pressure); `AdvancedStats.tsx` 316→228. Commit `8b043d0` | Concluído |
+| 2026-10-15 | UI-8b | `advanced-stats-shot-section.tsx` (novo, 100L: lances, rally, por golpe com `ByStrokeGrid` deduplicando os dois blocos idênticos e mesma guarda de vazio, backhand); `AdvancedStats.tsx` 228→129. Commit `642debd` | Concluído |
+| 2026-10-15 | UI-8c | `advanced-stats-momentum.tsx` (50L) + `advanced-stats-set-breakdown.tsx` (66L); `AdvancedStats.tsx` 129→**23**. Commit `3f257a2` | Concluído |
+| 2026-10-15 | UI-8 DoD | `typecheck` verde · `test:strict` 291/294 (3191/3196, baseline) · `test:design` 3/3 (26/26) · `lint` 0 erros · **R-03 ✓ para AdvancedStats**: 6 arquivos ≤100L (`AdvancedStats.tsx` 23, `advanced-stats-primitives.tsx` 50, `advanced-stats-basic-sections.tsx` 58, `advanced-stats-shot-section.tsx` 100, `advanced-stats-momentum.tsx` 50, `advanced-stats-set-breakdown.tsx` 66) · 13 suites/47 testes de report verdes | Concluído |
 
 > **Status Fase UI-1: CONCLUÍDA.** `MatchTimelineView.tsx` 535 → 96 linhas (R-03 ✓), 6 commits atômicos.
 > **Status Fase UI-2: CONCLUÍDA.** `MatchCard.tsx` 409 → 86 linhas (R-03 ✓), 4 commits atômicos (`ecadac2`, `40951dd`, `057e3fb`, `bc72bbd`).
@@ -225,10 +234,12 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 > **Status Fase UI-4: CONCLUÍDA.** `timeline-rows.tsx` 342 → 81 linhas (R-03 ✓), 4 commits atômicos (`7e1a2ac`, `69065db`, `55571ae`, `b51681d`).
 > **Status Fase UI-5: CONCLUÍDA.** `scoring/page.tsx` 339 → 94 linhas (R-03 ✓), 4 commits atômicos (`69e50d5`, `914a245`, `087d5c9`, `a66caf2`).
 > **Status Fase UI-6: CONCLUÍDA.** `dashboard/page.tsx` 337 → 69 linhas (R-03 ✓), 5 commits atômicos (`20ddd92`, `9649b49`, `9331a37`, `2000533`, `93a6cda`).
+> **Status Fase UI-7: CONCLUÍDA.** `SetSummaryModal.tsx` 327 → 91 linhas (R-03 ✓), 4 commits atômicos (`9ba9637`, `58db88a`, `81d2b38`, `c102365`).
+> **Status Fase UI-8: CONCLUÍDA.** `AdvancedStats.tsx` 316 → 23 linhas (R-03 ✓), 3 commits atômicos (`8b043d0`, `642debd`, `3f257a2`).
 > **Pendências do plano:**
 > 1. ~~**R-01** — recriar `docs/glossario.md`~~ — **CONCLUÍDO** (UTF-8 limpo, 147 linhas).
-> 2. **R-03 backlog** — **39 arquivos `.tsx` de produção** ainda >100 linhas (medido 2026-10-15, testes excluídos). Maiores: `SetSummaryModal.tsx` 327, `edit-score-form.tsx` 320, `AdvancedStats.tsx` 316, `CommentModal.tsx` 293, `EditScoreModal.tsx` 261.
-> 3. Ordem sugerida: `SetSummaryModal.tsx` (327) → `AdvancedStats.tsx` (316) → `edit-score-form.tsx` (320) → `EditScoreModal.tsx` (261). Padrão de referência: UI-1 (timeline-*), UI-2 (match-card-*), UI-3 (edit-match-info-*), UI-4 (timeline-rows-*), UI-5 (scoring-page-*), UI-6 (dashboard-*).
+> 2. **R-03 backlog** — **37 arquivos `.tsx` de produção** ainda >100 linhas (medido 2026-10-15, testes excluídos). Maiores: `edit-score-form.tsx` 320, `CommentModal.tsx` 293, `EditScoreModal.tsx` 261, `match/new/page.tsx` 260, `ScoreboardCard.tsx` 251.
+> 3. Ordem sugerida: `edit-score-form.tsx` (320) → `CommentModal.tsx` (293) → `EditScoreModal.tsx` (261) → `match/new/page.tsx` (260). Padrão de referência: UI-1 (timeline-*), UI-2 (match-card-*), UI-3 (edit-match-info-*), UI-4 (timeline-rows-*), UI-5 (scoring-page-*), UI-6 (dashboard-*), UI-7 (set-summary-*), UI-8 (advanced-stats-*).
 
 
 
