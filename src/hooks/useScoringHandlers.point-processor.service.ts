@@ -103,7 +103,7 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
     const serverHasTiebreak = serverState.sets?.some((s) => Boolean(s.isTiebreak) && Boolean(s.tiebreakScore));
 
     if (localInTiebreak && !serverHasTiebreak) {
-      logger.warn("[processPoint] server response missing tiebreak info — keeping local state", {
+      logger.warn("[applyPoint] server response missing tiebreak info — keeping local state", {
         localSets: localState.sets?.length,
         serverSets: serverState.sets?.length,
       });
@@ -133,10 +133,10 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
     return serverResponse.pointLogId;
   };
 
-  const processPoint = async (flow: PointFlow): Promise<string | undefined> => {
+  const applyPoint = async (flow: PointFlow): Promise<string | undefined> => {
     if (!engineRef.current || !match || isProcessingRef.current) return undefined;
     if (match.state !== "IN_PROGRESS") {
-      logger.warn("[processPoint] match.state não é IN_PROGRESS — abortando antes de applyPoint", {
+      logger.warn("[applyPoint] match.state não é IN_PROGRESS — abortando antes de applyPoint", {
         matchState: match.state,
         matchId: match.id,
       });
@@ -207,7 +207,7 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
       if (newState.isFinished) setShowFinishedBanner(true);
       return undefined;
     } catch (err) {
-      logger.error("[processPoint]", err);
+      logger.error("[applyPoint]", err);
       setError("Erro ao registrar ponto");
       return undefined;
     } finally {
@@ -256,7 +256,7 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
 
     closeAll();
 
-    processPoint({
+    applyPoint({
       winnerId: id,
       type: flowType,
       serverId: serverHelpers.getServerId(),
@@ -290,5 +290,5 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
     });
   };
 
-  return { processPoint, handlePointDetailsConfirm };
+  return { applyPoint, handlePointDetailsConfirm };
 }

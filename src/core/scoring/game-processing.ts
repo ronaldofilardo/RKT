@@ -11,7 +11,7 @@ import { completeSet, isSetComplete } from './set-completion';
  * entra em Ponto Decisivo (Deuce) para ser decidido no próximo ponto único.
  * Caso contrário, quem chegar a 4 pontos vence direto.
  */
-function processNoAdPoint(
+function applyNoAdPoint(
   game: GameScore,
   state: ScoringState,
   config: ScoringEngineConfig,
@@ -34,7 +34,7 @@ function processNoAdPoint(
  * Ponto em formato com vantagem (tradicional): 40-40 vira Deuce, precisa de
  * 2 pontos de diferença a partir de 3-3 para fechar o game.
  */
-function processAdvantagePoint(
+function applyAdvantagePoint(
   game: GameScore,
   state: ScoringState,
   config: ScoringEngineConfig,
@@ -61,7 +61,7 @@ function processAdvantagePoint(
   return { ...state, currentGame: game };
 }
 
-function processStandardPoint(
+function applyStandardPoint(
   winner: 'player1' | 'player2',
   state: ScoringState,
   config: ScoringEngineConfig,
@@ -71,11 +71,11 @@ function processStandardPoint(
   if (winner === 'player1') game.player1++;
   else game.player2++;
 
-  if (usesNoAd(config)) return processNoAdPoint(game, state, config);
-  return processAdvantagePoint(game, state, config);
+  if (usesNoAd(config)) return applyNoAdPoint(game, state, config);
+  return applyAdvantagePoint(game, state, config);
 }
 
-function processDeucePoint(
+function applyDeucePoint(
   winner: 'player1' | 'player2',
   state: ScoringState,
   config: ScoringEngineConfig,
@@ -93,7 +93,7 @@ function processDeucePoint(
   return { ...state, currentGame: game };
 }
 
-export function processRegularPoint(
+export function applyRegularPoint(
   winner: 'player1' | 'player2',
   state: ScoringState,
   config: ScoringEngineConfig,
@@ -103,12 +103,12 @@ export function processRegularPoint(
     // Em formatos "no-ad", a partir do 3-3 o game é decidido no PRÓXIMO
     // ponto (sudden death / ponto de ouro) — quem vencer esse ponto único
     // vence o game, sem precisar de 2 pontos de vantagem. O deuce
-    // tradicional (processDeucePoint) só se aplica a formatos com
+    // tradicional (applyDeucePoint) só se aplica a formatos com
     // vantagem.
     if (usesNoAd(config)) return handleGameWon(winner, game, state, config);
-    return processDeucePoint(winner, state, config);
+    return applyDeucePoint(winner, state, config);
   }
-  return processStandardPoint(winner, state, config);
+  return applyStandardPoint(winner, state, config);
 }
 
 function validateGameWinner(gameWinner: 'player1' | 'player2', currentSet: SetScore): void {

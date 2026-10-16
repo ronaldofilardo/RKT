@@ -1,7 +1,7 @@
 import type { ScoringEngineConfig, ScoringState, SetScore } from './types';
 import { createEmptyGame } from './engine.state';
 
-export function processMatchTiebreak(
+export function applyMatchTiebreak(
   winner: 'player1' | 'player2',
   state: ScoringState,
   config?: ScoringEngineConfig,

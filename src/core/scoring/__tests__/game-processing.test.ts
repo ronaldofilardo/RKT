@@ -1,4 +1,4 @@
-import { processRegularPoint, handleGameWon } from '../game-processing';
+import { applyRegularPoint, handleGameWon } from '../game-processing';
 import type { ScoringState, ScoringEngineConfig, GameScore } from '../types';
 
 function createBaseState(overrides: Partial<ScoringState> = {}): ScoringState {
@@ -29,12 +29,12 @@ function createGame(overrides: Partial<GameScore> = {}): GameScore {
   return { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false, ...overrides };
 }
 
-describe('processRegularPoint', () => {
+describe('applyRegularPoint', () => {
   describe('standard scoring (BEST_OF_3)', () => {
     it('deve incrementar pontos do player1', () => {
       const state = createBaseState();
       const config = createConfig();
-      const result = processRegularPoint('player1', state, config);
+      const result = applyRegularPoint('player1', state, config);
       expect(result.currentGame.player1).toBe(1);
       expect(result.currentGame.player2).toBe(0);
     });
@@ -42,7 +42,7 @@ describe('processRegularPoint', () => {
     it('deve incrementar pontos do player2', () => {
       const state = createBaseState();
       const config = createConfig();
-      const result = processRegularPoint('player2', state, config);
+      const result = applyRegularPoint('player2', state, config);
       expect(result.currentGame.player1).toBe(0);
       expect(result.currentGame.player2).toBe(1);
     });
@@ -51,13 +51,13 @@ describe('processRegularPoint', () => {
       let state = createBaseState();
       const config = createConfig();
 
-      state = processRegularPoint('player1', state, config);
+      state = applyRegularPoint('player1', state, config);
       expect(state.currentGame.player1).toBe(1);
 
-      state = processRegularPoint('player1', state, config);
+      state = applyRegularPoint('player1', state, config);
       expect(state.currentGame.player1).toBe(2);
 
-      state = processRegularPoint('player1', state, config);
+      state = applyRegularPoint('player1', state, config);
       expect(state.currentGame.player1).toBe(3);
     });
 
@@ -67,7 +67,7 @@ describe('processRegularPoint', () => {
       });
       const config = createConfig();
 
-      const result = processRegularPoint('player1', state, config);
+      const result = applyRegularPoint('player1', state, config);
       expect(result.currentGame.isDeuce).toBe(true);
       expect(result.currentGame.player1).toBe(3);
       expect(result.currentGame.player2).toBe(3);
@@ -79,7 +79,7 @@ describe('processRegularPoint', () => {
       });
       const config = createConfig();
 
-      const result = processRegularPoint('player1', state, config);
+      const result = applyRegularPoint('player1', state, config);
       expect(result.currentGame.player1).toBe(0);
       expect(result.currentGame.player2).toBe(0);
       expect(result.sets).toHaveLength(1);
@@ -92,7 +92,7 @@ describe('processRegularPoint', () => {
       });
       const config = createConfig();
 
-      const result = processRegularPoint('player2', state, config);
+      const result = applyRegularPoint('player2', state, config);
       expect(result.currentGame.player1).toBe(0);
       expect(result.currentGame.player2).toBe(0);
       expect(result.sets).toHaveLength(1);
@@ -106,7 +106,7 @@ describe('processRegularPoint', () => {
       });
       const config = createConfig();
 
-      const result = processRegularPoint('player1', state, config);
+      const result = applyRegularPoint('player1', state, config);
       expect(result.server).toBe('player2');
     });
   });
@@ -118,7 +118,7 @@ describe('processRegularPoint', () => {
       });
       const config = createConfig();
 
-      const result = processRegularPoint('player1', state, config);
+      const result = applyRegularPoint('player1', state, config);
       expect(result.currentGame.advantage).toBe('player1');
     });
 
@@ -128,7 +128,7 @@ describe('processRegularPoint', () => {
       });
       const config = createConfig();
 
-      const result = processRegularPoint('player2', state, config);
+      const result = applyRegularPoint('player2', state, config);
       expect(result.currentGame.advantage).toBeNull();
       expect(result.currentGame.isDeuce).toBe(true);
     });
@@ -139,7 +139,7 @@ describe('processRegularPoint', () => {
       });
       const config = createConfig();
 
-      const result = processRegularPoint('player1', state, config);
+      const result = applyRegularPoint('player1', state, config);
       expect(result.currentGame.player1).toBe(0);
       expect(result.currentGame.player2).toBe(0);
       expect(result.sets).toHaveLength(1);
@@ -152,7 +152,7 @@ describe('processRegularPoint', () => {
       });
       const config = createConfig();
 
-      const result = processRegularPoint('player2', state, config);
+      const result = applyRegularPoint('player2', state, config);
       expect(result.currentGame.advantage).toBe('player2');
     });
 
@@ -162,7 +162,7 @@ describe('processRegularPoint', () => {
       });
       const config = createConfig();
 
-      const result = processRegularPoint('player2', state, config);
+      const result = applyRegularPoint('player2', state, config);
       expect(result.sets).toHaveLength(1);
       expect(result.sets[0].player2).toBe(1);
     });
@@ -173,17 +173,17 @@ describe('processRegularPoint', () => {
       });
       const config = createConfig();
 
-      state = processRegularPoint('player1', state, config);
+      state = applyRegularPoint('player1', state, config);
       expect(state.currentGame.advantage).toBe('player1');
 
-      state = processRegularPoint('player2', state, config);
+      state = applyRegularPoint('player2', state, config);
       expect(state.currentGame.advantage).toBeNull();
       expect(state.currentGame.isDeuce).toBe(true);
 
-      state = processRegularPoint('player2', state, config);
+      state = applyRegularPoint('player2', state, config);
       expect(state.currentGame.advantage).toBe('player2');
 
-      state = processRegularPoint('player1', state, config);
+      state = applyRegularPoint('player1', state, config);
       expect(state.currentGame.advantage).toBeNull();
       expect(state.currentGame.isDeuce).toBe(true);
     });
@@ -196,7 +196,7 @@ describe('processRegularPoint', () => {
       });
       const config = createConfig({ format: 'BEST_OF_3_NO_AD' });
 
-      const result = processRegularPoint('player1', state, config);
+      const result = applyRegularPoint('player1', state, config);
       expect(result.currentGame.isDeuce).toBe(true);
       expect(result.currentGame.player1).toBe(3);
       expect(result.currentGame.player2).toBe(3);
@@ -208,7 +208,7 @@ describe('processRegularPoint', () => {
       });
       const config = createConfig({ format: 'BEST_OF_3_NO_AD' });
 
-      const result = processRegularPoint('player1', state, config);
+      const result = applyRegularPoint('player1', state, config);
       expect(result.sets).toHaveLength(1);
       expect(result.sets[0].player1).toBe(1);
       expect(result.currentGame.player1).toBe(0);
@@ -220,7 +220,7 @@ describe('processRegularPoint', () => {
       });
       const config = createConfig({ format: 'BEST_OF_3_NO_AD' });
 
-      const result = processRegularPoint('player2', state, config);
+      const result = applyRegularPoint('player2', state, config);
       expect(result.sets).toHaveLength(1);
       expect(result.sets[0].player2).toBe(1);
     });
@@ -231,7 +231,7 @@ describe('processRegularPoint', () => {
       });
       const config = createConfig({ format: 'BEST_OF_3_NO_AD' });
 
-      const result = processRegularPoint('player1', state, config);
+      const result = applyRegularPoint('player1', state, config);
       expect(result.sets).toHaveLength(1);
       expect(result.sets[0].player1).toBe(1);
     });

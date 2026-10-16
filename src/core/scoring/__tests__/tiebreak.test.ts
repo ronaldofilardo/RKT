@@ -1,4 +1,4 @@
-import { processTiebreakPoint, shouldStartTiebreak } from '../tiebreak';
+import { applyTiebreakPoint, shouldStartTiebreak } from '../tiebreak';
 import type { ScoringState, ScoringEngineConfig, SetScore } from '../types';
 
 function createBaseState(overrides: Partial<ScoringState> = {}): ScoringState {
@@ -25,11 +25,11 @@ function createConfig(overrides: Partial<ScoringEngineConfig> = {}): ScoringEngi
   };
 }
 
-describe('processTiebreakPoint', () => {
+describe('applyTiebreakPoint', () => {
   it('deve incrementar pontos do player1', () => {
     const state = createBaseState();
     const config = createConfig();
-    const result = processTiebreakPoint(state, 'player1', config);
+    const result = applyTiebreakPoint(state, 'player1', config);
     expect(result.sets[0].tiebreakScore!.player1).toBe(1);
     expect(result.sets[0].tiebreakScore!.player2).toBe(0);
   });
@@ -37,7 +37,7 @@ describe('processTiebreakPoint', () => {
   it('deve incrementar pontos do player2', () => {
     const state = createBaseState();
     const config = createConfig();
-    const result = processTiebreakPoint(state, 'player2', config);
+    const result = applyTiebreakPoint(state, 'player2', config);
     expect(result.sets[0].tiebreakScore!.player1).toBe(0);
     expect(result.sets[0].tiebreakScore!.player2).toBe(1);
   });
@@ -46,21 +46,21 @@ describe('processTiebreakPoint', () => {
     const state = createBaseState();
     const config = createConfig();
 
-    const r1 = processTiebreakPoint(state, 'player1', config);
+    const r1 = applyTiebreakPoint(state, 'player1', config);
     expect(r1.server).toBe('player2'); // total=1 (ímpar) → troca
 
-    const r2 = processTiebreakPoint(r1, 'player1', config);
+    const r2 = applyTiebreakPoint(r1, 'player1', config);
     expect(r2.server).toBe('player2'); // total=2 (par) → mantém
   });
 
   it('deve manter servidor original quando total é par', () => {
     const state = createBaseState({ server: 'player1' });
     const config = createConfig();
-    const r1 = processTiebreakPoint(state, 'player1', config);
+    const r1 = applyTiebreakPoint(state, 'player1', config);
     // total=1, ímpar → troca
     expect(r1.server).toBe('player2');
 
-    const r2 = processTiebreakPoint(r1, 'player1', config);
+    const r2 = applyTiebreakPoint(r1, 'player1', config);
     // total=2, par → mantém (player2 que era o "novo" server)
     expect(r2.server).toBe('player2');
   });
@@ -73,7 +73,7 @@ describe('processTiebreakPoint', () => {
     });
     const config = createConfig();
 
-    const result = processTiebreakPoint(state, 'player1', config);
+    const result = applyTiebreakPoint(state, 'player1', config);
     expect(result.isFinished).toBe(true);
     expect(result.winner).toBe('player1');
   });
@@ -86,7 +86,7 @@ describe('processTiebreakPoint', () => {
     });
     const config = createConfig();
 
-    const result = processTiebreakPoint(state, 'player2', config);
+    const result = applyTiebreakPoint(state, 'player2', config);
     expect(result.isFinished).toBe(true);
     expect(result.winner).toBe('player2');
   });
@@ -98,7 +98,7 @@ describe('processTiebreakPoint', () => {
     });
     const config = createConfig();
 
-    const result = processTiebreakPoint(state, 'player1', config);
+    const result = applyTiebreakPoint(state, 'player1', config);
     // Agora 6-6, não finaliza
     expect(result.isFinished).toBe(false);
     expect(result.sets[0].tiebreakScore!.player1).toBe(6);
@@ -112,7 +112,7 @@ describe('processTiebreakPoint', () => {
     });
     const config = createConfig();
 
-    const result = processTiebreakPoint(state, 'player1', config);
+    const result = applyTiebreakPoint(state, 'player1', config);
     expect(result.isFinished).toBe(false);
     expect(result.sets[0].tiebreakScore!.player1).toBe(7);
   });
@@ -123,7 +123,7 @@ describe('processTiebreakPoint', () => {
     });
     const config = createConfig();
 
-    const result = processTiebreakPoint(state, 'player1', config);
+    const result = applyTiebreakPoint(state, 'player1', config);
     expect(result.sets[0].tiebreakScore!.player1).toBe(1);
   });
 
@@ -135,7 +135,7 @@ describe('processTiebreakPoint', () => {
     });
     const config = createConfig({ format: 'MATCH_TB_10' });
 
-    const result = processTiebreakPoint(state, 'player1', config);
+    const result = applyTiebreakPoint(state, 'player1', config);
     expect(result.isFinished).toBe(true);
     expect(result.winner).toBe('player1');
   });
@@ -147,7 +147,7 @@ describe('processTiebreakPoint', () => {
     });
     const config = createConfig({ format: 'MATCH_TB_10' });
 
-    const result = processTiebreakPoint(state, 'player1', config);
+    const result = applyTiebreakPoint(state, 'player1', config);
     expect(result.isFinished).toBe(false);
   });
 
@@ -165,7 +165,7 @@ describe('processTiebreakPoint', () => {
     });
     const config = createConfig({ format: 'BEST_OF_5' });
 
-    const result = processTiebreakPoint(state, 'player1', config);
+    const result = applyTiebreakPoint(state, 'player1', config);
     expect(result.isFinished).toBe(true);
     expect(result.winner).toBe('player1');
   });
@@ -182,7 +182,7 @@ describe('processTiebreakPoint', () => {
     });
     const config = createConfig({ format: 'BEST_OF_3_MATCH_TB' });
 
-    const result = processTiebreakPoint(state, 'player1', config);
+    const result = applyTiebreakPoint(state, 'player1', config);
     expect(result.isFinished).toBe(true);
     expect(result.winner).toBe('player1');
   });
@@ -195,7 +195,7 @@ describe('processTiebreakPoint', () => {
     });
     const config = createConfig({ format: 'BEST_OF_5' });
 
-    const result = processTiebreakPoint(state, 'player1', config);
+    const result = applyTiebreakPoint(state, 'player1', config);
     // tbMin=7, 7-5 com diff=2, mas best_of_5 precisa de 5 sets para match tb
     // Aqui é set normal (tbMin=7), 7>=7 e diff=2 → ganha o set
     expect(result.isFinished).toBe(false); // BEST_OF_5 precisa de 3 sets, só tem 0

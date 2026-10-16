@@ -77,7 +77,7 @@ function hasTiebreakBeenWon(
   return w >= tbMin && w - l >= 2;
 }
 
-export function processTiebreakPoint(
+export function applyTiebreakPoint(
   state: ScoringState,
   winner: 'player1' | 'player2',
   config: ScoringEngineConfig,
@@ -133,7 +133,7 @@ export function shouldStartTiebreak(set: SetScore, state: ScoringState, config: 
 
   if (config.format === 'BEST_OF_5') {
     // 5º set decisivo (2x2 em sets): joga games normais até 6x6, e SÓ ENTÃO
-    // inicia o tie-break — que processTiebreakPoint trata como Match Tiebreak
+    // inicia o tie-break — que applyTiebreakPoint trata como Match Tiebreak
     // de 10 pontos por já checar state.sets.length === 5. Antes retornava
     // false aqui, o que impedia o tie-break de começar em 6x6 no 5º set,
     // deixando o set seguir por vantagem indefinidamente (regra errada).

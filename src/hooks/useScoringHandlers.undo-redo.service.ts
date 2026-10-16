@@ -72,7 +72,7 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
       // SEGUNDA vez. Essa premissa está obsoleta: hoje o erro de 1º saque
       // nunca gera uma entrada própria no histórico (é só estado local em
       // useScoringHandlers.serve-actions.service.ts); o firstFaultDetail
-      // viaja embutido no ÚNICO processPoint que fecha a jogada, e
+      // viaja embutido no ÚNICO applyPoint que fecha a jogada, e
       // engine.ts (handleDoubleFault) salva 1 única entrada via
       // saveToHistory. Fazer 2 undos apagava também o ponto anterior
       // (ex.: 15/0 → erro 1º saque + dupla falta → 15/15 → Voltar → 0/0

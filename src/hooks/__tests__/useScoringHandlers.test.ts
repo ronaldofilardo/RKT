@@ -241,8 +241,8 @@ describe('useScoringHandlers - handleServeErrorConfirm', () => {
 
   // ─── Regressão: DF deve propagar firstFaultDetail a partir de firstServeError ─
   describe('Double Fault — firstFaultDetail propagado (regressão)', () => {
-    // processPoint é construído internamente em useScoringHandlers (não injetável).
-    // Capturamos o flow via engineRef.current.applyPoint, chamado por processPoint.
+    // applyPoint é construído internamente em useScoringHandlers (não injetável).
+    // Capturamos o flow via engineRef.current.applyPoint, chamado por applyPoint.
     // Como isOnline=true dispara fetch (indisponível em jsdom), fazemos isOnline=false
     // para cair no ramo queuePointForOffline, que não dispara fetch.
     function makeDfCtx(overrides: Partial<any> = {}) {
@@ -539,7 +539,7 @@ describe('useScoringHandlers - handlePointDetailsConfirm (regressão uploadAudio
     ).not.toThrow();
   });
 
-  it('processPoint é invocado (POST /api/matches/{id}/point) ao confirmar detalhes', async () => {
+  it('applyPoint é invocado (POST /api/matches/{id}/point) ao confirmar detalhes', async () => {
     const ctx = makeAudioCtx();
     const { result } = renderHook(() => useScoringHandlers(ctx));
     const handlers = result.current;
@@ -685,7 +685,7 @@ describe('useScoringHandlers - voltar no 2º saque não deve mexer no placar', (
 
 // ─── Regressão: voltar não pode deixar o Ace/DF agendado (debounce) disparar ──
 // Bug reportado: handleServerEffectConfirm/handleServeErrorConfirm agendam o
-// processPoint real dentro de um setTimeout (debounce). isProcessingRef só
+// applyPoint real dentro de um setTimeout (debounce). isProcessingRef só
 // vira true DENTRO desse timeout, não no agendamento. Os handlers de
 // cancelamento (agora unificados no handleVoltar) precisam cancelar esse
 // timer pendente (diferente de handleUndo, que já fazia isso) — senão
@@ -824,7 +824,7 @@ describe('useScoringHandlers - cancelar aborta ponto fantasma (Ace/DF agendado v
 // ─── Regressão: firstFaultDetail perdido quando o ponto NÃO termina em DF ────
 // Bug reportado: handleAceDirect, handleServerEffectConfirm (Ace com
 // detalhes) e handlePointDetailsConfirm (rally comum) nunca incluíam
-// firstFaultDetail no payload do processPoint — só os handlers de
+// firstFaultDetail no payload do applyPoint — só os handlers de
 // DOUBLE_FAULT faziam isso. Resultado: o erro do 1º saque era perdido
 // sempre que o ponto terminava em Ace no 2º saque ou em rally após acerto
 // do 2º saque, e a coluna "1º Saque" da timeline ficava sem OUT/NET/EFE/DIR.
@@ -1005,7 +1005,7 @@ describe('useScoringHandlers - firstFaultDetail propagado quando o ponto NÃO é
 });
 
 // ─── Regressão: botão "Voltar" travado após registrar um ponto ───────────────
-// isProcessingRef é um ref — mutar para false no finally de processPoint não
+// isProcessingRef é um ref — mutar para false no finally de applyPoint não
 // re-renderiza. Nos caminhos sem setState após o await (fila offline, resposta
 // sem scoreState, tiebreak mismatch), o último render commitado aconteceu com
 // isProcessing=true e a ActionBar inteira ficava travada em ⏳. O callback
@@ -1046,12 +1046,12 @@ describe('useScoringHandlers - onPointProcessed (re-render pós-ponto)', () => {
     return { ctx, applyPoint, onPointProcessed };
   }
 
-  it('processPoint (fila offline, sem setState pós-await) chama onPointProcessed no finally', async () => {
+  it('applyPoint (fila offline, sem setState pós-await) chama onPointProcessed no finally', async () => {
     const { ctx, onPointProcessed } = makeTickCtx();
     const { result } = renderHook(() => useScoringHandlers(ctx));
 
     await act(async () => {
-      await result.current.processPoint({
+      await result.current.applyPoint({
         winnerId: 'p1',
         type: 'WINNER',
         serverId: 'p1',
@@ -1063,7 +1063,7 @@ describe('useScoringHandlers - onPointProcessed (re-render pós-ponto)', () => {
     expect(ctx.isProcessingRef.current).toBe(false);
   });
 
-  it('processPoint chama onPointProcessed mesmo quando applyPoint lança erro', async () => {
+  it('applyPoint chama onPointProcessed mesmo quando applyPoint lança erro', async () => {
     const { ctx, onPointProcessed } = makeTickCtx();
     (ctx.engineRef.current as any).applyPoint = jest.fn(() => {
       throw new Error('boom');
@@ -1071,7 +1071,7 @@ describe('useScoringHandlers - onPointProcessed (re-render pós-ponto)', () => {
     const { result } = renderHook(() => useScoringHandlers(ctx));
 
     await act(async () => {
-      await result.current.processPoint({
+      await result.current.applyPoint({
         winnerId: 'p1',
         type: 'WINNER',
         serverId: 'p1',
@@ -1083,12 +1083,12 @@ describe('useScoringHandlers - onPointProcessed (re-render pós-ponto)', () => {
     expect(ctx.isProcessingRef.current).toBe(false);
   });
 
-  it('processPoint não chama onPointProcessed quando aborta antes de processar (match não IN_PROGRESS)', async () => {
+  it('applyPoint não chama onPointProcessed quando aborta antes de processar (match não IN_PROGRESS)', async () => {
     const { ctx, onPointProcessed } = makeTickCtx({ match: undefined });
     const { result } = renderHook(() => useScoringHandlers(ctx));
 
     await act(async () => {
-      await result.current.processPoint({
+      await result.current.applyPoint({
         winnerId: 'p1',
         type: 'WINNER',
         serverId: 'p1',

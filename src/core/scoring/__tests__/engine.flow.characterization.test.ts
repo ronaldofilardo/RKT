@@ -1,10 +1,10 @@
 import {
-  processRegularPoint,
-  processMatchTiebreak,
+  applyRegularPoint,
+  applyMatchTiebreak,
   handleGameWon,
   completeSet,
   completeSetWithTiebreak,
-  processTiebreakPoint,
+  applyTiebreakPoint,
   shouldStartTiebreak,
   shouldStartMatchTiebreak,
   isSetComplete,
@@ -51,29 +51,29 @@ function createGameScore(player1: number, player2: number, isDeuce = false, adva
 describe('engine.flow — Characterization Tests', () => {
   
 
-  describe('processRegularPoint — Standard scoring (non-No-Ad)', () => {
+  describe('applyRegularPoint — Standard scoring (non-No-Ad)', () => {
     const config = createConfig('BEST_OF_3');
 
     it('increments winner score from 0-0', () => {
       const state = createInitialState(config);
-      const result = processRegularPoint('player1', state, config);
+      const result = applyRegularPoint('player1', state, config);
       expect(result.currentGame.player1).toBe(1);
       expect(result.currentGame.player2).toBe(0);
     });
 
     it('progresses 15-30-40 correctly', () => {
       let state = createInitialState(config);
-      state = processRegularPoint('player1', state, config); // 15-0
-      state = processRegularPoint('player1', state, config); // 30-0
-      state = processRegularPoint('player1', state, config); // 40-0
+      state = applyRegularPoint('player1', state, config); // 15-0
+      state = applyRegularPoint('player1', state, config); // 30-0
+      state = applyRegularPoint('player1', state, config); // 40-0
       expect(state.currentGame.player1).toBe(3);
       expect(state.currentGame.player2).toBe(0);
     });
 
     it('handles deuce at 40-40', () => {
       let state = createInitialState(config);
-      for (let i = 0; i < 3; i++) state = processRegularPoint('player1', state, config);
-      for (let i = 0; i < 3; i++) state = processRegularPoint('player2', state, config);
+      for (let i = 0; i < 3; i++) state = applyRegularPoint('player1', state, config);
+      for (let i = 0; i < 3; i++) state = applyRegularPoint('player2', state, config);
       expect(state.currentGame.isDeuce).toBe(true);
       expect(state.currentGame.player1).toBe(3);
       expect(state.currentGame.player2).toBe(3);
@@ -81,9 +81,9 @@ describe('engine.flow — Characterization Tests', () => {
 
     it('gives advantage after deuce (isDeuce stays true until game won)', () => {
       let state = createInitialState(config);
-      for (let i = 0; i < 3; i++) state = processRegularPoint('player1', state, config);
-      for (let i = 0; i < 3; i++) state = processRegularPoint('player2', state, config);
-      state = processRegularPoint('player1', state, config);
+      for (let i = 0; i < 3; i++) state = applyRegularPoint('player1', state, config);
+      for (let i = 0; i < 3; i++) state = applyRegularPoint('player2', state, config);
+      state = applyRegularPoint('player1', state, config);
       expect(state.currentGame.advantage).toBe('player1');
       // isDeuce remains true while advantage exists (reset only on game win)
       expect(state.currentGame.isDeuce).toBe(true);
@@ -91,10 +91,10 @@ describe('engine.flow — Characterization Tests', () => {
 
     it('wins game when advantage holder wins next point', () => {
       let state = createInitialState(config);
-      for (let i = 0; i < 3; i++) state = processRegularPoint('player1', state, config);
-      for (let i = 0; i < 3; i++) state = processRegularPoint('player2', state, config);
-      state = processRegularPoint('player1', state, config); // adv p1
-      state = processRegularPoint('player1', state, config); // game p1
+      for (let i = 0; i < 3; i++) state = applyRegularPoint('player1', state, config);
+      for (let i = 0; i < 3; i++) state = applyRegularPoint('player2', state, config);
+      state = applyRegularPoint('player1', state, config); // adv p1
+      state = applyRegularPoint('player1', state, config); // game p1
       expect(state.sets[0].player1).toBe(1);
       expect(state.currentGame.player1).toBe(0);
       expect(state.currentGame.player2).toBe(0);
@@ -103,29 +103,29 @@ describe('engine.flow — Characterization Tests', () => {
 
     it('returns to deuce when advantage lost', () => {
       let state = createInitialState(config);
-      for (let i = 0; i < 3; i++) state = processRegularPoint('player1', state, config);
-      for (let i = 0; i < 3; i++) state = processRegularPoint('player2', state, config);
-      state = processRegularPoint('player1', state, config); // adv p1
-      state = processRegularPoint('player2', state, config); // back to deuce
+      for (let i = 0; i < 3; i++) state = applyRegularPoint('player1', state, config);
+      for (let i = 0; i < 3; i++) state = applyRegularPoint('player2', state, config);
+      state = applyRegularPoint('player1', state, config); // adv p1
+      state = applyRegularPoint('player2', state, config); // back to deuce
       expect(state.currentGame.isDeuce).toBe(true);
       expect(state.currentGame.advantage).toBeNull();
     });
   });
 
-  describe('processRegularPoint — No-Ad scoring (BEST_OF_3_NO_AD, SHORT_SET_2V2_NO_AD)', () => {
+  describe('applyRegularPoint — No-Ad scoring (BEST_OF_3_NO_AD, SHORT_SET_2V2_NO_AD)', () => {
     const configNoAd = createConfig('BEST_OF_3_NO_AD');
     const configShort = createConfig('SHORT_SET_2V2_NO_AD');
 
     it('at 3-3 sets isDeuce=true (ponto decisivo), then next point completes game', () => {
       let state = createInitialState(configNoAd);
-      for (let i = 0; i < 3; i++) state = processRegularPoint('player1', state, configNoAd);
-      for (let i = 0; i < 3; i++) state = processRegularPoint('player2', state, configNoAd);
+      for (let i = 0; i < 3; i++) state = applyRegularPoint('player1', state, configNoAd);
+      for (let i = 0; i < 3; i++) state = applyRegularPoint('player2', state, configNoAd);
       // At 3-3, game is at deuce (ponto decisivo)
       expect(state.currentGame.isDeuce).toBe(true);
       expect(state.sets.length).toBe(0);
 
       // Next point (sudden death) wins the game
-      state = processRegularPoint('player2', state, configNoAd);
+      state = applyRegularPoint('player2', state, configNoAd);
       expect(state.sets[0].player2).toBe(1);
       expect(state.currentGame.player1).toBe(0);
       expect(state.currentGame.player2).toBe(0);
@@ -133,12 +133,12 @@ describe('engine.flow — Characterization Tests', () => {
 
     it('decides game at next point after 3-3 in No-Ad (sudden death)', () => {
       let state = createInitialState(configNoAd);
-      for (let i = 0; i < 3; i++) state = processRegularPoint('player1', state, configNoAd);
-      for (let i = 0; i < 3; i++) state = processRegularPoint('player2', state, configNoAd);
+      for (let i = 0; i < 3; i++) state = applyRegularPoint('player1', state, configNoAd);
+      for (let i = 0; i < 3; i++) state = applyRegularPoint('player2', state, configNoAd);
       // At 3-3 is deuce
       expect(state.currentGame.isDeuce).toBe(true);
       // Sudden death point
-      state = processRegularPoint('player1', state, configNoAd);
+      state = applyRegularPoint('player1', state, configNoAd);
       expect(state.sets[0].player1).toBe(1);
       expect(state.currentGame.player1).toBe(0);
     });
@@ -150,12 +150,12 @@ describe('engine.flow — Characterization Tests', () => {
     });
   });
 
-  describe('processMatchTiebreak', () => {
+  describe('applyMatchTiebreak', () => {
     const config = createConfig('MATCH_TB_10');
 
     it('creates tiebreak set if none exists', () => {
       const state = createInitialState(config);
-      const result = processMatchTiebreak('player1', state);
+      const result = applyMatchTiebreak('player1', state);
       expect(result.sets.length).toBe(1);
       expect(result.sets[0].isTiebreak).toBe(true);
       expect(result.sets[0].tiebreakScore).toEqual({ player1: 1, player2: 0 });
@@ -163,27 +163,27 @@ describe('engine.flow — Characterization Tests', () => {
 
     it('increments tiebreak score correctly', () => {
       let state = createInitialState(config);
-      state = processMatchTiebreak('player1', state);
-      state = processMatchTiebreak('player1', state);
-      state = processMatchTiebreak('player2', state);
+      state = applyMatchTiebreak('player1', state);
+      state = applyMatchTiebreak('player1', state);
+      state = applyMatchTiebreak('player2', state);
       expect(state.sets[0].tiebreakScore).toEqual({ player1: 2, player2: 1 });
     });
 
     it('alternates server every 2 points', () => {
       let state = createInitialState(config);
       expect(state.server).toBe('player1');
-      state = processMatchTiebreak('player1', state); // 1-0, total=1 (odd), server flips
+      state = applyMatchTiebreak('player1', state); // 1-0, total=1 (odd), server flips
       expect(state.server).toBe('player2');
-      state = processMatchTiebreak('player2', state); // 1-1, total=2 (even), server stays
+      state = applyMatchTiebreak('player2', state); // 1-1, total=2 (even), server stays
       expect(state.server).toBe('player2');
-      state = processMatchTiebreak('player1', state); // 2-1, total=3 (odd), server flips
+      state = applyMatchTiebreak('player1', state); // 2-1, total=3 (odd), server flips
       expect(state.server).toBe('player1');
     });
 
     it('completes match at 10+ with 2-point margin (winner = last point scorer)', () => {
       let state = createInitialState(config);
-      for (let i = 0; i < 10; i++) state = processMatchTiebreak('player1', state);
-      for (let i = 0; i < 8; i++) state = processMatchTiebreak('player2', state);
+      for (let i = 0; i < 10; i++) state = applyMatchTiebreak('player1', state);
+      for (let i = 0; i < 8; i++) state = applyMatchTiebreak('player2', state);
       expect(state.isFinished).toBe(true);
       // winner is the last point scorer (player2), not the overall leader
       expect(state.winner).toBe('player2');
@@ -192,16 +192,16 @@ describe('engine.flow — Characterization Tests', () => {
     it('continues if 2-point margin not reached (e.g., 10-10, 11-11, etc.)', () => {
       let state = createInitialState(config);
       // Build up to 9-9 first (no one has 10 yet)
-      for (let i = 0; i < 9; i++) state = processMatchTiebreak('player1', state);
-      for (let i = 0; i < 9; i++) state = processMatchTiebreak('player2', state); // 9-9
+      for (let i = 0; i < 9; i++) state = applyMatchTiebreak('player1', state);
+      for (let i = 0; i < 9; i++) state = applyMatchTiebreak('player2', state); // 9-9
       expect(state.isFinished).toBe(false);
-      state = processMatchTiebreak('player1', state); // 10-9
+      state = applyMatchTiebreak('player1', state); // 10-9
       expect(state.isFinished).toBe(false); // margin = 1
-      state = processMatchTiebreak('player2', state); // 10-10
+      state = applyMatchTiebreak('player2', state); // 10-10
       expect(state.isFinished).toBe(false);
-      state = processMatchTiebreak('player2', state); // 10-11
+      state = applyMatchTiebreak('player2', state); // 10-11
       expect(state.isFinished).toBe(false); // margin = 1
-      state = processMatchTiebreak('player2', state); // 10-12
+      state = applyMatchTiebreak('player2', state); // 10-12
       expect(state.isFinished).toBe(true);
       expect(state.winner).toBe('player2');
     });
@@ -216,8 +216,8 @@ describe('engine.flow — Characterization Tests', () => {
       state.setsWon = { player1: 1, player2: 1 };
       state.server = 'player1';
 
-      state = processMatchTiebreak('player1', state);
-      // processMatchTiebreak uses last set (index 1) for MT
+      state = applyMatchTiebreak('player1', state);
+      // applyMatchTiebreak uses last set (index 1) for MT
       // isTiebreak is only set to true in completeMatchTiebreak (on MT completion)
       // During MT, tiebreakScore is updated but isTiebreak remains false
       expect(state.sets.length).toBe(2);
@@ -372,7 +372,7 @@ describe('engine.flow — Characterization Tests', () => {
     });
   });
 
-  describe('processTiebreakPoint', () => {
+  describe('applyTiebreakPoint', () => {
     const config = createConfig('BEST_OF_3');
 
     it('increments tiebreak score', () => {
@@ -380,7 +380,7 @@ describe('engine.flow — Characterization Tests', () => {
       state.sets = [createSetScore(6, 6, true, { player1: 0, player2: 0 })];
       state.server = 'player1';
 
-      state = processTiebreakPoint(state, 'player1', config);
+      state = applyTiebreakPoint(state, 'player1', config);
       expect(state.sets[0].tiebreakScore).toEqual({ player1: 1, player2: 0 });
     });
 
@@ -389,11 +389,11 @@ describe('engine.flow — Characterization Tests', () => {
       state.sets = [createSetScore(6, 6, true, { player1: 0, player2: 0 })];
       state.server = 'player1';
 
-      state = processTiebreakPoint(state, 'player1', config); // 1-0, total=1 (odd), server flips
+      state = applyTiebreakPoint(state, 'player1', config); // 1-0, total=1 (odd), server flips
       expect(state.server).toBe('player2');
-      state = processTiebreakPoint(state, 'player2', config); // 1-1, total=2 (even), server stays
+      state = applyTiebreakPoint(state, 'player2', config); // 1-1, total=2 (even), server stays
       expect(state.server).toBe('player2');
-      state = processTiebreakPoint(state, 'player1', config); // 2-1, total=3 (odd), server flips
+      state = applyTiebreakPoint(state, 'player1', config); // 2-1, total=3 (odd), server flips
       expect(state.server).toBe('player1');
     });
 
@@ -403,7 +403,7 @@ describe('engine.flow — Characterization Tests', () => {
       state.server = 'player1';
 
       // Player1 wins 7 straight points - tiebreak ends at 7-0
-      for (let i = 0; i < 7; i++) state = processTiebreakPoint(state, 'player1', config);
+      for (let i = 0; i < 7; i++) state = applyTiebreakPoint(state, 'player1', config);
       expect(state.setsWon.player1).toBe(1);
       expect(state.sets[0].player1).toBe(7); // set score 7-6
       expect(state.sets[0].isTiebreak).toBe(false);
@@ -423,7 +423,7 @@ describe('engine.flow — Characterization Tests', () => {
         'player1',                                                        // 7-5 -> complete
       ];
       for (const winner of sequence) {
-        state = processTiebreakPoint(state, winner, config);
+        state = applyTiebreakPoint(state, winner, config);
       }
       expect(state.setsWon.player1).toBe(1);
       expect(state.sets[0].tiebreakScore).toEqual({ player1: 7, player2: 5 });
@@ -435,8 +435,8 @@ describe('engine.flow — Characterization Tests', () => {
       state.sets = [createSetScore(0, 0, true, { player1: 0, player2: 0 })];
       state.server = 'player1';
 
-      for (let i = 0; i < 10; i++) state = processTiebreakPoint(state, 'player1', config);
-      for (let i = 0; i < 8; i++) state = processTiebreakPoint(state, 'player2', config);
+      for (let i = 0; i < 10; i++) state = applyTiebreakPoint(state, 'player1', config);
+      for (let i = 0; i < 8; i++) state = applyTiebreakPoint(state, 'player2', config);
       expect(state.isFinished).toBe(true);
       expect(state.winner).toBe('player1');
     });
@@ -454,8 +454,8 @@ describe('engine.flow — Characterization Tests', () => {
       state.setsWon = { player1: 2, player2: 2 };
       state.server = 'player1';
 
-      for (let i = 0; i < 10; i++) state = processTiebreakPoint(state, 'player1', config);
-      for (let i = 0; i < 8; i++) state = processTiebreakPoint(state, 'player2', config);
+      for (let i = 0; i < 10; i++) state = applyTiebreakPoint(state, 'player1', config);
+      for (let i = 0; i < 8; i++) state = applyTiebreakPoint(state, 'player2', config);
       expect(state.isFinished).toBe(true);
       expect(state.winner).toBe('player1');
     });

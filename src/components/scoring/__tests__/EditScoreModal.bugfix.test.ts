@@ -160,7 +160,7 @@ describe("EditScoreModal Bug Fixes", () => {
       });
     });
 
-    it("processStandardPoint should work correctly with fixed game state", () => {
+    it("applyStandardPoint should work correctly with fixed game state", () => {
       // After Fix B, currentGame = {player1:0, player2:3} is a valid state.
       // When João (player1) wins a point (ACE): player1 becomes 1
       // Scoring logic: player1=1, player2=3 < 4 → no game won yet

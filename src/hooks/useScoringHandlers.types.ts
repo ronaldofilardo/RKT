@@ -75,7 +75,7 @@ export interface ScoringHandlersReturn {
   ) => Promise<{ success: boolean; needsResync?: boolean }>;
   getServerId: () => string;
   getWinnerId: (isServer: boolean) => string;
-  processPoint: (flow: PointFlow) => Promise<void>;
+  applyPoint: (flow: PointFlow) => Promise<void>;
   fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
   handleSetupConfirm: (serverId: string) => Promise<void>;
   handleUndo: () => void;

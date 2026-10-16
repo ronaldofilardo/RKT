@@ -14,7 +14,7 @@ interface ServeActionsDeps {
     getWinnerId: (isServerWinner: boolean) => string;
   };
   modalService: ReturnType<typeof createModalHandlersService>;
-  processPoint: (flow: PointFlow) => Promise<string | undefined>;
+  applyPoint: (flow: PointFlow) => Promise<string | undefined>;
   engineRef: React.MutableRefObject<ScoringEngine | null>;
   isProcessingRef: React.MutableRefObject<boolean>;
   debounceTimerRef: React.MutableRefObject<NodeJS.Timeout | null>;
@@ -39,7 +39,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
     serveErrorState,
     serverHelpers,
     modalService,
-    processPoint,
+    applyPoint,
     engineRef,
     isProcessingRef,
     debounceTimerRef,
@@ -77,7 +77,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
 
     debounceTimerRef.current = setTimeout(() => {
       debounceTimerRef.current = null;
-      processPoint({
+      applyPoint({
         winnerId: serverHelpers.getWinnerId(true),
         type: "ACE",
         serverId: serverHelpers.getServerId(),
@@ -117,7 +117,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
 
     debounceTimerRef.current = setTimeout(() => {
       debounceTimerRef.current = null;
-      processPoint({
+      applyPoint({
         winnerId: serverHelpers.getWinnerId(true),
         type: "ACE",
         serverId: serverHelpers.getServerId(),
@@ -175,7 +175,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
 
     debounceTimerRef.current = setTimeout(() => {
       debounceTimerRef.current = null;
-      processPoint({
+      applyPoint({
         winnerId: serverHelpers.getWinnerId(false),
         type: "DOUBLE_FAULT",
         serverId: serverHelpers.getServerId(),
@@ -230,7 +230,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
 
     debounceTimerRef.current = setTimeout(() => {
       debounceTimerRef.current = null;
-      processPoint({
+      applyPoint({
         winnerId: serverHelpers.getWinnerId(false),
         type: "DOUBLE_FAULT",
         serverId: serverHelpers.getServerId(),

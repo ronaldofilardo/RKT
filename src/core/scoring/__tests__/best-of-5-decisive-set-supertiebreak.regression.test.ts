@@ -7,7 +7,7 @@
  * que setsWon estava 2x2, achando que o Match Tiebreak seria iniciado por
  * outra rota (como acontece em BEST_OF_3_MATCH_TB) — mas para BEST_OF_5 não
  * existe essa outra rota: o 5º set precisa jogar games normais até 6x6 e,
- * exatamente aí, iniciar o tie-break (que processTiebreakPoint já trata
+ * exatamente aí, iniciar o tie-break (que applyTiebreakPoint já trata
  * corretamente como MT de 10 pontos, pois checa state.sets.length === 5).
  */
 import { ScoringEngine } from '../engine';

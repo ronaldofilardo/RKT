@@ -239,9 +239,9 @@ export function useScoringHandlers(
     setServeStep,
   });
 
-  const processPoint = useCallback(
+  const applyPoint = useCallback(
     async (flow: PointFlow): Promise<string | undefined> => {
-      return pointProcessorService.processPoint(flow);
+      return pointProcessorService.applyPoint(flow);
     },
     [pointProcessorService],
   );
@@ -288,7 +288,7 @@ export function useScoringHandlers(
     serveErrorState,
     serverHelpers,
     modalService,
-    processPoint,
+    applyPoint,
     engineRef,
     isProcessingRef,
     debounceTimerRef,
@@ -304,8 +304,8 @@ export function useScoringHandlers(
     persistState,
     getServerId: serverHelpers.getServerId,
     getWinnerId: serverHelpers.getWinnerId,
-    processPoint: async (flow: PointFlow) => {
-      await processPoint(flow);
+    applyPoint: async (flow: PointFlow) => {
+      await applyPoint(flow);
     },
     fetchMatch,
     handleSetupConfirm,

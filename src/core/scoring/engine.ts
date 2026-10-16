@@ -3,9 +3,9 @@ import { logger } from '@/lib/logger';
 import { createInitialState, getState, serialize, reconcileWithCanonicalState } from './engine.state';
 import { saveToHistory, undoLastPoint as undoHistory, getHistoryLength, getPointHistory, restorePointHistory, clearHistory } from './engine.history';
 import {
-  processRegularPoint as processRegularPointFlow,
-  processTiebreakPoint as processTiebreakPointHandler,
-  processMatchTiebreak as processMatchTiebreakFlow,
+  applyRegularPoint as applyRegularPointFlow,
+  applyTiebreakPoint as applyTiebreakPointToGame,
+  applyMatchTiebreak as applyMatchTiebreakFlow,
   isMatchTiebreakActive,
 } from './engine.flow';
 import { unwrapStateEnvelope } from './state-envelope';
@@ -108,7 +108,7 @@ export class ScoringEngine {
 
     saveToHistory(this.history, this.state, details);
 
-    this.state = this.processPoint(winner);
+    this.state = this.applyResolvedPoint(winner);
     return getState(this.state);
   }
 
@@ -123,23 +123,23 @@ export class ScoringEngine {
     saveToHistory(this.history, this.state, details);
     this.state.secondServe = false;
     this.state.currentGame.secondServe = false;
-    return this.processPoint(winner);
+    return this.applyResolvedPoint(winner);
   }
 
-  private processPoint(winner: 'player1' | 'player2'): ScoringState {
+  private applyResolvedPoint(winner: 'player1' | 'player2'): ScoringState {
     this.state.secondServe = false;
     this.state.currentGame.secondServe = false;
 
     if (isMatchTiebreakActive(this.state, this.config)) {
-      return processMatchTiebreakFlow(winner, this.state, this.config);
+      return applyMatchTiebreakFlow(winner, this.state, this.config);
     }
 
     const currentSet = this.state.sets[this.state.sets.length - 1];
     if (currentSet?.isTiebreak) {
-      return processTiebreakPointHandler(this.state, winner, this.config);
+      return applyTiebreakPointToGame(this.state, winner, this.config);
     }
 
-    return processRegularPointFlow(winner, this.state, this.config);
+    return applyRegularPointFlow(winner, this.state, this.config);
   }
 
   undoLastPoint(): { point: PointDetails } | null {

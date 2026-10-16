@@ -1,6 +1,6 @@
 // Real - previne regressao no fluxo de pontos
 import { isMatchTiebreakActive } from '../match-tiebreak';
-import { processRegularPoint } from '../engine.flow';
+import { applyRegularPoint } from '../engine.flow';
 import type { ScoringState, ScoringEngineConfig } from '../types';
 
 describe('Engine Flow - Real', () => {

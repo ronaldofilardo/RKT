@@ -7,7 +7,7 @@
  * seguinte — ou seja, o saque TROCA, independente do placar final do
  * tiebreak.
  *
- * Bug anterior: o motor (processTiebreakPoint em tiebreak.ts) calculava o
+ * Bug anterior: o motor (applyTiebreakPoint em tiebreak.ts) calculava o
  * sacador do set seguinte como se a alternância de pontos DENTRO do
  * tiebreak (1-depois-2-2-2...) simplesmente continuasse — isso sempre
  * devolvia o MESMO jogador que sacou o ponto 1 do tiebreak, quando o

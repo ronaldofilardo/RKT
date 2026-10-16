@@ -93,8 +93,8 @@ describe("createPointProcessorService — regressão de perda de anotação apó
     // As duas tentativas falham com needsResync (ex.: timeout / erro de rede)
     syncPointToServer.mockResolvedValue({ success: false, needsResync: true });
 
-    const { processPoint } = createPointProcessorService(deps);
-    await processPoint(rallyFlow);
+    const { applyPoint } = createPointProcessorService(deps);
+    await applyPoint(rallyFlow);
 
     expect(syncPointToServer).toHaveBeenCalledTimes(2);
     expect(fetchMatch).toHaveBeenCalledTimes(2);
@@ -123,8 +123,8 @@ describe("createPointProcessorService — regressão de perda de anotação apó
       },
     });
 
-    const { processPoint } = createPointProcessorService(deps);
-    await processPoint(rallyFlow);
+    const { applyPoint } = createPointProcessorService(deps);
+    await applyPoint(rallyFlow);
 
     expect(syncPointToServer).toHaveBeenCalledTimes(1);
     expect(queuePointForOffline).not.toHaveBeenCalled();
@@ -145,8 +145,8 @@ describe("createPointProcessorService — regressão de perda de anotação apó
         },
       });
 
-    const { processPoint } = createPointProcessorService(deps);
-    await processPoint(rallyFlow);
+    const { applyPoint } = createPointProcessorService(deps);
+    await applyPoint(rallyFlow);
 
     expect(syncPointToServer).toHaveBeenCalledTimes(2);
     expect(queuePointForOffline).not.toHaveBeenCalled();
@@ -156,8 +156,8 @@ describe("createPointProcessorService — regressão de perda de anotação apó
   it("enfileira diretamente (sem tentar o servidor) quando isOnline é false, preservando rallyDetails/firstFaultDetail", async () => {
     const { deps, queuePointForOffline, syncPointToServer } = createDeps({ isOnline: false });
 
-    const { processPoint } = createPointProcessorService(deps);
-    await processPoint(rallyFlow);
+    const { applyPoint } = createPointProcessorService(deps);
+    await applyPoint(rallyFlow);
 
     expect(syncPointToServer).not.toHaveBeenCalled();
     expect(queuePointForOffline).toHaveBeenCalledWith(deps.enqueue, rallyFlow);
