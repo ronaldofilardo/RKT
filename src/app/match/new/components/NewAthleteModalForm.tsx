@@ -1,32 +1,9 @@
-import React from 'react';
 import { RankingForm } from '@/app/atletas/RankingForm';
-import { computeClassesForType, type RankingState } from '@/app/atletas/rankingLogic';
+import { computeClassesForType } from '@/app/atletas/rankingLogic';
 import { getMatchCategoriesForAge, MATCH_CATEGORY_LABELS, MATCH_CATEGORY_AGE_LABELS } from '@/lib/ranking/rankingConstants';
-import type { RankingType } from '@/lib/ranking/rankingConstants';
 import type { AthleteForm } from '@/app/atletas/types';
-
-const fieldIds = {
-  name: 'new-athlete-name',
-  gender: 'new-athlete-gender',
-  birthDay: 'new-athlete-birth-day',
-  birthMonth: 'new-athlete-birth-month',
-  birthYear: 'new-athlete-birth-year',
-  class: 'new-athlete-class',
-  dominance: 'new-athlete-dominance',
-  backhand: 'new-athlete-backhand',
-};
-
-interface NewAthleteModalFormProps {
-  form: AthleteForm;
-  setForm: React.Dispatch<React.SetStateAction<AthleteForm>>;
-  rankings: Record<RankingType, RankingState>;
-  setRankings: React.Dispatch<React.SetStateAction<Record<RankingType, RankingState>>>;
-  age: number | null;
-  submitting: boolean;
-  nameInputRef: React.RefObject<HTMLInputElement>;
-  onRankingToggle: (type: RankingType) => void;
-  onRankingFieldChange: (type: RankingType, field: keyof RankingState, value: string) => void;
-}
+import { fieldIds, type NewAthleteModalFormProps } from './new-athlete-modal-form.types';
+import { NewAthletePersonalFields } from './new-athlete-personal-fields';
 
 export function NewAthleteModalForm({
   form,
@@ -47,97 +24,13 @@ export function NewAthleteModalForm({
       <section aria-labelledby="new-athlete-cadastro-title" className="space-y-4 rounded-xl border border-white/10 p-4">
         <h3 id="new-athlete-cadastro-title" className="text-base font-semibold text-telemetry-text-primary">1. Cadastro</h3>
 
-        <div>
-          <label htmlFor={fieldIds.name} className="block text-sm font-medium text-telemetry-text-primary mb-1">
-            Nome <span className="text-red-500">*</span>
-          </label>
-          <input
-            ref={nameInputRef}
-            id={fieldIds.name}
-            type="text"
-            value={form.name}
-            onChange={(e) => handleChange('name', e.target.value)}
-            disabled={submitting}
-            placeholder="Ex: João Silva"
-            className="w-full px-3 py-2 border-2 border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary placeholder-telemetry-text-muted/50"
-          />
-        </div>
-
-        <div className="grid grid-cols-4 gap-4">
-          <div className="col-span-1">
-            <label htmlFor={fieldIds.gender} className="block text-sm font-medium text-telemetry-text-primary mb-1">Sexo</label>
-            <select
-              id={fieldIds.gender}
-              value={form.gender}
-              onChange={(e) => handleChange('gender', e.target.value)}
-              disabled={submitting}
-              className="w-full px-3 py-2 border-2 border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary"
-            >
-              <option value="" className="text-telemetry-text-primary">Selecione...</option>
-              <option value="MALE" className="text-telemetry-text-primary">Masculino</option>
-              <option value="FEMALE" className="text-telemetry-text-primary">Feminino</option>
-            </select>
-          </div>
-
-          <div className="col-span-3">
-            <span className="block text-sm font-medium text-telemetry-text-primary mb-1">Data de Nascimento</span>
-            <div className="flex items-end gap-3">
-              <div className="w-28">
-                <label htmlFor={fieldIds.birthDay} className="sr-only">Dia</label>
-                <input
-                  id={fieldIds.birthDay}
-                  type="number"
-                  min="1"
-                  max="31"
-                  value={form.birthDay}
-                  onChange={(e) => handleChange('birthDay', e.target.value)}
-                  disabled={submitting}
-                  placeholder="DD"
-                  maxLength={2}
-                  className="w-full px-3 py-2.5 border-2 border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary placeholder-telemetry-text-muted/50 text-center text-base"
-                />
-              </div>
-              <span className="text-telemetry-text-muted text-xl font-medium mb-2.5">/</span>
-              <div className="w-28">
-                <label htmlFor={fieldIds.birthMonth} className="sr-only">Mês</label>
-                <input
-                  id={fieldIds.birthMonth}
-                  type="number"
-                  min="1"
-                  max="12"
-                  value={form.birthMonth}
-                  onChange={(e) => handleChange('birthMonth', e.target.value)}
-                  disabled={submitting}
-                  placeholder="MM"
-                  maxLength={2}
-                  className="w-full px-3 py-2.5 border-2 border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary placeholder-telemetry-text-muted/50 text-center text-base"
-                />
-              </div>
-              <span className="text-telemetry-text-muted text-xl font-medium mb-2.5">/</span>
-              <div className="w-36">
-                <label htmlFor={fieldIds.birthYear} className="sr-only">Ano</label>
-                <input
-                  id={fieldIds.birthYear}
-                  type="number"
-                  min="1900"
-                  max="2030"
-                  value={form.birthYear}
-                  onChange={(e) => handleChange('birthYear', e.target.value)}
-                  disabled={submitting}
-                  placeholder="AAAA"
-                  maxLength={4}
-                  className="w-full px-3 py-2.5 border-2 border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary placeholder-telemetry-text-muted/50 text-center text-base"
-                />
-              </div>
-            </div>
-            <div className="mt-1.5 flex justify-between items-center">
-              <span className="text-xs text-telemetry-text-muted">Ex: 15 / 03 / 1995</span>
-              {age !== null && (
-                <span className="text-xs text-telemetry-text-primary">Idade: <span className="font-semibold">{age} anos</span></span>
-              )}
-            </div>
-          </div>
-        </div>
+        <NewAthletePersonalFields
+          form={form}
+          setForm={setForm}
+          submitting={submitting}
+          nameInputRef={nameInputRef}
+          age={age}
+        />
 
         {(!rankings.ESTADUAL.enabled || age === null || age < 11 || age > 90) && (
           <div className="grid grid-cols-4 gap-4 items-start">
