@@ -1,8 +1,8 @@
 'use client';
 
 import { MatchSummary, EditableSetsSummary } from './edit-score-summary';
-import { SetInputForm } from './edit-score-form';
 import { EditScoreNoteField } from './edit-score-note-field';
+import { EditScoreSetInputSection } from './edit-score-set-input-section';
 import type { EditScoreModalContentProps } from './edit-score-modal.types';
 import {
   getAllCompletedSets,
@@ -26,9 +26,8 @@ export function EditScoreModalContent({
   canConfirmSet,
   handlers,
 }: EditScoreModalContentProps) {
-  const { validation, tiebreakValidation, matchState, partial } = calculations;
-  const { p1Val, p2Val, isSetTrulyCompleted, hasTiebreak, isMatchTiebreakSet } = validation;
-  const { matchWouldEnd, totalEditedSets, setsToWin, p1SetsWon, p2SetsWon } = matchState;
+  const { matchState } = calculations;
+  const { p1SetsWon, p2SetsWon, setsToWin } = matchState;
 
   const allCompletedSets = getAllCompletedSets(
     state.editableCompletedSets,
@@ -70,46 +69,18 @@ export function EditScoreModalContent({
         playerNames={playerNames}
       />
 
-      <SetInputForm
+      <EditScoreSetInputSection
         matchFormat={matchFormat}
-        totalEditedSets={totalEditedSets}
-        currentServer={currentServer}
         playerNames={playerNames}
-        p1Input={state.p1Input}
-        p2Input={state.p2Input}
-        p1Points={state.p1Points}
-        p2Points={state.p2Points}
-        tiebreakP1={state.tiebreakP1}
-        tiebreakP2={state.tiebreakP2}
+        currentServer={currentServer}
         floorCurrentSets={floorCurrentSets}
-        floorTiebreak={effectiveFloorTiebreak}
+        effectiveFloorTiebreak={effectiveFloorTiebreak}
         floorValidationError={floorValidationError}
-        isMatchTiebreakSet={isMatchTiebreakSet}
-        isPotentialMTSet={calculations.isPotentialMTSet}
-        hasTiebreak={hasTiebreak}
-        isSetTrulyCompleted={isSetTrulyCompleted}
-        tiebreakComplete={tiebreakValidation.tiebreakComplete}
-        tiebreakImpossible={tiebreakValidation.tiebreakImpossible}
-        partial={!!partial}
-        p1Val={p1Val}
-        p2Val={p2Val}
-        validationError={validation.setValidationError}
-        matchAlreadyOver={matchState.matchAlreadyOver}
-        matchWouldEnd={matchWouldEnd}
-        p1SetsWon={p1SetsWon}
-        p2SetsWon={p2SetsWon}
-        maxSets={matchState.maxSets}
-        showGamePointsAtZero={calculations.showGamePointsAtZero}
+        state={state}
+        setState={setState}
+        calculations={calculations}
         canConfirmSet={canConfirmSet}
-        onConfirmSet={handlers.handleConfirmSet}
-        onP1InputChange={(v: string) =>
-          handlers.handleGameInputChange(v, (val: string) => setState(prev => ({ ...prev, p1Input: val })), 'p1', state.p2Input)}
-        onP2InputChange={(v: string) =>
-          handlers.handleGameInputChange(v, (val: string) => setState(prev => ({ ...prev, p2Input: val })), 'p2', state.p1Input)}
-        onP1PointsChange={(v: string) => handlers.handlePointsChange(v, state.p2Points)}
-        onP2PointsChange={(v: string) => handlers.handlePointsChange(state.p1Points, v)}
-        onTiebreakInputChange={handlers.handleTiebreakInputChange}
-        currentScoreBelowOriginal={calculations.currentScoreBelowOriginal}
+        handlers={handlers}
       />
 
       <EditScoreNoteField
