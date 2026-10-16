@@ -38,14 +38,14 @@ export interface UseEditScoreModalReturn {
   floorValidationError: string | null;
   isConfirming: boolean;
   calculations: ReturnType<typeof useEditScoreCalculator>;
-  handleGameInputChange: (value: string, setter: (v: string) => void, player: 'p1' | 'p2', otherInput?: string) => void;
-  handleTiebreakInputChange: (value: string, player: 'p1' | 'p2') => void;
-  handleConfirm: () => Promise<void>;
-  handleCancel: () => void;
-  handleAddSet: () => void;
-  handleConfirmSet: () => void;
+  updateGameInputValue: (value: string, setter: (v: string) => void, player: 'p1' | 'p2', otherInput?: string) => void;
+  updateTiebreakInputValue: (value: string, player: 'p1' | 'p2') => void;
+  confirmCurrentAction: () => Promise<void>;
+  cancelCurrentAction: () => void;
+  addSetToMatch: () => void;
+  commitSetScore: () => void;
   canConfirmSet: boolean;
-  handlePointsChange: (p1: string, p2: string) => void;
-  handleEditCompletedSet: (index: number, p1Games: number, p2Games: number) => void;
+  updatePointTotals: (p1: string, p2: string) => void;
+  openEditCompletedSet: (index: number, p1Games: number, p2Games: number) => void;
   resetState: () => void;
 }

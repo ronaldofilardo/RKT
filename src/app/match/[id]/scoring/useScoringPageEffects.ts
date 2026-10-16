@@ -12,24 +12,24 @@ import { useScoringEditScoreHandlers } from "./useScoringEditScoreHandlers";
 export interface ScoringPageHandlers {
   persistState: ReturnType<typeof useScoringHandlers>["persistState"];
   fetchMatch: ReturnType<typeof useScoringHandlers>["fetchMatch"];
-  handleSetupConfirm: ReturnType<typeof useScoringHandlers>["handleSetupConfirm"];
-  handleUndo: ReturnType<typeof useScoringHandlers>["handleUndo"];
-  handleVoltar: ReturnType<typeof useScoringHandlers>["handleVoltar"];
+  confirmMatchSetup: ReturnType<typeof useScoringHandlers>["confirmMatchSetup"];
+  undoLastPoint: ReturnType<typeof useScoringHandlers>["undoLastPoint"];
+  returnToPreviousScreen: ReturnType<typeof useScoringHandlers>["returnToPreviousScreen"];
   openAceModal: ReturnType<typeof useScoringHandlers>["openAceModal"];
-  handleAceDirect: ReturnType<typeof useScoringHandlers>["handleAceDirect"];
-  handleServerEffectConfirm: ReturnType<typeof useScoringHandlers>["handleServerEffectConfirm"];
-  handleServeErrorConfirm: ReturnType<typeof useScoringHandlers>["handleServeErrorConfirm"];
-  handleServeErrorDirect: ReturnType<typeof useScoringHandlers>["handleServeErrorDirect"];
-  handleServeErrorCancel: ReturnType<typeof useScoringHandlers>["handleServeErrorCancel"];
-  handlePointDetailsConfirm: ReturnType<typeof useScoringHandlers>["handlePointDetailsConfirm"];
-  handlePointFromCard: (winnerSide: "player1" | "player2") => void;
-  handleServeErrorWithModal: (errorType: "out" | "net", step: "first" | "second") => void;
-  handleEditScoreCancel: () => void;
-  handleEditScoreRefreshFloor: () => Promise<{ player1: number; player2: number } | null>;
+  recordAceDirectly: ReturnType<typeof useScoringHandlers>["recordAceDirectly"];
+  confirmServerEffect: ReturnType<typeof useScoringHandlers>["confirmServerEffect"];
+  confirmServeError: ReturnType<typeof useScoringHandlers>["confirmServeError"];
+  recordDirectServeError: ReturnType<typeof useScoringHandlers>["recordDirectServeError"];
+  cancelServeError: ReturnType<typeof useScoringHandlers>["cancelServeError"];
+  confirmPointDetails: ReturnType<typeof useScoringHandlers>["confirmPointDetails"];
+  onPointSelectFromCard: (winnerSide: "player1" | "player2") => void;
+  recordServeErrorWithModal: (errorType: "out" | "net", step: "first" | "second") => void;
+  cancelEditScore: () => void;
+  refreshEditScoreFloor: () => Promise<{ player1: number; player2: number } | null>;
   isProcessing: boolean;
   abandonCurrentSession: ReturnType<typeof useSessionManager>["abandonCurrentSession"];
-  handleEditScore: (setResults: SetEditData[], server: "player1" | "player2", note?: string) => Promise<void>;
-  handleCommentCreate: (content: string, audio?: { blob: Blob; durationMs: number }, category?: string) => Promise<void>;
+  openEditScoreModal: (setResults: SetEditData[], server: "player1" | "player2", note?: string) => Promise<void>;
+  createMatchComment: (content: string, audio?: { blob: Blob; durationMs: number }, category?: string) => Promise<void>;
 }
 
 export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandlers {
@@ -51,10 +51,10 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     setSetupLoading,
     setPointsHistory,
     setShowFinishedBanner,
-    handleServeErrorOpen,
-    handleServeErrorClose,
-    handleFirstServeErrorSet,
-    handleFirstServeErrorClear,
+    openServeErrorModal,
+    closeServeErrorModal,
+    setFirstServeError,
+    clearFirstServeError,
     setServeStep,
     open,
     close,
@@ -76,16 +76,16 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
   const {
     persistState,
     fetchMatch,
-    handleSetupConfirm,
-    handleUndo,
-    handleVoltar,
+    confirmMatchSetup,
+    undoLastPoint,
+    returnToPreviousScreen,
     openAceModal,
-    handleAceDirect,
-    handleServerEffectConfirm,
-    handleServeErrorConfirm,
-    handleServeErrorDirect,
-    handleServeErrorCancel,
-    handlePointDetailsConfirm,
+    recordAceDirectly,
+    confirmServerEffect,
+    confirmServeError,
+    recordDirectServeError,
+    cancelServeError,
+    confirmPointDetails,
     isProcessing,
   } = useScoringHandlers({
     matchId,
@@ -105,10 +105,10 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     setSetupLoading,
     setPointsHistory,
     setShowFinishedBanner,
-    handleServeErrorOpen,
-    handleServeErrorClose,
-    handleFirstServeErrorSet,
-    handleFirstServeErrorClear,
+    openServeErrorModal,
+    closeServeErrorModal,
+    setFirstServeError,
+    clearFirstServeError,
     setServeStep,
     open,
     close,
@@ -121,7 +121,7 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     debounceTimerRef,
   });
 
-  const { abandonCurrentSession, handleEditScore: originalHandleEditScore } =
+  const { abandonCurrentSession, openEditScoreModal: originalHandleEditScore } =
     useSessionManager({
       matchId,
       match,
@@ -147,57 +147,57 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
 
   useScoringLifecycleEffects({ state, fetchMatch });
 
-  const { handleCommentCreate } = useScoringCommentHandler(state);
+  const { createMatchComment } = useScoringCommentHandler(state);
 
   const {
-    handleEditScore,
-    handleEditScoreCancel,
-    handleEditScoreRefreshFloor,
+    openEditScoreModal,
+    cancelEditScore,
+    refreshEditScoreFloor,
   } = useScoringEditScoreHandlers({
     state,
     originalHandleEditScore,
   });
 
-  const handlePointFromCard = useCallback(
+  const onPointSelectFromCard = useCallback(
     (winnerSide: "player1" | "player2") => {
       open("point-details", { winner: winnerSide });
     },
     [open],
   );
 
-  const handleServeErrorWithModal = useCallback(
+  const recordServeErrorWithModal = useCallback(
     (errorType: "out" | "net", step: "first" | "second") => {
       if (isProcessing) return;
-      handleServeErrorOpen(errorType, step);
+      openServeErrorModal(errorType, step);
       open("serve-effect", {
         context: "error",
         serveStep: step,
         errorType,
       });
     },
-    [isProcessing, handleServeErrorOpen, open],
+    [isProcessing, openServeErrorModal, open],
   );
 
   return {
     persistState,
     fetchMatch,
-    handleSetupConfirm,
-    handleUndo,
-    handleVoltar,
+    confirmMatchSetup,
+    undoLastPoint,
+    returnToPreviousScreen,
     openAceModal,
-    handleAceDirect,
-    handleServerEffectConfirm,
-    handleServeErrorConfirm,
-    handleServeErrorDirect,
-    handleServeErrorCancel,
-    handlePointDetailsConfirm,
-    handlePointFromCard,
-    handleServeErrorWithModal,
-    handleEditScoreCancel,
-    handleEditScoreRefreshFloor,
+    recordAceDirectly,
+    confirmServerEffect,
+    confirmServeError,
+    recordDirectServeError,
+    cancelServeError,
+    confirmPointDetails,
+    onPointSelectFromCard,
+    recordServeErrorWithModal,
+    cancelEditScore,
+    refreshEditScoreFloor,
     isProcessing,
     abandonCurrentSession,
-    handleEditScore,
-    handleCommentCreate,
+    openEditScoreModal,
+    createMatchComment,
   };
 }

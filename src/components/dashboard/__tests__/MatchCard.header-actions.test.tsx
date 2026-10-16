@@ -25,18 +25,18 @@ describe('MatchCard - Botões de Ação no Header (Editar Placar, Retomar Partid
   };
 
   it('deve renderizar os botões Editar Placar, Retomar Partida e Análise do Set para partida IN_PROGRESS', () => {
-    const handleEditScore = jest.fn();
-    const handleResumeMatch = jest.fn();
-    const handleSetSummary = jest.fn();
-    const handleCardClick = jest.fn();
+    const openEditScoreModal = jest.fn();
+    const resumeMatchFromDashboard = jest.fn();
+    const openSetSummary = jest.fn();
+    const onCardSelect = jest.fn();
 
     render(
       <MatchCard
         match={baseMatch}
-        onClick={handleCardClick}
-        onEditScore={handleEditScore}
-        onResumeMatch={handleResumeMatch}
-        onSetSummary={handleSetSummary}
+        onClick={onCardSelect}
+        onEditScore={openEditScoreModal}
+        onResumeMatch={resumeMatchFromDashboard}
+        onSetSummary={openSetSummary}
       />
     );
 
@@ -50,29 +50,29 @@ describe('MatchCard - Botões de Ação no Header (Editar Placar, Retomar Partid
 
     // Clicar em Editar Placar
     fireEvent.click(editBtn);
-    expect(handleEditScore).toHaveBeenCalledWith(baseMatch);
-    expect(handleCardClick).not.toHaveBeenCalled();
+    expect(openEditScoreModal).toHaveBeenCalledWith(baseMatch);
+    expect(onCardSelect).not.toHaveBeenCalled();
 
     // Clicar em Retomar Partida
     fireEvent.click(resumeBtn);
-    expect(handleResumeMatch).toHaveBeenCalledWith(baseMatch);
-    expect(handleCardClick).not.toHaveBeenCalled();
+    expect(resumeMatchFromDashboard).toHaveBeenCalledWith(baseMatch);
+    expect(onCardSelect).not.toHaveBeenCalled();
 
     // Clicar em Análise do Set
     fireEvent.click(setSummaryBtn);
-    expect(handleSetSummary).toHaveBeenCalledWith(baseMatch);
-    expect(handleCardClick).not.toHaveBeenCalled();
+    expect(openSetSummary).toHaveBeenCalledWith(baseMatch);
+    expect(onCardSelect).not.toHaveBeenCalled();
   });
 
   it('deve renderizar o botão Info quando onEditInfo é fornecido e partida não está FINISHED', () => {
-    const handleEditInfo = jest.fn();
-    const handleCardClick = jest.fn();
+    const openInfoEditor = jest.fn();
+    const onCardSelect = jest.fn();
 
     render(
       <MatchCard
         match={baseMatch}
-        onClick={handleCardClick}
-        onEditInfo={handleEditInfo}
+        onClick={onCardSelect}
+        onEditInfo={openInfoEditor}
       />
     );
 
@@ -80,8 +80,8 @@ describe('MatchCard - Botões de Ação no Header (Editar Placar, Retomar Partid
     expect(infoBtn).toBeInTheDocument();
 
     fireEvent.click(infoBtn);
-    expect(handleEditInfo).toHaveBeenCalledWith(baseMatch);
-    expect(handleCardClick).not.toHaveBeenCalled();
+    expect(openInfoEditor).toHaveBeenCalledWith(baseMatch);
+    expect(onCardSelect).not.toHaveBeenCalled();
   });
 
   it('não deve exibir os botões de ação e Info em partidas FINISHED', () => {

@@ -7,10 +7,10 @@
 describe("EditScoreModal Bug Fixes", () => {
   describe("Bug A: completedSets inclusion in finalSets", () => {
     it("should include completed sets from prop in the returned finalSets", () => {
-      // This test validates that when handleConfirm is called,
+      // This test validates that when confirmCurrentAction is called,
       // it maps prop completedSets into SetEditData[] and includes them in finalSets.
       //
-      // The mapping in handleConfirm is:
+      // The mapping in confirmCurrentAction is:
       //   const existingCompleted: SetEditData[] = completedSets.map(cs => ({
       //     p1Games: cs.games.player1,
       //     p2Games: cs.games.player2,
@@ -21,7 +21,7 @@ describe("EditScoreModal Bug Fixes", () => {
       // So if completedSets = [Set1: 6-4, Set2: 3-6], and user adds partial Set 3: 3-2, 0-40,
       // then finalSets should be [Set1, Set2, partialSet].
       //
-      // When handleEditScore processes finalSets, it calculates setsWon from completedSets filter:
+      // When openEditScoreModal processes finalSets, it calculates setsWon from completedSets filter:
       //   const completedSets = setsData.filter((set) => !set.isPartial);
       // which now correctly includes Set1 and Set2, resulting in p1Sets=1, p2Sets=1.
       //
@@ -51,7 +51,7 @@ describe("EditScoreModal Bug Fixes", () => {
     });
 
     it("sets setsWon calculation should include completed sets", () => {
-      // Validation: when handleEditScore processes finalSets = [Set1, Set2, partialSet],
+      // Validation: when openEditScoreModal processes finalSets = [Set1, Set2, partialSet],
       // completedSets = finalSets.filter(s => !s.isPartial) = [Set1, Set2]
       // p1Sets = 1 (Set1: 6-4 winner player1)
       // p2Sets = 1 (Set2: 3-6 winner player2)
@@ -118,7 +118,7 @@ describe("EditScoreModal Bug Fixes", () => {
     it("currentGame state should be valid after parseP conversion", () => {
       // Scenario: User selects game points 0-40 (player2 leading)
       // EditScoreModal parsePointVal produces: {player1: 0, player2: 40}
-      // handleEditScore parseP converts: {player1: 0, player2: 3}
+      // openEditScoreModal parseP converts: {player1: 0, player2: 3}
       // Engine expects: player1=0,1,2,3 and player2=0,1,2,3 (or isDeuce=true when both 3)
 
       const parseP = (v: number | string): number => {
@@ -168,7 +168,7 @@ describe("EditScoreModal Bug Fixes", () => {
       //
       // Before Fix B (broken state): currentGame = {player1:0, player2:40 (clamped to 4)}
       // player1++: {player1:1, player2:4}
-      // Logic: player2 >= 4 && player1 < 3 → handleGameWon(player2) ✗ Wrong!
+      // Logic: player2 >= 4 && player1 < 3 → onGameWon(player2) ✗ Wrong!
 
       const player1Score = 0;
       const player2Score = 3; // Correctly mapped from 40
@@ -200,7 +200,7 @@ describe("EditScoreModal Bug Fixes", () => {
       const mockOnConfirm = jest.fn();
       const mockOnCancel = jest.fn();
 
-      // Simula handleConfirm behaviour
+      // Simula confirmCurrentAction behaviour
       mockOnConfirm();
       mockOnCancel();
 

@@ -73,7 +73,7 @@ export function getFloorError(p1: number, p2: number, floor: FloorSets | null | 
 
 
 // Bug (2026-09-07) — ALTO: determina se um set completado (possivelmente
-// editado manualmente pelo usuário via handleEditCompletedSet) tem de fato
+// editado manualmente pelo usuário via openEditCompletedSet) tem de fato
 // um vencedor definido, ou se é um placar incompleto/inválido (ex.: 5-4)
 // que o usuário digitou por engano. `validateSetResult` sozinho não basta
 // para sets 6-6: ele sempre retorna "Tiebreak required" (sem vencedor) para
@@ -106,7 +106,7 @@ export function getCompletedSets(state: EditableState, completedSets: CompletedS
     // Bug (2026-09-07) — ALTO: antes, `isPartial` era sempre `false` aqui,
     // independente do placar real. Isso permitia que um set completado
     // editado pelo usuário para um placar incompleto (ex.: 5-4, que
-    // handleEditCompletedSet aceita sem erro por não ser tecnicamente
+    // openEditCompletedSet aceita sem erro por não ser tecnicamente
     // inválido) fosse enviado a onConfirm/ao backend marcado como um set
     // COMPLETO e vencido por alguém, contaminando o placar da partida.
     return {
@@ -121,7 +121,7 @@ export function getCompletedSets(state: EditableState, completedSets: CompletedS
 // Bug (2026-09-07): calculateNextServer precisa da mesma fonte de sets
 // concluídos que getCompletedSets() usa para o payload de onConfirm —
 // caso contrário, editar o placar de um set já finalizado (via
-// handleEditCompletedSet) salva o placar certo mas calcula o sacador com
+// openEditCompletedSet) salva o placar certo mas calcula o sacador com
 // base no set NÃO editado (prop `completedSets` crua), produzindo um
 // sacador incorreto sempre que a edição muda a paridade de games da
 // partida. Esta função converte a saída de getCompletedSets (SetEditData[],
@@ -171,7 +171,7 @@ export async function getFreshFloorError(onRefreshFloor: (() => Promise<FloorSet
       ? `Placar atualizado: ${freshFloor.player1}x${freshFloor.player2}. Seu placar (${p1Val}x${p2Val}) é inferior.`
       : null;
   } catch (error) {
-    logger.error('[handleConfirm] Failed to refresh floor:', error);
+    logger.error('[confirmCurrentAction] Failed to refresh floor:', error);
     return null;
   }
 }

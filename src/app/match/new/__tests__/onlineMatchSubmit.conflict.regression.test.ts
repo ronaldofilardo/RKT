@@ -11,7 +11,7 @@
  * SEMPRE responde 409 com `{ error: 'CONFLICT', message, details }` — o campo
  * `code` e o valor `'DUPLICATE_MATCH'` nunca existiram na resposta real. A
  * condição nunca era verdadeira, então o fluxo de "partida duplicada, deseja
- * continuar mesmo assim?" (modal + handleForceCreate) nunca disparava, e o
+ * continuar mesmo assim?" (modal + createMatchIgnoringWarning) nunca disparava, e o
  * 409 virava um `Error` genérico não tratado propagado ao usuário/log.
  *
  * Fix: checar `data.error === 'CONFLICT'`.

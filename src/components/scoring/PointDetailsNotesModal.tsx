@@ -20,7 +20,7 @@ export function PointDetailsNotesModal({
   const [noteText, setNoteText] = useState('');
   const voiceRecorder = useVoiceRecorder();
 
-  const handleSave = async () => {
+  const persistFormChanges = async () => {
     let audioBlob = voiceRecorder.audioBlob;
     let durationMs = voiceRecorder.durationMs;
 
@@ -41,7 +41,7 @@ export function PointDetailsNotesModal({
     onClose();
   };
 
-  const handleClear = () => {
+  const clearCurrentInput = () => {
     setNoteText('');
     voiceRecorder.clear();
     onClose();
@@ -77,7 +77,7 @@ export function PointDetailsNotesModal({
           <NoteVoiceControls recorder={voiceRecorder} />
         )}
 
-        <NoteFooterButtons hasContent={hasContent} onSave={handleSave} onClear={handleClear} />
+        <NoteFooterButtons hasContent={hasContent} onSave={persistFormChanges} onClear={clearCurrentInput} />
       </div>
     </div>
   );

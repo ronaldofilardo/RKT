@@ -40,10 +40,10 @@ jest.mock("@/components/Toast", () => ({
 jest.mock("@/hooks/useScoreboardUIState", () => ({
   useScoreboardUIState: () => ({
     state: { serveStep: "none", firstServeError: null },
-    handleServeErrorOpen: jest.fn(),
-    handleServeErrorClose: jest.fn(),
-    handleFirstServeErrorSet: jest.fn(),
-    handleFirstServeErrorClear: jest.fn(),
+    openServeErrorModal: jest.fn(),
+    closeServeErrorModal: jest.fn(),
+    setFirstServeError: jest.fn(),
+    clearFirstServeError: jest.fn(),
     setServeStep: jest.fn(),
   }),
 }));
@@ -51,7 +51,7 @@ jest.mock("@/hooks/useScoreboardUIState", () => ({
 jest.mock("@/hooks/useSessionManager", () => ({
   useSessionManager: () => ({
     abandonCurrentSession: jest.fn(),
-    handleEditScore: jest.fn(),
+    openEditScoreModal: jest.fn(),
   }),
 }));
 

@@ -96,19 +96,19 @@ const initialScoreboardState: ScoreboardUIState = {
 export function useScoreboardUIState() {
   const [state, dispatch] = useReducer(scoreboardReducer, initialScoreboardState);
 
-  const handleServeErrorOpen = useCallback((type: 'out' | 'net', step: 'first' | 'second') => {
+  const openServeErrorModal = useCallback((type: 'out' | 'net', step: 'first' | 'second') => {
     dispatch({ type: 'SERVE_ERROR_OPEN', error: { errorType: type, serveStep: step } });
   }, []);
 
-  const handleServeErrorClose = useCallback(() => {
+  const closeServeErrorModal = useCallback(() => {
     dispatch({ type: 'SERVE_ERROR_CLOSE' });
   }, []);
 
-  const handleFirstServeErrorSet = useCallback((err: { errorType: 'out' | 'net'; serveEffect?: string; direction?: string }) => {
+  const setFirstServeError = useCallback((err: { errorType: 'out' | 'net'; serveEffect?: string; direction?: string }) => {
     dispatch({ type: 'FIRST_SERVE_ERROR_SET', err });
   }, []);
 
-  const handleFirstServeErrorClear = useCallback(() => {
+  const clearFirstServeError = useCallback(() => {
     dispatch({ type: 'FIRST_SERVE_ERROR_CLEAR' });
   }, []);
 
@@ -119,10 +119,10 @@ export function useScoreboardUIState() {
   return {
     state,
     dispatch,
-    handleServeErrorOpen,
-    handleServeErrorClose,
-    handleFirstServeErrorSet,
-    handleFirstServeErrorClear,
+    openServeErrorModal,
+    closeServeErrorModal,
+    setFirstServeError,
+    clearFirstServeError,
     setServeStep,
   };
 }

@@ -5,7 +5,7 @@
  * término da partida), a opção "pontos do game" não aparece em 0/0 do
  * próximo set. Causa: showGamePointsAtZero dependia só de
  * completedSets.length > 0 || state.newSets.length > 0, o que falha no
- * cenário "primeiro set da partida sendo fechado agora, antes do handleAddSet
+ * cenário "primeiro set da partida sendo fechado agora, antes do addSetToMatch
  * pushar para newSets".
  *
  * Fix: incorporar validation.isSetTrulyCompleted ao hasPreviousSets e
@@ -60,7 +60,7 @@ describe('Bug #10: showGamePointsAtZero após fechamento do set', () => {
     })).toBe(false);
   });
 
-  it('após handleAddSet o novo set em 0x0 → seção aparece', () => {
+  it('após addSetToMatch o novo set em 0x0 → seção aparece', () => {
     expect(computeShowGamePointsAtZero({
       bothFilled: true,
       p1Val: 0,

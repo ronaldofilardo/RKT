@@ -3,7 +3,7 @@ import { logger } from '@/lib/logger';
 import { CreateUserInputSchema, ListUsersInputSchema } from '@/schemas/contracts';
 import { withRLSHandler } from '@/lib/auth';
 import { listAllUsers, createUser } from '@/services/adminService';
-import { validatedRequest, handleApiError } from '@/lib/api.logic';
+import { validatedRequest, reportApiError } from '@/lib/api.logic';
 
 export async function GET(request: NextRequest) {
   return withRLSHandler(request, 'ADMIN', async () => {
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ data: { users, nextCursor } });
     } catch (error) {
       logger.error('[ADMIN USERS GET]', error);
-      return handleApiError(error);
+      return reportApiError(error);
     }
   });
 }
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ data: result }, { status: 201 });
     } catch (error) {
       logger.error('[ADMIN USERS POST]', error);
-      return handleApiError(error);
+      return reportApiError(error);
     }
   });
 }

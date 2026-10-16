@@ -18,7 +18,7 @@ export function useScoringCommentHandler(state: ScoringPageState) {
 
   const { enqueueComment } = useCommentOfflineSync();
 
-  const handleCommentCreate = useCallback(
+  const createMatchComment = useCallback(
     async (
       content: string,
       audio?: { blob: Blob; durationMs: number },
@@ -110,7 +110,7 @@ export function useScoringCommentHandler(state: ScoringPageState) {
           );
           if (!audioRes.ok) {
             logger.error(
-              "[handleCommentCreate] audio upload failed",
+              "[createMatchComment] audio upload failed",
               audioRes.status,
             );
             toast({
@@ -150,5 +150,5 @@ export function useScoringCommentHandler(state: ScoringPageState) {
     ],
   );
 
-  return { handleCommentCreate };
+  return { createMatchComment };
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT } from 'jose';
 import { LoginPayloadSchema } from '@/schemas/contracts';
-import { validatedRequest, handleApiError } from '@/lib/api.logic';
+import { validatedRequest, reportApiError } from '@/lib/api.logic';
 import { authenticateUser } from './authenticate';
 import { logger } from '@/lib/logger';
 
@@ -81,6 +81,6 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     logger.error('[LOGIN POST]', error);
-    return handleApiError(error);
+    return reportApiError(error);
   }
 }

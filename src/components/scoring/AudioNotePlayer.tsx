@@ -12,11 +12,11 @@ interface AudioNotePlayerProps {
 }
 
 export function AudioNotePlayer({ matchId, pointId, commentId, durationMs, token }: AudioNotePlayerProps) {
-  const { isPlaying, isLoading, handlePlay } = useAudioNotePlayer({ matchId, pointId, commentId, token });
+  const { isPlaying, isLoading, startAudioPlayback } = useAudioNotePlayer({ matchId, pointId, commentId, token });
 
   return (
     <button
-      onClick={handlePlay}
+      onClick={startAudioPlayback}
       disabled={isLoading}
       className="inline-flex items-center gap-1 text-[10px] text-green-600 hover:text-green-800 transition-colors font-semibold"
       title={durationMs ? `Nota de voz (${formatDuration(durationMs)})` : 'Nota de voz'}

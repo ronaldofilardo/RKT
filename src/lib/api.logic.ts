@@ -47,9 +47,9 @@ export async function validatedRequest<T>(
  * Handler centralizado de erros de API
  * 
  * @example
- * try { ... } catch (error) { return handleApiError(error); }
+ * try { ... } catch (error) { return reportApiError(error); }
  */
-export function handleApiError(error: unknown): NextResponse {
+export function reportApiError(error: unknown): NextResponse {
   logger.error('[API_ERROR]', error);
 
   if (error instanceof ApiError) {

@@ -31,7 +31,7 @@ export function ScoringPagePlayArea({
   onNavigateDashboard,
 }: ScoringPagePlayAreaProps) {
   const { scoreState, pointsHistory, suspendedSession } = state;
-  const { handlePointFromCard, abandonCurrentSession } = handlers;
+  const { onPointSelectFromCard, abandonCurrentSession } = handlers;
   const {
     effectiveScoreState,
     p1IsServing,
@@ -71,7 +71,7 @@ export function ScoringPagePlayArea({
           setNumber: derived.editScoreCompletedSets?.length || 1,
         })
       }
-      onPoint={handlePointFromCard}
+      onPoint={onPointSelectFromCard}
       onSwipeUndo={() => state.open('undo')}
       onNavigateReport={onNavigateReport}
       onRegisterAndExit={async () => {

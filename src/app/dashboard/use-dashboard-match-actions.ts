@@ -14,7 +14,7 @@ type Resume = (match: ResumableMatch, options?: { openEditModal?: boolean }) => 
 
 interface UseDashboardMatchActionsArgs {
   router: AppRouter;
-  handleResumeSuspended: Resume;
+  resumeSuspendedMatch: Resume;
   setMatchToDelete: Dispatch<SetStateAction<DeletableMatch | null>>;
   setMatchToFinish: Dispatch<SetStateAction<FinishableMatch | null>>;
 }
@@ -26,7 +26,7 @@ interface UseDashboardMatchActionsArgs {
  */
 export function useDashboardMatchActions({
   router,
-  handleResumeSuspended,
+  resumeSuspendedMatch,
   setMatchToDelete,
   setMatchToFinish,
 }: UseDashboardMatchActionsArgs) {
@@ -34,51 +34,51 @@ export function useDashboardMatchActions({
   const { setSelectedMatchForServer } = serverStart;
   const [matchToEditInfo, setMatchToEditInfo] = useState<DashboardMatchPayload | null>(null);
 
-  const handleMatchClick = useCallback((match: ResumableMatch) => {
+  const openMatchDetails = useCallback((match: ResumableMatch) => {
     logger.info('[DashboardPage] match click', match.id, match.state);
     if (match.state === 'FINISHED') {
       router.push(`/match/${match.id}/report` as AppRouteInput);
     } else if (match.suspendedSessionId || match.matchStateSnapshot) {
-      handleResumeSuspended(match, { openEditModal: false });
+      resumeSuspendedMatch(match, { openEditModal: false });
     } else if (match.state === 'SCHEDULED' || !match.initialServerId) {
       setSelectedMatchForServer(match);
     } else {
       router.push(`/match/${match.id}/scoring` as AppRouteInput);
     }
-  }, [router, handleResumeSuspended, setSelectedMatchForServer]);
+  }, [router, resumeSuspendedMatch, setSelectedMatchForServer]);
 
-  const handleMatchResume = useCallback((match: ResumableMatch) => {
+  const resumeMatch = useCallback((match: ResumableMatch) => {
     logger.info('[DashboardPage] resume match directly', match.id);
     if (match.suspendedSessionId || match.matchStateSnapshot) {
-      handleResumeSuspended(match, { openEditModal: false });
+      resumeSuspendedMatch(match, { openEditModal: false });
     } else {
       router.push(`/match/${match.id}/scoring` as AppRouteInput);
     }
-  }, [router, handleResumeSuspended]);
+  }, [router, resumeSuspendedMatch]);
 
-  const handleMatchEditScore = useCallback((match: ResumableMatch) => {
+  const openMatchEditScore = useCallback((match: ResumableMatch) => {
     logger.info('[DashboardPage] edit score match', match.id);
     if (match.suspendedSessionId || match.matchStateSnapshot) {
-      handleResumeSuspended(match, { openEditModal: true });
+      resumeSuspendedMatch(match, { openEditModal: true });
     } else {
       router.push(`/match/${match.id}/scoring?modal=edit-score` as AppRouteInput);
     }
-  }, [router, handleResumeSuspended]);
+  }, [router, resumeSuspendedMatch]);
 
-  const handleMatchReport = useCallback((match: DashboardMatchPayload) => {
+  const openMatchReport = useCallback((match: DashboardMatchPayload) => {
     router.push(`/match/${match.id}/report` as AppRouteInput);
   }, [router]);
 
-  const handleMatchFinish = useCallback((match: FinishableMatch) => {
+  const finishMatch = useCallback((match: FinishableMatch) => {
     setMatchToFinish(match);
   }, [setMatchToFinish]);
 
-  const handleMatchEditInfo = useCallback((match: DashboardMatchPayload) => {
+  const openMatchEditInfo = useCallback((match: DashboardMatchPayload) => {
     logger.info('[DashboardPage] edit match info', match.id);
     setMatchToEditInfo(match);
   }, []);
 
-  const handleMatchDelete = useCallback((match: DeletableMatch) => {
+  const deleteMatch = useCallback((match: DeletableMatch) => {
     setMatchToDelete(match);
   }, [setMatchToDelete]);
 
@@ -86,12 +86,12 @@ export function useDashboardMatchActions({
     ...serverStart,
     matchToEditInfo,
     setMatchToEditInfo,
-    handleMatchClick,
-    handleMatchResume,
-    handleMatchEditScore,
-    handleMatchReport,
-    handleMatchFinish,
-    handleMatchEditInfo,
-    handleMatchDelete,
+    openMatchDetails,
+    resumeMatch,
+    openMatchEditScore,
+    openMatchReport,
+    finishMatch,
+    openMatchEditInfo,
+    deleteMatch,
   };
 }

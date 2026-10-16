@@ -3,7 +3,7 @@ import { logger } from "@/lib/logger";
 import type { DashboardView, RouterLike } from "../dashboard.types";
 
 export function useDashboardNavigation(router: RouterLike) {
-  const handleNavigate = useCallback(
+  const navigateToTarget = useCallback(
     (view: DashboardView) => {
       logger.info("[DashboardNavigation] navigating to", view);
       switch (view) {
@@ -38,5 +38,5 @@ export function useDashboardNavigation(router: RouterLike) {
     [router]
   );
 
-  return { handleNavigate };
+  return { navigateToTarget };
 }

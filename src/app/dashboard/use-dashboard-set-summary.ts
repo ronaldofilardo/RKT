@@ -34,7 +34,7 @@ export function useDashboardSetSummary() {
   const [setSummaryMatch, setSetSummaryMatch] = useState<DashboardMatchPayload | null>(null);
   const [setSummaryTimelinePoints, setSetSummaryTimelinePoints] = useState<TimelinePoint[]>([]);
 
-  const handleMatchSetSummary = useCallback(async (match: DashboardMatchPayload) => {
+  const openMatchSetSummary = useCallback(async (match: DashboardMatchPayload) => {
     logger.info('[DashboardPage] open set summary', match.id);
     setSetSummaryMatch(match);
     setSetSummaryTimelinePoints([]);
@@ -62,7 +62,7 @@ export function useDashboardSetSummary() {
     setSummaryMatch,
     setSetSummaryMatch,
     setSummaryTimelinePoints,
-    handleMatchSetSummary,
+    openMatchSetSummary,
     completedSetsCount,
     completedSetsData,
   };

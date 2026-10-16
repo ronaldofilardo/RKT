@@ -30,6 +30,6 @@ describe('useSessionManager - Regressoes Reais', () => {
     });
 
     expect(typeof result.current.abandonCurrentSession).toBe('function');
-    expect(typeof result.current.handleEditScore).toBe('function');
+    expect(typeof result.current.openEditScoreModal).toBe('function');
   });
 });

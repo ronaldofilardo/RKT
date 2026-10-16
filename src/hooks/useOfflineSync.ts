@@ -257,17 +257,17 @@ export function useOfflineSync() {
   }, []);
 
   useEffect(() => {
-    const handleOnline = () => {
+    const onNetworkOnline = () => {
       setOnline(true);
       flush();
     };
 
-    const handleOffline = () => {
+    const onNetworkOffline = () => {
       setOnline(false);
     };
 
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", onNetworkOnline);
+    window.addEventListener("offline", onNetworkOffline);
 
     
     // Tentar flush na inicialização (e periodicamente quando online)
@@ -283,8 +283,8 @@ export function useOfflineSync() {
     }
 
     return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", onNetworkOnline);
+      window.removeEventListener("offline", onNetworkOffline);
       if (intervalId) clearInterval(intervalId);
     };
   }, [flush, online]);

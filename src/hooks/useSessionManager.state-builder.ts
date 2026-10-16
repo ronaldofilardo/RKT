@@ -53,7 +53,7 @@ export function buildNewScoringState(options: BuildNewStateOptions): ScoringStat
 
   // Correção bug do "set atual" (2026-08-13): garantia da invariante
   // "último item do array `sets[]` = set em andamento".
-  // O motor (engine.flow.ts handleGameWon/completeSet) preserva essa
+  // O motor (engine.flow.ts onGameWon/completeSet) preserva essa
   // invariante ao vivo ao empurrar um novo set vazio após completar um.
   // Mas `buildNewScoringState` só espe-lhava os `setResults` confirmados
   // no modal; se o usuário confirmou um set finalizado como último item

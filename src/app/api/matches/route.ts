@@ -3,7 +3,7 @@ import { CreateMatchInputSchema, MatchStateSchema } from '@/schemas/contracts';
 import { withRLSHandler, withPermissionHandler } from '@/lib/auth';
 import { listMatches, createMatch } from '@/services/matchService';
 import { findDuplicateMatch } from '@/services/matchSuggestionService';
-import { validatedRequest, handleApiError, extractPagination } from '@/lib/api.logic';
+import { validatedRequest, reportApiError, extractPagination } from '@/lib/api.logic';
 import { ConflictError, ApiError } from '@/lib/errors';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ data: { matches: payloadMatches, nextCursor } });
     } catch (error) {
       logger.error('[MATCHES GET]', error);
-      return handleApiError(error);
+      return reportApiError(error);
     }
   });
 }

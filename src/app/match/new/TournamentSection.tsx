@@ -9,7 +9,7 @@ interface TournamentSectionProps {
   showTournamentDropdown: boolean;
   setShowTournamentDropdown: (v: boolean) => void;
   tournamentSuggestions: string[];
-  handleSelectTournament: (t: string) => void;
+  selectTournamentFromSuggestions: (t: string) => void;
   clubName: string;
   setClubName: (v: string) => void;
   category: string;
@@ -24,7 +24,7 @@ export function TournamentSection({
   showTournamentDropdown,
   setShowTournamentDropdown,
   tournamentSuggestions,
-  handleSelectTournament,
+  selectTournamentFromSuggestions,
   clubName,
   setClubName,
   category,
@@ -43,7 +43,7 @@ export function TournamentSection({
           showTournamentDropdown={showTournamentDropdown}
           setShowTournamentDropdown={setShowTournamentDropdown}
           tournamentSuggestions={tournamentSuggestions}
-          handleSelectTournament={handleSelectTournament}
+          selectTournamentFromSuggestions={selectTournamentFromSuggestions}
         />
       </div>
 

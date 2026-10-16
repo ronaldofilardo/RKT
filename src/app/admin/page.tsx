@@ -14,14 +14,14 @@ export default function AdminPage() {
     editingUser, setEditingUser, newRole, setNewRole,
     logoutConfirmOpen, setLogoutConfirmOpen,
     userToDelete, setUserToDelete, deletingUser,
-    handleLogout, confirmLogout, loadUsers, handleRoleChange, handleDeleteUser, confirmDeleteUser,
+    endSession, confirmLogout, loadUsers, updateUserRole, removeUserAccount, confirmDeleteUser,
   } = useAdminPage();
 
   if (loading) return <AdminLoadingScreen />;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminHeader onLogout={handleLogout} />
+      <AdminHeader onLogout={endSession} />
 
       <main className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
         {error && (
@@ -40,8 +40,8 @@ export default function AdminPage() {
             newRole={newRole}
             setNewRole={setNewRole}
             setEditingUser={setEditingUser}
-            handleRoleChange={handleRoleChange}
-            handleDeleteUser={handleDeleteUser}
+            updateUserRole={updateUserRole}
+            removeUserAccount={removeUserAccount}
           />
         )}
 

@@ -48,21 +48,21 @@ export function ActionBar({
 }: ActionBarProps) {
   const [aceDetailsEnabled, setAceDetailsEnabled] = useState(false);
   const [dfDetailsEnabled, setDfDetailsEnabled] = useState(false);
-  const handleAce = () => {
+  const recordAce = () => {
     if (aceDetailsEnabled) {
       onAceWithDetails();
       return;
     }
     onAceDirect();
   };
-  const handleOut = (step: 'first' | 'second') => {
+  const recordOut = (step: 'first' | 'second') => {
     if (dfDetailsEnabled) {
       onOut(step);
       return;
     }
     onOutDirect(step);
   };
-  const handleNet = (step: 'first' | 'second') => {
+  const recordNetError = (step: 'first' | 'second') => {
     if (dfDetailsEnabled) {
       onNet(step);
       return;
@@ -82,9 +82,9 @@ export function ActionBar({
       fontScale={fontScale}
       isFinished={isFinished}
       isProcessing={isProcessing}
-      onAce={handleAce}
-      onOut={handleOut}
-      onNet={handleNet}
+      onAce={recordAce}
+      onOut={recordOut}
+      onNet={recordNetError}
       onVoltar={onVoltar}
       onFontSmaller={onFontSmaller}
       onFontBigger={onFontBigger}

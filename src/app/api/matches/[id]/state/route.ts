@@ -44,7 +44,7 @@ async function checkCanModifyMatchState(
   return Boolean(activeSession);
 }
 
-async function handleTransitionError(
+async function reportTransitionFailure(
   resultError: string | undefined,
   matchId: string,
   expectedVersion?: number,
@@ -146,7 +146,7 @@ export async function PATCH(
       }
 
       if ('error' in result) {
-        return handleTransitionError(result.error, id, parsed.data.version);
+        return reportTransitionFailure(result.error, id, parsed.data.version);
       }
 
       emitStateEvents(id, parsed.data.voidPointLogId, parsed.data.scoreState);

@@ -51,7 +51,7 @@ export function useAtletasPage() {
     loadAthletes().finally(() => setLoading(false));
   }, [router, loadAthletes]);
 
-  const handleSave = async (data: EditAthleteSavePayload) => {
+  const persistFormChanges = async (data: EditAthleteSavePayload) => {
     if (!editingAthlete) return;
     setSaving(true);
     setError(null);
@@ -67,7 +67,7 @@ export function useAtletasPage() {
     }
   };
 
-  const handleConfirmDelete = async () => {
+  const confirmMatchDeletion = async () => {
     if (!athleteToDelete) return;
     setDeleting(true);
     setError(null);
@@ -93,8 +93,8 @@ export function useAtletasPage() {
     athleteToDelete,
     setAthleteToDelete,
     deleting,
-    handleSave,
-    handleConfirmDelete,
+    persistFormChanges,
+    confirmMatchDeletion,
     loadAthletes,
   };
 }

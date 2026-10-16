@@ -21,12 +21,12 @@ describe('MatchCard Characterization', () => {
   });
 
   it('triggers onClick callback when clicked', () => {
-    const handleClick = jest.fn();
-    render(<MatchCard match={matchMock} onClick={handleClick} />);
+    const onPrimaryClick = jest.fn();
+    render(<MatchCard match={matchMock} onClick={onPrimaryClick} />);
 
     fireEvent.click(screen.getByTestId('match-card-match-101'));
-    expect(handleClick).toHaveBeenCalledTimes(1);
-    expect(handleClick).toHaveBeenCalledWith(matchMock);
+    expect(onPrimaryClick).toHaveBeenCalledTimes(1);
+    expect(onPrimaryClick).toHaveBeenCalledWith(matchMock);
   });
 
   // ─── Regressão: correção do warning jsx-a11y/no-static-element-interactions ─
@@ -49,14 +49,14 @@ describe('MatchCard Characterization', () => {
   });
 
   it('ativa onClick pelo teclado (Enter/Espaço), preservando o comportamento anterior', () => {
-    const handleClick = jest.fn();
-    render(<MatchCard match={matchMock} onClick={handleClick} />);
+    const onPrimaryClick = jest.fn();
+    render(<MatchCard match={matchMock} onClick={onPrimaryClick} />);
     const card = screen.getByTestId('match-card-match-101');
 
     fireEvent.keyDown(card, { key: 'Enter' });
-    expect(handleClick).toHaveBeenCalledTimes(1);
+    expect(onPrimaryClick).toHaveBeenCalledTimes(1);
 
     fireEvent.keyDown(card, { key: ' ' });
-    expect(handleClick).toHaveBeenCalledTimes(2);
+    expect(onPrimaryClick).toHaveBeenCalledTimes(2);
   });
 });

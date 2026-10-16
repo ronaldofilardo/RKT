@@ -56,7 +56,7 @@ export function ScoringPageLayout({
           await abandonCurrentSession();
           navigateDashboard();
         }}
-        onTimeline={chrome.handleOpenTimeline}
+        onTimeline={chrome.openTimelineView}
         isFinished={isFinished}
       />
 

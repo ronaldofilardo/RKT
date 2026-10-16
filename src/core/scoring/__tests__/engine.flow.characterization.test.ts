@@ -1,7 +1,7 @@
 import {
   applyRegularPoint,
   applyMatchTiebreak,
-  handleGameWon,
+  onGameWon,
   completeSet,
   completeSetWithTiebreak,
   applyTiebreakPoint,
@@ -226,19 +226,19 @@ describe('engine.flow — Characterization Tests', () => {
     });
   });
 
-  describe('handleGameWon', () => {
+  describe('onGameWon', () => {
     const config = createConfig('BEST_OF_3');
 
     it('increments set games for winner', () => {
       let state = createInitialState(config);
-      state = handleGameWon('player1', createEmptyGame(), state, config);
+      state = onGameWon('player1', createEmptyGame(), state, config);
       expect(state.sets[0].player1).toBe(1);
       expect(state.sets[0].player2).toBe(0);
     });
 
     it('switches server after game', () => {
       let state = createInitialState(config);
-      state = handleGameWon('player1', createEmptyGame(), state, config);
+      state = onGameWon('player1', createEmptyGame(), state, config);
       expect(state.server).toBe('player2');
     });
 
@@ -249,7 +249,7 @@ describe('engine.flow — Characterization Tests', () => {
       state.server = 'player1';
       state.currentGame = createEmptyGame();
 
-      state = handleGameWon('player1', createEmptyGame(), state, config);
+      state = onGameWon('player1', createEmptyGame(), state, config);
       // shouldStartTiebreak checks newSet (7-6), not 6-6, so tiebreak NOT started
       // Instead set goes to 7-6
       expect(state.sets[0].player1).toBe(7);
@@ -268,7 +268,7 @@ describe('engine.flow — Characterization Tests', () => {
       state.server = 'player1';
       state.currentGame = createEmptyGame();
 
-      state = handleGameWon('player1', createEmptyGame(), state, config);
+      state = onGameWon('player1', createEmptyGame(), state, config);
       expect(state.sets.length).toBe(3);
       expect(state.sets[2].isTiebreak).toBe(true);
       expect(state.sets[2].tiebreakScore).toEqual({ player1: 0, player2: 0 });
@@ -288,7 +288,7 @@ describe('engine.flow — Characterization Tests', () => {
       state.server = 'player1';
       state.currentGame = createEmptyGame();
 
-      state = handleGameWon('player1', createEmptyGame(), state, config);
+      state = onGameWon('player1', createEmptyGame(), state, config);
       // Check uses newSet (7-6), not currentSet (6-6), so MT NOT triggered
       expect(state.sets[4].player1).toBe(7);
       expect(state.sets[4].player2).toBe(6);
@@ -302,14 +302,14 @@ describe('engine.flow — Characterization Tests', () => {
       state.server = 'player1';
       state.currentGame = createEmptyGame();
 
-      state = handleGameWon('player1', createEmptyGame(), state, config);
+      state = onGameWon('player1', createEmptyGame(), state, config);
       expect(state.setsWon.player1).toBe(1);
       expect(state.currentGame.player1).toBe(0);
     });
 
     it('throws on invalid gameWinner', () => {
       const state = createInitialState(config);
-      expect(() => handleGameWon('invalid' as any, createEmptyGame(), state, config)).toThrow('INVALID_GAME_WINNER');
+      expect(() => onGameWon('invalid' as any, createEmptyGame(), state, config)).toThrow('INVALID_GAME_WINNER');
     });
   });
 
@@ -565,7 +565,7 @@ describe('engine.flow — Characterization Tests', () => {
       expect(shouldStartMatchTiebreak(state, config)).toBe(true);
     });
 
-    it('returns false for BEST_OF_5 (handled in handleGameWon)', () => {
+    it('returns false for BEST_OF_5 (handled in onGameWon)', () => {
       const config = createConfig('BEST_OF_5');
       const state = createInitialState(config);
       state.setsWon = { player1: 2, player2: 2 };

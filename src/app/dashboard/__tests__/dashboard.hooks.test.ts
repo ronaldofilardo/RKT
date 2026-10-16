@@ -29,7 +29,7 @@ describe('useDashboardNavigation', () => {
     const { result } = renderHook(() => useDashboardNavigation({ push }));
 
     act(() => {
-      result.current.handleNavigate('newMatch');
+      result.current.navigateToTarget('newMatch');
     });
 
     expect(push).toHaveBeenCalledWith('/match/new');
@@ -40,7 +40,7 @@ describe('useDashboardNavigation', () => {
     const { result } = renderHook(() => useDashboardNavigation({ push }));
 
     act(() => {
-      result.current.handleNavigate('atletas');
+      result.current.navigateToTarget('atletas');
     });
 
     expect(push).toHaveBeenCalledWith('/atletas');

@@ -14,7 +14,7 @@ export function NewAthletePersonalFields({
   nameInputRef,
   age,
 }: NewAthletePersonalFieldsProps) {
-  const handleChange = (field: keyof AthleteForm, value: string) => {
+  const updateFieldValue = (field: keyof AthleteForm, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -29,7 +29,7 @@ export function NewAthletePersonalFields({
           id={fieldIds.name}
           type="text"
           value={form.name}
-          onChange={(e) => handleChange('name', e.target.value)}
+          onChange={(e) => updateFieldValue('name', e.target.value)}
           disabled={submitting}
           placeholder="Ex: João Silva"
           className="w-full px-3 py-2 border-2 border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary placeholder-telemetry-text-muted/50"
@@ -42,7 +42,7 @@ export function NewAthletePersonalFields({
           <select
             id={fieldIds.gender}
             value={form.gender}
-            onChange={(e) => handleChange('gender', e.target.value)}
+            onChange={(e) => updateFieldValue('gender', e.target.value)}
             disabled={submitting}
             className="w-full px-3 py-2 border-2 border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary"
           >
@@ -54,7 +54,7 @@ export function NewAthletePersonalFields({
 
         <div className="col-span-3">
           <span className="block text-sm font-medium text-telemetry-text-primary mb-1">Data de Nascimento</span>
-          <BirthDateFields form={form} submitting={submitting} onChange={handleChange} />
+          <BirthDateFields form={form} submitting={submitting} onChange={updateFieldValue} />
           <div className="mt-1.5 flex justify-between items-center">
             <span className="text-xs text-telemetry-text-muted">Ex: 15 / 03 / 1995</span>
             {age !== null && (

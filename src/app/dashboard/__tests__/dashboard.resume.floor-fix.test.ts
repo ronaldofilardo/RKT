@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 /**
- * Regressão (2026-09-08): handleResumeSuspended calculava `floorSets` como
+ * Regressão (2026-09-08): resumeSuspendedMatch calculava `floorSets` como
  * `null` sempre que o último set estava em tiebreak — mesmo quando era um
  * tiebreak comum de um set normal (6x6), perdendo o floor de games ao
  * retomar a sessão. Só o Match Tiebreak decisivo real deve resultar em
@@ -14,17 +14,17 @@ function useBuildOptions() {
   const setSession = jest.fn();
   const setPendingEdit = jest.fn();
   const router = { push: jest.fn() };
-  const { handleResumeSuspended } = useResumeSession({ router, setSession, setPendingEdit });
-  return { setSession, setPendingEdit, router, handleResumeSuspended };
+  const { resumeSuspendedMatch } = useResumeSession({ router, setSession, setPendingEdit });
+  return { setSession, setPendingEdit, router, resumeSuspendedMatch };
 }
 
-describe("handleResumeSuspended — floor de retomada", () => {
+describe("resumeSuspendedMatch — floor de retomada", () => {
   beforeEach(() => {
     sessionStorage.clear();
   });
 
   it("BUG (2026-09-08): tiebreak comum de set em andamento (6x6) deve manter floor {6,6}, não null", () => {
-    const { handleResumeSuspended, setPendingEdit } = useBuildOptions();
+    const { resumeSuspendedMatch, setPendingEdit } = useBuildOptions();
 
     const match = {
       id: "match-1",
@@ -41,7 +41,7 @@ describe("handleResumeSuspended — floor de retomada", () => {
       },
     };
 
-    handleResumeSuspended(match);
+    resumeSuspendedMatch(match);
 
     expect(setPendingEdit).toHaveBeenCalledTimes(1);
     const [, floorSets] = setPendingEdit.mock.calls[0];
@@ -50,7 +50,7 @@ describe("handleResumeSuspended — floor de retomada", () => {
   });
 
   it("Match Tiebreak decisivo real continua sem floor (null)", () => {
-    const { handleResumeSuspended, setPendingEdit } = useBuildOptions();
+    const { resumeSuspendedMatch, setPendingEdit } = useBuildOptions();
 
     const match = {
       id: "match-2",
@@ -68,14 +68,14 @@ describe("handleResumeSuspended — floor de retomada", () => {
       },
     };
 
-    handleResumeSuspended(match);
+    resumeSuspendedMatch(match);
 
     const [, floorSets] = setPendingEdit.mock.calls[0];
     expect(floorSets).toBeNull();
   });
 
   it("set normal (sem tiebreak) em andamento mantém o comportamento anterior (floor = games atuais)", () => {
-    const { handleResumeSuspended, setPendingEdit } = useBuildOptions();
+    const { resumeSuspendedMatch, setPendingEdit } = useBuildOptions();
 
     const match = {
       id: "match-3",
@@ -89,7 +89,7 @@ describe("handleResumeSuspended — floor de retomada", () => {
       },
     };
 
-    handleResumeSuspended(match);
+    resumeSuspendedMatch(match);
 
     const [, floorSets] = setPendingEdit.mock.calls[0];
     expect(floorSets).toEqual({ player1: 3, player2: 2 });

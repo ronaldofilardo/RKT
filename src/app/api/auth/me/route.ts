@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getUserFromRequestScoped } from '@/lib/auth';
 import { logger } from '@/lib/logger';
-import { handleApiError } from '@/lib/api.logic';
+import { reportApiError } from '@/lib/api.logic';
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,6 +35,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ user: dbUser });
   } catch (error) {
     logger.error('[AUTH ME GET]', error);
-    return handleApiError(error);
+    return reportApiError(error);
   }
 }

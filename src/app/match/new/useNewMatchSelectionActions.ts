@@ -18,44 +18,44 @@ export function useNewMatchSelectionActions(
   router: ReturnType<typeof useRouter>,
   toast: ReturnType<typeof useToast>['toast'],
 ) {
-  const handleSelectTournament = (name: string) => {
+  const selectTournamentFromSuggestions = (name: string) => {
     state.setTournamentName(name);
     state.setShowTournamentDropdown(false);
   };
 
-  const handleOpenNewAthleteModal = (player: 'p1' | 'p2') => {
+  const openNewAthleteModal = (player: 'p1' | 'p2') => {
     state.setNewAthleteFor(player);
     state.setShowNewAthleteModal(true);
   };
 
-  const handleSelectAthlete = (player: 'p1' | 'p2', athlete: Athlete | null) => {
+  const selectAthleteFromList = (player: 'p1' | 'p2', athlete: Athlete | null) => {
     const isPlayerOne = player === 'p1';
     (isPlayerOne ? state.setSelectedP1 : state.setSelectedP2)(athlete);
     (isPlayerOne ? state.setPlayer1DropdownOpen : state.setPlayer2DropdownOpen)(false);
   };
 
-  const handleAthleteCreated = (athlete: Athlete) => {
+  const onAthleteCreationComplete = (athlete: Athlete) => {
     state.setAthletes((prev) => {
       if (prev.some((a) => a.id === athlete.id)) return prev;
       return [...prev, athlete];
     });
-    handleSelectAthlete(state.newAthleteFor === 'p1' ? 'p1' : 'p2', athlete);
+    selectAthleteFromList(state.newAthleteFor === 'p1' ? 'p1' : 'p2', athlete);
     state.setShowNewAthleteModal(false);
     state.setNewAthleteFor(null);
   };
 
-  const handleSelectServer = async (serverId: string) => {
+  const selectServingPlayer = async (serverId: string) => {
     if (!state.createdMatchId) return;
     state.setStartingMatch(true);
     try {
       await startMatch(state.createdMatchId, serverId);
       router.push(`/match/${state.createdMatchId}/scoring`);
     } catch (err) {
-      logger.error('[handleSelectServer] Exception:', err);
+      logger.error('[selectServingPlayer] Exception:', err);
       toast({ type: 'error', message: 'Erro ao iniciar partida' });
       state.setStartingMatch(false);
     }
   };
 
-  return { handleSelectTournament, handleOpenNewAthleteModal, handleSelectAthlete, handleAthleteCreated, handleSelectServer };
+  return { selectTournamentFromSuggestions, openNewAthleteModal, selectAthleteFromList, onAthleteCreationComplete, selectServingPlayer };
 }

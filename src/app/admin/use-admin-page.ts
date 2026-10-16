@@ -33,7 +33,7 @@ export function useAdminPage() {
     setLoading(false);
   }, [router]);
 
-  const handleLogout = () => setLogoutConfirmOpen(true);
+  const endSession = () => setLogoutConfirmOpen(true);
 
   const confirmLogout = () => {
     setLogoutConfirmOpen(false);
@@ -51,7 +51,7 @@ export function useAdminPage() {
     }
   }, [token]);
 
-  const handleRoleChange = async (userId: string) => {
+  const updateUserRole = async (userId: string) => {
     if (!newRole) return;
     setError(null);
     try {
@@ -64,7 +64,7 @@ export function useAdminPage() {
     }
   };
 
-  const handleDeleteUser = (u: AdminUser) => setUserToDelete(u);
+  const removeUserAccount = (u: AdminUser) => setUserToDelete(u);
 
   const confirmDeleteUser = async () => {
     if (!userToDelete) return;
@@ -86,7 +86,7 @@ export function useAdminPage() {
     editingUser, setEditingUser, newRole, setNewRole,
     logoutConfirmOpen, setLogoutConfirmOpen,
     userToDelete, setUserToDelete, deletingUser,
-    handleLogout, confirmLogout, loadUsers,
-    handleRoleChange, handleDeleteUser, confirmDeleteUser,
+    endSession, confirmLogout, loadUsers,
+    updateUserRole, removeUserAccount, confirmDeleteUser,
   };
 }

@@ -2,8 +2,8 @@
  * @jest-environment jsdom
  */
 /**
- * Regressão (2026-09-08): onConfirm (na prática handleEditScore, assíncrono)
- * era chamado sem `await` dentro do handleConfirm de useEditScoreModal.
+ * Regressão (2026-09-08): onConfirm (na prática openEditScoreModal, assíncrono)
+ * era chamado sem `await` dentro do confirmCurrentAction de useEditScoreModal.
  * setIsConfirming(true) e o finally(false) rodavam praticamente no mesmo
  * tick, escondendo o overlay "Salvando placar..." muito antes da
  * persistência assíncrona terminar de fato — abrindo espaço para o usuário
@@ -47,7 +47,7 @@ describe("useEditScoreModal — isConfirming aguarda onConfirm de verdade", () =
 
     let confirmCall!: Promise<void>;
     act(() => {
-      confirmCall = result.current.handleConfirm();
+      confirmCall = result.current.confirmCurrentAction();
     });
 
     // Antes do fix: onConfirm era chamado sem await, então isConfirming já

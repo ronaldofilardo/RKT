@@ -46,11 +46,11 @@ export function useDashboardPageModel() {
   }, [pathname]);
 
   const { user } = useUserAuth(router);
-  const { handleNavigate } = useDashboardNavigation(router);
+  const { navigateToTarget } = useDashboardNavigation(router);
   const { matches, suspendedFromApi, loading, fetchDashboardData } = useDashboardData(router);
   const { matchToDelete, setMatchToDelete, matchToFinish, setMatchToFinish } = useModalState();
 
-  const { handleResumeSuspended } = useResumeSession({
+  const { resumeSuspendedMatch } = useResumeSession({
     router,
     setSession,
     setPendingEdit,
@@ -73,7 +73,7 @@ export function useDashboardPageModel() {
   return {
     router,
     user,
-    handleNavigate,
+    navigateToTarget,
     suspendedFromApi,
     loading,
     fetchDashboardData,
@@ -81,7 +81,7 @@ export function useDashboardPageModel() {
     setMatchToDelete,
     matchToFinish,
     setMatchToFinish,
-    handleResumeSuspended,
+    resumeSuspendedMatch,
     confirmDeleteMatch,
     view: resolveDashboardView(pathname),
     filters,

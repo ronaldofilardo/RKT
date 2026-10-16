@@ -17,20 +17,20 @@ export function EditScoreModal(props: EditScoreModalProps) {
     floorValidationError,
     isConfirming,
     calculations,
-    handleGameInputChange,
-    handleTiebreakInputChange,
-    handleConfirm,
-    handleCancel,
-    handlePointsChange,
-    handleEditCompletedSet,
-    handleConfirmSet,
+    updateGameInputValue,
+    updateTiebreakInputValue,
+    confirmCurrentAction,
+    cancelCurrentAction,
+    updatePointTotals,
+    openEditCompletedSet,
+    commitSetScore,
     canConfirmSet,
   } = useEditScoreModalView(props);
 
   if (!isOpen) return null;
 
   return (
-    <EditScoreModalShell isConfirming={isConfirming} matchFormat={matchFormat} onCancel={handleCancel}>
+    <EditScoreModalShell isConfirming={isConfirming} matchFormat={matchFormat} onCancel={cancelCurrentAction}>
       <EditScoreModalContent
         matchFormat={matchFormat}
         playerNames={playerNames}
@@ -45,11 +45,11 @@ export function EditScoreModal(props: EditScoreModalProps) {
         calculations={calculations}
         canConfirmSet={canConfirmSet}
         handlers={{
-          handleGameInputChange,
-          handleTiebreakInputChange,
-          handlePointsChange,
-          handleEditCompletedSet,
-          handleConfirmSet,
+          updateGameInputValue,
+          updateTiebreakInputValue,
+          updatePointTotals,
+          openEditCompletedSet,
+          commitSetScore,
         }}
       />
 
@@ -57,8 +57,8 @@ export function EditScoreModal(props: EditScoreModalProps) {
         isConfirming={isConfirming}
         canConfirm={calculations.canConfirm}
         hasErrors={Boolean(confirmError || floorValidationError)}
-        onCancel={handleCancel}
-        onConfirm={handleConfirm}
+        onCancel={cancelCurrentAction}
+        onConfirm={confirmCurrentAction}
       />
     </EditScoreModalShell>
   );

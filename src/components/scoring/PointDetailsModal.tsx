@@ -31,7 +31,7 @@ export function PointDetailsModal({
   const {
     mounted, showCloseDialog, setShowCloseDialog, showNotesModal, setShowNotesModal,
     noteText, hasNoteAudio, form, dispatch, refs, vencedor, winnerName,
-    handleCancel, canConfirm, handleConfirm, handleDiscard, handleSaveNote,
+    cancelCurrentAction, canConfirm, confirmCurrentAction, discardChanges, persistNoteContent,
   } = usePointDetailsModal({ winnerPlayerSide, currentServer, player1Name, player2Name, onConfirm, onCancel });
 
   if (!mounted) return null;
@@ -43,8 +43,8 @@ export function PointDetailsModal({
       role="button"
       tabIndex={-1}
       aria-label="Fechar modal"
-      onClick={(e) => { if (e.target === e.currentTarget) handleCancel(); }}
-      onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') handleCancel(); }}
+      onClick={(e) => { if (e.target === e.currentTarget) cancelCurrentAction(); }}
+      onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') cancelCurrentAction(); }}
     >
       <div
         className="animate-[fadeInSlideUp_0.2s_ease-out] w-[clamp(260px,80vw,480px)] modal-max-w-tablet mx-4 rounded-[20px] shadow-[0_20px_60px_rgba(0,0,0,0.5),0_0_30px_rgba(59,130,246,0.15)] flex flex-col max-h-[90vh]"
@@ -65,20 +65,20 @@ export function PointDetailsModal({
           canConfirm={canConfirm}
           noteText={noteText}
           hasNoteAudio={hasNoteAudio}
-          onConfirm={handleConfirm}
-          onCancel={handleCancel}
+          onConfirm={confirmCurrentAction}
+          onCancel={cancelCurrentAction}
           onOpenNotes={() => setShowNotesModal(true)}
         />
       </div>
       <PointDetailsCloseDialog
         isOpen={showCloseDialog}
         onClose={() => setShowCloseDialog(false)}
-        onDiscard={handleDiscard}
+        onDiscard={discardChanges}
       />
       <PointDetailsNotesModal
         isOpen={showNotesModal}
         onClose={() => setShowNotesModal(false)}
-        onSave={handleSaveNote}
+        onSave={persistNoteContent}
       />
     </div>,
     document.body

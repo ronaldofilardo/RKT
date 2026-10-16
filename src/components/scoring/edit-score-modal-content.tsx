@@ -58,7 +58,7 @@ export function EditScoreModalContent({
         sets={editableCompletedSets}
         playerNames={playerNames}
         startIndex={0}
-        onEditSet={(index: number, p1: number, p2: number) => handlers.handleEditCompletedSet(index, p1, p2)}
+        onEditSet={(index: number, p1: number, p2: number) => handlers.openEditCompletedSet(index, p1, p2)}
         validationErrors={completedSetValidationErrors}
       />
 

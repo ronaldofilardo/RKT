@@ -25,7 +25,7 @@ function applyNoAdPoint(
   const needed = 4;
   if (game.player1 >= needed || game.player2 >= needed) {
     const gameWinner = game.player1 >= needed ? 'player1' : 'player2';
-    return handleGameWon(gameWinner, game, state, config);
+    return onGameWon(gameWinner, game, state, config);
   }
   return { ...state, currentGame: game };
 }
@@ -45,10 +45,10 @@ function applyAdvantagePoint(
   }
 
   if (game.player1 >= 4 && game.player2 < 3) {
-    return handleGameWon('player1', game, state, config);
+    return onGameWon('player1', game, state, config);
   }
   if (game.player2 >= 4 && game.player1 < 3) {
-    return handleGameWon('player2', game, state, config);
+    return onGameWon('player2', game, state, config);
   }
 
   if (game.player1 >= 3 && game.player2 >= 3) {
@@ -85,7 +85,7 @@ function applyDeucePoint(
   if (game.advantage === null) {
     game.advantage = winner;
   } else if (game.advantage === winner) {
-    return handleGameWon(winner, game, state, config);
+    return onGameWon(winner, game, state, config);
   } else {
     game.advantage = null;
   }
@@ -105,7 +105,7 @@ export function applyRegularPoint(
     // vence o game, sem precisar de 2 pontos de vantagem. O deuce
     // tradicional (applyDeucePoint) só se aplica a formatos com
     // vantagem.
-    if (usesNoAd(config)) return handleGameWon(winner, game, state, config);
+    if (usesNoAd(config)) return onGameWon(winner, game, state, config);
     return applyDeucePoint(winner, state, config);
   }
   return applyStandardPoint(winner, state, config);
@@ -113,7 +113,7 @@ export function applyRegularPoint(
 
 function validateGameWinner(gameWinner: 'player1' | 'player2', currentSet: SetScore): void {
   if (gameWinner !== 'player1' && gameWinner !== 'player2') {
-    logger.error('[ScoringEngine] handleGameWon: invalid gameWinner', { gameWinner, currentSet });
+    logger.error('[ScoringEngine] onGameWon: invalid gameWinner', { gameWinner, currentSet });
     throw new Error('INVALID_GAME_WINNER');
   }
 }
@@ -187,7 +187,7 @@ function transitionToMatchTiebreak(
   return state;
 }
 
-export function handleGameWon(
+export function onGameWon(
   gameWinner: 'player1' | 'player2',
   _finalGame: GameScore,
   state: ScoringState,

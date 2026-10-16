@@ -32,7 +32,7 @@ export function useCommentModal({ isOpen, onClose, onSave, initialText = '' }: U
     }
   }, [isOpen, mounted]);
 
-  const handleSave = useCallback(async () => {
+  const persistFormChanges = useCallback(async () => {
     if (!notes.canSubmit || isSubmitting) return;
     setIsSubmitting(true);
     try {
@@ -54,7 +54,7 @@ export function useCommentModal({ isOpen, onClose, onSave, initialText = '' }: U
     }
   }, [notes, onSave, onClose, isSubmitting]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+  const onKeyDownAction = useCallback((e: React.KeyboardEvent) => {
     if (isSubmitting) return;
     if (e.key === 'Escape') {
       e.preventDefault();
@@ -62,11 +62,11 @@ export function useCommentModal({ isOpen, onClose, onSave, initialText = '' }: U
     }
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
-      handleSave();
+      persistFormChanges();
     }
-  }, [onClose, handleSave, isSubmitting]);
+  }, [onClose, persistFormChanges, isSubmitting]);
 
-  const handleClose = useCallback(() => {
+  const dismissOverlay = useCallback(() => {
     if (isSubmitting) return;
     notes.clear();
     onClose();
@@ -74,5 +74,5 @@ export function useCommentModal({ isOpen, onClose, onSave, initialText = '' }: U
 
   if (!isOpen || !mounted) return null;
 
-  return { isSubmitting, notes, textareaRef, handleSave, handleClose, handleKeyDown };
+  return { isSubmitting, notes, textareaRef, persistFormChanges, dismissOverlay, onKeyDownAction };
 }

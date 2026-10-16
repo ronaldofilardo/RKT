@@ -136,12 +136,12 @@ describe('SetSummaryModal', () => {
   });
 
   it('chama onClose ao clicar no botão de prosseguir ou no botão fechar', () => {
-    const handleClose = jest.fn();
+    const dismissOverlay = jest.fn();
 
     render(
       <SetSummaryModal
         isOpen={true}
-        onClose={handleClose}
+        onClose={dismissOverlay}
         timelinePoints={points}
         player1Name="Carlos"
         player2Name="Rafael"
@@ -151,10 +151,10 @@ describe('SetSummaryModal', () => {
     );
 
     fireEvent.click(screen.getByText('Prosseguir para o Set 2 →'));
-    expect(handleClose).toHaveBeenCalledTimes(1);
+    expect(dismissOverlay).toHaveBeenCalledTimes(1);
 
     fireEvent.click(screen.getByLabelText('Fechar resumo'));
-    expect(handleClose).toHaveBeenCalledTimes(2);
+    expect(dismissOverlay).toHaveBeenCalledTimes(2);
   });
 
   it('renderiza abas para múltiplos sets concluídos e permite alternar', () => {

@@ -12,7 +12,7 @@ import {
   validateMatchAnnotatorPermission,
   restoreEngineFromMatch,
   buildAnnotationsPayload,
-  handlePointRouteError,
+  reportPointRouteFailure,
 } from './route.logic';
 
 export async function POST(
@@ -239,7 +239,7 @@ export async function POST(
         pointLogId: result?.pointLogId,
       });
     } catch (error) {
-      return handlePointRouteError(error, requestId, requestClientEventId);
+      return reportPointRouteFailure(error, requestId, requestClientEventId);
     }
   });
 }

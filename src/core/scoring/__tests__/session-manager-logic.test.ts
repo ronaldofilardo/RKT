@@ -3,7 +3,7 @@ import type { ScoringState } from "@/core/scoring/types";
 import { setsToWinForFormat } from "@/core/scoring/format-rules";
 import { pointToProgress } from "@/core/scoring/point.logic";
 
-describe("useSessionManager - handleEditScore Logic", () => {
+describe("useSessionManager - openEditScoreModal Logic", () => {
   const config = {
     format: "BEST_OF_3" as const,
     player1Id: "p1",

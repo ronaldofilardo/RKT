@@ -98,12 +98,12 @@ export class ScoringEngine {
     const details = buildPointDetails(flow, isSecondServeState);
 
     if (flow.type === 'DOUBLE_FAULT') {
-      this.state = this.handleDoubleFault(winner, details);
+      this.state = this.recordDoubleFault(winner, details);
       return getState(this.state);
     }
 
     if (isFaultFirst) {
-      return this.handleFirstServeFault(this.state.server, details);
+      return this.recordFirstServeFault(this.state.server, details);
     }
 
     saveToHistory(this.history, this.state, details);
@@ -112,14 +112,14 @@ export class ScoringEngine {
     return getState(this.state);
   }
 
-  private handleFirstServeFault(_winner: 'player1' | 'player2', details: PointDetails): ScoringState {
+  private recordFirstServeFault(_winner: 'player1' | 'player2', details: PointDetails): ScoringState {
     saveToHistory(this.history, this.state, details);
     this.state.currentGame.secondServe = true;
     this.state.secondServe = true;
     return getState(this.state);
   }
 
-  private handleDoubleFault(winner: 'player1' | 'player2', details: PointDetails): ScoringState {
+  private recordDoubleFault(winner: 'player1' | 'player2', details: PointDetails): ScoringState {
     saveToHistory(this.history, this.state, details);
     this.state.secondServe = false;
     this.state.currentGame.secondServe = false;

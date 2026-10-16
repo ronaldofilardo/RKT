@@ -23,19 +23,19 @@ export function useDateTimeScheduleModal(date: string, time: string) {
     }
   }, [date, time]);
 
-  const handleConfirm = () => {
+  const confirmCurrentAction = () => {
     setShowModal(false);
     // Foca no campo Torneio
     const tournamentInput = document.querySelector('input[placeholder="Nome do torneio"]') as HTMLInputElement;
     if (tournamentInput) tournamentInput.focus();
   };
 
-  const handleCancel = () => {
+  const cancelCurrentAction = () => {
     setShowModal(false);
     // Foca no campo Data
     const dateInput = document.getElementById('match-date') as HTMLInputElement;
     if (dateInput) dateInput.focus();
   };
 
-  return { showModal, modalData, handleConfirm, handleCancel };
+  return { showModal, modalData, confirmCurrentAction, cancelCurrentAction };
 }

@@ -256,7 +256,7 @@ describe('DashboardPage - Menu Hamburguer (TD-046)', () => {
     expect(screen.queryByText(/admin/i)).not.toBeInTheDocument();
   });
 
-  it('deve chamar handleLogout ao clicar no item Sair', async () => {
+  it('deve chamar endSession ao clicar no item Sair', async () => {
     const sessionStorageMock = setupSessionStorage('user-123', 'ATHLETE');
 
     // O logout usa um alertdialog integrado ao sistema; window.confirm nativo não pode ser usado

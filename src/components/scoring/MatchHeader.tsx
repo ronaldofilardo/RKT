@@ -11,7 +11,7 @@ interface MatchHeaderProps {
   onStats?: () => void;
   /**
    * Mantido apenas por compatibilidade com o fluxo existente em page.tsx
-   * (handleOpenTimeline). O ícone da timeline NÃO é mais renderizado no header.
+   * (openTimelineView). O ícone da timeline NÃO é mais renderizado no header.
    */
   onTimeline?: () => void;
   canEdit?: boolean;

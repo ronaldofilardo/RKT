@@ -78,9 +78,9 @@ function createMockContext(
     setSetupLoading: jest.fn(),
     setPointsHistory: jest.fn(),
     setShowFinishedBanner: jest.fn(),
-    handleServeErrorClose: jest.fn(),
-    handleFirstServeErrorSet: jest.fn(),
-    handleFirstServeErrorClear: jest.fn(),
+    closeServeErrorModal: jest.fn(),
+    setFirstServeError: jest.fn(),
+    clearFirstServeError: jest.fn(),
     setServeStep: jest.fn(),
     open: jest.fn(),
     close: jest.fn(),
@@ -94,7 +94,7 @@ function createMockContext(
   return ctx;
 }
 
-describe("useScoringHandlers - handleUndo", () => {
+describe("useScoringHandlers - undoLastPoint", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     global.fetch = jest.fn().mockResolvedValue({
@@ -150,7 +150,7 @@ describe("useScoringHandlers - handleUndo", () => {
     const { result } = renderHook(() => useScoringHandlers(ctx));
     const handlers = result.current;
 
-    await handlers.handleUndo();
+    await handlers.undoLastPoint();
 
     expect(mockEngine.undoLastPoint).toHaveBeenCalled();
     expect(setScoreState).toHaveBeenCalled();
@@ -200,7 +200,7 @@ describe("useScoringHandlers - handleUndo", () => {
     const { result } = renderHook(() => useScoringHandlers(ctx));
     const handlers = result.current;
 
-    await handlers.handleUndo();
+    await handlers.undoLastPoint();
 
     expect(onUndoComplete).toHaveBeenCalled();
   });
@@ -247,7 +247,7 @@ describe("useScoringHandlers - handleUndo", () => {
     const { result } = renderHook(() => useScoringHandlers(ctx));
     const handlers = result.current;
 
-    handlers.handleUndo();
+    handlers.undoLastPoint();
 
     expect(setPointsHistory).toHaveBeenCalledWith(expect.any(Function));
   });
@@ -267,7 +267,7 @@ describe("useScoringHandlers - handleUndo", () => {
     const { result } = renderHook(() => useScoringHandlers(ctx));
     const handlers = result.current;
 
-    handlers.handleUndo();
+    handlers.undoLastPoint();
 
     expect(setScoreState).not.toHaveBeenCalled();
     expect(closeAll).not.toHaveBeenCalled();
@@ -295,7 +295,7 @@ describe("useScoringHandlers - handleUndo", () => {
     const { result } = renderHook(() => useScoringHandlers(ctx));
     const handlers = result.current;
 
-    handlers.handleUndo();
+    handlers.undoLastPoint();
 
     expect(setScoreState).not.toHaveBeenCalled();
     expect(closeAll).not.toHaveBeenCalled();
@@ -344,7 +344,7 @@ describe("useScoringHandlers - handleUndo", () => {
     const { result } = renderHook(() => useScoringHandlers(ctx));
     const handlers = result.current;
 
-    handlers.handleUndo();
+    handlers.undoLastPoint();
 
     expect(mockEngine.getState).toHaveBeenCalled();
   });
@@ -355,7 +355,7 @@ describe("useScoringHandlers - handleUndo", () => {
     // a jogada inteira (erro 1º saque + dupla falta) é UM único ponto salvo
     // via saveToHistory em engine.ts. Este teste antes simulava uma 2ª
     // entrada "FAULT_FIRST" que não existe em produção e mascarava o bug de
-    // handleUndo apagar também o ponto anterior (ex.: 15/0 → 15/15 → Voltar
+    // undoLastPoint apagar também o ponto anterior (ex.: 15/0 → 15/15 → Voltar
     // → 0/0 em vez de voltar a 15/0).
     const setScoreState = jest.fn();
     const setPointsHistory = jest.fn();
@@ -393,7 +393,7 @@ describe("useScoringHandlers - handleUndo", () => {
       ),
     );
 
-    await result.current.handleUndo();
+    await result.current.undoLastPoint();
 
     expect(mockEngine.undoLastPoint).toHaveBeenCalledTimes(1);
     expect(setScoreState).toHaveBeenCalled();
@@ -451,7 +451,7 @@ describe("useScoringHandlers - handleUndo", () => {
     const { result } = renderHook(() => useScoringHandlers(ctx));
     const handlers = result.current;
 
-    await handlers.handleUndo();
+    await handlers.undoLastPoint();
 
     // Verifica que NÃO houve nenhuma chamada a DELETE /point/
     const deleteCalls = (global.fetch as jest.Mock).mock.calls.filter(
@@ -466,7 +466,7 @@ describe("useScoringHandlers - handleUndo", () => {
   });
 });
 
-describe("useScoringHandlers - handleVoltar", () => {
+describe("useScoringHandlers - returnToPreviousScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     global.fetch = jest.fn().mockResolvedValue({
@@ -489,22 +489,22 @@ describe("useScoringHandlers - handleVoltar", () => {
 
     const { result } = renderHook(() => useScoringHandlers(ctx));
 
-    result.current.handleVoltar("none");
+    result.current.returnToPreviousScreen("none");
 
     expect(open).toHaveBeenCalledWith("undo");
   });
 
   it('deve resetar o 2º saque diretamente (sem modal) quando serveStep é "second"', () => {
     const open = jest.fn();
-    const handleFirstServeErrorClear = jest.fn();
-    const handleServeErrorClose = jest.fn();
+    const clearFirstServeError = jest.fn();
+    const closeServeErrorModal = jest.fn();
     const setServeStep = jest.fn();
     const closeAll = jest.fn();
 
     const ctx = createMockContext({
       open,
-      handleFirstServeErrorClear,
-      handleServeErrorClose,
+      clearFirstServeError,
+      closeServeErrorModal,
       setServeStep,
       closeAll,
       onUndoComplete: jest.fn(),
@@ -512,11 +512,11 @@ describe("useScoringHandlers - handleVoltar", () => {
 
     const { result } = renderHook(() => useScoringHandlers(ctx));
 
-    result.current.handleVoltar("second");
+    result.current.returnToPreviousScreen("second");
 
     expect(open).not.toHaveBeenCalled();
-    expect(handleFirstServeErrorClear).toHaveBeenCalled();
-    expect(handleServeErrorClose).toHaveBeenCalled();
+    expect(clearFirstServeError).toHaveBeenCalled();
+    expect(closeServeErrorModal).toHaveBeenCalled();
     expect(setServeStep).toHaveBeenCalledWith("none");
     expect(closeAll).toHaveBeenCalled();
   });
@@ -537,7 +537,7 @@ describe("useScoringHandlers - handleVoltar", () => {
 
       const { result } = renderHook(() => useScoringHandlers(ctx));
 
-      result.current.handleVoltar("second");
+      result.current.returnToPreviousScreen("second");
 
       expect(debounceTimerRef.current).toBeNull();
       expect(ctx.isProcessingRef.current).toBe(false);

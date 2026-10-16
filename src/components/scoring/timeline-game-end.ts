@@ -30,7 +30,7 @@ function resolveTransitionWinner(current: TimelinePoint, next: TimelinePoint): '
   return current.winner;
 }
 
-function handleTransitionGameEnd(current: TimelinePoint, next: TimelinePoint): GameEndInfo | null {
+function onTransitionGameEnd(current: TimelinePoint, next: TimelinePoint): GameEndInfo | null {
   if (!isTransitionToNewGame(current, next)) return null;
 
   const winner = resolveTransitionWinner(current, next);
@@ -60,7 +60,7 @@ export function isSetDecidingPoint(point: TimelinePoint): boolean {
   );
 }
 
-function handleLastPointOfSetGameEnd(currentPoint: TimelinePoint): GameEndInfo | null {
+function onLastPointOfSetGameEnd(currentPoint: TimelinePoint): GameEndInfo | null {
   if (!isSetDecidingPoint(currentPoint)) return null;
 
   const w = currentPoint.winner;
@@ -81,11 +81,11 @@ export function getGameEndInfo(
   isLastPointOfSet: boolean,
 ): GameEndInfo | null {
   if (nextPoint) {
-    return handleTransitionGameEnd(currentPoint, nextPoint);
+    return onTransitionGameEnd(currentPoint, nextPoint);
   }
 
   if (isLastPointOfSet) {
-    return handleLastPointOfSetGameEnd(currentPoint);
+    return onLastPointOfSetGameEnd(currentPoint);
   }
 
   return null;

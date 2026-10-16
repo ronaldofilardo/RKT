@@ -3,28 +3,28 @@ import { MatchCard, type DashboardMatchPayload } from "@/components/dashboard/Ma
 interface DashboardHomeSectionProps {
   visibleMatches: DashboardMatchPayload[];
   suspendedFromApi: DashboardMatchPayload[];
-  handleMatchClick: (m: DashboardMatchPayload) => void;
-  handleMatchReport: (m: DashboardMatchPayload) => void;
-  handleMatchFinish: (m: DashboardMatchPayload) => void;
-  handleMatchDelete: (m: DashboardMatchPayload) => void;
-  handleMatchEditScore?: (m: DashboardMatchPayload) => void;
-  handleMatchResume?: (m: DashboardMatchPayload) => void;
-  handleMatchSetSummary?: (m: DashboardMatchPayload) => void;
-  handleMatchEditInfo?: (m: DashboardMatchPayload) => void;
+  openMatchDetails: (m: DashboardMatchPayload) => void;
+  openMatchReport: (m: DashboardMatchPayload) => void;
+  finishMatch: (m: DashboardMatchPayload) => void;
+  deleteMatch: (m: DashboardMatchPayload) => void;
+  openMatchEditScore?: (m: DashboardMatchPayload) => void;
+  resumeMatch?: (m: DashboardMatchPayload) => void;
+  openMatchSetSummary?: (m: DashboardMatchPayload) => void;
+  openMatchEditInfo?: (m: DashboardMatchPayload) => void;
 }
 
 /** View inicial do dashboard: anotações suspensas + lista de partidas visíveis. */
 export function DashboardHomeSection({
   visibleMatches,
   suspendedFromApi,
-  handleMatchClick,
-  handleMatchReport,
-  handleMatchFinish,
-  handleMatchDelete,
-  handleMatchEditScore,
-  handleMatchResume,
-  handleMatchSetSummary,
-  handleMatchEditInfo,
+  openMatchDetails,
+  openMatchReport,
+  finishMatch,
+  deleteMatch,
+  openMatchEditScore,
+  resumeMatch,
+  openMatchSetSummary,
+  openMatchEditInfo,
 }: DashboardHomeSectionProps) {
   return (
     <section aria-labelledby="dashboard-heading">
@@ -41,12 +41,12 @@ export function DashboardHomeSection({
               <MatchCard
                 key={m.id ?? m.suspendedSessionId}
                 match={m}
-                onClick={handleMatchClick}
-                onReport={handleMatchReport}
-                onEditScore={handleMatchEditScore}
-                onResumeMatch={handleMatchResume}
-                onSetSummary={handleMatchSetSummary}
-                onEditInfo={handleMatchEditInfo}
+                onClick={openMatchDetails}
+                onReport={openMatchReport}
+                onEditScore={openMatchEditScore}
+                onResumeMatch={resumeMatch}
+                onSetSummary={openMatchSetSummary}
+                onEditInfo={openMatchEditInfo}
               />
             ))}
           </div>
@@ -62,14 +62,14 @@ export function DashboardHomeSection({
             <MatchCard
               key={m.id}
               match={m}
-              onClick={handleMatchClick}
-              onReport={handleMatchReport}
-              onFinish={handleMatchFinish}
-              onDelete={handleMatchDelete}
-              onEditScore={handleMatchEditScore}
-              onResumeMatch={handleMatchResume}
-              onSetSummary={handleMatchSetSummary}
-              onEditInfo={handleMatchEditInfo}
+              onClick={openMatchDetails}
+              onReport={openMatchReport}
+              onFinish={finishMatch}
+              onDelete={deleteMatch}
+              onEditScore={openMatchEditScore}
+              onResumeMatch={resumeMatch}
+              onSetSummary={openMatchSetSummary}
+              onEditInfo={openMatchEditInfo}
             />
           ))
         )}

@@ -8,7 +8,7 @@ export function PlayerCard({ player, side, scoreState, isServing, isWinner, onPo
   const score = formatScore(scoreState, side);
   const progress = getGameProgress(scoreState, side);
   const setsWon = scoreState?.setsWon[side] ?? 0;
-  const { handleTouchStart, handleTouchEnd, handleClick } = usePlayerCardTouch(onPoint, onSwipeDown);
+  const { onTouchStartGesture, onTouchEndGesture, onPrimaryClick } = usePlayerCardTouch(onPoint, onSwipeDown);
 
   return (
     <button
@@ -17,9 +17,9 @@ export function PlayerCard({ player, side, scoreState, isServing, isWinner, onPo
         ${isServing ? 'ring-2 ring-telemetry-volt ring-offset-2 ring-offset-telemetry-base' : ''}
         ${isWinner ? 'bg-telemetry-blue/20 border-telemetry-blue ring-2 ring-telemetry-blue' : ''}
         ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer active:scale-[0.98] hover:shadow-md hover:bg-telemetry-elevated hover:border-white/20'}`}
-      onClick={handleClick}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
+      onClick={onPrimaryClick}
+      onTouchStart={onTouchStartGesture}
+      onTouchEnd={onTouchEndGesture}
       disabled={disabled}
       aria-label={`+ Ponto ${player.name}`}
     >

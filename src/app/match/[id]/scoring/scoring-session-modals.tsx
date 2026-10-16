@@ -31,14 +31,14 @@ export function ScoringSessionModals({
         <SetupModal
           player1={match.player1}
           player2={match.player2}
-          onSelectServer={handlers.handleSetupConfirm}
+          onSelectServer={handlers.confirmMatchSetup}
           loading={state.setupLoading}
         />
       )}
 
       {state.activeModal === 'undo' && (
         <UndoConfirmModal
-          onConfirm={handlers.handleUndo}
+          onConfirm={handlers.undoLastPoint}
           onCancel={state.close}
           loading={false}
         />
@@ -48,7 +48,7 @@ export function ScoringSessionModals({
         <CommentModal
           isOpen={true}
           onClose={state.closeAll}
-          onSave={handlers.handleCommentCreate}
+          onSave={handlers.createMatchComment}
         />
       )}
 

@@ -11,24 +11,24 @@ import type { DashboardView } from '../dashboard.types';
 
 interface DashboardChromeProps {
   user: { name: string; role: string } | null;
-  handleNavigate: (view: DashboardView) => void;
+  navigateToTarget: (view: DashboardView) => void;
 }
 
 /**
  * Cabeçalho fixo, menu lateral e fluxo de logout do dashboard.
  * Encapsula o estado do menu (hamburguer) e do alerta de confirmação de saída.
  */
-export function DashboardChrome({ user, handleNavigate }: DashboardChromeProps) {
+export function DashboardChrome({ user, navigateToTarget }: DashboardChromeProps) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
-  const handleNewMatch = useCallback(() => {
+  const startNewMatch = useCallback(() => {
     logger.info('[DashboardPage] new match click');
     router.push('/match/new');
   }, [router]);
 
-  const handleLogout = useCallback(() => {
+  const endSession = useCallback(() => {
     logger.info('[DashboardPage] logout click');
     setLogoutConfirmOpen(true);
   }, []);
@@ -44,18 +44,18 @@ export function DashboardChrome({ user, handleNavigate }: DashboardChromeProps) 
   }, [router]);
 
   const menuItems = [
-    { emoji: '🏠', label: 'Início', action: () => handleNavigate('dashboard') },
-    { emoji: '📜', label: 'Histórico', action: () => handleNavigate('history') },
-    { emoji: '📝', label: 'Partidas Anotadas', action: () => handleNavigate('annotated') },
-    { emoji: '🔴', label: 'Ao Vivo', action: () => handleNavigate('live') },
-    { emoji: '⏳', label: 'Aguardando', action: () => handleNavigate('pending') },
-    { emoji: '📋', label: 'Atletas', action: () => handleNavigate('atletas') },
-    { emoji: '👤', label: 'Dados Pessoais', action: () => handleNavigate('profile') },
+    { emoji: '🏠', label: 'Início', action: () => navigateToTarget('dashboard') },
+    { emoji: '📜', label: 'Histórico', action: () => navigateToTarget('history') },
+    { emoji: '📝', label: 'Partidas Anotadas', action: () => navigateToTarget('annotated') },
+    { emoji: '🔴', label: 'Ao Vivo', action: () => navigateToTarget('live') },
+    { emoji: '⏳', label: 'Aguardando', action: () => navigateToTarget('pending') },
+    { emoji: '📋', label: 'Atletas', action: () => navigateToTarget('atletas') },
+    { emoji: '👤', label: 'Dados Pessoais', action: () => navigateToTarget('profile') },
     ...(user?.role === 'ADMIN'
-      ? [{ emoji: '⚙️', label: 'Admin', action: () => handleNavigate('admin') }]
+      ? [{ emoji: '⚙️', label: 'Admin', action: () => navigateToTarget('admin') }]
       : []),
-    { emoji: '📝', label: 'Nova Partida', action: () => handleNavigate('newMatch') },
-    { emoji: '🚪', label: 'Sair', action: handleLogout },
+    { emoji: '📝', label: 'Nova Partida', action: () => navigateToTarget('newMatch') },
+    { emoji: '🚪', label: 'Sair', action: endSession },
   ];
 
   return (
@@ -64,8 +64,8 @@ export function DashboardChrome({ user, handleNavigate }: DashboardChromeProps) 
         menuOpen={menuOpen}
         setMenuOpen={setMenuOpen}
         user={user}
-        onNewMatch={handleNewMatch}
-        onLogout={handleLogout}
+        onNewMatch={startNewMatch}
+        onLogout={endSession}
       />
 
       <DashboardSidebar menuOpen={menuOpen} setMenuOpen={setMenuOpen} menuItems={menuItems} />

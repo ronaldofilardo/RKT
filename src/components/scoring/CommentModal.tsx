@@ -30,16 +30,16 @@ export function CommentModal({
       role="button"
       tabIndex={-1}
       aria-label="Fechar comentário"
-      onClick={(e) => { if (!modal.isSubmitting && e.target === e.currentTarget) modal.handleClose(); }}
-      onKeyDown={modal.handleKeyDown}
+      onClick={(e) => { if (!modal.isSubmitting && e.target === e.currentTarget) modal.dismissOverlay(); }}
+      onKeyDown={modal.onKeyDownAction}
     >
       <CommentModalBody
         title={title}
         isSubmitting={modal.isSubmitting}
         notes={modal.notes}
         textareaRef={modal.textareaRef}
-        onSave={modal.handleSave}
-        onClose={modal.handleClose}
+        onSave={modal.persistFormChanges}
+        onClose={modal.dismissOverlay}
       />
     </div>,
     document.body,

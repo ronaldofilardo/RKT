@@ -17,7 +17,7 @@ export function useDashboardServerStart(router: ReturnType<typeof useRouter>) {
   const [selectedMatchForServer, setSelectedMatchForServer] = useState<DashboardMatchPayload | null>(null);
   const [startingMatch, setStartingMatch] = useState(false);
 
-  const handleSelectServer = useCallback(async (serverId: string) => {
+  const selectServingPlayer = useCallback(async (serverId: string) => {
     if (!selectedMatchForServer) return;
     setStartingMatch(true);
     try {
@@ -27,7 +27,7 @@ export function useDashboardServerStart(router: ReturnType<typeof useRouter>) {
       });
       router.push(`/match/${selectedMatchForServer.id}/scoring` as AppRouteInput);
     } catch (err) {
-      logger.error('[DashboardPage handleSelectServer]', err);
+      logger.error('[DashboardPage selectServingPlayer]', err);
       toast({ type: 'error', message: 'Erro ao iniciar partida' });
       setStartingMatch(false);
     }
@@ -37,6 +37,6 @@ export function useDashboardServerStart(router: ReturnType<typeof useRouter>) {
     selectedMatchForServer,
     setSelectedMatchForServer,
     startingMatch,
-    handleSelectServer,
+    selectServingPlayer,
   };
 }

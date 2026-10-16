@@ -95,9 +95,9 @@ function createMockContext(overrides: Partial<Parameters<typeof useScoringHandle
     setSetupLoading: jest.fn(),
     setPointsHistory: jest.fn(),
     setShowFinishedBanner: jest.fn(),
-    handleServeErrorClose: jest.fn(),
-    handleFirstServeErrorSet: jest.fn(),
-    handleFirstServeErrorClear: jest.fn(),
+    closeServeErrorModal: jest.fn(),
+    setFirstServeError: jest.fn(),
+    clearFirstServeError: jest.fn(),
     setServeStep: jest.fn(),
     open: jest.fn(),
     close: jest.fn(),
@@ -110,7 +110,7 @@ function createMockContext(overrides: Partial<Parameters<typeof useScoringHandle
   return ctx;
 }
 
-describe('useScoringHandlers - handleServeErrorConfirm', () => {
+describe('useScoringHandlers - confirmServeError', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
@@ -122,8 +122,8 @@ describe('useScoringHandlers - handleServeErrorConfirm', () => {
 
   describe('quando serveStep é "first"', () => {
     it('deve chamar close() para fechar o modal após confirmar erro de 1º saque', () => {
-      const handleServeErrorClose = jest.fn();
-      const handleFirstServeErrorSet = jest.fn();
+      const closeServeErrorModal = jest.fn();
+      const setFirstServeError = jest.fn();
       const setServeStep = jest.fn();
       const close = jest.fn();
       const closeAll = jest.fn();
@@ -136,8 +136,8 @@ describe('useScoringHandlers - handleServeErrorConfirm', () => {
           isServeEffectModalOpen: true,
         },
         engineRef: { current: {} as any },
-        handleServeErrorClose,
-        handleFirstServeErrorSet,
+        closeServeErrorModal,
+        setFirstServeError,
         setServeStep,
         close,
         closeAll,
@@ -146,21 +146,21 @@ describe('useScoringHandlers - handleServeErrorConfirm', () => {
       const { result } = renderHook(() => useScoringHandlers(ctx));
       const handlers = result.current;
 
-      handlers.handleServeErrorConfirm('flat', 'cruzada');
+      handlers.confirmServeError('flat', 'cruzada');
 
-      expect(handleFirstServeErrorSet).toHaveBeenCalledWith({
+      expect(setFirstServeError).toHaveBeenCalledWith({
         errorType: 'out',
         serveEffect: 'flat',
         direction: 'cruzada',
       });
-      expect(handleServeErrorClose).toHaveBeenCalled();
+      expect(closeServeErrorModal).toHaveBeenCalled();
       expect(setServeStep).toHaveBeenCalledWith('second');
       expect(closeAll).toHaveBeenCalled();
     });
 
     it('deve chamar closeAll() quando serveStep é "second" (double fault)', async () => {
-      const handleServeErrorClose = jest.fn();
-      const handleFirstServeErrorClear = jest.fn();
+      const closeServeErrorModal = jest.fn();
+      const clearFirstServeError = jest.fn();
       const setServeStep = jest.fn();
       const closeAll = jest.fn();
 
@@ -179,8 +179,8 @@ describe('useScoringHandlers - handleServeErrorConfirm', () => {
             restorePointHistory: jest.fn(),
           },
         },
-        handleServeErrorClose,
-        handleFirstServeErrorClear,
+        closeServeErrorModal,
+        clearFirstServeError,
         setServeStep,
         closeAll,
       });
@@ -189,7 +189,7 @@ describe('useScoringHandlers - handleServeErrorConfirm', () => {
       const handlers = result.current;
 
       act(() => {
-        handlers.handleServeErrorConfirm('flat', 'cruzada');
+        handlers.confirmServeError('flat', 'cruzada');
       });
 
       expect(closeAll).toHaveBeenCalled();
@@ -198,14 +198,14 @@ describe('useScoringHandlers - handleServeErrorConfirm', () => {
         jest.runAllTimers();
       });
 
-      expect(handleFirstServeErrorClear).toHaveBeenCalled();
-      expect(handleServeErrorClose).toHaveBeenCalled();
+      expect(clearFirstServeError).toHaveBeenCalled();
+      expect(closeServeErrorModal).toHaveBeenCalled();
       expect(setServeStep).toHaveBeenCalledWith('none');
     });
 
     it('deve chamar close() mesmo quando effect e direction são undefined', () => {
-      const handleServeErrorClose = jest.fn();
-      const handleFirstServeErrorSet = jest.fn();
+      const closeServeErrorModal = jest.fn();
+      const setFirstServeError = jest.fn();
       const setServeStep = jest.fn();
       const close = jest.fn();
       const closeAll = jest.fn();
@@ -218,8 +218,8 @@ describe('useScoringHandlers - handleServeErrorConfirm', () => {
           isServeEffectModalOpen: true,
         },
         engineRef: { current: {} as any },
-        handleServeErrorClose,
-        handleFirstServeErrorSet,
+        closeServeErrorModal,
+        setFirstServeError,
         setServeStep,
         close,
         closeAll,
@@ -228,9 +228,9 @@ describe('useScoringHandlers - handleServeErrorConfirm', () => {
       const { result } = renderHook(() => useScoringHandlers(ctx));
       const handlers = result.current;
 
-      handlers.handleServeErrorConfirm(undefined, undefined);
+      handlers.confirmServeError(undefined, undefined);
 
-      expect(handleFirstServeErrorSet).toHaveBeenCalledWith({
+      expect(setFirstServeError).toHaveBeenCalledWith({
         errorType: 'net',
         serveEffect: undefined,
         direction: undefined,
@@ -287,7 +287,7 @@ describe('useScoringHandlers - handleServeErrorConfirm', () => {
       const handlers = result.current;
 
       act(() => {
-        handlers.handleServeErrorConfirm(undefined, undefined);
+        handlers.confirmServeError(undefined, undefined);
       });
 
       act(() => {
@@ -320,7 +320,7 @@ describe('useScoringHandlers - handleServeErrorConfirm', () => {
       const handlers = result.current;
 
       act(() => {
-        handlers.handleServeErrorConfirm(undefined, undefined);
+        handlers.confirmServeError(undefined, undefined);
       });
 
       act(() => {
@@ -336,8 +336,8 @@ describe('useScoringHandlers - handleServeErrorConfirm', () => {
   });
 });
 
-// ─── handleServeErrorDirect — DF sem modal, sem effect/direction ─────────────────
-describe('useScoringHandlers - handleServeErrorDirect', () => {
+// ─── recordDirectServeError — DF sem modal, sem effect/direction ─────────────────
+describe('useScoringHandlers - recordDirectServeError', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
@@ -349,17 +349,17 @@ describe('useScoringHandlers - handleServeErrorDirect', () => {
 
   describe('quando step é "first"', () => {
     it('registra firstServeError sem effect/direction e avança para segundo saque', () => {
-      const handleServeErrorOpen = jest.fn();
-      const handleServeErrorClose = jest.fn();
-      const handleFirstServeErrorSet = jest.fn();
+      const openServeErrorModal = jest.fn();
+      const closeServeErrorModal = jest.fn();
+      const setFirstServeError = jest.fn();
       const setServeStep = jest.fn();
       const close = jest.fn();
       const closeAll = jest.fn();
 
       const ctx = createMockContext({
-        handleServeErrorOpen,
-        handleServeErrorClose,
-        handleFirstServeErrorSet,
+        openServeErrorModal,
+        closeServeErrorModal,
+        setFirstServeError,
         setServeStep,
         close,
         closeAll,
@@ -375,16 +375,16 @@ describe('useScoringHandlers - handleServeErrorDirect', () => {
       const { result } = renderHook(() => useScoringHandlers(ctx));
 
       act(() => {
-        result.current.handleServeErrorDirect('out', 'first');
+        result.current.recordDirectServeError('out', 'first');
       });
 
-      expect(handleServeErrorOpen).toHaveBeenCalledWith('out', 'first');
-      expect(handleFirstServeErrorSet).toHaveBeenCalledWith({
+      expect(openServeErrorModal).toHaveBeenCalledWith('out', 'first');
+      expect(setFirstServeError).toHaveBeenCalledWith({
         errorType: 'out',
         serveEffect: undefined,
         direction: undefined,
       });
-      expect(handleServeErrorClose).toHaveBeenCalled();
+      expect(closeServeErrorModal).toHaveBeenCalled();
       expect(setServeStep).toHaveBeenCalledWith('second');
       expect(closeAll).toHaveBeenCalled();
     });
@@ -395,9 +395,9 @@ describe('useScoringHandlers - handleServeErrorDirect', () => {
       const applyPoint = jest.fn();
       const ctx = createMockContext({
         isOnline: false,
-        handleServeErrorOpen: jest.fn(),
-        handleServeErrorClose: jest.fn(),
-        handleFirstServeErrorClear: jest.fn(),
+        openServeErrorModal: jest.fn(),
+        closeServeErrorModal: jest.fn(),
+        clearFirstServeError: jest.fn(),
         setServeStep: jest.fn(),
         closeAll: jest.fn(),
         serveErrorState: {
@@ -437,7 +437,7 @@ describe('useScoringHandlers - handleServeErrorDirect', () => {
       const { result } = renderHook(() => useScoringHandlers(ctx));
 
       act(() => {
-        result.current.handleServeErrorDirect('net', 'second');
+        result.current.recordDirectServeError('net', 'second');
       });
 
       act(() => {
@@ -471,7 +471,7 @@ describe('useScoringHandlers - handleServeErrorDirect', () => {
       const { result } = renderHook(() => useScoringHandlers(ctx));
 
       act(() => {
-        result.current.handleServeErrorDirect('out', 'second');
+        result.current.recordDirectServeError('out', 'second');
       });
 
       act(() => {
@@ -488,14 +488,14 @@ describe('useScoringHandlers - handleServeErrorDirect', () => {
   });
 });
 
-// ─── Regressão: handlePointDetailsConfirm + uploadAudioNote ─────────────────
+// ─── Regressão: confirmPointDetails + uploadAudioNote ─────────────────
 // Protege contra o bug corrigido nesta sessão:
 //  1) ReferenceError "Cannot access 'uploadAudioNote' before initialization"
 //     (TDZ causado por dependência de useCallback declarada DEPOIS do uso).
 //     Ao renderizar o hook e chamar o handler, o erro de TDZ deve ser ausente.
 //  2) lint react-hooks/exhaustive-deps (uploadAudioNote ausente no array de
-//     dependências de handlePointDetailsConfirm).
-describe('useScoringHandlers - handlePointDetailsConfirm (regressão uploadAudioNote)', () => {
+//     dependências de confirmPointDetails).
+describe('useScoringHandlers - confirmPointDetails (regressão uploadAudioNote)', () => {
   beforeEach(() => {
     mockFetch.mockClear();
   });
@@ -524,7 +524,7 @@ describe('useScoringHandlers - handlePointDetailsConfirm (regressão uploadAudio
     });
   }
 
-  it('renderiza o hook e chama handlePointDetailsConfirm sem ReferenceError de TDZ', () => {
+  it('renderiza o hook e chama confirmPointDetails sem ReferenceError de TDZ', () => {
     const ctx = makeAudioCtx();
     expect(() => renderHook(() => useScoringHandlers(ctx))).not.toThrow();
 
@@ -532,7 +532,7 @@ describe('useScoringHandlers - handlePointDetailsConfirm (regressão uploadAudio
     const handlers = result.current;
 
     expect(() =>
-      handlers.handlePointDetailsConfirm(
+      handlers.confirmPointDetails(
         { tipo: 'winner' as const, previewBalls: 5 },
         { blob: new Blob(['x']), durationMs: 1234 },
       ),
@@ -544,7 +544,7 @@ describe('useScoringHandlers - handlePointDetailsConfirm (regressão uploadAudio
     const { result } = renderHook(() => useScoringHandlers(ctx));
     const handlers = result.current;
 
-    handlers.handlePointDetailsConfirm({
+    handlers.confirmPointDetails({
       tipo: 'winner' as const,
       previewBalls: 5,
     });
@@ -563,8 +563,8 @@ describe('useScoringHandlers - handlePointDetailsConfirm (regressão uploadAudio
 });
 
 // ─── Regressão: voltar no 2º saque não pode alterar o placar (bug reportado) ─
-// Antes do merge no handleVoltar, os handlers de cancelamento (handleServeCancel/
-// handleCancelSecondServe) precisavam NUNCA chamar engineRef.current.undoLastPoint()
+// Antes do merge no returnToPreviousScreen, os handlers de cancelamento (cancelServeAction/
+// cancelSecondServeState) precisavam NUNCA chamar engineRef.current.undoLastPoint()
 // quando havia um firstServeError marcado. Nenhum ponto é registrado no engine
 // antes da falta do 2º saque (DOUBLE_FAULT) ser confirmada — a falta do 1º
 // saque é só estado local (firstServeError/serveStep). Chamar undoLastPoint
@@ -578,8 +578,8 @@ describe('useScoringHandlers - voltar no 2º saque não deve mexer no placar', (
   function makeCancelCtx(overrides: Partial<any> = {}) {
     const undoLastPoint = jest.fn();
     const setScoreState = jest.fn();
-    const handleFirstServeErrorClear = jest.fn();
-    const handleServeErrorClose = jest.fn();
+    const clearFirstServeError = jest.fn();
+    const closeServeErrorModal = jest.fn();
     const setServeStep = jest.fn();
     const closeAll = jest.fn();
 
@@ -602,53 +602,53 @@ describe('useScoringHandlers - voltar no 2º saque não deve mexer no placar', (
         } as any,
       },
       setScoreState,
-      handleFirstServeErrorClear,
-      handleServeErrorClose,
+      clearFirstServeError,
+      closeServeErrorModal,
       setServeStep,
       closeAll,
       ...overrides,
     });
 
-    return { ctx, undoLastPoint, setScoreState, handleFirstServeErrorClear, handleServeErrorClose, setServeStep, closeAll };
+    return { ctx, undoLastPoint, setScoreState, clearFirstServeError, closeServeErrorModal, setServeStep, closeAll };
   }
 
-  it('handleVoltar("second"): NUNCA chama undoLastPoint(), mesmo com firstServeError setado', () => {
-    const { ctx, undoLastPoint, setScoreState, handleFirstServeErrorClear, setServeStep, closeAll } = makeCancelCtx();
+  it('returnToPreviousScreen("second"): NUNCA chama undoLastPoint(), mesmo com firstServeError setado', () => {
+    const { ctx, undoLastPoint, setScoreState, clearFirstServeError, setServeStep, closeAll } = makeCancelCtx();
 
     const { result } = renderHook(() => useScoringHandlers(ctx));
-    result.current.handleVoltar('second');
+    result.current.returnToPreviousScreen('second');
 
     expect(undoLastPoint).not.toHaveBeenCalled();
     expect(setScoreState).not.toHaveBeenCalled();
-    expect(handleFirstServeErrorClear).toHaveBeenCalled();
+    expect(clearFirstServeError).toHaveBeenCalled();
     expect(setServeStep).toHaveBeenCalledWith('none');
     expect(closeAll).toHaveBeenCalled();
   });
 
-  it('handleVoltar("none"): abre o modal de undo sem mexer no estado de saque', () => {
-    const { ctx, undoLastPoint, setScoreState, handleFirstServeErrorClear, setServeStep } = makeCancelCtx();
+  it('returnToPreviousScreen("none"): abre o modal de undo sem mexer no estado de saque', () => {
+    const { ctx, undoLastPoint, setScoreState, clearFirstServeError, setServeStep } = makeCancelCtx();
 
     const { result } = renderHook(() => useScoringHandlers(ctx));
-    result.current.handleVoltar('none');
+    result.current.returnToPreviousScreen('none');
 
     expect(undoLastPoint).not.toHaveBeenCalled();
     expect(setScoreState).not.toHaveBeenCalled();
-    expect(handleFirstServeErrorClear).not.toHaveBeenCalled();
+    expect(clearFirstServeError).not.toHaveBeenCalled();
     expect(setServeStep).not.toHaveBeenCalled();
     expect(ctx.open).toHaveBeenCalledWith('undo');
   });
 
-  it('handleServeErrorCancel: NUNCA chama undoLastPoint(), tanto em serveStep "second" quanto "first"', () => {
+  it('cancelServeError: NUNCA chama undoLastPoint(), tanto em serveStep "second" quanto "first"', () => {
     const second = makeCancelCtx();
     const { result: r1 } = renderHook(() => useScoringHandlers(second.ctx));
-    r1.current.handleServeErrorCancel();
+    r1.current.cancelServeError();
 
     expect(second.undoLastPoint).not.toHaveBeenCalled();
     expect(second.setScoreState).not.toHaveBeenCalled();
     // Antes do fix, o early-return para serveStep==='second' deixava o
     // estado "preso" (sem limpar firstServeError/serveStep) — corrigido
     // para sempre limpar, independente do step.
-    expect(second.handleFirstServeErrorClear).toHaveBeenCalled();
+    expect(second.clearFirstServeError).toHaveBeenCalled();
     expect(second.setServeStep).toHaveBeenCalledWith('none');
 
     const first = makeCancelCtx({
@@ -661,34 +661,34 @@ describe('useScoringHandlers - voltar no 2º saque não deve mexer no placar', (
       },
     });
     const { result: r2 } = renderHook(() => useScoringHandlers(first.ctx));
-    r2.current.handleServeErrorCancel();
+    r2.current.cancelServeError();
 
     expect(first.undoLastPoint).not.toHaveBeenCalled();
     expect(first.setScoreState).not.toHaveBeenCalled();
-    expect(first.handleFirstServeErrorClear).toHaveBeenCalled();
+    expect(first.clearFirstServeError).toHaveBeenCalled();
     expect(first.setServeStep).toHaveBeenCalledWith('none');
   });
 
-  it('handleVoltar("second"): não faz nada além de fechar/limpar quando isProcessingRef.current é true', () => {
-    const { ctx, undoLastPoint, handleFirstServeErrorClear, setServeStep } = makeCancelCtx({
+  it('returnToPreviousScreen("second"): não faz nada além de fechar/limpar quando isProcessingRef.current é true', () => {
+    const { ctx, undoLastPoint, clearFirstServeError, setServeStep } = makeCancelCtx({
       isProcessingRef: { current: true },
     });
 
     const { result } = renderHook(() => useScoringHandlers(ctx));
-    result.current.handleVoltar('second');
+    result.current.returnToPreviousScreen('second');
 
     expect(undoLastPoint).not.toHaveBeenCalled();
-    expect(handleFirstServeErrorClear).not.toHaveBeenCalled();
+    expect(clearFirstServeError).not.toHaveBeenCalled();
     expect(setServeStep).not.toHaveBeenCalled();
   });
 });
 
 // ─── Regressão: voltar não pode deixar o Ace/DF agendado (debounce) disparar ──
-// Bug reportado: handleServerEffectConfirm/handleServeErrorConfirm agendam o
+// Bug reportado: confirmServerEffect/confirmServeError agendam o
 // applyPoint real dentro de um setTimeout (debounce). isProcessingRef só
 // vira true DENTRO desse timeout, não no agendamento. Os handlers de
-// cancelamento (agora unificados no handleVoltar) precisam cancelar esse
-// timer pendente (diferente de handleUndo, que já fazia isso) — senão
+// cancelamento (agora unificados no returnToPreviousScreen) precisam cancelar esse
+// timer pendente (diferente de undoLastPoint, que já fazia isso) — senão
 // resetam a UI local (parecendo cancelado), mas o ponto "fantasma" ainda é
 // enviado ao engine/servidor alguns ms depois,
 // avançando o placar/sequência sem o usuário perceber e desalinhando a
@@ -737,12 +737,12 @@ describe('useScoringHandlers - cancelar aborta ponto fantasma (Ace/DF agendado v
     return { ctx, applyPoint, debounceTimerRef };
   }
 
-  it('handleServeErrorCancel cancela o timer de um Ace agendado (handleServerEffectConfirm) antes de disparar', () => {
+  it('cancelServeError cancela o timer de um Ace agendado (confirmServerEffect) antes de disparar', () => {
     const { ctx, applyPoint, debounceTimerRef } = makeGhostCtx();
     const { result } = renderHook(() => useScoringHandlers(ctx));
 
     act(() => {
-      result.current.handleServerEffectConfirm('flat', 'centro');
+      result.current.confirmServerEffect('flat', 'centro');
     });
 
     // O ponto ainda está "na fila": timer agendado, mas isProcessingRef
@@ -752,7 +752,7 @@ describe('useScoringHandlers - cancelar aborta ponto fantasma (Ace/DF agendado v
     expect(applyPoint).not.toHaveBeenCalled();
 
     act(() => {
-      result.current.handleServeErrorCancel();
+      result.current.cancelServeError();
     });
 
     expect(debounceTimerRef.current).toBeNull();
@@ -765,7 +765,7 @@ describe('useScoringHandlers - cancelar aborta ponto fantasma (Ace/DF agendado v
     expect(applyPoint).not.toHaveBeenCalled();
   });
 
-  it('handleVoltar("second") cancela o timer de uma Dupla Falta agendada (handleServeErrorConfirm) antes de disparar', () => {
+  it('returnToPreviousScreen("second") cancela o timer de uma Dupla Falta agendada (confirmServeError) antes de disparar', () => {
     const { ctx, applyPoint, debounceTimerRef } = makeGhostCtx({
       serveErrorState: {
         serveStep: 'second' as const,
@@ -778,14 +778,14 @@ describe('useScoringHandlers - cancelar aborta ponto fantasma (Ace/DF agendado v
     const { result } = renderHook(() => useScoringHandlers(ctx));
 
     act(() => {
-      result.current.handleServeErrorConfirm('flat', 'centro');
+      result.current.confirmServeError('flat', 'centro');
     });
 
     expect(debounceTimerRef.current).not.toBeNull();
     expect(ctx.isProcessingRef.current).toBe(false);
 
     act(() => {
-      result.current.handleVoltar('second');
+      result.current.returnToPreviousScreen('second');
     });
 
     expect(debounceTimerRef.current).toBeNull();
@@ -797,18 +797,18 @@ describe('useScoringHandlers - cancelar aborta ponto fantasma (Ace/DF agendado v
     expect(applyPoint).not.toHaveBeenCalled();
   });
 
-  it('handleVoltar("second") também cancela o timer pendente de um Ace agendado', () => {
+  it('returnToPreviousScreen("second") também cancela o timer pendente de um Ace agendado', () => {
     const { ctx, applyPoint, debounceTimerRef } = makeGhostCtx();
     const { result } = renderHook(() => useScoringHandlers(ctx));
 
     act(() => {
-      result.current.handleServerEffectConfirm('flat', 'centro');
+      result.current.confirmServerEffect('flat', 'centro');
     });
 
     expect(debounceTimerRef.current).not.toBeNull();
 
     act(() => {
-      result.current.handleVoltar('second');
+      result.current.returnToPreviousScreen('second');
     });
 
     expect(debounceTimerRef.current).toBeNull();
@@ -822,8 +822,8 @@ describe('useScoringHandlers - cancelar aborta ponto fantasma (Ace/DF agendado v
 });
 
 // ─── Regressão: firstFaultDetail perdido quando o ponto NÃO termina em DF ────
-// Bug reportado: handleAceDirect, handleServerEffectConfirm (Ace com
-// detalhes) e handlePointDetailsConfirm (rally comum) nunca incluíam
+// Bug reportado: recordAceDirectly, confirmServerEffect (Ace com
+// detalhes) e confirmPointDetails (rally comum) nunca incluíam
 // firstFaultDetail no payload do applyPoint — só os handlers de
 // DOUBLE_FAULT faziam isso. Resultado: o erro do 1º saque era perdido
 // sempre que o ponto terminava em Ace no 2º saque ou em rally após acerto
@@ -869,7 +869,7 @@ describe('useScoringHandlers - firstFaultDetail propagado quando o ponto NÃO é
     return { ctx, applyPoint };
   }
 
-  it('handleAceDirect (Ace direto, sem modal) inclui firstFaultDetail quando há erro de 1º saque', () => {
+  it('recordAceDirectly (Ace direto, sem modal) inclui firstFaultDetail quando há erro de 1º saque', () => {
     const { ctx, applyPoint } = makeEngineCtx({
       serveErrorState: {
         serveStep: 'second' as const,
@@ -882,7 +882,7 @@ describe('useScoringHandlers - firstFaultDetail propagado quando o ponto NÃO é
     const { result } = renderHook(() => useScoringHandlers(ctx));
 
     act(() => {
-      result.current.handleAceDirect();
+      result.current.recordAceDirectly();
     });
 
     act(() => {
@@ -896,7 +896,7 @@ describe('useScoringHandlers - firstFaultDetail propagado quando o ponto NÃO é
     expect(flow.firstFaultDetail).toEqual(firstServeError);
   });
 
-  it('handleServerEffectConfirm (Ace com detalhes) inclui firstFaultDetail quando há erro de 1º saque', () => {
+  it('confirmServerEffect (Ace com detalhes) inclui firstFaultDetail quando há erro de 1º saque', () => {
     const { ctx, applyPoint } = makeEngineCtx({
       serveErrorState: {
         serveStep: 'second' as const,
@@ -909,7 +909,7 @@ describe('useScoringHandlers - firstFaultDetail propagado quando o ponto NÃO é
     const { result } = renderHook(() => useScoringHandlers(ctx));
 
     act(() => {
-      result.current.handleServerEffectConfirm('flat', 'centro');
+      result.current.confirmServerEffect('flat', 'centro');
     });
 
     act(() => {
@@ -924,7 +924,7 @@ describe('useScoringHandlers - firstFaultDetail propagado quando o ponto NÃO é
     expect(flow.rallyDetails.efeito).toBe('flat');
   });
 
-  it('handleAceDirect não inclui firstFaultDetail quando não há erro de 1º saque (ace direto no 1º)', () => {
+  it('recordAceDirectly não inclui firstFaultDetail quando não há erro de 1º saque (ace direto no 1º)', () => {
     const { ctx, applyPoint } = makeEngineCtx({
       serveErrorState: {
         serveStep: 'none' as const,
@@ -937,7 +937,7 @@ describe('useScoringHandlers - firstFaultDetail propagado quando o ponto NÃO é
     const { result } = renderHook(() => useScoringHandlers(ctx));
 
     act(() => {
-      result.current.handleAceDirect();
+      result.current.recordAceDirectly();
     });
 
     act(() => {
@@ -951,7 +951,7 @@ describe('useScoringHandlers - firstFaultDetail propagado quando o ponto NÃO é
     expect(flow.firstFaultDetail).toBeUndefined();
   });
 
-  it('handlePointDetailsConfirm (rally comum) inclui firstFaultDetail quando há erro de 1º saque', async () => {
+  it('confirmPointDetails (rally comum) inclui firstFaultDetail quando há erro de 1º saque', async () => {
     const { ctx, applyPoint } = makeEngineCtx({
       modalParamsRef: { current: { winner: 'player1', rallyLength: '6' } },
       serveErrorState: {
@@ -965,7 +965,7 @@ describe('useScoringHandlers - firstFaultDetail propagado quando o ponto NÃO é
     const { result } = renderHook(() => useScoringHandlers(ctx));
 
     act(() => {
-      result.current.handlePointDetailsConfirm({
+      result.current.confirmPointDetails({
         tipo: 'winner' as const,
         previewBalls: 5,
       });
@@ -978,7 +978,7 @@ describe('useScoringHandlers - firstFaultDetail propagado quando o ponto NÃO é
     expect(flow.firstFaultDetail).toEqual(firstServeError);
   });
 
-  it('handlePointDetailsConfirm não inclui firstFaultDetail quando o ponto termina direto no 1º saque', () => {
+  it('confirmPointDetails não inclui firstFaultDetail quando o ponto termina direto no 1º saque', () => {
     const { ctx, applyPoint } = makeEngineCtx({
       modalParamsRef: { current: { winner: 'player1', rallyLength: '6' } },
       serveErrorState: {
@@ -992,7 +992,7 @@ describe('useScoringHandlers - firstFaultDetail propagado quando o ponto NÃO é
     const { result } = renderHook(() => useScoringHandlers(ctx));
 
     act(() => {
-      result.current.handlePointDetailsConfirm({
+      result.current.confirmPointDetails({
         tipo: 'winner' as const,
         previewBalls: 5,
       });

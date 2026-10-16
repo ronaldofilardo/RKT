@@ -68,7 +68,7 @@ async function persistFinishedMatch(
 ): Promise<boolean> {
   const { matchId, tokenRef, match, engineRef, setScoreState, toast } = options;
 
-  logger.log("[handleEditScore] Match finished by edit — calling finishMatch directly", newState.currentGame);
+  logger.log("[openEditScoreModal] Match finished by edit — calling finishMatch directly", newState.currentGame);
   const finishResult = await finishMatch(
     { matchId, tokenRef, matchVersion: match?.version },
     winnerPlayerId,
@@ -102,16 +102,16 @@ async function persistOngoingMatch(
 ): Promise<boolean> {
   const { persistState, fetchMatch, toast } = options;
 
-  logger.log("[handleEditScore] Calling persistState with currentGame:", newState.currentGame);
+  logger.log("[openEditScoreModal] Calling persistState with currentGame:", newState.currentGame);
   const result = await persistState(newState, "edit-score", { isManualScoreEdit: true, history: [], note: options.note });
 
   if (result.success) {
-    logger.log("[handleEditScore] State persisted successfully");
+    logger.log("[openEditScoreModal] State persisted successfully");
     return true;
   }
 
   if (result.needsResync) {
-    logger.warn("[handleEditScore] Needs resync due to version conflict — state re-synced from server");
+    logger.warn("[openEditScoreModal] Needs resync due to version conflict — state re-synced from server");
     await fetchMatch(true);
     toast({
       type: 'error',
@@ -120,7 +120,7 @@ async function persistOngoingMatch(
     return false;
   }
 
-  logger.error("[handleEditScore] Failed to persist state");
+  logger.error("[openEditScoreModal] Failed to persist state");
   toast({ type: 'error', message: 'Falha ao salvar placar editado. Tente novamente.' });
   return false;
 }

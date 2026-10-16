@@ -55,7 +55,7 @@ describe("useScoringPageDerived - effectiveScoreState", () => {
     const staleSnapshot = buildScoreState({ sets: [{ player1: 3, player2: 2, isTiebreak: false } as any] });
 
     const state = buildState({
-      activeModal: null, // modal já foi fechado (handleEditScore chamou closeAll())
+      activeModal: null, // modal já foi fechado (openEditScoreModal chamou closeAll())
       scoreState: freshEditedScore,
       session: { pendingEditScore: { scoreState: staleSnapshot, floorSets: null } } as any,
     });

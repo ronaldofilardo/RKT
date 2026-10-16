@@ -47,25 +47,25 @@ export function usePointDetailsModal({
 
   const refs = usePointDetailsSectionRefs(form, vencedor, mounted);
 
-  const handleCancel = useCallback(() => {
+  const cancelCurrentAction = useCallback(() => {
     setShowCloseDialog(true);
   }, []);
 
-  usePointDetailsKeyboard(mounted, handleCancel);
+  usePointDetailsKeyboard(mounted, cancelCurrentAction);
 
   const canConfirm = Boolean(form.situacao && form.tipo && form.golpe);
 
-  const handleConfirm = useCallback(() => {
+  const confirmCurrentAction = useCallback(() => {
     const details = buildRallyDetails(form, vencedor, noteText);
     if (!details) return;
     onConfirm(details, noteAudio);
   }, [form, onConfirm, vencedor, noteText, noteAudio]);
 
-  const handleDiscard = useCallback(() => {
+  const discardChanges = useCallback(() => {
     onCancel();
   }, [onCancel]);
 
-  const handleSaveNote = useCallback((savedNoteText: string, audio?: { blob: Blob; durationMs: number }) => {
+  const persistNoteContent = useCallback((savedNoteText: string, audio?: { blob: Blob; durationMs: number }) => {
     setNoteText(savedNoteText);
     setNoteAudio(audio);
   }, []);
@@ -83,10 +83,10 @@ export function usePointDetailsModal({
     refs,
     vencedor,
     winnerName,
-    handleCancel,
+    cancelCurrentAction,
     canConfirm,
-    handleConfirm,
-    handleDiscard,
-    handleSaveNote,
+    confirmCurrentAction,
+    discardChanges,
+    persistNoteContent,
   };
 }

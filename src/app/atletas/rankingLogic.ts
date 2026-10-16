@@ -125,7 +125,7 @@ function computeClassesForType(
   return getClassesForSelection(category, gender, age);
 }
 
-function handleRankingToggle(
+function toggleRankingEntry(
   setRankings: React.Dispatch<React.SetStateAction<Record<RankingType, RankingState>>>,
   type: RankingType
 ): void {
@@ -142,7 +142,7 @@ function handleRankingToggle(
   }));
 }
 
-function handleRankingFieldChange(
+function updateRankingField(
   setRankings: React.Dispatch<React.SetStateAction<Record<RankingType, RankingState>>>,
   type: RankingType,
   field: keyof RankingState,
@@ -158,7 +158,7 @@ function handleRankingFieldChange(
   });
 }
 
-function handleAutoCategoryAssignment(
+function assignCategoryAutomatically(
   setRankings: React.Dispatch<React.SetStateAction<Record<RankingType, RankingState>>>,
   age: number | null
 ): void {
@@ -185,9 +185,9 @@ export {
   shouldShowClass,
   shouldShowJuvenilePosition,
   computeClassesForType,
-  handleRankingToggle,
-  handleRankingFieldChange,
-  handleAutoCategoryAssignment,
+  toggleRankingEntry,
+  updateRankingField,
+  assignCategoryAutomatically,
   createEmptyRankingState,
   RANKING_TYPES,
   RANKING_TYPE_LABELS,

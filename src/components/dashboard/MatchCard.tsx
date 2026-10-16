@@ -22,7 +22,7 @@ export function MatchCard({
 }: MatchCardProps) {
   const d = useMatchCardData(match);
 
-  const handleClick = useCallback(() => {
+  const onPrimaryClick = useCallback(() => {
     onClick?.(match);
   }, [onClick, match]);
 
@@ -30,13 +30,13 @@ export function MatchCard({
     <div
       data-testid={`match-card-${match.id}`}
       className={`rounded-xl border border-telemetry-border/10 shadow-sm transition-all bg-telemetry-card ${onClick ? "cursor-pointer hover:shadow-md hover:border-telemetry-border/20 hover:bg-telemetry-elevated" : ""}`}
-      onClick={handleClick}
+      onClick={onPrimaryClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       onKeyDown={(e) => {
         if (onClick && (e.key === 'Enter' || e.key === ' ')) {
           e.preventDefault();
-          handleClick();
+          onPrimaryClick();
         }
       }}
     >

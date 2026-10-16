@@ -23,17 +23,17 @@ export default function NewMatchPage() {
         router={c.router}
         showNewAthleteModal={c.showNewAthleteModal}
         setShowNewAthleteModal={c.setShowNewAthleteModal}
-        handleAthleteCreated={c.handleAthleteCreated}
+        onAthleteCreationComplete={c.onAthleteCreationComplete}
         showServerModal={c.showServerModal}
         setShowServerModal={c.setShowServerModal}
         selectedP1={c.selectedP1}
         selectedP2={c.selectedP2}
         startingMatch={c.startingMatch}
-        handleSelectServer={c.handleSelectServer}
+        selectServingPlayer={c.selectServingPlayer}
         showDuplicateModal={c.showDuplicateModal}
         setShowDuplicateModal={c.setShowDuplicateModal}
         duplicateInfo={c.duplicateInfo}
-        handleForceCreate={c.handleForceCreate}
+        createMatchIgnoringWarning={c.createMatchIgnoringWarning}
       />
     </div>
   );

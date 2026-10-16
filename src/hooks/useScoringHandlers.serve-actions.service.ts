@@ -19,17 +19,17 @@ interface ServeActionsDeps {
   isProcessingRef: React.MutableRefObject<boolean>;
   debounceTimerRef: React.MutableRefObject<NodeJS.Timeout | null>;
   closeAll: () => void;
-  handleFirstServeErrorSet: (val: {
+  setFirstServeError: (val: {
     errorType: "out" | "net";
     serveEffect?: string;
     direction?: string;
   }) => void;
-  handleFirstServeErrorClear: () => void;
-  handleServeErrorOpen: (
+  clearFirstServeError: () => void;
+  openServeErrorModal: (
     errorType: "out" | "net",
     step: "first" | "second",
   ) => void;
-  handleServeErrorClose: () => void;
+  closeServeErrorModal: () => void;
   setServeStep: (step: "none" | "second") => void;
 }
 
@@ -44,10 +44,10 @@ export function createServeActionsService(deps: ServeActionsDeps) {
     isProcessingRef,
     debounceTimerRef,
     closeAll,
-    handleFirstServeErrorSet,
-    handleFirstServeErrorClear,
-    handleServeErrorOpen,
-    handleServeErrorClose,
+    setFirstServeError,
+    clearFirstServeError,
+    openServeErrorModal,
+    closeServeErrorModal,
     setServeStep,
   } = deps;
 
@@ -59,7 +59,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
     }
   };
 
-  const handleAceDirect = () => {
+  const recordAceDirectly = () => {
     if (!match || isProcessingRef.current) return;
     cancelPendingDebounce();
     const isSecond =
@@ -89,16 +89,16 @@ export function createServeActionsService(deps: ServeActionsDeps) {
         firstFaultDetail,
       })
         .finally(() => {
-          handleFirstServeErrorClear();
+          clearFirstServeError();
           setServeStep("none");
         })
         .catch((err: unknown) =>
-          logger.error("[handleAceDirect] Error processing ACE:", err),
+          logger.error("[recordAceDirectly] Error processing ACE:", err),
         );
     }, TIMEOUTS.DEBOUNCE_MS);
   };
 
-  const handleServerEffectConfirm = (effect?: string, direction?: string) => {
+  const confirmServerEffect = (effect?: string, direction?: string) => {
     if (!match || isProcessingRef.current) return;
     cancelPendingDebounce();
     closeAll();
@@ -129,31 +129,31 @@ export function createServeActionsService(deps: ServeActionsDeps) {
         firstFaultDetail,
       })
         .finally(() => {
-          handleFirstServeErrorClear();
+          clearFirstServeError();
           setServeStep("none");
         })
         .catch((err) =>
           logger.error(
-            "[handleServerEffectConfirm] Error processing ACE:",
+            "[confirmServerEffect] Error processing ACE:",
             err,
           ),
         );
     }, TIMEOUTS.DEBOUNCE_MS);
   };
 
-  const handleServeErrorConfirm = (effect?: string, direction?: string) => {
+  const confirmServeError = (effect?: string, direction?: string) => {
     if (!match || !serveErrorState.pendingServeError || isProcessingRef.current)
       return;
     cancelPendingDebounce();
 
     if (serveErrorState.pendingServeError.serveStep === "first") {
       if (!engineRef.current) return;
-      handleFirstServeErrorSet({
+      setFirstServeError({
         errorType: serveErrorState.pendingServeError.errorType,
         serveEffect: effect,
         direction,
       });
-      handleServeErrorClose();
+      closeServeErrorModal();
       setServeStep("second");
       closeAll();
       return;
@@ -186,29 +186,29 @@ export function createServeActionsService(deps: ServeActionsDeps) {
         isSecondServe: true,
         firstFaultDetail,
       }).finally(() => {
-        handleFirstServeErrorClear();
-        handleServeErrorClose();
+        clearFirstServeError();
+        closeServeErrorModal();
         setServeStep("none");
       });
     }, 50);
   };
 
-  const handleServeErrorDirect = (
+  const recordDirectServeError = (
     errorType: "out" | "net",
     step: "first" | "second",
   ) => {
     if (!match || isProcessingRef.current) return;
     cancelPendingDebounce();
-    handleServeErrorOpen(errorType, step);
+    openServeErrorModal(errorType, step);
 
     if (step === "first") {
       if (!engineRef.current) return;
-      handleFirstServeErrorSet({
+      setFirstServeError({
         errorType: serveErrorState.pendingServeError?.errorType ?? errorType,
         serveEffect: undefined,
         direction: undefined,
       });
-      handleServeErrorClose();
+      closeServeErrorModal();
       setServeStep("second");
       closeAll();
       return;
@@ -241,27 +241,27 @@ export function createServeActionsService(deps: ServeActionsDeps) {
         isSecondServe: true,
         firstFaultDetail,
       }).finally(() => {
-        handleFirstServeErrorClear();
-        handleServeErrorClose();
+        clearFirstServeError();
+        closeServeErrorModal();
         setServeStep("none");
       });
     }, 50);
   };
 
-  const handleServeErrorCancel = () => {
+  const cancelServeError = () => {
     cancelPendingDebounce();
     if (isProcessingRef.current) return;
     closeAll();
-    handleServeErrorClose();
-    handleFirstServeErrorClear();
+    closeServeErrorModal();
+    clearFirstServeError();
     setServeStep("none");
   };
 
   return {
-    handleAceDirect,
-    handleServerEffectConfirm,
-    handleServeErrorConfirm,
-    handleServeErrorDirect,
-    handleServeErrorCancel,
+    recordAceDirectly,
+    confirmServerEffect,
+    confirmServeError,
+    recordDirectServeError,
+    cancelServeError,
   };
 }

@@ -10,8 +10,8 @@ interface AdminUsersTableProps {
   newRole: string;
   setNewRole: (v: string) => void;
   setEditingUser: (v: string | null) => void;
-  handleRoleChange: (userId: string) => Promise<void>;
-  handleDeleteUser: (u: AdminUser) => void;
+  updateUserRole: (userId: string) => Promise<void>;
+  removeUserAccount: (u: AdminUser) => void;
 }
 
 /** Tabela de usuários cadastrados com edição de perfil e exclusão. */
@@ -21,8 +21,8 @@ export function AdminUsersTable({
   newRole,
   setNewRole,
   setEditingUser,
-  handleRoleChange,
-  handleDeleteUser,
+  updateUserRole,
+  removeUserAccount,
 }: AdminUsersTableProps) {
   return (
     <div className="mt-6 sm:mt-8 bg-white rounded-lg shadow-sm border overflow-hidden">
@@ -66,7 +66,7 @@ export function AdminUsersTable({
                 <td className="px-4 sm:px-6 py-3 text-right whitespace-nowrap">
                   {editingUser === u.id ? (
                     <>
-                      <button onClick={() => handleRoleChange(u.id)} className="text-xs text-green-600 hover:underline">Salvar</button>
+                      <button onClick={() => updateUserRole(u.id)} className="text-xs text-green-600 hover:underline">Salvar</button>
                       <button onClick={() => setEditingUser(null)} className="text-xs text-gray-500 hover:underline ml-2">Cancelar</button>
                     </>
                   ) : (
@@ -78,7 +78,7 @@ export function AdminUsersTable({
                         Alterar Perfil
                       </button>
                       <button
-                        onClick={() => handleDeleteUser(u)}
+                        onClick={() => removeUserAccount(u)}
                         className="text-xs text-red-600 hover:underline ml-2"
                       >
                         Excluir

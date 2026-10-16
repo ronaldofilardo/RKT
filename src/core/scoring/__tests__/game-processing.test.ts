@@ -1,4 +1,4 @@
-import { applyRegularPoint, handleGameWon } from '../game-processing';
+import { applyRegularPoint, onGameWon } from '../game-processing';
 import type { ScoringState, ScoringEngineConfig, GameScore } from '../types';
 
 function createBaseState(overrides: Partial<ScoringState> = {}): ScoringState {
@@ -238,7 +238,7 @@ describe('applyRegularPoint', () => {
   });
 });
 
-describe('handleGameWon', () => {
+describe('onGameWon', () => {
   it('deve incrementar games do vencedor no set atual', () => {
     const state = createBaseState({
       sets: [{ player1: 2, player2: 3, isTiebreak: false, tiebreakScore: null }],
@@ -246,7 +246,7 @@ describe('handleGameWon', () => {
     const config = createConfig();
     const game = createGame({ player1: 3, player2: 1 });
 
-    const result = handleGameWon('player1', game, state, config);
+    const result = onGameWon('player1', game, state, config);
     expect(result.sets[0].player1).toBe(3);
   });
 
@@ -257,7 +257,7 @@ describe('handleGameWon', () => {
     const config = createConfig();
     const game = createGame({ player1: 3, player2: 1 });
 
-    const result = handleGameWon('player1', game, state, config);
+    const result = onGameWon('player1', game, state, config);
     expect(result.currentGame.player1).toBe(0);
     expect(result.currentGame.player2).toBe(0);
     expect(result.currentGame.isDeuce).toBe(false);
@@ -272,7 +272,7 @@ describe('handleGameWon', () => {
     const config = createConfig();
     const game = createGame({ player1: 3, player2: 1 });
 
-    const result = handleGameWon('player1', game, state, config);
+    const result = onGameWon('player1', game, state, config);
     expect(result.server).toBe('player2');
   });
 
@@ -283,7 +283,7 @@ describe('handleGameWon', () => {
     const config = createConfig();
     const game = createGame({ player1: 3, player2: 1 });
 
-    const result = handleGameWon('player1', game, state, config);
+    const result = onGameWon('player1', game, state, config);
     expect(result.setsWon.player1).toBe(1);
   });
 
@@ -294,7 +294,7 @@ describe('handleGameWon', () => {
     const config = createConfig();
     const game = createGame({ player1: 3, player2: 2 });
 
-    const result = handleGameWon('player1', game, state, config);
+    const result = onGameWon('player1', game, state, config);
     expect(result.sets[0].isTiebreak).toBe(true);
     expect(result.sets[0].tiebreakScore).toEqual({ player1: 0, player2: 0 });
   });
@@ -310,7 +310,7 @@ describe('handleGameWon', () => {
     const config = createConfig();
     const game = createGame({ player1: 3, player2: 1 });
 
-    const result = handleGameWon('player1', game, state, config);
+    const result = onGameWon('player1', game, state, config);
     expect(result.isFinished).toBe(true);
     expect(result.winner).toBe('player1');
   });
@@ -323,7 +323,7 @@ describe('handleGameWon', () => {
     const game = createGame();
 
     expect(() => {
-      handleGameWon('invalid' as any, game, state, config);
+      onGameWon('invalid' as any, game, state, config);
     }).toThrow('INVALID_GAME_WINNER');
   });
 
@@ -335,7 +335,7 @@ describe('handleGameWon', () => {
     const config = createConfig();
     const game = createGame({ player1: 3, player2: 2 });
 
-    const result = handleGameWon('player1', game, state, config);
+    const result = onGameWon('player1', game, state, config);
     expect(result.sets.length).toBe(2);
     expect(result.sets[1].player1).toBe(1);
   });
@@ -345,7 +345,7 @@ describe('handleGameWon', () => {
     const config = createConfig();
     const game = createGame({ player1: 3, player2: 2 });
 
-    const result = handleGameWon('player1', game, state, config);
+    const result = onGameWon('player1', game, state, config);
     expect(result.sets).toHaveLength(1);
     expect(result.sets[0].player1).toBe(1);
   });
@@ -365,7 +365,7 @@ describe('handleGameWon', () => {
       const config = createConfig({ format: 'BEST_OF_5' });
       const game = createGame({ player1: 3, player2: 2 });
 
-      const result = handleGameWon('player1', game, state, config);
+      const result = onGameWon('player1', game, state, config);
       const fifthSet = result.sets[4];
       expect(fifthSet.isTiebreak).toBe(true);
       expect(fifthSet.tiebreakScore).toEqual({ player1: 0, player2: 0 });

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withRLSHandler } from '@/lib/auth';
 import { getRLSUser } from '@/lib/rls-context';
-import { handleApiError } from '@/lib/api.logic';
+import { reportApiError } from '@/lib/api.logic';
 import { logger } from '@/lib/logger';
 import { validateAudioUpload, isValidUpload } from '@/app/api/matches/[id]/point/[pointId]/audio/upload-validation';
 import { normalizeMime } from '@/app/api/matches/[id]/point/[pointId]/audio/route.logic';
@@ -71,7 +71,7 @@ export async function POST(
       });
     } catch (error) {
       logger.error('[COMMENT AUDIO POST]', error);
-      return handleApiError(error);
+      return reportApiError(error);
     }
   });
 }
@@ -114,7 +114,7 @@ export async function GET(
       });
     } catch (error) {
       logger.error('[COMMENT AUDIO GET]', error);
-      return handleApiError(error);
+      return reportApiError(error);
     }
   });
 }
@@ -175,7 +175,7 @@ export async function DELETE(
       return new NextResponse(null, { status: 204 });
     } catch (error) {
       logger.error('[COMMENT AUDIO DELETE]', error);
-      return handleApiError(error);
+      return reportApiError(error);
     }
   });
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withRLSHandler } from '@/lib/auth';
-import { handleApiError } from '@/lib/api.logic';
+import { reportApiError } from '@/lib/api.logic';
 import { logger } from '@/lib/logger';
 
 export async function GET(
@@ -30,7 +30,7 @@ export async function GET(
       });
     } catch (error) {
       logger.error('[POINT_LOGS_META]', error);
-      return handleApiError(error);
+      return reportApiError(error);
     }
   });
 }

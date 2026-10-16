@@ -36,7 +36,7 @@ export function useNewMatchSubmissionActions(
     return missing;
   }, [state.sportType, state.format, state.courtType, state.selectedP1, state.selectedP2, state.date]);
 
-  const handleForceCreate = async () => {
+  const createMatchIgnoringWarning = async () => {
     if (!state.pendingPayload || state.submittingRef.current) return;
     state.submittingRef.current = true;
     state.setShowDuplicateModal(false);
@@ -53,7 +53,7 @@ export function useNewMatchSubmissionActions(
       }
       router.push('/dashboard');
     } catch (err) {
-      logger.error('[handleForceCreate] Error:', err);
+      logger.error('[createMatchIgnoringWarning] Error:', err);
       state.setError('Erro ao criar partida');
       toast({ type: 'error', message: 'Erro ao criar partida' });
     } finally {
@@ -62,7 +62,7 @@ export function useNewMatchSubmissionActions(
     }
   };
 
-  const handleSubmit = async (event: FormEvent) => {
+  const submitFormPayload = async (event: FormEvent) => {
     event.preventDefault();
     if (state.submittingRef.current) return;
     state.setError(null);
@@ -105,5 +105,5 @@ export function useNewMatchSubmissionActions(
     }
   };
 
-  return { buildPayload, validateFields, handleForceCreate, handleSubmit };
+  return { buildPayload, validateFields, createMatchIgnoringWarning, submitFormPayload };
 }

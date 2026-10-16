@@ -13,7 +13,7 @@ type NewMatchController = ReturnType<typeof useNewMatchController>;
 
 export function MatchNewFormSections({ c }: { c: NewMatchController }) {
   return (
-    <form onSubmit={c.handleSubmit} className="space-y-3">
+    <form onSubmit={c.submitFormPayload} className="space-y-3">
       <SportFormatSection
         sportType={c.sportType}
         format={c.format}
@@ -31,10 +31,10 @@ export function MatchNewFormSections({ c }: { c: NewMatchController }) {
         player2DropdownOpen={c.player2DropdownOpen}
         onToggleP1={() => c.setPlayer1DropdownOpen(!c.player1DropdownOpen)}
         onToggleP2={() => c.setPlayer2DropdownOpen(!c.player2DropdownOpen)}
-        onSelectP1={(a) => c.handleSelectAthlete('p1', a)}
-        onSelectP2={(a) => c.handleSelectAthlete('p2', a)}
-        onCreateNewP1={() => c.handleOpenNewAthleteModal('p1')}
-        onCreateNewP2={() => c.handleOpenNewAthleteModal('p2')}
+        onSelectP1={(a) => c.selectAthleteFromList('p1', a)}
+        onSelectP2={(a) => c.selectAthleteFromList('p2', a)}
+        onCreateNewP1={() => c.openNewAthleteModal('p1')}
+        onCreateNewP2={() => c.openNewAthleteModal('p2')}
       />
 
       <DateTimeSection date={c.date} time={c.time} onDateChange={c.setDate} onTimeChange={c.setTime} />
@@ -45,7 +45,7 @@ export function MatchNewFormSections({ c }: { c: NewMatchController }) {
         showTournamentDropdown={c.showTournamentDropdown}
         setShowTournamentDropdown={c.setShowTournamentDropdown}
         tournamentSuggestions={c.tournamentSuggestions}
-        handleSelectTournament={c.handleSelectTournament}
+        selectTournamentFromSuggestions={c.selectTournamentFromSuggestions}
         clubName={c.clubName}
         setClubName={c.setClubName}
         category={c.category}

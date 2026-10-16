@@ -92,7 +92,7 @@ export function useEditScoreModal(
     setIsConfirming,
   });
 
-  const handleGameInputChange = useCallback((value: string, setter: (v: string) => void, player: 'p1' | 'p2', otherInput?: string): void => {
+  const updateGameInputValue = useCallback((value: string, setter: (v: string) => void, player: 'p1' | 'p2', otherInput?: string): void => {
     inputTouchedRef.current[player] = true;
     setConfirmError(null);
     setFloorValidationError(null);
@@ -118,7 +118,7 @@ export function useEditScoreModal(
     }
   }, [matchFormat, isMatchTiebreakSet, currentSets, floorCurrentSets, state.p1Input, state.p2Input, inputTouchedRef]);
 
-  const handleTiebreakInputChange = useCallback((value: string, player: 'p1' | 'p2'): void => {
+  const updateTiebreakInputValue = useCallback((value: string, player: 'p1' | 'p2'): void => {
     setConfirmError(null);
     setFloorValidationError(null);
 
@@ -137,7 +137,7 @@ export function useEditScoreModal(
     }
   }, [currentGamePoints, floorTiebreak, state.tiebreakP1, state.tiebreakP2]);
 
-  const handleConfirm = useCallback(async () => {
+  const confirmCurrentAction = useCallback(async () => {
     await executeConfirmFlow({
       state,
       completedSets,
@@ -179,11 +179,11 @@ export function useEditScoreModal(
     initialGameRef, inputTouchedRef,
   ]);
 
-  const handleCancel = useCallback(() => {
+  const cancelCurrentAction = useCallback(() => {
     if (!isConfirming) onCancel();
   }, [onCancel, isConfirming]);
 
-  const handleAddSet = useCallback(() => {
+  const addSetToMatch = useCallback(() => {
     performAddSet({
       canAddNextSet,
       state,
@@ -196,13 +196,13 @@ export function useEditScoreModal(
     });
   }, [canAddNextSet, state, currentServer, initialServer, matchFormat, completedSets, isMatchTiebreakSet]);
 
-  const handlePointsChange = useCallback((p1: string, p2: string) => {
+  const updatePointTotals = useCallback((p1: string, p2: string) => {
     setConfirmError(null);
     setFloorValidationError(null);
     setState((prev) => ({ ...prev, p1Points: p1, p2Points: p2 }));
   }, []);
 
-  const handleEditCompletedSet = useCallback((index: number, p1Games: number, p2Games: number) => {
+  const openEditCompletedSet = useCallback((index: number, p1Games: number, p2Games: number) => {
     applyCompletedSetEdit({
       index,
       p1Games,
@@ -217,15 +217,15 @@ export function useEditScoreModal(
     });
   }, [matchFormat, completedSets, floorCurrentSets, editedCompletedSetIndicesRef]);
 
-  const handleConfirmSet = useCallback(() => {
+  const commitSetScore = useCallback(() => {
     performConfirmSet(
       canConfirmSetCalc,
       isMatchTiebreakSet,
-      handleConfirm,
-      handleAddSet,
+      confirmCurrentAction,
+      addSetToMatch,
       inputTouchedRef,
     );
-  }, [canConfirmSetCalc, isMatchTiebreakSet, handleAddSet, handleConfirm, inputTouchedRef]);
+  }, [canConfirmSetCalc, isMatchTiebreakSet, addSetToMatch, confirmCurrentAction, inputTouchedRef]);
 
   const resetState = useCallback(() => {
     setState({
@@ -249,15 +249,15 @@ export function useEditScoreModal(
     floorValidationError,
     isConfirming,
     calculations,
-    handleGameInputChange,
-    handleTiebreakInputChange,
-    handleConfirm,
-    handleCancel,
-    handleAddSet,
-    handleConfirmSet,
+    updateGameInputValue,
+    updateTiebreakInputValue,
+    confirmCurrentAction,
+    cancelCurrentAction,
+    addSetToMatch,
+    commitSetScore,
     canConfirmSet: canConfirmSetCalc,
-    handlePointsChange,
-    handleEditCompletedSet,
+    updatePointTotals,
+    openEditCompletedSet,
     resetState,
   };
 }

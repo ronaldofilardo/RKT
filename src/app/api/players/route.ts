@@ -3,7 +3,7 @@ import { logger } from '@/lib/logger';
 import { ListPlayersInputSchema, CreatePlayerInputSchema } from '@/schemas/contracts';
 import { withRLSHandler, getRLSUser } from '@/lib/auth';
 import { listPlayers, createPlayer } from '@/services/playerService';
-import { jsonResponse, validatedRequest, handleApiError, extractPagination } from '@/lib/api.logic';
+import { jsonResponse, validatedRequest, reportApiError, extractPagination } from '@/lib/api.logic';
 
 export async function GET(request: NextRequest) {
   return withRLSHandler(request, 'ANNOTATOR', async () => {
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       return jsonResponse({ players, nextCursor });
     } catch (error) {
       logger.error('[PLAYERS GET]', error);
-      return handleApiError(error);
+      return reportApiError(error);
     }
   });
 }
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       return jsonResponse(player, { status: 201 });
     } catch (error) {
       logger.error('[PLAYERS POST]', error);
-      return handleApiError(error);
+      return reportApiError(error);
     }
   });
 }

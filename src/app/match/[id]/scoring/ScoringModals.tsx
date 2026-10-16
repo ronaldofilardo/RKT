@@ -66,10 +66,10 @@ export function ScoringModals({
           fontScale={state.fontScale}
           onConfirm={
             state.modalParams.context === "winner"
-              ? handlers.handleServerEffectConfirm
-              : handlers.handleServeErrorConfirm
+              ? handlers.confirmServerEffect
+              : handlers.confirmServeError
           }
-          onCancel={handlers.handleServeErrorCancel}
+          onCancel={handlers.cancelServeError}
         />
       )}
 
@@ -82,7 +82,7 @@ export function ScoringModals({
           player1Name={match.player1.name}
           player2Name={match.player2.name}
           fontScale={state.fontScale}
-          onConfirm={handlers.handlePointDetailsConfirm}
+          onConfirm={handlers.confirmPointDetails}
           onCancel={state.close}
         />
       )}

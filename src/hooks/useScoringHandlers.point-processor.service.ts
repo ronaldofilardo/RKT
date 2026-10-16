@@ -47,7 +47,7 @@ interface PointProcessorDeps {
     durationMs: number,
     token: string | null,
   ) => Promise<void>;
-  handleFirstServeErrorClear: () => void;
+  clearFirstServeError: () => void;
   setServeStep: (step: "none" | "second") => void;
 }
 
@@ -76,7 +76,7 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
     onPointProcessed,
     onAudioUploaded,
     uploadAudioNote,
-    handleFirstServeErrorClear,
+    clearFirstServeError,
     setServeStep,
   } = deps;
 
@@ -171,7 +171,7 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
           // 401 - token expirado: não tenta novamente, apenas enfileira para offline
           // e mostra mensagem para o usuário fazer login novamente
           await pointSync.queuePointForOffline(enqueue, flow);
-          // O erro já foi setado pelo handleUnauthorizedResponse
+          // O erro já foi setado pelo respondUnauthorized
         } else if (result.needsResync) {
           await fetchMatch(true);
           const retrySeq = ++pointSequenceRef.current;
@@ -222,7 +222,7 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
     }
   };
 
-  const handlePointDetailsConfirm = (
+  const confirmPointDetails = (
     details: RallyDetails,
     audio?: { blob: Blob; durationMs: number },
   ) => {
@@ -267,7 +267,7 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
       rallyLength: rallyLengthToUse,
       firstFaultDetail,
     }).then((pointLogId) => {
-      handleFirstServeErrorClear();
+      clearFirstServeError();
       setServeStep("none");
       
       if (audio) {
@@ -275,11 +275,11 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
           uploadAudioNote(match.id, pointLogId, audio.blob, audio.durationMs, tokenRef.current)
             .then(() => onAudioUploaded?.())
             .catch((err) => {
-              logger.error("[handlePointDetailsConfirm] Falha no upload do áudio da nota:", err);
+              logger.error("[confirmPointDetails] Falha no upload do áudio da nota:", err);
             });
         } else {
           logger.warn(
-            "[handlePointDetailsConfirm] Áudio gravado não pôde ser enviado imediatamente (modo offline ou sem pointLogId)",
+            "[confirmPointDetails] Áudio gravado não pôde ser enviado imediatamente (modo offline ou sem pointLogId)",
             { matchId: match.id },
           );
           setError(
@@ -290,5 +290,5 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
     });
   };
 
-  return { applyPoint, handlePointDetailsConfirm };
+  return { applyPoint, confirmPointDetails };
 }

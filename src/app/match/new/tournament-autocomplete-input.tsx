@@ -6,7 +6,7 @@ interface TournamentAutocompleteInputProps {
   showTournamentDropdown: boolean;
   setShowTournamentDropdown: (v: boolean) => void;
   tournamentSuggestions: string[];
-  handleSelectTournament: (t: string) => void;
+  selectTournamentFromSuggestions: (t: string) => void;
 }
 
 export function TournamentAutocompleteInput({
@@ -15,7 +15,7 @@ export function TournamentAutocompleteInput({
   showTournamentDropdown,
   setShowTournamentDropdown,
   tournamentSuggestions,
-  handleSelectTournament,
+  selectTournamentFromSuggestions,
 }: TournamentAutocompleteInputProps) {
   return (
     <div className="flex-1 relative">
@@ -36,7 +36,7 @@ export function TournamentAutocompleteInput({
             <li key={t}>
               <button
                 type="button"
-                onClick={() => handleSelectTournament(t)}
+                onClick={() => selectTournamentFromSuggestions(t)}
                 className="w-full text-left px-3 py-3 hover:bg-telemetry-elevated text-sm text-telemetry-text-primary"
               >
                 {t}

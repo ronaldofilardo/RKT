@@ -14,11 +14,11 @@ interface ScoringPageControlsProps {
 export function ScoringPageControls({ state, handlers, derived, matchId }: ScoringPageControlsProps) {
   const { fontScale, serveErrorState, sessionIdRef, sessionActive, setFontScale } = state;
   const {
-    handleVoltar,
+    returnToPreviousScreen,
     openAceModal,
-    handleAceDirect,
-    handleServeErrorDirect,
-    handleServeErrorWithModal,
+    recordAceDirectly,
+    recordDirectServeError,
+    recordServeErrorWithModal,
     abandonCurrentSession,
   } = handlers;
   const { canUndo, isFinished, isProcessingPoint } = derived;
@@ -33,13 +33,13 @@ export function ScoringPageControls({ state, handlers, derived, matchId }: Scori
         fontScale={fontScale}
         isFinished={isFinished}
         isProcessing={isProcessingPoint}
-        onAceDirect={handleAceDirect}
+        onAceDirect={recordAceDirectly}
         onAceWithDetails={openAceModal}
-        onOut={(step) => handleServeErrorWithModal('out', step)}
-        onNet={(step) => handleServeErrorWithModal('net', step)}
-        onOutDirect={(step) => handleServeErrorDirect('out', step)}
-        onNetDirect={(step) => handleServeErrorDirect('net', step)}
-        onVoltar={handleVoltar}
+        onOut={(step) => recordServeErrorWithModal('out', step)}
+        onNet={(step) => recordServeErrorWithModal('net', step)}
+        onOutDirect={(step) => recordDirectServeError('out', step)}
+        onNetDirect={(step) => recordDirectServeError('net', step)}
+        onVoltar={returnToPreviousScreen}
         onFontSmaller={() => setFontScale((f) => Math.max(0.6, f - 0.1))}
         onFontBigger={() => setFontScale((f) => Math.min(2, f + 0.1))}
         onEditScore={() => state.open('edit-score')}

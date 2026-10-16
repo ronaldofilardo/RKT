@@ -54,13 +54,13 @@ export function usePointDetailsKeyboard(
 ) {
   useEffect(() => {
     if (!mounted) return;
-    const handleKey = (e: KeyboardEvent) => {
+    const onKeyPressAction = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
         onEscape();
       }
     };
-    document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
+    document.addEventListener("keydown", onKeyPressAction);
+    return () => document.removeEventListener("keydown", onKeyPressAction);
   }, [mounted, onEscape]);
 }

@@ -160,16 +160,16 @@ export function performAddSet(params: {
 export function performConfirmSet(
   canConfirmSetCalc: boolean,
   isMatchTiebreakSet: boolean,
-  handleConfirm: () => Promise<void>,
-  handleAddSet: () => void,
+  confirmCurrentAction: () => Promise<void>,
+  addSetToMatch: () => void,
   inputTouchedRef: React.MutableRefObject<{ p1: boolean; p2: boolean }>
 ) {
   if (!canConfirmSetCalc) return;
   if (isMatchTiebreakSet) {
-    handleConfirm();
+    confirmCurrentAction();
     return;
   }
-  handleAddSet();
+  addSetToMatch();
   inputTouchedRef.current = { p1: false, p2: false };
 }
 

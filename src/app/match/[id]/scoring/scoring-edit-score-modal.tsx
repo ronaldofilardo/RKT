@@ -46,9 +46,9 @@ export function ScoringEditScoreModal({
       floorCurrentSets={state.floorCurrentSets ?? editScoreCurrentSets}
       floorTiebreak={buildFloorTiebreak(effectiveScoreState, isTiebreak)}
       suspendedSession={state.suspendedSession}
-      onConfirm={handlers.handleEditScore}
+      onConfirm={handlers.openEditScoreModal}
       onCancel={() => {
-        handlers.handleEditScoreCancel();
+        handlers.cancelEditScore();
         if (cameFromDashboard) {
           onNavigateDashboard();
         }
@@ -56,7 +56,7 @@ export function ScoringEditScoreModal({
       onMatchFinished={(_winner) => {
         // Não redirecionar automaticamente - usuário vê o banner e decide quando navegar
       }}
-      onRefreshFloor={handlers.handleEditScoreRefreshFloor}
+      onRefreshFloor={handlers.refreshEditScoreFloor}
     />
   );
 }

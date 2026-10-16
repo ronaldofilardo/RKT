@@ -45,10 +45,10 @@ export interface ScoringPageState {
   showFinishedBanner: boolean;
   setShowFinishedBanner: React.Dispatch<React.SetStateAction<boolean>>;
   serveErrorState: ReturnType<typeof useScoreboardUIState>["state"];
-  handleServeErrorOpen: ReturnType<typeof useScoreboardUIState>["handleServeErrorOpen"];
-  handleServeErrorClose: ReturnType<typeof useScoreboardUIState>["handleServeErrorClose"];
-  handleFirstServeErrorSet: ReturnType<typeof useScoreboardUIState>["handleFirstServeErrorSet"];
-  handleFirstServeErrorClear: ReturnType<typeof useScoreboardUIState>["handleFirstServeErrorClear"];
+  openServeErrorModal: ReturnType<typeof useScoreboardUIState>["openServeErrorModal"];
+  closeServeErrorModal: ReturnType<typeof useScoreboardUIState>["closeServeErrorModal"];
+  setFirstServeError: ReturnType<typeof useScoreboardUIState>["setFirstServeError"];
+  clearFirstServeError: ReturnType<typeof useScoreboardUIState>["clearFirstServeError"];
   setServeStep: ReturnType<typeof useScoreboardUIState>["setServeStep"];
   pointSequenceRef: React.MutableRefObject<number>;
   sessionIdRef: React.MutableRefObject<string | null>;
@@ -111,25 +111,25 @@ export function useScoringPageState(matchId: string): ScoringPageState {
 
   // Listen for auth-required event from offline sync
   useEffect(() => {
-    const handleAuthRequired = () => {
+    const requireAuthentication = () => {
       setSyncStatus("auth-required");
     };
-    window.addEventListener("offline-sync-auth-required", handleAuthRequired);
+    window.addEventListener("offline-sync-auth-required", requireAuthentication);
     return () => {
-      window.removeEventListener("offline-sync-auth-required", handleAuthRequired);
+      window.removeEventListener("offline-sync-auth-required", requireAuthentication);
     };
   }, []);
 
   // Also reset auth-required when sync completes
   useEffect(() => {
-    const handleSyncComplete = () => {
+    const completeSyncCycle = () => {
       if (syncStatus === "auth-required") {
         setSyncStatus(isOnline ? "synced" : "offline");
       }
     };
-    window.addEventListener("offline-sync-complete", handleSyncComplete);
+    window.addEventListener("offline-sync-complete", completeSyncCycle);
     return () => {
-      window.removeEventListener("offline-sync-complete", handleSyncComplete);
+      window.removeEventListener("offline-sync-complete", completeSyncCycle);
     };
   }, [isOnline, syncStatus]);
 
@@ -148,10 +148,10 @@ export function useScoringPageState(matchId: string): ScoringPageState {
   const [showFinishedBanner, setShowFinishedBanner] = useState(false);
   const {
     state: serveErrorState,
-    handleServeErrorOpen,
-    handleServeErrorClose,
-    handleFirstServeErrorSet,
-    handleFirstServeErrorClear,
+    openServeErrorModal,
+    closeServeErrorModal,
+    setFirstServeError,
+    clearFirstServeError,
     setServeStep,
   } = useScoreboardUIState();
 
@@ -230,10 +230,10 @@ export function useScoringPageState(matchId: string): ScoringPageState {
     showFinishedBanner,
     setShowFinishedBanner,
     serveErrorState,
-    handleServeErrorOpen,
-    handleServeErrorClose,
-    handleFirstServeErrorSet,
-    handleFirstServeErrorClear,
+    openServeErrorModal,
+    closeServeErrorModal,
+    setFirstServeError,
+    clearFirstServeError,
     setServeStep,
     pointSequenceRef,
     sessionIdRef,

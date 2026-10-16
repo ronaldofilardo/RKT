@@ -68,14 +68,14 @@ export function EditScoreSetInputSection({
       maxSets={matchState.maxSets}
       showGamePointsAtZero={calculations.showGamePointsAtZero}
       canConfirmSet={canConfirmSet}
-      onConfirmSet={handlers.handleConfirmSet}
+      onConfirmSet={handlers.commitSetScore}
       onP1InputChange={(v: string) =>
-        handlers.handleGameInputChange(v, (val: string) => setState(prev => ({ ...prev, p1Input: val })), 'p1', state.p2Input)}
+        handlers.updateGameInputValue(v, (val: string) => setState(prev => ({ ...prev, p1Input: val })), 'p1', state.p2Input)}
       onP2InputChange={(v: string) =>
-        handlers.handleGameInputChange(v, (val: string) => setState(prev => ({ ...prev, p2Input: val })), 'p2', state.p1Input)}
-      onP1PointsChange={(v: string) => handlers.handlePointsChange(v, state.p2Points)}
-      onP2PointsChange={(v: string) => handlers.handlePointsChange(state.p1Points, v)}
-      onTiebreakInputChange={handlers.handleTiebreakInputChange}
+        handlers.updateGameInputValue(v, (val: string) => setState(prev => ({ ...prev, p2Input: val })), 'p2', state.p1Input)}
+      onP1PointsChange={(v: string) => handlers.updatePointTotals(v, state.p2Points)}
+      onP2PointsChange={(v: string) => handlers.updatePointTotals(state.p1Points, v)}
+      onTiebreakInputChange={handlers.updateTiebreakInputValue}
       currentScoreBelowOriginal={calculations.currentScoreBelowOriginal}
     />
   );

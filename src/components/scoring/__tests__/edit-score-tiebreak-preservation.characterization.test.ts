@@ -1,20 +1,20 @@
 /**
  * Characterization / regression tests for EditScoreModal tiebreakScore propagation bug #4 (2026-08-07).
  *
- * After the fix in useEditScoreModal.ts (handleConfirm now propagates
+ * After the fix in useEditScoreModal.ts (confirmCurrentAction now propagates
  * tiebreakScore from both prop completedSets and state.editableCompletedSets,
- * and handleAddSet includes tiebreakScore when the user filled it), the
+ * and addSetToMatch includes tiebreakScore when the user filled it), the
  * payload onConfirm receives must preserve tiebreak information for sets
  * that were 6/6 + tiebreak (e.g. 7/6 with TB 7/5).
  *
  * These tests document the FIXED behavior (post-fix). They MUST keep passing.
- * The mapping under test mirrors what handleConfirm does in the real hook.
+ * The mapping under test mirrors what confirmCurrentAction does in the real hook.
  *
  * See: docs/fix-tasks/scoring-edit-score-2026-08-07.md
  */
 
-describe('Regression: useEditScoreModal.handleConfirm propagates tiebreakScore (bug #4 fix)', () => {
-  // Mirrors the (fixed) mapping inside handleConfirm in useEditScoreModal.ts.
+describe('Regression: useEditScoreModal.confirmCurrentAction propagates tiebreakScore (bug #4 fix)', () => {
+  // Mirrors the (fixed) mapping inside confirmCurrentAction in useEditScoreModal.ts.
   function buildExistingCompleted(completedSets: Array<{
     games: { player1: number; player2: number };
     winner: 'player1' | 'player2';
@@ -82,7 +82,7 @@ describe('Regression: useEditScoreModal.handleConfirm propagates tiebreakScore (
     expect(existingCompleted[4].p2Games).toBe(6);
   });
 
-  it('FIX: handleAddSet includes tiebreakScore when user fills tiebreak inputs', () => {
+  it('FIX: addSetToMatch includes tiebreakScore when user fills tiebreak inputs', () => {
     const p1Games = 6;
     const p2Games = 6;
     const tbP1Num = 7;

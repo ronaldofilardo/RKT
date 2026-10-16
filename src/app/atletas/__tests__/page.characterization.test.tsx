@@ -11,7 +11,7 @@
  * Comportamentos suspeitos (resolvidos/observações):
  * - sessionStorage access no render — design intencional (client-side auth check)
  * - router.push('/login') no useEffect — comportamento correto de auth redirect
- * - TD-006: error handling agora diferenciado via handleApiError() centralizado (resolved 2026-07-28)
+ * - TD-006: error handling agora diferenciado via reportApiError() centralizado (resolved 2026-07-28)
  * - delete modal inline — escolha de design (componente de uso único)
  * - loadAthletes sem cache/otimismo — Refactor pendente (não bug)
  * - formatRankings inline — lógica simples o suficiente para manter no componente

@@ -9,9 +9,9 @@
  * estava acessando `data.id` em vez de `data.data.id`.
  * 
  * Isso fazia com que `createdMatchId` fosse `undefined`, e a função
- * `handleSelectServer` retornava imediatamente sem fazer a chamada à API.
+ * `selectServingPlayer` retornava imediatamente sem fazer a chamada à API.
  * 
- * Fix: Corrigir acesso para `data.data.id` em `handleSubmit` e `handleForceCreate`
+ * Fix: Corrigir acesso para `data.data.id` em `submitFormPayload` e `createMatchIgnoringWarning`
  */
 
 describe('REGRESSION: Bug do createdMatchId undefined', () => {

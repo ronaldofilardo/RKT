@@ -7,7 +7,7 @@ import { useAge } from '../hooks/useAge';
 import {
   type RankingState,
   initialRankings,
-  handleAutoCategoryAssignment,
+  assignCategoryAutomatically,
 } from '@/app/atletas/rankingLogic';
 import { buildAthletePayload, validateAthleteForm } from './new-athlete-modal.logic';
 import { playersClient } from '@/services/playersClient';
@@ -44,10 +44,10 @@ export function useNewAthleteModal({ isOpen, onClose, onCreated }: UseNewAthlete
   const age = useAge(form.birthYear, form.birthMonth, form.birthDay);
 
   useEffect(() => {
-    handleAutoCategoryAssignment(setRankings, age);
+    assignCategoryAutomatically(setRankings, age);
   }, [age]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submitFormPayload = async (e: React.FormEvent) => {
     e.preventDefault();
     const validationError = validateAthleteForm(form);
     if (validationError) {
@@ -85,5 +85,5 @@ export function useNewAthleteModal({ isOpen, onClose, onCreated }: UseNewAthlete
     }
   };
 
-  return { submitting, error, nameInputRef, form, setForm, rankings, setRankings, age, handleSubmit };
+  return { submitting, error, nameInputRef, form, setForm, rankings, setRankings, age, submitFormPayload };
 }

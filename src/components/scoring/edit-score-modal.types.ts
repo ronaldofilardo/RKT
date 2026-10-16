@@ -90,10 +90,10 @@ export interface EditScoreModalContentProps {
   };
   canConfirmSet: boolean;
   handlers: {
-    handleGameInputChange: (v: string, setter: (val: string) => void, player: 'p1' | 'p2', other: string) => void;
-    handleTiebreakInputChange: (v: string, player: 'p1' | 'p2') => void;
-    handlePointsChange: (p1: string, p2: string) => void;
-    handleEditCompletedSet: (index: number, p1Games: number, p2Games: number) => void;
-    handleConfirmSet: () => void;
+    updateGameInputValue: (v: string, setter: (val: string) => void, player: 'p1' | 'p2', other: string) => void;
+    updateTiebreakInputValue: (v: string, player: 'p1' | 'p2') => void;
+    updatePointTotals: (p1: string, p2: string) => void;
+    openEditCompletedSet: (index: number, p1Games: number, p2Games: number) => void;
+    commitSetScore: () => void;
   };
 }

@@ -24,12 +24,12 @@ export function EditMatchInfoModal({ match, onClose, onSuccess }: EditMatchInfoM
   const [saving, setSaving] = useState(false);
   const [values, setValues] = useState<EditMatchInfoFormValues>(() => initialFormValues(match));
 
-  const handleChange = <K extends keyof EditMatchInfoFormValues>(
+  const updateFieldValue = <K extends keyof EditMatchInfoFormValues>(
     key: K,
     value: EditMatchInfoFormValues[K]
   ) => setValues((prev) => ({ ...prev, [key]: value }));
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submitFormPayload = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
@@ -82,12 +82,12 @@ export function EditMatchInfoModal({ match, onClose, onSuccess }: EditMatchInfoM
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4 scrollbar-thin">
-          <DateTimeSection values={values} onChange={handleChange} />
-          <TournamentSection values={values} onChange={handleChange} />
-          <CourtSection values={values} onChange={handleChange} />
-          <WeatherSection values={values} onChange={handleChange} />
-          <DetailsSection values={values} onChange={handleChange} />
+        <form onSubmit={submitFormPayload} className="p-6 overflow-y-auto space-y-4 scrollbar-thin">
+          <DateTimeSection values={values} onChange={updateFieldValue} />
+          <TournamentSection values={values} onChange={updateFieldValue} />
+          <CourtSection values={values} onChange={updateFieldValue} />
+          <WeatherSection values={values} onChange={updateFieldValue} />
+          <DetailsSection values={values} onChange={updateFieldValue} />
           <FormFooter saving={saving} onClose={onClose} />
         </form>
       </div>

@@ -12,7 +12,7 @@ interface DateTimeSectionProps {
 }
 
 export function DateTimeSection({ date, time, onDateChange, onTimeChange }: DateTimeSectionProps) {
-  const { showModal, modalData, handleConfirm, handleCancel } = useDateTimeScheduleModal(date, time);
+  const { showModal, modalData, confirmCurrentAction, cancelCurrentAction } = useDateTimeScheduleModal(date, time);
 
   return (
     <>
@@ -51,8 +51,8 @@ export function DateTimeSection({ date, time, onDateChange, onTimeChange }: Date
       <ScheduleConfirmModal
         date={modalData.date}
         time={modalData.time}
-        onConfirm={handleConfirm}
-        onCancel={handleCancel}
+        onConfirm={confirmCurrentAction}
+        onCancel={cancelCurrentAction}
       />
     )}
     </>

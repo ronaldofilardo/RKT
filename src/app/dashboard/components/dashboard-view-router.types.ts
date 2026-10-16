@@ -11,13 +11,13 @@ export interface DashboardViewRouterProps {
   historyMatches: DashboardMatchPayload[];
   visibleMatches: DashboardMatchPayload[];
   suspendedFromApi: DashboardMatchPayload[];
-  handleNavigate: (v: DashboardView) => void;
-  handleMatchClick: (m: DashboardMatchPayload) => void;
-  handleMatchReport: (m: DashboardMatchPayload) => void;
-  handleMatchFinish: (m: DashboardMatchPayload) => void;
-  handleMatchDelete: (m: DashboardMatchPayload) => void;
-  handleMatchEditScore?: (m: DashboardMatchPayload) => void;
-  handleMatchResume?: (m: DashboardMatchPayload) => void;
-  handleMatchSetSummary?: (m: DashboardMatchPayload) => void;
-  handleMatchEditInfo?: (m: DashboardMatchPayload) => void;
+  navigateToTarget: (v: DashboardView) => void;
+  openMatchDetails: (m: DashboardMatchPayload) => void;
+  openMatchReport: (m: DashboardMatchPayload) => void;
+  finishMatch: (m: DashboardMatchPayload) => void;
+  deleteMatch: (m: DashboardMatchPayload) => void;
+  openMatchEditScore?: (m: DashboardMatchPayload) => void;
+  resumeMatch?: (m: DashboardMatchPayload) => void;
+  openMatchSetSummary?: (m: DashboardMatchPayload) => void;
+  openMatchEditInfo?: (m: DashboardMatchPayload) => void;
 }

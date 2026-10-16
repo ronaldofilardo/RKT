@@ -61,7 +61,7 @@ describe("Score Adjustment Integration Test", () => {
 
     const finalSets = [...existingCompleted, ...newSets];
 
-    // handleEditScore processes finalSets
+    // openEditScoreModal processes finalSets
     const setsData = finalSets;
     const completedSetsProcessed = setsData.filter((set) => !set.isPartial);
 

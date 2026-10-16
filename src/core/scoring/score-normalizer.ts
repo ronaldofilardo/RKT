@@ -7,7 +7,7 @@ import { isMatchTiebreakSetIndex as isMatchTiebreakSetIndexCanonical } from '@/l
  *
  * Bug #4 (2026-08-07): em produção, sets de Match Tiebreak eram persistidos
  * com pontos gravados em player1/player2 e SEM tiebreakScore (devido ao
- * antigo handleConfirm que descartava tiebreakScore). Esta função detecta
+ * antigo confirmCurrentAction que descartava tiebreakScore). Esta função detecta
  * esse padrão e converte de volta para o formato canonical
  * ({ player1: 0, player2: 0, isTiebreak: true, tiebreakScore: { ... } }).
  *

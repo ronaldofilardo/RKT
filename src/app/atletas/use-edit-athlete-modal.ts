@@ -56,14 +56,14 @@ export function useEditAthleteModal({ athlete, onSave }: UseEditAthleteModalPara
     });
   }, [age]);
 
-  const handleRankingToggle = (type: RankingType) => {
+  const toggleRankingEntry = (type: RankingType) => {
     setRankings((prev) => ({
       ...prev,
       [type]: { ...prev[type], enabled: !prev[type].enabled, category: '', class: '', position: '', juvenilePosition: '' },
     }));
   };
 
-  const handleRankingFieldChange = (type: RankingType, field: keyof RankingState, value: string) => {
+  const updateRankingField = (type: RankingType, field: keyof RankingState, value: string) => {
     setRankings((prev) => {
       const updated = { ...prev[type], [field]: value };
       if (field === 'category') {
@@ -74,7 +74,7 @@ export function useEditAthleteModal({ athlete, onSave }: UseEditAthleteModalPara
     });
   };
 
-  const handleSave = async () => {
+  const persistFormChanges = async () => {
     if (!athlete || !form.name.trim()) return;
     setSaving(true);
     setError(null);
@@ -89,6 +89,6 @@ export function useEditAthleteModal({ athlete, onSave }: UseEditAthleteModalPara
 
   return {
     form, setForm, rankings, age, saving, error,
-    handleRankingToggle, handleRankingFieldChange, handleSave,
+    toggleRankingEntry, updateRankingField, persistFormChanges,
   };
 }

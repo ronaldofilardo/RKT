@@ -1,7 +1,7 @@
 'use client';
 
 import { NewAthleteModalForm } from './NewAthleteModalForm';
-import { handleRankingToggle, handleRankingFieldChange } from '@/app/atletas/rankingLogic';
+import { toggleRankingEntry, updateRankingField } from '@/app/atletas/rankingLogic';
 import { useNewAthleteModal } from './use-new-athlete-modal';
 import type { Athlete } from '../types';
 
@@ -13,7 +13,7 @@ interface NewAthleteModalProps {
 
 export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalProps) {
   const {
-    submitting, error, nameInputRef, form, setForm, rankings, setRankings, age, handleSubmit,
+    submitting, error, nameInputRef, form, setForm, rankings, setRankings, age, submitFormPayload,
   } = useNewAthleteModal({ isOpen, onClose, onCreated });
 
   if (!isOpen) return null;
@@ -42,7 +42,7 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
             ×
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={submitFormPayload} className="p-6 space-y-4">
           {error && (
             <div className="p-3 bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert text-sm rounded-lg">{error}</div>
           )}
@@ -55,8 +55,8 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
             age={age}
             submitting={submitting}
             nameInputRef={nameInputRef}
-            onRankingToggle={(type) => handleRankingToggle(setRankings, type)}
-            onRankingFieldChange={(type, field, value) => handleRankingFieldChange(setRankings, type, field, value)}
+            onRankingToggle={(type) => toggleRankingEntry(setRankings, type)}
+            onRankingFieldChange={(type, field, value) => updateRankingField(setRankings, type, field, value)}
           />
 
           <div className="flex gap-3 pt-4">

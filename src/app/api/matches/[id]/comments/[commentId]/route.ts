@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withRLSHandler } from '@/lib/auth';
 import { getRLSUser } from '@/lib/rls-context';
-import { handleApiError } from '@/lib/api.logic';
+import { reportApiError } from '@/lib/api.logic';
 import { emitMatchEvent } from '@/lib/match-events';
 import { logger } from '@/lib/logger';
 
@@ -90,7 +90,7 @@ export async function PATCH(
       });
     } catch (error) {
       logger.error('[COMMENT PATCH]', error);
-      return handleApiError(error);
+      return reportApiError(error);
     }
   });
 }
@@ -147,7 +147,7 @@ export async function DELETE(
       return new NextResponse(null, { status: 204 });
     } catch (error) {
       logger.error('[COMMENT DELETE]', error);
-      return handleApiError(error);
+      return reportApiError(error);
     }
   });
 }

@@ -14,7 +14,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-telemetry-base text-telemetry-text-primary">
-      <DashboardChrome user={model.user} handleNavigate={model.handleNavigate} />
+      <DashboardChrome user={model.user} navigateToTarget={model.navigateToTarget} />
 
       <main className="max-w-4xl mx-auto px-4 py-6">
         <DashboardViewRouter
@@ -22,15 +22,15 @@ export default function DashboardPage() {
           loading={model.loading}
           {...model.filters}
           suspendedFromApi={model.suspendedFromApi}
-          handleNavigate={model.handleNavigate}
-          handleMatchClick={actions.handleMatchClick}
-          handleMatchReport={actions.handleMatchReport}
-          handleMatchFinish={actions.handleMatchFinish}
-          handleMatchDelete={actions.handleMatchDelete}
-          handleMatchEditScore={actions.handleMatchEditScore}
-          handleMatchResume={actions.handleMatchResume}
-          handleMatchSetSummary={summary.handleMatchSetSummary}
-          handleMatchEditInfo={actions.handleMatchEditInfo}
+          navigateToTarget={model.navigateToTarget}
+          openMatchDetails={actions.openMatchDetails}
+          openMatchReport={actions.openMatchReport}
+          finishMatch={actions.finishMatch}
+          deleteMatch={actions.deleteMatch}
+          openMatchEditScore={actions.openMatchEditScore}
+          resumeMatch={actions.resumeMatch}
+          openMatchSetSummary={summary.openMatchSetSummary}
+          openMatchEditInfo={actions.openMatchEditInfo}
         />
       </main>
 
@@ -43,7 +43,7 @@ export default function DashboardPage() {
         }}
         serverMatch={actions.selectedMatchForServer}
         startingMatch={actions.startingMatch}
-        onSelectServer={actions.handleSelectServer}
+        onSelectServer={actions.selectServingPlayer}
         onCloseServer={() => actions.setSelectedMatchForServer(null)}
         setSummaryMatch={summary.setSummaryMatch}
         setSummaryTimelinePoints={summary.setSummaryTimelinePoints}
@@ -54,7 +54,7 @@ export default function DashboardPage() {
           if (!summary.setSummaryMatch) return;
           const m = summary.setSummaryMatch;
           summary.setSetSummaryMatch(null);
-          actions.handleMatchResume(m);
+          actions.resumeMatch(m);
         }}
         editMatch={actions.matchToEditInfo}
         onCloseEditInfo={() => actions.setMatchToEditInfo(null)}

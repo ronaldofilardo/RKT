@@ -6,9 +6,9 @@ import type { DashboardViewRouterProps } from "./dashboard-view-router.types";
 export function DashboardViewRouter(props: DashboardViewRouterProps) {
   const {
     view, loading, finishedMatches, liveMatches, pendingMatches, historyMatches,
-    visibleMatches, suspendedFromApi, handleNavigate, handleMatchClick,
-    handleMatchReport, handleMatchFinish, handleMatchDelete,
-    handleMatchEditScore, handleMatchResume, handleMatchSetSummary, handleMatchEditInfo,
+    visibleMatches, suspendedFromApi, navigateToTarget, openMatchDetails,
+    openMatchReport, finishMatch, deleteMatch,
+    openMatchEditScore, resumeMatch, openMatchSetSummary, openMatchEditInfo,
   } = props;
 
   if (loading) {
@@ -26,9 +26,9 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
         title="Partidas Anotadas"
         emptyMessage="Nenhuma partida anotada encontrada."
         matches={finishedMatches}
-        onBack={() => handleNavigate("dashboard")}
+        onBack={() => navigateToTarget("dashboard")}
         renderCard={(m) => (
-          <MatchCard key={m.id} match={m} onClick={handleMatchClick} onReport={handleMatchReport} />
+          <MatchCard key={m.id} match={m} onClick={openMatchDetails} onReport={openMatchReport} />
         )}
       />
     ),
@@ -38,18 +38,18 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
         title="Partidas Ao Vivo"
         emptyMessage="Nenhuma partida ao vivo no momento."
         matches={liveMatches}
-        onBack={() => handleNavigate("dashboard")}
+        onBack={() => navigateToTarget("dashboard")}
         renderCard={(m) => (
           <MatchCard
             key={m.id}
             match={m}
-            onClick={handleMatchClick}
-            onReport={handleMatchReport}
-            onFinish={handleMatchFinish}
-            onEditScore={handleMatchEditScore}
-            onResumeMatch={handleMatchResume}
-            onSetSummary={handleMatchSetSummary}
-            onEditInfo={handleMatchEditInfo}
+            onClick={openMatchDetails}
+            onReport={openMatchReport}
+            onFinish={finishMatch}
+            onEditScore={openMatchEditScore}
+            onResumeMatch={resumeMatch}
+            onSetSummary={openMatchSetSummary}
+            onEditInfo={openMatchEditInfo}
           />
         )}
       />
@@ -60,9 +60,9 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
         title="Partidas Aguardando"
         emptyMessage="Nenhuma partida agendada aguardando no momento."
         matches={pendingMatches}
-        onBack={() => handleNavigate("dashboard")}
+        onBack={() => navigateToTarget("dashboard")}
         renderCard={(m) => (
-          <MatchCard key={m.id} match={m} onClick={handleMatchClick} onDelete={handleMatchDelete} onEditInfo={handleMatchEditInfo} />
+          <MatchCard key={m.id} match={m} onClick={openMatchDetails} onDelete={deleteMatch} onEditInfo={openMatchEditInfo} />
         )}
       />
     ),
@@ -72,9 +72,9 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
         title="Histórico de Partidas"
         emptyMessage="Nenhuma partida no histórico."
         matches={historyMatches}
-        onBack={() => handleNavigate("dashboard")}
+        onBack={() => navigateToTarget("dashboard")}
         renderCard={(m) => (
-          <MatchCard key={m.id} match={m} onClick={handleMatchClick} onReport={handleMatchReport} onDelete={handleMatchDelete} />
+          <MatchCard key={m.id} match={m} onClick={openMatchDetails} onReport={openMatchReport} onDelete={deleteMatch} />
         )}
       />
     ),
@@ -82,14 +82,14 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
       <DashboardHomeSection
         visibleMatches={visibleMatches}
         suspendedFromApi={suspendedFromApi}
-        handleMatchClick={handleMatchClick}
-        handleMatchReport={handleMatchReport}
-        handleMatchFinish={handleMatchFinish}
-        handleMatchDelete={handleMatchDelete}
-        handleMatchEditScore={handleMatchEditScore}
-        handleMatchResume={handleMatchResume}
-        handleMatchSetSummary={handleMatchSetSummary}
-        handleMatchEditInfo={handleMatchEditInfo}
+        openMatchDetails={openMatchDetails}
+        openMatchReport={openMatchReport}
+        finishMatch={finishMatch}
+        deleteMatch={deleteMatch}
+        openMatchEditScore={openMatchEditScore}
+        resumeMatch={resumeMatch}
+        openMatchSetSummary={openMatchSetSummary}
+        openMatchEditInfo={openMatchEditInfo}
       />
     ),
   };

@@ -302,7 +302,7 @@ describe('Conversa 2026-09-08 - isConfirming state', () => {
   it('isConfirming deve ser true durante onConfirm', () => {
     let isConfirming = false;
 
-    const handleConfirm = async () => {
+    const confirmCurrentAction = async () => {
       isConfirming = true;
       try {
         // Simula onConfirm
@@ -313,7 +313,7 @@ describe('Conversa 2026-09-08 - isConfirming state', () => {
     };
 
     // Durante a execução, isConfirming deve ser true
-    const promise = handleConfirm();
+    const promise = confirmCurrentAction();
     expect(isConfirming).toBe(true);
 
     // Após completar, isConfirming deve voltar a false
@@ -322,30 +322,30 @@ describe('Conversa 2026-09-08 - isConfirming state', () => {
     });
   });
 
-  it('handleCancel deve ser bloqueado quando isConfirming=true', () => {
+  it('cancelCurrentAction deve ser bloqueado quando isConfirming=true', () => {
     let isConfirming = true;
     const onCancel = jest.fn();
 
     // Lógica extraída de useEditScoreModal.ts
-    const handleCancel = () => {
+    const cancelCurrentAction = () => {
       if (isConfirming) return;
       onCancel();
     };
 
-    handleCancel();
+    cancelCurrentAction();
     expect(onCancel).not.toHaveBeenCalled();
   });
 
-  it('handleCancel deve funcionar quando isConfirming=false', () => {
+  it('cancelCurrentAction deve funcionar quando isConfirming=false', () => {
     let isConfirming = false;
     const onCancel = jest.fn();
 
-    const handleCancel = () => {
+    const cancelCurrentAction = () => {
       if (isConfirming) return;
       onCancel();
     };
 
-    handleCancel();
+    cancelCurrentAction();
     expect(onCancel).toHaveBeenCalled();
   });
 });

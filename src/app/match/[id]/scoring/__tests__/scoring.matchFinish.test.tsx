@@ -18,7 +18,7 @@ jest.mock("next/navigation", () => ({
 jest.mock("@/hooks/useSessionManager", () => ({
   useSessionManager: () => ({
     abandonCurrentSession: jest.fn(),
-    handleEditScore: jest.fn(async (setResults, server, onMatchFinished) => {
+    openEditScoreModal: jest.fn(async (setResults, server, onMatchFinished) => {
       // Simula detecção de partida encerrada
       if (onMatchFinished) {
         onMatchFinished("player2");
@@ -74,18 +74,18 @@ describe("ScoringPage - Redirecionamento de Partida Encerrada", () => {
     });
   });
 
-  it("deve chamar handleEditScore com callback de redirecionamento", async () => {
+  it("deve chamar openEditScoreModal com callback de redirecionamento", async () => {
     const { useSessionManager } = require("@/hooks/useSessionManager");
-    const { handleEditScore } = useSessionManager();
+    const { openEditScoreModal } = useSessionManager();
 
     const setResults = [
       { p1Games: 1, p2Games: 6, isPartial: false },
       { p1Games: 3, p2Games: 6, isPartial: false },
     ];
 
-    await handleEditScore(setResults, "player1");
+    await openEditScoreModal(setResults, "player1");
 
-    // Verifica que handleEditScore foi chamado
-    expect(handleEditScore).toHaveBeenCalled();
+    // Verifica que openEditScoreModal foi chamado
+    expect(openEditScoreModal).toHaveBeenCalled();
   });
 });

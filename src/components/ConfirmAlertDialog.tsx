@@ -56,7 +56,7 @@ export function ConfirmAlertDialog({
 
   if (!open || typeof document === 'undefined') return null;
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const onKeyDownAction = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Escape') {
       e.stopPropagation();
       if (!loading) onCancel();
@@ -75,7 +75,7 @@ export function ConfirmAlertDialog({
         title={title}
         description={description}
         cancelRef={cancelRef}
-        onKeyDown={handleKeyDown}
+        onKeyDown={onKeyDownAction}
         cancelLabel={cancelLabel}
         confirmLabel={confirmLabel}
         confirmClasses={resolveConfirmClasses(variant)}

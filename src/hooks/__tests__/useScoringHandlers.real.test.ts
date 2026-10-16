@@ -49,9 +49,9 @@ function createContext(): ScoringHandlersContext {
     setSetupLoading: jest.fn(),
     setPointsHistory: jest.fn(),
     setShowFinishedBanner: jest.fn(),
-    handleServeErrorClose: jest.fn(),
-    handleFirstServeErrorSet: jest.fn(),
-    handleFirstServeErrorClear: jest.fn(),
+    closeServeErrorModal: jest.fn(),
+    setFirstServeError: jest.fn(),
+    clearFirstServeError: jest.fn(),
     setServeStep: jest.fn(),
     open: jest.fn(),
     close: jest.fn(),
@@ -75,7 +75,7 @@ describe('useScoringHandlers — regressão real do ACE direto', () => {
     const { result } = renderHook(() => useScoringHandlers(context));
 
     act(() => {
-      result.current.handleAceDirect();
+      result.current.recordAceDirectly();
     });
 
     act(() => {
@@ -97,7 +97,7 @@ describe('useScoringHandlers — regressão real do ACE direto', () => {
       rallyLength: 1,
     }));
     expect(context.closeAll).toHaveBeenCalledTimes(1);
-    expect(context.handleFirstServeErrorClear).toHaveBeenCalledTimes(1);
+    expect(context.clearFirstServeError).toHaveBeenCalledTimes(1);
     expect(context.setServeStep).toHaveBeenCalledWith('none');
   });
 });

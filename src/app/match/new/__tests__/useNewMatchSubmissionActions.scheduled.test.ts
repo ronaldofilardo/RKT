@@ -59,7 +59,7 @@ describe('useNewMatchSubmissionActions - Partidas Agendadas vs Imediatas', () =>
 
     const fakeEvent = { preventDefault: jest.fn() } as any;
     await act(async () => {
-      await result.current.handleSubmit(fakeEvent);
+      await result.current.submitFormPayload(fakeEvent);
     });
 
     expect(mockState.setShowServerModal).not.toHaveBeenCalled();
@@ -89,7 +89,7 @@ describe('useNewMatchSubmissionActions - Partidas Agendadas vs Imediatas', () =>
 
     const fakeEvent = { preventDefault: jest.fn() } as any;
     await act(async () => {
-      await result.current.handleSubmit(fakeEvent);
+      await result.current.submitFormPayload(fakeEvent);
     });
 
     expect(mockState.setShowServerModal).not.toHaveBeenCalled();
@@ -117,7 +117,7 @@ describe('useNewMatchSubmissionActions - Partidas Agendadas vs Imediatas', () =>
 
     const fakeEvent = { preventDefault: jest.fn() } as any;
     await act(async () => {
-      await result.current.handleSubmit(fakeEvent);
+      await result.current.submitFormPayload(fakeEvent);
     });
 
     expect(mockState.setShowServerModal).not.toHaveBeenCalled();
@@ -140,7 +140,7 @@ describe('useNewMatchSubmissionActions - Partidas Agendadas vs Imediatas', () =>
 
     const fakeEvent = { preventDefault: jest.fn() } as any;
     await act(async () => {
-      await result.current.handleSubmit(fakeEvent);
+      await result.current.submitFormPayload(fakeEvent);
     });
 
     expect(mockState.setShowServerModal).not.toHaveBeenCalled();

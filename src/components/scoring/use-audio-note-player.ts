@@ -44,7 +44,7 @@ export function useAudioNotePlayer({ matchId, pointId, commentId, token }: UseAu
     setIsPlaying(false);
   }, []);
 
-  const handlePlay = useCallback(async () => {
+  const startAudioPlayback = useCallback(async () => {
     if (isPlaying) {
       stopPlayback();
       return;
@@ -90,5 +90,5 @@ export function useAudioNotePlayer({ matchId, pointId, commentId, token }: UseAu
     }
   }, [matchId, pointId, commentId, token, isPlaying, stopPlayback]);
 
-  return { isPlaying, isLoading, handlePlay };
+  return { isPlaying, isLoading, startAudioPlayback };
 }

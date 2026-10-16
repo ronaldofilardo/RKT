@@ -63,14 +63,14 @@ describe('EditMatchInfoModal', () => {
       json: async () => ({ id: 'match-123' }),
     });
 
-    const handleSuccess = jest.fn();
-    const handleClose = jest.fn();
+    const completeAction = jest.fn();
+    const dismissOverlay = jest.fn();
 
     render(
       <EditMatchInfoModal
         match={baseMatch}
-        onClose={handleClose}
-        onSuccess={handleSuccess}
+        onClose={dismissOverlay}
+        onSuccess={completeAction}
       />
     );
 
@@ -105,22 +105,22 @@ describe('EditMatchInfoModal', () => {
     expect(mockToast).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'success' })
     );
-    expect(handleSuccess).toHaveBeenCalledTimes(1);
-    expect(handleClose).toHaveBeenCalledTimes(1);
+    expect(completeAction).toHaveBeenCalledTimes(1);
+    expect(dismissOverlay).toHaveBeenCalledTimes(1);
   });
 
   it('deve fechar o modal ao clicar em Cancelar', () => {
-    const handleClose = jest.fn();
+    const dismissOverlay = jest.fn();
     render(
       <EditMatchInfoModal
         match={baseMatch}
-        onClose={handleClose}
+        onClose={dismissOverlay}
         onSuccess={jest.fn()}
       />
     );
 
     const cancelBtn = screen.getByRole('button', { name: /Cancelar/i });
     fireEvent.click(cancelBtn);
-    expect(handleClose).toHaveBeenCalledTimes(1);
+    expect(dismissOverlay).toHaveBeenCalledTimes(1);
   });
 });

@@ -112,12 +112,12 @@ export function useOfflineMatchSync() {
       syncPendingMatches();
     }
 
-    const handleOnline = () => {
+    const onNetworkOnline = () => {
       logger.sync.connectionRestored();
       syncPendingMatches();
     };
 
-    window.addEventListener("online", handleOnline);
+    window.addEventListener("online", onNetworkOnline);
 
     const retryInterval = setInterval(() => {
       if (navigator.onLine) {
@@ -126,7 +126,7 @@ export function useOfflineMatchSync() {
     }, TIMEOUTS.OFFLINE_SYNC_RETRY_MS);
 
     return () => {
-      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("online", onNetworkOnline);
       clearInterval(retryInterval);
     };
   }, [syncPendingMatches]);

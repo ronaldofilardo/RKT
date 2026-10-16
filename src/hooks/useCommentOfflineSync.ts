@@ -137,12 +137,12 @@ export function useCommentOfflineSync() {
   }, []);
 
   useEffect(() => {
-    const handleOnline = () => {
+    const onNetworkOnline = () => {
       const token = sessionStorage.getItem('access_token');
       if (token) flushComments(token);
     };
-    window.addEventListener('online', handleOnline);
-    return () => window.removeEventListener('online', handleOnline);
+    window.addEventListener('online', onNetworkOnline);
+    return () => window.removeEventListener('online', onNetworkOnline);
   }, [flushComments]);
 
   return { enqueueComment, flushComments, isSyncing };

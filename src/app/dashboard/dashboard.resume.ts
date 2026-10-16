@@ -46,7 +46,7 @@ interface ResumeSessionOptions {
 export function useResumeSession(options: ResumeSessionOptions) {
   const { router, setSession, setPendingEdit } = options;
 
-  const handleResumeSuspended = (
+  const resumeSuspendedMatch = (
     match: ResumableMatch,
     resumeOptions?: { openEditModal?: boolean },
   ) => {
@@ -155,9 +155,9 @@ export function useResumeSession(options: ResumeSessionOptions) {
         : `/match/${match.id}/scoring`;
       router.push(targetUrl as AppRouteInput);
     } catch (err) {
-      logger.error("[handleResumeSuspended] ERROR:", err);
+      logger.error("[resumeSuspendedMatch] ERROR:", err);
     }
   };
 
-  return { handleResumeSuspended };
+  return { resumeSuspendedMatch };
 }

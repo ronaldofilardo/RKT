@@ -64,7 +64,7 @@ export function useScoringPageChrome(
     completedSetsCountRef.current = currentCompleted;
   }, [derived.editScoreCompletedSets?.length]);
 
-  const handleOpenTimeline = async () => {
+  const openTimelineView = async () => {
     if (isTimelineLoading) return;
     setIsTimelineLoading(true);
     try {
@@ -82,6 +82,6 @@ export function useScoringPageChrome(
     tacticalInsights,
     setSummaryModalState,
     setSetSummaryModalState,
-    handleOpenTimeline,
+    openTimelineView,
   };
 }

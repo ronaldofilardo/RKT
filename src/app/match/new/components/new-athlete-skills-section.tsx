@@ -4,7 +4,7 @@ import { fieldIds, type NewAthleteModalFormProps } from './new-athlete-modal-for
 type NewAthleteSkillsSectionProps = Pick<NewAthleteModalFormProps, 'form' | 'setForm' | 'submitting'>;
 
 export function NewAthleteSkillsSection({ form, setForm, submitting }: NewAthleteSkillsSectionProps) {
-  const handleChange = (field: keyof AthleteForm, value: string) => {
+  const updateFieldValue = (field: keyof AthleteForm, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -15,7 +15,7 @@ export function NewAthleteSkillsSection({ form, setForm, submitting }: NewAthlet
         <select
           id={fieldIds.dominance}
           value={form.dominance}
-          onChange={(e) => handleChange('dominance', e.target.value)}
+          onChange={(e) => updateFieldValue('dominance', e.target.value)}
           disabled={submitting}
           className="w-full px-3 py-2 border-2 border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary"
         >
@@ -30,7 +30,7 @@ export function NewAthleteSkillsSection({ form, setForm, submitting }: NewAthlet
         <select
           id={fieldIds.backhand}
           value={form.backhand}
-          onChange={(e) => handleChange('backhand', e.target.value)}
+          onChange={(e) => updateFieldValue('backhand', e.target.value)}
           disabled={submitting}
           className="w-full px-3 py-2 border-2 border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary"
         >

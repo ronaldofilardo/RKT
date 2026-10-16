@@ -133,7 +133,7 @@ function useInternalModalStack() {
   syncToUrlRef.current = syncToUrl;
 
   useEffect(() => {
-    const handlePopState = (event: PopStateEvent) => {
+    const onPopStateNavigation = (event: PopStateEvent) => {
       isSyncWithUrlRef.current = false;
       if (event.state && event.state.modal !== undefined) {
         setInternalModal(event.state.modal);
@@ -156,8 +156,8 @@ function useInternalModalStack() {
       forceUpdate({});
     };
 
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener('popstate', onPopStateNavigation);
+    return () => window.removeEventListener('popstate', onPopStateNavigation);
   }, []);
 
   useEffect(() => {

@@ -83,7 +83,7 @@ describe('Admin Users API', () => {
       const res = await POST(req);
       expect(res.status).toBe(400);
       const data = await res.json();
-      // handleApiError wraps in { data: { error: ... } }
+      // reportApiError wraps in { data: { error: ... } }
       expect(data.data.error).toBe('VALIDATION_ERROR');
     });
 

@@ -90,16 +90,16 @@ export function useScoringLifecycleEffects({
   }, [isOnline, syncPendingMatches, setSyncStatus]);
 
   useEffect(() => {
-    const handleSyncComplete = () => {
+    const completeSyncCycle = () => {
       setSyncStatus("synced");
       toast({
         type: "success",
         message: "Pontos offline sincronizados com sucesso",
       });
     };
-    window.addEventListener("offline-sync-complete", handleSyncComplete);
+    window.addEventListener("offline-sync-complete", completeSyncCycle);
     return () =>
-      window.removeEventListener("offline-sync-complete", handleSyncComplete);
+      window.removeEventListener("offline-sync-complete", completeSyncCycle);
   }, [toast, setSyncStatus]);
 
   useEffect(() => {

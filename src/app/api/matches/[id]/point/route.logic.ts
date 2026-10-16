@@ -189,7 +189,7 @@ export function buildAnnotationsPayload(data: PointFlowInput) {
   };
 }
 
-export async function handlePointRouteError(
+export async function reportPointRouteFailure(
   error: unknown,
   requestId: string,
   requestClientEventId?: string,

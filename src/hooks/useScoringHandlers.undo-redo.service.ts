@@ -23,9 +23,9 @@ interface UndoRedoDeps {
     },
   ) => Promise<{ success: boolean; needsResync?: boolean }>;
   closeAll: () => void;
-  handleFirstServeErrorClear: () => void;
+  clearFirstServeError: () => void;
   setServeStep: (step: "none" | "second") => void;
-  handleServeErrorClose: () => void;
+  closeServeErrorModal: () => void;
   onUndoComplete?: () => void;
   open: (modal: string, params?: Record<string, string>) => void;
 }
@@ -41,21 +41,21 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
     setPointsHistory,
     persistState,
     closeAll,
-    handleFirstServeErrorClear,
+    clearFirstServeError,
     setServeStep,
-    handleServeErrorClose,
+    closeServeErrorModal,
     onUndoComplete,
     open,
   } = deps;
 
-  const handleUndo = async () => {
+  const undoLastPoint = async () => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = null;
       isProcessingRef.current = false;
-      handleFirstServeErrorClear();
+      clearFirstServeError();
       setServeStep("none");
-      handleServeErrorClose();
+      closeServeErrorModal();
       closeAll();
       return;
     }
@@ -73,7 +73,7 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
       // nunca gera uma entrada própria no histórico (é só estado local em
       // useScoringHandlers.serve-actions.service.ts); o firstFaultDetail
       // viaja embutido no ÚNICO applyPoint que fecha a jogada, e
-      // engine.ts (handleDoubleFault) salva 1 única entrada via
+      // engine.ts (recordDoubleFault) salva 1 única entrada via
       // saveToHistory. Fazer 2 undos apagava também o ponto anterior
       // (ex.: 15/0 → erro 1º saque + dupla falta → 15/15 → Voltar → 0/0
       // em vez de voltar a 15/0). Agora sempre desfaz exatamente 1 ponto.
@@ -113,7 +113,7 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
     }
   };
 
-  const handleVoltar = (serveStep: "none" | "second") => {
+  const returnToPreviousScreen = (serveStep: "none" | "second") => {
     if (serveStep === "second") {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
@@ -121,8 +121,8 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
         isProcessingRef.current = false;
       }
       if (isProcessingRef.current) return;
-      handleServeErrorClose();
-      handleFirstServeErrorClear();
+      closeServeErrorModal();
+      clearFirstServeError();
       setServeStep("none");
       closeAll();
       return;
@@ -153,8 +153,8 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
   };
 
   return {
-    handleUndo,
-    handleVoltar,
+    undoLastPoint,
+    returnToPreviousScreen,
     uploadAudioNote,
   };
 }

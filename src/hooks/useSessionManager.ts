@@ -102,7 +102,7 @@ export function useSessionManager(ctx: SessionManagerContext) {
     [matchId, match, sessionIdRef, engineRef, tokenRef, toast],
   );
 
-  const handleEditScore = useCallback(
+  const openEditScoreModal = useCallback(
     async (
       setResults: SetEditData[],
       server: "player1" | "player2",
@@ -204,5 +204,5 @@ export function useSessionManager(ctx: SessionManagerContext) {
     startSession,
   });
 
-  return { abandonCurrentSession, handleEditScore };
+  return { abandonCurrentSession, openEditScoreModal };
 }

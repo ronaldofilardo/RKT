@@ -4,7 +4,7 @@
  * Baseline: testes para os efeitos críticos de useScoringPageEffects.ts
  *
  * Estes testes capturam o wiring entre SessionContext.pendingEditScore e
- * a abertura do modal de edição, além do handleEditScoreCancel que limpa
+ * a abertura do modal de edição, além do cancelEditScore que limpa
  * ambas as fontes de estado. Servem como âncora para Item 1 (dedup).
  */
 import React from 'react';
@@ -110,7 +110,7 @@ describe('useScoringPageEffects — baseline wiring', () => {
   });
 
   describe('cenário de bug: edit-score confirmado mas snapshot persiste', () => {
-    it('após handleEditScore (simulado: setPendingEdit(null) + clearPendingEdit), pendingEditScore fica null', () => {
+    it('após openEditScoreModal (simulado: setPendingEdit(null) + clearPendingEdit), pendingEditScore fica null', () => {
       const { result } = renderHook(() => useSession(), { wrapper });
       const staleScore = buildScoreState({ sets: [{ player1: 3, player2: 2, isTiebreak: false } as any] });
       const freshScore = buildScoreState({ sets: [{ player1: 6, player2: 4, isTiebreak: false } as any] });

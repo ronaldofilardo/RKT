@@ -19,8 +19,8 @@ export default function AtletasPage() {
     athleteToDelete,
     setAthleteToDelete,
     deleting,
-    handleSave,
-    handleConfirmDelete,
+    persistFormChanges,
+    confirmMatchDeletion,
     loadAthletes,
   } = useAtletasPage();
 
@@ -60,7 +60,7 @@ export default function AtletasPage() {
         athlete={editingAthlete}
         isOpen={!!editingAthlete}
         onClose={() => setEditingAthlete(null)}
-        onSave={handleSave}
+        onSave={persistFormChanges}
       />
 
       <NewAthleteModal
@@ -74,7 +74,7 @@ export default function AtletasPage() {
           athleteName={athleteToDelete.name}
           deleting={deleting}
           onCancel={() => setAthleteToDelete(null)}
-          onConfirm={handleConfirmDelete}
+          onConfirm={confirmMatchDeletion}
         />
       )}
     </div>

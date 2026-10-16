@@ -55,14 +55,14 @@ export function useThemeProviderState() {
     applyTheme(theme);
 
     if (mediaQuery && typeof mediaQuery.addEventListener === 'function') {
-      const handleSystemChange = () => {
+      const onSystemThemeChange = () => {
         if (theme === 'system') {
           applyTheme('system');
         }
       };
 
-      mediaQuery.addEventListener('change', handleSystemChange);
-      return () => mediaQuery.removeEventListener('change', handleSystemChange);
+      mediaQuery.addEventListener('change', onSystemThemeChange);
+      return () => mediaQuery.removeEventListener('change', onSystemThemeChange);
     }
   }, [theme]);
 

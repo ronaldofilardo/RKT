@@ -17,7 +17,7 @@ function ScoringPageInner() {
   const matchId = params.id as string;
 
   // Se o usuário veio de "Editar Placar" no Dashboard, a URL tem ?modal=edit-score
-  // (handleMatchClick em useDashboardPageActions.ts). Usar ref para capturar
+  // (openMatchDetails em useDashboardPageActions.ts). Usar ref para capturar
   // apenas o valor inicial e não reagir a mudanças de URL posteriores.
   const cameFromDashboardRef = useRef(searchParams.get("modal") === "edit-score");
 

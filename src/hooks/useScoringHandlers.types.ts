@@ -47,14 +47,14 @@ export interface ScoringHandlersContext {
   setPointsHistory: Dispatch<SetStateAction<string[]>>;
   setShowFinishedBanner: Dispatch<SetStateAction<boolean>>;
 
-  handleServeErrorClose: () => void;
-  handleServeErrorOpen: (type: 'out' | 'net', step: 'first' | 'second') => void;
-  handleFirstServeErrorSet: (err: {
+  closeServeErrorModal: () => void;
+  openServeErrorModal: (type: 'out' | 'net', step: 'first' | 'second') => void;
+  setFirstServeError: (err: {
     errorType: "out" | "net";
     serveEffect?: string;
     direction?: string;
   }) => void;
-  handleFirstServeErrorClear: () => void;
+  clearFirstServeError: () => void;
   setServeStep: (step: "none" | "second") => void;
 
   open: (modal: string, params?: Record<string, string>) => void;
@@ -77,27 +77,27 @@ export interface ScoringHandlersReturn {
   getWinnerId: (isServer: boolean) => string;
   applyPoint: (flow: PointFlow) => Promise<void>;
   fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
-  handleSetupConfirm: (serverId: string) => Promise<void>;
-  handleUndo: () => void;
-  handleVoltar: (serveStep: 'none' | 'second') => void;
+  confirmMatchSetup: (serverId: string) => Promise<void>;
+  undoLastPoint: () => void;
+  returnToPreviousScreen: (serveStep: 'none' | 'second') => void;
     openAceModal: () => void;
-  handleAceDirect: () => void;
+  recordAceDirectly: () => void;
 
   openPointDetails: (side: "player1" | "player2") => void;
-  handleServerEffectConfirm: (
+  confirmServerEffect: (
     effect?: string,
     direction?: string
   ) => void;
-  handleServeErrorConfirm: (
+  confirmServeError: (
     effect?: string,
     direction?: string
   ) => void;
-  handleServeErrorDirect: (
+  recordDirectServeError: (
     errorType: "out" | "net",
     step: "first" | "second"
   ) => void;
-  handleServeErrorCancel: () => void;
-  handlePointDetailsConfirm: (
+  cancelServeError: () => void;
+  confirmPointDetails: (
     details: RallyDetails,
     audio?: { blob: Blob; durationMs: number }
   ) => void;

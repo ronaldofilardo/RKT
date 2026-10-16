@@ -7,7 +7,7 @@ import type { ScoringPageState } from "./useScoringPageState";
 
 interface ScoringEditScoreHandlersParams {
   state: ScoringPageState;
-  originalHandleEditScore: ReturnType<typeof useSessionManager>["handleEditScore"];
+  originalHandleEditScore: ReturnType<typeof useSessionManager>["openEditScoreModal"];
 }
 
 export function useScoringEditScoreHandlers({
@@ -17,7 +17,7 @@ export function useScoringEditScoreHandlers({
   const { engineRef, match, clearPendingEdit, close, fetchTimelinePoints } =
     state;
 
-  const handleEditScore = useCallback(
+  const openEditScoreModal = useCallback(
     async (setResults: SetEditData[], server: "player1" | "player2", note?: string) => {
       await originalHandleEditScore(setResults, server, undefined, note);
       await fetchTimelinePoints?.();
@@ -25,12 +25,12 @@ export function useScoringEditScoreHandlers({
     [originalHandleEditScore, fetchTimelinePoints],
   );
 
-  const handleEditScoreCancel = useCallback(() => {
+  const cancelEditScore = useCallback(() => {
     clearPendingEdit();
     close();
   }, [clearPendingEdit, close]);
 
-  const handleEditScoreRefreshFloor = useCallback(async () => {
+  const refreshEditScoreFloor = useCallback(async () => {
     if (!engineRef.current || !match) return null;
     const currentState = engineRef.current.getState();
     const sets = currentState.sets;
@@ -54,8 +54,8 @@ export function useScoringEditScoreHandlers({
   }, [engineRef, match]);
 
   return {
-    handleEditScore,
-    handleEditScoreCancel,
-    handleEditScoreRefreshFloor,
+    openEditScoreModal,
+    cancelEditScore,
+    refreshEditScoreFloor,
   };
 }

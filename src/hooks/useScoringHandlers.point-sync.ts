@@ -61,7 +61,7 @@ function buildPointPayload(
   };
 }
 
-async function handleSuccessResponse(res: Response): Promise<PointSyncResult> {
+async function respondWithApiSuccess(res: Response): Promise<PointSyncResult> {
   try {
     const data = await res.json();
     return {
@@ -75,7 +75,7 @@ async function handleSuccessResponse(res: Response): Promise<PointSyncResult> {
   }
 }
 
-async function handleConflictResponse(
+async function respondWithConflict(
   res: Response,
   pointSequenceRef: React.MutableRefObject<number>,
   setError: (msg: string) => void,
@@ -92,7 +92,7 @@ async function handleConflictResponse(
   return { success: false, needsResync: true };
 }
 
-async function handleErrorResponse(
+async function respondWithApiError(
   res: Response,
   setError: (msg: string) => void,
 ): Promise<PointSyncResult> {
@@ -111,14 +111,14 @@ async function handleErrorResponse(
   return { success: false, needsResync: true };
 }
 
-async function handleUnauthorizedResponse(
+async function respondUnauthorized(
   setError: (msg: string) => void,
 ): Promise<PointSyncResult> {
   setError("Sessão expirada — o ponto foi salvo localmente. Faça login novamente para sincronizar.");
   return { success: false, needsResync: false, needsLogin: true };
 }
 
-function handleFetchCatch(err: unknown, setError: (msg: string) => void): PointSyncResult {
+function reportFetchFailure(err: unknown, setError: (msg: string) => void): PointSyncResult {
   if (err instanceof Error && err.name === "AbortError") {
     logger.point.requestTimeout();
     setError("Tempo esgotado — sincronizando placar...");
@@ -166,20 +166,20 @@ export function createPointSyncService(config: PointSyncConfig) {
       }
 
       if (res.ok) {
-        return await handleSuccessResponse(res);
+        return await respondWithApiSuccess(res);
       }
 
       if (res.status === 409) {
-        return await handleConflictResponse(res, pointSequenceRef, setError);
+        return await respondWithConflict(res, pointSequenceRef, setError);
       }
 
       if (res.status === 401) {
-        return await handleUnauthorizedResponse(setError);
+        return await respondUnauthorized(setError);
       }
 
-      return await handleErrorResponse(res, setError);
+      return await respondWithApiError(res, setError);
     } catch (err) {
-      return handleFetchCatch(err, setError);
+      return reportFetchFailure(err, setError);
     } finally {
       clearTimeout(timeoutId);
     }

@@ -27,7 +27,7 @@ jest.mock('@/lib/logger', () => ({
 }));
 
 jest.mock('@/lib/api.logic', () => ({
-  handleApiError: jest.fn((_err: any) => {
+  reportApiError: jest.fn((_err: any) => {
     const status = 500;
     return {
       status,

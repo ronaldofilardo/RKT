@@ -23,17 +23,17 @@ export function ServerEffectModal({
   const isDirty = effect !== null || direction !== null;
   const isDoubleFault = context === 'error' && serveStep === 'second';
 
-  const handleOverlayClick = useCallback(() => {
+  const onOverlayDismiss = useCallback(() => {
     if (!isDirty) onCancel(); else setShowCloseDialog(true);
   }, [isDirty, onCancel]);
 
-  const handleEffectChange = useCallback((v: string) => setEffect(v), []);
-  const handleDirectionChange = useCallback((v: string) => setDirection(v), []);
-  const handleConfirm = useCallback(() => onConfirm(effect ?? undefined, direction ?? undefined), [onConfirm, effect, direction]);
-  const handleCancelClick = useCallback(() => {
+  const updateServeEffect = useCallback((v: string) => setEffect(v), []);
+  const updateServeDirection = useCallback((v: string) => setDirection(v), []);
+  const confirmCurrentAction = useCallback(() => onConfirm(effect ?? undefined, direction ?? undefined), [onConfirm, effect, direction]);
+  const onCancelClick = useCallback(() => {
     if (isDirty) setShowCloseDialog(true); else onCancel();
   }, [isDirty, onCancel]);
-  const handleDiscardAndCancel = useCallback(() => {
+  const discardAndCancel = useCallback(() => {
     setShowCloseDialog(false); onCancel();
   }, [onCancel]);
 
@@ -48,10 +48,10 @@ export function ServerEffectModal({
       tabIndex={-1}
       aria-label="Fechar modal"
       onClick={(e) => {
-        if (e.target === e.currentTarget) handleOverlayClick();
+        if (e.target === e.currentTarget) onOverlayDismiss();
       }}
       onKeyDown={(e) => {
-        if (e.key === 'Escape' || e.key === 'Enter') handleOverlayClick();
+        if (e.key === 'Escape' || e.key === 'Enter') onOverlayDismiss();
       }}
     >
       <div
@@ -78,15 +78,15 @@ export function ServerEffectModal({
           context={context}
           effect={effect}
           direction={direction}
-          onEffectChange={handleEffectChange}
-          onDirectionChange={handleDirectionChange}
+          onEffectChange={updateServeEffect}
+          onDirectionChange={updateServeDirection}
           isDoubleFault={isDoubleFault}
         />
-        <ServerEffectModalFooter context={context} serveStep={serveStep} onConfirm={handleConfirm} onCancel={handleCancelClick} />
+        <ServerEffectModalFooter context={context} serveStep={serveStep} onConfirm={confirmCurrentAction} onCancel={onCancelClick} />
       </div>
 
       {showCloseDialog && (
-        <ServerEffectCloseDialog onDiscard={handleDiscardAndCancel} onContinue={() => setShowCloseDialog(false)} />
+        <ServerEffectCloseDialog onDiscard={discardAndCancel} onContinue={() => setShowCloseDialog(false)} />
       )}
     </div>
   );

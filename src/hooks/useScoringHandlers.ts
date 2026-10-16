@@ -42,10 +42,10 @@ export function useScoringHandlers(
     setSetupLoading,
     setPointsHistory,
     setShowFinishedBanner,
-    handleServeErrorOpen,
-    handleServeErrorClose,
-    handleFirstServeErrorSet,
-    handleFirstServeErrorClear,
+    openServeErrorModal,
+    closeServeErrorModal,
+    setFirstServeError,
+    clearFirstServeError,
     setServeStep,
     open,
     close,
@@ -115,12 +115,12 @@ export function useScoringHandlers(
   );
 
   useEffect(() => {
-    const handleSyncComplete = () => {
+    const completeSyncCycle = () => {
       fetchMatch(true);
     };
-    window.addEventListener("offline-sync-complete", handleSyncComplete);
+    window.addEventListener("offline-sync-complete", completeSyncCycle);
     return () => {
-      window.removeEventListener("offline-sync-complete", handleSyncComplete);
+      window.removeEventListener("offline-sync-complete", completeSyncCycle);
     };
   }, [fetchMatch]);
 
@@ -204,9 +204,9 @@ export function useScoringHandlers(
     setPointsHistory,
     persistState,
     closeAll,
-    handleFirstServeErrorClear,
+    clearFirstServeError,
     setServeStep,
-    handleServeErrorClose,
+    closeServeErrorModal,
     onUndoComplete,
     open,
   });
@@ -235,7 +235,7 @@ export function useScoringHandlers(
     onPointProcessed,
     onAudioUploaded,
     uploadAudioNote: undoRedoService.uploadAudioNote,
-    handleFirstServeErrorClear,
+    clearFirstServeError,
     setServeStep,
   });
 
@@ -246,15 +246,15 @@ export function useScoringHandlers(
     [pointProcessorService],
   );
 
-  const handlePointDetailsConfirm = useCallback(
+  const confirmPointDetails = useCallback(
     (details: RallyDetails, audio?: { blob: Blob; durationMs: number }) => {
-      pointProcessorService.handlePointDetailsConfirm(details, audio);
+      pointProcessorService.confirmPointDetails(details, audio);
     },
     [pointProcessorService],
   );
 
   // ─── Setup confirm ────────────────────────────────────────────────────────
-  const handleSetupConfirm = useCallback(
+  const confirmMatchSetup = useCallback(
     async (serverId: string) => {
       if (!match) return;
       setSetupLoading(true);
@@ -274,7 +274,7 @@ export function useScoringHandlers(
         close();
         await fetchMatch(true);
       } catch (err) {
-        logger.error("[handleSetupConfirm]", err);
+        logger.error("[confirmMatchSetup]", err);
         setError("Erro ao iniciar partida");
       } finally {
         setSetupLoading(false);
@@ -293,10 +293,10 @@ export function useScoringHandlers(
     isProcessingRef,
     debounceTimerRef,
     closeAll,
-    handleFirstServeErrorSet,
-    handleFirstServeErrorClear,
-    handleServeErrorOpen,
-    handleServeErrorClose,
+    setFirstServeError,
+    clearFirstServeError,
+    openServeErrorModal,
+    closeServeErrorModal,
     setServeStep,
   });
 
@@ -308,17 +308,17 @@ export function useScoringHandlers(
       await applyPoint(flow);
     },
     fetchMatch,
-    handleSetupConfirm,
-    handleUndo: undoRedoService.handleUndo,
-    handleVoltar: undoRedoService.handleVoltar,
+    confirmMatchSetup,
+    undoLastPoint: undoRedoService.undoLastPoint,
+    returnToPreviousScreen: undoRedoService.returnToPreviousScreen,
     openAceModal: modalService.openAceModal,
-    handleAceDirect: serveActionsService.handleAceDirect,
+    recordAceDirectly: serveActionsService.recordAceDirectly,
     openPointDetails: modalService.openPointDetails,
-    handleServerEffectConfirm: serveActionsService.handleServerEffectConfirm,
-    handleServeErrorConfirm: serveActionsService.handleServeErrorConfirm,
-    handleServeErrorDirect: serveActionsService.handleServeErrorDirect,
-    handleServeErrorCancel: serveActionsService.handleServeErrorCancel,
-    handlePointDetailsConfirm,
+    confirmServerEffect: serveActionsService.confirmServerEffect,
+    confirmServeError: serveActionsService.confirmServeError,
+    recordDirectServeError: serveActionsService.recordDirectServeError,
+    cancelServeError: serveActionsService.cancelServeError,
+    confirmPointDetails,
     isProcessing: isProcessingRef.current,
   };
 }
