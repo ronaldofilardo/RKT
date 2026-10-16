@@ -1,26 +1,11 @@
 'use client';
 
 import type { PointDetailsForm, Vencedor, Action } from './point-details-logic';
-import {
-  getTipoOptions,
-  getGolpeOptions,
-  shouldShowSubtipo1,
-  shouldShowEfeito,
-  shouldShowDuracao,
-  getDirecaoOptions,
-  getGolpeEspOptions,
-  SITUACAO_OPTIONS,
-  TIPO_LABELS,
-  TIPO_DESCRIPTIONS,
-  GOLPE_LABELS,
-  SUBTIPO1_OPTIONS,
-  EFEITO_OPTIONS,
-  DURACAO_OPTIONS,
-  DIRECAO_LABELS,
-  GOLPE_ESP_LABELS,
-} from './point-details-logic';
+import { getTipoOptions, getGolpeOptions, SITUACAO_OPTIONS, TIPO_LABELS, TIPO_DESCRIPTIONS, GOLPE_LABELS } from './point-details-logic';
 import { Section } from './point-details-section';
 import { Pills, toLabelMap } from './pills-component';
+import { computeSectionRenderer } from './section-renderer.logic';
+import { PointDetailsCascadeSections } from './point-details-cascade-sections';
 
 interface SectionRendererProps {
   form: PointDetailsForm;
@@ -39,18 +24,8 @@ interface SectionRendererProps {
   };
 }
 
-export function SectionRenderer({
-  form,
-  vencedor,
-  dispatch,
-  refs,
-}: SectionRendererProps) {
-  const needsSubtipo1 = form.situacao && form.tipo && shouldShowSubtipo1(vencedor, form.situacao, form.tipo);
-  const needsEfeito = form.golpe != null && shouldShowEfeito(vencedor, form.situacao!, form.tipo!, !!form.subtipo1, !!form.subtipo2);
-  const isDirecaoBlocked = form.efeito == null && needsEfeito;
-
-  const direcaoOptions = form.efeito || form.situacao ? getDirecaoOptions(form.efeito, form.situacao ?? 'fundo', form.tipo ?? 'winner') : [];
-  const golpeEspOptions = form.golpe ? getGolpeEspOptions(form.golpe, form.efeito, vencedor, form.situacao ?? 'fundo', form.tipo ?? 'winner', form.subtipo2, form.direcao) : [];
+export function SectionRenderer({ form, vencedor, dispatch, refs }: SectionRendererProps) {
+  const computed = computeSectionRenderer(form, vencedor);
 
   return (
     <div ref={refs.containerRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-[18px]" data-testid="modal-content">
@@ -88,69 +63,7 @@ export function SectionRenderer({
         </Section>
       )}
 
-      {needsSubtipo1 && form.golpe && (
-        <Section num="4" label="Tipo de Erro (Rede)" ref={refs.subtipo1Ref}>
-          <Pills
-            options={SUBTIPO1_OPTIONS.map(o => o.value)}
-            selected={form.subtipo1}
-            onChange={v => dispatch({ type: 'SET_SUBTIPO1', value: v })}
-            labelMap={toLabelMap(SUBTIPO1_OPTIONS)}
-          />
-        </Section>
-      )}
-
-      {needsEfeito && form.golpe && (
-        <Section num={needsSubtipo1 ? '5' : '4'} label="Efeito" ref={refs.efeitoRef}>
-          <Pills
-            options={EFEITO_OPTIONS.map(o => o.value)}
-            selected={form.efeito}
-            onChange={v => dispatch({ type: 'SET_EFEITO', value: v })}
-            labelMap={toLabelMap(EFEITO_OPTIONS)}
-          />
-        </Section>
-      )}
-
-      {form.golpe && (
-        <Section num="" label="Direção" ref={refs.direcaoRef}>
-          <Pills
-            options={direcaoOptions}
-            selected={isDirecaoBlocked ? null : form.direcao}
-            onChange={v => dispatch({ type: 'SET_DIRECAO', value: v })}
-            labelMap={DIRECAO_LABELS}
-          />
-        </Section>
-      )}
-
-      {golpeEspOptions.length > 0 && (
-        <Section num="" label="Golpe Especial" ref={refs.golpeEspRef}>
-          <Pills
-            options={golpeEspOptions}
-            selected={form.golpeEsp}
-            onChange={v => dispatch({ type: 'SET_GOLPE_ESP', value: v })}
-            labelMap={GOLPE_ESP_LABELS}
-          />
-        </Section>
-      )}
-
-      {shouldShowDuracao(form.situacao, form.golpe, form.subtipo1) && (
-        <Section
-          num={String(
-            3
-            + (needsSubtipo1 ? 1 : 0)
-            + (needsEfeito ? 1 : 0)
-            + 1
-          )}
-          label="Duração do Rallye"
-          ref={refs.duracaoRef}
-        >
-          <Pills
-            options={DURACAO_OPTIONS.map(o => o.value)}
-            selected={form.duracao}
-            onChange={v => dispatch({ type: 'SET_DURACAO', value: v })}
-            labelMap={toLabelMap(DURACAO_OPTIONS)}
-          />
-        </Section>
-      )}
+      <PointDetailsCascadeSections form={form} dispatch={dispatch} refs={refs} computed={computed} />
     </div>
   );
 }
