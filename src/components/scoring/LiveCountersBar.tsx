@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import type { LiveMatchCounters } from '@/core/scoring/live-tactical-insights';
+import { LiveCountersGrid } from './live-counters-grid';
 
 interface LiveCountersBarProps {
   counters: LiveMatchCounters;
@@ -66,55 +67,7 @@ export function LiveCountersBar({
       </div>
 
       {!collapsed && (
-        <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center mt-0.5 pt-0.5 border-t border-white/5">
-          {/* Aces */}
-          <div className="bg-telemetry-elevated/70 rounded px-1 py-0.5 border border-white/5">
-            <span className="text-[10px] text-telemetry-text-muted block font-medium">Aces</span>
-            <div className="flex justify-around items-center font-space-grotesk font-bold text-xs">
-              <span className="text-telemetry-blue" title={`${p1Short}: ${counters.aces.p1}`}>{counters.aces.p1}</span>
-              <span className="text-telemetry-text-muted/60 text-[10px]">:</span>
-              <span className="text-telemetry-error" title={`${p2Short}: ${counters.aces.p2}`}>{counters.aces.p2}</span>
-            </div>
-          </div>
-
-          {/* Duplas Faltas */}
-          <div className="bg-telemetry-elevated/70 rounded px-1 py-0.5 border border-white/5">
-            <span className="text-[10px] text-telemetry-text-muted block font-medium">Duplas Faltas</span>
-            <div className="flex justify-around items-center font-space-grotesk font-bold text-xs">
-              <span className="text-telemetry-alert" title={`${p1Short}: ${counters.doubleFaults.p1}`}>{counters.doubleFaults.p1}</span>
-              <span className="text-telemetry-text-muted/60 text-[10px]">:</span>
-              <span className="text-telemetry-alert" title={`${p2Short}: ${counters.doubleFaults.p2}`}>{counters.doubleFaults.p2}</span>
-            </div>
-          </div>
-
-          {/* Break Points */}
-          <div className="bg-telemetry-elevated/70 rounded px-1 py-0.5 border border-white/5">
-            <span className="text-[10px] text-telemetry-text-muted block font-medium">Break Points</span>
-            <div className="flex justify-around items-center font-space-grotesk font-bold text-xs">
-              <span className="text-telemetry-volt" title={`${p1Short}: ${counters.breakPoints.p1.converted}/${counters.breakPoints.p1.total}`}>
-                {counters.breakPoints.p1.converted}/{counters.breakPoints.p1.total}
-              </span>
-              <span className="text-telemetry-text-muted/60 text-[10px]">:</span>
-              <span className="text-telemetry-volt" title={`${p2Short}: ${counters.breakPoints.p2.converted}/${counters.breakPoints.p2.total}`}>
-                {counters.breakPoints.p2.converted}/{counters.breakPoints.p2.total}
-              </span>
-            </div>
-          </div>
-
-          {/* Erros (EF / ENF) */}
-          <div className="bg-telemetry-elevated/70 rounded px-1 py-0.5 border border-white/5">
-            <span className="text-[10px] text-telemetry-text-muted block font-medium">EF / ENF</span>
-            <div className="flex justify-around items-center font-space-grotesk font-bold text-xs">
-              <span className="text-telemetry-text-primary" title={`${p1Short}: ${counters.forcedErrors.p1} EF / ${counters.unforcedErrors.p1} ENF`}>
-                {counters.forcedErrors.p1}/{counters.unforcedErrors.p1}
-              </span>
-              <span className="text-telemetry-text-muted/60 text-[10px]">:</span>
-              <span className="text-telemetry-text-primary" title={`${p2Short}: ${counters.forcedErrors.p2} EF / ${counters.unforcedErrors.p2} ENF`}>
-                {counters.forcedErrors.p2}/{counters.unforcedErrors.p2}
-              </span>
-            </div>
-          </div>
-        </div>
+        <LiveCountersGrid counters={counters} p1Short={p1Short} p2Short={p2Short} />
       )}
     </div>
   );
