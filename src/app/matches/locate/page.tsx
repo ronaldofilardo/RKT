@@ -1,72 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { AppRouteInput } from '@/lib/app-router';
-import { matchesClient } from '@/services/matchesClient';
-
-export interface Match {
-  id: string;
-  player1: { name: string };
-  player2: { name: string };
-  tournamentName?: string;
-  round?: string;
-  scheduledAt?: string;
-  state: 'SCHEDULED' | 'IN_PROGRESS' | 'FINISHED' | 'CANCELLED';
-}
+import { getStatusColor, getStatusLabel } from './locate-matches.helpers';
+import { useLocateMatches } from './use-locate-matches';
+import { LocateMatchesFilters } from './locate-matches-filters';
 
 export default function LocateMatchesPage() {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'ALL' | 'SCHEDULED' | 'IN_PROGRESS' | 'FINISHED'>('ALL');
-type LocateFilterStatus = typeof filterStatus;
-  const [filterTournament, setFilterTournament] = useState('');
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    matchesClient.listMatches(controller.signal)
-      .then((data) => {
-        const payload = data as { data?: { matches?: Match[] }; matches?: Match[] };
-        setMatches(payload?.data?.matches ?? payload?.matches ?? []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setMatches([]);
-        setLoading(false);
-      });
-    return () => controller.abort();
-  }, []);
-
-  const filteredMatches = matches.filter(match => {
-    const player1Name = match.player1?.name || '';
-    const player2Name = match.player2?.name || '';
-    const tournament = match.tournamentName || '';
-    
-    const matchesSearch = player1Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          player2Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          tournament.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'ALL' || match.state === filterStatus;
-    const matchesTournament = !filterTournament || tournament === filterTournament;
-    return matchesSearch && matchesStatus && matchesTournament;
-  });
-
-  const getStatusColor = (status: Match['state']) => {
-    switch (status) {
-      case 'SCHEDULED': return 'bg-blue-100 text-blue-700';
-      case 'IN_PROGRESS': return 'bg-green-100 text-green-700';
-      case 'FINISHED': return 'bg-gray-100 text-gray-700';
-    }
-  };
-
-  const getStatusLabel = (status: Match['state']) => {
-    switch (status) {
-      case 'SCHEDULED': return 'Agendada';
-      case 'IN_PROGRESS': return 'Em Andamento';
-      case 'FINISHED': return 'Finalizada';
-    }
-  };
+  const {
+    searchTerm, setSearchTerm,
+    filterStatus, setFilterStatus,
+    filterTournament, setFilterTournament,
+    filteredMatches, loading,
+  } = useLocateMatches();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -79,43 +26,14 @@ type LocateFilterStatus = typeof filterStatus;
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8">
-        {/* Filtros */}
-        <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Filtros</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Busca */}
-            <div>
-              <label htmlFor="locate-search" className="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
-              <input id="locate-search" type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Jogador ou torneio..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500" />
-            </div>
-
-            {/* Status */}
-            <div>
-              <label htmlFor="locate-status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select id="locate-status" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as LocateFilterStatus)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500">
-                <option value="ALL">Todos</option>
-                <option value="SCHEDULED">Agendadas</option>
-                <option value="IN_PROGRESS">Em Andamento</option>
-                <option value="FINISHED">Finalizadas</option>
-              </select>
-            </div>
-
-            {/* Torneio */}
-            <div>
-              <label htmlFor="locate-tournament" className="block text-sm font-medium text-gray-700 mb-1">Torneio</label>
-              <select id="locate-tournament" value={filterTournament} onChange={(e) => setFilterTournament(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500">
-                <option value="">Todos</option>
-                <option value="Copa Clube 2026">Copa Clube 2026</option>
-                <option value="Torneio de Verão">Torneio de Verão</option>
-                <option value="Campeonato Interno">Campeonato Interno</option>
-              </select>
-            </div>
-          </div>
-        </div>
+        <LocateMatchesFilters
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          filterStatus={filterStatus}
+          onStatusChange={setFilterStatus}
+          filterTournament={filterTournament}
+          onTournamentChange={setFilterTournament}
+        />
 
         {/* Resultados */}
         <div className="bg-white rounded-xl shadow-sm border">
