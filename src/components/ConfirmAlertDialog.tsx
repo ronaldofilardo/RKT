@@ -2,6 +2,8 @@
 
 import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { trapFocusWithin, resolveConfirmClasses } from './confirm-alert-dialog.logic';
+import { ConfirmAlertDialogContent } from './confirm-alert-dialog.content';
 
 export interface ConfirmAlertDialogProps {
   open: boolean;
@@ -17,8 +19,6 @@ export interface ConfirmAlertDialogProps {
   onConfirm: () => void;
   onCancel: () => void;
 }
-
-const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
  * Substitui o `window.confirm()` nativo por um diálogo integrado ao tema
@@ -62,72 +62,28 @@ export function ConfirmAlertDialog({
       if (!loading) onCancel();
       return;
     }
-    if (e.key !== 'Tab') return;
-
-    const focusables = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []);
-    if (focusables.length === 0) {
-      e.preventDefault();
-      return;
-    }
-    const first = focusables[0];
-    const last = focusables[focusables.length - 1];
-    const active = document.activeElement;
-    if (e.shiftKey && (active === first || !dialogRef.current?.contains(active))) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && (active === last || !dialogRef.current?.contains(active))) {
-      e.preventDefault();
-      first.focus();
-    }
+    trapFocusWithin(e, dialogRef);
   };
-
-  const confirmClasses =
-    variant === 'danger'
-      ? 'bg-telemetry-error hover:opacity-90 text-white'
-      : 'bg-telemetry-volt hover:opacity-90 text-telemetry-base';
 
   return createPortal(
     <div className="fixed inset-0 z-[60] flex items-center justify-center px-4" data-testid="confirm-alert-dialog-overlay">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" aria-hidden="true" />
-      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
-      <div
-        ref={dialogRef}
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        aria-describedby={description ? descriptionId : undefined}
+      <ConfirmAlertDialogContent
+        dialogRef={dialogRef}
+        titleId={titleId}
+        descriptionId={descriptionId}
+        title={title}
+        description={description}
+        cancelRef={cancelRef}
         onKeyDown={handleKeyDown}
-        tabIndex={-1}
-        className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-telemetry-card p-6 text-center shadow-2xl"
-      >
-        <h2 id={titleId} className="mb-2 text-xl font-bold text-telemetry-text-primary">
-          {title}
-        </h2>
-        {description && (
-          <p id={descriptionId} className="mb-6 text-sm text-telemetry-text-muted">
-            {description}
-          </p>
-        )}
-        <div className="flex gap-3">
-          <button
-            ref={cancelRef}
-            type="button"
-            onClick={onCancel}
-            disabled={loading}
-            className="flex-1 rounded-xl border border-white/10 bg-telemetry-elevated px-4 py-3 font-semibold text-telemetry-text-primary transition-all hover:bg-telemetry-active disabled:opacity-50"
-          >
-            {cancelLabel}
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={loading}
-            className={`flex-1 rounded-xl px-4 py-3 font-semibold transition-all disabled:opacity-50 ${confirmClasses}`}
-          >
-            {loading ? (loadingLabel ?? confirmLabel) : confirmLabel}
-          </button>
-        </div>
-      </div>
+        cancelLabel={cancelLabel}
+        confirmLabel={confirmLabel}
+        confirmClasses={resolveConfirmClasses(variant)}
+        loading={loading}
+        loadingLabel={loadingLabel}
+        onConfirm={onConfirm}
+        onCancel={onCancel}
+      />
     </div>,
     document.body,
   );
