@@ -142,13 +142,17 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
       formData.append("file", blob);
       formData.append("durationMs", String(durationMs));
 
-      await fetch(`/api/matches/${matchId}/point/${pointLogId}/audio`, {
+      const res = await fetch(`/api/matches/${matchId}/point/${pointLogId}/audio`, {
         method: "POST",
         headers: { authorization: `Bearer ${token}` },
         body: formData,
       });
+      if (!res.ok) {
+        throw new Error(`Falha no upload do áudio: HTTP ${res.status}`);
+      }
     } catch (err) {
       logger.error("[uploadAudioNote]", err);
+      throw err;
     }
   };
 

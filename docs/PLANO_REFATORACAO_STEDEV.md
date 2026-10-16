@@ -389,6 +389,24 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 > 6. ~~**R-13 — Acessibilidade (A11y)**~~ — **CONCLUÍDO** (modais dialog/alertdialog, aria-modal, tablist/tab, aria-selected, labels e role=alert).
 >
 > **FASE 3 STE-DEV 100% CONCLUÍDA.**
+>
+> ---
+>
+> ### Fase 4 (Correção Vertical do Áudio na Timeline)
+> - **Problema:** Observações em formato de áudio gravadas nos detalhes do ponto não eram exibidas na Timeline (ao vivo e relatório).
+> - **Causas Raízes:**
+>   1. Pareamento por índice `[i]` em `enrichTimelineWithAudio` desalinhado por quebras visuais (`segmentBreak`) e divergência de arrays.
+>   2. Ordenação discordante entre rotas: `point-logs-meta` (apenas `timestamp: asc`) vs `report` (`sequenceNumber: asc, timestamp: asc, id: asc`).
+>   3. Ausência de revalidação imediata (`fetchTimelinePoints` e `setEngineTick`) no callback `onAudioUploaded`.
+>   4. Falta de verificação de `res.ok` no serviço de upload.
+> - **Correções Aplicadas:**
+>   - `timeline.logic.ts`: busca determinística por `pointId` em `audioMap`, contagem separada de pontos jogáveis ignorando `segmentBreak`.
+>   - `point-logs-meta/route.ts`: alinhado `orderBy` idêntico a `report`, selecionado `audioNoteMime` e inferência robusta de `hasAudioNote`.
+>   - `point-log-merge.ts` e `report/route.ts`: preservação de `hasAudioNote` mesmo para durações curtas (verificação de `audioNoteMime`).
+>   - `useScoringHandlers.undo-redo.service.ts`: validação estrita de `res.ok` em `uploadAudioNote`.
+>   - `useScoringPageEffects.ts`: revalidação reativa imediata de `pointLogAudioMeta` e `timelinePoints` pós-upload.
+>   - Testes de caracterização/regressão criados: `timeline.audio-enrichment.test.ts` (4 testes) e `point-logs-meta/route.test.ts` (1 teste).
+> - **Status Fase 4: CONCLUÍDA** (2026-10-16). DoD: typecheck ✓ · test:design 3/3 (26/26) ✓ · test:strict 298/298 (3205/3205) ✓ · lint ✓.
 
 
 

@@ -69,6 +69,7 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     updateScore,
     setEngineTick,
     fetchPointLogAudioMeta,
+    fetchTimelinePoints,
     clearQueueForMatch,
     removeLastAction,
   } = state;
@@ -115,7 +116,11 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     closeAll,
     onUndoComplete: () => setEngineTick(Date.now()),
     onPointProcessed: () => setEngineTick(Date.now()),
-    onAudioUploaded: fetchPointLogAudioMeta,
+    onAudioUploaded: () => {
+      fetchPointLogAudioMeta();
+      fetchTimelinePoints?.();
+      setEngineTick(Date.now());
+    },
     removeLastAction,
     isProcessingRef,
     debounceTimerRef,

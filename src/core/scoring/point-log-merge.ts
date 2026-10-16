@@ -27,6 +27,7 @@ export interface PointLogRow {
     | null;
   hasAudioNote?: boolean;
   audioNoteDuration: number | null;
+  audioNoteMime?: string | null;
 }
 
 /**
@@ -129,7 +130,7 @@ export function mergeWithPointLog(
     firstFault: firstFaultDetail,
     firstServeOutcome,
     secondServeOutcome,
-    hasAudioNote: Boolean(log.hasAudioNote ?? (log.audioNoteDuration != null)),
+    hasAudioNote: Boolean(log.hasAudioNote ?? (log.audioNoteDuration != null || log.audioNoteMime != null)),
     audioNoteDuration: log.audioNoteDuration ?? undefined,
     pointDetails: {
       ...p.pointDetails,

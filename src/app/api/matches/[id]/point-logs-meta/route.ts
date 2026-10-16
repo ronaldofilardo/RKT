@@ -17,14 +17,19 @@ export async function GET(
         select: {
           id: true,
           audioNoteDuration: true,
+          audioNoteMime: true,
         },
-        orderBy: { timestamp: 'asc' },
+        orderBy: [
+          { sequenceNumber: 'asc' },
+          { timestamp: 'asc' },
+          { id: 'asc' },
+        ],
       });
 
       return NextResponse.json({
         pointLogs: pointLogs.map(pl => ({
           pointLogId: pl.id,
-          hasAudioNote: pl.audioNoteDuration != null,
+          hasAudioNote: pl.audioNoteDuration != null || pl.audioNoteMime != null,
           audioNoteDuration: pl.audioNoteDuration,
         })),
       });

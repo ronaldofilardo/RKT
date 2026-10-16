@@ -133,6 +133,7 @@ export async function GET(
           clientEventId: true,
           annotations: true,
           audioNoteDuration: true,
+          audioNoteMime: true,
         },
       }) as PointLogRow[];
 
