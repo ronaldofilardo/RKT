@@ -1,101 +1,36 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { ConfirmAlertDialog } from '@/components/ConfirmAlertDialog';
-
-import { adminClient, type AdminUser } from '@/services/adminClient';
+import type { AdminUser } from '@/services/adminClient';
+import { useAdminPage } from './use-admin-page';
+import { AdminUsersTable } from './admin-users-table';
 
 export type User = AdminUser;
 
-const ROLES = ['ADMIN', 'ANNOTATOR'];
-
 export default function AdminPage() {
-  const router = useRouter();
-  const [, setUser] = useState<{ role: string } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [showUsers, setShowUsers] = useState(false);
-  const [users, setUsers] = useState<User[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [editingUser, setEditingUser] = useState<string | null>(null);
-  const [newRole, setNewRole] = useState('');
-  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
-  const [deletingUser, setDeletingUser] = useState(false);
-
-  const token = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
-
-  useEffect(() => {
-    // O token real vive no cookie httpOnly `rkt_access_token` (middleware/API);
-    // o sessionStorage guarda só user_id/user_role. Exigir `access_token` aqui
-    // redirecionava para /login mesmo com sessão válida.
-    const userRole = sessionStorage.getItem('user_role');
-
-    if (!userRole) {
-      router.push('/login');
-      return;
-    }
-
-    if (userRole !== 'ADMIN') {
-      router.push('/dashboard');
-      return;
-    }
-
-    setUser({ role: userRole });
-    setLoading(false);
-  }, [router]);
-
-  const handleLogout = () => {
-    setLogoutConfirmOpen(true);
-  };
-
-  const confirmLogout = () => {
-    setLogoutConfirmOpen(false);
-    sessionStorage.clear();
-    router.push('/login');
-  };
-
-  const loadUsers = useCallback(async () => {
-    setError(null);
-    try {
-      const data = await adminClient.listUsers(token);
-      setUsers(data.data?.users ?? data.users ?? []);
-    } catch {
-      setError('Erro ao carregar usuários');
-    }
-  }, [token]);
-
-  const handleRoleChange = async (userId: string) => {
-    if (!newRole) return;
-    setError(null);
-    try {
-      await adminClient.updateUserRole(userId, newRole, token);
-      setEditingUser(null);
-      setNewRole('');
-      await loadUsers();
-    } catch {
-      setError('Erro ao atualizar role');
-    }
-  };
-
-  const handleDeleteUser = (u: User) => {
-    setUserToDelete(u);
-  };
-
-  const confirmDeleteUser = async () => {
-    if (!userToDelete) return;
-    setError(null);
-    setDeletingUser(true);
-    try {
-      await adminClient.deleteUser(userToDelete.id, token);
-      await loadUsers();
-    } catch {
-      setError('Erro ao excluir usuário');
-    } finally {
-      setDeletingUser(false);
-      setUserToDelete(null);
-    }
-  };
+  const {
+    router,
+    loading,
+    showUsers,
+    setShowUsers,
+    users,
+    error,
+    editingUser,
+    setEditingUser,
+    newRole,
+    setNewRole,
+    logoutConfirmOpen,
+    setLogoutConfirmOpen,
+    userToDelete,
+    setUserToDelete,
+    deletingUser,
+    handleLogout,
+    confirmLogout,
+    loadUsers,
+    handleRoleChange,
+    handleDeleteUser,
+    confirmDeleteUser,
+  } = useAdminPage();
 
   if (loading) {
     return (
@@ -144,73 +79,15 @@ export default function AdminPage() {
         </div>
 
         {showUsers && (
-          <div className="mt-6 sm:mt-8 bg-white rounded-lg shadow-sm border overflow-hidden">
-            <div className="px-4 sm:px-6 py-4 border-b bg-gray-50">
-              <h3 className="text-lg font-semibold">Usuários Cadastrados</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-gray-600">
-                  <tr>
-                    <th className="text-left px-4 sm:px-6 py-3 font-medium">Nome</th>
-                    <th className="text-left px-4 sm:px-6 py-3 font-medium">Email</th>
-                    <th className="text-left px-4 sm:px-6 py-3 font-medium">CPF</th>
-                    <th className="text-left px-4 sm:px-6 py-3 font-medium">Perfil</th>
-                    <th className="text-left px-4 sm:px-6 py-3 font-medium">Clube</th>
-                    <th className="text-right px-4 sm:px-6 py-3 font-medium">Ações</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {users.map((u) => (
-                    <tr key={u.id} className="hover:bg-gray-50">
-                      <td className="px-4 sm:px-6 py-3 font-medium">{u.name}</td>
-                      <td className="px-4 sm:px-6 py-3 text-gray-500">{u.email}</td>
-                      <td className="px-4 sm:px-6 py-3 text-gray-500">{u.cpf || '-'}</td>
-                      <td className="px-4 sm:px-6 py-3">
-                        {editingUser === u.id ? (
-                          <select
-                            value={newRole}
-                            onChange={(e) => setNewRole(e.target.value)}
-                            className="border rounded px-2 py-1 text-xs"
-                          >
-                            {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-                          </select>
-                        ) : (
-                          <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                            u.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700'
-                          }`}>{u.role === 'ANNOTATOR' ? 'ANOTADOR' : u.role}</span>
-                        )}
-                      </td>
-                      <td className="px-4 sm:px-6 py-3 text-gray-500">{u.club || '-'}</td>
-                      <td className="px-4 sm:px-6 py-3 text-right whitespace-nowrap">
-                        {editingUser === u.id ? (
-                          <>
-                            <button onClick={() => handleRoleChange(u.id)} className="text-xs text-green-600 hover:underline">Salvar</button>
-                            <button onClick={() => setEditingUser(null)} className="text-xs text-gray-500 hover:underline ml-2">Cancelar</button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => { setEditingUser(u.id); setNewRole(u.role); }}
-                              className="text-xs text-sky-600 hover:underline"
-                            >
-                              Alterar Perfil
-                            </button>
-                            <button
-                              onClick={() => handleDeleteUser(u)}
-                              className="text-xs text-red-600 hover:underline ml-2"
-                            >
-                              Excluir
-                            </button>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <AdminUsersTable
+            users={users}
+            editingUser={editingUser}
+            newRole={newRole}
+            setNewRole={setNewRole}
+            setEditingUser={setEditingUser}
+            handleRoleChange={handleRoleChange}
+            handleDeleteUser={handleDeleteUser}
+          />
         )}
 
         <div className="mt-6 sm:mt-8">
