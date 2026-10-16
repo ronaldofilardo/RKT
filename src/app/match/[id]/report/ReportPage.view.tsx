@@ -5,6 +5,9 @@ import type { ReportData } from './report.types';
 import { MatchTimelineView } from '@/components/scoring/MatchTimelineView';
 import { AdvancedStats } from '@/components/report/AdvancedStats';
 import { downloadReportCsv } from './report-export';
+import { TabBar, type ReportViewTab } from './report-view-tab-bar';
+import { ReportHeader } from './report-view-header';
+import { formatDate } from './report-view.helpers';
 
 type Props = {
   report: ReportData;
@@ -16,14 +19,8 @@ type Props = {
   onDashboard: () => void;
 };
 
-type Tab = 'summary' | 'advanced' | 'timeline';
-
-function formatDate(iso: string | null) {
-  return iso ? new Date(iso).toLocaleString('pt-BR') : '–';
-}
-
 export function ReportPageView({ report, matchId, p1Points, p2Points, totalPoints, onContinue, onDashboard }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>('summary');
+  const [activeTab, setActiveTab] = useState<ReportViewTab>('summary');
 
   return (
     <div className="min-h-screen bg-telemetry-base text-telemetry-text-primary">
@@ -38,79 +35,6 @@ export function ReportPageView({ report, matchId, p1Points, p2Points, totalPoint
         {activeTab === 'timeline' && <ReportTimeline report={report} matchId={matchId} onContinue={onContinue} />}
       </main>
     </div>
-  );
-}
-
-function TabBar({ activeTab, onTabChange, hasAdvancedStats }: { activeTab: Tab; onTabChange: (tab: Tab) => void; hasAdvancedStats: boolean }) {
-  const tabs: Array<{ id: Tab; label: string; disabled?: boolean }> = [
-    { id: 'summary', label: 'Resumo' },
-    { id: 'advanced', label: 'Estatísticas Avançadas', disabled: !hasAdvancedStats },
-    { id: 'timeline', label: 'Timeline' },
-  ];
-
-  return (
-    <div className="flex gap-1 mb-6 bg-telemetry-elevated p-1 rounded-xl">
-      {tabs.map(tab => (
-        <button
-          key={tab.id}
-          onClick={() => !tab.disabled && onTabChange(tab.id)}
-          disabled={tab.disabled}
-          className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-            activeTab === tab.id
-              ? 'bg-telemetry-card text-telemetry-text-primary shadow-sm border border-white/10'
-              : tab.disabled
-                ? 'text-telemetry-text-muted/50 cursor-not-allowed'
-                : 'text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/'
-          }`}
-        >
-          {tab.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function ReportHeader({ report, onContinue, onDashboard, onExport }: { report: ReportData; onContinue: () => void; onDashboard: () => void; onExport: () => void }) {
-  const stateLabel = report.state === 'FINISHED' ? 'Finalizada' : report.state === 'IN_PROGRESS' ? 'Em andamento' : 'Aguardando';
-
-  const courtTypeMap: Record<string, string> = {
-    GRASS: 'Saibro',
-    CLAY: 'Saibro',
-    HARD: 'Piso duro',
-    CARPET: 'Carpete',
-    INDOOR: 'Indoor',
-  };
-
-  const metaItems = [report.tournamentName, report.round, report.category]
-    .filter(Boolean)
-    .filter((v, i, arr) => i === 0 || v !== arr[i - 1]);
-
-  const courtLabel = report.courtType ? courtTypeMap[report.courtType.toUpperCase()] ?? report.courtType : null;
-  if (courtLabel) metaItems.push(courtLabel);
-
-  return (
-    <header className="bg-telemetry-card border-b border-white/10 px-6 py-4">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-telemetry-text-primary">Relatório da Partida</h1>
-          <p className="text-sm text-telemetry-text-muted mt-1">
-            <span className="font-semibold text-telemetry-blue">P1</span> {report.player1.name} vs <span className="font-semibold text-telemetry-error">P2</span> {report.player2.name} · {report.format.replace(/_/g, ' ')} · {stateLabel}
-          </p>
-          <p className="text-xs text-telemetry-text-muted/70 mt-1">Início: {formatDate(report.startedAt)} · Fim: {formatDate(report.finishedAt)}</p>
-          <p className="text-xs text-telemetry-text-muted/70 mt-1">
-            {metaItems.length > 0 ? metaItems.join(' · ') : 'Sem metadados adicionais'}
-            {report.temperature != null ? ` · ${report.temperature}°` : ''}
-            {report.humidity != null ? ` · ${report.humidity}% umidade` : ''}
-          </p>
-          {report.finishNote ? <p className="text-xs text-telemetry-alert mt-1">Nota de encerramento: {report.finishNote}</p> : null}
-        </div>
-        <div className="flex gap-3">
-          {report.state !== 'FINISHED' && <button onClick={onContinue} className="px-4 py-2 bg-telemetry-blue hover:opacity-90 text-white font-semibold rounded-xl text-sm transition-opacity shadow-sm">Continuar Anotação</button>}
-          <button onClick={onExport} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm transition-opacity shadow-sm">Exportar CSV</button>
-          <button onClick={onDashboard} className="px-4 py-2 bg-transparent border border-white/10 hover:bg-white/5 text-telemetry-text-primary font-semibold rounded-xl text-sm transition-colors">← Dashboard</button>
-        </div>
-      </div>
-    </header>
   );
 }
 
