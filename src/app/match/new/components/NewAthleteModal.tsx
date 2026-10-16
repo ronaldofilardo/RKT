@@ -32,19 +32,29 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
         aria-label="Fechar modal"
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose(); }}
       />
-      <div className="relative bg-telemetry-card border border-white/10 rounded-2xl shadow-2xl max-w-xl w-full mx-4 max-h-[90vh] overflow-auto">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-athlete-title"
+        className="relative bg-telemetry-card border border-white/10 rounded-2xl shadow-2xl max-w-xl w-full mx-4 max-h-[90vh] overflow-auto"
+      >
         <div className="sticky top-0 bg-telemetry-elevated border-b border-white/10 px-6 py-4 flex items-center justify-between z-10">
           <div>
-            <h2 className="text-xl font-bold text-telemetry-text-primary">Novo Atleta</h2>
+            <h2 id="new-athlete-title" className="text-xl font-bold text-telemetry-text-primary">Novo Atleta</h2>
             <p className="text-xs text-telemetry-text-muted">Preencha os dados do jogador</p>
           </div>
-          <button type="button" onClick={onClose} className="text-telemetry-text-muted hover:text-telemetry-text-primary text-2xl p-1 transition-colors">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar"
+            className="text-telemetry-text-muted hover:text-telemetry-text-primary text-2xl p-1 transition-colors"
+          >
             ×
           </button>
         </div>
         <form onSubmit={submitNewAthleteForm} className="p-6 space-y-4">
           {error && (
-            <div className="p-3 bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert text-sm rounded-lg">{error}</div>
+            <div role="alert" className="p-3 bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert text-sm rounded-lg">{error}</div>
           )}
 
           <NewAthleteModalForm

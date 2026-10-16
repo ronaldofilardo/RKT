@@ -377,18 +377,18 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 > **Status R-02/R-23 (P3): CONCLUÍDO** (2026-10-16). Resíduos de Handler/Helpers em hooks e services de scoring eliminados: `useScoringComment.ts` (função `useScoringComment`), `useScoringEditScore.ts` (função `useScoringEditScore`), `createServerResolutionService` e `createScoringModalsService` canônicos com aliases compatíveis preservados para backward compatibility de characterization tests.
 >
 > **Pendências do plano:**
-> 1. ~~**R-01** — recriar `docs/glossario.md`~~ — **CONCLUÍDO** (UTF-8 limpo, 147 linhas).
-> 2. ~~**R-03 backlog** — `.tsx` de produção >100 linhas~~ — **CONCLUÍDO** (0 arquivos; medido 2026-10-16 pós UI-44).
-> 3. ~~**R-02** — nomenclatura proibida~~ — **CONCLUÍDO** (0 violações; medido 2026-10-16 pós Fase C).
-> **Status R-12 (Tokens): CONCLUÍDO** (2026-10-16). Tokens de telemetria adicionados para superfícies de quadra (`--telemetry-court-clay`, `--telemetry-court-grass`, `--telemetry-court-hard`) em `globals.css` (temas dark e light) e `tailwind.config.ts`. Substituição de todos os 28 hexadecimais soltos e 14 rgba soltos em componentes de produção (`PointDetailsCloseDialog`, `CommentModal`, `comment-modal-body`, `comment-modal-views`, `PointDetailsModal`, `ServerEffectModal`, `ModalActions`, `WinnerInfo`, `CourtBackground`, `AnnotationSessionPanel`, `game-errors-histogram-slot`, `GameErrorsHistogram`, `match-card-score-table`, `match-card-player-row`, `use-match-card-data`, `matchConstants`). DoD: typecheck ✓ · test:design 3/3 (26/26) ✓ · lint ✓.
+> **Status R-12 (Tokens): CONCLUÍDO** (2026-10-16). Tokens de telemetria adicionados para superfícies de quadra (`--telemetry-court-clay`, `--telemetry-court-grass`, `--telemetry-court-hard`) em `globals.css` (temas dark e light) e `tailwind.config.ts`. Substituição de todos os 28 hexadecimais soltos e 14 rgba soltos em componentes de produção (`PointDetailsCloseDialog`, `CommentModal`, `comment-modal-body`, `comment-modal-views`, `PointDetailsModal`, `ServerEffectModal`, `ModalActions`, `WinnerInfo`, `CourtBackground`, `AnnotationSessionPanel`, `game-errors-histogram-slot`, `GameErrorsHistogram`, `match-card-score-table`, `match-card-player-row`, `use-match-card-data`, `matchConstants`). Commit `623ae2f`. DoD: typecheck ✓ · test:design 3/3 (26/26) ✓ · lint ✓.
+> **Status R-13 (Acessibilidade A11y): CONCLUÍDO** (2026-10-16). Inclusão de `aria-modal="true"`, `role="dialog"`, `aria-labelledby`, `role="alert"` em mensagens de erro e semântica de tabs (`role="tablist"`, `role="tab"`, `aria-selected`) em todos os modais extraídos e formulários (`PointDetailsCloseDialog`, `PointDetailsModal`, `PointDetailsNotesModal`, `ServerEffectModal`, `comment-modal-body`, `server-effect-modal-close-dialog`, `NewAthleteModal`, `EditAthleteModal`, `schedule-confirm-modal`, `ConfirmDeleteMatchDialog`, `login/page.tsx`, `point-details-notes-fields.tsx`). DoD: typecheck ✓ · test:design 3/3 (26/26) ✓ · test:strict 296/296 (3200/3200) ✓ · lint ✓.
 >
-> **Pendências do plano:**
+> **Status Geral do Plano STE-DEV:**
 > 1. ~~**R-01** — recriar `docs/glossario.md`~~ — **CONCLUÍDO** (UTF-8 limpo, 147 linhas).
 > 2. ~~**R-03 backlog** — `.tsx` de produção >100 linhas~~ — **CONCLUÍDO** (0 arquivos; medido 2026-10-16 pós UI-44).
 > 3. ~~**R-02** — nomenclatura proibida~~ — **CONCLUÍDO** (0 violações; medido 2026-10-16 pós Fase C).
 > 4. ~~**R-23 (P1/P3 cluster save/create/submit + resíduos de hooks)**~~ — **CONCLUÍDO** (DoD: typecheck ✓ · test:strict 296/296 ✓ · test:design 3/3 ✓ · lint ✓).
 > 5. ~~**R-12 — Tokens de Design System e Telemetry**~~ — **CONCLUÍDO** (0 hexadecimais soltos em componentes; tokens de quadra e overlays padronizados; test:design 3/3 ✓).
-> 6. **R-13 — Acessibilidade (A11y)**: P0, P1, P2 em modais, botões de ícone e controles de formulário.
+> 6. ~~**R-13 — Acessibilidade (A11y)**~~ — **CONCLUÍDO** (modais dialog/alertdialog, aria-modal, tablist/tab, aria-selected, labels e role=alert).
+>
+> **FASE 3 STE-DEV 100% CONCLUÍDA.**
 
 
 

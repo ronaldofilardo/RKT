@@ -14,8 +14,13 @@ export function ConfirmDeleteMatchDialog({ onCancel, onConfirm }: ConfirmDeleteM
         onClick={onCancel}
         aria-hidden="true"
       />
-      <div className="relative bg-telemetry-card rounded-lg p-6 max-w-sm border border-white/10">
-        <h3 className="font-bold mb-2 text-telemetry-text-primary">Excluir partida?</h3>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-delete-match-title"
+        className="relative bg-telemetry-card rounded-lg p-6 max-w-sm border border-white/10"
+      >
+        <h3 id="confirm-delete-match-title" className="font-bold mb-2 text-telemetry-text-primary">Excluir partida?</h3>
         <p className="text-sm text-telemetry-text-muted mb-4">
           Esta ação não pode ser desfeita.
         </p>

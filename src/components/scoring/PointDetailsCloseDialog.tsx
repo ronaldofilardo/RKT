@@ -25,6 +25,7 @@ export function PointDetailsCloseDialog({
       <div
         className="bg-telemetry-elevated rounded-[20px] p-6 mx-4 w-[clamp(240px,70vw,360px)] shadow-2xl border border-white/10"
         role="dialog"
+        aria-modal="true"
         aria-label="Confirmar descarte"
         tabIndex={-1}
       >

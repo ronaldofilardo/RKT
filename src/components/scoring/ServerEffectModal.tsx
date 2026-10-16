@@ -64,6 +64,7 @@ export function ServerEffectModal({
           fontSize: `${fontScale * 100}%`,
         }}
         role="dialog"
+        aria-modal="true"
         aria-label={context === 'winner' ? 'Efeito do saque' : 'Erro de saque'}
         tabIndex={-1}
       >

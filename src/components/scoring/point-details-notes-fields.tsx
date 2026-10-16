@@ -5,8 +5,10 @@ interface NoteModeTabsProps {
 
 export function NoteModeTabs({ noteMode, onModeChange }: NoteModeTabsProps) {
   return (
-    <div className="flex rounded-xl bg-telemetry-elevated border border-white/10 p-0.5 mb-4">
+    <div role="tablist" aria-label="Modo de observação" className="flex rounded-xl bg-telemetry-elevated border border-white/10 p-0.5 mb-4">
       <button
+        role="tab"
+        aria-selected={noteMode === 'text'}
         onClick={() => onModeChange('text')}
         className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
           noteMode === 'text'
@@ -17,6 +19,8 @@ export function NoteModeTabs({ noteMode, onModeChange }: NoteModeTabsProps) {
         📝 Texto
       </button>
       <button
+        role="tab"
+        aria-selected={noteMode === 'voice'}
         onClick={() => onModeChange('voice')}
         className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
           noteMode === 'voice'
@@ -39,6 +43,7 @@ export function NoteTextarea({ value, onChange }: NoteTextareaProps) {
   return (
     <div>
       <textarea
+        aria-label="Observações do ponto"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Ex: jogador estava cansado, vento forte, etc."

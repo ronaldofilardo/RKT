@@ -18,6 +18,7 @@ export function ServerEffectCloseDialog({ onDiscard, onContinue }: ServerEffectC
       <div
         className="bg-telemetry-card rounded-2xl p-6 mx-4 w-[clamp(240px,70vw,360px)] shadow-2xl border border-white/10"
         role="dialog"
+        aria-modal="true"
         aria-label="Confirmar descarte"
         tabIndex={-1}
       >

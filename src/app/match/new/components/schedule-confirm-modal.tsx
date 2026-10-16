@@ -27,9 +27,14 @@ export function ScheduleConfirmModal({ date, time, onConfirm, onCancel }: Schedu
           }
         }}
       />
-      <div className="relative bg-telemetry-elevated rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 text-center">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="schedule-modal-title"
+        className="relative bg-telemetry-elevated rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 text-center"
+      >
         <div className="text-4xl mb-4">📅</div>
-        <h2 className="text-xl font-bold text-telemetry-text-primary mb-2">Agendar Partida</h2>
+        <h2 id="schedule-modal-title" className="text-xl font-bold text-telemetry-text-primary mb-2">Agendar Partida</h2>
         <p className="text-sm text-telemetry-text-muted mb-6">
           A partida será agendada para o dia <strong>{date}</strong>{time && time !== '--:--' ? <> às <strong>{time}</strong></> : ''}. Tem certeza?
         </p>

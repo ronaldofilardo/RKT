@@ -55,6 +55,7 @@ export function PointDetailsModal({
           fontSize: `calc(var(--sb-scale) * 1em)`,
         }}
         role="dialog"
+        aria-modal="true"
         aria-label="Detalhes do ponto"
         tabIndex={-1}
       >

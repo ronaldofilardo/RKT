@@ -63,6 +63,7 @@ export function PointDetailsNotesModal({
       <div
         className="bg-telemetry-card rounded-2xl p-6 mx-4 w-[clamp(280px,80vw,420px)] shadow-2xl border border-white/10"
         role="dialog"
+        aria-modal="true"
         aria-label="Observações do ponto"
         tabIndex={-1}
       >
