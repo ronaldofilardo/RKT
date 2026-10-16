@@ -139,7 +139,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 - [x] `pnpm test:design` verde ao fim da Fase 2 — 3/3 suites, 26/26 testes.
 - [x] `docs/glossario.md` criado com termos mapeados (R-01) — recriado em UTF-8 limpo (147 linhas; o anterior tinha mojibake).
 - [x] Toda exceção registrada via `// ste-exception R-XX: <motivo>` — Fase 1 (7× R-08; 6 ativos após UI-3b unificar os 2 `showPicker` de `EditMatchInfoModal` num único `openPicker`).
-- [~] Nenhum arquivo UI/componente >100 linhas (R-03) — **parcial**: `MatchTimelineView.tsx` 535→96 ✓, `MatchCard.tsx` 409→86 ✓, `EditMatchInfoModal.tsx` 370→97 ✓, `timeline-rows.tsx` 342→81 ✓, `scoring/page.tsx` 339→94 ✓, `dashboard/page.tsx` 337→69 ✓, `SetSummaryModal.tsx` 327→91 ✓, `AdvancedStats.tsx` 316→23 ✓, `edit-score-form.tsx` 320→60 ✓, `ScoreboardCard.tsx` 250→72 ✓, `admin/page.tsx` 249→77 ✓, `DashboardViewRouter.tsx` 241→98 ✓, `SessionContext.tsx` 238→98 ✓, `NewAthleteModalForm.tsx` 235→60 ✓, `ServerEffectModal.tsx` 235→95 ✓, `edit-score-summary.tsx` 216→92 ✓, `EditAthleteModal.tsx` 215→97 ✓, `locate/page.tsx` 206→72 ✓, `ScoringModals.tsx` 203→91 ✓, `PointDetailsNotesModal.tsx` 201→84 ✓, `atletas/page.tsx` 197→82 ✓, `ReportPage.view.tsx` 186→39 ✓, `GameErrorsHistogram.tsx` 184→68 ✓, `MatchDetailsSection.tsx` 178→90 ✓, `PointDetailsModal.tsx` 176→86 ✓, `RankingForm.tsx` 175→32 ✓, `ScoringPlayArea.tsx` 169→98 ✓, `PlayerCard.tsx` 159→56 ✓, `AthleteListTable.tsx` 157→44 ✓; restam **13 arquivos `.tsx` de produção** >100L (backlog; testes excluídos; medido 2026-10-16 pós UI-31).
+- [x] Nenhum arquivo UI/componente >100 linhas (R-03) — **CONCLUÍDO** (rodadas UI-1..UI-44; medido 2026-10-16 pós UI-44: **0 arquivos `.tsx` de produção >100L** entre 193; testes excluídos; backlog 53 → 0).
 
 
 ---
@@ -293,6 +293,33 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-16 | UI-31 | Fatia única: `athlete-list-table.helpers.ts` (21L: `formatBirthDate`/`formatRankings`), `athlete-list-table-empty.tsx` (13L), `athlete-list-table-row.tsx` (81L); `AthleteListTable.tsx` 157→**44** (reusa `atletas.types`). Commit `90db474` | Concluído |
 | 2026-10-16 | UI-31 DoD | `typecheck` verde · suite atletas characterization: 1 suite/12 testes verdes · **R-03 ✓**: 44, 81, 21, 13 | Concluído |
 | 2026-10-16 | R-03 rodada | **DoD final da rodada UI-27..31**: `typecheck` verde (exit 0) · `test:strict` 296/296 (3200/3200) · `test:design` 3/3 (26/26) · `lint` 0 erros (exit 0) · **backlog R-03: 18 → 13 arquivos `.tsx` de produção >100L** | Concluído |
+| 2026-10-16 | UI-32 | Fatia única: `section-renderer.logic.ts` (34L: `computeSectionRenderer` puro), `point-details-cascade-sections.tsx` (94L: seções 4-7 sem `vencedor`); `SectionRenderer.tsx` 156→**69**. Commit `29bdf51` | Concluído |
+| 2026-10-16 | UI-32 DoD | `typecheck` verde · suítes PointDetailsModal + point-details-logic + telemetry-integrity: 5 suites/115 testes verdes · **R-03 ✓**: 69, 94, 34 | Concluído |
+| 2026-10-16 | UI-33 | Fatia única: `use-new-athlete-modal.ts` (89L: estados, `useAge`, auto-categoria, `handleSubmit` com validate/build/playersClient); `NewAthleteModal.tsx` 155→**83** — foco do input preservado via dependência `[isOpen]`. Commit `404a8ba` | Concluído |
+| 2026-10-16 | UI-33 DoD | `typecheck` verde · suítes NewAthleteModal (modal + characterization): 2 suites/38 testes verdes · **R-03 ✓**: 83, 89 | Concluído |
+| 2026-10-16 | UI-34 | Fatia única: `use-date-time-schedule-modal.ts` (41L: efeito de agendamento + handlers de foco), `date-time-picker-input.tsx` (28L: input compartilhado com `showPicker` try/catch — deduplica date/time), `schedule-confirm-modal.tsx` (55L); `DateTimeSection.tsx` 154→**60**. Commit `8349298` | Concluído |
+| 2026-10-16 | UI-34 DoD | `typecheck` verde · suítes NewMatchPage + schedule-check: 2 suites/19 testes verdes · **R-03 ✓**: 60, 55, 41, 28 | Concluído |
+| 2026-10-16 | UI-35 | Fatia única: `confirm-alert-dialog.logic.ts` (31L: `trapFocusWithin` + `resolveConfirmClasses`), `confirm-alert-dialog.content.tsx` (77L: conteúdo do alertdialog via portal); `ConfirmAlertDialog.tsx` 134→**90** — API pública preservada. Commit `0695024` | Concluído |
+| 2026-10-16 | UI-35 DoD | `typecheck` verde · suite ConfirmAlertDialog: 1 suite/10 testes verdes · **R-03 ✓**: 90, 77, 31 | Concluído |
+| 2026-10-16 | UI-36 | Fatia única: `sport-format-sport-field.tsx` (44L: select esporte + auto-focus), `sport-format-format-field.tsx` (48L: select formato + hint deduplicado), `sport-format-court-field.tsx` (43L: grid de quadras); `SportFormatSection.tsx` 128→**33**. Commit `a2d4449` | Concluído |
+| 2026-10-16 | UI-36 DoD | `typecheck` verde · suítes SportFormatSection (2 suites): 2 suites/9 testes verdes · **R-03 ✓**: 33, 48, 44, 43 | Concluído |
+| 2026-10-16 | UI-37 | Fatia única: `use-login-form.ts` (62L: validação Zod, cookie de role, roteamento por role, mapeamento de erros), `login-form-fields.tsx` (42L: identifier + password); `login/page.tsx` 124→**39**. Commit `8f2ea28` | Concluído |
+| 2026-10-16 | UI-37 DoD | `typecheck` verde · suítes login characterization: 3 suites/11 testes verdes · **R-03 ✓**: 39, 62, 42 | Concluído |
+| 2026-10-16 | UI-38 | Fatia única: `audio-note-player.logic.ts` (6L: `formatDuration`), `use-audio-note-player.ts` (94L: fetch de blob, objectURL, abort, playback); `AudioNotePlayer.tsx` 123→**39**. Commit `1b42388` | Concluído |
+| 2026-10-16 | UI-38 DoD | `typecheck` verde · suite AudioNotePlayer characterization: 1 suite/2 testes verdes · **R-03 ✓**: 39, 94, 6 | Concluído |
+| 2026-10-16 | UI-39 | Fatia única: `MatchNewFormSections.tsx` (93L: seções do form via `ReturnType<typeof useNewMatchController>`); `match/new/page.tsx` 121→**40**. Commit `db946a2` | Concluído |
+| 2026-10-16 | UI-39 DoD | `typecheck` verde · suite NewMatchPage: 1 suite/13 testes verdes · **R-03 ✓**: 40, 93 | Concluído |
+| 2026-10-16 | UI-40 | Fatia única: `live-counters-grid.tsx` (86L: grid 4 células com `StatCell` genérico); `LiveCountersBar.tsx` 121→**74** — guardião telemetry: token `telemetry-` mantido no principal, sem `bg-gray-800/900`. Commit `329d63b` | Concluído |
+| 2026-10-16 | UI-40 DoD | `typecheck` verde · suítes LiveCounters + telemetry-integrity + design-pattern: 3 suites/22 testes verdes · **R-03 ✓**: 74, 86 | Concluído |
+| 2026-10-16 | UI-41 | Fatia única: `timeline-filter-chip.tsx` (36L: `Chip` + `COLOR_MAP`); `timeline-filters.tsx` 110→**74** (export `FilterCounts` preservado). Commit `0b07e3b` | Concluído |
+| 2026-10-16 | UI-41 DoD | `typecheck` verde · suítes timeline/Timeline: 17 suites/167 testes verdes · **R-03 ✓**: 74, 36 | Concluído |
+| 2026-10-16 | UI-42 | Fatia única: `use-theme-provider-state.ts` (79L: estado, efeitos de localStorage/matchMedia, `setTheme`); `ThemeContext.tsx` 103→**36** — API `ThemeProvider`/`useTheme`/`ThemePreference` preservada. Commit `91c5d4a` | Concluído |
+| 2026-10-16 | UI-42 DoD | `typecheck` verde · suítes ThemeToggle: 2 suites/6 testes verdes · **R-03 ✓**: 36, 79 | Concluído |
+| 2026-10-16 | UI-43 | Fatia única: `match-status-badge.tsx` (30L), `match-actions.tsx` (54L), `format-label.tsx` (13L); `match-card-components.tsx` 102→**3** (barrel de reexport — API de import preservada). Commit `25d7379` | Concluído |
+| 2026-10-16 | UI-43 DoD | `typecheck` verde · suítes match-card-components + MatchCard: 6 suites/49 testes verdes · **R-03 ✓**: 3, 54, 30, 13 | Concluído |
+| 2026-10-16 | UI-44 | Fatia única: `tournament-autocomplete-input.tsx` (50L: input + dropdown de sugestões); `TournamentSection.tsx` 101→**82**. Commit `af705d5` | Concluído |
+| 2026-10-16 | UI-44 DoD | `typecheck` verde · suítes NewMatchPage + RoundSelector + TournamentSection: 2 suites/38 testes verdes · **R-03 ✓**: 82, 50 | Concluído |
+| 2026-10-16 | R-03 final | **DoD final da rodada UI-32..44**: `typecheck` verde (exit 0) · `test:strict` 296/296 (3200/3200) · `test:design` 3/3 (26/26) · `lint` 0 erros (exit 0) · **backlog R-03: 13 → 0 arquivos `.tsx` de produção >100L** (193 arquivos medidos; testes excluídos) | Concluído |
 
 > **Status Fase UI-1: CONCLUÍDA.** `MatchTimelineView.tsx` 535 → 96 linhas (R-03 ✓), 6 commits atômicos.
 > **Status Fase UI-2: CONCLUÍDA.** `MatchCard.tsx` 409 → 86 linhas (R-03 ✓), 4 commits atômicos (`ecadac2`, `40951dd`, `057e3fb`, `bc72bbd`).
@@ -325,10 +352,25 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 > **Status Fase UI-29: CONCLUÍDA.** `ScoringPlayArea.tsx` 169 → 98 linhas (R-03 ✓), 1 commit (`7c12fcf`) — guardião telemetry respeitado (wrappers `flex-shrink-0` + ScoreboardCard/LiveCountersBar inline).
 > **Status Fase UI-30: CONCLUÍDA.** `PlayerCard.tsx` 159 → 56 linhas (R-03 ✓), 1 commit (`9bff3fc`) — nomes proibidos `PlayerCard.view.tsx`/`PlayerCard.helpers.ts` não criados.
 > **Status Fase UI-31: CONCLUÍDA.** `AthleteListTable.tsx` 157 → 44 linhas (R-03 ✓), 1 commit (`90db474`).
+> **Status Fase UI-32: CONCLUÍDA.** `SectionRenderer.tsx` 156 → 69 linhas (R-03 ✓), 1 commit (`29bdf51`).
+> **Status Fase UI-33: CONCLUÍDA.** `NewAthleteModal.tsx` 155 → 83 linhas (R-03 ✓), 1 commit (`404a8ba`).
+> **Status Fase UI-34: CONCLUÍDA.** `DateTimeSection.tsx` 154 → 60 linhas (R-03 ✓), 1 commit (`8349298`).
+> **Status Fase UI-35: CONCLUÍDA.** `ConfirmAlertDialog.tsx` 134 → 90 linhas (R-03 ✓), 1 commit (`0695024`).
+> **Status Fase UI-36: CONCLUÍDA.** `SportFormatSection.tsx` 128 → 33 linhas (R-03 ✓), 1 commit (`a2d4449`).
+> **Status Fase UI-37: CONCLUÍDA.** `login/page.tsx` 124 → 39 linhas (R-03 ✓), 1 commit (`8f2ea28`).
+> **Status Fase UI-38: CONCLUÍDA.** `AudioNotePlayer.tsx` 123 → 39 linhas (R-03 ✓), 1 commit (`1b42388`).
+> **Status Fase UI-39: CONCLUÍDA.** `match/new/page.tsx` 121 → 40 linhas (R-03 ✓), 1 commit (`db946a2`).
+> **Status Fase UI-40: CONCLUÍDA.** `LiveCountersBar.tsx` 121 → 74 linhas (R-03 ✓), 1 commit (`329d63b`) — guardião telemetry respeitado.
+> **Status Fase UI-41: CONCLUÍDA.** `timeline-filters.tsx` 110 → 74 linhas (R-03 ✓), 1 commit (`0b07e3b`).
+> **Status Fase UI-42: CONCLUÍDA.** `ThemeContext.tsx` 103 → 36 linhas (R-03 ✓), 1 commit (`91c5d4a`).
+> **Status Fase UI-43: CONCLUÍDA.** `match-card-components.tsx` 102 → 3 linhas (R-03 ✓; barrel), 1 commit (`25d7379`).
+> **Status Fase UI-44: CONCLUÍDA.** `TournamentSection.tsx` 101 → 82 linhas (R-03 ✓), 1 commit (`af705d5`).
+>
+> **Status R-03: CONCLUÍDO** (2026-10-16). Meta de nenhum `.tsx` de produção >100 linhas atingida (backlog 53 → 0; 193 arquivos medidos; testes excluídos).
+>
 > **Pendências do plano:**
 > 1. ~~**R-01** — recriar `docs/glossario.md`~~ — **CONCLUÍDO** (UTF-8 limpo, 147 linhas).
-> 2. **R-03 backlog** — **13 arquivos `.tsx` de produção** ainda >100 linhas (medido 2026-10-16 pós UI-31; testes excluídos). Maiores: `SectionRenderer.tsx` 156, `NewAthleteModal.tsx` 155, `DateTimeSection.tsx` 154, `ConfirmAlertDialog.tsx` 134, `SportFormatSection.tsx` 128.
-> 3. Ordem sugerida: `SectionRenderer.tsx` (156) → `NewAthleteModal.tsx` (155) → `DateTimeSection.tsx` (154) → `ConfirmAlertDialog.tsx` (134) → `SportFormatSection.tsx` (128) → `login/page.tsx` (124) → `AudioNotePlayer.tsx` (123) → `match/new/page.tsx` (121) → `LiveCountersBar.tsx` (121) → `timeline-filters.tsx` (110) → `ThemeContext.tsx` (103) → `match-card-components.tsx` (102) → `TournamentSection.tsx` (101). Padrão de referência: UI-1..UI-31 — todos com composição de módulos ≤100L + fatias de ≤3 arquivos novos por commit (mais o principal); guardião telemetry (`telemetry-integrity.test.ts`) respeitado em `ScoringPlayArea`/`PlayerCard`.
+> 2. ~~**R-03 backlog** — `.tsx` de produção >100 linhas~~ — **CONCLUÍDO** (0 arquivos; medido 2026-10-16 pós UI-44).
 
 
 
