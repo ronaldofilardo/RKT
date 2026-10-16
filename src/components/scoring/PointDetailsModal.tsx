@@ -1,23 +1,13 @@
 'use client';
 
-import { useState, useEffect, useReducer, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { RallyDetails } from '@/core/scoring/types';
-import {
-  formReducer,
-  initialForm,
-} from './point-details-logic';
-import {
-  getPointWinnerDetails,
-  buildRallyDetails,
-  usePointDetailsKeyboard,
-} from './point-details-modal.helpers';
 import { WinnerInfo } from './WinnerInfo';
 import { ModalActions } from './ModalActions';
 import { SectionRenderer } from './SectionRenderer';
 import { PointDetailsNotesModal } from './PointDetailsNotesModal';
 import { PointDetailsCloseDialog } from './PointDetailsCloseDialog';
-import { usePointDetailsScroll } from './usePointDetailsScroll';
+import { usePointDetailsModal } from './use-point-details-modal';
 
 interface PointDetailsModalProps {
   winnerPlayerSide: 'player1' | 'player2';
@@ -38,69 +28,11 @@ export function PointDetailsModal({
   onConfirm,
   onCancel,
 }: PointDetailsModalProps) {
-  const [mounted, setMounted] = useState(false);
-  const [showCloseDialog, setShowCloseDialog] = useState(false);
-  const [showNotesModal, setShowNotesModal] = useState(false);
-  const [noteText, setNoteText] = useState('');
-  const [noteAudio, setNoteAudio] = useState<{ blob: Blob; durationMs: number } | undefined>();
-  const [form, dispatch] = useReducer(formReducer, null, () => initialForm);
-
-  const tipoRef = useRef<HTMLDivElement>(null);
-  const golpeRef = useRef<HTMLDivElement>(null);
-  const duracaoRef = useRef<HTMLDivElement>(null);
-  const subtipo1Ref = useRef<HTMLDivElement>(null);
-  const efeitoRef = useRef<HTMLDivElement>(null);
-  const direcaoRef = useRef<HTMLDivElement>(null);
-  const golpeEspRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const { vencedor, winnerName } = getPointWinnerDetails(
-    winnerPlayerSide,
-    currentServer,
-    player1Name,
-    player2Name
-  );
-
-  usePointDetailsScroll({
-    form,
-    vencedor,
-    mounted,
-    containerRef,
-    tipoRef,
-    golpeRef,
-    duracaoRef,
-    subtipo1Ref,
-    efeitoRef,
-    direcaoRef,
-    golpeEspRef,
-  });
-
-  const handleCancel = useCallback(() => {
-    setShowCloseDialog(true);
-  }, []);
-
-  usePointDetailsKeyboard(mounted, handleCancel);
-
-  const canConfirm = Boolean(form.situacao && form.tipo && form.golpe);
-
-  const handleConfirm = useCallback(() => {
-    const details = buildRallyDetails(form, vencedor, noteText);
-    if (!details) return;
-    onConfirm(details, noteAudio);
-  }, [form, onConfirm, vencedor, noteText, noteAudio]);
-
-  const handleDiscard = useCallback(() => {
-    onCancel();
-  }, [onCancel]);
-
-  const handleSaveNote = useCallback((savedNoteText: string, audio?: { blob: Blob; durationMs: number }) => {
-    setNoteText(savedNoteText);
-    setNoteAudio(audio);
-  }, []);
+  const {
+    mounted, showCloseDialog, setShowCloseDialog, showNotesModal, setShowNotesModal,
+    noteText, hasNoteAudio, form, dispatch, refs, vencedor, winnerName,
+    handleCancel, canConfirm, handleConfirm, handleDiscard, handleSaveNote,
+  } = usePointDetailsModal({ winnerPlayerSide, currentServer, player1Name, player2Name, onConfirm, onCancel });
 
   if (!mounted) return null;
 
@@ -111,12 +43,8 @@ export function PointDetailsModal({
       role="button"
       tabIndex={-1}
       aria-label="Fechar modal"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) handleCancel();
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape' || e.key === 'Enter') handleCancel();
-      }}
+      onClick={(e) => { if (e.target === e.currentTarget) handleCancel(); }}
+      onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') handleCancel(); }}
     >
       <div
         className="animate-[fadeInSlideUp_0.2s_ease-out] w-[clamp(260px,80vw,480px)] modal-max-w-tablet mx-4 rounded-[20px] shadow-[0_20px_60px_rgba(0,0,0,0.5),0_0_30px_rgba(59,130,246,0.15)] flex flex-col max-h-[90vh]"
@@ -132,39 +60,21 @@ export function PointDetailsModal({
         tabIndex={-1}
       >
         <WinnerInfo vencedor={vencedor} winnerName={winnerName} />
-
-        <SectionRenderer
-          form={form}
-          vencedor={vencedor}
-          dispatch={dispatch}
-          refs={{
-            tipoRef,
-            golpeRef,
-            duracaoRef,
-            subtipo1Ref,
-            efeitoRef,
-            direcaoRef,
-            golpeEspRef,
-            containerRef,
-          }}
-        />
-
+        <SectionRenderer form={form} vencedor={vencedor} dispatch={dispatch} refs={refs} />
         <ModalActions
           canConfirm={canConfirm}
           noteText={noteText}
-          hasNoteAudio={Boolean(noteAudio)}
+          hasNoteAudio={hasNoteAudio}
           onConfirm={handleConfirm}
           onCancel={handleCancel}
           onOpenNotes={() => setShowNotesModal(true)}
         />
       </div>
-
       <PointDetailsCloseDialog
         isOpen={showCloseDialog}
         onClose={() => setShowCloseDialog(false)}
         onDiscard={handleDiscard}
       />
-
       <PointDetailsNotesModal
         isOpen={showNotesModal}
         onClose={() => setShowNotesModal(false)}
