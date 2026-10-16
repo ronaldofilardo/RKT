@@ -22,7 +22,7 @@ export function MatchCardPlayerRow({
     <div style={{ display: 'table-row' }}>
       <div
         className="flex items-center px-3 py-1.5 font-semibold text-white text-sm"
-        style={{ backgroundColor: barBg, color: '#ffffff', display: 'table-cell', whiteSpace: 'nowrap' }}
+        style={{ backgroundColor: barBg, display: 'table-cell', whiteSpace: 'nowrap' }}
       >
         <span className="inline-flex items-center gap-2">
           <span className="text-white font-semibold">{name}</span>
@@ -43,7 +43,7 @@ export function MatchCardPlayerRow({
       {setsWon !== undefined && (
         <div
           className="flex items-center justify-center px-3 py-1.5 font-space-grotesk tabular-nums text-lg font-bold text-white min-w-[2rem]"
-          style={{ backgroundColor: barBg, color: '#ffffff', display: 'table-cell' }}
+          style={{ backgroundColor: barBg, display: 'table-cell' }}
         >
           {setsWon}
         </div>
@@ -69,7 +69,6 @@ export function MatchCardScoreCell({
       className="flex items-center justify-center px-2 py-1.5 font-space-grotesk tabular-nums text-sm font-semibold text-white min-w-[2.5rem]"
       style={{
         backgroundColor: bg,
-        color: '#ffffff',
         borderLeft,
         borderRight,
         ...(borderLeft ? { display: 'table-cell' as const } : {}),

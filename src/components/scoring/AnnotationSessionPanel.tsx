@@ -55,12 +55,13 @@ export function AnnotationSessionPanel({ sessionId, matchId, isActive, onStart, 
     <div className="bg-telemetry-elevated border-t border-white/10 px-4 py-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
-            style={{
-              backgroundColor: isActive ? '#dcfce7' : '#fef3c7',
-              color: isActive ? '#166534' : '#92400e',
-              borderColor: isActive ? '#86efac' : '#fcd34d',
-            }}>
+          <span
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
+              isActive
+                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+            }`}
+          >
             {isActive ? '🔴 AO VIVO' : '⏸️ PAUSADA'}
           </span>
           {!isActive && (

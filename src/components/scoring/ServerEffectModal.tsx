@@ -38,8 +38,8 @@ export function ServerEffectModal({
   }, [onCancel]);
 
   const isError = isDoubleFault || (context === 'error' && serveStep === 'first');
-  const borderColor = isError ? '#FF3366' : '#CCFF00'; // telemetry-alert | telemetry-volt
-  const accentGlow = isError ? 'rgba(255,51,102,0.15)' : 'rgba(204,255,0,0.15)';
+  const borderColor = isError ? 'rgb(var(--telemetry-error))' : 'rgb(var(--telemetry-volt))';
+  const accentGlow = isError ? 'rgb(var(--telemetry-error) / 0.15)' : 'rgb(var(--telemetry-volt) / 0.15)';
 
   const modal = (
     <div
@@ -57,7 +57,7 @@ export function ServerEffectModal({
       <div
         className="animate-[fadeInSlideUp_0.2s_ease-out] w-[clamp(280px,90vw,400px)] mx-4 rounded-[20px] shadow-2xl flex flex-col border-t-4 bg-telemetry-card"
         style={{
-          border: '1px solid rgba(255,255,255,0.1)',
+          border: '1px solid rgb(var(--telemetry-border) / 0.1)',
           borderTopWidth: '4px',
           borderTopColor: borderColor,
           boxShadow: `0 20px 60px rgba(0,0,0,0.5), 0 0 30px ${accentGlow}`,

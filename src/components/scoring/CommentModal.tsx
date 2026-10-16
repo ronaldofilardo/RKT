@@ -25,8 +25,7 @@ export function CommentModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[2100] flex items-center justify-center"
-      style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+      className="fixed inset-0 z-[2100] flex items-center justify-center bg-black/60"
       role="button"
       tabIndex={-1}
       aria-label="Fechar comentário"

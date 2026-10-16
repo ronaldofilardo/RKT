@@ -28,6 +28,9 @@
   --telemetry-error: 239 68 68;         /* #EF4444 */
   --telemetry-alert: 245 158 11;        /* #F59E0B */
   --telemetry-alert-light: 251 191 36;  /* #FBBF24 */
+  --telemetry-court-clay: 196 98 58;    /* #C4623A - Saibro */
+  --telemetry-court-grass: 45 138 62;   /* #2D8A3E - Grama */
+  --telemetry-court-hard: 30 77 123;    /* #1E4D7B - Dura */
 
   /* Legacy & utility vars */
   --foreground-rgb: 248, 250, 252;
@@ -63,6 +66,9 @@
     --telemetry-error: 220 38 38;           /* #DC2626 - Vermelho de erro */
     --telemetry-alert: 217 119 6;           /* #D97706 - Âmbar de alerta */
     --telemetry-alert-light: 245 158 11;    /* #F59E0B */
+    --telemetry-court-clay: 196 98 58;      /* #C4623A - Saibro */
+    --telemetry-court-grass: 45 138 62;     /* #2D8A3E - Grama */
+    --telemetry-court-hard: 30 77 123;      /* #1E4D7B - Dura */
 
     --foreground-rgb: 15, 23, 42;
     --background-start-rgb: 241, 245, 249;
@@ -95,6 +101,9 @@
   --telemetry-error: 239 68 68;
   --telemetry-alert: 245 158 11;
   --telemetry-alert-light: 251 191 36;
+  --telemetry-court-clay: 196 98 58;    /* #C4623A - Saibro */
+  --telemetry-court-grass: 45 138 62;   /* #2D8A3E - Grama */
+  --telemetry-court-hard: 30 77 123;    /* #1E4D7B - Dura */
 
   --foreground-rgb: 248, 250, 252;
   --background-start-rgb: 10, 15, 29;
@@ -126,6 +135,9 @@
   --telemetry-error: 220 38 38;
   --telemetry-alert: 217 119 6;
   --telemetry-alert-light: 245 158 11;
+  --telemetry-court-clay: 196 98 58;    /* #C4623A - Saibro */
+  --telemetry-court-grass: 45 138 62;   /* #2D8A3E - Grama */
+  --telemetry-court-hard: 30 77 123;    /* #1E4D7B - Dura */
 
   --foreground-rgb: 15, 23, 42;
   --background-start-rgb: 241, 245, 249;

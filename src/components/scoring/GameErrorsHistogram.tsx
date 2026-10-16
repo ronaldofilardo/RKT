@@ -39,7 +39,7 @@ export function GameErrorsHistogram({ gameErrors, player1Name, player2Name }: Pr
             y1={chartHeight}
             x2={svgWidth}
             y2={chartHeight}
-            stroke="rgba(255,255,255,0.15)"
+            className="stroke-white/15"
             strokeWidth={1}
           />
           <line
@@ -47,7 +47,7 @@ export function GameErrorsHistogram({ gameErrors, player1Name, player2Name }: Pr
             y1={chartHeight / 2}
             x2={svgWidth}
             y2={chartHeight / 2}
-            stroke="rgba(255,255,255,0.06)"
+            className="stroke-white/10"
             strokeDasharray="3 3"
             strokeWidth={1}
           />

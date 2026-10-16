@@ -5,10 +5,10 @@ import React from 'react';
 type CourtType = 'CLAY' | 'HARD' | 'GRASS' | string;
 
 const COURT_COLORS: Record<string, { bg: string; lines: string; label: string }> = {
-  CLAY: { bg: '#c4623a', lines: '#ffffff', label: 'Saibro' },
-  GRASS: { bg: '#2d8a3e', lines: '#ffffff', label: 'Grama' },
-  HARD: { bg: '#1e4d7b', lines: '#ffffff', label: 'Dura' },
-  default: { bg: '#1e4d7b', lines: '#ffffff', label: 'Dura' },
+  CLAY: { bg: 'rgb(var(--telemetry-court-clay))', lines: '#ffffff', label: 'Saibro' },
+  GRASS: { bg: 'rgb(var(--telemetry-court-grass))', lines: '#ffffff', label: 'Grama' },
+  HARD: { bg: 'rgb(var(--telemetry-court-hard))', lines: '#ffffff', label: 'Dura' },
+  default: { bg: 'rgb(var(--telemetry-court-hard))', lines: '#ffffff', label: 'Dura' },
 };
 
 export default function CourtBackground({ courtType = 'HARD' }: { courtType?: CourtType }) {

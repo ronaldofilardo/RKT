@@ -9,9 +9,9 @@ export const TENNIS_FORMATS = [
 ];
 
 export const COURT_TYPES = [
-  { value: 'CLAY', label: 'Saibro', color: '#c4623a', icon: '🟤', note: 'Roland Garros' },
-  { value: 'HARD', label: 'Dura', color: '#3b82f6', icon: '🔵', note: 'US Open' },
-  { value: 'GRASS', label: 'Grama', color: '#16a34a', icon: '🟢', note: 'Wimbledon' },
+  { value: 'CLAY', label: 'Saibro', color: 'rgb(var(--telemetry-court-clay, 196 98 58))', icon: '🟤', note: 'Roland Garros' },
+  { value: 'HARD', label: 'Dura', color: 'rgb(var(--telemetry-court-hard, 30 77 123))', icon: '🔵', note: 'US Open' },
+  { value: 'GRASS', label: 'Grama', color: 'rgb(var(--telemetry-court-grass, 45 138 62))', icon: '🟢', note: 'Wimbledon' },
 ];
 
 export const SPORT_TYPES = [

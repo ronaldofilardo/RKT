@@ -18,7 +18,7 @@ export function ModalActions({
   onOpenNotes,
 }: ModalActionsProps) {
   return (
-    <div className="px-5 py-4 border-t border-white/10 flex flex-col gap-2" style={{ backgroundColor: 'rgba(0,0,0,0.15)' }}>
+    <div className="px-5 py-4 border-t border-white/10 flex flex-col gap-2 bg-black/15">
       <button
         onClick={onOpenNotes}
         className="w-full py-2 rounded-xl font-bold text-sm bg-transparent text-telemetry-text-muted border border-white/15 hover:bg-white/5 hover:text-white transition-all flex items-center justify-center gap-2"

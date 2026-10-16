@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { formatCompactSetScore, getSinglePointDisplay, isSetIndexMatchTiebreak, type NormalizedScoreState, type SetCellScore, type TennisFormat } from './match-card.logic';
 import { MatchCardPlayerRow, MatchCardScoreCell, MatchCardSeparator } from './match-card-player-row';
 
-export const BORDER_LEFT = '2px solid #111827';
+export const BORDER_LEFT = '2px solid rgb(var(--telemetry-card))';
 const TABLE_WRAPPER = { display: 'table', width: '100%', borderCollapse: 'collapse' } as const;
 
 /** Derivados compartilhados pelos modos de renderização do placar. */
@@ -77,7 +77,7 @@ export function MatchCardSetsCells({
           <MatchCardScoreCell
             key={idx}
             bg={scoreBg}
-            borderRight={idx < numSets - 1 ? '1px solid #111827' : 'none'}
+            borderRight={idx < numSets - 1 ? '1px solid rgb(var(--telemetry-card))' : 'none'}
           >
             {formatCompactSetScore(s, playerKey, isSetIndexMatchTiebreak(displayedSets, idx, format as TennisFormat))}
           </MatchCardScoreCell>

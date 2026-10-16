@@ -38,8 +38,7 @@ export function PointDetailsModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[2000] flex items-center justify-center"
-      style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: '-webkit-backdrop-filter blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
+      className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/50 backdrop-blur-sm"
       role="button"
       tabIndex={-1}
       aria-label="Fechar modal"
@@ -47,11 +46,11 @@ export function PointDetailsModal({
       onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') cancelCurrentAction(); }}
     >
       <div
-        className="animate-[fadeInSlideUp_0.2s_ease-out] w-[clamp(260px,80vw,480px)] modal-max-w-tablet mx-4 rounded-[20px] shadow-[0_20px_60px_rgba(0,0,0,0.5),0_0_30px_rgba(59,130,246,0.15)] flex flex-col max-h-[90vh]"
+        className="animate-[fadeInSlideUp_0.2s_ease-out] w-[clamp(260px,80vw,480px)] modal-max-w-tablet mx-4 rounded-[20px] shadow-2xl flex flex-col max-h-[90vh]"
         style={{
           backgroundColor: 'var(--court-surface)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderTop: '3px solid #3b82f6',
+          border: '1px solid rgb(var(--telemetry-border) / 0.1)',
+          borderTop: '3px solid rgb(var(--telemetry-blue))',
           fontFamily: 'var(--font-main)',
           fontSize: `calc(var(--sb-scale) * 1em)`,
         }}

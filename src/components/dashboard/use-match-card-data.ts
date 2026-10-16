@@ -5,11 +5,11 @@ import { normalizeScoreState, isMatchTiebreakFormat, isCurrentSetMatchTiebreak, 
 import type { DashboardMatchPayload } from './match-card-types';
 
 const COURT_COLORS: Record<string, { bar: string; score: string }> = {
-  CLAY:  { bar: '#b5543a', score: '#4a2a1a' },
-  GRASS: { bar: '#2d8a3e', score: '#1a4a2a' },
-  HARD:  { bar: '#1e4d7b', score: '#1a2a4a' },
+  CLAY:  { bar: 'rgb(var(--telemetry-court-clay, 196 98 58))', score: 'rgb(var(--telemetry-court-clay, 196 98 58) / 0.7)' },
+  GRASS: { bar: 'rgb(var(--telemetry-court-grass, 45 138 62))', score: 'rgb(var(--telemetry-court-grass, 45 138 62) / 0.7)' },
+  HARD:  { bar: 'rgb(var(--telemetry-court-hard, 30 77 123))', score: 'rgb(var(--telemetry-court-hard, 30 77 123) / 0.7)' },
 };
-const DEFAULT_COURT_COLOR = { bar: '#1e4d7b', score: '#1a2a4a' };
+const DEFAULT_COURT_COLOR = { bar: 'rgb(var(--telemetry-court-hard, 30 77 123))', score: 'rgb(var(--telemetry-court-hard, 30 77 123) / 0.7)' };
 
 export function useMatchCardData(match: DashboardMatchPayload) {
   const isSuspendedAnnotation = Boolean(match.suspendedSessionId);
@@ -82,8 +82,8 @@ export function useMatchCardData(match: DashboardMatchPayload) {
     isServerP2: showServer && currentServer === 'player2',
     isCurrentSetMT,
     lastSetTiebreakScore,
-    barBg: isSuspendedAnnotation ? '#92400e' : courtColors.bar,
-    scoreBg: isSuspendedAnnotation ? '#78350f' : courtColors.score,
+    barBg: isSuspendedAnnotation ? 'rgb(var(--telemetry-alert, 245 158 11))' : courtColors.bar,
+    scoreBg: isSuspendedAnnotation ? 'rgb(var(--telemetry-alert, 217 119 6) / 0.7)' : courtColors.score,
     setsWonP1: scoreState?.setsWon?.player1 ?? 0,
     setsWonP2: scoreState?.setsWon?.player2 ?? 0,
   };

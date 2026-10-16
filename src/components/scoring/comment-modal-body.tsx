@@ -24,7 +24,7 @@ export function CommentModalBody({
 }: CommentModalBodyProps) {
   return (
     <div
-      className="relative bg-[#1e293b] rounded-[20px] p-6 mx-4 w-[clamp(280px,80vw,420px)] shadow-2xl border border-white/10 overflow-hidden"
+      className="relative bg-telemetry-elevated rounded-[20px] p-6 mx-4 w-[clamp(280px,80vw,420px)] shadow-2xl border border-white/10 overflow-hidden"
       role="dialog"
       aria-label={title}
       tabIndex={-1}

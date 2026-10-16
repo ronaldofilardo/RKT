@@ -12,7 +12,7 @@ export function CommentSubmittingOverlay({
 }: CommentSubmittingOverlayProps) {
   return (
     <div
-      className="absolute inset-0 bg-[#1e293b]/95 backdrop-blur-sm rounded-[20px] flex flex-col items-center justify-center gap-3 z-50 p-6"
+      className="absolute inset-0 bg-telemetry-elevated/95 backdrop-blur-sm rounded-[20px] flex flex-col items-center justify-center gap-3 z-50 p-6"
       role="status"
       aria-live="polite"
     >

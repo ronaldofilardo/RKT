@@ -143,7 +143,12 @@ const config: Config = {
           text: {
             primary: 'rgb(var(--telemetry-text-primary) / <alpha-value>)',
             muted: 'rgb(var(--telemetry-text-muted) / <alpha-value>)',
-          }
+          },
+          court: {
+            clay: 'rgb(var(--telemetry-court-clay) / <alpha-value>)',
+            grass: 'rgb(var(--telemetry-court-grass) / <alpha-value>)',
+            hard: 'rgb(var(--telemetry-court-hard) / <alpha-value>)',
+          },
         },
       },
       /**

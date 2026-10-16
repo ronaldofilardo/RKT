@@ -15,8 +15,7 @@ export function PointDetailsCloseDialog({
 
   return (
     <div
-      className="fixed inset-0 z-[2100] flex items-center justify-center"
-      style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+      className="fixed inset-0 z-[2100] flex items-center justify-center bg-black/60"
       role="button"
       tabIndex={-1}
       aria-label="Fechar diálogo"
@@ -24,7 +23,7 @@ export function PointDetailsCloseDialog({
       onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') onClose(); }}
     >
       <div
-        className="bg-[#1e293b] rounded-[20px] p-6 mx-4 w-[clamp(240px,70vw,360px)] shadow-2xl border border-white/10"
+        className="bg-telemetry-elevated rounded-[20px] p-6 mx-4 w-[clamp(240px,70vw,360px)] shadow-2xl border border-white/10"
         role="dialog"
         aria-label="Confirmar descarte"
         tabIndex={-1}

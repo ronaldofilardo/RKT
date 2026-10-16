@@ -18,7 +18,7 @@ export function GameErrorsSlot({ game, metrics, layout }: GameErrorsSlotProps) {
         x={slotCenterX}
         y={chartHeight + 14}
         textAnchor="middle"
-        fill="#94a3b8"
+        className="fill-telemetry-text-muted"
         fontSize={10}
         fontWeight="600"
       >
@@ -30,7 +30,7 @@ export function GameErrorsSlot({ game, metrics, layout }: GameErrorsSlotProps) {
         x={slotCenterX}
         y={chartHeight + 26}
         textAnchor="middle"
-        fill="#64748b"
+        className="fill-telemetry-text-muted/80"
         fontSize={8.5}
       >
         {game.scoreLabel}
@@ -41,7 +41,7 @@ export function GameErrorsSlot({ game, metrics, layout }: GameErrorsSlotProps) {
         cx={isP1Serving ? p1X + barWidth / 2 : p2X + barWidth / 2}
         cy={chartHeight + 4}
         r={1.8}
-        fill="#eab308"
+        className="fill-telemetry-alert"
       />
 
       {/* Barra Player 1 */}
@@ -59,7 +59,7 @@ export function GameErrorsSlot({ game, metrics, layout }: GameErrorsSlotProps) {
             x={p1X + barWidth / 2}
             y={p1Y - 3}
             textAnchor="middle"
-            fill="#38bdf8"
+            className="fill-telemetry-blue-light"
             fontSize={8.5}
             fontWeight="bold"
           >
@@ -67,7 +67,7 @@ export function GameErrorsSlot({ game, metrics, layout }: GameErrorsSlotProps) {
           </text>
         </>
       ) : (
-        <circle cx={p1X + barWidth / 2} cy={chartHeight - 2} r={1.5} fill="#475569" />
+        <circle cx={p1X + barWidth / 2} cy={chartHeight - 2} r={1.5} className="fill-telemetry-elevated" />
       )}
 
       {/* Barra Player 2 */}
@@ -85,7 +85,7 @@ export function GameErrorsSlot({ game, metrics, layout }: GameErrorsSlotProps) {
             x={p2X + barWidth / 2}
             y={p2Y - 3}
             textAnchor="middle"
-            fill="#f87171"
+            className="fill-telemetry-error"
             fontSize={8.5}
             fontWeight="bold"
           >
@@ -93,7 +93,7 @@ export function GameErrorsSlot({ game, metrics, layout }: GameErrorsSlotProps) {
           </text>
         </>
       ) : (
-        <circle cx={p2X + barWidth / 2} cy={chartHeight - 2} r={1.5} fill="#475569" />
+        <circle cx={p2X + barWidth / 2} cy={chartHeight - 2} r={1.5} className="fill-telemetry-elevated" />
       )}
     </g>
   );
