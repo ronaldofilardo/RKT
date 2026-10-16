@@ -2,37 +2,14 @@
 import { useMemo } from 'react';
 import { normalizeScoreState } from '@/core/scoring/score-normalizer';
 import { isSetCompleted } from '@/app/match/[id]/scoring/scoringHelpers';
-import { getMatchFormatRules, type TennisFormat } from '@/lib/matchConfig';
-
-interface Player {
-  id: string;
-  name: string;
-}
-
-/** Forma mínima de set lida pelo card. */
-interface ScoreboardSet {
-  player1: number;
-  player2: number;
-  isTiebreak?: boolean;
-  tiebreakScore?: { player1: number; player2: number } | null;
-}
-
-/** Forma mínima de estado lida pelo card (o normalizador cobre as variantes). */
-interface ScoreboardScoreState {
-  sets?: ScoreboardSet[];
-  setsWon?: { player1: number; player2: number };
-  isFinished?: boolean;
-  winner?: 'player1' | 'player2' | null;
-  server?: 'player1' | 'player2' | string | null;
-}
-
-interface ScoreboardCardProps {
-  player1: Player;
-  player2: Player;
-  scoreState?: ScoreboardScoreState | null;
-  isSuspended?: boolean;
-  format?: string;
-}
+import { type TennisFormat } from '@/lib/matchConfig';
+import type { ScoreboardSet, ScoreboardCardProps } from './scoreboard-card.types';
+import {
+  projectDisplayedSets,
+  findCurrentSetIndex,
+  getMaxSetsForFormat,
+  getColumnTitles,
+} from './scoreboard-card-logic';
 
 export function ScoreboardCard({ player1, player2, scoreState, isSuspended, format }: ScoreboardCardProps) {
   const tennisFormat = format as TennisFormat | undefined;
@@ -48,70 +25,22 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
   );
   const setsWon = normalized?.setsWon;
 
-  const displayedSets = useMemo<ScoreboardSet[]>(() => {
-    const rawSets = sets;
-    const isFinished = Boolean(scoreState?.isFinished);
-    if (tennisFormat === 'SHORT_SET_2V2_NO_AD' && !isFinished) {
-      if (rawSets.length === 0) {
-        return [
-          { player1: 2, player2: 2, isTiebreak: false, tiebreakScore: null },
-          { player1: 2, player2: 2, isTiebreak: false, tiebreakScore: null },
-        ];
-      }
-      if (rawSets.length === 1) {
-        return [
-          rawSets[0],
-          { player1: 2, player2: 2, isTiebreak: false, tiebreakScore: null },
-        ];
-      }
-    }
-    return rawSets;
-  }, [sets, tennisFormat, scoreState?.isFinished]);
+  const displayedSets = useMemo<ScoreboardSet[]>(
+    () => projectDisplayedSets(sets, tennisFormat, Boolean(scoreState?.isFinished)),
+    [sets, tennisFormat, scoreState?.isFinished],
+  );
 
-  const currentSetIndex = useMemo(() => {
-    if (scoreState?.isFinished) return -1;
-    if (sets.length === 0) return 0;
-    for (let i = 0; i < sets.length; i++) {
-      if (!isSetCompleted(sets[i], tennisFormat, i, setsWon)) return i;
-    }
-    return sets.length;
-  }, [sets, tennisFormat, setsWon, scoreState?.isFinished]);
+  const currentSetIndex = useMemo(
+    () => findCurrentSetIndex(sets, tennisFormat, setsWon, Boolean(scoreState?.isFinished)),
+    [sets, tennisFormat, setsWon, scoreState?.isFinished],
+  );
 
-  const maxSetsForFormat = useMemo(() => {
-    if (!tennisFormat) return 4;
-    try {
-      const rules = getMatchFormatRules(tennisFormat);
-      return rules.setsToWin * 2 - 1;
-    } catch {
-      return 4;
-    }
-  }, [tennisFormat]);
+  const maxSetsForFormat = useMemo(() => getMaxSetsForFormat(tennisFormat), [tennisFormat]);
 
-  const columnTitles = useMemo(() => {
-    if (tennisFormat === 'MATCH_TB_10') {
-      return ['TB'];
-    }
-    if (
-      tennisFormat === 'BEST_OF_3_MATCH_TB' ||
-      tennisFormat === 'SHORT_SET_2V2_NO_AD' ||
-      tennisFormat === 'BEST_OF_3_NO_AD'
-    ) {
-      return ['Set 1', 'Set 2', 'TB'];
-    }
-    if (tennisFormat === 'BEST_OF_5') {
-      return ['Set 1', 'Set 2', 'Set 3', 'Set 4', 'Set 5'];
-    }
-    if (tennisFormat === 'PRO_SET_8') {
-      return ['Set 1'];
-    }
-    if (tennisFormat === 'BEST_OF_3') {
-      return ['Set 1', 'Set 2', 'Set 3'];
-    }
-    return Array.from(
-      { length: Math.max(displayedSets.length, maxSetsForFormat) },
-      (_, i) => `Set ${i + 1}`,
-    );
-  }, [tennisFormat, displayedSets.length, maxSetsForFormat]);
+  const columnTitles = useMemo(
+    () => getColumnTitles(tennisFormat, displayedSets.length, maxSetsForFormat),
+    [tennisFormat, displayedSets.length, maxSetsForFormat],
+  );
 
   const numSets = Math.max(displayedSets.length, columnTitles.length);
 
