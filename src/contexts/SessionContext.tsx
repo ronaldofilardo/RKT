@@ -4,91 +4,10 @@ import { createContext, useContext, useReducer, useCallback, useEffect, useRef }
 import type { ScoringState } from '@/core/scoring/types';
 import type { SnapshotStatus } from '@/lib/snapshot-utils';
 import { logger } from '@/lib/logger';
+import type { SessionData, SessionContextValue, AbandonPayload } from './session-context.types';
+import { sessionReducer, initialState } from './session-context.reducer';
 
-export interface SessionData {
-  matchId: string | null;
-  sessionId: string | null;
-  bankScoreState: ScoringState | null;
-  matchStateSnapshot: string | null;
-  snapshotStatus: SnapshotStatus;
-  snapshotPointCount: number;
-  bankPointCount: number;
-  suspendedSessionId: string | null;
-  pendingEditScore: {
-    scoreState: ScoringState;
-    floorSets: { player1: number; player2: number } | null;
-  } | null;
-}
-
-type SessionAction =
-  | { type: 'SET_SESSION'; payload: Omit<SessionData, 'pendingEditScore'> }
-  | { type: 'SET_PENDING_EDIT'; payload: { scoreState: ScoringState; floorSets: { player1: number; player2: number } | null } }
-  | { type: 'CLEAR_PENDING_EDIT' }
-  | { type: 'UPDATE_SCORE'; payload: ScoringState }
-  | { type: 'ABANDON'; payload: { matchId: string; sessionId: string; snapshot: string; snapshotStatus: SnapshotStatus; snapshotPointCount: number; bankPointCount: number; suspendedSessionId: string | null } }
-  | { type: 'RESUME_COMPLETE' }
-  | { type: 'CLEAR' };
-
-const initialState: SessionData = {
-  matchId: null,
-  sessionId: null,
-  bankScoreState: null,
-  matchStateSnapshot: null,
-  snapshotStatus: 'IN_SYNC',
-  snapshotPointCount: 0,
-  bankPointCount: 0,
-  suspendedSessionId: null,
-  pendingEditScore: null,
-};
-
-function sessionReducer(state: SessionData, action: SessionAction): SessionData {
-  switch (action.type) {
-    case 'SET_SESSION':
-      return { ...state, ...action.payload };
-    case 'SET_PENDING_EDIT':
-      return { ...state, pendingEditScore: action.payload };
-    case 'CLEAR_PENDING_EDIT':
-      return { ...state, pendingEditScore: null };
-    case 'UPDATE_SCORE':
-      return { ...state, bankScoreState: action.payload };
-    case 'ABANDON': {
-      return {
-        ...state,
-        sessionId: action.payload.sessionId,
-        matchStateSnapshot: action.payload.snapshot,
-        snapshotStatus: action.payload.snapshotStatus,
-        snapshotPointCount: action.payload.snapshotPointCount,
-        bankPointCount: action.payload.bankPointCount,
-        suspendedSessionId: action.payload.suspendedSessionId,
-      };
-    }
-    case 'RESUME_COMPLETE':
-      return {
-        ...state,
-        matchId: null,
-        matchStateSnapshot: null,
-        suspendedSessionId: null,
-      };
-    case 'CLEAR':
-      return initialState;
-    default:
-      return state;
-  }
-}
-
-interface SessionContextValue {
-  session: SessionData;
-  setSession: (data: Omit<SessionData, 'pendingEditScore'>) => void;
-  setPendingEdit: (scoreState: ScoringState, floorSets: { player1: number; player2: number } | null) => void;
-  clearPendingEdit: () => void;
-  updateScore: (score: ScoringState) => void;
-  abandon: (data: { matchId: string; sessionId: string; snapshot: string; snapshotStatus: SnapshotStatus; snapshotPointCount: number; bankPointCount: number; suspendedSessionId: string | null }) => void;
-  resumeComplete: () => void;
-  clearSession: () => void;
-  writeToSessionStorage: (matchId: string) => void;
-  restoreFromSessionStorage: (matchId: string) => boolean;
-  isSessionActive: (matchId: string) => boolean;
-}
+export type { SessionData } from './session-context.types';
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 
@@ -118,7 +37,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'UPDATE_SCORE', payload: score });
   }, []);
 
-  const abandon = useCallback((data: { matchId: string; sessionId: string; snapshot: string; snapshotStatus: SnapshotStatus; snapshotPointCount: number; bankPointCount: number; suspendedSessionId: string | null }) => {
+  const abandon = useCallback((data: AbandonPayload) => {
     dispatch({ type: 'ABANDON', payload: data });
     sessionStorage.setItem('last_abandon_timestamp', Date.now().toString());
     const blob = new Blob([JSON.stringify({ matchStateSnapshot: data.snapshot })], { type: 'application/json' });
