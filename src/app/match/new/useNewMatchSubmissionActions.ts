@@ -62,7 +62,7 @@ export function useNewMatchSubmissionActions(
     }
   };
 
-  const submitFormPayload = async (event: FormEvent) => {
+  const submitNewMatchForm = async (event: FormEvent) => {
     event.preventDefault();
     if (state.submittingRef.current) return;
     state.setError(null);
@@ -105,5 +105,5 @@ export function useNewMatchSubmissionActions(
     }
   };
 
-  return { buildPayload, validateFields, createMatchIgnoringWarning, submitFormPayload };
+  return { buildPayload, validateFields, createMatchIgnoringWarning, submitNewMatchForm };
 }

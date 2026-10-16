@@ -13,7 +13,7 @@ type NewMatchController = ReturnType<typeof useNewMatchController>;
 
 export function MatchNewFormSections({ c }: { c: NewMatchController }) {
   return (
-    <form onSubmit={c.submitFormPayload} className="space-y-3">
+    <form onSubmit={c.submitNewMatchForm} className="space-y-3">
       <SportFormatSection
         sportType={c.sportType}
         format={c.format}

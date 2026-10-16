@@ -15,13 +15,13 @@ export function useNotesModal(maxChars = 500) {
 
   const hasContent = text.trim().length > 0 || voiceRecorder.state === 'recorded';
 
-  const clear = useCallback(() => {
+  const clearNotes = useCallback(() => {
     setText('');
     setMode('text');
     voiceRecorder.clear();
   }, [voiceRecorder]);
 
-  const save = useCallback(async (): Promise<NotesModalResult> => {
+  const saveNotes = useCallback(async (): Promise<NotesModalResult> => {
     let audio: NotesModalResult['audio'];
 
     if (voiceRecorder.state === 'recorded') {
@@ -32,11 +32,11 @@ export function useNotesModal(maxChars = 500) {
     }
 
     const trimmed = text.trim();
-    clear();
+    clearNotes();
     return { text: trimmed, audio };
-  }, [text, voiceRecorder, clear]);
+  }, [text, voiceRecorder, clearNotes]);
 
-  const canSubmit = hasContent;
+  const canSubmitNotes = hasContent;
 
   return {
     text,
@@ -45,9 +45,12 @@ export function useNotesModal(maxChars = 500) {
     setMode,
     voiceRecorder,
     hasContent,
-    canSubmit,
-    clear,
-    save,
+    canSubmit: canSubmitNotes,
+    canSubmitNotes,
+    clear: clearNotes,
+    clearNotes,
+    save: saveNotes,
+    saveNotes,
     maxChars,
   };
 }

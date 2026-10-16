@@ -13,7 +13,7 @@ interface NewAthleteModalProps {
 
 export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalProps) {
   const {
-    submitting, error, nameInputRef, form, setForm, rankings, setRankings, age, submitFormPayload,
+    submitting, error, nameInputRef, form, setForm, rankings, setRankings, age, submitNewAthleteForm,
   } = useNewAthleteModal({ isOpen, onClose, onCreated });
 
   if (!isOpen) return null;
@@ -42,7 +42,7 @@ export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalP
             ×
           </button>
         </div>
-        <form onSubmit={submitFormPayload} className="p-6 space-y-4">
+        <form onSubmit={submitNewAthleteForm} className="p-6 space-y-4">
           {error && (
             <div className="p-3 bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert text-sm rounded-lg">{error}</div>
           )}

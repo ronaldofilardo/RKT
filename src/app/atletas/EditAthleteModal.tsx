@@ -17,7 +17,7 @@ export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthle
     error,
     toggleRankingEntry,
     updateRankingField,
-    persistFormChanges,
+    saveEditedAthlete,
   } = useEditAthleteModal({ athlete, onSave });
 
   if (!isOpen || !athlete) return null;
@@ -84,7 +84,7 @@ export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthle
           </button>
           <button
             type="button"
-            onClick={persistFormChanges}
+            onClick={saveEditedAthlete}
             disabled={saving || !form.name.trim()}
             className="flex-1 px-4 py-2.5 bg-telemetry-blue text-white font-medium rounded-lg hover:opacity-90 disabled:opacity-50 transition-colors shadow-sm shadow-telemetry-blue/20"
           >

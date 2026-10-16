@@ -47,7 +47,7 @@ export function useNewAthleteModal({ isOpen, onClose, onCreated }: UseNewAthlete
     assignCategoryAutomatically(setRankings, age);
   }, [age]);
 
-  const submitFormPayload = async (e: React.FormEvent) => {
+  const submitNewAthleteForm = async (e: React.FormEvent) => {
     e.preventDefault();
     const validationError = validateAthleteForm(form);
     if (validationError) {
@@ -85,5 +85,5 @@ export function useNewAthleteModal({ isOpen, onClose, onCreated }: UseNewAthlete
     }
   };
 
-  return { submitting, error, nameInputRef, form, setForm, rankings, setRankings, age, submitFormPayload };
+  return { submitting, error, nameInputRef, form, setForm, rankings, setRankings, age, submitNewAthleteForm };
 }

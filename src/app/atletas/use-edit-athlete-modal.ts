@@ -74,7 +74,7 @@ export function useEditAthleteModal({ athlete, onSave }: UseEditAthleteModalPara
     });
   };
 
-  const persistFormChanges = async () => {
+  const saveEditedAthlete = async () => {
     if (!athlete || !form.name.trim()) return;
     setSaving(true);
     setError(null);
@@ -89,6 +89,6 @@ export function useEditAthleteModal({ athlete, onSave }: UseEditAthleteModalPara
 
   return {
     form, setForm, rankings, age, saving, error,
-    toggleRankingEntry, updateRankingField, persistFormChanges,
+    toggleRankingEntry, updateRankingField, saveEditedAthlete,
   };
 }

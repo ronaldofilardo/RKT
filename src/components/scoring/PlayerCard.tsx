@@ -1,12 +1,12 @@
 'use client';
 
 import type { PlayerCardProps } from './player-card.types';
-import { formatScore, getGameProgress } from './player-card.logic';
+import { formatScore, getGameProgressRatio } from './player-card.logic';
 import { usePlayerCardTouch } from './use-player-card-touch';
 
 export function PlayerCard({ player, side, scoreState, isServing, isWinner, onPoint, onSwipeDown, disabled }: PlayerCardProps) {
   const score = formatScore(scoreState, side);
-  const progress = getGameProgress(scoreState, side);
+  const progress = getGameProgressRatio(scoreState, side);
   const setsWon = scoreState?.setsWon[side] ?? 0;
   const { onTouchStartGesture, onTouchEndGesture, onPrimaryClick } = usePlayerCardTouch(onPoint, onSwipeDown);
 

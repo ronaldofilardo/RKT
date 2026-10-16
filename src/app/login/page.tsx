@@ -4,7 +4,7 @@ import { useLoginForm } from './use-login-form';
 import { LoginFormFields } from './login-form-fields';
 
 export default function LoginPage() {
-  const { error, isLoading, submitFormPayload } = useLoginForm();
+  const { error, isLoading, submitLoginForm } = useLoginForm();
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -22,7 +22,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={submitFormPayload} className="flex flex-col gap-4">
+        <form onSubmit={submitLoginForm} className="flex flex-col gap-4">
           <LoginFormFields />
 
           <button

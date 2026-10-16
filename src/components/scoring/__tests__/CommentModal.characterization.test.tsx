@@ -31,12 +31,18 @@ function renderCommentModal(overrides: {
   const onSave = overrides.onSave ?? jest.fn();
   const onClose = overrides.onClose ?? jest.fn();
 
+  const saveNotesMock = jest.fn().mockResolvedValue({ text: overrides.saveText ?? 'Teste', audio: undefined });
+  const clearNotesMock = jest.fn();
+
   mockUseNotesModal.mockReturnValue({
     canSubmit: overrides.canSubmit ?? true,
+    canSubmitNotes: overrides.canSubmit ?? true,
     text: overrides.saveText ?? 'Teste',
     mode: 'text' as const,
-    save: jest.fn().mockResolvedValue({ text: overrides.saveText ?? 'Teste', audio: undefined }),
-    clear: jest.fn(),
+    save: saveNotesMock,
+    saveNotes: saveNotesMock,
+    clear: clearNotesMock,
+    clearNotes: clearNotesMock,
     setText: jest.fn(),
     setMode: jest.fn(),
     voiceRecorder: {

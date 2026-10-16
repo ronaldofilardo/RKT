@@ -10,7 +10,7 @@ export function useLoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  async function submitFormPayload(e: React.FormEvent<HTMLFormElement>) {
+  async function submitLoginForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
@@ -58,5 +58,5 @@ export function useLoginForm() {
     }
   }
 
-  return { error, isLoading, submitFormPayload };
+  return { error, isLoading, submitLoginForm };
 }

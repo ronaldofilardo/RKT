@@ -131,7 +131,7 @@ describe('PlayerCard — formatScore', () => {
   });
 });
 
-describe('PlayerCard — getGameProgress', () => {
+describe('PlayerCard — getGameProgressRatio', () => {
   it('retorna 0 para scoreState null', () => {
     const { container } = render(
       <PlayerCard

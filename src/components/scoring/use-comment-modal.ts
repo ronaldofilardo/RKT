@@ -32,20 +32,20 @@ export function useCommentModal({ isOpen, onClose, onSave, initialText = '' }: U
     }
   }, [isOpen, mounted]);
 
-  const persistFormChanges = useCallback(async () => {
-    if (!notes.canSubmit || isSubmitting) return;
+  const saveComment = useCallback(async () => {
+    if (!notes.canSubmitNotes || isSubmitting) return;
     setIsSubmitting(true);
     try {
       if (notes.voiceRecorder.state === 'recording') {
         await notes.voiceRecorder.stopRecording();
       }
-      const result = await notes.save();
+      const result = await notes.saveNotes();
       const savePromise = Promise.resolve(onSave(result.text, result.audio));
       await Promise.all([
         savePromise,
         new Promise((resolve) => setTimeout(resolve, 500)),
       ]);
-      notes.clear();
+      notes.clearNotes();
       onClose();
     } catch {
       setIsSubmitting(false);
@@ -62,17 +62,17 @@ export function useCommentModal({ isOpen, onClose, onSave, initialText = '' }: U
     }
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
-      persistFormChanges();
+      saveComment();
     }
-  }, [onClose, persistFormChanges, isSubmitting]);
+  }, [onClose, saveComment, isSubmitting]);
 
   const dismissOverlay = useCallback(() => {
     if (isSubmitting) return;
-    notes.clear();
+    notes.clearNotes();
     onClose();
   }, [notes, onClose, isSubmitting]);
 
   if (!isOpen || !mounted) return null;
 
-  return { isSubmitting, notes, textareaRef, persistFormChanges, dismissOverlay, onKeyDownAction };
+  return { isSubmitting, notes, textareaRef, saveComment, dismissOverlay, onKeyDownAction };
 }

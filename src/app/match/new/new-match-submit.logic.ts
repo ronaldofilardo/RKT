@@ -1,4 +1,4 @@
-export async function saveOfflineMatch(matchData: Record<string, unknown>): Promise<void> {
+export async function createOfflineMatch(matchData: Record<string, unknown>): Promise<void> {
   const tempId = `offline_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   const { savePendingMatch } = await import('@/lib/offlineDb');
   await savePendingMatch({ tempId, matchData, syncStatus: 'PENDING', createdAt: Date.now() });

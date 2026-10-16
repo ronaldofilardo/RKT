@@ -29,7 +29,7 @@ export function EditMatchInfoModal({ match, onClose, onSuccess }: EditMatchInfoM
     value: EditMatchInfoFormValues[K]
   ) => setValues((prev) => ({ ...prev, [key]: value }));
 
-  const submitFormPayload = async (e: React.FormEvent) => {
+  const submitMatchInfoForm = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
@@ -82,7 +82,7 @@ export function EditMatchInfoModal({ match, onClose, onSuccess }: EditMatchInfoM
           </button>
         </div>
 
-        <form onSubmit={submitFormPayload} className="p-6 overflow-y-auto space-y-4 scrollbar-thin">
+        <form onSubmit={submitMatchInfoForm} className="p-6 overflow-y-auto space-y-4 scrollbar-thin">
           <DateTimeSection values={values} onChange={updateFieldValue} />
           <TournamentSection values={values} onChange={updateFieldValue} />
           <CourtSection values={values} onChange={updateFieldValue} />

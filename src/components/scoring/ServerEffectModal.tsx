@@ -29,7 +29,7 @@ export function ServerEffectModal({
 
   const updateServeEffect = useCallback((v: string) => setEffect(v), []);
   const updateServeDirection = useCallback((v: string) => setDirection(v), []);
-  const confirmCurrentAction = useCallback(() => onConfirm(effect ?? undefined, direction ?? undefined), [onConfirm, effect, direction]);
+  const confirmServerEffect = useCallback(() => onConfirm(effect ?? undefined, direction ?? undefined), [onConfirm, effect, direction]);
   const onCancelClick = useCallback(() => {
     if (isDirty) setShowCloseDialog(true); else onCancel();
   }, [isDirty, onCancel]);
@@ -82,7 +82,7 @@ export function ServerEffectModal({
           onDirectionChange={updateServeDirection}
           isDoubleFault={isDoubleFault}
         />
-        <ServerEffectModalFooter context={context} serveStep={serveStep} onConfirm={confirmCurrentAction} onCancel={onCancelClick} />
+        <ServerEffectModalFooter context={context} serveStep={serveStep} onConfirm={confirmServerEffect} onCancel={onCancelClick} />
       </div>
 
       {showCloseDialog && (

@@ -38,7 +38,7 @@ export function CommentModal({
         isSubmitting={modal.isSubmitting}
         notes={modal.notes}
         textareaRef={modal.textareaRef}
-        onSave={modal.persistFormChanges}
+        onSave={modal.saveComment}
         onClose={modal.dismissOverlay}
       />
     </div>,

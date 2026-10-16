@@ -23,7 +23,7 @@ export function formatScore(state: ScoreState | null, side: 'player1' | 'player2
   return GAME_POINTS[game[side]] ?? '0';
 }
 
-export function getGameProgress(state: ScoreState | null, side: 'player1' | 'player2'): number {
+export function getGameProgressRatio(state: ScoreState | null, side: 'player1' | 'player2'): number {
   if (!state) return 0;
   const game = state.currentGame;
   const set = state.sets[state.sets.length - 1];

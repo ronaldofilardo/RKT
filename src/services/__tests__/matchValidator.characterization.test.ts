@@ -15,7 +15,7 @@ import { describe, it, expect } from '@jest/globals';
 import {
   validateFinishMatch,
   validateTransitionState,
-  getGameProgress,
+  getGamePointCount,
   isCurrentGameRegressing,
   isTiebreakRegressing,
 } from '../matchValidator';
@@ -332,33 +332,33 @@ describe('matchValidator (characterization)', () => {
     });
   });
 
-  describe('getGameProgress', () => {
+  describe('getGamePointCount', () => {
     it('deve retornar 0 para currentGame null/undefined', () => {
-      expect(getGameProgress(null, 'player1')).toBe(0);
-      expect(getGameProgress(undefined, 'player1')).toBe(0);
+      expect(getGamePointCount(null, 'player1')).toBe(0);
+      expect(getGamePointCount(undefined, 'player1')).toBe(0);
     });
 
     it('deve retornar valor numérico do player no game', () => {
       const currentGame = { player1: 30, player2: 15, isDeuce: false };
-      expect(getGameProgress(currentGame, 'player1')).toBe(30);
-      expect(getGameProgress(currentGame, 'player2')).toBe(15);
+      expect(getGamePointCount(currentGame, 'player1')).toBe(30);
+      expect(getGamePointCount(currentGame, 'player2')).toBe(15);
     });
 
     it('deve retornar 3 para player em deuce sem advantage', () => {
       const currentGame = { player1: 40, player2: 40, isDeuce: true };
-      expect(getGameProgress(currentGame, 'player1')).toBe(3);
-      expect(getGameProgress(currentGame, 'player2')).toBe(3);
+      expect(getGamePointCount(currentGame, 'player1')).toBe(3);
+      expect(getGamePointCount(currentGame, 'player2')).toBe(3);
     });
 
     it('deve retornar 4 para player com advantage', () => {
       const currentGame = { player1: 40, player2: 40, isDeuce: true, advantage: 'player1' };
-      expect(getGameProgress(currentGame, 'player1')).toBe(4);
-      expect(getGameProgress(currentGame, 'player2')).toBe(3);
+      expect(getGamePointCount(currentGame, 'player1')).toBe(4);
+      expect(getGamePointCount(currentGame, 'player2')).toBe(3);
     });
 
     it('deve retornar 0 para player sem valor numérico', () => {
       const currentGame = { player1: '30', player2: 15, isDeuce: false } as any;
-      expect(getGameProgress(currentGame, 'player1')).toBe(0);
+      expect(getGamePointCount(currentGame, 'player1')).toBe(0);
     });
   });
 

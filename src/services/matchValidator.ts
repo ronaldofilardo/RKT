@@ -219,7 +219,7 @@ export function validateTransitionState(
   return { valid: true };
 }
 
-export function getGameProgress(
+export function getGamePointCount(
   cg: MatchGameScore | null | undefined,
   player: "player1" | "player2",
 ): number {
@@ -238,10 +238,10 @@ export function isCurrentGameRegressing(
 ): boolean {
   if (!oldCG || !newCG) return false;
 
-  const oldP1 = getGameProgress(oldCG, "player1");
-  const oldP2 = getGameProgress(oldCG, "player2");
-  const newP1 = getGameProgress(newCG, "player1");
-  const newP2 = getGameProgress(newCG, "player2");
+  const oldP1 = getGamePointCount(oldCG, "player1");
+  const oldP2 = getGamePointCount(oldCG, "player2");
+  const newP1 = getGamePointCount(newCG, "player1");
+  const newP2 = getGamePointCount(newCG, "player2");
 
   return isCoordinateRegressing(oldP1, oldP2, newP1, newP2);
 }

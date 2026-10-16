@@ -373,11 +373,14 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 >
 > **Status R-03: CONCLUÍDO** (2026-10-16). Meta de nenhum `.tsx` de produção >100 linhas atingida (backlog 53 → 0; 193 arquivos medidos; testes excluídos).
 > **Status R-02: CONCLUÍDO** (2026-10-16). Nomenclatura proibida eliminada de produção (39 arquivos renomeados, 98 funções renomeadas; auditoria final: 0 violações).
+> **Status R-23 (P1/P3): CONCLUÍDO** (2026-10-16). Cluster save/create/submit + duplicações normalizados: `getGamePointCount` vs `getGameProgressRatio` (desambiguação de `getGameProgress`), `submitFormPayload` padronizado por domínio (`submitLoginForm`, `submitMatchInfoForm`, `submitNewAthleteForm`, `submitNewMatchForm`), `persistFormChanges` tipado por domínio (`saveAthleteChanges`, `saveEditedAthlete`, `saveComment`, `savePointNotes`), `confirmMatchDeletion` corrigido para `confirmAthleteDeletion`, `confirmCurrentAction` contextualizado (`confirmServerEffect`, `confirmPointDetails`, `confirmScheduleModal`), e `useNotesModal` com verbos canônicos (`saveNotes`, `clearNotes`, `canSubmitNotes`).
 >
 > **Pendências do plano:**
 > 1. ~~**R-01** — recriar `docs/glossario.md`~~ — **CONCLUÍDO** (UTF-8 limpo, 147 linhas).
 > 2. ~~**R-03 backlog** — `.tsx` de produção >100 linhas~~ — **CONCLUÍDO** (0 arquivos; medido 2026-10-16 pós UI-44).
 > 3. ~~**R-02** — nomenclatura proibida~~ — **CONCLUÍDO** (0 violações; medido 2026-10-16 pós Fase C).
+> 4. ~~**R-23 (P1 cluster save/create/submit + duplicações)**~~ — **CONCLUÍDO** (DoD: typecheck ✓ · test:strict 296/296 ✓ · test:design 3/3 ✓ · lint ✓).
+
 
 
 

@@ -55,7 +55,7 @@ export function usePointDetailsModal({
 
   const canConfirm = Boolean(form.situacao && form.tipo && form.golpe);
 
-  const confirmCurrentAction = useCallback(() => {
+  const confirmPointDetails = useCallback(() => {
     const details = buildRallyDetails(form, vencedor, noteText);
     if (!details) return;
     onConfirm(details, noteAudio);
@@ -85,7 +85,7 @@ export function usePointDetailsModal({
     winnerName,
     cancelCurrentAction,
     canConfirm,
-    confirmCurrentAction,
+    confirmPointDetails,
     discardChanges,
     persistNoteContent,
   };

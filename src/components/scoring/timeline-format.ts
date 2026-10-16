@@ -6,7 +6,7 @@ function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 }
 
-export function getGameScoreLabelForPoint(p: TimelinePoint): string {
+export function getCompactGameScoreLabel(p: TimelinePoint): string {
   const gs = p.gameScore;
   return getGameScoreLabel(gs.player1, gs.player2, p.gameIsDeuce, p.gameAdvantage, p.isTiebreak);
 }

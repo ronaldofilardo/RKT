@@ -31,7 +31,7 @@ export function PointDetailsModal({
   const {
     mounted, showCloseDialog, setShowCloseDialog, showNotesModal, setShowNotesModal,
     noteText, hasNoteAudio, form, dispatch, refs, vencedor, winnerName,
-    cancelCurrentAction, canConfirm, confirmCurrentAction, discardChanges, persistNoteContent,
+    cancelCurrentAction, canConfirm, confirmPointDetails, discardChanges, persistNoteContent,
   } = usePointDetailsModal({ winnerPlayerSide, currentServer, player1Name, player2Name, onConfirm, onCancel });
 
   if (!mounted) return null;
@@ -65,7 +65,7 @@ export function PointDetailsModal({
           canConfirm={canConfirm}
           noteText={noteText}
           hasNoteAudio={hasNoteAudio}
-          onConfirm={confirmCurrentAction}
+          onConfirm={confirmPointDetails}
           onCancel={cancelCurrentAction}
           onOpenNotes={() => setShowNotesModal(true)}
         />
