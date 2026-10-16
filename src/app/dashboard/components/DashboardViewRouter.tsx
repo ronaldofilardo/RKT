@@ -1,44 +1,13 @@
 import { MatchCard, type DashboardMatchPayload } from "@/components/dashboard/MatchCard";
-
-interface DashboardViewRouterProps {
-  view: "dashboard" | "annotated" | "live" | "pending" | "history";
-  loading: boolean;
-  finishedMatches: DashboardMatchPayload[];
-  liveMatches: DashboardMatchPayload[];
-  pendingMatches: DashboardMatchPayload[];
-  historyMatches: DashboardMatchPayload[];
-  visibleMatches: DashboardMatchPayload[];
-  suspendedFromApi: DashboardMatchPayload[];
-  handleNavigate: (v: "dashboard" | "annotated" | "live" | "pending" | "history") => void;
-  handleMatchClick: (m: DashboardMatchPayload) => void;
-  handleMatchReport: (m: DashboardMatchPayload) => void;
-  handleMatchFinish: (m: DashboardMatchPayload) => void;
-  handleMatchDelete: (m: DashboardMatchPayload) => void;
-  handleMatchEditScore?: (m: DashboardMatchPayload) => void;
-  handleMatchResume?: (m: DashboardMatchPayload) => void;
-  handleMatchSetSummary?: (m: DashboardMatchPayload) => void;
-  handleMatchEditInfo?: (m: DashboardMatchPayload) => void;
-}
+import { DashboardMatchListSection } from "./dashboard-match-list-section";
+import type { DashboardViewRouterProps } from "./dashboard-view-router.types";
 
 export function DashboardViewRouter(props: DashboardViewRouterProps) {
   const {
-    view,
-    loading,
-    finishedMatches,
-    liveMatches,
-    pendingMatches,
-    historyMatches,
-    visibleMatches,
-    suspendedFromApi,
-    handleNavigate,
-    handleMatchClick,
-    handleMatchReport,
-    handleMatchFinish,
-    handleMatchDelete,
-    handleMatchEditScore,
-    handleMatchResume,
-    handleMatchSetSummary,
-    handleMatchEditInfo,
+    view, loading, finishedMatches, liveMatches, pendingMatches, historyMatches,
+    visibleMatches, suspendedFromApi, handleNavigate, handleMatchClick,
+    handleMatchReport, handleMatchFinish, handleMatchDelete,
+    handleMatchEditScore, handleMatchResume, handleMatchSetSummary, handleMatchEditInfo,
   } = props;
 
   if (loading) {
@@ -51,139 +20,62 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
 
   const views: Record<string, () => JSX.Element> = {
     annotated: () => (
-      <section aria-labelledby="annotated-heading">
-        <div className="flex items-center justify-between mb-4">
-          <h2 id="annotated-heading" className="text-xl font-bold text-telemetry-text-primary">
-            Partidas Anotadas
-          </h2>
-          <button
-            type="button"
-            onClick={() => handleNavigate("dashboard")}
-            className="text-sm text-telemetry-blue-light hover:underline"
-          >
-            Voltar para Início
-          </button>
-        </div>
-        {finishedMatches.length === 0 ? (
-          <p className="text-telemetry-text-muted text-center py-8">
-            Nenhuma partida anotada encontrada.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {finishedMatches.map((m: DashboardMatchPayload) => (
-              <MatchCard
-                key={m.id}
-                match={m}
-                onClick={handleMatchClick}
-                onReport={handleMatchReport}
-              />
-            ))}
-          </div>
+      <DashboardMatchListSection
+        headingId="annotated-heading"
+        title="Partidas Anotadas"
+        emptyMessage="Nenhuma partida anotada encontrada."
+        matches={finishedMatches}
+        onBack={() => handleNavigate("dashboard")}
+        renderCard={(m) => (
+          <MatchCard key={m.id} match={m} onClick={handleMatchClick} onReport={handleMatchReport} />
         )}
-      </section>
+      />
     ),
     live: () => (
-      <section aria-labelledby="live-heading">
-        <div className="flex items-center justify-between mb-4">
-          <h2 id="live-heading" className="text-xl font-bold text-telemetry-text-primary">
-            Partidas Ao Vivo
-          </h2>
-          <button
-            type="button"
-            onClick={() => handleNavigate("dashboard")}
-            className="text-sm text-telemetry-blue-light hover:underline"
-          >
-            Voltar para Início
-          </button>
-        </div>
-        {liveMatches.length === 0 ? (
-          <p className="text-telemetry-text-muted text-center py-8">
-            Nenhuma partida ao vivo no momento.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {liveMatches.map((m: DashboardMatchPayload) => (
-              <MatchCard
-                key={m.id}
-                match={m}
-                onClick={handleMatchClick}
-                onReport={handleMatchReport}
-                onFinish={handleMatchFinish}
-                onEditScore={handleMatchEditScore}
-                onResumeMatch={handleMatchResume}
-                onSetSummary={handleMatchSetSummary}
-                onEditInfo={handleMatchEditInfo}
-              />
-            ))}
-          </div>
+      <DashboardMatchListSection
+        headingId="live-heading"
+        title="Partidas Ao Vivo"
+        emptyMessage="Nenhuma partida ao vivo no momento."
+        matches={liveMatches}
+        onBack={() => handleNavigate("dashboard")}
+        renderCard={(m) => (
+          <MatchCard
+            key={m.id}
+            match={m}
+            onClick={handleMatchClick}
+            onReport={handleMatchReport}
+            onFinish={handleMatchFinish}
+            onEditScore={handleMatchEditScore}
+            onResumeMatch={handleMatchResume}
+            onSetSummary={handleMatchSetSummary}
+            onEditInfo={handleMatchEditInfo}
+          />
         )}
-      </section>
+      />
     ),
     pending: () => (
-      <section aria-labelledby="pending-heading">
-        <div className="flex items-center justify-between mb-4">
-          <h2 id="pending-heading" className="text-xl font-bold text-telemetry-text-primary">
-            Partidas Aguardando
-          </h2>
-          <button
-            type="button"
-            onClick={() => handleNavigate("dashboard")}
-            className="text-sm text-telemetry-blue-light hover:underline"
-          >
-            Voltar para Início
-          </button>
-        </div>
-        {pendingMatches.length === 0 ? (
-          <p className="text-telemetry-text-muted text-center py-8">
-            Nenhuma partida agendada aguardando no momento.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {pendingMatches.map((m: DashboardMatchPayload) => (
-              <MatchCard
-                key={m.id}
-                match={m}
-                onClick={handleMatchClick}
-                onDelete={handleMatchDelete}
-                onEditInfo={handleMatchEditInfo}
-              />
-            ))}
-          </div>
+      <DashboardMatchListSection
+        headingId="pending-heading"
+        title="Partidas Aguardando"
+        emptyMessage="Nenhuma partida agendada aguardando no momento."
+        matches={pendingMatches}
+        onBack={() => handleNavigate("dashboard")}
+        renderCard={(m) => (
+          <MatchCard key={m.id} match={m} onClick={handleMatchClick} onDelete={handleMatchDelete} onEditInfo={handleMatchEditInfo} />
         )}
-      </section>
+      />
     ),
     history: () => (
-      <section aria-labelledby="history-heading">
-        <div className="flex items-center justify-between mb-4">
-          <h2 id="history-heading" className="text-xl font-bold text-telemetry-text-primary">
-            Histórico de Partidas
-          </h2>
-          <button
-            type="button"
-            onClick={() => handleNavigate("dashboard")}
-            className="text-sm text-telemetry-blue-light hover:underline"
-          >
-            Voltar para Início
-          </button>
-        </div>
-        {historyMatches.length === 0 ? (
-          <p className="text-telemetry-text-muted text-center py-8">
-            Nenhuma partida no histórico.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {historyMatches.map((m: DashboardMatchPayload) => (
-              <MatchCard
-                key={m.id}
-                match={m}
-                onClick={handleMatchClick}
-                onReport={handleMatchReport}
-                onDelete={handleMatchDelete}
-              />
-            ))}
-          </div>
+      <DashboardMatchListSection
+        headingId="history-heading"
+        title="Histórico de Partidas"
+        emptyMessage="Nenhuma partida no histórico."
+        matches={historyMatches}
+        onBack={() => handleNavigate("dashboard")}
+        renderCard={(m) => (
+          <MatchCard key={m.id} match={m} onClick={handleMatchClick} onReport={handleMatchReport} onDelete={handleMatchDelete} />
         )}
-      </section>
+      />
     ),
     dashboard: () => (
       <section aria-labelledby="dashboard-heading">
