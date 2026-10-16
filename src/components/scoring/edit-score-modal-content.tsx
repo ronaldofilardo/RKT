@@ -1,77 +1,14 @@
 'use client';
 
-import type { TennisFormat } from '@/core/scoring/types';
-import type { CompletedSet } from './edit-score-logic';
-import type { SetEditData } from './editScoreHelpers';
 import { MatchSummary, EditableSetsSummary } from './edit-score-summary';
 import { SetInputForm } from './edit-score-form';
 import { EditScoreNoteField } from './edit-score-note-field';
+import type { EditScoreModalContentProps } from './edit-score-modal.types';
 import {
   getAllCompletedSets,
   computeCompletedSetValidationErrors,
   buildEditableCompletedSets,
 } from './edit-score-modal.helpers';
-
-type Player = 'player1' | 'player2';
-
-export interface EditScoreModalContentProps {
-  matchFormat: TennisFormat;
-  playerNames: { p1: string; p2: string };
-  currentServer: Player;
-  completedSets: CompletedSet[];
-  floorCurrentSets: { player1: number; player2: number } | null;
-  effectiveFloorTiebreak: { player1: number; player2: number } | null;
-  confirmError: string | null;
-  floorValidationError: string | null;
-  state: {
-    editableCompletedSets: SetEditData[];
-    newSets: SetEditData[];
-    p1Input: string;
-    p2Input: string;
-    p1Points: string;
-    p2Points: string;
-    tiebreakP1: string;
-    tiebreakP2: string;
-    note?: string;
-  };
-  setState: (updater: (prev: Record<string, unknown>) => Record<string, unknown>) => void;
-  calculations: {
-    validation: {
-      p1Val: number;
-      p2Val: number;
-      isSetTrulyCompleted: boolean;
-      hasTiebreak: boolean;
-      isMatchTiebreakSet: boolean;
-      setValidationError?: string;
-    };
-    tiebreakValidation: {
-      tiebreakComplete: boolean;
-      tiebreakImpossible: boolean;
-    };
-    matchState: {
-      matchWouldEnd: boolean;
-      matchAlreadyOver: boolean;
-      totalEditedSets: number;
-      setsToWin: number;
-      p1SetsWon: number;
-      p2SetsWon: number;
-      maxSets: number;
-    };
-    canConfirm: boolean;
-    partial: boolean | null;
-    isPotentialMTSet: boolean;
-    showGamePointsAtZero: boolean;
-    currentScoreBelowOriginal: boolean;
-  };
-  canConfirmSet: boolean;
-  handlers: {
-    handleGameInputChange: (v: string, setter: (val: string) => void, player: 'p1' | 'p2', other: string) => void;
-    handleTiebreakInputChange: (v: string, player: 'p1' | 'p2') => void;
-    handlePointsChange: (p1: string, p2: string) => void;
-    handleEditCompletedSet: (index: number, p1Games: number, p2Games: number) => void;
-    handleConfirmSet: () => void;
-  };
-}
 
 /** Área rolável do modal: erros, sets completados, resumo, formulário e nota. */
 export function EditScoreModalContent({
