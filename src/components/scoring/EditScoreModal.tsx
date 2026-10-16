@@ -1,42 +1,16 @@
 'use client';
 
-import { useMemo } from 'react';
 import type { CompletedSet } from './edit-score-logic';
 import type { EditScoreModalContentProps, EditScoreModalProps } from './edit-score-modal.types';
-import { useEditScoreModal } from './useEditScoreModal';
+import { useEditScoreModalView } from './use-edit-score-modal-view';
 import { EditScoreModalFooter } from './EditScoreModalFooter';
 import { EditScoreModalShell } from './edit-score-modal-shell';
 import { EditScoreModalContent } from './edit-score-modal-content';
 
-export function EditScoreModal({
-  isOpen,
-  matchFormat,
-  playerNames,
-  currentSets,
-  currentServer,
-  initialServer,
-  completedSets = [],
-  currentGamePoints,
-  isTiebreak = false,
-  floorCurrentSets = null,
-  floorTiebreak,
-  onConfirm,
-  onCancel,
-  onMatchFinished,
-  onRefreshFloor,
-}: EditScoreModalProps) {
-  const effectiveFloorTiebreak = useMemo(() => {
-    if (floorTiebreak !== undefined) return floorTiebreak;
-    if (isTiebreak && currentGamePoints) {
-      return {
-        player1: Number(currentGamePoints.player1) || 0,
-        player2: Number(currentGamePoints.player2) || 0,
-      };
-    }
-    return null;
-  }, [floorTiebreak, isTiebreak, currentGamePoints]);
-
+export function EditScoreModal(props: EditScoreModalProps) {
+  const { isOpen, matchFormat, playerNames, currentServer, completedSets = [], floorCurrentSets = null } = props;
   const {
+    effectiveFloorTiebreak,
     state,
     setState,
     confirmError,
@@ -51,25 +25,7 @@ export function EditScoreModal({
     handleEditCompletedSet,
     handleConfirmSet,
     canConfirmSet,
-  } = useEditScoreModal(
-    {
-      isOpen,
-      matchFormat,
-      currentSets,
-      currentServer,
-      initialServer,
-      completedSets: completedSets as CompletedSet[],
-      currentGamePoints,
-      isTiebreak,
-      floorCurrentSets,
-      floorTiebreak: effectiveFloorTiebreak,
-      onRefreshFloor,
-      playerNames,
-    },
-    onConfirm,
-    onCancel,
-    onMatchFinished
-  );
+  } = useEditScoreModalView(props);
 
   if (!isOpen) return null;
 
