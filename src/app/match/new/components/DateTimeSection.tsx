@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { isMatchScheduledForFuture } from '../schedule-check.helpers';
+import { useDateTimeScheduleModal } from './use-date-time-schedule-modal';
+import { DateTimePickerInput } from './date-time-picker-input';
+import { ScheduleConfirmModal } from './schedule-confirm-modal';
 
 interface DateTimeSectionProps {
   date: string;
@@ -11,38 +12,7 @@ interface DateTimeSectionProps {
 }
 
 export function DateTimeSection({ date, time, onDateChange, onTimeChange }: DateTimeSectionProps) {
-  const lastAlertedRef = useRef<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
-  const [modalData, setModalData] = useState({ date: '', time: '' });
-
-  useEffect(() => {
-    if (date && isMatchScheduledForFuture(date, time)) {
-      const currentVal = `${date}-${time}`;
-      if (lastAlertedRef.current !== currentVal) {
-        lastAlertedRef.current = currentVal;
-        const [year, month, day] = date.split('-');
-        const formattedDate = `${day}/${month}/${year}`;
-        setModalData({ date: formattedDate, time: time || '--:--' });
-        setShowModal(true);
-      }
-    } else if (date && !isMatchScheduledForFuture(date, time)) {
-      lastAlertedRef.current = null;
-    }
-  }, [date, time]);
-
-  const handleConfirm = () => {
-    setShowModal(false);
-    // Foca no campo Torneio
-    const tournamentInput = document.querySelector('input[placeholder="Nome do torneio"]') as HTMLInputElement;
-    if (tournamentInput) tournamentInput.focus();
-  };
-
-  const handleCancel = () => {
-    setShowModal(false);
-    // Foca no campo Data
-    const dateInput = document.getElementById('match-date') as HTMLInputElement;
-    if (dateInput) dateInput.focus();
-  };
+  const { showModal, modalData, handleConfirm, handleCancel } = useDateTimeScheduleModal(date, time);
 
   return (
     <>
@@ -51,44 +21,16 @@ export function DateTimeSection({ date, time, onDateChange, onTimeChange }: Date
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="match-date" className="block text-sm font-medium text-telemetry-text-muted mb-1">Data *</label>
-          <input
-            id="match-date"
-            type="date"
-            value={date}
-            onChange={(e) => onDateChange(e.target.value)}
-            onClick={(e) => {
-              try {
-                e.currentTarget.showPicker?.();
-              } catch {
-                // ste-exception R-08: showPicker() lança quando o browser não
-                // suporta ou o picker já está aberto. Degradação silenciosa esperada.
-              }
-            }}
-            className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-elevated text-slate-900 dark:text-telemetry-text-primary cursor-pointer"
-          />
+          <DateTimePickerInput id="match-date" type="date" value={date} onChange={onDateChange} />
         </div>
         <div>
           <label htmlFor="match-time" className="block text-sm font-medium text-telemetry-text-muted mb-1">
             Horário <span className="font-normal">(opcional)</span>
           </label>
-          <input
-            id="match-time"
-            type="time"
-            value={time}
-            onChange={(e) => onTimeChange(e.target.value)}
-            onClick={(e) => {
-              try {
-                e.currentTarget.showPicker?.();
-              } catch {
-                // ste-exception R-08: showPicker() lança quando o browser não
-                // suporta ou o picker já está aberto. Degradação silenciosa esperada.
-              }
-            }}
-            className="w-full px-3 py-2 border border-slate-300 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-white dark:bg-telemetry-elevated text-slate-900 dark:text-telemetry-text-primary cursor-pointer"
-          />
+          <DateTimePickerInput id="match-time" type="time" value={time} onChange={onTimeChange} />
         </div>
       </div>
-      
+
       <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mt-4 flex items-start gap-3">
         <span className="text-amber-400 text-base leading-none" aria-hidden="true">
           ⚠️
@@ -98,7 +40,7 @@ export function DateTimeSection({ date, time, onDateChange, onTimeChange }: Date
             Atenção
           </h3>
           <p className="text-[11px] text-amber-400/80 mt-0.5 leading-snug">
-            Certifique-se de confirmar o horário, regras de jogo e os jogadores antes de criar a partida. 
+            Certifique-se de confirmar o horário, regras de jogo e os jogadores antes de criar a partida.
             Após o início, a maioria dessas configurações não poderá ser alterada.
           </p>
         </div>
@@ -106,48 +48,12 @@ export function DateTimeSection({ date, time, onDateChange, onTimeChange }: Date
     </section>
 
     {showModal && (
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center"
-        role="presentation"
-        onKeyDown={(e) => { if (e.key === 'Escape') handleCancel(); }}
-      >
-        <div
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          onClick={handleCancel}
-          role="button"
-          tabIndex={-1}
-          aria-label="Fechar modal"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleCancel();
-            }
-          }}
-        />
-        <div className="relative bg-telemetry-elevated rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 text-center">
-          <div className="text-4xl mb-4">📅</div>
-          <h2 className="text-xl font-bold text-telemetry-text-primary mb-2">Agendar Partida</h2>
-          <p className="text-sm text-telemetry-text-muted mb-6">
-            A partida será agendada para o dia <strong>{modalData.date}</strong>{modalData.time && modalData.time !== '--:--' ? <> às <strong>{modalData.time}</strong></> : ''}. Tem certeza?
-          </p>
-          <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={handleConfirm}
-              className="w-full py-3 bg-telemetry-active hover:bg-sky-700 text-white font-semibold rounded-xl transition-all"
-            >
-              Sim, confirmar
-            </button>
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="w-full py-3 bg-telemetry-elevated border-2 border-white/10 text-telemetry-text-primary font-semibold rounded-xl hover:bg-white/5 transition-all"
-            >
-              Não, alterar data
-            </button>
-          </div>
-        </div>
-      </div>
+      <ScheduleConfirmModal
+        date={modalData.date}
+        time={modalData.time}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
     )}
     </>
   );
