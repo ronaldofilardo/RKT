@@ -13,6 +13,11 @@ jest.mock('next/navigation', () => ({
   useRouter: () => mockRouter,
 }));
 
+const mockRedirectToLogin = jest.fn();
+jest.mock('@/lib/auth-client', () => ({
+  redirectToLogin: () => mockRedirectToLogin(),
+}));
+
 const USERS = [
   { id: 'u1', name: 'Maria Souza', email: 'maria@example.com', role: 'ANNOTATOR', club: null, createdAt: '2026-01-01' },
 ];
@@ -76,12 +81,13 @@ describe('AdminPage — confirmações com alertdialog (sem confirm() nativo)', 
 
       const dialog = await screen.findByRole('alertdialog');
       expect(confirmSpy).not.toHaveBeenCalled();
-      expect(mockPush).not.toHaveBeenCalledWith('/login');
+      expect(mockRedirectToLogin).not.toHaveBeenCalled();
       expect(sessionStorage.getItem('access_token')).toBe('token-123');
 
       fireEvent.click(within(dialog).getByRole('button', { name: 'Sair' }));
 
-      expect(mockPush).toHaveBeenCalledWith('/login');
+      expect(mockRedirectToLogin).toHaveBeenCalled();
+      expect(mockPush).not.toHaveBeenCalledWith('/login');
       expect(sessionStorage.getItem('access_token')).toBeNull();
       expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     });
@@ -94,6 +100,7 @@ describe('AdminPage — confirmações com alertdialog (sem confirm() nativo)', 
       fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Cancelar' }));
 
       expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+      expect(mockRedirectToLogin).not.toHaveBeenCalled();
       expect(mockPush).not.toHaveBeenCalledWith('/login');
       expect(sessionStorage.getItem('access_token')).toBe('token-123');
     });

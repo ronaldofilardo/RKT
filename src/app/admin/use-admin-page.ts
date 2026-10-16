@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { adminClient, type AdminUser } from '@/services/adminClient';
+import { redirectToLogin } from '@/lib/auth-client';
 
 /** Estado e ações da página de administração de usuários. */
 export function useAdminPage() {
@@ -38,7 +39,7 @@ export function useAdminPage() {
   const confirmLogout = () => {
     setLogoutConfirmOpen(false);
     sessionStorage.clear();
-    router.push('/login');
+    redirectToLogin();
   };
 
   const loadUsers = useCallback(async () => {

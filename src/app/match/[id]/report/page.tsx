@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ReportPageView } from './ReportPage.view';
 import type { ReportData } from './report.types';
 import { matchesClient, UnauthorizedError } from '@/services/matchesClient';
-import type { AppRouteInput } from '@/lib/app-router';
+import { redirectToLogin } from '@/lib/auth-client';
 
 export default function ReportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: matchId } = use(params);
@@ -27,7 +27,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
       })
       .catch(err => {
         if (err instanceof UnauthorizedError) {
-          router.push('/login' as AppRouteInput);
+          redirectToLogin();
           return new Promise<never>(() => {});
         }
         setError(err instanceof Error ? err.message : 'Erro ao carregar relatório');

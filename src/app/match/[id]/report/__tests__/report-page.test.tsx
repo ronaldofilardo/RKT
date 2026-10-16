@@ -32,6 +32,11 @@ jest.mock('next/navigation', () => ({
   }),
 }));
 
+const mockRedirectToLogin = jest.fn();
+jest.mock('@/lib/auth-client', () => ({
+  redirectToLogin: () => mockRedirectToLogin(),
+}));
+
 jest.mock('../ReportPage.view', () => ({
   ReportPageView: ({ matchId, totalPoints, p1Points, p2Points }: any) => (
     <div data-testid="report-page-view">
@@ -58,8 +63,9 @@ describe('ReportPage', () => {
     render(<ReportPage params={mockParams} />);
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/login');
+      expect(mockRedirectToLogin).toHaveBeenCalled();
     });
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it('faz fetch de /api/matches/[id]/report apenas uma vez graças a fetchedMatchIdRef', async () => {
