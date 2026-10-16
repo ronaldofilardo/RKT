@@ -1,4 +1,4 @@
-import type { LocateFilterStatus } from './locate-matches.helpers';
+import type { LocateFilterStatus } from './locate-matches.logic';
 
 interface LocateMatchesFiltersProps {
   searchTerm: string;

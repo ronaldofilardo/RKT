@@ -4,11 +4,11 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/Toast';
 import { logger } from '@/lib/logger';
 import type { NewMatchState } from './useNewMatchState';
-import { createMatchRequest } from './new-match-submit.helpers';
-import { buildMatchPayload } from './build-match-payload.helpers';
-import { saveOfflineIfNeeded } from './offline-match.helpers';
-import { submitOnlineMatch } from './online-match-submit.helpers';
-import { isMatchScheduledForFuture } from './schedule-check.helpers';
+import { createMatchRequest } from './new-match-submit.logic';
+import { buildMatchPayload } from './build-match-payload.logic';
+import { saveOfflineIfNeeded } from './offline-match.logic';
+import { submitOnlineMatch } from './online-match-submit.logic';
+import { isMatchScheduledForFuture } from './schedule-check.logic';
 
 export function useNewMatchSubmissionActions(
   state: NewMatchState,

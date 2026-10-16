@@ -1,5 +1,5 @@
 import type { TennisFormat } from '@/core/scoring/types';
-import { GAME_POINTS } from '@/core/scoring/point-utils';
+import { GAME_POINTS } from '@/core/scoring/point.logic';
 // Re-exporta a versão unificada do normalizer (bug #4, 2026-08-07).
 // Mantemos a assinatura pública deste módulo para não quebrar importadores
 // existentes, mas a implementação agora delega para src/core/scoring/score-normalizer

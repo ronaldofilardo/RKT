@@ -3,7 +3,7 @@ import { logger } from '@/lib/logger';
 import { ListPlayersInputSchema, CreatePlayerInputSchema } from '@/schemas/contracts';
 import { withRLSHandler, getRLSUser } from '@/lib/auth';
 import { listPlayers, createPlayer } from '@/services/playerService';
-import { jsonResponse, validatedRequest, handleApiError, extractPagination } from '@/lib/api-helpers';
+import { jsonResponse, validatedRequest, handleApiError, extractPagination } from '@/lib/api.logic';
 
 export async function GET(request: NextRequest) {
   return withRLSHandler(request, 'ANNOTATOR', async () => {

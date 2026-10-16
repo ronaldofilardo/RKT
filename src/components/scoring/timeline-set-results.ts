@@ -1,5 +1,5 @@
 import type { TimelinePoint } from '@/core/scoring/types';
-import { isSetDecidingPoint } from './timeline-utils';
+import { isSetDecidingPoint } from './timeline.logic';
 
 export interface SetResult {
   setNumber: number;

@@ -1,4 +1,4 @@
-import { getStatusColor, getStatusLabel, type Match } from './locate-matches.helpers';
+import { getStatusColor, getStatusLabel, type Match } from './locate-matches.logic';
 
 interface LocateMatchRowProps {
   match: Match;

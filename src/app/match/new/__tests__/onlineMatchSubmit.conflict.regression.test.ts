@@ -23,7 +23,7 @@
  * guardar `existing` direto, sem wrapper.
  */
 
-import { submitOnlineMatch } from '../online-match-submit.helpers';
+import { submitOnlineMatch } from '../online-match-submit.logic';
 
 function mockFetchOnce(response: { status: number; body: unknown }) {
   (globalThis as any).fetch = jest.fn().mockResolvedValue({

@@ -7,7 +7,7 @@
  * Solution: Use parsePointValue() to normalize string|number to number
  */
 
-import { parsePointValue, toDisplayPoint } from '@/core/scoring/point-utils';
+import { parsePointValue, toDisplayPoint } from '@/core/scoring/point.logic';
 
 describe('EditScoreModal - Type Safety Fix', () => {
   describe('toDisplayPoint with string | number inputs', () => {

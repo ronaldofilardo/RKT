@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withRLSHandler } from '@/lib/auth';
 import { getRLSUser } from '@/lib/rls-context';
-import { handleApiError } from '@/lib/api-helpers';
+import { handleApiError } from '@/lib/api.logic';
 import { logger } from '@/lib/logger';
 import { validateAudioUpload, isValidUpload } from '@/app/api/matches/[id]/point/[pointId]/audio/upload-validation';
-import { normalizeMime } from '@/app/api/matches/[id]/point/[pointId]/audio/route.helpers';
+import { normalizeMime } from '@/app/api/matches/[id]/point/[pointId]/audio/route.logic';
 
 // ============================================================================
 // POST /api/matches/[id]/comments/[commentId]/audio

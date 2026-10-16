@@ -9,10 +9,10 @@ import {
   isMatchTiebreakSet,
   calculateSetsWon,
   validateMatchTiebreakComplete,
-} from "@/hooks/useSessionManager.utils";
+} from "@/hooks/use-session-manager.logic";
 import { isMatchTiebreakActive } from "@/lib/matchConfig";
 import { buildNewScoringState } from "@/hooks/useSessionManager.state-builder";
-import type { SetEditData } from "@/components/scoring/editScoreHelpers";
+import type { SetEditData } from "@/components/scoring/edit-score.logic";
 
 function makeConfig(format: string) {
   return {

@@ -10,7 +10,7 @@ import {
   createEmptyRankingState,
   athleteToRankingsState,
   type RankingState,
-} from './edit-athlete-modal.helpers';
+} from './edit-athlete-modal.logic';
 import type { EditAthleteModalProps, EditAthleteSavePayload } from './edit-athlete-modal.types';
 import { buildFormFromAthlete, buildSavePayload } from './edit-athlete-modal.submission';
 

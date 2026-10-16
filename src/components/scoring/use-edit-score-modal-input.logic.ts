@@ -1,12 +1,12 @@
 import type { TennisFormat } from "@/core/scoring/types";
 import { SCORING_LIMITS } from "@/lib/constants";
-import { validateSetResult, getMaxValidGames } from "./editScoreHelpers";
+import { validateSetResult, getMaxValidGames } from "./edit-score.logic";
 import type { CompletedSet } from "./edit-score-logic";
-import type { SetEditData } from "./editScoreHelpers";
+import type { SetEditData } from "./edit-score.logic";
 import { calculateNextServer } from "./edit-score-logic";
 import { getInitialGames } from "@/core/scoring/format-rules";
-import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from "@/hooks/useSessionManager.utils";
-import { toCompletedSetsForServer } from "./useEditScoreModal.confirm.helpers";
+import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from "@/hooks/use-session-manager.logic";
+import { toCompletedSetsForServer } from "./use-edit-score-modal-confirm.logic";
 import type { EditScoreModalState } from "./useEditScoreModal.types";
 
 export function computeGameInputChange(params: {

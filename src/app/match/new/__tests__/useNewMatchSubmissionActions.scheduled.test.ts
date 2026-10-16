@@ -3,14 +3,14 @@
  */
 import { renderHook, act } from '@testing-library/react';
 import { useNewMatchSubmissionActions } from '../useNewMatchSubmissionActions';
-import { submitOnlineMatch } from '../online-match-submit.helpers';
-import { saveOfflineIfNeeded } from '../offline-match.helpers';
+import { submitOnlineMatch } from '../online-match-submit.logic';
+import { saveOfflineIfNeeded } from '../offline-match.logic';
 
-jest.mock('../online-match-submit.helpers', () => ({
+jest.mock('../online-match-submit.logic', () => ({
   submitOnlineMatch: jest.fn(),
 }));
 
-jest.mock('../offline-match.helpers', () => ({
+jest.mock('../offline-match.logic', () => ({
   saveOfflineIfNeeded: jest.fn().mockResolvedValue(false),
 }));
 

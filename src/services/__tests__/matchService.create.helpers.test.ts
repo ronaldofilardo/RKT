@@ -11,7 +11,7 @@ import {
   validateCreateMatchPlayers,
   warnMissingCreator,
   buildCreateMatchData,
-} from '../matchService.create.helpers';
+} from '../match-service-create.logic';
 import { ValidationError } from '@/lib/errors';
 
 describe('matchService.create.helpers', () => {

@@ -1,6 +1,6 @@
 import type { RankingType } from '@/lib/ranking/rankingConstants';
 import type { AthleteForm } from './types';
-import { rankingsStateToPayload, type RankingState } from './edit-athlete-modal.helpers';
+import { rankingsStateToPayload, type RankingState } from './edit-athlete-modal.logic';
 import type { EditAthleteSavePayload } from './edit-athlete-modal.types';
 
 interface AthleteLike {

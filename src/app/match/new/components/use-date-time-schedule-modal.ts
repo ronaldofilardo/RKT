@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { isMatchScheduledForFuture } from '../schedule-check.helpers';
+import { isMatchScheduledForFuture } from '../schedule-check.logic';
 
 export function useDateTimeScheduleModal(date: string, time: string) {
   const lastAlertedRef = useRef<string | null>(null);

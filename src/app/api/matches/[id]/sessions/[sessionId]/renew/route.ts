@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { NotFoundError } from '@/lib/errors';
-import { handleApiError } from '@/lib/api-helpers';
+import { handleApiError } from '@/lib/api.logic';
 import { withPermissionHandler } from '@/lib/auth';
 
 export async function POST(

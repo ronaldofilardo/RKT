@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { formatCompactSetScore, getSinglePointDisplay, isSetIndexMatchTiebreak, type NormalizedScoreState, type SetCellScore, type TennisFormat } from './match-card-utils';
+import { formatCompactSetScore, getSinglePointDisplay, isSetIndexMatchTiebreak, type NormalizedScoreState, type SetCellScore, type TennisFormat } from './match-card.logic';
 import { MatchCardPlayerRow, MatchCardScoreCell, MatchCardSeparator } from './match-card-player-row';
 
 export const BORDER_LEFT = '2px solid #111827';

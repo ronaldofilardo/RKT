@@ -13,7 +13,7 @@ import type {
   ScoringHandlersReturn,
 } from "./useScoringHandlers.types";
 import { persistStateWithRetry } from "./useScoringHandlers.persistence";
-import { createServerHelpersService } from "./useScoringHandlers.server-helpers.service";
+import { createServerHelpersService } from "./use-scoring-handlers-server.service";
 import { createModalHandlersService } from "./useScoringHandlers.modals.service";
 import { createPointSyncService } from "./useScoringHandlers.point-sync";
 import { createServeActionsService } from "./useScoringHandlers.serve-actions.service";

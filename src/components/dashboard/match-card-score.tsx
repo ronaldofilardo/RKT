@@ -1,6 +1,6 @@
 'use client';
 
-import { getSinglePointDisplay } from './match-card-utils';
+import { getSinglePointDisplay } from './match-card.logic';
 import { MatchCardScoreCell } from './match-card-player-row';
 import {
   BORDER_LEFT,

@@ -1,4 +1,4 @@
-import { validateSetResult } from '@/components/scoring/editScoreHelpers';
+import { validateSetResult } from '@/components/scoring/edit-score.logic';
 
 describe('validateSetResult - Bug 7x7 inválido em formatos com tiebreak', () => {
   describe('BEST_OF_5 (melhor de 5)', () => {

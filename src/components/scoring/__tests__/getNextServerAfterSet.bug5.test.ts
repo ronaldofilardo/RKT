@@ -14,7 +14,7 @@
  * check (totalPoints % 2) fires correctly.
  */
 
-import { getNextServerAfterSet } from '@/components/scoring/editScoreHelpers';
+import { getNextServerAfterSet } from '@/components/scoring/edit-score.logic';
 
 describe('Bug #5: getNextServerAfterSet alternates server in MT', () => {
   const baseParams = {

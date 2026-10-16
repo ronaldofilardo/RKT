@@ -13,7 +13,7 @@ import {
   markActionPendingOrFailed,
   markActionPending,
   markActionPausedForAuth,
-} from "./useOfflineSync.helpers";
+} from "./use-offline-sync.logic";
 
 const DB_NAME = "racket-offline-db";
 const STORE_NAME = "optimistic-queue";

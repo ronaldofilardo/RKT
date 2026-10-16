@@ -3,8 +3,8 @@ import {
   validateMatchTiebreakComplete,
   calculateSetsWon,
   isMatchTiebreakSet,
-} from '../useSessionManager.utils';
-import type { SetEditData } from '@/components/scoring/editScoreHelpers';
+} from '../use-session-manager.logic';
+import type { SetEditData } from '@/components/scoring/edit-score.logic';
 
 function set(p1: number, p2: number, opts: Partial<SetEditData> = {}): SetEditData {
   return { p1Games: p1, p2Games: p2, isPartial: false, ...opts };

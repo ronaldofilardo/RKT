@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT } from 'jose';
 import { LoginPayloadSchema } from '@/schemas/contracts';
-import { validatedRequest, handleApiError } from '@/lib/api-helpers';
+import { validatedRequest, handleApiError } from '@/lib/api.logic';
 import { authenticateUser } from './authenticate';
 import { logger } from '@/lib/logger';
 

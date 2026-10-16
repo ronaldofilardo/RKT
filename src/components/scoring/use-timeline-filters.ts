@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import type { TimelinePoint } from '@/core/scoring/types';
-import { filterTimelinePoints, countByFilter } from './timeline-utils';
+import { filterTimelinePoints, countByFilter } from './timeline.logic';
 import type { FilterKey, FilterCriteria } from './timeline-types';
 
 export function useTimelineFilters(points: TimelinePoint[]) {

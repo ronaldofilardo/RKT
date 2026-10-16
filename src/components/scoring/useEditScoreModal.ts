@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { SetEditData } from "./editScoreHelpers";
+import type { SetEditData } from "./edit-score.logic";
 import { createInitialEditScoreState } from "./edit-score-logic";
-import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from '@/hooks/useSessionManager.utils';
+import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from '@/hooks/use-session-manager.logic';
 import { useEditScoreCalculator } from "./use-edit-score-calculator";
 import {
   computeGameInputChange,
@@ -11,8 +11,8 @@ import {
   performAddSet,
   performConfirmSet,
   applyCompletedSetEdit,
-} from "./useEditScoreModal.input.helpers";
-import { executeConfirmFlow } from "./useEditScoreModal.submission.helpers";
+} from "./use-edit-score-modal-input.logic";
+import { executeConfirmFlow } from "./use-edit-score-modal-submission.logic";
 import { useEditScoreModalSync } from "./useEditScoreModalSync";
 import type {
   UseEditScoreModalOptions,

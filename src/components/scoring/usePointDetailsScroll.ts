@@ -6,7 +6,7 @@ import {
   computeScrollTop,
   getNextStep,
   type StepKey,
-} from './usePointDetailsScroll.helpers';
+} from './use-point-details-scroll.logic';
 
 type Vencedor = 'sacador' | 'devolvedor';
 type DivRef = React.RefObject<HTMLDivElement>;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import type { SetEditData } from "@/components/scoring/editScoreHelpers";
+import type { SetEditData } from "@/components/scoring/edit-score.logic";
 import type { useSessionManager } from "@/hooks/useSessionManager";
 import type { ScoringPageState } from "./useScoringPageState";
 

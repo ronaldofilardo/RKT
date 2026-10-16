@@ -1,10 +1,10 @@
 import type { TennisFormat } from "@/core/scoring/types";
 import type { CompletedSet } from "./edit-score-logic";
 import type { EditScoreValidation } from "./edit-score-logic.types";
-import type { SetEditData } from "./editScoreHelpers";
+import type { SetEditData } from "./edit-score.logic";
 import { calculateNextServer, createSetEditData, getEffectiveSetWinner } from "./edit-score-logic";
-import { getCompletedSets, toCompletedSetsForServer, getFreshFloorError } from "./useEditScoreModal.confirm.helpers";
-import { validateConfirmForm, buildExistingSetsPayload } from "./useEditScoreModal.validation.helpers";
+import { getCompletedSets, toCompletedSetsForServer, getFreshFloorError } from "./use-edit-score-modal-confirm.logic";
+import { validateConfirmForm, buildExistingSetsPayload } from "./use-edit-score-modal-validation.logic";
 import type { EditScoreModalState } from "./useEditScoreModal.types";
 
 function buildConfirmSubmission(params: {

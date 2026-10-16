@@ -11,7 +11,7 @@ import type {
 } from "@/core/scoring/types";
 import type { SuspendedSessionState } from "./useSessionManager";
 import type { MatchData } from "@/hooks/useScoringHandlers";
-import { normalizeMatchTiebreakState } from "./useSessionManager.utils";
+import { normalizeMatchTiebreakState } from "./use-session-manager.logic";
 import type { ScoreAction } from "@/hooks/useScoreReducer";
 
 interface SuspendedSessionConfig {

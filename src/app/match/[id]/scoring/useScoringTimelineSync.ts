@@ -9,7 +9,7 @@ import {
   enrichPointsFromHistory,
   enrichTimelineWithAudio,
   type PointLogAudioMeta,
-} from "@/components/scoring/timeline-utils";
+} from "@/components/scoring/timeline.logic";
 
 export interface MatchCommentData {
   id: string;

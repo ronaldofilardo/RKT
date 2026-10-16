@@ -1,4 +1,4 @@
-import { pointLogToFlow } from '../timeline-rebuild.helpers';
+import { pointLogToFlow } from '../timeline-rebuild.logic';
 import type { PointLogRow } from '../timeline-rebuild';
 
 describe('pointLogToFlow', () => {

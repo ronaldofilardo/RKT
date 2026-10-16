@@ -1,8 +1,8 @@
 'use client';
 
 import type { TimelinePoint } from '@/core/scoring/types';
-import { direcaoLabel, efeitoLabel } from './timeline-utils';
-import { getPlayerInitials } from './timeline-row-utils';
+import { direcaoLabel, efeitoLabel } from './timeline.logic';
+import { getPlayerInitials } from './timeline-row.logic';
 import { IdentityCells, NoteCell, RallyDetailCells, ServeOutcomeCells } from './timeline-row-cells';
 import { GapCell, PointRowWithInsert, SegmentBreakCell } from './timeline-row-inserts';
 

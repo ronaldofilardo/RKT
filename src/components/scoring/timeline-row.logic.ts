@@ -1,6 +1,6 @@
-import { GAME_POINTS } from '@/core/scoring/point-utils';
+import { GAME_POINTS } from '@/core/scoring/point.logic';
 import type { TimelinePoint } from '@/core/scoring/types';
-import { getPointDetailSummary } from './timeline-utils';
+import { getPointDetailSummary } from './timeline.logic';
 
 export type BadgeColor = 'green' | 'red' | 'amber' | 'gray';
 

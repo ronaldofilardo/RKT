@@ -6,7 +6,7 @@ import {
   getUserSessions,
   reactivateOrCreateSession,
 } from '@/services/sessionService';
-import { computeSnapshotStatus, type SnapshotStatus } from '@/lib/snapshot-utils';
+import { computeSnapshotStatus, type SnapshotStatus } from '@/lib/snapshot.logic';
 import { logger } from '@/lib/logger';
 
 export async function GET(

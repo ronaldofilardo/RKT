@@ -25,7 +25,7 @@ import {
   formatPointDetailsShort,
   formatPointDetailsFull,
   getPointDetailSummary,
-} from '../timeline-utils';
+} from '../timeline.logic';
 import type { HistoryEntry, PointDetails, ScoringState } from '@/core/scoring/types';
 
 const player1Id = 'player-1';

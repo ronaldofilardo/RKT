@@ -1,4 +1,4 @@
-import { formatSetScore, formatGamePoints } from '../match-card-utils';
+import { formatSetScore, formatGamePoints } from '../match-card.logic';
 
 describe('src/components/dashboard/match-card-utils.ts Caracterizacao', () => {
   it('deve formatar pontuacao de set comum corretamente', () => {

@@ -10,7 +10,7 @@ import {
   checkBreakPoint,
   isSetCompleted,
   isMatchTiebreakSetIndex,
-} from "./scoringHelpers";
+} from "./scoring-domain";
 import { resolveDisplayScore } from "./resolveDisplayScore";
 import { getInitialGames } from "@/core/scoring/format-rules";
 

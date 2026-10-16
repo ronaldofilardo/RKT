@@ -1,5 +1,5 @@
 import type { Athlete } from '../atletas.types';
-import { formatBirthDate, formatRankings } from './athlete-list-table.helpers';
+import { formatBirthDate, formatRankings } from './athlete-list-table.logic';
 
 interface AthleteTableRowProps {
   athlete: Athlete;

@@ -4,7 +4,7 @@
 
 import { renderHook } from '@testing-library/react';
 import { useEditScoreCalculator } from '../use-edit-score-calculator';
-import { computeGameInputChange } from '../useEditScoreModal.input.helpers';
+import { computeGameInputChange } from '../use-edit-score-modal-input.logic';
 
 describe('Regra de Ouro do Abandono e Piso de Placar', () => {
   describe('useEditScoreCalculator - Delimitação Estrita do Piso de Abandono', () => {

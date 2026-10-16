@@ -12,7 +12,7 @@ import { prisma } from '@/lib/prisma';
 import type { ReportSummary, PlayerPointSummary } from '@/core/report/report-types';
 import { buildReportIntegrity } from './report.integrity';
 import { computeAdvancedStats } from '@/core/report/compute-stats';
-import { addScoreEditBreaks } from './route.timeline.helpers';
+import { addScoreEditBreaks } from './route-timeline.logic';
 
 function buildPlayerSummary(
   points: TimelinePoint[],

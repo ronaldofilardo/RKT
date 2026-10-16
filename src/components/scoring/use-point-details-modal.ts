@@ -7,7 +7,7 @@ import {
   getPointWinnerDetails,
   buildRallyDetails,
   usePointDetailsKeyboard,
-} from './point-details-modal.helpers';
+} from './point-details-modal.logic';
 import { usePointDetailsSectionRefs } from './use-point-details-section-refs';
 
 interface UsePointDetailsModalOptions {

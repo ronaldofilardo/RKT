@@ -9,7 +9,7 @@ import {
   formatCompactSetScore,
   isSetIndexMatchTiebreak,
   isCurrentSetMatchTiebreak,
-} from "@/components/dashboard/match-card-utils";
+} from "@/components/dashboard/match-card.logic";
 
 describe("formatCompactSetScore", () => {
   it("set normal sem tiebreak mostra só os games", () => {

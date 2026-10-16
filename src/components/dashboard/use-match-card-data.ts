@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { normalizeScoreState, isMatchTiebreakFormat, isCurrentSetMatchTiebreak, type TennisFormat, type NormalizedScoreState, type SetCellScore } from './match-card-utils';
+import { normalizeScoreState, isMatchTiebreakFormat, isCurrentSetMatchTiebreak, type TennisFormat, type NormalizedScoreState, type SetCellScore } from './match-card.logic';
 import type { DashboardMatchPayload } from './match-card-types';
 
 const COURT_COLORS: Record<string, { bar: string; score: string }> = {

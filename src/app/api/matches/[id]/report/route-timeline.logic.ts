@@ -1,6 +1,6 @@
 import type { TimelinePoint } from '@/core/scoring/types';
 import type { PointLogRow } from '@/core/scoring/timeline-rebuild';
-import { describeTimelinePoint, describeScoreSnapshotForDisplay } from './route.helpers';
+import { describeTimelinePoint, describeScoreSnapshotForDisplay } from './route.logic';
 import type { getMatchScoreEdits } from '@/services/matchService';
 
 type ScoreEdit = Awaited<ReturnType<typeof getMatchScoreEdits>>[number];

@@ -6,7 +6,7 @@ import {
   retrySequenceConflict,
   markActionPendingOrFailed,
   markActionPending,
-} from '../useOfflineSync.helpers';
+} from '../use-offline-sync.logic';
 
 jest.mock('@/lib/logger', () => ({
   logger: { error: jest.fn(), info: jest.fn(), warn: jest.fn() },

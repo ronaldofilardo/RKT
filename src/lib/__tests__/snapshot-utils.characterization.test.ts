@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, jest, afterEach } from '@jest/globals';
-import { computeSnapshotStatus } from '../snapshot-utils';
+import { computeSnapshotStatus } from '../snapshot.logic';
 
 function buildSnapshot(historyLength: number): string {
   return JSON.stringify({

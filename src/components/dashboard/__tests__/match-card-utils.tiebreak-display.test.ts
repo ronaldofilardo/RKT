@@ -1,4 +1,4 @@
-import { formatCompactSetScore } from "@/components/dashboard/match-card-utils";
+import { formatCompactSetScore } from "@/components/dashboard/match-card.logic";
 
 describe("Regression: Tiebreak display on MatchCard", () => {
   it("deve mostrar '7 [7]' para player1 vencedor do tiebreak (e '6 [2]' para player2)", () => {

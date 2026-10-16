@@ -1,4 +1,4 @@
-import { GAME_POINTS } from '@/core/scoring/point-utils';
+import { GAME_POINTS } from '@/core/scoring/point.logic';
 import type { ScoreState } from './player-card.types';
 
 export function formatScore(state: ScoreState | null, side: 'player1' | 'player2'): string {

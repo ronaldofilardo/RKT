@@ -1,8 +1,8 @@
 'use client';
 
 import type { TimelinePoint } from '@/core/scoring/types';
-import { direcaoLabel, efeitoLabel, golpeEspLabel, golpeLabel, duracaoLabel, situacaoLabel, subtipo1Label, subtipo2Label } from './timeline-utils';
-import { BADGE_COLORS, getGameScoreLabelForPoint, getPointBadge } from './timeline-row-utils';
+import { direcaoLabel, efeitoLabel, golpeEspLabel, golpeLabel, duracaoLabel, situacaoLabel, subtipo1Label, subtipo2Label } from './timeline.logic';
+import { BADGE_COLORS, getGameScoreLabelForPoint, getPointBadge } from './timeline-row.logic';
 
 const TD = 'px-1.5 py-1.5 text-[10px]';
 const MUTED = `${TD} text-telemetry-text-muted`;

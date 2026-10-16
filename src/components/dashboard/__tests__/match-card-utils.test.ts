@@ -1,4 +1,4 @@
-import { getLastSetPointDisplay, isCurrentSetMatchTiebreak, isMatchTiebreakFormat } from "@/components/dashboard/match-card-utils";
+import { getLastSetPointDisplay, isCurrentSetMatchTiebreak, isMatchTiebreakFormat } from "@/components/dashboard/match-card.logic";
 
 describe("isCurrentSetMatchTiebreak", () => {
   it("retorna false para sets vazios", () => {

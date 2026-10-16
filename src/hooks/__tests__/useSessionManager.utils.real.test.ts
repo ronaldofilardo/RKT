@@ -1,4 +1,4 @@
-import { validateMatchTiebreakComplete, calculateSetsWon } from '../useSessionManager.utils';
+import { validateMatchTiebreakComplete, calculateSetsWon } from '../use-session-manager.logic';
 
 describe('useSessionManager.utils - Regressoes Reais', () => {
   describe('validateMatchTiebreakComplete', () => {

@@ -1,5 +1,5 @@
 import type { ScoringState } from '@/core/scoring/types';
-import type { SnapshotStatus } from '@/lib/snapshot-utils';
+import type { SnapshotStatus } from '@/lib/snapshot.logic';
 
 export interface SessionData {
   matchId: string | null;

@@ -3,7 +3,7 @@ import {
   sanitizeMatchUpdate,
   buildMatchUpdateData,
   buildFinishUpdateData,
-} from '../matchService.operations.helpers';
+} from '../match-service-operations.logic';
 
 describe('matchService.operations.helpers', () => {
   describe('ALLOWED_MATCH_FIELDS', () => {

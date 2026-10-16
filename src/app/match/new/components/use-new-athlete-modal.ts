@@ -9,7 +9,7 @@ import {
   initialRankings,
   handleAutoCategoryAssignment,
 } from '@/app/atletas/rankingLogic';
-import { buildAthletePayload, validateAthleteForm } from './new-athlete-modal.helpers';
+import { buildAthletePayload, validateAthleteForm } from './new-athlete-modal.logic';
 import { playersClient } from '@/services/playersClient';
 
 const EMPTY_FORM = {

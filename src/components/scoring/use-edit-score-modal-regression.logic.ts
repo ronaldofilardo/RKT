@@ -1,4 +1,4 @@
-import { parsePointValue, pointToProgress } from "@/core/scoring/point-utils";
+import { parsePointValue, pointToProgress } from "@/core/scoring/point.logic";
 
 export function validateTiebreakFloor(
   state: { tiebreakP1: string; tiebreakP2: string },

@@ -1,8 +1,8 @@
 import type { ScoringState } from "@/core/scoring/types";
-import type { SetEditData } from "@/components/scoring/editScoreHelpers";
+import type { SetEditData } from "@/components/scoring/edit-score.logic";
 import type { TennisFormat } from "@/core/scoring/types";
-import { parsePointValue } from "@/core/scoring/point-utils";
-import { isMatchTiebreakSet, calculateSetsWon } from "./useSessionManager.utils";
+import { parsePointValue } from "@/core/scoring/point.logic";
+import { isMatchTiebreakSet, calculateSetsWon } from "./use-session-manager.logic";
 import { getMatchFormatRules, validateSetScore, isMatchTiebreakSetIndex as isMatchTiebreakSetIndexCanonical } from "@/lib/matchConfig";
 import { createEmptySetForFormat } from "@/core/scoring/format-rules";
 

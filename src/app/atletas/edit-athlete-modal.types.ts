@@ -1,4 +1,4 @@
-import type { RankingEntry } from './edit-athlete-modal.helpers';
+import type { RankingEntry } from './edit-athlete-modal.logic';
 
 export interface EditAthleteSavePayload {
   name: string;

@@ -1,4 +1,4 @@
-import { isSetCompleted } from '../scoringHelpers';
+import { isSetCompleted } from '../scoring-domain';
 
 describe('isSetCompleted - Correção Match Tie-Break', () => {
   describe('Match Tie-Break formats', () => {

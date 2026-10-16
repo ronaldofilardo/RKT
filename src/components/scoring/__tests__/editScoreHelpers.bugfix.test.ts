@@ -2,7 +2,7 @@
  * Testes para as funções helper de edição de placar
  */
 
-import { validateSetResult, validateMatchTiebreakInput, getNextServerAfterSet } from "../editScoreHelpers";
+import { validateSetResult, validateMatchTiebreakInput, getNextServerAfterSet } from "../edit-score.logic";
 
 describe("editScoreHelpers - Validações e Server Rotation", () => {
   describe("validateMatchTiebreakInput", () => {

@@ -1,7 +1,7 @@
 import type { TennisFormat } from '@/core/scoring/types';
-import type { SetEditData } from './editScoreHelpers';
-export type { SetEditData } from './editScoreHelpers';
-import type { validateSetResult } from './editScoreHelpers';
+import type { SetEditData } from './edit-score.logic';
+export type { SetEditData } from './edit-score.logic';
+import type { validateSetResult } from './edit-score.logic';
 
 export type Player = 'player1' | 'player2';
 

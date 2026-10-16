@@ -1,4 +1,4 @@
-import { createMatchRequest } from './new-match-submit.helpers';
+import { createMatchRequest } from './new-match-submit.logic';
 
 export async function submitOnlineMatch(payload: Record<string, unknown>) {
   const { response, data } = await createMatchRequest(payload);

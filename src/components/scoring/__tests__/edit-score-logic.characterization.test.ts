@@ -6,7 +6,7 @@
  * Owner: @qa
  *
  * Comportamentos suspeitos (resolvidos):
- * - TD-046: isMatchTiebreakSetUtil importado de useSessionManager.utils (canônico) — sem duplicação
+ * - TD-046: isMatchTiebreakSetUtil importado de use-session-manager.logic (canônico) — sem duplicação
  * - calculateValidation usa isMatchTiebreakSetUtil apenas quando setResults fornecido (design correto)
  * - calculateMatchState delega detecção de MT para calculateValidation (sem reimplementação)
  * - createSetEditData usa lógica condicional clara: tiebreakScore vs currentGamePoints
@@ -29,7 +29,7 @@ import {
   type ShouldAutoAddSetInput,
   type CalculateNextServerInput,
 } from '../edit-score-logic';
-import type { SetEditData } from '../editScoreHelpers';
+import type { SetEditData } from '../edit-score.logic';
 
 describe('edit-score-logic (complete characterization)', () => {
   describe('createInitialEditScoreState', () => {

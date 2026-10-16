@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { useScoringHandlers } from "@/hooks/useScoringHandlers";
 import { useSessionManager } from "@/hooks/useSessionManager";
-import type { SetEditData } from "@/components/scoring/editScoreHelpers";
+import type { SetEditData } from "@/components/scoring/edit-score.logic";
 import type { ScoringPageState } from "./useScoringPageState";
 import { useScoringLifecycleEffects } from "./useScoringLifecycleEffects";
 import { useScoringCommentHandler } from "./useScoringCommentHandler";

@@ -1,4 +1,4 @@
-import { isSetCompleted } from '@/app/match/[id]/scoring/scoringHelpers';
+import { isSetCompleted } from '@/app/match/[id]/scoring/scoring-domain';
 import { getMatchFormatRules, type TennisFormat } from '@/lib/matchConfig';
 import type { ScoreboardSet } from './scoreboard-card.types';
 

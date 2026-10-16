@@ -1,4 +1,4 @@
-import { restoreEngineFromMatch, buildAnnotationsPayload } from '../route.helpers';
+import { restoreEngineFromMatch, buildAnnotationsPayload } from '../route.logic';
 
 // BUG FIX (2026-09-27) — CRÍTICO: restoreEngineFromMatch() passava o
 // scoreState por normalizeScoreState(), que sempre retorna só o `state`

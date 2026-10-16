@@ -1,4 +1,4 @@
-import { createServerHelpersService } from "@/hooks/useScoringHandlers.server-helpers.service";
+import { createServerHelpersService } from "@/hooks/use-scoring-handlers-server.service";
 
 describe("createServerHelpersService", () => {
   function makeCtx(server: "player1" | "player2") {

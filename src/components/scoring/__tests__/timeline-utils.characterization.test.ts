@@ -1,4 +1,4 @@
-import { filterTimelinePoints, countByFilter } from '../timeline-utils';
+import { filterTimelinePoints, countByFilter } from '../timeline.logic';
 import type { TimelinePoint } from '@/core/scoring/types';
 
 describe('timeline-utils - Caracterizacao', () => {

@@ -1,5 +1,5 @@
 import type { ReportData } from './report.types';
-import { formatDate } from './report-view.helpers';
+import { formatDate } from './report-view.logic';
 
 interface ReportHeaderProps {
   report: ReportData;

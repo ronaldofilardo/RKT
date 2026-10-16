@@ -3,7 +3,7 @@
  */
 
 import { buildNewScoringState } from '../useSessionManager.state-builder';
-import type { SetEditData } from '@/components/scoring/editScoreHelpers';
+import type { SetEditData } from '@/components/scoring/edit-score.logic';
 
 describe('buildNewScoringState - Correção SCORE_REGRESSION', () => {
   describe('Match Tie-Break (BEST_OF_3_MATCH_TB)', () => {

@@ -4,7 +4,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PlayerCard } from '../PlayerCard';
-import { GAME_POINTS } from '@/core/scoring/point-utils';
+import { GAME_POINTS } from '@/core/scoring/point.logic';
 
 const basePlayer = { id: 'p1', name: 'Jogador A' };
 const baseState = {

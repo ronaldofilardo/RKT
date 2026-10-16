@@ -8,7 +8,7 @@ import {
   getAllCompletedSets,
   computeCompletedSetValidationErrors,
   buildEditableCompletedSets,
-} from './edit-score-modal.helpers';
+} from './edit-score-modal.logic';
 
 /** Área rolável do modal: erros, sets completados, resumo, formulário e nota. */
 export function EditScoreModalContent({

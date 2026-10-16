@@ -1,5 +1,5 @@
 import React from 'react';
-import { GAME_POINTS } from '@/core/scoring/point-utils';
+import { GAME_POINTS } from '@/core/scoring/point.logic';
 
 interface EditScoreGamePointsProps {
   playerNames: { p1: string; p2: string };

@@ -1,6 +1,6 @@
 import type { TennisFormat } from "@/lib/matchConfig";
-import { isSetCompleted } from "@/app/match/[id]/scoring/scoringHelpers";
-import { isCurrentSetMatchTiebreak } from "@/components/dashboard/match-card-utils";
+import { isSetCompleted } from "@/app/match/[id]/scoring/scoring-domain";
+import { isCurrentSetMatchTiebreak } from "@/components/dashboard/match-card.logic";
 import { logger } from "@/lib/logger";
 import type { ScoringState } from "@/core/scoring/types";
 import type { SessionData } from "@/contexts/SessionContext";

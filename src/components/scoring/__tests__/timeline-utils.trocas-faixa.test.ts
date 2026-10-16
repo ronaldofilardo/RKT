@@ -1,4 +1,4 @@
-import { trocasFaixaLabel } from '../timeline-utils';
+import { trocasFaixaLabel } from '../timeline.logic';
 
 describe('trocasFaixaLabel — coluna TROCAS mostra faixas, não número cru (item 2)', () => {
   it('agrupa 1 e 2 trocas na faixa "1-2"', () => {

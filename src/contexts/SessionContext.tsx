@@ -2,10 +2,10 @@
 
 import { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react';
 import type { ScoringState } from '@/core/scoring/types';
-import type { SnapshotStatus } from '@/lib/snapshot-utils';
+import type { SnapshotStatus } from '@/lib/snapshot.logic';
 import type { SessionData, SessionContextValue, AbandonPayload } from './session-context.types';
 import { sessionReducer, initialState } from './session-context.reducer';
-import { SESSION_STORAGE_KEY_PREFIX, readPreservedFields, buildStoredSession, parseStoredSessionPayload } from './session-storage.helpers';
+import { SESSION_STORAGE_KEY_PREFIX, readPreservedFields, buildStoredSession, parseStoredSessionPayload } from './session-storage.logic';
 
 export type { SessionData } from './session-context.types';
 

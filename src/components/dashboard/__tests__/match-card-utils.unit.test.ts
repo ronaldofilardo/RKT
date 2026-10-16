@@ -8,7 +8,7 @@ import {
   isSetIndexMatchTiebreak,
   isCurrentSetMatchTiebreak,
   normalizeScoreState,
-} from '@/components/dashboard/match-card-utils';
+} from '@/components/dashboard/match-card.logic';
 
 describe('formatSetScore', () => {
   it('formata set comum sem tiebreak', () => {

@@ -1,4 +1,4 @@
-import type { SetEditData } from "@/components/scoring/editScoreHelpers";
+import type { SetEditData } from "@/components/scoring/edit-score.logic";
 import { isMatchTiebreakSetIndex as isMatchTiebreakSetIndexCanonical, type TennisFormat } from "@/lib/matchConfig";
 
 /** Forma mínima de set que esta normalização manipula. */

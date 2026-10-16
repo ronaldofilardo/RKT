@@ -3,7 +3,7 @@ import { CreateMatchInputSchema, MatchStateSchema } from '@/schemas/contracts';
 import { withRLSHandler, withPermissionHandler } from '@/lib/auth';
 import { listMatches, createMatch } from '@/services/matchService';
 import { findDuplicateMatch } from '@/services/matchSuggestionService';
-import { validatedRequest, handleApiError, extractPagination } from '@/lib/api-helpers';
+import { validatedRequest, handleApiError, extractPagination } from '@/lib/api.logic';
 import { ConflictError, ApiError } from '@/lib/errors';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';

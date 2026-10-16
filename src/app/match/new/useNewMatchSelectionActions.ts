@@ -3,7 +3,7 @@ import { useToast } from '@/components/Toast';
 import { logger } from '@/lib/logger';
 import type { Athlete } from './types';
 import type { NewMatchState } from './useNewMatchState';
-import { startMatch } from './start-match.helpers';
+import { startMatch } from './start-match.logic';
 
 type SelectionDependencies = Pick<NewMatchState,
   'setTournamentName' | 'setShowTournamentDropdown' | 'setNewAthleteFor' |

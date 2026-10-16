@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withRLSHandler } from '@/lib/auth';
 import { getRLSUser } from '@/lib/rls-context';
-import { handleApiError } from '@/lib/api-helpers';
+import { handleApiError } from '@/lib/api.logic';
 import { emitMatchEvent } from '@/lib/match-events';
 import { logger } from '@/lib/logger';
 

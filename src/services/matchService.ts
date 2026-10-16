@@ -24,7 +24,7 @@ import {
   validateCreateMatchPlayers,
   warnMissingCreator,
   buildCreateMatchData,
-} from "./matchService.create.helpers";
+} from "./match-service-create.logic";
 import {
   sanitizeMatchUpdate,
   buildMatchUpdateData,
@@ -32,7 +32,7 @@ import {
   resolvePersistedScoreState,
   recordScoreEditSegment,
   buildTransitionUpdateData,
-} from "./matchService.operations.helpers";
+} from "./match-service-operations.logic";
 
 export { listMatches, getMatch, findAbandonedSessionSnapshot };
 

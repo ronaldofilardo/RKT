@@ -1,5 +1,5 @@
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
-import { formatDuration } from './point-details-notes.helpers';
+import { formatDuration } from './point-details-notes.logic';
 
 interface NoteVoiceControlsProps {
   recorder: ReturnType<typeof useVoiceRecorder>;

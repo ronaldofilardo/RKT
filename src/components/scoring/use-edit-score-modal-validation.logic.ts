@@ -1,15 +1,15 @@
 import type { TennisFormat } from "@/core/scoring/types";
 import type { CompletedSet } from "./edit-score-logic";
-import type { SetEditData } from "./editScoreHelpers";
+import type { SetEditData } from "./edit-score.logic";
 import type { EditScoreModalState } from "./useEditScoreModal.types";
 import { calculateNextServer } from "./edit-score-logic";
-import { getCompletedSets, getFloorError } from "./useEditScoreModal.confirm.helpers";
+import { getCompletedSets, getFloorError } from "./use-edit-score-modal-confirm.logic";
 import {
   validateTiebreakFloor,
   validateGamePointsRegression,
   validateTiebreakPointsRegression,
   validateTiebreakWinnerMatch,
-} from "./useEditScoreModal.regression.helpers";
+} from "./use-edit-score-modal-regression.logic";
 
 export {
   validateTiebreakFloor,

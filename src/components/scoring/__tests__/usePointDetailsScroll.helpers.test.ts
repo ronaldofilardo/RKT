@@ -3,7 +3,7 @@ import {
   computeScrollTop,
   getNextStep,
   isStepVisible,
-} from '../usePointDetailsScroll.helpers';
+} from '../use-point-details-scroll.logic';
 
 const form = (patch: Partial<PointDetailsForm>): PointDetailsForm => ({ ...initialForm, ...patch });
 

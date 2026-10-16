@@ -6,7 +6,7 @@
 
 import { ScoringEngine } from "@/core/scoring/engine";
 import type { ScoringState, SetScore } from "@/core/scoring/types";
-import { pointToProgress } from "@/core/scoring/point-utils";
+import { pointToProgress } from "@/core/scoring/point.logic";
 
 describe("Score Adjustment Integration Test", () => {
   it("should reconstruct state with completedSets + partial set correctly", () => {

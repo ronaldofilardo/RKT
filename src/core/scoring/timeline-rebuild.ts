@@ -8,7 +8,7 @@ import type { PointLogRow } from './point-log-merge';
 import { ScoringEngine } from '@/core/scoring/engine';
 import { enrichPointsFromHistory } from '@/core/scoring/scoring-logic';
 import { unwrapStateEnvelope } from '@/core/scoring/state-envelope';
-import { pointLogToFlow } from './timeline-rebuild.helpers';
+import { pointLogToFlow } from './timeline-rebuild.logic';
 import {
   buildPointDetailsFromLog,
   mergeWithPointLog,

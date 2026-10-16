@@ -1,6 +1,6 @@
 import { ScoringEngine } from '../engine';
-import { getPointWinnerDetails } from '@/components/scoring/point-details-modal.helpers';
-import { buildTransitionUpdateData } from '@/services/matchService.operations.helpers';
+import { getPointWinnerDetails } from '@/components/scoring/point-details-modal.logic';
+import { buildTransitionUpdateData } from '@/services/match-service-operations.logic';
 
 describe('Regression Tests: Server Resolution & Point Winner Role (Issue cmv3oofu3000617f2o0qfowit)', () => {
   const p1Id = 'cmv3oofu3000617f2o0qfowit_p1'; // Théo Ferreira

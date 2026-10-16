@@ -13,7 +13,7 @@ import {
   restoreEngineFromMatch,
   buildAnnotationsPayload,
   handlePointRouteError,
-} from './route.helpers';
+} from './route.logic';
 
 export async function POST(
   request: NextRequest,

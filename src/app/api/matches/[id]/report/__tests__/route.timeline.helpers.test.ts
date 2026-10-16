@@ -1,4 +1,4 @@
-import { addScoreEditBreaks } from '../route.timeline.helpers';
+import { addScoreEditBreaks } from '../route-timeline.logic';
 import type { TimelinePoint } from '@/core/scoring/types';
 import type { PointLogRow } from '@/core/scoring/timeline-rebuild';
 

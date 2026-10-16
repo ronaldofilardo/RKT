@@ -1,4 +1,4 @@
-import { isMatchScheduledForFuture } from '../schedule-check.helpers';
+import { isMatchScheduledForFuture } from '../schedule-check.logic';
 
 describe('isMatchScheduledForFuture', () => {
   // Fixando o "now" em: 2026-09-30 14:00:00 local

@@ -4,7 +4,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { SetGroup } from '../timeline-rows';
-import { getGameEndInfo } from '../timeline-utils';
+import { getGameEndInfo } from '../timeline.logic';
 import type { TimelinePoint } from '@/core/scoring/types';
 
 describe('getGameEndInfo (helper unit tests)', () => {

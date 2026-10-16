@@ -3,7 +3,7 @@ import { logger } from '@/lib/logger';
 import { CreateUserInputSchema, ListUsersInputSchema } from '@/schemas/contracts';
 import { withRLSHandler } from '@/lib/auth';
 import { listAllUsers, createUser } from '@/services/adminService';
-import { validatedRequest, handleApiError } from '@/lib/api-helpers';
+import { validatedRequest, handleApiError } from '@/lib/api.logic';
 
 export async function GET(request: NextRequest) {
   return withRLSHandler(request, 'ADMIN', async () => {

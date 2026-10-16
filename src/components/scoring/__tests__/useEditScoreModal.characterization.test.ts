@@ -4,8 +4,8 @@
  */
 
 import { calculateValidation } from '../edit-score-logic';
-import { getFloorError, getFreshFloorError } from '../useEditScoreModal.confirm.helpers';
-import type { SetEditData } from '../editScoreHelpers';
+import { getFloorError, getFreshFloorError } from '../use-edit-score-modal-confirm.logic';
+import type { SetEditData } from '../edit-score.logic';
 
 describe('useEditScoreModal - Caracterizacao', () => {
   describe('canConfirm - resume de partida', () => {

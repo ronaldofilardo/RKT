@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withRLSHandler } from '@/lib/auth';
-import { handleApiError } from '@/lib/api-helpers';
+import { handleApiError } from '@/lib/api.logic';
 import { logger } from '@/lib/logger';
 
 const ALLOWED_MIME_TYPES = new Set([

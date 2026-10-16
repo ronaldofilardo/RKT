@@ -1,13 +1,13 @@
 import { Fragment } from 'react';
 import type { TimelinePoint } from '@/core/scoring/types';
-import { getGameEndInfo } from './timeline-utils';
+import { getGameEndInfo } from './timeline.logic';
 import { GameEndRow } from './timeline-game-end-row';
 import { PointRow } from './timeline-point-row';
 
 // Re-exports de compatibilidade (módulo movido para ./timeline-point-row).
 export { PointRow } from './timeline-point-row';
-// Re-exports de compatibilidade (helpers movidos para ./timeline-row-utils).
-export { getPlayerInitials } from './timeline-row-utils';
+// Re-exports de compatibilidade (helpers movidos para ./timeline-row.logic).
+export { getPlayerInitials } from './timeline-row.logic';
 
 interface SetGroupProps {
   setNumber: number;

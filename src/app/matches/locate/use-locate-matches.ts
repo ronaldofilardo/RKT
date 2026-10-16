@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { matchesClient } from '@/services/matchesClient';
-import { filterMatches, type Match, type LocateFilterStatus } from './locate-matches.helpers';
+import { filterMatches, type Match, type LocateFilterStatus } from './locate-matches.logic';
 
 export function useLocateMatches() {
   const [searchTerm, setSearchTerm] = useState('');
