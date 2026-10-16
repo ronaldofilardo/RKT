@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { matchesClient } from '@/services/matchesClient';
+import { useAudioNotePlayer } from './use-audio-note-player';
+import { formatDuration } from './audio-note-player.logic';
 
 interface AudioNotePlayerProps {
   matchId: string;
@@ -11,92 +11,8 @@ interface AudioNotePlayerProps {
   token?: string | null;
 }
 
-function formatDuration(ms: number): string {
-  const totalSec = Math.floor(ms / 1000);
-  const min = Math.floor(totalSec / 60);
-  const sec = totalSec % 60;
-  return `${min}:${String(sec).padStart(2, '0')}`;
-}
-
 export function AudioNotePlayer({ matchId, pointId, commentId, durationMs, token }: AudioNotePlayerProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const objectUrlRef = useRef<string | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    return () => {
-      abortRef.current?.abort();
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current);
-        objectUrlRef.current = null;
-      }
-    };
-  }, []);
-
-  const stopPlayback = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      audioRef.current = null;
-    }
-    if (objectUrlRef.current) {
-      URL.revokeObjectURL(objectUrlRef.current);
-      objectUrlRef.current = null;
-    }
-    setIsPlaying(false);
-  }, []);
-
-  const handlePlay = useCallback(async () => {
-    if (isPlaying) {
-      stopPlayback();
-      return;
-    }
-
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    setIsLoading(true);
-
-    try {
-      const audioBlob = await matchesClient.getAudio(matchId, {
-        pointId,
-        commentId,
-        token,
-        signal: controller.signal,
-      });
-
-      const url = URL.createObjectURL(audioBlob);
-      objectUrlRef.current = url;
-
-      const audio = new Audio(url);
-      audioRef.current = audio;
-
-      audio.onended = () => {
-        stopPlayback();
-      };
-
-      audio.onerror = () => {
-        stopPlayback();
-      };
-
-      await audio.play();
-      setIsPlaying(true);
-    } catch {
-      if (controller.signal.aborted) return;
-      stopPlayback();
-    } finally {
-      if (!controller.signal.aborted) {
-        setIsLoading(false);
-      }
-    }
-  }, [matchId, pointId, commentId, token, isPlaying, stopPlayback]);
+  const { isPlaying, isLoading, handlePlay } = useAudioNotePlayer({ matchId, pointId, commentId, token });
 
   return (
     <button
