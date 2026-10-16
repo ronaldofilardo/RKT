@@ -6,8 +6,8 @@ import { useSessionManager } from "@/hooks/useSessionManager";
 import type { SetEditData } from "@/components/scoring/edit-score.logic";
 import type { ScoringPageState } from "./useScoringPageState";
 import { useScoringLifecycleEffects } from "./useScoringLifecycleEffects";
-import { useScoringCommentHandler } from "./useScoringCommentHandler";
-import { useScoringEditScoreHandlers } from "./useScoringEditScoreHandlers";
+import { useScoringComment } from "./useScoringComment";
+import { useScoringEditScore } from "./useScoringEditScore";
 
 export interface ScoringPageHandlers {
   persistState: ReturnType<typeof useScoringHandlers>["persistState"];
@@ -147,13 +147,13 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
 
   useScoringLifecycleEffects({ state, fetchMatch });
 
-  const { createMatchComment } = useScoringCommentHandler(state);
+  const { createMatchComment } = useScoringComment(state);
 
   const {
     openEditScoreModal,
     cancelEditScore,
     refreshEditScoreFloor,
-  } = useScoringEditScoreHandlers({
+  } = useScoringEditScore({
     state,
     originalHandleEditScore,
   });

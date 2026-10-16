@@ -4,7 +4,7 @@ import type { RallyDetails, RallyEfeito } from "@/core/scoring/types";
 import type { RallyDirecao } from "@/schemas/contracts";
 import type { ScoreboardUIState } from "@/hooks/useScoreboardUIState";
 
-interface ModalHandlersConfig {
+export interface ScoringModalsConfig {
   serveErrorState: ScoreboardUIState;
   open: (modal: string, params?: Record<string, string>) => void;
 }
@@ -19,7 +19,7 @@ function mapEffect(effect?: string): RallyEfeito | undefined {
   return effect as RallyEfeito;
 }
 
-export function createModalHandlersService(config: ModalHandlersConfig) {
+export function createScoringModalsService(config: ScoringModalsConfig) {
   const { serveErrorState, open } = config;
 
   const openAceModal = (): void => {
@@ -77,3 +77,6 @@ export function createModalHandlersService(config: ModalHandlersConfig) {
     createDoubleFaultRallyDetails,
   };
 }
+
+export const createModalHandlersService = createScoringModalsService;
+export type ModalHandlersConfig = ScoringModalsConfig;

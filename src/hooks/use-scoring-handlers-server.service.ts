@@ -3,12 +3,12 @@
 import type { ScoringEngine } from "@/core/scoring/engine";
 import type { MatchData } from "./useScoringHandlers";
 
-interface ServerHelpersConfig {
+export interface ServerResolutionConfig {
   engineRef: React.MutableRefObject<ScoringEngine | null>;
   match: MatchData | null;
 }
 
-export function createServerHelpersService(config: ServerHelpersConfig) {
+export function createServerResolutionService(config: ServerResolutionConfig) {
   const { engineRef, match } = config;
 
   const getServerId = (): string => {
@@ -31,3 +31,6 @@ export function createServerHelpersService(config: ServerHelpersConfig) {
     getWinnerId,
   };
 }
+
+export const createServerHelpersService = createServerResolutionService;
+export type ServerHelpersConfig = ServerResolutionConfig;

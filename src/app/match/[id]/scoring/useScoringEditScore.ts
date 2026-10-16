@@ -5,15 +5,15 @@ import type { SetEditData } from "@/components/scoring/edit-score.logic";
 import type { useSessionManager } from "@/hooks/useSessionManager";
 import type { ScoringPageState } from "./useScoringPageState";
 
-interface ScoringEditScoreHandlersParams {
+interface ScoringEditScoreParams {
   state: ScoringPageState;
   originalHandleEditScore: ReturnType<typeof useSessionManager>["openEditScoreModal"];
 }
 
-export function useScoringEditScoreHandlers({
+export function useScoringEditScore({
   state,
   originalHandleEditScore,
-}: ScoringEditScoreHandlersParams) {
+}: ScoringEditScoreParams) {
   const { engineRef, match, clearPendingEdit, close, fetchTimelinePoints } =
     state;
 

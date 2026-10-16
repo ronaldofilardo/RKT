@@ -5,7 +5,7 @@ import { useCommentOfflineSync } from "@/hooks/useCommentOfflineSync";
 import { logger } from "@/lib/logger";
 import type { ScoringPageState } from "./useScoringPageState";
 
-export function useScoringCommentHandler(state: ScoringPageState) {
+export function useScoringComment(state: ScoringPageState) {
   const {
     matchId,
     tokenRef,
