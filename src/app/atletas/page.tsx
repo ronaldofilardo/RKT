@@ -1,108 +1,28 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { NewAthleteModal } from '@/app/match/new/components/NewAthleteModal';
-import { EditAthleteModal, type EditAthleteSavePayload } from './EditAthleteModal';
+import { EditAthleteModal } from './EditAthleteModal';
 import { AthleteSearchHeader } from './components/AthleteSearchHeader';
 import { AthleteListTable } from './components/AthleteListTable';
-import { logger } from '@/lib/logger';
-import { playersClient } from '@/services/playersClient';
-
-interface RankingEntry {
-  category?: string;
-  class?: string;
-  position: number;
-  juvenilePosition?: number;
-}
-
-interface Athlete {
-  id: string;
-  name: string;
-  gender?: string | null;
-  age?: number | null;
-  birthDate?: string | null;
-  dominance?: string | null;
-  backhand?: string | null;
-  ranking?: number | null;
-  rankings?: Record<string, RankingEntry> | null;
-}
+import { DeleteAthleteModal } from './components/DeleteAthleteModal';
+import { useAtletasPage } from './hooks/useAtletasPage';
 
 export default function AtletasPage() {
-  const router = useRouter();
-  logger.info("[AtletasPage] mount");
-  const [loading, setLoading] = useState(true);
-  const [athletes, setAthletes] = useState<Athlete[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [editingAthlete, setEditingAthlete] = useState<Athlete | null>(null);
-  const [, setSaving] = useState(false);
-  const [showNewAthleteModal, setShowNewAthleteModal] = useState(false);
-  const [athleteToDelete, setAthleteToDelete] = useState<Athlete | null>(null);
-  const [deleting, setDeleting] = useState(false);
-
-  const token = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
-
-  const loadAthletes = useCallback(async () => {
-    setError(null);
-    try {
-      const currentToken = sessionStorage.getItem('access_token');
-      const currentUserId = sessionStorage.getItem('user_id');
-      if (!currentUserId) {
-        setAthletes([]);
-        return;
-      }
-
-      const json = await playersClient.list(currentUserId, currentToken);
-      const players = json?.data?.players ?? json?.players ?? [];
-      setAthletes(Array.isArray(players) ? players : []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar atletas');
-    }
-  }, []);
-
-  useEffect(() => {
-    // A autenticação real é o cookie httpOnly `rkt_access_token` (validado pelo
-    // middleware e pela API). O sessionStorage guarda apenas user_id/user_role —
-    // `access_token` NÃO é mais gravado no login, então exigi-lo aqui mandava o
-    // usuário SEMPRE de volta para /login ao abrir "Atletas" pelo menu.
-    const userRole = sessionStorage.getItem('user_role');
-    if (!userRole) {
-      router.push('/login');
-      return;
-    }
-    loadAthletes().finally(() => setLoading(false));
-  }, [router, loadAthletes]);
-
-  const handleSave = async (data: EditAthleteSavePayload) => {
-    if (!editingAthlete) return;
-    setSaving(true);
-    setError(null);
-    try {
-      await playersClient.update(editingAthlete.id, data, token);
-      setEditingAthlete(null);
-      await loadAthletes();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao salvar');
-      throw err;
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!athleteToDelete) return;
-    setDeleting(true);
-    setError(null);
-    try {
-      await playersClient.remove(athleteToDelete.id, token);
-      setAthleteToDelete(null);
-      await loadAthletes();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao excluir atleta');
-    } finally {
-      setDeleting(false);
-    }
-  };
+  const {
+    loading,
+    athletes,
+    error,
+    editingAthlete,
+    setEditingAthlete,
+    showNewAthleteModal,
+    setShowNewAthleteModal,
+    athleteToDelete,
+    setAthleteToDelete,
+    deleting,
+    handleSave,
+    handleConfirmDelete,
+    loadAthletes,
+  } = useAtletasPage();
 
   if (loading) {
     return (
@@ -150,47 +70,12 @@ export default function AtletasPage() {
       />
 
       {athleteToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            onClick={() => { if (!deleting) setAthleteToDelete(null); }}
-            role="button"
-            tabIndex={-1}
-            aria-label="Fechar modal"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                if (!deleting) setAthleteToDelete(null);
-              }
-            }}
-          />
-          <div className="relative bg-telemetry-card border border-white/10 rounded-2xl shadow-2xl w-full max-w-md p-6">
-            <h3 className="text-lg font-bold text-telemetry-text-primary mb-2">Excluir Atleta</h3>
-            <p className="text-sm text-telemetry-text-muted mb-4">
-              Tem certeza que deseja excluir <span className="font-semibold text-telemetry-text-primary">{athleteToDelete.name}</span>? Esta ação não pode ser desfeita.
-            </p>
-            <p className="text-xs text-telemetry-text-muted/70 mb-6">
-              Caso o atleta possua partidas em andamento ou finalizadas, a exclusão será bloqueada para não afetar essas partidas.
-            </p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setAthleteToDelete(null)}
-                disabled={deleting}
-                className="flex-1 px-4 py-2 bg-transparent border border-white/10 text-telemetry-text-muted font-medium rounded-lg hover:bg-telemetry-elevated hover:text-telemetry-text-primary disabled:opacity-50 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                disabled={deleting}
-                className="flex-1 px-4 py-2 bg-telemetry-alert text-white font-medium rounded-lg hover:opacity-90 disabled:opacity-50 transition-colors shadow-sm"
-              >
-                {deleting ? 'Excluindo...' : 'Excluir'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteAthleteModal
+          athleteName={athleteToDelete.name}
+          deleting={deleting}
+          onCancel={() => setAthleteToDelete(null)}
+          onConfirm={handleConfirmDelete}
+        />
       )}
     </div>
   );
