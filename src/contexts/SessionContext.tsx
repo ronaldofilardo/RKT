@@ -3,16 +3,13 @@
 import { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react';
 import type { ScoringState } from '@/core/scoring/types';
 import type { SnapshotStatus } from '@/lib/snapshot-utils';
-import { logger } from '@/lib/logger';
 import type { SessionData, SessionContextValue, AbandonPayload } from './session-context.types';
 import { sessionReducer, initialState } from './session-context.reducer';
+import { SESSION_STORAGE_KEY_PREFIX, readPreservedFields, buildStoredSession, parseStoredSessionPayload } from './session-storage.helpers';
 
 export type { SessionData } from './session-context.types';
 
 const SessionContext = createContext<SessionContextValue | null>(null);
-
-const SESSION_STORAGE_KEY_PREFIX = 'rkt_session_';
-
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [session, dispatch] = useReducer(sessionReducer, initialState);
   const tokenRef = useRef<string | null>(null);
@@ -21,21 +18,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     tokenRef.current = sessionStorage.getItem('access_token');
   }, []);
 
-  const setSession = useCallback((data: Omit<SessionData, 'pendingEditScore'>) => {
-    dispatch({ type: 'SET_SESSION', payload: data });
-  }, []);
-
-  const setPendingEdit = useCallback((scoreState: ScoringState, floorSets: { player1: number; player2: number } | null) => {
-    dispatch({ type: 'SET_PENDING_EDIT', payload: { scoreState, floorSets } });
-  }, []);
-
-  const clearPendingEdit = useCallback(() => {
-    dispatch({ type: 'CLEAR_PENDING_EDIT' });
-  }, []);
-
-  const updateScore = useCallback((score: ScoringState) => {
-    dispatch({ type: 'UPDATE_SCORE', payload: score });
-  }, []);
+  const setSession = useCallback((data: Omit<SessionData, 'pendingEditScore'>) => dispatch({ type: 'SET_SESSION', payload: data }), []);
+  const setPendingEdit = useCallback((scoreState: ScoringState, floorSets: { player1: number; player2: number } | null) => dispatch({ type: 'SET_PENDING_EDIT', payload: { scoreState, floorSets } }), []);
+  const clearPendingEdit = useCallback(() => dispatch({ type: 'CLEAR_PENDING_EDIT' }), []);
+  const updateScore = useCallback((score: ScoringState) => dispatch({ type: 'UPDATE_SCORE', payload: score }), []);
 
   const abandon = useCallback((data: AbandonPayload) => {
     dispatch({ type: 'ABANDON', payload: data });
@@ -44,40 +30,19 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     navigator.sendBeacon(`/api/matches/${data.matchId}/sessions/${data.sessionId}/abandon`, blob);
   }, []);
 
-  const resumeComplete = useCallback(() => {
-    dispatch({ type: 'RESUME_COMPLETE' });
-  }, []);
+  const resumeComplete = useCallback(() => dispatch({ type: 'RESUME_COMPLETE' }), []);
 
   const clearSession = useCallback(() => {
     dispatch({ type: 'CLEAR' });
-    if (session.matchId) {
-      sessionStorage.removeItem(`${SESSION_STORAGE_KEY_PREFIX}${session.matchId}`);
-    }
+    if (session.matchId) sessionStorage.removeItem(`${SESSION_STORAGE_KEY_PREFIX}${session.matchId}`);
   }, [session.matchId]);
 
   const writeToSessionStorage = useCallback((matchId: string) => {
-    const existingStored = sessionStorage.getItem(`${SESSION_STORAGE_KEY_PREFIX}${matchId}`);
-    let preservedSnapshot = null;
-    let preservedSessionId = null;
-    try {
-      if (existingStored) {
-        const existing = JSON.parse(existingStored);
-        preservedSnapshot = existing.matchStateSnapshot ?? null;
-        preservedSessionId = existing.suspendedSessionId ?? null;
-      }
-    } catch (error) {
-      logger.warn('[SESSION STORAGE] Falha ao reparsar sessão existente; snapshot e sessionId não preservados:', error);
-    }
+    const raw = sessionStorage.getItem(`${SESSION_STORAGE_KEY_PREFIX}${matchId}`);
+    const preserved = readPreservedFields(raw);
     sessionStorage.setItem(
       `${SESSION_STORAGE_KEY_PREFIX}${matchId}`,
-      JSON.stringify({
-        bankScoreState: session.bankScoreState,
-        matchStateSnapshot: session.matchStateSnapshot ?? preservedSnapshot,
-        snapshotStatus: session.snapshotStatus,
-        snapshotPointCount: session.snapshotPointCount,
-        bankPointCount: session.bankPointCount,
-        suspendedSessionId: session.suspendedSessionId ?? preservedSessionId,
-      }),
+      JSON.stringify(buildStoredSession(session, preserved)),
     );
   }, [session]);
 
@@ -85,20 +50,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     const stored = sessionStorage.getItem(`${SESSION_STORAGE_KEY_PREFIX}${matchId}`);
     if (!stored) return false;
     try {
-      const parsed = JSON.parse(stored);
-      dispatch({
-        type: 'SET_SESSION',
-        payload: {
-          matchId,
-          sessionId: parsed.suspendedSessionId ?? null,
-          bankScoreState: parsed.bankScoreState ?? null,
-          matchStateSnapshot: parsed.matchStateSnapshot ?? null,
-          snapshotStatus: parsed.snapshotStatus ?? 'IN_SYNC',
-          snapshotPointCount: parsed.snapshotPointCount ?? 0,
-          bankPointCount: parsed.bankPointCount ?? 0,
-          suspendedSessionId: parsed.suspendedSessionId ?? null,
-        },
-      });
+      dispatch({ type: 'SET_SESSION', payload: parseStoredSessionPayload(matchId, stored) });
       sessionStorage.removeItem(`${SESSION_STORAGE_KEY_PREFIX}${matchId}`);
       return true;
     } catch {
@@ -106,24 +58,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const isSessionActive = useCallback((matchId: string): boolean => {
-    return session.matchId === matchId && session.matchStateSnapshot !== null;
-  }, [session]);
+  const isSessionActive = useCallback((matchId: string) => session.matchId === matchId && session.matchStateSnapshot !== null, [session]);
 
   return (
     <SessionContext.Provider
       value={{
-        session,
-        setSession,
-        setPendingEdit,
-        clearPendingEdit,
-        updateScore,
-        abandon,
-        resumeComplete,
-        clearSession,
-        writeToSessionStorage,
-        restoreFromSessionStorage,
-        isSessionActive,
+        session, setSession, setPendingEdit, clearPendingEdit, updateScore, abandon, resumeComplete, clearSession,
+        writeToSessionStorage, restoreFromSessionStorage, isSessionActive,
       }}
     >
       {children}
