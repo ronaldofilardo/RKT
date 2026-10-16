@@ -1,5 +1,6 @@
-import { MatchCard, type DashboardMatchPayload } from "@/components/dashboard/MatchCard";
+import { MatchCard } from "@/components/dashboard/MatchCard";
 import { DashboardMatchListSection } from "./dashboard-match-list-section";
+import { DashboardHomeSection } from "./dashboard-home-section";
 import type { DashboardViewRouterProps } from "./dashboard-view-router.types";
 
 export function DashboardViewRouter(props: DashboardViewRouterProps) {
@@ -78,54 +79,18 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
       />
     ),
     dashboard: () => (
-      <section aria-labelledby="dashboard-heading">
-        <h2 id="dashboard-heading" className="sr-only">
-          Dashboard
-        </h2>
-        {suspendedFromApi.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-telemetry-text-muted uppercase mb-3">
-              Anotações Suspensas
-            </h3>
-            <div className="space-y-3">
-              {suspendedFromApi.map((m: DashboardMatchPayload) => (
-                <MatchCard
-                  key={m.id ?? m.suspendedSessionId}
-                  match={m}
-                  onClick={handleMatchClick}
-                  onReport={handleMatchReport}
-                  onEditScore={handleMatchEditScore}
-                  onResumeMatch={handleMatchResume}
-                  onSetSummary={handleMatchSetSummary}
-                  onEditInfo={handleMatchEditInfo}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-        <div className="space-y-3">
-          {visibleMatches.length === 0 ? (
-            <p className="text-telemetry-text-muted text-center py-8">
-              Nenhuma partida encontrada.
-            </p>
-          ) : (
-            visibleMatches.map((m: DashboardMatchPayload) => (
-              <MatchCard
-                key={m.id}
-                match={m}
-                onClick={handleMatchClick}
-                onReport={handleMatchReport}
-                onFinish={handleMatchFinish}
-                onDelete={handleMatchDelete}
-                onEditScore={handleMatchEditScore}
-                onResumeMatch={handleMatchResume}
-                onSetSummary={handleMatchSetSummary}
-                onEditInfo={handleMatchEditInfo}
-              />
-            ))
-          )}
-        </div>
-      </section>
+      <DashboardHomeSection
+        visibleMatches={visibleMatches}
+        suspendedFromApi={suspendedFromApi}
+        handleMatchClick={handleMatchClick}
+        handleMatchReport={handleMatchReport}
+        handleMatchFinish={handleMatchFinish}
+        handleMatchDelete={handleMatchDelete}
+        handleMatchEditScore={handleMatchEditScore}
+        handleMatchResume={handleMatchResume}
+        handleMatchSetSummary={handleMatchSetSummary}
+        handleMatchEditInfo={handleMatchEditInfo}
+      />
     ),
   };
 
