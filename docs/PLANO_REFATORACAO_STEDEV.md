@@ -138,8 +138,8 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 - [x] `pnpm test:strict` verde ao fim de cada fase — Fases 1, 2, 3, UI-1..UI-9 (291/294, baseline).
 - [x] `pnpm test:design` verde ao fim da Fase 2 — 3/3 suites, 26/26 testes.
 - [x] `docs/glossario.md` criado com termos mapeados (R-01) — recriado em UTF-8 limpo (147 linhas; o anterior tinha mojibake).
-- [x] Toda exceção registrada via `// ste-exception R-XX: <motivo>` — Fase 1 (7× R-08).
-- [~] Nenhum arquivo UI/componente >100 linhas (R-03) — **parcial**: `MatchTimelineView.tsx` 535→96 ✓, `MatchCard.tsx` 409→86 ✓, `EditMatchInfoModal.tsx` 370→97 ✓, `timeline-rows.tsx` 342→81 ✓, `scoring/page.tsx` 339→94 ✓, `dashboard/page.tsx` 337→69 ✓, `SetSummaryModal.tsx` 327→91 ✓, `AdvancedStats.tsx` 316→23 ✓, `edit-score-form.tsx` 320→60 ✓; restam **36 arquivos `.tsx` de produção** >100L (backlog; testes excluídos).
+- [x] Toda exceção registrada via `// ste-exception R-XX: <motivo>` — Fase 1 (7× R-08; 6 ativos após UI-3b unificar os 2 `showPicker` de `EditMatchInfoModal` num único `openPicker`).
+- [~] Nenhum arquivo UI/componente >100 linhas (R-03) — **parcial**: `MatchTimelineView.tsx` 535→96 ✓, `MatchCard.tsx` 409→86 ✓, `EditMatchInfoModal.tsx` 370→97 ✓, `timeline-rows.tsx` 342→81 ✓, `scoring/page.tsx` 339→94 ✓, `dashboard/page.tsx` 337→69 ✓, `SetSummaryModal.tsx` 327→91 ✓, `AdvancedStats.tsx` 316→23 ✓, `edit-score-form.tsx` 320→60 ✓; restam **33 arquivos `.tsx` de produção** >100L (backlog; testes excluídos; medido 2026-10-15 pós UI-11).
 
 
 ---
@@ -232,6 +232,14 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-15 | UI-9c-1 | `edit-score-form-header.tsx` (novo, 52L: rótulo do set com selo de MT potencial + card Partida Encerrada), `edit-score-form-trail.tsx` (novo, 85L: feedback + ações + game points) e `edit-score-form-body.tsx` (novo, 99L: composição do root) | Concluído |
 | 2026-10-15 | UI-9c-2 | `edit-score-form.tsx` 213 → **60** linhas — casca fina: interface `SetInputFormProps`, ref de foco, early-return e composição de `EditScoreFormBody` | Concluído |
 | 2026-10-15 | UI-9 DoD | `typecheck` verde · `test:strict` 291/294 (3191/3196, baseline) · `test:design` 3/3 (26/26) · `lint` 0 erros · **R-03 ✓ para edit-score-form**: 8 arquivos ≤100L (`edit-score-form.tsx` 60, `edit-score-form-body.tsx` 99, `edit-score-form-trail.tsx` 85, `edit-score-form-header.tsx` 52, `edit-score-form-feedback.tsx` 93, `edit-score-form-actions.tsx` 84, `edit-score-games-grid.tsx` 68, `edit-score-game-column.tsx` 64) · 9 suites/163 testes de edit-score verdes | Concluído |
+| 2026-10-15 | UI-10a | `comment-modal-views.tsx` (49L), `comment-voice-recorder.tsx` (87L), `use-comment-modal.ts` (78L). Commit `a847e75` | Concluído |
+| 2026-10-15 | UI-10b | `comment-modal-body.tsx` (97L); `CommentModal.tsx` 293→**47** — **R-03 ✓**. Commit `4bee199` | Concluído |
+| 2026-10-15 | UI-11a | `edit-score-modal-shell.tsx` (48L), `edit-score-note-field.tsx` (26L), `edit-score-confirm-overlay.tsx` (22L), `edit-score-modal-content.tsx` (184L); `EditScoreModal.tsx` 261→**148**. Commits `f9ee743`, `e204f00` — **R-03 pendente** (`EditScoreModal` 148 e `edit-score-modal-content` 184 ainda >100L) | Concluído |
+| 2026-10-15 | R-03 | `match/new/page.tsx` 260→**121** (ainda >100L) via `MatchNewErrorBanner.tsx` (28L), `MatchNewModals.tsx` (72L), `TournamentSection.tsx` (101L) — commit `9703e13` (junto com feat "primeiro nome no header") | Concluído |
+| 2026-10-15 | UI-11b | `edit-score-modal.types.ts` (novo, 99L: `Player`, `EditScoreModalProps`, `EditScoreModalContentProps`); `EditScoreModal.tsx` 148→109, `edit-score-modal-content.tsx` 184→121. Commit `0933b49` | Concluído |
+| 2026-10-15 | UI-11c | `edit-score-set-input-section.tsx` (novo, 82L: `EditScoreSetInputSection` via `Pick` de props, bindings do `SetInputForm`); `edit-score-modal-content.tsx` 121→**92** — **R-03 ✓**. Commit `33b845a` | Concluído |
+| 2026-10-15 | UI-11d | `use-edit-score-modal-view.ts` (novo, 89L: `effectiveFloorTiebreak` + wiring do `useEditScoreModal`); `EditScoreModal.tsx` 109→**65** — **R-03 ✓**. Commit `a9ed92f` | Concluído |
+| 2026-10-15 | UI-11 DoD | `typecheck` verde · `test:strict` 296/296 (3200/3200) · `test:design` 3/3 (26/26) · `lint` 0 erros · suítes edit-score/EditScoreModal: 24 suites/273 testes verdes · **R-03 ✓ para EditScoreModal**: 6 arquivos ≤100L (`EditScoreModal.tsx` 65, `edit-score-modal-content.tsx` 92, `edit-score-set-input-section.tsx` 82, `edit-score-modal.types.ts` 99, `use-edit-score-modal-view.ts` 89, `edit-score-modal-shell.tsx` 48) | Concluído |
 
 > **Status Fase UI-1: CONCLUÍDA.** `MatchTimelineView.tsx` 535 → 96 linhas (R-03 ✓), 6 commits atômicos.
 > **Status Fase UI-2: CONCLUÍDA.** `MatchCard.tsx` 409 → 86 linhas (R-03 ✓), 4 commits atômicos (`ecadac2`, `40951dd`, `057e3fb`, `bc72bbd`).
@@ -242,10 +250,12 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 > **Status Fase UI-7: CONCLUÍDA.** `SetSummaryModal.tsx` 327 → 91 linhas (R-03 ✓), 4 commits atômicos (`9ba9637`, `58db88a`, `81d2b38`, `c102365`).
 > **Status Fase UI-8: CONCLUÍDA.** `AdvancedStats.tsx` 316 → 23 linhas (R-03 ✓), 3 commits atômicos (`8b043d0`, `642debd`, `3f257a2`).
 > **Status Fase UI-9: CONCLUÍDA.** `edit-score-form.tsx` 320 → 60 linhas (R-03 ✓), 4 commits atômicos (`a44be2b`, `6837987`, `a686252`, `7ad8963`).
+> **Status Fase UI-10: CONCLUÍDA.** `CommentModal.tsx` 293 → 47 linhas (R-03 ✓), 2 commits atômicos (`a847e75`, `4bee199`).
+> **Status Fase UI-11: CONCLUÍDA.** `EditScoreModal.tsx` 261 → 65 linhas (R-03 ✓), 5 commits (`f9ee743`, `e204f00`, `0933b49`, `33b845a`, `a9ed92f`).
 > **Pendências do plano:**
 > 1. ~~**R-01** — recriar `docs/glossario.md`~~ — **CONCLUÍDO** (UTF-8 limpo, 147 linhas).
-> 2. **R-03 backlog** — **36 arquivos `.tsx` de produção** ainda >100 linhas (medido 2026-10-15, testes excluídos). Maiores: `CommentModal.tsx` 293, `EditScoreModal.tsx` 261, `match/new/page.tsx` 260, `ScoreboardCard.tsx` 251, `admin/page.tsx` 249.
-> 3. Ordem sugerida: `CommentModal.tsx` (293) → `EditScoreModal.tsx` (261) → `match/new/page.tsx` (260). Padrão de referência: UI-1 (timeline-*), UI-2 (match-card-*), UI-3 (edit-match-info-*), UI-4 (timeline-rows-*), UI-5 (scoring-page-*), UI-6 (dashboard-*), UI-7 (set-summary-*), UI-8 (advanced-stats-*), UI-9 (edit-score-*) — todos com composição de módulos ≤100L + fatias de ≤3 arquivos por commit.
+> 2. **R-03 backlog** — **33 arquivos `.tsx` de produção** ainda >100 linhas (medido 2026-10-15 pós UI-11; testes excluídos). Maiores: `ScoreboardCard.tsx` 250, `admin/page.tsx` 249, `DashboardViewRouter.tsx` 241, `SessionContext.tsx` 238, `NewAthleteModalForm.tsx` 235.
+> 3. Ordem sugerida: `ScoreboardCard.tsx` (250) → `admin/page.tsx` (249) → `DashboardViewRouter.tsx` (241). Padrão de referência: UI-1 (timeline-*), UI-2 (match-card-*), UI-3 (edit-match-info-*), UI-4 (timeline-rows-*), UI-5 (scoring-page-*), UI-6 (dashboard-*), UI-7 (set-summary-*), UI-8 (advanced-stats-*), UI-9 (edit-score-*), UI-10 (comment-modal-*), UI-11 (edit-score-modal-*) — todos com composição de módulos ≤100L + fatias de ≤3 arquivos por commit.
 
 
 
