@@ -2,52 +2,9 @@
 
 import { useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-
-interface ServerEffectModalProps {
-  context: 'winner' | 'error';
-  serveStep: 'first' | 'second';
-  errorType?: 'out' | 'net';
-  winnerName: string;
-  fontScale: number;
-  onConfirm: (effect?: string, direction?: string) => void;
-  onCancel: () => void;
-}
-
-const btnBase = 'px-3 py-2 text-sm rounded-xl border-2 transition-all select-none';
-const btnNormal = 'bg-telemetry-elevated border-white/10 text-telemetry-text-muted hover:border-white/20 hover:text-telemetry-text-primary';
-const btnActive = 'bg-telemetry-volt/10 border-telemetry-volt text-telemetry-volt shadow-[0_0_8px_rgba(204,255,0,0.3)]';
-
-const EFFECT_OPTIONS = [
-  { value: 'topspin', label: 'TopSpin' },
-  { value: 'slice', label: 'Slice' },
-  { value: 'flat', label: 'Flat' },
-] as const;
-
-const DIRECTION_OPTIONS = [
-  { value: 'aberto', label: 'Aberto' },
-  { value: 'centro', label: 'Centro' },
-  { value: 'fechado', label: 'Fechado' },
-] as const;
-
-function PillGroup({ options, selected, onChange }: {
-  options: readonly { value: string; label: string }[];
-  selected: string | null;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {options.map(opt => (
-        <button
-          key={opt.value}
-          onClick={() => onChange(opt.value)}
-          className={`${btnBase} ${selected === opt.value ? btnActive : btnNormal}`}
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
-  );
-}
+import type { ServerEffectModalProps } from './server-effect-modal.types';
+import { PillGroup, Section, EFFECT_OPTIONS, DIRECTION_OPTIONS } from './server-effect-modal-controls';
+import { ServerEffectModalHeader } from './server-effect-modal-header';
 
 export function ServerEffectModal({
   context,
@@ -127,24 +84,13 @@ export function ServerEffectModal({
         tabIndex={-1}
       >
         {/* Header */}
-        <div className="px-5 py-4 border-b border-white/10 bg-white/">
-          <h2 className="text-center font-bold text-telemetry-text-primary" style={{ fontSize: '1.15rem' }}>
-            {context === 'winner' ? '🎾 Efeito do Saque' : `⚠️ Erro de Saque (${errorType === 'out' ? 'Out' : 'Net'})`}
-          </h2>
-          <p className="text-center text-sm mt-1">
-            <span className="font-bold text-telemetry-volt">
-              {serveStep === 'first' ? '1º Saque' : '2º Saque'}
-            </span>
-          </p>
-          {isDoubleFault || context === 'winner' ? (
-            <p className="text-center text-sm text-telemetry-text-muted mt-0.5">
-              Ponto para:{' '}
-              <span className={context === 'winner' ? 'text-telemetry-blue font-semibold' : 'text-telemetry-alert font-semibold'}>
-                {winnerName}
-              </span>
-            </p>
-          ) : null}
-        </div>
+        <ServerEffectModalHeader
+          context={context}
+          serveStep={serveStep}
+          errorType={errorType}
+          winnerName={winnerName}
+          isDoubleFault={isDoubleFault}
+        />
 
         {/* Body */}
         <div className="px-5 py-4 space-y-[18px]">
@@ -223,13 +169,4 @@ export function ServerEffectModal({
   );
 
   return createPortal(modal, document.body);
-}
-
-function Section({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-telemetry-text-muted mb-2">{label}</p>
-      {children}
-    </div>
-  );
 }
