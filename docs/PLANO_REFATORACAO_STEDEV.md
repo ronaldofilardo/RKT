@@ -140,6 +140,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 - [x] `docs/glossario.md` criado com termos mapeados (R-01) — recriado em UTF-8 limpo (147 linhas; o anterior tinha mojibake).
 - [x] Toda exceção registrada via `// ste-exception R-XX: <motivo>` — Fase 1 (7× R-08; 6 ativos após UI-3b unificar os 2 `showPicker` de `EditMatchInfoModal` num único `openPicker`).
 - [x] Nenhum arquivo UI/componente >100 linhas (R-03) — **CONCLUÍDO** (rodadas UI-1..UI-44; medido 2026-10-16 pós UI-44: **0 arquivos `.tsx` de produção >100L** entre 193; testes excluídos; backlog 53 → 0).
+- [x] Nomenclatura proibida (R-02) — **CONCLUÍDO** (Fases A/B/C; medido 2026-10-16: **0 `handle*`/`process*`/`manage*`/`doAction` em produção; 0 arquivos `*helper*`/`*utils*` no nome**; 39 arquivos renomeados, 98 funções renomeadas; testes excluídos).
 
 
 ---
@@ -320,6 +321,10 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-16 | UI-44 | Fatia única: `tournament-autocomplete-input.tsx` (50L: input + dropdown de sugestões); `TournamentSection.tsx` 101→**82**. Commit `af705d5` | Concluído |
 | 2026-10-16 | UI-44 DoD | `typecheck` verde · suítes NewMatchPage + RoundSelector + TournamentSection: 2 suites/38 testes verdes · **R-03 ✓**: 82, 50 | Concluído |
 | 2026-10-16 | R-03 final | **DoD final da rodada UI-32..44**: `typecheck` verde (exit 0) · `test:strict` 296/296 (3200/3200) · `test:design` 3/3 (26/26) · `lint` 0 erros (exit 0) · **backlog R-03: 13 → 0 arquivos `.tsx` de produção >100L** (193 arquivos medidos; testes excluídos) | Concluído |
+| 2026-10-16 | R-02 A | Renomear 39 arquivos `*helpers*`/`*utils*` → `*.logic.ts`/`*-domain.ts` (route.logic, scoring-domain, edit-score.logic, match-card.logic, api.logic, snapshot.logic, etc.) + atualizar 125 arquivos com imports. Commit `8c2f809` | Concluído |
+| 2026-10-16 | R-02 B | Renomear 11 funções `process*` → `apply*` no domínio de scoring (`processPoint`→`applyPoint`, `processRegularPoint`→`applyRegularPoint`, `processTiebreakPoint`→`applyTiebreakPoint`, `processMatchTiebreak`→`applyMatchTiebreak`, etc.); método privado do engine renomeado para `applyResolvedPoint` para evitar colisão. Commit `c4deacf` | Concluído |
+| 2026-10-16 | R-02 C | Renomear 98 funções `handle*` → verbos canônicos de domínio (`handleApiError`→`reportApiError`, `handleSubmit`→`submitFormPayload`, `handleMatchClick`→`openMatchDetails`, `handleConfirm`→`confirmCurrentAction`, etc.) em 139 arquivos (1035 substituições). Commit `b8d1b4e` | Concluído |
+| 2026-10-16 | R-02 DoD | `typecheck` verde (exit 0) · `test:strict` 296/296 (3200/3200) · `test:design` 3/3 (26/26) · `lint` 0 erros (exit 0) · **auditoria final: 0 `handle*`/`process*`/`manage*`/`doAction`/arquivos `*helper*`/`*utils*` em produção** | Concluído |
 
 > **Status Fase UI-1: CONCLUÍDA.** `MatchTimelineView.tsx` 535 → 96 linhas (R-03 ✓), 6 commits atômicos.
 > **Status Fase UI-2: CONCLUÍDA.** `MatchCard.tsx` 409 → 86 linhas (R-03 ✓), 4 commits atômicos (`ecadac2`, `40951dd`, `057e3fb`, `bc72bbd`).
@@ -367,10 +372,12 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 > **Status Fase UI-44: CONCLUÍDA.** `TournamentSection.tsx` 101 → 82 linhas (R-03 ✓), 1 commit (`af705d5`).
 >
 > **Status R-03: CONCLUÍDO** (2026-10-16). Meta de nenhum `.tsx` de produção >100 linhas atingida (backlog 53 → 0; 193 arquivos medidos; testes excluídos).
+> **Status R-02: CONCLUÍDO** (2026-10-16). Nomenclatura proibida eliminada de produção (39 arquivos renomeados, 98 funções renomeadas; auditoria final: 0 violações).
 >
 > **Pendências do plano:**
 > 1. ~~**R-01** — recriar `docs/glossario.md`~~ — **CONCLUÍDO** (UTF-8 limpo, 147 linhas).
 > 2. ~~**R-03 backlog** — `.tsx` de produção >100 linhas~~ — **CONCLUÍDO** (0 arquivos; medido 2026-10-16 pós UI-44).
+> 3. ~~**R-02** — nomenclatura proibida~~ — **CONCLUÍDO** (0 violações; medido 2026-10-16 pós Fase C).
 
 
 
