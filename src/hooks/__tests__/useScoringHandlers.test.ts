@@ -1002,6 +1002,33 @@ describe('useScoringHandlers - firstFaultDetail propagado quando o ponto NÃO é
     const flow = applyPoint.mock.calls[0][0];
     expect(flow.firstFaultDetail).toBeUndefined();
   });
+
+  it('confirmPointDetails com tipo winner do sacador e rallyLength 1 deve registrar WINNER, JAMAIS ACE', () => {
+    const { ctx, applyPoint } = makeEngineCtx({
+      modalParamsRef: { current: { winner: 'player1', rallyLength: '1' } },
+      serveErrorState: {
+        serveStep: 'none' as const,
+        pendingServeError: null,
+        firstServeError: null,
+        firstFaultDetail: null,
+        isServeEffectModalOpen: false,
+      },
+    });
+
+    const { result } = renderHook(() => useScoringHandlers(ctx));
+
+    act(() => {
+      result.current.confirmPointDetails({
+        tipo: 'winner' as const,
+        previewBalls: 1,
+      });
+    });
+
+    expect(applyPoint).toHaveBeenCalledTimes(1);
+    const flow = applyPoint.mock.calls[0][0];
+    expect(flow.type).toBe('WINNER');
+    expect(flow.type).not.toBe('ACE');
+  });
 });
 
 // ─── Regressão: botão "Voltar" travado após registrar um ponto ───────────────

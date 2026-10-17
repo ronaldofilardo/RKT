@@ -235,14 +235,13 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
       : details.previewBalls;
 
     const id = winnerSide === "player1" ? match.player1.id : match.player2.id;
-    const isServerWinner = id === serverHelpers.getServerId();
-    const isAce = details.tipo === "winner" && isServerWinner && rallyLengthToUse === 1;
 
+    // Regra canônica: um ACE só é registrado direto em /scoring ou via modal de detalhes do saque (ServerEffectModal).
+    // Jamais um ACE é cadastrado via detalhes do ponto (PointDetailsModal).
+    // Pontos com details.tipo === "winner" em detalhes do ponto são sempre "WINNER".
     const flowType =
       details.tipo === "winner"
-        ? isAce
-          ? "ACE"
-          : "WINNER"
+        ? "WINNER"
         : details.tipo === "erro_forcado"
           ? "FORCED_ERROR"
           : "UNFORCED_ERROR";
