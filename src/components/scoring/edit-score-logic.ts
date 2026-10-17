@@ -227,8 +227,13 @@ export function createSetEditData(input: CreateSetEditDataInput): SetEditData {
     isPartial: !isSetTrulyCompleted,
   };
 
-  if (isMatchTiebreakSet) {
+  if (isMatchTiebreakSet && isSetTrulyCompleted) {
+    // MTB concluído: determinar vencedor e atribuir games (ex.: 1x0 ou 0x1)
     applyMatchTiebreakSetData(setData, p1Val, p2Val, matchFormat);
+  } else if (isMatchTiebreakSet && !isSetTrulyCompleted) {
+    // MTB em andamento (parcial, sem vencedor): preservar pontos sem forçar
+    // games de vencedor — evita gravar vencedor errado em placar 4x4.
+    setData.tiebreakScore = { player1: p1Val, player2: p2Val };
   } else if (hasTiebreak && !isPotentialMTSet && tiebreakP1Num >= 0 && tiebreakP2Num >= 0) {
     setData.tiebreakScore = {
       player1: tiebreakP1Num,

@@ -42,9 +42,24 @@ export function useScoringEditScore({
     for (let i = sets.length - 1; i >= 0; i--) {
       const set = sets[i];
       const isLastSet = i === sets.length - 1;
-      // Para o último set, só usar como floor se tiver progresso real
-      if (isLastSet && set.player1 === 0 && set.player2 === 0) continue;
-      // Para qualquer set com progresso, usar como floor
+
+      if (isLastSet && set.player1 === 0 && set.player2 === 0) {
+        // Match Tiebreak em andamento: games ficam 0x0 mas os pontos reais
+        // estão em tiebreakScore. Retornar esses pontos como piso evita que
+        // o loop caia para o set anterior (ex.: Set 2 = 2x6 em games),
+        // que está em unidade completamente diferente dos pontos do MTB.
+        if (
+          set.isTiebreak &&
+          set.tiebreakScore &&
+          (set.tiebreakScore.player1 > 0 || set.tiebreakScore.player2 > 0)
+        ) {
+          return { player1: set.tiebreakScore.player1, player2: set.tiebreakScore.player2 };
+        }
+        // Set realmente vazio (0x0 sem tiebreakScore com progresso): ignorar
+        continue;
+      }
+
+      // Para qualquer set com progresso em games, usar como floor
       if (set.player1 > 0 || set.player2 > 0) {
         return { player1: set.player1, player2: set.player2 };
       }

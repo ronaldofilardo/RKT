@@ -153,9 +153,14 @@ function buildCurrentGame(
 ): ScoringState["currentGame"] {
   const isLastSet = setResults.length > 0;
   const lastSetIdx = setResults.length - 1;
-  const isMTSet = isLastSet && isMatchTiebreakSet(lastSetIdx, setResults, format) && setResults[lastSetIdx]?.isPartial === false;
+  const lastSetEntry = isLastSet ? setResults[lastSetIdx] : undefined;
+  // MTB concluído: não há game point pendente
+  const isMTSetFinalized = isLastSet && isMatchTiebreakSet(lastSetIdx, setResults, format) && lastSetEntry?.isPartial === false;
+  // MTB em andamento (parcial): também não usa game points — o progresso
+  // fica em tiebreakScore, não em currentGame.
+  const isMTSetPartial = isLastSet && isMatchTiebreakSet(lastSetIdx, setResults, format) && lastSetEntry?.isPartial === true;
 
-  if (isMTSet) {
+  if (isMTSetFinalized || isMTSetPartial) {
     return {
       player1: 0,
       player2: 0,
