@@ -1,6 +1,7 @@
 'use client';
 
-import { FormField, TextInput, TextareaField } from './edit-match-info-fields';
+import { FormField, SelectField, TextInput, TextareaField } from './edit-match-info-fields';
+import { ROUND_OPTIONS } from '@/app/match/new/matchConstants';
 import type { EditMatchInfoFormValues } from './edit-match-info-submission';
 
 export type Change = <K extends keyof EditMatchInfoFormValues>(
@@ -17,7 +18,6 @@ export const SECTION_TITLE_CLASS =
   'text-xs font-bold uppercase tracking-wider text-telemetry-text-muted mb-2';
 
 const GRID_2 = 'grid grid-cols-2 gap-3';
-const GRID_3 = 'grid grid-cols-3 gap-3';
 
 export function DateTimeSection({ values, onChange }: SectionProps) {
   return (
@@ -36,25 +36,42 @@ export function DateTimeSection({ values, onChange }: SectionProps) {
 }
 
 export function TournamentSection({ values, onChange }: SectionProps) {
+  const matchingOption = ROUND_OPTIONS.find(
+    (opt) => opt.value.toLowerCase() === (values.round || '').toLowerCase()
+  );
+  const isCustomRound = Boolean(
+    values.round && !matchingOption && !ROUND_OPTIONS.some((opt) => opt.value === values.round)
+  );
+
   return (
     <div>
-      <h3 className={SECTION_TITLE_CLASS}>Torneio e Chave</h3>
+      <h3 className={SECTION_TITLE_CLASS}>Torneio</h3>
       <div className="space-y-3">
         <FormField htmlFor="edit-tournament" label="Nome do Torneio">
           <TextInput id="edit-tournament" value={values.tournamentName} placeholder="Ex: Torneio Aberto" onChange={(v) => onChange('tournamentName', v)} />
         </FormField>
-        <FormField htmlFor="edit-club" label="Clube" hint="(opcional)">
-          <TextInput id="edit-club" value={values.clubName} placeholder="Nome do clube" onChange={(v) => onChange('clubName', v)} />
-        </FormField>
-        <div className={GRID_3}>
-          <FormField htmlFor="edit-category" label="Categoria">
-            <TextInput id="edit-category" value={values.category} placeholder="Ex: 1ª Classe" onChange={(v) => onChange('category', v)} />
+        <div className={GRID_2}>
+          <FormField htmlFor="edit-club" label="Clube" hint="(opcional)">
+            <TextInput id="edit-club" value={values.clubName} placeholder="Nome do clube" onChange={(v) => onChange('clubName', v)} />
           </FormField>
           <FormField htmlFor="edit-round" label="Rodada">
-            <TextInput id="edit-round" value={values.round} placeholder="Ex: Final, Quartas" onChange={(v) => onChange('round', v)} />
-          </FormField>
-          <FormField htmlFor="edit-bracket-type" label="Chave">
-            <TextInput id="edit-bracket-type" value={values.bracketType} placeholder="Ex: Principal" onChange={(v) => onChange('bracketType', v)} />
+            <SelectField
+              id="edit-round"
+              value={matchingOption ? matchingOption.value : values.round}
+              onChange={(v) => onChange('round', v)}
+            >
+              <option value="">Selecione a rodada</option>
+              {isCustomRound && (
+                <option value={values.round}>
+                  {values.round}
+                </option>
+              )}
+              {ROUND_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </SelectField>
           </FormField>
         </div>
       </div>

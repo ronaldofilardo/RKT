@@ -6,14 +6,10 @@ interface RoundSelectorProps {
   placeholder?: string;
 }
 
-const ROUND_OPTIONS = [
-  { value: 'round robin', label: 'Round Robin' },
-  { value: '1a rodada', label: '1a Rodada' },
-  { value: 'oitavas', label: 'Oitavas' },
-  { value: 'quartas', label: 'Quartas' },
-  { value: 'semifinal', label: 'Semifinal' },
-  { value: 'final', label: 'Final' },
-];
+import { ROUND_OPTIONS } from '../matchConstants';
+
+export { ROUND_OPTIONS };
+
 
 export function RoundSelector({ value, onChange, placeholder }: RoundSelectorProps) {
   return (

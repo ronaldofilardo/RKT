@@ -55,14 +55,42 @@ export function useScoringPageChrome(
     setNumber: 1,
   });
   const completedSetsCountRef = useRef<number>(derived.editScoreCompletedSets?.length ?? 0);
+  const isInitialLoadRef = useRef(true);
 
   useEffect(() => {
+    const isEditScoreFlow =
+      state.activeModal === 'edit-score' ||
+      (typeof window !== 'undefined' &&
+        new URLSearchParams(window.location.search).get('modal') === 'edit-score');
+
+    if (isEditScoreFlow) {
+      if (setSummaryModalState.isOpen) {
+        setSetSummaryModalState((prev) => ({ ...prev, isOpen: false }));
+      }
+      return;
+    }
+
+    if (state.isLoading) {
+      return;
+    }
+
     const currentCompleted = derived.editScoreCompletedSets?.length ?? 0;
+    if (isInitialLoadRef.current) {
+      isInitialLoadRef.current = false;
+      completedSetsCountRef.current = currentCompleted;
+      return;
+    }
+
     if (currentCompleted > completedSetsCountRef.current && currentCompleted > 0) {
       setSetSummaryModalState({ isOpen: true, setNumber: currentCompleted });
     }
     completedSetsCountRef.current = currentCompleted;
-  }, [derived.editScoreCompletedSets?.length]);
+  }, [
+    derived.editScoreCompletedSets?.length,
+    state.isLoading,
+    state.activeModal,
+    setSummaryModalState.isOpen,
+  ]);
 
   const openTimelineView = async () => {
     if (isTimelineLoading) return;

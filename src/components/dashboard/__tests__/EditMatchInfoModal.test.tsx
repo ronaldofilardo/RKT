@@ -50,11 +50,15 @@ describe('EditMatchInfoModal', () => {
 
     expect(screen.getByDisplayValue('Roland Garros')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Club de Tennis Paris')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('Profissional')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Final')).toBeInTheDocument();
     expect(screen.getByDisplayValue('28')).toBeInTheDocument();
     expect(screen.getByDisplayValue('50')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Bolas novas e vento leve')).toBeInTheDocument();
+
+    // Campos removidos não devem estar no documento
+    expect(screen.queryByLabelText(/Categoria/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Chave/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Tipo de Quadra/i)).not.toBeInTheDocument();
   });
 
   it('deve enviar requisição PATCH com dados atualizados e acionar onSuccess', async () => {
@@ -123,4 +127,32 @@ describe('EditMatchInfoModal', () => {
     fireEvent.click(cancelBtn);
     expect(dismissOverlay).toHaveBeenCalledTimes(1);
   });
+
+  it('deve renderizar o campo Rodada como um droplist (select) com as opções de rodada', () => {
+    render(
+      <EditMatchInfoModal
+        match={baseMatch}
+        onClose={jest.fn()}
+        onSuccess={jest.fn()}
+      />
+    );
+
+    const roundSelect = screen.getByRole('combobox', { name: /Rodada/i });
+    expect(roundSelect).toBeInTheDocument();
+    expect(roundSelect.tagName.toLowerCase()).toBe('select');
+
+    // Opções de rodada devem estar presentes
+    expect(screen.getByRole('option', { name: 'Selecione a rodada' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Round Robin' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '1a Rodada' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Oitavas' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Quartas' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Semifinal' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Final' })).toBeInTheDocument();
+
+    // Deve permitir alterar a seleção no droplist
+    fireEvent.change(roundSelect, { target: { value: 'semifinal' } });
+    expect((roundSelect as HTMLSelectElement).value).toBe('semifinal');
+  });
 });
+
