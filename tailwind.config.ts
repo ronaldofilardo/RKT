@@ -213,6 +213,8 @@ const config: Config = {
         'elev-ring': '0 0 0 1px #e0e2e6',
         'elev-raised': '0 0 1px rgba(0, 0, 0, 0.32), 0 2px 4px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.08)',
         'focus-ring': '0 0 0 3px rgba(27, 97, 201, 0.3)',
+        'telemetry-volt': 'var(--telemetry-glow-volt)',
+        'telemetry-blue': 'var(--telemetry-glow-blue)',
       },
       /**
        * TRANSITIONS (Motion)

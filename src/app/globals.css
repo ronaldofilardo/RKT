@@ -42,6 +42,9 @@
   --clr-yellow: #f59e0b;
   --clr-yellow-glow: rgba(251, 191, 36, 0.15);
 
+  --telemetry-glow-volt: 0 0 12px rgba(204, 255, 0, 0.28);
+  --telemetry-glow-blue: 0 0 12px rgba(37, 99, 235, 0.30);
+
   --body-bg: #0A0F1D;
   --body-fg: #F8FAFC;
 }
@@ -77,6 +80,9 @@
     --clr-yellow: #d97706;
     --clr-yellow-glow: rgba(217, 119, 6, 0.15);
 
+    --telemetry-glow-volt: 0 0 8px rgba(101, 163, 13, 0.25);
+    --telemetry-glow-blue: 0 0 10px rgba(37, 99, 235, 0.25);
+
     --body-bg: #F1F5F9;
     --body-fg: #0F172A;
   }
@@ -111,6 +117,9 @@
   --court-surface: #1e293b;
   --clr-yellow: #f59e0b;
   --clr-yellow-glow: rgba(251, 191, 36, 0.15);
+
+  --telemetry-glow-volt: 0 0 12px rgba(204, 255, 0, 0.28);
+  --telemetry-glow-blue: 0 0 12px rgba(37, 99, 235, 0.30);
 
   --body-bg: #0A0F1D;
   --body-fg: #F8FAFC;

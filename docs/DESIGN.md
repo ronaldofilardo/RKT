@@ -112,7 +112,7 @@ Sobrescrita local: `.text-4xl { font-size: 1.75rem; }` em `globals.css:283`.
 | **Espaço (base 4px)** | `space-1:4` `space-2:8` `space-3:12` `space-4:16` `space-5:20` `space-6:24` `space-8:32` `space-12:48` |
 | **Seção** | `section-y-desktop:96px` · `section-y-tablet:64px` · `section-y-phone:48px` |
 | **Raio** | `radius-sm:12px` (botões) · `radius-md:16px` (cards) · `radius-lg:24px` · `radius-pill:9999px` |
-| **Elevação** | `elev-flat:none` · `elev-ring:0 0 0 1px #e0e2e6` · `elev-raised:0 1px 32% + 0 2px 4px 8% + 0 8px 16px 8%` |
+| **Elevação** | `elev-flat:none` · `elev-ring:0 0 0 1px #e0e2e6` · `elev-raised:0 1px 32% + 0 2px 4px 8% + 0 8px 16px 8%` · `shadow-telemetry-volt: 0 0 12px volt (glow tátil Stitch)` · `shadow-telemetry-blue: 0 0 12px blue (glow seleção Stitch)` |
 | **Focus** | `focus-ring:0 0 0 3px rgba(27,97,201,.3)` / `color-mix(in srgb, var(--accent) 30%, transparent)` |
 | **Motion** | `motion-fast:150ms` · `motion-base:200ms` · `ease-standard:cubic-bezier(.2,0,0,1)` |
 | **Container** | `max-w-container:1200px` · gutter desktop 24px / tablet 16px / phone 12px |
