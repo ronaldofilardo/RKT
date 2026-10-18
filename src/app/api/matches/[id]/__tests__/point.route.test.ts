@@ -42,6 +42,7 @@ jest.mock('@/core/scoring/engine', () => ({
       startedAt: null,
       secondServe: false,
     });
+    this.getServer = jest.fn().mockReturnValue('player1');
     this.serialize = jest.fn().mockReturnValue(JSON.stringify({
       state: {
         sets: [],

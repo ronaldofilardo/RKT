@@ -149,6 +149,27 @@ export async function POST(
         logger.point.engineCreated();
         const engine = restoreEngineFromMatch(match as Parameters<typeof restoreEngineFromMatch>[0]);
 
+        // Modo Sombra (D5): auditar se parsed.data.serverId coincide com o engine restaurado sem bloquear
+        const expectedEngineServer = typeof engine.getServer === 'function'
+          ? engine.getServer()
+          : (typeof engine.getState === 'function' ? engine.getState().server : undefined);
+        const expectedServerId = expectedEngineServer === 'player1'
+          ? match.player1Id
+          : expectedEngineServer === 'player2'
+          ? match.player2Id
+          : undefined;
+
+        if (parsed.data.serverId && expectedServerId && parsed.data.serverId !== expectedServerId) {
+          logger.warn({
+            message: '[POST /point shadow-mode] serverId mismatch',
+            matchId: id,
+            receivedServerId: parsed.data.serverId,
+            expectedServerId,
+            engineServer: expectedEngineServer,
+            sequenceNumber: parsed.data.sequenceNumber,
+          });
+        }
+
         logger.point.applying(parsed.data);
         let newState: ScoringState;
         try {
@@ -212,12 +233,46 @@ export async function POST(
           rallyLength: parsed.data.rallyLength,
         });
 
+        const nowMs = Date.now();
+        let validatedTimestamp: Date;
+
+        if (parsed.data.timestamp) {
+          const clientMs = typeof parsed.data.timestamp === 'number'
+            ? parsed.data.timestamp
+            : new Date(parsed.data.timestamp).getTime();
+
+          const maxAllowedFuture = nowMs + 5 * 60 * 1000;
+          const matchStartMs = match.startedAt ? new Date(match.startedAt).getTime() : match.createdAt.getTime();
+          const minAllowedPast = matchStartMs - 60 * 60 * 1000;
+
+          if (clientMs > maxAllowedFuture) {
+            logger.warn({
+              message: '[POST /point] client timestamp in future clamped to now',
+              clientMs,
+              nowMs,
+            });
+            validatedTimestamp = new Date(nowMs);
+          } else if (clientMs < minAllowedPast) {
+            logger.warn({
+              message: '[POST /point] client timestamp too far in past clamped to match start',
+              clientMs,
+              matchStartMs,
+            });
+            validatedTimestamp = new Date(matchStartMs);
+          } else {
+            validatedTimestamp = new Date(clientMs);
+          }
+        } else {
+          validatedTimestamp = new Date(nowMs);
+        }
+
         const pointLog = await tx.pointLog.create({
           data: {
             matchId: match.id,
             winnerId: parsed.data.winnerId,
             type: parsed.data.type,
             serverId: parsed.data.serverId,
+            timestamp: validatedTimestamp,
             annotations,
             sequenceNumber: nextSequenceNumber,
             clientEventId: parsed.data.clientEventId,

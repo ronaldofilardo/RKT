@@ -7,8 +7,33 @@ import type { MatchData } from './useScoringHandlers.types';
 /** Envelope que o servidor pode devolver no `scoreState` (ver persistStateWithRetry). */
 type ScoreStateEnvelope = { state?: ScoringState; history?: HistoryEntry[] };
 
+export interface ActiveLogSummary {
+  id: string;
+  winnerId: string;
+  serverId: string;
+  type: string;
+  sequenceNumber?: number | null;
+  annotations?: {
+    firstFaultDetail?: { errorType?: string; serveEffect?: string; direction?: string } | null;
+    rallyDetails?: any;
+    rallyLength?: number;
+    isFirstServe?: boolean;
+    isSecondServe?: boolean;
+    note?: string;
+  } | null;
+  timestamp?: string | Date;
+}
+
 /** Campo defensivo: alguns servidores podem devolver além do schema atual. */
-type MatchDataWithSequence = MatchData & { lastPointSequence?: number };
+type MatchDataWithSequence = MatchData & {
+  lastPointSequence?: number;
+  lastScoreEdit?: {
+    id: string;
+    editedAt: string | Date;
+    newScoreState: unknown;
+  } | null;
+  activeLogsSinceEdit?: ActiveLogSummary[];
+};
 
 interface MatchFetchDeps {
   matchId: string;
@@ -76,68 +101,95 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
           initialServerId: data.initialServerId || data.player1.id,
         };
 
-        // BUG FIX (Voltar inativo): o scoreState do servidor não inclui o
-        // array `history`, então o engine recriado nasce com histórico vazio
-        // → getHistoryLength() === 0 → botão "Voltar" desabilitado mesmo com
-        // pontos registrados (ex.: após offline-sync-complete ou resync).
-        // Capturar o histórico do engine anterior antes de substituí-lo,
-        // no mesmo padrão de applySuccessResult (point-processor.service).
         const previousHistory = engineRef.current?.getPointHistory?.() ?? [];
+        let rehydratedViaLogs = false;
 
-        let scoreStateToUse: ScoringState | ScoreStateEnvelope | string | null = data.scoreState;
-
-        if (scoreStateToUse) {
-          if (typeof scoreStateToUse === 'string') {
-            try {
-              scoreStateToUse = JSON.parse(scoreStateToUse) as ScoringState | ScoreStateEnvelope;
-            } catch (error) {
-              logger.warn('[MATCH FETCH] Falha ao parsear scoreState string; seguindo com o valor original:', error);
+        const hasActiveLogs = Array.isArray(data.activeLogsSinceEdit) && data.activeLogsSinceEdit.length > 0;
+        if (hasActiveLogs) {
+          try {
+            let rehydratedEngine: ScoringEngine;
+            if (data.lastScoreEdit?.newScoreState) {
+              rehydratedEngine = ScoringEngine.fromSerialized(config, JSON.stringify(data.lastScoreEdit.newScoreState));
+            } else {
+              rehydratedEngine = new ScoringEngine(config);
             }
-          }
-          const envelope: ScoreStateEnvelope | null =
-            typeof scoreStateToUse === 'object' && scoreStateToUse !== null
-              ? (scoreStateToUse as ScoreStateEnvelope)
-              : null;
-          const targetObj = (envelope?.state ? envelope.state : (scoreStateToUse as ScoringState))!;
-          if (!targetObj.setsWon) {
-            targetObj.setsWon = { player1: 0, player2: 0 };
-          }
 
-          const hasHistory = Array.isArray(envelope?.history) && envelope.history.length > 0;
-          const hasPointsInGame = Boolean(
-            targetObj?.currentGame && (targetObj.currentGame.player1 > 0 || targetObj.currentGame.player2 > 0)
-          );
-          const hasGamesInSets = (targetObj?.sets ?? []).some(
-            (s) => (s.player1 || 0) > 0 || (s.player2 || 0) > 0
-          );
-          const hasStartedScoring = hasHistory || hasPointsInGame || hasGamesInSets;
+            for (const log of data.activeLogsSinceEdit!) {
+              const ann = log.annotations;
+              const firstFaultDetail = ann?.firstFaultDetail ?? null;
+              const isSecondServe =
+                log.type === 'DOUBLE_FAULT' ||
+                Boolean(firstFaultDetail) ||
+                ann?.isSecondServe === true ||
+                ann?.isFirstServe === false;
+              const isFirstServe = !isSecondServe;
 
-          if (data.initialServerId || hasStartedScoring) {
-            engineRef.current = ScoringEngine.fromSerialized(config, JSON.stringify(scoreStateToUse));
+              rehydratedEngine.applyPoint({
+                winnerId: log.winnerId,
+                type: log.type,
+                serverId: log.serverId,
+                timestamp: log.timestamp ? new Date(log.timestamp).getTime() : Date.now(),
+                isFirstServe,
+                isSecondServe,
+                firstFault: log.type === 'FAULT_FIRST',
+                firstFaultDetail,
+                rallyDetails: ann?.rallyDetails ?? null,
+                rallyLength: ann?.rallyLength,
+              });
+            }
+
+            engineRef.current = rehydratedEngine;
+            rehydratedViaLogs = true;
+          } catch (replayError) {
+            logger.warn('[MATCH FETCH] Replay de activeLogsSinceEdit falhou; caindo para fromSerialized:', replayError);
+          }
+        }
+
+        if (!rehydratedViaLogs) {
+          let scoreStateToUse: ScoringState | ScoreStateEnvelope | string | null = data.scoreState;
+
+          if (scoreStateToUse) {
+            if (typeof scoreStateToUse === 'string') {
+              try {
+                scoreStateToUse = JSON.parse(scoreStateToUse) as ScoringState | ScoreStateEnvelope;
+              } catch (error) {
+                logger.warn('[MATCH FETCH] Falha ao parsear scoreState string; seguindo com o valor original:', error);
+              }
+            }
+            const envelope: ScoreStateEnvelope | null =
+              typeof scoreStateToUse === 'object' && scoreStateToUse !== null
+                ? (scoreStateToUse as ScoreStateEnvelope)
+                : null;
+            const targetObj = (envelope?.state ? envelope.state : (scoreStateToUse as ScoringState))!;
+            if (!targetObj.setsWon) {
+              targetObj.setsWon = { player1: 0, player2: 0 };
+            }
+
+            const hasHistory = Array.isArray(envelope?.history) && envelope.history.length > 0;
+            const hasPointsInGame = Boolean(
+              targetObj?.currentGame && (targetObj.currentGame.player1 > 0 || targetObj.currentGame.player2 > 0)
+            );
+            const hasGamesInSets = (targetObj?.sets ?? []).some(
+              (s) => (s.player1 || 0) > 0 || (s.player2 || 0) > 0
+            );
+            const hasStartedScoring = hasHistory || hasPointsInGame || hasGamesInSets;
+
+            if (data.initialServerId || hasStartedScoring) {
+              engineRef.current = ScoringEngine.fromSerialized(config, JSON.stringify(scoreStateToUse));
+            } else {
+              openRef.current('setup');
+            }
+          } else if (data.initialServerId) {
+            engineRef.current = new ScoringEngine(config);
           } else {
             openRef.current('setup');
           }
-        } else if (data.initialServerId) {
-          engineRef.current = new ScoringEngine(config);
-        } else {
-          openRef.current('setup');
         }
 
-        // BUG FIX (2026-09-27) — timeline "cortada" em /scoring: a condição
-        // acima só restaurava previousHistory quando o servidor não mandava
-        // NENHUM array `history` — mas matches antigos/ainda não corrigidos
-        // no servidor (ver restoreEngineFromMatch em route.logic.ts)
-        // podiam persistir um `history` que É um array, só que incompleto
-        // (ex.: só o último ponto). Nesse caso a engine recém-criada ficava
-        // com um histórico mais curto do que o engine anterior já tinha em
-        // memória, e a timeline (alimentada por getPointHistory()) exibia
-        // menos pontos do que os realmente jogados até um novo ponto local
-        // reconstruir o resto. Agora comparamos os tamanhos e mantemos o
-        // histórico mais completo dos dois.
-        const serverHistoryLength = Array.isArray((scoreStateToUse as ScoreStateEnvelope | null)?.history)
-          ? ((scoreStateToUse as ScoreStateEnvelope).history as HistoryEntry[]).length
+        const serverHistoryLength = Array.isArray((data.scoreState as ScoreStateEnvelope | null)?.history)
+          ? ((data.scoreState as ScoreStateEnvelope).history as HistoryEntry[]).length
           : 0;
-        if (engineRef.current && previousHistory.length > serverHistoryLength) {
+        if (!rehydratedViaLogs && engineRef.current && previousHistory.length > serverHistoryLength) {
           engineRef.current.restorePointHistory(previousHistory);
         }
 

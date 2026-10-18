@@ -54,7 +54,6 @@ export interface PointDetails {
   type: ContractPointType;
   isFirstServe: boolean;
   isSecondServe: boolean;
-  isLet: boolean;
   serverId: string;
   timestamp: number;
   rallyDetails?: ContractRallyDetails | null;
@@ -85,7 +84,6 @@ export interface PointFlow {
   timestamp?: number;
   isFirstServe?: boolean;
   isSecondServe?: boolean;
-  isLet?: boolean;
   firstFault?: boolean;
   rallyDetails?: ContractRallyDetails | null;
   rallyLength?: number;

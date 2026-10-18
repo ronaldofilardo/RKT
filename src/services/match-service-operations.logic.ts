@@ -110,13 +110,24 @@ export async function recordScoreEditSegment(
   const shouldRecordSegment = Boolean(options?.isManualScoreEdit) && Boolean(newScoreState);
   if (!shouldRecordSegment) return;
 
+  const maxRow = await tx.pointLog.aggregate({
+    where: { matchId, voidedAt: null, sequenceNumber: { not: null } },
+    _max: { sequenceNumber: true },
+  });
+  const maxSeq = maxRow._max.sequenceNumber ?? 0;
+
+  const enrichedNewScoreState =
+    typeof newScoreState === 'object' && newScoreState !== null
+      ? { ...(newScoreState as Record<string, unknown>), pointLogSequenceAtEdit: maxSeq }
+      : newScoreState;
+
   await tx.matchScoreEdit.create({
     data: {
       matchId,
       editedByUserId: options?.editedByUserId ?? null,
       note: options?.note ?? null,
       previousScoreState: (previousScoreState ?? {}) as Prisma.InputJsonValue,
-      newScoreState: newScoreState as Prisma.InputJsonValue,
+      newScoreState: enrichedNewScoreState as Prisma.InputJsonValue,
     },
   });
 }

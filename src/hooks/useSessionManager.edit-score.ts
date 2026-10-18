@@ -194,12 +194,13 @@ export async function executeScoreEdit(options: ExecuteEditScoreOptions): Promis
     setSuspendedSession(null);
     ctx.clearQueueForMatch?.(matchId);
 
-    if (isFinished && winner && onMatchFinished) {
-      onMatchFinished(winner);
+    if (isFinished) {
+      if (winner && onMatchFinished) {
+        onMatchFinished(winner);
+      }
+      await abandonCurrentSession();
+      setSessionActive(false);
     }
-
-    await abandonCurrentSession();
-    setSessionActive(false);
     (ctx.closeAll ?? ctx.close)();
   } finally {
     if (ctx.isProcessingRef) {

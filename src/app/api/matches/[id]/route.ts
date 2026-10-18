@@ -101,7 +101,49 @@ export async function GET(
       });
       const recentWinnerIds = recentLogs.reverse().map((l) => l.winnerId);
 
-      return NextResponse.json({ ...match, lastPointSequence, recentWinnerIds });
+      const lastScoreEdit = await prisma.matchScoreEdit.findFirst({
+        where: { matchId: id },
+        orderBy: { editedAt: 'desc' },
+        select: {
+          id: true,
+          editedAt: true,
+          newScoreState: true,
+        },
+      });
+
+      const editSeq =
+        lastScoreEdit &&
+        typeof lastScoreEdit.newScoreState === 'object' &&
+        lastScoreEdit.newScoreState !== null &&
+        'pointLogSequenceAtEdit' in (lastScoreEdit.newScoreState as Record<string, unknown>)
+          ? ((lastScoreEdit.newScoreState as Record<string, unknown>).pointLogSequenceAtEdit as number)
+          : 0;
+
+      const activeLogsSinceEdit = await prisma.pointLog.findMany({
+        where: {
+          matchId: id,
+          voidedAt: null,
+          ...(editSeq > 0 ? { sequenceNumber: { gt: editSeq } } : {}),
+        },
+        orderBy: { sequenceNumber: 'asc' },
+        select: {
+          id: true,
+          winnerId: true,
+          serverId: true,
+          type: true,
+          sequenceNumber: true,
+          annotations: true,
+          timestamp: true,
+        },
+      });
+
+      return NextResponse.json({
+        ...match,
+        lastPointSequence,
+        recentWinnerIds,
+        lastScoreEdit,
+        activeLogsSinceEdit,
+      });
     } catch (error) {
       logger.error('[MATCH GET]', error);
       return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });

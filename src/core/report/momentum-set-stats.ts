@@ -122,8 +122,16 @@ function updateWinnerAndErrorStats(entry: SetBreakdown, p: TimelinePoint): void 
     if (p.winner === 'PLAYER_2') entry.p2Winners++;
     return;
   }
+
+  if (p.type === 'DOUBLE_FAULT') {
+    // D2: Em erros totais do set, entra como erro do sacador com atribuição explícita
+    if (p.server === 'player1') entry.p1Errors++;
+    else if (p.server === 'player2') entry.p2Errors++;
+    return;
+  }
+
   const isForced = tipo === 'erro_forcado' || p.type === 'FORCED_ERROR';
-  const isUnforced = tipo === 'erro_nao_forcado' || p.type === 'UNFORCED_ERROR' || p.type === 'DOUBLE_FAULT';
+  const isUnforced = tipo === 'erro_nao_forcado' || p.type === 'UNFORCED_ERROR';
   if (isForced || isUnforced) {
     if (p.winner === 'PLAYER_2') entry.p1Errors++;
     if (p.winner === 'PLAYER_1') entry.p2Errors++;

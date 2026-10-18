@@ -60,7 +60,6 @@ function buildPointDetails(flow: PointFlow, isSecondServeState = false): PointDe
     type: (flow.type as PointDetails['type']) || 'WINNER',
     isFirstServe,
     isSecondServe,
-    isLet: flow.isLet ?? false,
     serverId: flow.serverId,
     timestamp: flow.timestamp ?? Date.now(),
     rallyDetails: flow.rallyDetails ?? null,
@@ -226,7 +225,28 @@ export class ScoringEngine {
       (acc, s) => acc + (s.player1 || 0) + (s.player2 || 0),
       0
     );
-    if (totalCompletedGames === 0 && config.initialServerId) {
+    const hasCurrentGamePoints = Boolean(
+      state.currentGame && (
+        state.currentGame.player1 > 0 ||
+        state.currentGame.player2 > 0 ||
+        Boolean(state.currentGame.advantage) ||
+        state.currentGame.secondServe
+      )
+    );
+    const hasTiebreakPoints = Boolean(
+      (state.sets ?? []).some(
+        (s) => s.tiebreakScore && (s.tiebreakScore.player1 > 0 || s.tiebreakScore.player2 > 0)
+      )
+    );
+    const isVirginState =
+      config.format !== 'MATCH_TB_10' &&
+      totalCompletedGames === 0 &&
+      !hasCurrentGamePoints &&
+      !hasTiebreakPoints &&
+      history.length === 0 &&
+      state.startedAt == null;
+
+    if (isVirginState && config.initialServerId) {
       state.server = config.initialServerId === config.player2Id ? 'player2' : 'player1';
     }
 

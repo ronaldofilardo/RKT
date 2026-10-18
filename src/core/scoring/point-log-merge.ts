@@ -54,7 +54,6 @@ export function buildPointDetailsFromLog(log: PointLogRow): PointDetails {
     type: log.type as PointDetails['type'],
     isFirstServe,
     isSecondServe,
-    isLet: false,
     serverId: log.serverId,
     timestamp: log.timestamp.getTime(),
     rallyDetails: ann?.rallyDetails ?? null,
