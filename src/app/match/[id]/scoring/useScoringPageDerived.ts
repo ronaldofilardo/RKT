@@ -189,7 +189,29 @@ export function useScoringPageDerived(
       (acc, s) => acc + (s.player1 || 0) + (s.player2 || 0),
       0
     );
-    if (totalGames === 0 && match.initialServerId) {
+    const hasCurrentGamePoints = Boolean(
+      effectiveScoreState.currentGame && (
+        (effectiveScoreState.currentGame.player1 || 0) > 0 ||
+        (effectiveScoreState.currentGame.player2 || 0) > 0 ||
+        Boolean(effectiveScoreState.currentGame.advantage) ||
+        effectiveScoreState.currentGame.secondServe
+      )
+    );
+    const hasTiebreakPoints = Boolean(
+      (effectiveScoreState.sets ?? []).some(
+        (s) => s.tiebreakScore && (
+          (s.tiebreakScore.player1 || 0) > 0 ||
+          (s.tiebreakScore.player2 || 0) > 0
+        )
+      )
+    );
+
+    const isVirginState =
+      totalGames === 0 &&
+      !hasCurrentGamePoints &&
+      !hasTiebreakPoints;
+
+    if (isVirginState && match.initialServerId) {
       resolvedServer = match.initialServerId === match.player2.id ? "player2" : "player1";
     }
 
