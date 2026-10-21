@@ -165,9 +165,9 @@ export function shouldShowDuracao(
 }
 
 export const DURACAO_OPTIONS: { value: RallyDuration; label: string }[] = [
-  { value: 'opcao_1', label: '3 a 6 bolas' },
-  { value: 'opcao_2', label: '7 a 10 bolas' },
-  { value: 'opcao_3', label: 'Mais de 11 bolas' },
+  { value: 'opcao_1', label: '1-4 bolas' },
+  { value: 'opcao_2', label: '5-8 bolas' },
+  { value: 'opcao_3', label: '+9 bolas' },
 ];
 
 export function shouldShowEfeito(

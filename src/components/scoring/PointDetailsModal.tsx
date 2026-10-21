@@ -8,7 +8,6 @@ import { SectionRenderer } from './SectionRenderer';
 import { PointDetailsNotesModal } from './PointDetailsNotesModal';
 import { PointDetailsCloseDialog } from './PointDetailsCloseDialog';
 import { usePointDetailsModal } from './use-point-details-modal';
-import { PointDetailsBreadcrumb, type BreadcrumbStep } from './point-details-breadcrumb';
 
 interface PointDetailsModalProps {
   winnerPlayerSide: 'player1' | 'player2';
@@ -34,29 +33,6 @@ export function PointDetailsModal({
     noteText, hasNoteAudio, form, dispatch, refs, vencedor, winnerName,
     cancelCurrentAction, canConfirm, confirmPointDetails, discardChanges, persistNoteContent,
   } = usePointDetailsModal({ winnerPlayerSide, currentServer, player1Name, player2Name, onConfirm, onCancel });
-
-  const handleNavigateStep = (step: BreadcrumbStep) => {
-    const targetRef =
-      step === 'tipo'
-        ? refs.tipoRef
-        : step === 'golpe'
-        ? refs.golpeRef
-        : step === 'subtipo1'
-        ? refs.subtipo1Ref
-        : step === 'efeito'
-        ? refs.efeitoRef
-        : step === 'direcao'
-        ? refs.direcaoRef
-        : step === 'duracao'
-        ? refs.duracaoRef
-        : null;
-
-    if (targetRef?.current) {
-      targetRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    } else if (step === 'situacao' && refs.containerRef?.current) {
-      refs.containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
 
   if (!mounted) return null;
 
@@ -84,11 +60,6 @@ export function PointDetailsModal({
         tabIndex={-1}
       >
         <WinnerInfo vencedor={vencedor} winnerName={winnerName} />
-        <PointDetailsBreadcrumb
-          form={form}
-          vencedor={vencedor}
-          onNavigateStep={handleNavigateStep}
-        />
         <SectionRenderer form={form} vencedor={vencedor} dispatch={dispatch} refs={refs} />
         <ModalActions
           canConfirm={canConfirm}

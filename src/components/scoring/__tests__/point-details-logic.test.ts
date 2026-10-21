@@ -200,9 +200,9 @@ describe('point-details-logic', () => {
     });
 
     it('deve ter labels corretos', () => {
-      expect(DURACAO_OPTIONS[0].label).toBe('3 a 6 bolas');
-      expect(DURACAO_OPTIONS[1].label).toBe('7 a 10 bolas');
-      expect(DURACAO_OPTIONS[2].label).toBe('Mais de 11 bolas');
+      expect(DURACAO_OPTIONS[0].label).toBe('1-4 bolas');
+      expect(DURACAO_OPTIONS[1].label).toBe('5-8 bolas');
+      expect(DURACAO_OPTIONS[2].label).toBe('+9 bolas');
     });
   });
 

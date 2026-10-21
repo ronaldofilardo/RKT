@@ -10,7 +10,7 @@ export function TimelineLegend({ player1Name, player2Name }: { player1Name: stri
       <p><strong>ERRO</strong> = tipo de erro na rede (Pass = Passada, DEV = Devolução). <strong>ONDE</strong> = onde errou (out, net).</p>
       <p><strong>SITUAÇÃO</strong> (DEV, FQ, Rede, Pass, Sq) / <strong>GOLPE</strong> (FH, BH, VFH, VBH, Sm) / <strong>EFEITO</strong> (Top, Sl, Flat) / <strong>DIREÇÃO</strong> (X, Parl, Ce, In Out, In In, Ab, Fe) descrevem como o ponto terminou.</p>
       <p><strong>ESPECIAL</strong> = golpe especial (Lob, Drop, SV, bate-pronto).</p>
-      <p><strong>RALLY</strong> = faixa de bolas trocadas conforme duração marcada (3-6, 7-10, 11+).</p>
+      <p><strong>RALLY</strong> = faixa de bolas trocadas conforme duração marcada (1-4, 5-8, +9).</p>
     </div>
   );
 }

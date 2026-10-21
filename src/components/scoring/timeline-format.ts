@@ -83,16 +83,15 @@ export function subtipo2Label(s?: string): string {
 
 export function duracaoLabel(s?: string): string {
   if (!s) return '–';
-  const map: Record<string, string> = { opcao_1: '3-6', opcao_2: '7-10', opcao_3: '11+' };
+  const map: Record<string, string> = { opcao_1: '1-4', opcao_2: '5-8', opcao_3: '+9' };
   return map[s] ?? s;
 }
 
 export function trocasFaixaLabel(rallyLength?: number): string {
   const n = rallyLength ?? 1;
-  if (n <= 2) return '1-2';
-  if (n <= 6) return '3-6';
-  if (n <= 10) return '7-10';
-  return '11+';
+  if (n <= 4) return '1-4';
+  if (n <= 8) return '5-8';
+  return '+9';
 }
 
 export function tipoLabel(s?: string): string {

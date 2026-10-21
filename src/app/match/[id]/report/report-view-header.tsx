@@ -27,7 +27,7 @@ export function ReportHeader({ report, onContinue, onDashboard, onExport }: Repo
   if (courtLabel) metaItems.push(courtLabel);
 
   return (
-    <header className="bg-telemetry-card border-b border-white/10 px-6 py-4">
+    <header className="sticky top-0 z-30 bg-telemetry-card/95 backdrop-blur-md border-b border-white/10 px-6 py-4 shadow-md">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-telemetry-text-primary">Relatório da Partida</h1>

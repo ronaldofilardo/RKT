@@ -249,7 +249,7 @@ describe('SectionRenderer', () => {
         { situacao: 'fundo', tipo: 'winner', golpe: 'fh' },
         'sacador',
       );
-      fireEvent.click(screen.getByText('3 a 6 bolas'));
+      fireEvent.click(screen.getByText('1-4 bolas'));
       expect(dispatch).toHaveBeenCalledWith({ type: 'SET_DURACAO', value: 'opcao_1' });
     });
 
