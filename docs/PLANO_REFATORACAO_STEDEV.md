@@ -537,6 +537,9 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-22 | **S3 (top-10 #9)** `DoublesServerSelectionModal.tsx`: estado e montagem do `DoublesSetup` extraídos para `use-doubles-server-selection.ts`; characterization `DashboardMatchModals.doubles` (3 testes) preservada | Concluído (`f51d99a`) |
 | 2026-10-22 | **S3 (top-10 #7)** Exceção R-03 declarada para `src/schemas/match.ts` (282L): arquivo canônico de definições Zod dos contratos de partida — côngruo acima de 100L; corte não se aplica | Registrado |
 | 2026-10-22 | Débito observado (S3 #8): `useCommentOfflineSync.ts` mantém `getDb` próprio sem cache (mesmo `DB_NAME`/`DB_VERSION`) — unificar com `use-offline-sync.db.ts` em V-08 | Débito |
+| 2026-10-22 | **S3 (top-10 #1a)** `useScoringHandlers.ts`: `updateDoublesArrangement` → `useScoringHandlers.arrangement.service.ts` com POST unificado (elimina duplicação R-01 das duas chamadas fetch) | Concluído (`413a675`) |
+| 2026-10-22 | **S3 (top-10 #1b)** `useScoringHandlers.ts`: `persistState` → `useScoringHandlers.persist.ts`; orquestrador 387 → 288 linhas nas duas fatias | Concluído (`8f79e64`) |
+| 2026-10-22 | **S3 (top-10 #10)** Verificação de coesão de `serve-actions.service.ts`: duplicação confirmada de `firstFaultDetail`/`isSecond` (4×); **corte adiado** — as únicas suítes que cobrem as ações de saque (`useScoringHandlers.test.ts`, `useScoringHandlers.real.test.ts`) são falhas pré-existentes do baseline, sem characterization verde (R-15). Pré-requisito: characterization de `createServeActionsService` com deps mockadas | Adiado |
 
 **Verificação (após cada fatia):** `pnpm typecheck` verde. Suítes afetadas executadas via `node scripts/run-tests.js --ci "<padrão>"`.
 
@@ -544,7 +547,9 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 
 **Suíte completa (`pnpm test:strict`) em `0c34486`:** 324 suítes / 3302 testes → 7 suítes e 25 testes falham — **idênticos ao baseline**, zero regressão das fatias V-01..V-06.
 
-**Próximos (S3→S4):** reforço do V-07 concluído (branch 94,28%) → top-10 `.ts` > 100L (R-03) com os 3 módulos liberados → V-08 (unificação semântica dos edit-score, R-01) → V-09 (hex `CourtBackground`, R-12).
+**Suíte completa após as fatias S3 (`8f79e64`):** 7 suítes e 25 testes falham — **idênticos ao baseline**, zero regressão das fatias S3 (#5, #3a, #3b, #6, #8, #9, #1a, #1b).
+
+**Próximos (S3→S4):** S3 em curso — concluídos #5, #3, #6, #7 (exceção), #8, #9 e #1 (duas fatias); restam #10 (adiado por ausência de characterization verde) e V-08 (#2+#4 unificação dos edit-score, R-01) → V-09 (hex `CourtBackground`, R-12).
 
 
 
