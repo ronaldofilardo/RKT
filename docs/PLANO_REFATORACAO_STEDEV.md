@@ -544,6 +544,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-22 | **V-08b** (R-01) `edit-score-logic.ts` + `edit-score-logic.types.ts` → **`edit-score-state.ts`** + **`edit-score-state.types.ts`**; testes renomeados (`edit-score-state*.test.ts`); 30 consumidores atualizados; glossário §6 com papéis domain/state/validation da família | Concluído (`48d711b`) |
 | 2026-10-22 | Gates V-08: `pnpm typecheck` verde; suítes edit-score/session/scoring: **49 suítes / 625 testes verdes** (antes e depois de cada renome); zero resíduos de `edit-score.logic`/`edit-score-logic` em `src/` | Concluído |
 | 2026-10-22 | **V-09** (R-12) `CourtBackground.tsx`: removido `lines: '#ffffff'` (4×) — campo **dead code** (as linhas do JSX usam `bg-white/30`/`border-white/30`); junto removido `label` (também unused). Fundo permanece em token `--telemetry-court-*` | Concluído (`7b3c55b`) |
+| 2026-10-22 | **Débito S3 #8 (getDb)** `useCommentOfflineSync.ts`: `getDb` local (sem cache, duplicado) → `getOfflineDb()` de `use-offline-sync.db.ts` (cache compartilhado + handlers blocked/blocking/terminated); `COMMENT_STORE_NAME` exportado do módulo de transporte. Characterization prévia R-15: `useCommentOfflineSync.characterization.test.ts` (3 testes: enqueue PENDING, flush com POST/remoção/evento, retry→FAILED) | Concluído (`fdde293`) |
 
 **Verificação (após cada fatia):** `pnpm typecheck` verde. Suítes afetadas executadas via `node scripts/run-tests.js --ci "<padrão>"`.
 
@@ -553,7 +554,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 
 **Suíte completa após as fatias S3 (`8f79e64`):** 7 suítes e 25 testes falham — **idênticos ao baseline**, zero regressão das fatias S3 (#5, #3a, #3b, #6, #8, #9, #1a, #1b).
 
-**Próximos (S3→S4):** S3 concluída (#5, #3, #6, #7 exceção, #8, #9, #1 — #10 adiado por ausência de characterization verde). V-08 concluído em duas fatias de renome (`2c3f354`, `48d711b`). Restam: **#2** (extrair domínio puro de `use-edit-score-calculator.ts` para `src/core/scoring/`, agora sem colisão de nomes — prerequisite: verificar direção de dependência para não inverter camadas), unificação de `getDb` (`useCommentOfflineSync` → `use-offline-sync.db.ts`), characterization de `createServeActionsService` (destrava #10) e **V-09** (hex `CourtBackground`, R-12).
+**Próximos (S3→S4):** S3 concluída (#5, #3, #6, #7 exceção, #8, #9, #1 — #10 adiado). V-08 concluído em duas fatias de renome (`2c3f354`, `48d711b`); V-09 concluído (`7b3c55b`); unificação de `getDb` concluída (`fdde293`). Restam: **#2** (extrair domínio puro de `use-edit-score-calculator.ts` para `src/core/scoring/` — prerequisite: checar direção de dependência para não inverter camadas) e characterization de `createServeActionsService` (destrava #10).
 
 
 
