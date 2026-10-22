@@ -452,15 +452,19 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 >
 > **Resolução V-06 (2026-10-22):** 14 arquivos tipados; varredura de produção com `: any|as any|<any>|any[]` retorna **zero** ocorrências (só comentários). Commit `89e2e96`.
 >
-> **Resolução V-07 (2026-10-22) — pré-condição R-15 verificada:** os 3 módulos legados já possuem characterization tests dedicados que passam (23 suítes / 374 testes). Cobertura medida com `--coverage` direcionado:
+> **Resolução V-07 (2026-10-22) — pré-condição R-15 verificada:** os 3 módulos legados já possuem characterization tests dedicados que passam. Cobertura medida com `--coverage` direcionado **antes** e **depois** do reforço dos ramos do calculator:
 >
 > | Módulo | Stmts | Branch | Testes |
 > |---|---|---|---|
 > | `edit-score.logic.ts` | 91,88% | 92,96% | `editScoreHelpers.characterization` + 4 |
 > | `matchValidator.ts` | 87,87% | 73,00% | `matchValidator.characterization` + envelope/isUndo/tiebreak/real |
-> | `use-edit-score-calculator.ts` | 92,39% | **31,57%** | `use-edit-score-calculator.characterization` + bo5-invalid-score |
+> | `use-edit-score-calculator.ts` | 92,39% → **99,41%** | 31,57% → **94,28%** | `+ use-edit-score-calculator.branches.characterization` (19 testes) |
 >
-> **Nenhum corte foi executado (S3 não iniciado).** Liberação para corte: liberada para `edit-score.logic.ts` e `matchValidator.ts`; **`use-edit-score-calculator.ts` requer reforço de testes de branch antes de qualquer extração** (31,57% de branch — ver uncovered lines 68-157, 214-215, 238, 322).
+> **Reforço (commit `590a3cf`):** `use-edit-score-calculator.branches.characterization.test.ts` cobre MTB (válido/limite), inputs vazios com/sem sets, 0-0 com/sem game points, piso de games e de tiebreak, tiebreak impossível, erro de set sem tiebreak exigido, `showGamePointsAtZero`, `editableCompletedSets` e `canAddNextSet`. 40 suítes / 504 testes passam; `pnpm typecheck` verde.
+>
+> **Achado:** a condição das linhas 75-76 (`hasTiebreak && tiebreakRequired && !hasValidTiebreak` → `return false`) é **ramo defensivo inalcançável por construção** — `isSetTrulyCompleted` (linha 71) exige `tiebreakComplete`, que por sua vez exige `hasValidTiebreak` (ver `resolveTiebreakStatus`). Registrado no cabeçalho da suíte; não há entrada real que o alcance.
+>
+> **Nenhum corte foi executado (S3 não iniciado).** Liberação para corte: **liberada para os 3 módulos** (`edit-score.logic.ts`, `matchValidator.ts`, `use-edit-score-calculator.ts`).
 
 #### Fase 3 — S3 (Modular) — Top refatorações `.ts` > 100 linhas (R-03)
 
@@ -532,7 +536,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 
 **Suíte completa (`pnpm test:strict`) em `0c34486`:** 324 suítes / 3302 testes → 7 suítes e 25 testes falham — **idênticos ao baseline**, zero regressão das fatias V-01..V-06.
 
-**Próximos (S3→S4):** V-08 (unificação semântica dos edit-score, R-01) → V-09 (hex `CourtBackground`, R-12) → top-10 `.ts` > 100L (R-03), **precedido** do reforço de branch coverage de `use-edit-score-calculator.ts` (bloqueio de corte).
+**Próximos (S3→S4):** reforço do V-07 concluído (branch 94,28%) → top-10 `.ts` > 100L (R-03) com os 3 módulos liberados → V-08 (unificação semântica dos edit-score, R-01) → V-09 (hex `CourtBackground`, R-12).
 
 
 
