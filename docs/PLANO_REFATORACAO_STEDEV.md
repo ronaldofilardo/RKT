@@ -554,11 +554,13 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-22 | **Epic S3 #2 (fatia 4/6)** `edit-score-validation.ts` migrado para `src/core/scoring/` (import de MT corrigido para core) | Concluído (`025f124`) |
 | 2026-10-22 | **Epic S3 #2 (fatia 5/6)** `edit-score-state.ts` migrado para `src/core/scoring/` (25 consumidores) | Concluído (`6dac77e`) |
 | 2026-10-22 | **Epic S3 #2 (fatia 6/6)** Funções puras do `use-edit-score-calculator.ts` → `core/scoring/edit-score-calculator.{confirm,input-gates,set-gates}.ts` (91L/83L/31L); hook 342 → **148L** (casca React de wiring; `ste-exception R-03` declarada); characterization do hook preservada (610 testes verdes) | Concluído (`78a7c4c`) |
-| 2026-10-22 | **R-07 (fatia A)** `matches/[id]/sessions` POST: `StartSessionInputSchema` (`schemas/session.ts`) + `validatedRequest`/`reportApiError`; JSON inválido → 400 (antes `{}` silencioso); 7 suítes / 44 testes verdes | Concluído (`35b81a3`) |
+| 2026-10-22 | **R-07 (fatia A)** `matches/[id]/sessions` POST: `StartSessionInputSchema` (`schemas/session.ts`) + `validatedRequest`/`reportApiError`; JSON inválido → 400 (antes `{}` silencioso); 2 contratos legados quebrados e corrigidos em `dd77c34` (body ausente + shape do 500) | Concluído (`35b81a3`) |
 | 2026-10-22 | **R-07 (fatia B)** `players/[id]` PUT: `UpdatePlayerInputSchema` + `RankingTypeSchema` (`schemas/player.ts`); safeParse com shape legado `{error, message}` preservado (contrato dos testes); birthDate com `errorMap` customizado; ownership/elegibilidade de ranking mantidos na rota; 73 testes verdes | Concluído (`f339824`) |
 | 2026-10-22 | **R-07 (fatia C)** `admin/users/[id]` PATCH: `UpdateUserInputSchema` (`schemas/user.ts`); safeParse stripa campos extras antes de `updateUser`; validação manual de role removida; 44 testes admin verdes | Concluído (`9b6deb7`) |
 | 2026-10-22 | **Higiene** marcadores `-- DEPRECADO` nos 4 arquivos restantes de `prisma/legacy_sql/` (5º já marcado) | Concluído |
 | 2026-10-22 | **ste-exception (documentada)** migration `20260711125633-add_missing_columns_to_match_and_player` usa hífen (fora do padrão snake_case); **não renomear** — `_prisma_migrations` em produção referencia o nome exato; renomear quebraria o `migrate deploy` | Registrado |
+| 2026-10-22 | **Fix pós-R-07** `sessions` POST: body ausente voltou a ser aceito (default `autoStarted=false`) e catch preserva shape legado `{error: 'INTERNAL_SERVER_ERROR'}` (12/12 testes characterization verdes) | Concluído (`dd77c34`) |
+| 2026-10-22 | **Suíte completa ao fim da onda R-07 (`dd77c34`)** 322/329 suítes e 3319/3344 testes — 7 suítes e 25 testes falham, **idênticos ao baseline**, zero regressão das 3 fatias R-07 + fix | Concluído |
 
 **Verificação (após cada fatia):** `pnpm typecheck` verde. Suítes afetadas executadas via `node scripts/run-tests.js --ci "<padrão>"`.
 
