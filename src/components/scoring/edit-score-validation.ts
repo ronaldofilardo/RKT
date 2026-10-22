@@ -5,7 +5,7 @@ import type {
   SetEditData,
   EditScoreValidation,
   EditScoreValidationInput,
-} from './edit-score-logic.types';
+} from './edit-score-state.types';
 
 function countCompletedSets(setResults: SetEditData[]): { p1Sets: number; p2Sets: number } {
   let p1Sets = 0;

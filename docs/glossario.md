@@ -130,7 +130,7 @@ Anotação tática detalhada de como o ponto terminou.
 | **Strangler** | Padrão de migração gradual: nova implementação ao lado da antiga, com troca de chamada quando pronta. |
 | **ste-exception** | Comentário `// ste-exception R-XX: <motivo>` que documenta uma exceção consciente a uma regra STE-DEV. |
 | **edit-score-domain** (`edit-score-domain.ts`) | Regras de domínio da edição de placar: validação de resultado de set, limites de games por formato, tiebreak impossível, próximo sacador após set e o contrato `SetEditData`. Nome canônico (V-08); antes era `edit-score.logic.ts`. |
-| **edit-score-state** (`edit-score-logic.ts`, renome pendente V-08b) | Estado e cálculo do modal de edição: `createInitialEditScoreState`, `calculateMatchState`, `createSetEditData`, `calculateNextServer`; tipos em `edit-score-logic.types.ts`. |
+| **edit-score-state** (`edit-score-state.ts`) | Estado e cálculo do modal de edição: `createInitialEditScoreState`, `calculateMatchState`, `createSetEditData`, `calculateNextServer`; tipos em `edit-score-state.types.ts`. Nome canônico (V-08); antes era `edit-score-logic.ts`. |
 | **edit-score-validation** (`edit-score-validation.ts`) | Validação da UI do formulário de edição: `calculateValidation`, `calculateTiebreakValidation`, `isPotentialMTSet`. |
 
 ---

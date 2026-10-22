@@ -7,7 +7,7 @@
  * 5. getFloorError: validação de floor para games
  */
 
-import { calculateValidation } from '../edit-score-logic';
+import { calculateValidation } from '../edit-score-state';
 import { getFloorError } from '../use-edit-score-modal-confirm.logic';
 import type { SetEditData } from '../edit-score-domain';
 

@@ -258,7 +258,7 @@ Testes: `PlayerCard*.test.tsx`, `ServerEffectModal.test.tsx`, `point-details-log
 
 ## 11. FASE F — Editar placar
 
-Arquivos: `components/scoring/EditScoreModal.tsx`, `edit-score-*.tsx`, `edit-score-logic.ts`, `edit-score.logic.ts` (`getNextServerAfterSet`), `use-edit-score-modal-*.logic.ts`, `edit-score-modal.types.ts`, `app/match/[id]/scoring/scoring-edit-score-modal.tsx`, `useScoringEditScore.ts`, `hooks/useSessionManager.edit-score.ts`, `useSessionManager.state-builder.ts`.
+Arquivos: `components/scoring/EditScoreModal.tsx`, `edit-score-*.tsx`, `edit-score-state.ts`, `edit-score-domain.ts` (`getNextServerAfterSet`), `use-edit-score-modal-*.logic.ts`, `edit-score-modal.types.ts`, `app/match/[id]/scoring/scoring-edit-score-modal.tsx`, `useScoringEditScore.ts`, `hooks/useSessionManager.edit-score.ts`, `useSessionManager.state-builder.ts`.
 
 1. Hoje o modal define só o **lado** que saca (`calculateNextServer`). Em duplas, adicionar seção "Saque e devolução": 
    - qual dupla saca agora (já existe) + **qual membro**;
@@ -270,7 +270,7 @@ Arquivos: `components/scoring/EditScoreModal.tsx`, `edit-score-*.tsx`, `edit-sco
 5. A edição também registra `doublesSetup.changes[]` (mesma regra do `/arrangement`) para a simulação.
 6. Manter todas as validações de placar existentes intactas (há >40 testes de caracterização desse modal: **não editar os existentes**; criar arquivos `*.doubles.test.tsx`).
 
-Testes: `edit-score-logic*.test.ts` (variantes de duplas), `useSessionManager.state-builder*.test.ts`, `EditScoreModal.doubles.test.tsx`, regressão: editar placar no meio do set 2 e conferir a timeline do `/report`.
+Testes: `edit-score-state*.test.ts` (variantes de duplas), `useSessionManager.state-builder*.test.ts`, `EditScoreModal.doubles.test.tsx`, regressão: editar placar no meio do set 2 e conferir a timeline do `/report`.
 
 ---
 

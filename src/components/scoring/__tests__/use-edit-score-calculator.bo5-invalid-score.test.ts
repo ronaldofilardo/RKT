@@ -13,7 +13,7 @@
  * early-return `if (!hasTiebreak) return true` e ignorando por completo
  * o erro de validação (`setValidationError`).
  *
- * Este teste usa as funções reais de `edit-score-logic.ts` (não uma
+ * Este teste usa as funções reais de `edit-score-state.ts` (não uma
  * reimplementação) para não perder sincronia com o código de produção,
  * espelhando apenas a árvore de decisão de `canConfirm`.
  */
@@ -21,8 +21,8 @@ import {
   calculateValidation,
   calculateMatchState,
   calculateTiebreakValidation,
-} from '../edit-score-logic';
-import type { CompletedSet } from '../edit-score-logic';
+} from '../edit-score-state';
+import type { CompletedSet } from '../edit-score-state';
 
 function computeCanConfirm(
   p1Input: string,

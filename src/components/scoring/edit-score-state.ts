@@ -5,7 +5,7 @@ import { setsToWinForFormat, totalSetsForFormat } from '@/core/scoring/format-ru
 import { parsePointValue } from '@/core/scoring/point.logic';
 import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from '@/hooks/use-session-manager.logic';
 
-export type * from './edit-score-logic.types';
+export type * from './edit-score-state.types';
 import type {
   Player,
   CompletedSet,
@@ -16,7 +16,7 @@ import type {
   CreateSetEditDataInput,
   ShouldAutoAddSetInput,
   CalculateNextServerInput,
-} from './edit-score-logic.types';
+} from './edit-score-state.types';
 
 export {
   isPotentialMTSet,

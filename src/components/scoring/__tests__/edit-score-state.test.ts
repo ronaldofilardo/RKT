@@ -4,11 +4,11 @@ import {
   createSetEditData,
   shouldAutoAddSet,
   type CompletedSet,
-} from '../edit-score-logic';
-import { isPotentialMTSet } from '../edit-score-logic';
+} from '../edit-score-state';
+import { isPotentialMTSet } from '../edit-score-state';
 import type { SetEditData } from '../edit-score-domain';
 
-describe('edit-score-logic - isMatchTiebreakSet', () => {
+describe('edit-score-state - isMatchTiebreakSet', () => {
   describe('calculateValidation', () => {
     it('deve retornar isMatchTiebreakSet=true para MATCH_TB_10', () => {
       const result = calculateValidation({ p1Input: '5', p2Input: '3', matchFormat: 'MATCH_TB_10', totalEditedSets: 0 });
@@ -283,7 +283,7 @@ describe('edit-score-logic - isMatchTiebreakSet', () => {
   });
 
   describe('calculateTiebreakValidation', () => {
-    const { calculateTiebreakValidation } = require('../edit-score-logic');
+    const { calculateTiebreakValidation } = require('../edit-score-state');
 
     it('deve retornar tiebreakComplete=true para tiebreak completo (7-5)', () => {
       const result = calculateTiebreakValidation('7', '5', true);

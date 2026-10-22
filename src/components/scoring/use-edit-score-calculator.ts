@@ -5,12 +5,12 @@ import type {
   EditScoreState,
   EditScoreValidation,
   EditScoreMatchState,
-} from './edit-score-logic';
+} from './edit-score-state';
 import {
   calculateValidation,
   calculateMatchState,
   calculateTiebreakValidation,
-} from './edit-score-logic';
+} from './edit-score-state';
 import type { SetEditData } from './edit-score-domain';
 
 interface UseEditScoreCalculatorParams {

@@ -1,5 +1,5 @@
 /**
- * CHARACTERIZATION TESTS — edit-score-logic.ts (Complete)
+ * CHARACTERIZATION TESTS — edit-score-state.ts (Complete)
  *
  * Propósito: Capturar comportamento OBSERVADO completo da lógica de edição de placar
  * Data: 2026-08-18
@@ -28,10 +28,10 @@ import {
   type CreateSetEditDataInput,
   type ShouldAutoAddSetInput,
   type CalculateNextServerInput,
-} from '../edit-score-logic';
+} from '../edit-score-state';
 import type { SetEditData } from '../edit-score-domain';
 
-describe('edit-score-logic (complete characterization)', () => {
+describe('edit-score-state (complete characterization)', () => {
   describe('createInitialEditScoreState', () => {
     it('deve criar estado inicial com player1 como server', () => {
       const state = createInitialEditScoreState('player1');

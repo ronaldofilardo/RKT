@@ -1,5 +1,5 @@
 import type { TennisFormat } from '@/core/scoring/types';
-import type { CompletedSet } from './edit-score-logic';
+import type { CompletedSet } from './edit-score-state';
 import type { SetEditData } from './edit-score-domain';
 import { validateSetResult } from './edit-score-domain';
 import { logger } from '@/lib/logger';

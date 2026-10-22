@@ -473,7 +473,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 1 | `src/hooks/useScoringHandlers.ts` | 338 | Orquestrador fino; compor dos `.service.ts` existentes |
 | 2 | `src/components/scoring/use-edit-score-calculator.ts` | 313 | Extrair domínio puro para `src/core/scoring/` |
 | 3 | `src/services/matchValidator.ts` | 310 | Separar envelope vs regras de sets/tiebreak |
-| 4 | `src/components/scoring/edit-score.logic.ts` | 297 | Unificar com `edit-score-logic.ts` (255) — nomes quase idênticos, papéis ambíguos (R-01) |
+| 4 | `src/components/scoring/edit-score.logic.ts` | 297 | Unificar com `edit-score-state.ts` (255) — nomes quase idênticos, papéis ambíguos (R-01) |
 | 5 | `src/services/matchService.ts` | 283 | Extrair operações de `doublesSetup` |
 | 6 | `src/hooks/useScoringHandlers.point-processor.service.ts` | 272 | Reduzir; contém casts do V-06 |
 | 7 | `src/schemas/match.ts` | 272 | Permitido (`ste-exception R-03` se declarado: schema declarativo) |
@@ -487,7 +487,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 
 | ID | Achado | Ação |
 |---|---|---|
-| **V-08** | Duplicidade semântica: `edit-score.logic.ts` vs `edit-score-logic.ts` vs `useEditScoreModal.ts` + `use-edit-score-modal-*.logic.ts` — 5+ nomes para o mesmo conceito (R-01) | Unificar no glossário e consolidar módulos |
+| **V-08** | Duplicidade semântica: `edit-score.logic.ts` vs `edit-score-state.ts` vs `useEditScoreModal.ts` + `use-edit-score-modal-*.logic.ts` — 5+ nomes para o mesmo conceito (R-01) | Unificar no glossário e consolidar módulos |
 | **V-09** | `CourtBackground.tsx:8-11`: `lines: '#ffffff'` (R-12) | Mover para token CSS |
 
 ### 7.3 Veredito Tático

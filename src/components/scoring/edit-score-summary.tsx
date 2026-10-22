@@ -1,4 +1,4 @@
-import type { Player } from './edit-score-logic';
+import type { Player } from './edit-score-state';
 import { SetsSummaryHeader } from './edit-score-summary-header';
 
 export { SetsSummary } from './edit-score-sets-summary';

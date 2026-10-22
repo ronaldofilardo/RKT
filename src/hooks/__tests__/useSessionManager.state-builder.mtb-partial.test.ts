@@ -11,7 +11,7 @@
  */
 
 import { buildNewScoringState } from '../useSessionManager.state-builder';
-import { createSetEditData } from '../../components/scoring/edit-score-logic';
+import { createSetEditData } from '../../components/scoring/edit-score-state';
 
 function makeMatchTiebreakPartialSet(p1: number, p2: number) {
   return createSetEditData({

@@ -13,7 +13,7 @@
  *      The UI zeroes points when games change, but user can re-select them.
  */
 
-import { createSetEditData } from '../edit-score-logic';
+import { createSetEditData } from '../edit-score-state';
 
 describe('createSetEditData - Current Game Points Preservation', () => {
   it('should preserve game points when user changes games from floor value', () => {

@@ -10,7 +10,7 @@
  * - validateSetResult valida corretamente scores por formato (7-5, tiebreak, PRO_SET, etc.)
  * - validateMatchTiebreak aceita até 30 pontos (flexível para edits parciais — design intencional)
  * - totalSetsForFormat retorna 1 para formato desconhecido (fallback seguro)
- * - TD-046: Separação primitivos (editScoreHelpers) vs orquestração (edit-score-logic) está correta
+ * - TD-046: Separação primitivos (editScoreHelpers) vs orquestração (edit-score-state) está correta
  */
 
 import {
