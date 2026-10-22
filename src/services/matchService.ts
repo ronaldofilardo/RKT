@@ -5,12 +5,10 @@ import type {
   MatchFormat,
   CreateMatchInput,
   MatchFinishReason,
-  DoublesSetup,
 } from "@/schemas/contracts";
 
 import { logger } from "@/lib/logger";
 import { getPrismaErrorCode } from "@/lib/errors";
-import { unwrapStateEnvelope } from "@/core/scoring/state-envelope";
 import { listMatches, getMatch, findAbandonedSessionSnapshot } from "./matchRepository";
 import { validateFinishMatch, validateTransitionState } from "./matchValidator";
 import {
@@ -26,6 +24,7 @@ import {
   recordScoreEditSegment,
   buildTransitionUpdateData,
 } from "./match-service-operations.logic";
+import { pruneDoublesSetupChanges } from "./match-service-doubles.logic";
 
 export { listMatches, getMatch, findAbandonedSessionSnapshot };
 
@@ -266,29 +265,9 @@ export async function transitionMatchState(
 
       if (options?.isUndo && match.matchType === 'DOUBLES' && match.doublesSetup) {
         try {
-          const currentSetup = (
-            typeof match.doublesSetup === 'string'
-              ? JSON.parse(match.doublesSetup)
-              : JSON.parse(JSON.stringify(match.doublesSetup))
-          ) as DoublesSetup;
-
-          const changes = currentSetup.changes;
-          if (Array.isArray(changes) && changes.length > 0) {
-            const targetState = unwrapStateEnvelope(
-              typeof scoreState === 'string' ? JSON.parse(scoreState) : scoreState,
-            );
-            const completedSets = (targetState?.sets ?? []).filter((s) => {
-              if (s.isTiebreak && s.tiebreakScore) return true;
-              return (s.player1 >= 6 || s.player2 >= 6) && Math.abs(s.player1 - s.player2) >= 2;
-            }).length;
-
-            const filteredChanges = changes.filter((c) => c.afterSet < completedSets);
-            if (filteredChanges.length !== changes.length) {
-              updateData.doublesSetup = {
-                ...currentSetup,
-                changes: filteredChanges,
-              };
-            }
+          const prunedSetup = pruneDoublesSetupChanges(match.doublesSetup, scoreState);
+          if (prunedSetup) {
+            updateData.doublesSetup = prunedSetup;
           }
         } catch (e) {
           logger.warn('[transitionMatchState] Falha ao ajustar doublesSetup.changes no undo:', e);
