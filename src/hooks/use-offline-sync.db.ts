@@ -3,6 +3,7 @@ import { logger } from "@/lib/logger";
 
 export const DB_NAME = "racket-offline-db";
 export const STORE_NAME = "optimistic-queue";
+export const COMMENT_STORE_NAME = "optimistic-comment-queue";
 export const DB_VERSION = 2;
 
 let cachedDb: IDBPDatabase | null = null;
@@ -27,8 +28,8 @@ export async function getOfflineDb(): Promise<IDBPDatabase> {
         store.createIndex("status", "status");
         store.createIndex("timestamp", "timestamp");
       }
-      if (!db.objectStoreNames.contains("optimistic-comment-queue")) {
-        const store = db.createObjectStore("optimistic-comment-queue", {
+      if (!db.objectStoreNames.contains(COMMENT_STORE_NAME)) {
+        const store = db.createObjectStore(COMMENT_STORE_NAME, {
           keyPath: "id",
         });
         store.createIndex("status", "status");

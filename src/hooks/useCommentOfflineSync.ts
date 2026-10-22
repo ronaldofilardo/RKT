@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { openDB, IDBPDatabase } from 'idb';
+import { getOfflineDb, COMMENT_STORE_NAME } from './use-offline-sync.db';
 
 interface QueuedCommentAction {
   id: string;
@@ -19,29 +19,6 @@ interface QueuedCommentAction {
   status: 'PENDING' | 'SYNCING' | 'FAILED';
 }
 
-const DB_NAME = 'racket-offline-db';
-const DB_VERSION = 2;
-const COMMENT_STORE = 'optimistic-comment-queue';
-
-async function getDb(): Promise<IDBPDatabase> {
-  return openDB(DB_NAME, DB_VERSION, {
-    upgrade(db) {
-      // v1 store (points) — already exists if DB was created before
-      if (!db.objectStoreNames.contains('optimistic-queue')) {
-        const store = db.createObjectStore('optimistic-queue', { keyPath: 'id' });
-        store.createIndex('status', 'status');
-        store.createIndex('timestamp', 'timestamp');
-      }
-      // v2 store (comments)
-      if (!db.objectStoreNames.contains(COMMENT_STORE)) {
-        const store = db.createObjectStore(COMMENT_STORE, { keyPath: 'id' });
-        store.createIndex('status', 'status');
-        store.createIndex('timestamp', 'timestamp');
-      }
-    },
-  });
-}
-
 export function useCommentOfflineSync() {
   const [isSyncing, setIsSyncing] = useState(false);
   const isFlushingRef = useRef(false);
@@ -49,14 +26,14 @@ export function useCommentOfflineSync() {
   const enqueueComment = useCallback(async (
     action: Omit<QueuedCommentAction, 'id' | 'status' | 'retries'>
   ) => {
-    const db = await getDb();
+    const db = await getOfflineDb();
     const queued: QueuedCommentAction = {
       ...action,
       id: crypto.randomUUID(),
       status: 'PENDING',
       retries: 0,
     };
-    await db.add(COMMENT_STORE, queued);
+    await db.add(COMMENT_STORE_NAME, queued);
     return queued;
   }, []);
 
@@ -66,13 +43,13 @@ export function useCommentOfflineSync() {
     setIsSyncing(true);
 
     try {
-      const db = await getDb();
-      const pending = await db.getAllFromIndex(COMMENT_STORE, 'status', 'PENDING');
+      const db = await getOfflineDb();
+      const pending = await db.getAllFromIndex(COMMENT_STORE_NAME, 'status', 'PENDING');
       pending.sort((a, b) => a.timestamp - b.timestamp);
 
       for (const action of pending) {
         try {
-          await db.put(COMMENT_STORE, { ...action, status: 'SYNCING' });
+          await db.put(COMMENT_STORE_NAME, { ...action, status: 'SYNCING' });
 
           // 1. Create comment
           const res = await fetch(`/api/matches/${action.matchId}/comments`, {
@@ -90,7 +67,7 @@ export function useCommentOfflineSync() {
 
           if (!res.ok) {
             action.retries += 1;
-            await db.put(COMMENT_STORE, {
+            await db.put(COMMENT_STORE_NAME, {
               ...action,
               status: action.retries >= 3 ? 'FAILED' : 'PENDING',
             });
@@ -111,7 +88,7 @@ export function useCommentOfflineSync() {
             });
             if (!audioRes.ok) {
               action.retries += 1;
-              await db.put(COMMENT_STORE, {
+              await db.put(COMMENT_STORE_NAME, {
                 ...action,
                 status: action.retries >= 3 ? 'FAILED' : 'PENDING',
               });
@@ -120,11 +97,11 @@ export function useCommentOfflineSync() {
           }
 
           // 3. Remove from queue
-          await db.delete(COMMENT_STORE, action.id);
+          await db.delete(COMMENT_STORE_NAME, action.id);
           window.dispatchEvent(new CustomEvent('offline-sync-complete', { detail: { type: 'comment' } }));
         } catch {
           action.retries += 1;
-          await db.put(COMMENT_STORE, {
+          await db.put(COMMENT_STORE_NAME, {
             ...action,
             status: action.retries >= 3 ? 'FAILED' : 'PENDING',
           });

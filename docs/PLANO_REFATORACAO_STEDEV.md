@@ -543,6 +543,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-22 | **V-08a** (R-01) `edit-score.logic.ts` (345L, regras de domínio da edição de placar) → **`edit-score-domain.ts`** via `git mv`; 35 consumidores atualizados (imports apenas, zero mudança de lógica); canônico registrado no glossário §6 | Concluído (`2c3f354`) |
 | 2026-10-22 | **V-08b** (R-01) `edit-score-logic.ts` + `edit-score-logic.types.ts` → **`edit-score-state.ts`** + **`edit-score-state.types.ts`**; testes renomeados (`edit-score-state*.test.ts`); 30 consumidores atualizados; glossário §6 com papéis domain/state/validation da família | Concluído (`48d711b`) |
 | 2026-10-22 | Gates V-08: `pnpm typecheck` verde; suítes edit-score/session/scoring: **49 suítes / 625 testes verdes** (antes e depois de cada renome); zero resíduos de `edit-score.logic`/`edit-score-logic` em `src/` | Concluído |
+| 2026-10-22 | **V-09** (R-12) `CourtBackground.tsx`: removido `lines: '#ffffff'` (4×) — campo **dead code** (as linhas do JSX usam `bg-white/30`/`border-white/30`); junto removido `label` (também unused). Fundo permanece em token `--telemetry-court-*` | Concluído (`7b3c55b`) |
 
 **Verificação (após cada fatia):** `pnpm typecheck` verde. Suítes afetadas executadas via `node scripts/run-tests.js --ci "<padrão>"`.
 
