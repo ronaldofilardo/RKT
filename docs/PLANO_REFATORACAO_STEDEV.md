@@ -557,6 +557,8 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 
 **Suíte completa após as fatias S3 (`8f79e64`):** 7 suítes e 25 testes falham — **idênticos ao baseline**, zero regressão das fatias S3 (#5, #3a, #3b, #6, #8, #9, #1a, #1b).
 
+**Suíte completa ao fim da onda (`f0cf170` + renames V-08, V-09, getDb, characterization e corte #10):** 322/329 suítes e 3319/3344 testes passam — 7 suítes e 25 testes falham, **idênticos ao baseline**, zero regressão.
+
 **Próximos (S3→S4):** Onda STE-DEV concluída — S3 completa (#5, #3, #6, #7 exceção, #8, #9, #1, #10 com characterization+corte), V-08 (`2c3f354`, `48d711b`), V-09 (`7b3c55b`), unificação de `getDb` (`fdde293`). Único item adiado: **#2** (migração da família edit-score para `core/scoring` — epic multi-fatia; mover só o calculator inverteria camadas). Dívida residual conhecida: R-03 de `serve-actions.service.ts` (240L, pré-existente) e exceção declarada de `schemas/match.ts` (282L).
 
 
