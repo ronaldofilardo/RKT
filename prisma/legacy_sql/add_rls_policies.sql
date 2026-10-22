@@ -1,3 +1,7 @@
+-- DEPRECADO (2026-10-22): fonte canônica movida para
+-- prisma/migrations/20261022000000_add_rls_policies/migration.sql (R-01/R-10).
+-- Mantido apenas como referência histórica de bancos já configurados manualmente.
+--
 -- RLS: Row-Level Security por ownership + role
 -- As session variables `app.current_user_id` e `app.current_user_role`
 -- são setadas pelo middleware Prisma em src/lib/prisma.ts

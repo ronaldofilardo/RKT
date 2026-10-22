@@ -177,6 +177,13 @@ rkt/
 
 As decisões arquiteturais estruturantes do projeto foram consolidadas diretamente nesta seção como fonte canônica única:
 
+### ADR-0005 — Headers `x-user-*` são canal interno middleware→handler (2026-10-22)
+- **Problema:** `extractUserFromHeaders` (`src/lib/auth.ts`) dá precedência a `x-user-id`/`x-user-role` sobre o JWT. Isso é design server-to-server ou dívida?
+- **Contexto [OBSERVADO]:** O middleware higieniza headers forjados (`src/middleware.ts:37-38`) e reinjeta os reais após validar o JWT (`:97-98`). Clients HTTP rodam no browser e autenticam via Bearer/cookies. Não existe fluxo server-to-server que dependa dos headers.
+- **Decisão:** Os headers são **canal interno de confiança** middleware→route handler, para evitar decodificação duplicada do JWT. **Proibido** criar entry points (Server Actions, jobs, webhooks) que invoquem handlers protegidos por `withRLSHandler` fora do `matcher` do middleware, sem revisão de segurança — o header seria forjável e escalaria privilégio.
+- **Ações associadas:** envio morto de `x-user-id` removido de `playersClient.create` (era apagado pelo middleware e induzia a erro). Contrato de precedência mantido e travado por `auth.contract.test.ts`.
+- **Reavaliar** apenas se houver entry points reais fora do middleware.
+
 ### ADR-0002 — Sugestão de Partidas e Torneios Compatíveis
 - **Problema:** Descoberta de partidas compatíveis por nível técnico, localização e formato.
 - **Decisão:** Modelo de domínio baseado em `MatchingCriteria` e `MatchSuggestion`, executado em **polling sob demanda** (sem sobrecarga de ML para o MVP).

@@ -77,7 +77,6 @@ function createPlayersClient(config: PlayersClientConfig) {
     create: (
       payload: unknown,
       token: string | null,
-      userId: string | null,
     ): Promise<CreatedPlayerResponse> =>
       requestJson(
         baseUrl,
@@ -87,7 +86,6 @@ function createPlayersClient(config: PlayersClientConfig) {
           headers: {
             "Content-Type": "application/json",
             authorization: `Bearer ${token}`,
-            "x-user-id": userId || "",
           },
           body: JSON.stringify(payload),
         },

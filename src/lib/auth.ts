@@ -17,7 +17,6 @@ function isRole(value: string): value is Role {
 async function extractUserFromHeaders(request: NextRequest): Promise<RLSUser | null> {
   const id = request.headers.get('x-user-id');
   const rawRole = request.headers.get('x-user-role');
-  console.log('[auth] extractUserFromHeaders - id:', id, 'rawRole:', rawRole);
   if (!id || !rawRole || !isRole(rawRole)) return null;
   return { id, role: rawRole };
 }
@@ -32,10 +31,8 @@ async function extractUserFromJwt(request: NextRequest): Promise<RLSUser | null>
     request.cookies.get('access_token')?.value ??
     null;
   const token = bearerToken ?? cookieToken ?? null;
-  console.log('[auth] extractUserFromJwt - bearerToken:', !!bearerToken, 'cookieToken:', !!cookieToken);
   if (!token) return null;
   const payload = await decodeJwtPayload(token);
-  console.log('[auth] extractUserFromJwt - payload:', payload ? 'OK' : 'NULL');
   if (!payload) return null;
   if (!isRole(payload.role)) return null;
   return { id: payload.sub, role: payload.role };
@@ -46,9 +43,7 @@ export async function getUserFromRequestScoped(
 ): Promise<RLSUser | null> {
   const fromHeaders = await extractUserFromHeaders(request);
   if (fromHeaders) return fromHeaders;
-  const fromJwt = await extractUserFromJwt(request);
-  console.log('[auth] final extracted user:', fromJwt);
-  return fromJwt;
+  return extractUserFromJwt(request);
 }
 
 export async function getUserFromRequest(request: NextRequest): Promise<RLSUser | null> {

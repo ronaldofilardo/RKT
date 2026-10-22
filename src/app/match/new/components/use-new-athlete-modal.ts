@@ -59,10 +59,9 @@ export function useNewAthleteModal({ isOpen, onClose, onCreated }: UseNewAthlete
     setError(null);
     try {
       const token = sessionStorage.getItem('access_token');
-      const userId = sessionStorage.getItem('user_id');
       const payload = buildAthletePayload(form, rankings);
 
-      const json = await playersClient.create(payload, token, userId);
+      const json = await playersClient.create(payload, token);
       const player = json?.data || json;
 
       onCreated({

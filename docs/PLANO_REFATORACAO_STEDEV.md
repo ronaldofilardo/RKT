@@ -408,6 +408,102 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 >   - Testes de caracterização/regressão criados: `timeline.audio-enrichment.test.ts` (4 testes) e `point-logs-meta/route.test.ts` (1 teste).
 > - **Status Fase 4: CONCLUÍDA** (2026-10-16). DoD: typecheck ✓ · test:design 3/3 (26/26) ✓ · test:strict 298/298 (3205/3205) ✓ · lint ✓.
 
+---
+
+## 7. Auditoria STE-DEV de Revisão — 2026-10-22 (Somente Leitura)
+
+> **Modo:** Engenharia Reversa + Auditoria (skill `ste-dev`). Nenhuma alteração de código foi feita.
+> **Foco:** arquivos que precisam de refatoração, priorizados por severidade S1–S4.
+> **Escopo:** `src/` (produção), `prisma/migrations/`, `prisma/legacy_sql/`.
+
+### 7.1 Resumo dos 6 Pilares
+
+| Pilar | Situação | Avaliação |
+|---|---|---|
+| **RBAC** | `withRLSHandler`/`requireRole` nas rotas de negócio; middleware higieniza headers forjados | CONFORME (ressalva §7.4) |
+| **RLS** | Políticas existem **apenas** em `prisma/legacy_sql/add_rls_policies.sql`; nenhuma migration Prisma aplica `ENABLE ROW LEVEL SECURITY` | **VIOLAÇÃO** |
+| **APIs** | Zod presente em ~12 rotas; comments, renew, endorse, events, point-logs-meta e refresh sem schema em runtime | **VIOLAÇÃO parcial** |
+| **Banco** | 13 migrations; duas colisionam (`sequenceNumber`); 1 usa hífen; scripts paralelos em `legacy_sql/` | **VIOLAÇÃO** |
+| **Back** | Serviços misturam regra e persistência; logs de auth em texto plano; `catch` vazios no login | **VIOLAÇÃO** |
+| **Front** | Backlog R-03 de `.tsx` zerado em 2026-10-16; restam monólitos em `.ts` (hooks/services) e hex solto pontual | **VIOLAÇÃO** (escopo `.ts`) |
+
+### 7.2 Violações por Severidade
+
+#### Fase 1 — S1 (Bloqueante)
+
+| ID | Regra / Pilar | Arquivo | Causa raiz | Ação |
+|---|---|---|---|---|
+| **V-01** | R-24 / RLS | `prisma/migrations/` (ausência) vs `prisma/legacy_sql/add_rls_policies.sql:6-65` | RLS só como script legado fora do fluxo Prisma. Deploy limpo não aplica isolamento | Migration expand com `ENABLE ROW LEVEL SECURITY` + policies; aposentar `legacy_sql/` |
+| **V-02** | R-10 / Banco | `prisma/migrations/20260825_add_pointlog_sequence` **e** `20260825200000_add_point_sequence` | Duas migrations executam `ADD COLUMN "sequenceNumber"` — colisão em banco novo | Consolidar em única migration imutável; excluir duplicata |
+| **V-03** | R-08 / Back | `src/app/api/auth/login/route.ts:36,49` | `.catch(() => 0)` e `.catch(() => {})` silenciam falha de rate-limit | Log estruturado via `logger` (sem CPF/senha) |
+| **V-04** | R-08 / LGPD | `src/lib/auth.ts:20,35,38,50` | `console.log` de id/role em texto plano no caminho de autenticação | Remover ou migrar para `logger` com mascaramento |
+
+> **Resolução V-02 (Dev Solo, 2026-10-22):** produção está rodando perfeitamente — as duas migrations já foram aplicadas no histórico do banco. Risco residual restrito a **deploys limpos** (banco novo). Ação mantida como higiene de repositório, não como incidente em produção.
+
+#### Fase 2 — S2 (Estrutural)
+
+| ID | Regra / Pilar | Escopo | Ação |
+|---|---|---|---|
+| **V-05** | R-07 / APIs | 8 rotas sem Zod em runtime: `comments` (POST), `comments/[commentId]`, `comments/[commentId]/audio`, `sessions/[sessionId]/renew`, `sessions/[sessionId]/endorse`, `events`, `point-logs-meta`, `auth/refresh` | Schemas Zod em `src/schemas/` + `safeParse` na borda (padrão de `point/route.ts:56`) |
+| **V-06** | R-06 / Back | 18 `any` em produção (hub `useScoringHandlers.types.ts:110`, `useScoringHandlers.ts:304`, `match-fetch.ts:19,134-136`, `point-processor.service.ts:269-270`, `matchService.ts:269-279`, `match-service-operations.logic.ts:162`) | Tipar `DoublesSetup`/`AnnotationDetails` em contratos compartilhados; eliminar casts |
+| **V-07** | R-15 / Legado | `use-edit-score-calculator.ts` (313L), `edit-score.logic.ts` (297L), `matchValidator.ts` (310L) | Characterization test obrigatório antes de qualquer corte (R-15) |
+
+#### Fase 3 — S3 (Modular) — Top refatorações `.ts` > 100 linhas (R-03)
+
+| # | Arquivo | Linhas | Ação |
+|---|---|---|---|
+| 1 | `src/hooks/useScoringHandlers.ts` | 338 | Orquestrador fino; compor dos `.service.ts` existentes |
+| 2 | `src/components/scoring/use-edit-score-calculator.ts` | 313 | Extrair domínio puro para `src/core/scoring/` |
+| 3 | `src/services/matchValidator.ts` | 310 | Separar envelope vs regras de sets/tiebreak |
+| 4 | `src/components/scoring/edit-score.logic.ts` | 297 | Unificar com `edit-score-logic.ts` (255) — nomes quase idênticos, papéis ambíguos (R-01) |
+| 5 | `src/services/matchService.ts` | 283 | Extrair operações de `doublesSetup` |
+| 6 | `src/hooks/useScoringHandlers.point-processor.service.ts` | 272 | Reduzir; contém casts do V-06 |
+| 7 | `src/schemas/match.ts` | 272 | Permitido (`ste-exception R-03` se declarado: schema declarativo) |
+| 8 | `src/hooks/useOfflineSync.ts` | 268 | Separar fila, retry e transporte |
+| 9 | `src/app/match/new/components/DoublesServerSelectionModal.tsx` | 263 | UI > 100 — extrair estado para hook |
+| 10 | `src/hooks/useScoringHandlers.serve-actions.service.ts` | 249 | Verificar coesão vs domínio de saque |
+
+**Total medido (2026-10-22):** 106 arquivos de produção (`.ts` + `.tsx`) > 100 linhas. O backlog de `.tsx` foi zerado em 2026-10-16; o restante concentra-se em `.ts` (hooks, services, lógica).
+
+#### Fase 4 — S4 (Semântica)
+
+| ID | Achado | Ação |
+|---|---|---|
+| **V-08** | Duplicidade semântica: `edit-score.logic.ts` vs `edit-score-logic.ts` vs `useEditScoreModal.ts` + `use-edit-score-modal-*.logic.ts` — 5+ nomes para o mesmo conceito (R-01) | Unificar no glossário e consolidar módulos |
+| **V-09** | `CourtBackground.tsx:8-11`: `lines: '#ffffff'` (R-12) | Mover para token CSS |
+
+### 7.3 Veredito Tático
+
+**Estratégia: Refatoração Cirúrgica (Strangler)** — não reescrita. O núcleo (`core/scoring`, schemas, `withRLSHandler`) está sadio; o débito concentra-se em bordas (rotas sem Zod), migrações colisionantes e monólitos de hooks/edit-score.
+
+**Ordem recomendada:** S1 (V-01→V-04) → S2 (V-05→V-07) → S3 (top-10) → S4 (glossário).
+
+### 7.4 Conclusão sobre precedência de `x-user-id` sobre JWT (R-25 resolvida)
+
+**Pergunta:** a precedência de `extractUserFromHeaders` sobre o JWT (`src/lib/auth.ts:17-22`) é design server-to-server ou dívida a eliminar?
+
+**Análise [OBSERVADO]:**
+1. `middleware.ts:37-38` apaga `x-user-id`/`x-user-role` forjados; `:97-98` reinjeta valores do JWT validado.
+2. `auth.ts:17-22` lê os headers com precedência; contrato travado por `auth.contract.test.ts:35`.
+3. Documentado em `ARCHITECTURE.md:109,171` — canal interno middleware→handler.
+4. Clients (`playersClient.ts`, `matchesClient.ts`, etc.) rodam no browser e usam Bearer/cookies. A única ocorrência de envio ativo de `x-user-id` é `playersClient.ts:90` (POST /players) — **inócuo**, pois o middleware o apaga antes da rota.
+
+**Conclusão [INFERIDO]:** **não é canal server-to-server**. É um atalho interno para o handler não decodificar o JWT novamente após validação do middleware. O risco residual é que a segurança depende da premissa "toda requisição passa pelo middleware" — se um entry point futuro (Server Action, job, webhook) chamar handler sem middleware, o header é forjável e escala privilégio.
+
+**Decisão registrada (Dev Solo, 2026-10-22): Opção C — Híbrido.**
+- **Ação 1:** remover envio de `x-user-id` de `playersClient.ts:90` (código morto que induz a erro).
+- **Ação 2:** registrar ADR: headers `x-user-*` são canal interno middleware→handler; proibido criar entry points fora do `matcher` do middleware sem revisão de segurança.
+- **Não adotar** eliminação completa da precedência (opção B) — quebraria o contrato de testes e o design atual sem benefício proporcional; reavaliar apenas se houver entry points fora do middleware.
+
+### 7.5 Registro de Execução (2026-10-22)
+
+| Data | Ação | Status |
+|---|---|---|
+| 2026-10-22 | Auditoria STE-DEV somente leitura (6 pilares, S1–S4) | Concluído |
+| 2026-10-22 | V-02 resolvida: migrações duplicadas confirmadas como histórico aplicado em produção; risco restrito a deploy limpo | Registrado |
+| 2026-10-22 | R-25 resolvida: precedência de headers = canal interno middleware→handler; decisão Opção C (remover envio morto + ADR) | Registrado |
+| 2026-10-22 | Plano salvo em `docs/PLANO_REFATORACAO_STEDEV.md` §7 | Concluído |
+
 
 
 

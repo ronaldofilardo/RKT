@@ -33,7 +33,10 @@ export async function POST(request: NextRequest) {
       const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
       const recentFails = await import('@/lib/prisma').then((m) => m.prisma.loginAttempt.count({
         where: { ip, success: false, createdAt: { gte: fiveMinsAgo } }
-      })).catch(() => 0);
+      })).catch((error: unknown) => {
+        logger.warn('[LOGIN POST] Falha ao contar tentativas de login; rate-limit ignorado:', error);
+        return 0;
+      });
 
       if (recentFails > 3) {
         const delayMs = Math.min((recentFails - 3) * 1000, 8000);
@@ -46,7 +49,9 @@ export async function POST(request: NextRequest) {
     if (process.env.ENABLE_LOGIN_RATELIMIT === 'true') {
       await import('@/lib/prisma').then((m) => m.prisma.loginAttempt.create({
         data: { ip, cpf: identifier, success: !!user }
-      })).catch(() => {});
+      })).catch((error: unknown) => {
+        logger.warn('[LOGIN POST] Falha ao registrar tentativa de login:', error);
+      });
     }
 
     if (!user) {
