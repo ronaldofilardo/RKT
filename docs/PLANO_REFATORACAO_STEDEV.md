@@ -529,6 +529,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-22 | **V-05** `src/schemas/comment.ts` (Create/UpdateComment, SessionPathParams); `comments` POST/PATCH via `validatedRequest`; `renew`/`endorse` validam path params; GET `comments` via `extractPagination` | Concluído (`10fa128`) |
 | 2026-10-22 | **V-06** zero `any` em produção (R-06): `RallyDetailsWithAttribution`, `PointLogAnnotations`, `DoublesSetup` em undo/arrangement, `unwrapStateEnvelope`, `val: unknown` no preprocess | Concluído (`89e2e96`) |
 | 2026-10-22 | **V-07** pré-condição R-15 verificada: characterization tests dos 3 módulos legados existem e passam (374 testes); **S2 encerrado — nenhum corte executado** | Concluído (ver tabela §7.2) |
+| 2026-10-22 | **S3 (top-10 #5)** `matchService.ts`: poda de `doublesSetup.changes` no undo extraída para `match-service-doubles.logic.ts` (R-03); characterization prévia com 10 testes (cobertura 100% stmts / 94,73% branch do módulo novo) | Concluído (`7a255ae`) |
 
 **Verificação (após cada fatia):** `pnpm typecheck` verde. Suítes afetadas executadas via `node scripts/run-tests.js --ci "<padrão>"`.
 
