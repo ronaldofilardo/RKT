@@ -5,7 +5,6 @@ import type {
   ScoringState,
   PointFlow,
   RallyDetailsWithAttribution,
-  DoublesArrangement,
   HistoryEntry,
 } from "@/core/scoring/types";
 import type {
@@ -21,6 +20,7 @@ import { createServeActionsService } from "./useScoringHandlers.serve-actions.se
 import { createUndoRedoService } from "./useScoringHandlers.undo-redo.service";
 import { createMatchFetchService } from "./useScoringHandlers.match-fetch";
 import { createPointProcessorService } from "./useScoringHandlers.point-processor.service";
+import { createArrangementService } from "./useScoringHandlers.arrangement.service";
 
 export function useScoringHandlers(
   ctx: ScoringHandlersContext,
@@ -301,64 +301,14 @@ export function useScoringHandlers(
     setServeStep,
   });
 
-  const updateDoublesArrangement = useCallback(
-    async (arrangement: DoublesArrangement) => {
-      if (!match || match.matchType !== "DOUBLES") return;
-      try {
-        const state = engineRef.current?.getState();
-        const setIndex = (state?.sets.length || 1) - 1;
-        const currentVersion = matchVersionRef.current ?? match.version ?? 0;
-        let res = await fetch(`/api/matches/${matchId}/arrangement`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}),
-          },
-          body: JSON.stringify({
-            afterSet: Math.max(0, setIndex),
-            version: currentVersion,
-            serveOrder: arrangement.serveOrder,
-            serveIndex: arrangement.serveIndex,
-            receiveDeuce: arrangement.receiveDeuce,
-            setIndex: Math.max(0, setIndex),
-            expectedVersion: currentVersion,
-          }),
-        });
-
-        // Se houver conflito de versão (409) decorrente de edição anterior, reidrata do servidor e retenta
-        if (res.status === 409) {
-          await fetchMatch(true);
-          const updatedVersion = matchVersionRef.current ?? match.version ?? 0;
-          res = await fetch(`/api/matches/${matchId}/arrangement`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}),
-            },
-            body: JSON.stringify({
-              afterSet: Math.max(0, setIndex),
-              version: updatedVersion,
-              serveOrder: arrangement.serveOrder,
-              serveIndex: arrangement.serveIndex,
-              receiveDeuce: arrangement.receiveDeuce,
-              setIndex: Math.max(0, setIndex),
-              expectedVersion: updatedVersion,
-            }),
-          });
-        }
-
-        if (res.ok) {
-          engineRef.current?.setArrangement(arrangement);
-          await fetchMatch(true);
-        } else {
-          logger.error("[updateDoublesArrangement] Falha na API de arrangement", await res.text());
-        }
-      } catch (err) {
-        logger.error("[updateDoublesArrangement] Erro de rede", err);
-      }
-    },
-    [match, matchId, engineRef, tokenRef, fetchMatch],
-  );
+  const arrangementService = createArrangementService({
+    match,
+    matchId,
+    engineRef,
+    matchVersionRef,
+    tokenRef,
+    fetchMatch,
+  });
 
   return {
     persistState,
@@ -379,7 +329,7 @@ export function useScoringHandlers(
     recordDirectServeError: serveActionsService.recordDirectServeError,
     cancelServeError: serveActionsService.cancelServeError,
     confirmPointDetails,
-    updateDoublesArrangement,
+    updateDoublesArrangement: arrangementService.updateDoublesArrangement,
     isProcessing: isProcessingRef.current,
   };
 }
