@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 
-type MatchEventType = 'point_scored' | 'state_changed' | 'session_updated' | 'comment_created' | 'comment_updated' | 'comment_deleted';
+type MatchEventType = 'point_scored' | 'state_changed' | 'session_updated' | 'comment_created' | 'comment_updated' | 'comment_deleted' | 'arrangement_updated';
 
 export interface MatchEvent {
   id: string;

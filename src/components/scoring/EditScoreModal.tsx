@@ -40,6 +40,7 @@ export function EditScoreModal(props: EditScoreModalProps) {
         effectiveFloorTiebreak={effectiveFloorTiebreak}
         confirmError={confirmError}
         floorValidationError={floorValidationError}
+        doubles={props.doubles}
         state={state}
         setState={setState as unknown as EditScoreModalContentProps['setState']}
         calculations={calculations}

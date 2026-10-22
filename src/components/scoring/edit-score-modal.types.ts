@@ -37,6 +37,10 @@ export interface EditScoreModalProps {
     } | null;
   } | null;
   onRefreshFloor?: () => Promise<{ player1: number; player2: number } | null>;
+  doubles?: {
+    player1PartnerName?: string;
+    player2PartnerName?: string;
+  };
 }
 
 export interface EditScoreModalContentProps {
@@ -48,6 +52,10 @@ export interface EditScoreModalContentProps {
   effectiveFloorTiebreak: { player1: number; player2: number } | null;
   confirmError: string | null;
   floorValidationError: string | null;
+  doubles?: {
+    player1PartnerName?: string;
+    player2PartnerName?: string;
+  };
   state: {
     editableCompletedSets: SetEditData[];
     newSets: SetEditData[];

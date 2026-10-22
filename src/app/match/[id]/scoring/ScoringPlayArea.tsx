@@ -16,7 +16,7 @@ export function ScoringPlayArea({
   liveCounters,
   tacticalInsights,
   completedSetsCount,
-  p1IsServing, p2IsServing, isSetPoint, isBreakPoint, isMatchPoint,
+  p1IsServing, p2IsServing, activeServerId, activeReceiverId, isSetPoint, isBreakPoint, isMatchPoint,
   isTiebreak, isSuperTiebreak, winner, pointsHistory, scoreState, isFinished,
   onOpenSetSummary, onPoint, onSwipeUndo, onNavigateReport, onRegisterAndExit,
 }: ScoringPlayAreaProps) {
@@ -48,6 +48,10 @@ export function ScoringPlayArea({
       <PlayAreaPlayers
         player1={match.player1}
         player2={match.player2}
+        player1Partner={match.player1Partner ?? undefined}
+        player2Partner={match.player2Partner ?? undefined}
+        activeServerId={activeServerId}
+        activeReceiverId={activeReceiverId}
         scoreState={effectiveScoreState}
         p1IsServing={p1IsServing}
         p2IsServing={p2IsServing}

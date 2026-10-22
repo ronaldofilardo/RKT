@@ -23,6 +23,8 @@ export interface PointDetailsForm {
   duracao: RallyDuration | null;
   direcao: RallyDirecao | null;
   golpeEsp: RallyGolpeEsp | null;
+  hitterId: string | null;
+  receiverId: string | null;
 }
 
 export type Action =
@@ -35,6 +37,8 @@ export type Action =
   | { type: 'SET_EFEITO'; value: RallyEfeito }
   | { type: 'SET_DIRECAO'; value: RallyDirecao }
   | { type: 'SET_GOLPE_ESP'; value: RallyGolpeEsp }
+  | { type: 'SET_HITTER'; value: string | null }
+  | { type: 'SET_RECEIVER'; value: string | null }
   | { type: 'RESET' };
 
 export const initialForm: PointDetailsForm = {
@@ -47,12 +51,14 @@ export const initialForm: PointDetailsForm = {
   duracao: null,
   direcao: null,
   golpeEsp: null,
+  hitterId: null,
+  receiverId: null,
 };
 
 export function formReducer(state: PointDetailsForm, action: Action): PointDetailsForm {
   switch (action.type) {
     case 'SET_SITUACAO':
-      return { ...initialForm, situacao: action.value };
+      return { ...initialForm, situacao: action.value, receiverId: state.receiverId, hitterId: state.hitterId };
     case 'SET_TIPO':
       return { ...state, tipo: action.value, golpe: null, subtipo1: null, subtipo2: null, efeito: null, duracao: null, direcao: null, golpeEsp: null };
     case 'SET_GOLPE':
@@ -81,6 +87,10 @@ export function formReducer(state: PointDetailsForm, action: Action): PointDetai
       return { ...state, direcao: action.value, golpeEsp: null };
     case 'SET_GOLPE_ESP':
       return { ...state, golpeEsp: action.value };
+    case 'SET_HITTER':
+      return { ...state, hitterId: action.value };
+    case 'SET_RECEIVER':
+      return { ...state, receiverId: action.value };
     case 'RESET':
       return initialForm;
     default:

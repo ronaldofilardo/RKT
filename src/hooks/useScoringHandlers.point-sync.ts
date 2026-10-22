@@ -1,6 +1,7 @@
 "use client";
 
 import type { PointFlow, ScoringState } from "@/core/scoring/types";
+import { buildPointPayload } from "@/core/scoring/point-payload";
 import type { MatchData } from "./useScoringHandlers";
 import type { QueuedAction } from "@/schemas/contracts";
 import { logger } from "@/lib/logger";
@@ -37,29 +38,6 @@ interface ErrorResponseBody {
   message?: string;
 }
 
-function buildPointPayload(
-  flow: PointFlow,
-  sequenceNumber: number,
-  clientEventId?: string,
-) {
-  return {
-    winnerId: flow.winnerId,
-    type: flow.type,
-    serverId: flow.serverId,
-    timestamp: flow.timestamp ?? Date.now(),
-    sequenceNumber,
-    clientEventId: clientEventId ?? (
-      typeof crypto !== 'undefined' && crypto.randomUUID
-        ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random().toString(36).slice(2)}`
-    ),
-    rallyDetails: flow.rallyDetails ?? undefined,
-    rallyLength: flow.rallyLength ?? undefined,
-    isFirstServe: flow.isFirstServe ?? undefined,
-    isSecondServe: flow.isSecondServe ?? undefined,
-    firstFaultDetail: flow.firstFaultDetail ?? undefined,
-  };
-}
 
 async function respondWithApiSuccess(res: Response): Promise<PointSyncResult> {
   try {

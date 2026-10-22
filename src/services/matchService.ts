@@ -7,17 +7,8 @@ import type {
   MatchFinishReason,
 } from "@/schemas/contracts";
 
-/**
- * Extrai o código de erro do Prisma sem depender de `any`.
- * Espelha o comportamento de `error?.code` sobre valores arbitrários.
- */
-function getPrismaErrorCode(error: unknown): string | undefined {
-  if (typeof error !== "object" || error === null || !("code" in error)) {
-    return undefined;
-  }
-  const code = (error as { code?: unknown }).code;
-  return typeof code === "string" ? code : undefined;
-}
+import { logger } from "@/lib/logger";
+import { getPrismaErrorCode } from "@/lib/errors";
 import { listMatches, getMatch, findAbandonedSessionSnapshot } from "./matchRepository";
 import { validateFinishMatch, validateTransitionState } from "./matchValidator";
 import {
@@ -190,6 +181,7 @@ export async function transitionMatchState(
   initialServerId?: string,
   scoreState?: unknown,
   options?: {
+    doublesSetup?: unknown;
     allowScoreEdit?: boolean;
     expectedVersion?: number;
     isManualScoreEdit?: boolean;
@@ -202,18 +194,22 @@ export async function transitionMatchState(
 ) {
   const match = await prisma.match.findFirst({
     where: { id },
-    include: { player1: true, player2: true },
+    include: { player1: true, player2: true, player1Partner: true, player2Partner: true },
   });
   if (!match) return null;
 
   const validation = validateTransitionState(
     {
       format: match.format as MatchFormat,
+      matchType: match.matchType,
       player1Id: match.player1Id,
       player2Id: match.player2Id,
+      player1PartnerId: match.player1PartnerId,
+      player2PartnerId: match.player2PartnerId,
       initialServerId: match.initialServerId,
       scoreState: match.scoreState,
       state: match.state,
+      doublesSetup: match.doublesSetup,
     },
     newState,
     scoreState,
@@ -258,12 +254,45 @@ export async function transitionMatchState(
         }
       }
 
-      const updateData = buildTransitionUpdateData(newState, initialServerId, scoreState, match);
+      const updateData = buildTransitionUpdateData(
+        newState,
+        initialServerId,
+        scoreState,
+        match,
+        options?.doublesSetup,
+      );
+
+      if (options?.isUndo && match.matchType === 'DOUBLES' && match.doublesSetup) {
+        try {
+          const currentSetup = (typeof match.doublesSetup === 'string'
+            ? JSON.parse(match.doublesSetup)
+            : JSON.parse(JSON.stringify(match.doublesSetup))) as any;
+
+          if (Array.isArray(currentSetup?.changes) && currentSetup.changes.length > 0) {
+            const raw = typeof scoreState === 'string' ? JSON.parse(scoreState) : scoreState;
+            const targetState = (raw && typeof raw === 'object' && 'state' in raw && (raw as any).state) ? (raw as any).state : raw;
+            const completedSets = (targetState?.sets ?? []).filter((s: any) => {
+              if (s.isTiebreak && s.tiebreakScore) return true;
+              return (s.player1 >= 6 || s.player2 >= 6) && Math.abs(s.player1 - s.player2) >= 2;
+            }).length;
+
+            const filteredChanges = currentSetup.changes.filter((c: any) => c.afterSet < completedSets);
+            if (filteredChanges.length !== currentSetup.changes.length) {
+              updateData.doublesSetup = {
+                ...currentSetup,
+                changes: filteredChanges,
+              };
+            }
+          }
+        } catch (e) {
+          logger.warn('[transitionMatchState] Falha ao ajustar doublesSetup.changes no undo:', e);
+        }
+      }
 
       return tx.match.update({
         where: whereClause,
         data: updateData,
-        include: { player1: true, player2: true },
+        include: { player1: true, player2: true, player1Partner: true, player2Partner: true },
       });
     });
   } catch (error) {

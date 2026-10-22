@@ -159,11 +159,13 @@ export async function executeScoreEdit(options: ExecuteEditScoreOptions): Promis
       return;
     }
 
+    const existingDoubles = ctx.engineRef?.current?.getState().doubles;
     const newState = buildNewScoringState({
       setResults,
       server,
       format: (match?.format as TennisFormat) || "BEST_OF_3",
       partialSet,
+      doubles: existingDoubles,
     });
 
     if (suspendedSession) {

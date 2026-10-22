@@ -55,8 +55,16 @@ export function MatchCard({
       />
 
       <MatchCardScore
-        playerName1={match.player1.name}
-        playerName2={match.player2.name}
+        playerName1={
+          match.matchType === 'DOUBLES' && match.player1Partner
+            ? `${match.player1.name} / ${match.player1Partner.name}`
+            : match.player1.name
+        }
+        playerName2={
+          match.matchType === 'DOUBLES' && match.player2Partner
+            ? `${match.player2.name} / ${match.player2Partner.name}`
+            : match.player2.name
+        }
         isServerP1={d.isServerP1}
         isServerP2={d.isServerP2}
         barBg={d.barBg}

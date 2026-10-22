@@ -1,4 +1,4 @@
-import type { ScoringEngineConfig, ScoringState, PointFlow, PointDetails, HistoryEntry } from './types';
+import type { ScoringEngineConfig, ScoringState, PointFlow, PointDetails, HistoryEntry, DoublesArrangement } from './types';
 import { logger } from '@/lib/logger';
 import { createInitialState, getState, serialize, reconcileWithCanonicalState } from './engine.state';
 import { saveToHistory, undoLastPoint as undoHistory, getHistoryLength, getPointHistory, restorePointHistory, clearHistory } from './engine.history';
@@ -9,6 +9,7 @@ import {
   isMatchTiebreakActive,
 } from './engine.flow';
 import { unwrapStateEnvelope } from './state-envelope';
+import { sideOfPlayer, getServingMemberId, getReceiverMemberId, courtSide } from './doubles';
 
 function resolveWinner(
   flow: PointFlow,
@@ -20,6 +21,11 @@ function resolveWinner(
   }
   if (flow.winnerId === config.player1Id) return 'player1';
   if (flow.winnerId === config.player2Id) return 'player2';
+
+  if (config.doubles) {
+    const side = sideOfPlayer(config.doubles, flow.winnerId);
+    if (side) return side;
+  }
 
   logger.error('[ScoringEngine] applyPoint: invalid winnerId', {
     winnerId: flow.winnerId,
@@ -37,7 +43,12 @@ function computeRallyLength(flow: PointFlow): number {
   return 0;
 }
 
-function buildPointDetails(flow: PointFlow, isSecondServeState = false): PointDetails {
+function buildPointDetails(
+  flow: PointFlow,
+  state: ScoringState,
+  config: ScoringEngineConfig,
+  isSecondServeState = false,
+): PointDetails {
   const hasFirstFaultDetail = Boolean(
     flow.firstFaultDetail &&
       (flow.firstFaultDetail.errorType ||
@@ -55,16 +66,43 @@ function buildPointDetails(flow: PointFlow, isSecondServeState = false): PointDe
 
   const isFirstServe = !isSecondServe;
 
+  let serverId = flow.serverId;
+  let receiverId = flow.receiverId;
+  let courtSideValue = flow.courtSide;
+  let hitterId = flow.hitterId;
+
+  if (config.doubles) {
+    if (!serverId) {
+      serverId = getServingMemberId(state, config.doubles);
+    }
+    if (!courtSideValue) {
+      courtSideValue = courtSide(state);
+    }
+    if (!receiverId) {
+      receiverId = getReceiverMemberId(state, config.doubles, flow.receiverId);
+    }
+    if (!hitterId) {
+      if (flow.type === 'ACE' || flow.type === 'DOUBLE_FAULT') {
+        hitterId = serverId;
+      } else {
+        hitterId = flow.winnerId;
+      }
+    }
+  }
+
   return {
     winnerId: flow.winnerId,
     type: (flow.type as PointDetails['type']) || 'WINNER',
     isFirstServe,
     isSecondServe,
-    serverId: flow.serverId,
+    serverId,
     timestamp: flow.timestamp ?? Date.now(),
     rallyDetails: flow.rallyDetails ?? null,
     rallyLength: computeRallyLength(flow),
     firstFaultDetail: flow.firstFaultDetail ?? null,
+    ...(receiverId !== undefined ? { receiverId } : {}),
+    ...(courtSideValue !== undefined ? { courtSide: courtSideValue } : {}),
+    ...(hitterId !== undefined ? { hitterId } : {}),
   };
 }
 
@@ -94,7 +132,7 @@ export class ScoringEngine {
     const isFaultFirst = Boolean(flow.type === 'FAULT_FIRST' || flow.firstFault);
     const winner = resolveWinner(flow, this.config, isFaultFirst);
     const isSecondServeState = Boolean(this.state.secondServe || this.state.currentGame?.secondServe);
-    const details = buildPointDetails(flow, isSecondServeState);
+    const details = buildPointDetails(flow, this.state, this.config, isSecondServeState);
 
     if (flow.type === 'DOUBLE_FAULT') {
       this.state = this.recordDoubleFault(winner, details);
@@ -168,6 +206,22 @@ export class ScoringEngine {
 
   getServer(): 'player1' | 'player2' {
     return this.state.server;
+  }
+
+  getServingMemberId(): string | null {
+    if (!this.config.doubles) return null;
+    return getServingMemberId(this.state, this.config.doubles);
+  }
+
+  getReceiverMemberId(override?: string): string | null {
+    if (!this.config.doubles) return null;
+    return getReceiverMemberId(this.state, this.config.doubles, override);
+  }
+
+  setArrangement(arrangement: DoublesArrangement): void {
+    if (this.config.doubles) {
+      this.state.doubles = arrangement;
+    }
   }
 
   getPointHistory(): HistoryEntry[] {
@@ -246,7 +300,10 @@ export class ScoringEngine {
       history.length === 0 &&
       state.startedAt == null;
 
-    if (isVirginState && config.initialServerId) {
+    const isGame1 = config.format !== 'MATCH_TB_10' && totalCompletedGames === 0 && !hasTiebreakPoints;
+    if (isGame1 && config.initialServerId === config.player2Id && state.server === 'player1') {
+      state.server = 'player2';
+    } else if (isVirginState && config.initialServerId) {
       state.server = config.initialServerId === config.player2Id ? 'player2' : 'player1';
     }
 

@@ -48,6 +48,68 @@ export const SetScoreSchema = z.object({
     .optional(),
 });
 
+export const MatchTypeSchema = z.enum(["SINGLES", "DOUBLES"]);
+export type MatchType = z.infer<typeof MatchTypeSchema>;
+
+export const DoublesArrangementSchema = z.object({
+  serveOrder: z.object({
+    player1: z.tuple([z.string(), z.string()]),
+    player2: z.tuple([z.string(), z.string()]),
+  }),
+  serveIndex: z.object({
+    player1: z.union([z.literal(0), z.literal(1)]),
+    player2: z.union([z.literal(0), z.literal(1)]),
+  }),
+  receiveDeuce: z.object({
+    player1: z.string(),
+    player2: z.string(),
+  }),
+});
+export type DoublesArrangement = z.infer<typeof DoublesArrangementSchema>;
+
+export const DoublesSetupSchema = z.object({
+  version: z.number().int().optional(),
+  serveOrder: z.object({
+    player1: z.tuple([z.string(), z.string()]),
+    player2: z.tuple([z.string(), z.string()]),
+  }),
+  receiveDeuce: z.object({
+    player1: z.string(),
+    player2: z.string(),
+  }),
+  changes: z
+    .array(
+      z.object({
+        afterSet: z.number().int().min(0),
+        serveOrder: z.object({
+          player1: z.tuple([z.string(), z.string()]),
+          player2: z.tuple([z.string(), z.string()]),
+        }),
+        receiveDeuce: z.object({
+          player1: z.string(),
+          player2: z.string(),
+        }),
+        at: z.number().optional(),
+      })
+    )
+    .optional(),
+});
+export type DoublesSetup = z.infer<typeof DoublesSetupSchema>;
+
+export const ArrangementInputSchema = z.object({
+  afterSet: z.number().int().min(0),
+  serveOrder: z.object({
+    player1: z.tuple([z.string(), z.string()]),
+    player2: z.tuple([z.string(), z.string()]),
+  }),
+  receiveDeuce: z.object({
+    player1: z.string(),
+    player2: z.string(),
+  }),
+  version: z.number().int(),
+});
+export type ArrangementInput = z.infer<typeof ArrangementInputSchema>;
+
 export const MatchScoreStateSchema = z.object({
   sets: z.array(SetScoreSchema),
   currentGame: GameScoreSchema,
@@ -62,6 +124,7 @@ export const MatchScoreStateSchema = z.object({
     .optional(),
   startedAt: z.number().nullable().optional(),
   secondServe: z.boolean().optional(),
+  doubles: DoublesArrangementSchema.optional(),
   /**
    * Histórico detalhado de pontos (com rallyDetails, firstFaultDetail,
    * etc.) gerado pelo ScoringEngine. Persistido junto do estado para
@@ -103,8 +166,14 @@ export const MatchSchema = z.object({
   id: flexibleIdValidator,
   format: MatchFormatSchema,
   state: MatchStateSchema,
+  matchType: MatchTypeSchema.default("SINGLES"),
   player1: PlayerSchema,
   player2: PlayerSchema,
+  player1PartnerId: z.string().nullable().optional(),
+  player2PartnerId: z.string().nullable().optional(),
+  player1Partner: PlayerSchema.nullable().optional(),
+  player2Partner: PlayerSchema.nullable().optional(),
+  doublesSetup: DoublesSetupSchema.nullable().optional(),
   scoreState: MatchScoreStateSchema.nullable(),
   scheduledAt: z.coerce.date().nullable(),
   startedAt: z.coerce.date().nullable(),
@@ -119,6 +188,9 @@ export const CreateMatchInputSchema = z
     player1Id: z.string().min(1),
     player2Id: z.string().min(1),
     format: MatchFormatSchema,
+    matchType: MatchTypeSchema.default("SINGLES").optional(),
+    player1PartnerId: z.string().nullish(),
+    player2PartnerId: z.string().nullish(),
     sportType: z.string().nullish(),
     courtType: z.string().nullish(),
     nickname: z.string().nullish(),
@@ -137,9 +209,21 @@ export const CreateMatchInputSchema = z
     force: z.boolean().optional(),
     details: z.string().nullish(),
   })
-  .refine((data) => data.player1Id !== data.player2Id, {
-    message: "Jogador 2 deve ser diferente do Jogador 1",
-    path: ["player2Id"],
+  .refine((data) => {
+    if (data.matchType === "DOUBLES") {
+      if (!data.player1PartnerId || !data.player2PartnerId) return false;
+      const ids = new Set([
+        data.player1Id,
+        data.player1PartnerId,
+        data.player2Id,
+        data.player2PartnerId,
+      ]);
+      return ids.size === 4;
+    }
+    return data.player1Id !== data.player2Id;
+  }, {
+    message: "Em partidas de duplas, todos os 4 atletas devem ser distintos e preenchidos; em simples, Jogador 2 deve ser diferente de Jogador 1",
+    path: ["player2PartnerId"],
   });
 export type CreateMatchInput = z.infer<typeof CreateMatchInputSchema>;
 
@@ -173,6 +257,7 @@ export const MatchStateInputSchema = z
   .object({
     state: MatchStateSchema,
     initialServerId: z.string().min(1).optional(),
+    doublesSetup: DoublesSetupSchema.optional(),
     scoreState: z
       .union([MatchScoreStateEnvelopeSchema, MatchScoreStateSchema])
       .optional(),

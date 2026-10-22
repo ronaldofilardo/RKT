@@ -4,11 +4,28 @@ import type { PlayerCardProps } from './player-card.types';
 import { formatScore, getGameProgressRatio } from './player-card.logic';
 import { usePlayerCardTouch } from './use-player-card-touch';
 
-export function PlayerCard({ player, side, scoreState, isServing, isWinner, onPoint, onSwipeDown, disabled }: PlayerCardProps) {
+export function PlayerCard({
+  player,
+  partner,
+  side,
+  scoreState,
+  isServing,
+  activeServerId,
+  activeReceiverId,
+  isWinner,
+  onPoint,
+  onSwipeDown,
+  disabled,
+}: PlayerCardProps) {
   const score = formatScore(scoreState, side);
   const progress = getGameProgressRatio(scoreState, side);
   const setsWon = scoreState?.setsWon[side] ?? 0;
   const { onTouchStartGesture, onTouchEndGesture, onPrimaryClick } = usePlayerCardTouch(onPoint, onSwipeDown);
+
+  const isServerPlayer1 = activeServerId ? activeServerId === player.id : isServing;
+  const isServerPlayer2 = partner && activeServerId ? activeServerId === partner.id : false;
+  const isReceiverPlayer1 = activeReceiverId === player.id;
+  const isReceiverPlayer2 = partner && activeReceiverId === partner.id;
 
   return (
     <button
@@ -21,15 +38,53 @@ export function PlayerCard({ player, side, scoreState, isServing, isWinner, onPo
       onTouchStart={onTouchStartGesture}
       onTouchEnd={onTouchEndGesture}
       disabled={disabled}
-      aria-label={`+ Ponto ${player.name}`}
+      aria-label={`+ Ponto ${player.name}${partner ? ` / ${partner.name}` : ''}`}
     >
-      <div className="flex items-center gap-1.5 sm:gap-2 mb-1 min-w-0 w-full justify-center">
-        <span className="font-bold text-sm sm:text-lg text-telemetry-text-primary truncate max-w-[70%]">{player.name}</span>
-        {isServing && (
-          <span className="inline-flex items-center gap-1 flex-shrink-0" aria-label="Sacando">
-            <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-telemetry-volt animate-pulse shadow-[0_0_8px_rgba(204,255,0,0.6)]" />
-            <span role="img" aria-label="Sacador" className="text-xs sm:text-sm select-none leading-none">🎾</span>
+      <div className="flex flex-col items-center gap-0.5 mb-1 min-w-0 w-full justify-center">
+        {/* Jogador principal */}
+        <div className="flex items-center gap-1.5 justify-center max-w-full">
+          <span
+            className={`font-bold ${partner ? 'text-xs sm:text-sm' : 'text-sm sm:text-lg'} text-telemetry-text-primary truncate max-w-[80%] ${
+              isServerPlayer1 ? 'text-telemetry-volt' : ''
+            }`}
+          >
+            {player.name}
           </span>
+          {isServerPlayer1 && (
+            <span className="inline-flex items-center gap-1 flex-shrink-0" aria-label="Sacando">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-telemetry-volt animate-pulse shadow-[0_0_8px_rgba(204,255,0,0.6)]" />
+              <span role="img" aria-label="Sacador" className="text-xs select-none leading-none">🎾</span>
+            </span>
+          )}
+          {isReceiverPlayer1 && (
+            <span className="text-[9px] font-bold px-1 py-0.2 bg-white/10 text-telemetry-text-muted rounded">
+              REC
+            </span>
+          )}
+        </div>
+
+        {/* Parceiro de duplas */}
+        {partner && (
+          <div className="flex items-center gap-1.5 justify-center max-w-full">
+            <span
+              className={`font-bold text-xs sm:text-sm truncate max-w-[80%] ${
+                isServerPlayer2 ? 'text-telemetry-volt' : 'text-telemetry-text-muted'
+              }`}
+            >
+              {partner.name}
+            </span>
+            {isServerPlayer2 && (
+              <span className="inline-flex items-center gap-1 flex-shrink-0" aria-label="Sacando">
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-telemetry-volt animate-pulse shadow-[0_0_8px_rgba(204,255,0,0.6)]" />
+                <span role="img" aria-label="Sacador" className="text-xs select-none leading-none">🎾</span>
+              </span>
+            )}
+            {isReceiverPlayer2 && (
+              <span className="text-[9px] font-bold px-1 py-0.2 bg-white/10 text-telemetry-text-muted rounded">
+                REC
+              </span>
+            )}
+          </div>
         )}
       </div>
 

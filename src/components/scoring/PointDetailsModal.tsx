@@ -7,7 +7,7 @@ import { ModalActions } from './ModalActions';
 import { SectionRenderer } from './SectionRenderer';
 import { PointDetailsNotesModal } from './PointDetailsNotesModal';
 import { PointDetailsCloseDialog } from './PointDetailsCloseDialog';
-import { usePointDetailsModal } from './use-point-details-modal';
+import { usePointDetailsModal, type PointDetailsDoublesInfo } from './use-point-details-modal';
 
 interface PointDetailsModalProps {
   winnerPlayerSide: 'player1' | 'player2';
@@ -17,6 +17,7 @@ interface PointDetailsModalProps {
   fontScale: number;
   onConfirm: (details: RallyDetails, audio?: { blob: Blob; durationMs: number }) => void;
   onCancel: () => void;
+  doubles?: PointDetailsDoublesInfo;
 }
 
 export function PointDetailsModal({
@@ -27,12 +28,14 @@ export function PointDetailsModal({
   fontScale: _fontScale,
   onConfirm,
   onCancel,
+  doubles,
 }: PointDetailsModalProps) {
   const {
     mounted, showCloseDialog, setShowCloseDialog, showNotesModal, setShowNotesModal,
     noteText, hasNoteAudio, form, dispatch, refs, vencedor, winnerName,
+    hitterCandidates, receiverCandidates,
     cancelCurrentAction, canConfirm, confirmPointDetails, discardChanges, persistNoteContent,
-  } = usePointDetailsModal({ winnerPlayerSide, currentServer, player1Name, player2Name, onConfirm, onCancel });
+  } = usePointDetailsModal({ winnerPlayerSide, currentServer, player1Name, player2Name, onConfirm, onCancel, doubles });
 
   if (!mounted) return null;
 
@@ -60,7 +63,14 @@ export function PointDetailsModal({
         tabIndex={-1}
       >
         <WinnerInfo vencedor={vencedor} winnerName={winnerName} />
-        <SectionRenderer form={form} vencedor={vencedor} dispatch={dispatch} refs={refs} />
+        <SectionRenderer
+          form={form}
+          vencedor={vencedor}
+          dispatch={dispatch}
+          refs={refs}
+          hitterCandidates={hitterCandidates}
+          receiverCandidates={receiverCandidates}
+        />
         <ModalActions
           canConfirm={canConfirm}
           noteText={noteText}

@@ -24,17 +24,29 @@ export function MatchNewFormSections({ c }: { c: NewMatchController }) {
       />
 
       <PlayerSelection
+        matchType={c.matchType}
+        onMatchTypeChange={c.setMatchType}
         athletes={c.athletes}
         selectedP1={c.selectedP1}
         selectedP2={c.selectedP2}
+        selectedP1Partner={c.selectedP1Partner}
+        selectedP2Partner={c.selectedP2Partner}
         player1DropdownOpen={c.player1DropdownOpen}
         player2DropdownOpen={c.player2DropdownOpen}
+        player1PartnerDropdownOpen={c.player1PartnerDropdownOpen}
+        player2PartnerDropdownOpen={c.player2PartnerDropdownOpen}
         onToggleP1={() => c.setPlayer1DropdownOpen(!c.player1DropdownOpen)}
         onToggleP2={() => c.setPlayer2DropdownOpen(!c.player2DropdownOpen)}
+        onToggleP1Partner={() => c.setPlayer1PartnerDropdownOpen(!c.player1PartnerDropdownOpen)}
+        onToggleP2Partner={() => c.setPlayer2PartnerDropdownOpen(!c.player2PartnerDropdownOpen)}
         onSelectP1={(a) => c.selectAthleteFromList('p1', a)}
         onSelectP2={(a) => c.selectAthleteFromList('p2', a)}
+        onSelectP1Partner={(a) => c.selectAthleteFromList('p1Partner', a)}
+        onSelectP2Partner={(a) => c.selectAthleteFromList('p2Partner', a)}
         onCreateNewP1={() => c.openNewAthleteModal('p1')}
         onCreateNewP2={() => c.openNewAthleteModal('p2')}
+        onCreateNewP1Partner={() => c.openNewAthleteModal('p1Partner')}
+        onCreateNewP2Partner={() => c.openNewAthleteModal('p2Partner')}
       />
 
       <DateTimeSection date={c.date} time={c.time} onDateChange={c.setDate} onTimeChange={c.setTime} />

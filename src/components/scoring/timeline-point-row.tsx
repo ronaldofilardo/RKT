@@ -2,7 +2,7 @@
 
 import type { TimelinePoint } from '@/core/scoring/types';
 import { direcaoLabel, efeitoLabel } from './timeline.logic';
-import { getPlayerInitials } from './timeline-row.logic';
+import { getPlayerInitials, getTeamInitials, type TimelineDoublesConfig } from './timeline-row.logic';
 import { IdentityCells, NoteCell, RallyDetailCells, ServeOutcomeCells } from './timeline-row-cells';
 import { GapCell, PointRowWithInsert, SegmentBreakCell } from './timeline-row-inserts';
 
@@ -15,9 +15,10 @@ export interface PointRowProps {
   isFirstPointOfGame: boolean;
   player1Name: string;
   player2Name: string;
+  doubles?: TimelineDoublesConfig;
 }
 
-export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPointOfGame, player1Name, player2Name }: PointRowProps) {
+export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPointOfGame, player1Name, player2Name, doubles }: PointRowProps) {
   const rd = p.rallyDetails;
   const isServeDecidedPoint = p.type === 'ACE' || p.type === 'DOUBLE_FAULT' || p.type === 'FAULT_FIRST';
 
@@ -31,8 +32,30 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPo
 
   const serverNumber = p.server === 'player1' ? 1 : 2;
   const winnerNumber = p.winner === 'PLAYER_1' ? 1 : 2;
-  const winnerInitials = getPlayerInitials(winnerNumber === 1 ? player1Name : player2Name);
-  const serverInitials = getPlayerInitials(serverNumber === 1 ? player1Name : player2Name);
+
+  let serverInitials: string;
+  const pointServerId = p.serverId ?? p.pointDetails?.serverId;
+  if (doubles && pointServerId) {
+    if (pointServerId === doubles.player1Id) {
+      serverInitials = getPlayerInitials(player1Name);
+    } else if (pointServerId === doubles.player1PartnerId && doubles.player1PartnerName) {
+      serverInitials = getPlayerInitials(doubles.player1PartnerName);
+    } else if (pointServerId === doubles.player2Id) {
+      serverInitials = getPlayerInitials(player2Name);
+    } else if (pointServerId === doubles.player2PartnerId && doubles.player2PartnerName) {
+      serverInitials = getPlayerInitials(doubles.player2PartnerName);
+    } else {
+      serverInitials = getPlayerInitials(serverNumber === 1 ? player1Name : player2Name);
+    }
+  } else {
+    serverInitials = getPlayerInitials(serverNumber === 1 ? player1Name : player2Name);
+  }
+
+  const winnerInitials = doubles
+    ? winnerNumber === 1
+      ? getTeamInitials(player1Name, doubles.player1PartnerName)
+      : getTeamInitials(player2Name, doubles.player2PartnerName)
+    : getPlayerInitials(winnerNumber === 1 ? player1Name : player2Name);
 
   const firstOutcome = p.firstServeOutcome;
   const secondOutcome = p.secondServeOutcome;

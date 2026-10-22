@@ -29,7 +29,11 @@ export function ReportPageView({ report, matchId, p1Points, p2Points, totalPoint
         <TabBar activeTab={activeTab} onTabChange={setActiveTab} hasAdvancedStats={!!report.advancedStats} />
         {activeTab === 'summary' && <ReportStats report={report} p1Points={p1Points} p2Points={p2Points} totalPoints={totalPoints} />}
         {activeTab === 'advanced' && report.advancedStats && (
-          <AdvancedStats stats={report.advancedStats} player1Name={report.player1.name} player2Name={report.player2.name} />
+          <AdvancedStats
+            stats={report.advancedStats}
+            player1Name={report.matchType === 'DOUBLES' && report.player1Partner ? `${report.player1.name} / ${report.player1Partner.name}` : report.player1.name}
+            player2Name={report.matchType === 'DOUBLES' && report.player2Partner ? `${report.player2.name} / ${report.player2Partner.name}` : report.player2.name}
+          />
         )}
         <IntegrityNotice report={report} />
         {activeTab === 'timeline' && <ReportTimeline report={report} matchId={matchId} onContinue={onContinue} />}

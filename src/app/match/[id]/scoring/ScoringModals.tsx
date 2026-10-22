@@ -8,6 +8,9 @@ import type { ScoringPageDerived } from "./useScoringPageDerived";
 import { ScoringEditScoreModal } from "./scoring-edit-score-modal";
 import { ScoringSessionModals } from "./scoring-session-modals";
 
+import { isNoAdDecidingPoint } from "@/core/scoring/doubles";
+import type { TennisFormat } from "@/core/scoring/types";
+
 interface ScoringModalsProps {
   state: ScoringPageState;
   handlers: ScoringPageHandlers;
@@ -84,6 +87,21 @@ export function ScoringModals({
           fontScale={state.fontScale}
           onConfirm={handlers.confirmPointDetails}
           onCancel={state.close}
+          doubles={
+            match.matchType === "DOUBLES"
+              ? {
+                  player1: match.player1,
+                  player1Partner: match.player1Partner,
+                  player2: match.player2,
+                  player2Partner: match.player2Partner,
+                  activeServerId: derived.activeServerId,
+                  activeReceiverId: derived.activeReceiverId,
+                  isDecidingPoint: derived.effectiveScoreState
+                    ? isNoAdDecidingPoint(derived.effectiveScoreState, match.format as TennisFormat)
+                    : false,
+                }
+              : undefined
+          }
         />
       )}
     </>

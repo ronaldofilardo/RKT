@@ -45,7 +45,9 @@ export function buildRallyDetails(
     ...options,
     previewBalls: isDevolucao ? 2 : 1,
     note: textNote,
-  };
+    ...(form.hitterId ? { hitterId: form.hitterId } : {}),
+    ...(form.receiverId ? { receiverId: form.receiverId } : {}),
+  } as RallyDetails;
 }
 
 export function usePointDetailsKeyboard(

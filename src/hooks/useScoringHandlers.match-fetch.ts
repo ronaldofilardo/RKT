@@ -1,6 +1,7 @@
 import { logger } from '@/lib/logger';
 import { ScoringEngine } from '@/core/scoring/engine';
-import type { HistoryEntry, ScoringState, TennisFormat } from '@/core/scoring/types';
+import { buildEngineConfig } from '@/core/scoring/engine-config';
+import type { HistoryEntry, ScoringState } from '@/core/scoring/types';
 import type { ScoreAction } from '@/hooks/useScoreReducer';
 import type { MatchData } from './useScoringHandlers.types';
 
@@ -94,12 +95,7 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
       }
 
       if (forceEngineReset || !engineRef.current) {
-        const config = {
-          format: data.format as TennisFormat,
-          player1Id: data.player1.id,
-          player2Id: data.player2.id,
-          initialServerId: data.initialServerId || data.player1.id,
-        };
+        const config = buildEngineConfig(data);
 
         const previousHistory = engineRef.current?.getPointHistory?.() ?? [];
         let rehydratedViaLogs = false;
@@ -135,6 +131,9 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
                 firstFaultDetail,
                 rallyDetails: ann?.rallyDetails ?? null,
                 rallyLength: ann?.rallyLength,
+                hitterId: (ann as any)?.hitterId,
+                receiverId: (ann as any)?.receiverId,
+                courtSide: (ann as any)?.courtSide,
               });
             }
 

@@ -22,6 +22,7 @@ export interface ScoringPageHandlers {
   recordDirectServeError: ReturnType<typeof useScoringHandlers>["recordDirectServeError"];
   cancelServeError: ReturnType<typeof useScoringHandlers>["cancelServeError"];
   confirmPointDetails: ReturnType<typeof useScoringHandlers>["confirmPointDetails"];
+  updateDoublesArrangement?: ReturnType<typeof useScoringHandlers>["updateDoublesArrangement"];
   onPointSelectFromCard: (winnerSide: "player1" | "player2") => void;
   recordServeErrorWithModal: (errorType: "out" | "net", step: "first" | "second") => void;
   cancelEditScore: () => void;
@@ -87,6 +88,7 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     recordDirectServeError,
     cancelServeError,
     confirmPointDetails,
+    updateDoublesArrangement,
     isProcessing,
   } = useScoringHandlers({
     matchId,
@@ -196,6 +198,7 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     recordDirectServeError,
     cancelServeError,
     confirmPointDetails,
+    updateDoublesArrangement,
     onPointSelectFromCard,
     recordServeErrorWithModal,
     cancelEditScore,

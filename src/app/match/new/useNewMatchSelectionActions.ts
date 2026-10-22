@@ -8,7 +8,10 @@ import { startMatch } from './start-match.logic';
 type SelectionDependencies = Pick<NewMatchState,
   'setTournamentName' | 'setShowTournamentDropdown' | 'setNewAthleteFor' |
   'setShowNewAthleteModal' | 'setSelectedP1' | 'setPlayer1DropdownOpen' |
-  'setSelectedP2' | 'setPlayer2DropdownOpen' | 'newAthleteFor' |
+  'setSelectedP2' | 'setPlayer2DropdownOpen' |
+  'setSelectedP1Partner' | 'setPlayer1PartnerDropdownOpen' |
+  'setSelectedP2Partner' | 'setPlayer2PartnerDropdownOpen' |
+  'newAthleteFor' |
   'setShowServerModal' | 'createdMatchId' | 'setStartingMatch' | 'setCreatedMatchId' |
   'setAthletes'
 >;
@@ -23,15 +26,28 @@ export function useNewMatchSelectionActions(
     state.setShowTournamentDropdown(false);
   };
 
-  const openNewAthleteModal = (player: 'p1' | 'p2') => {
+  const openNewAthleteModal = (player: 'p1' | 'p2' | 'p1Partner' | 'p2Partner') => {
     state.setNewAthleteFor(player);
     state.setShowNewAthleteModal(true);
   };
 
-  const selectAthleteFromList = (player: 'p1' | 'p2', athlete: Athlete | null) => {
-    const isPlayerOne = player === 'p1';
-    (isPlayerOne ? state.setSelectedP1 : state.setSelectedP2)(athlete);
-    (isPlayerOne ? state.setPlayer1DropdownOpen : state.setPlayer2DropdownOpen)(false);
+  const selectAthleteFromList = (
+    player: 'p1' | 'p2' | 'p1Partner' | 'p2Partner',
+    athlete: Athlete | null,
+  ) => {
+    if (player === 'p1') {
+      state.setSelectedP1(athlete);
+      state.setPlayer1DropdownOpen(false);
+    } else if (player === 'p2') {
+      state.setSelectedP2(athlete);
+      state.setPlayer2DropdownOpen(false);
+    } else if (player === 'p1Partner') {
+      state.setSelectedP1Partner(athlete);
+      state.setPlayer1PartnerDropdownOpen(false);
+    } else if (player === 'p2Partner') {
+      state.setSelectedP2Partner(athlete);
+      state.setPlayer2PartnerDropdownOpen(false);
+    }
   };
 
   const onAthleteCreationComplete = (athlete: Athlete) => {
@@ -39,7 +55,9 @@ export function useNewMatchSelectionActions(
       if (prev.some((a) => a.id === athlete.id)) return prev;
       return [...prev, athlete];
     });
-    selectAthleteFromList(state.newAthleteFor === 'p1' ? 'p1' : 'p2', athlete);
+    if (state.newAthleteFor) {
+      selectAthleteFromList(state.newAthleteFor, athlete);
+    }
     state.setShowNewAthleteModal(false);
     state.setNewAthleteFor(null);
   };
@@ -57,5 +75,25 @@ export function useNewMatchSelectionActions(
     }
   };
 
-  return { selectTournamentFromSuggestions, openNewAthleteModal, selectAthleteFromList, onAthleteCreationComplete, selectServingPlayer };
+  const selectDoublesServingSetup = async (initialServerId: string, doublesSetup: unknown) => {
+    if (!state.createdMatchId) return;
+    state.setStartingMatch(true);
+    try {
+      await startMatch(state.createdMatchId, initialServerId, doublesSetup);
+      router.push(`/match/${state.createdMatchId}/scoring`);
+    } catch (err) {
+      logger.error('[selectDoublesServingSetup] Exception:', err);
+      toast({ type: 'error', message: 'Erro ao iniciar partida de duplas' });
+      state.setStartingMatch(false);
+    }
+  };
+
+  return {
+    selectTournamentFromSuggestions,
+    openNewAthleteModal,
+    selectAthleteFromList,
+    onAthleteCreationComplete,
+    selectServingPlayer,
+    selectDoublesServingSetup,
+  };
 }

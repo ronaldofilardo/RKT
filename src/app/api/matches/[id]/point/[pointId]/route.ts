@@ -57,6 +57,8 @@ const AnnotationUpdateSchema = z.object({
     note: z.string().max(500).optional(),
     zone: z.string().optional(),
     stroke: z.string().optional(),
+    hitterId: z.string().optional(),
+    receiverId: z.string().optional(),
   }),
 });
 
@@ -88,6 +90,34 @@ export async function PATCH(
 
       const existing = (pointLog.annotations as Record<string, unknown>) ?? {};
       const updates = parsed.data.annotations;
+
+      if (updates.hitterId || updates.receiverId) {
+        const match = await prisma.match.findUnique({
+          where: { id },
+          select: { player1Id: true, player2Id: true, player1PartnerId: true, player2PartnerId: true },
+        });
+        if (match) {
+          const validIds = new Set([
+            match.player1Id,
+            match.player2Id,
+            match.player1PartnerId,
+            match.player2PartnerId,
+          ].filter(Boolean));
+
+          if (updates.hitterId && !validIds.has(updates.hitterId)) {
+            return NextResponse.json(
+              { error: 'INVALID_HITTER', message: 'Atleta não pertence a esta partida' },
+              { status: 400 }
+            );
+          }
+          if (updates.receiverId && !validIds.has(updates.receiverId)) {
+            return NextResponse.json(
+              { error: 'INVALID_RECEIVER', message: 'Atleta não pertence a esta partida' },
+              { status: 400 }
+            );
+          }
+        }
+      }
 
       let merged: Record<string, unknown> = { ...existing };
 

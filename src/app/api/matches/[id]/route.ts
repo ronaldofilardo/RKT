@@ -52,10 +52,16 @@ export async function GET(
           version: true,
           scoreState: true,
           initialServerId: true,
+          matchType: true,
           player1Id: true,
           player2Id: true,
+          player1PartnerId: true,
+          player2PartnerId: true,
           player1: { select: { id: true, name: true } },
           player2: { select: { id: true, name: true } },
+          player1Partner: { select: { id: true, name: true } },
+          player2Partner: { select: { id: true, name: true } },
+          doublesSetup: true,
           createdByUserId: true,
           _count: { select: { pointLog: { where: { voidedAt: null } } } },
         },
@@ -68,7 +74,9 @@ export async function GET(
       const isParticipant =
         match.createdByUserId === currentUserId ||
         match.player1Id === currentUserId ||
-        match.player2Id === currentUserId;
+        match.player2Id === currentUserId ||
+        match.player1PartnerId === currentUserId ||
+        match.player2PartnerId === currentUserId;
       const isPublicOrOpen =
         match.visibility === 'PUBLIC' || match.openForAnnotation === true;
 

@@ -350,6 +350,19 @@ describe('onGameWon', () => {
     expect(result.sets[0].player1).toBe(1);
   });
 
+  it('deve atualizar o primeiro set existente quando sets já contém um set vazio 0-0', () => {
+    const state = createBaseState({
+      sets: [{ player1: 0, player2: 0, isTiebreak: false, tiebreakScore: null }],
+    });
+    const config = createConfig();
+    const game = createGame({ player1: 3, player2: 2 });
+
+    const result = onGameWon('player1', game, state, config);
+    expect(result.sets).toHaveLength(1);
+    expect(result.sets[0].player1).toBe(1);
+    expect(result.sets[0].player2).toBe(0);
+  });
+
   describe('BEST_OF_5', () => {
     it('deve iniciar tiebreak no 5º set quando 2-2 em sets e 6-6 em games', () => {
       const state = createBaseState({

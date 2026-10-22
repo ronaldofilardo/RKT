@@ -101,6 +101,9 @@ export const PointFlowInputSchema = z.object({
     .optional(),
   rallyDetails: RallyDetailsSchema.optional(),
   rallyLength: z.number().int().optional(),
+  hitterId: flexibleIdValidator.optional(),
+  receiverId: flexibleIdValidator.optional(),
+  courtSide: z.enum(["deuce", "ad"]).optional(),
   annotations: z
     .object({
       zone: z.string().optional(),
@@ -110,6 +113,9 @@ export const PointFlowInputSchema = z.object({
       rallyLength: z.number().int().optional(),
       isFirstServe: z.boolean().optional(),
       isSecondServe: z.boolean().optional(),
+      hitterId: flexibleIdValidator.optional(),
+      receiverId: flexibleIdValidator.optional(),
+      courtSide: z.enum(["deuce", "ad"]).optional(),
       firstFaultDetail: z
         .object({
           errorType: z.string().optional(),

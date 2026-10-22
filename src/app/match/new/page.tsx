@@ -26,10 +26,14 @@ export default function NewMatchPage() {
         onAthleteCreationComplete={c.onAthleteCreationComplete}
         showServerModal={c.showServerModal}
         setShowServerModal={c.setShowServerModal}
+        matchType={c.matchType}
         selectedP1={c.selectedP1}
         selectedP2={c.selectedP2}
+        selectedP1Partner={c.selectedP1Partner}
+        selectedP2Partner={c.selectedP2Partner}
         startingMatch={c.startingMatch}
         selectServingPlayer={c.selectServingPlayer}
+        selectDoublesServingSetup={c.selectDoublesServingSetup}
         showDuplicateModal={c.showDuplicateModal}
         setShowDuplicateModal={c.setShowDuplicateModal}
         duplicateInfo={c.duplicateInfo}

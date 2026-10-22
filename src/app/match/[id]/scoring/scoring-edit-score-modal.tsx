@@ -57,6 +57,14 @@ export function ScoringEditScoreModal({
         // Não redirecionar automaticamente - usuário vê o banner e decide quando navegar
       }}
       onRefreshFloor={handlers.refreshEditScoreFloor}
+      doubles={
+        match.matchType === 'DOUBLES'
+          ? {
+              player1PartnerName: match.player1Partner?.name,
+              player2PartnerName: match.player2Partner?.name,
+            }
+          : undefined
+      }
     />
   );
 }

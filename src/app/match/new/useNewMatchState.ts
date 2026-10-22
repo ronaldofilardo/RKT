@@ -9,12 +9,18 @@ export function useNewMatchState() {
   const [error, setError] = useState<string | null>(null);
   const [missingFields, setMissingFields] = useState<string[]>([]);
   const [athletes, setAthletes] = useState<Athlete[]>([]);
+  const [matchType, setMatchType] = useState<'SINGLES' | 'DOUBLES'>('SINGLES');
   const [player1DropdownOpen, setPlayer1DropdownOpen] = useState(false);
   const [player2DropdownOpen, setPlayer2DropdownOpen] = useState(false);
+  const [player1PartnerDropdownOpen, setPlayer1PartnerDropdownOpen] = useState(false);
+  const [player2PartnerDropdownOpen, setPlayer2PartnerDropdownOpen] = useState(false);
   const [showNewAthleteModal, setShowNewAthleteModal] = useState(false);
-  const [newAthleteFor, setNewAthleteFor] = useState<'p1' | 'p2' | null>(null);
+  const [newAthleteFor, setNewAthleteFor] = useState<'p1' | 'p2' | 'p1Partner' | 'p2Partner' | null>(null);
   const [selectedP1, setSelectedP1] = useState<Athlete | null>(null);
   const [selectedP2, setSelectedP2] = useState<Athlete | null>(null);
+  const [selectedP1Partner, setSelectedP1Partner] = useState<Athlete | null>(null);
+  const [selectedP2Partner, setSelectedP2Partner] = useState<Athlete | null>(null);
+  const [doublesSetup, setDoublesSetup] = useState<any | null>(null);
   const [format, setFormat] = useState('BEST_OF_3');
   const [courtType, setCourtType] = useState('CLAY');
   const [sportType, setSportType] = useState('TENNIS');
@@ -72,9 +78,13 @@ export function useNewMatchState() {
 
   return {
     loading, setLoading, submittingRef, error, setError, missingFields, setMissingFields, athletes, setAthletes,
+    matchType, setMatchType,
     player1DropdownOpen, setPlayer1DropdownOpen, player2DropdownOpen, setPlayer2DropdownOpen,
+    player1PartnerDropdownOpen, setPlayer1PartnerDropdownOpen, player2PartnerDropdownOpen, setPlayer2PartnerDropdownOpen,
     showNewAthleteModal, setShowNewAthleteModal, newAthleteFor, setNewAthleteFor,
-    selectedP1, setSelectedP1, selectedP2, setSelectedP2, format, setFormat, courtType, setCourtType,
+    selectedP1, setSelectedP1, selectedP2, setSelectedP2,
+    selectedP1Partner, setSelectedP1Partner, selectedP2Partner, setSelectedP2Partner,
+    doublesSetup, setDoublesSetup, format, setFormat, courtType, setCourtType,
     sportType, setSportType, date, setDate, time, setTime, nickname, visibility, setVisibility,
     anotadorEmail, setAnotadorEmail, tournamentName, setTournamentName, clubName, setClubName,
     category, setCategory, roundName, setRoundName, bracketType, venueId, setVenueId,

@@ -26,6 +26,10 @@
 
 ## 2. Funcionalidades Ausentes (MVP Incompleto)
 
+### A0. Suporte Completo a Partidas de Duplas (Doubles) ✅
+- **Status:** Concluída (2026-10-22)
+- **DoD:** Implementação pura de regras ITF de duplas (`src/core/scoring/doubles.ts`), persistência e migrations no Prisma (`matchType`, `player1PartnerId`, `player2PartnerId`, `doublesSetup`), endpoints de pontuação e arranjo de sacador/devolvedor (`/arrangement`), formulário de criação com seleção de 4 atletas e wizard de setup, tela `/scoring` com indicação de sacador ativo e devolvedor, `PointDetailsModal` com seleção de quem bateu e escolha de lado no deuce no-ad, ajuste de formação entre sets (`DoublesArrangementModal`), modal Editar Placar preservando duplas, timeline, relatório e dashboard. 100% retrocompatível com simples, sem testes ignorados e zero erros no `tsc --noEmit`.
+
 ### A1. Página de Estatísticas do Jogador 🔴
 - **Status:** Não iniciada
 - **Rota:** `/players/[id]/stats`

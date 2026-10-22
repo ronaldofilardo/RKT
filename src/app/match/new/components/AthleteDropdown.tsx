@@ -6,7 +6,8 @@ interface AthleteDropdownProps {
   label: string;
   athletes: Athlete[];
   selectedAthlete: Athlete | null;
-  excludedAthlete: Athlete | null;
+  excludedAthlete?: Athlete | null;
+  excludedAthletes?: (Athlete | null)[];
   isOpen: boolean;
   colorClass: 'sky' | 'emerald';
   onToggle: () => void;
@@ -19,13 +20,19 @@ export function AthleteDropdown({
   athletes,
   selectedAthlete,
   excludedAthlete,
+  excludedAthletes,
   isOpen,
   colorClass,
   onToggle,
   onSelect,
   onCreateNew,
 }: AthleteDropdownProps) {
-  const filtered = athletes.filter((a) => a.id !== excludedAthlete?.id);
+  const excludedSet = new Set(
+    (excludedAthletes ?? (excludedAthlete ? [excludedAthlete] : []))
+      .map((a) => a?.id)
+      .filter(Boolean) as string[]
+  );
+  const filtered = athletes.filter((a) => !excludedSet.has(a.id));
   const colorClasses = {
     border: 'border-white/10',
     bgHover: 'hover:bg-white/',

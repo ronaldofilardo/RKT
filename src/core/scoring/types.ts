@@ -27,11 +27,28 @@ export type RallyDuration = ContractRallyDuration;
 
 export type RallyDetails = ContractRallyDetails;
 
+export type Side = 'player1' | 'player2';
+
+export interface DoublesArrangement {
+  serveOrder: Record<Side, [string, string]>;
+  serveIndex: Record<Side, 0 | 1>;
+  receiveDeuce: Record<Side, string>;
+}
+
+export interface DoublesConfig {
+  members: Record<Side, [string, string]>;
+  initial: {
+    serveOrder: Record<Side, [string, string]>;
+    receiveDeuce: Record<Side, string>;
+  };
+}
+
 export interface ScoringEngineConfig {
   format: TennisFormat;
   player1Id: string;
   player2Id: string;
   initialServerId: string;
+  doubles?: DoublesConfig;
 }
 
 export interface GameScore {
@@ -59,6 +76,9 @@ export interface PointDetails {
   rallyDetails?: ContractRallyDetails | null;
   rallyLength?: number;
   firstFaultDetail?: { errorType?: string; serveEffect?: string; direction?: string } | null;
+  receiverId?: string;
+  courtSide?: 'deuce' | 'ad';
+  hitterId?: string;
 }
 
 export interface HistoryEntry {
@@ -75,6 +95,7 @@ export interface ScoringState {
   setsWon: { player1: number; player2: number };
   startedAt: number | null;
   secondServe: boolean;
+  doubles?: DoublesArrangement;
 }
 
 export interface PointFlow {
@@ -88,6 +109,10 @@ export interface PointFlow {
   rallyDetails?: ContractRallyDetails | null;
   rallyLength?: number;
   firstFaultDetail?: { errorType?: string; serveEffect?: string; direction?: string } | null;
+  clientEventId?: string;
+  receiverId?: string;
+  courtSide?: 'deuce' | 'ad';
+  hitterId?: string;
 }
 
 // Timeline types
@@ -126,6 +151,10 @@ export interface TimelinePoint {
   firstServeOutcome?: 'ace' | 'out' | 'net' | null;
   secondServeOutcome?: 'ace' | 'out' | 'net' | null;
   pointDetails: PointDetails;
+  serverId?: string;
+  receiverId?: string;
+  courtSide?: 'deuce' | 'ad';
+  hitterId?: string;
   /**
    * Presente somente no primeiro ponto de um segmento de anotação que
    * começou após uma correção manual de placar (ex.: retomada de partida

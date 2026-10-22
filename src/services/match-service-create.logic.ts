@@ -5,6 +5,26 @@ import { logger } from '@/lib/logger';
 import { getInitialGames } from '@/core/scoring/format-rules';
 
 export function validateCreateMatchPlayers(data: CreateMatchInput): void {
+  if (data.matchType === 'DOUBLES') {
+    if (!data.player1PartnerId || !data.player2PartnerId) {
+      throw new ValidationError({
+        player2PartnerId: ['Partida de duplas exige 4 jogadores distintos'],
+      });
+    }
+    const ids = new Set([
+      data.player1Id,
+      data.player1PartnerId,
+      data.player2Id,
+      data.player2PartnerId,
+    ]);
+    if (ids.size !== 4) {
+      throw new ValidationError({
+        player2PartnerId: ['Todos os 4 jogadores da partida de duplas devem ser distintos'],
+      });
+    }
+    return;
+  }
+
   if (data.player1Id === data.player2Id) {
     throw new ValidationError({ player2Id: ['Jogador 2 deve ser diferente do Jogador 1'] });
   }
@@ -19,6 +39,7 @@ export function warnMissingCreator(createdByUserId?: string): void {
 function buildCreateFormatFields(data: CreateMatchInput) {
   return {
     format: data.format as MatchFormat,
+    matchType: (data.matchType || 'SINGLES') as 'SINGLES' | 'DOUBLES',
     sportType: data.sportType || 'TENNIS',
     courtType: data.courtType || null,
     nickname: data.nickname || null,
@@ -60,6 +81,8 @@ function buildCreateDefaults(data: CreateMatchInput) {
     state: 'SCHEDULED' as const,
     player1Id: data.player1Id,
     player2Id: data.player2Id,
+    player1PartnerId: data.matchType === 'DOUBLES' ? data.player1PartnerId || null : null,
+    player2PartnerId: data.matchType === 'DOUBLES' ? data.player2PartnerId || null : null,
     scoreState: initialScoreState as Prisma.InputJsonValue,
   };
 }

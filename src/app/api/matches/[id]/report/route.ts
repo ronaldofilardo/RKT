@@ -13,6 +13,7 @@ import type { ReportSummary, PlayerPointSummary } from '@/core/report/report-typ
 import { buildReportIntegrity } from './report.integrity';
 import { computeAdvancedStats } from '@/core/report/compute-stats';
 import { addScoreEditBreaks } from './route-timeline.logic';
+import { buildEngineConfig } from '@/core/scoring/engine-config';
 
 function buildPlayerSummary(
   points: TimelinePoint[],
@@ -100,16 +101,21 @@ export async function GET(
         return NextResponse.json({ error: 'MATCH_CANCELLED', message: 'Partida cancelada ou removida' }, { status: 410 });
       }
 
-      const isPlayer = match.player1.id === user.id || match.player2.id === user.id;
+      const isPlayer =
+        match.player1.id === user.id ||
+        match.player2.id === user.id ||
+        match.player1PartnerId === user.id ||
+        match.player2PartnerId === user.id;
       const isCreator = match.createdByUserId === user.id;
       if (!isPlayer && !isCreator && !isStaff) {
         return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
       }
 
-      const player1Id = match.player1.id;
-      const player2Id = match.player2.id;
-      const initialServerId = match.initialServerId ?? player1Id;
-      const format = match.format as TennisFormat;
+      const engineConfig = buildEngineConfig(match);
+      const player1Id = engineConfig.player1Id;
+      const player2Id = engineConfig.player2Id;
+      const initialServerId = engineConfig.initialServerId;
+      const format = engineConfig.format as TennisFormat;
 
       // Os `PointLog` são a fonte imutável e completa das anotações
       // (rallyDetails, firstFault, áudio, etc.) — e a ÚNICA fonte usada
@@ -171,7 +177,8 @@ export async function GET(
         player2Id,
         initialServerId,
         format,
-        scoreEdits
+        scoreEdits,
+        engineConfig.doubles,
       );
 
       // Decoramos a timeline com o aviso visual "⏸ Partida interrompida" 
@@ -211,8 +218,12 @@ export async function GET(
 
       return NextResponse.json({
         matchId: id,
+        matchType: match.matchType ?? 'SINGLES',
         player1: { id: match.player1.id, name: match.player1.name },
         player2: { id: match.player2.id, name: match.player2.name },
+        player1Partner: match.player1Partner ? { id: match.player1Partner.id, name: match.player1Partner.name } : null,
+        player2Partner: match.player2Partner ? { id: match.player2Partner.id, name: match.player2Partner.name } : null,
+        doublesSetup: match.doublesSetup ?? null,
         format: match.format,
         sportType: match.sportType,
         courtType: match.courtType ?? null,

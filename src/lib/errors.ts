@@ -110,3 +110,15 @@ export class RateLimitError extends ApiError {
     this.name = 'RateLimitError';
   }
 }
+
+/**
+ * Extrai o código de erro do Prisma sem depender de `any`.
+ * Espelha o comportamento de `error?.code` sobre valores arbitrários.
+ */
+export function getPrismaErrorCode(error: unknown): string | undefined {
+  if (typeof error !== 'object' || error === null || !('code' in error)) {
+    return undefined;
+  }
+  const code = (error as { code?: unknown }).code;
+  return typeof code === 'string' ? code : undefined;
+}

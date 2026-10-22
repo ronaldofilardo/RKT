@@ -1,4 +1,4 @@
-import type { ScoringState } from "@/core/scoring/types";
+import type { ScoringState, DoublesArrangement } from "@/core/scoring/types";
 import type { SetEditData } from "@/components/scoring/edit-score.logic";
 import type { TennisFormat } from "@/core/scoring/types";
 import { parsePointValue } from "@/core/scoring/point.logic";
@@ -11,6 +11,7 @@ interface BuildNewStateOptions {
   server: "player1" | "player2";
   format: TennisFormat;
   partialSet?: SetEditData;
+  doubles?: DoublesArrangement;
 }
 
 export function buildNewScoringState(options: BuildNewStateOptions): ScoringState {
@@ -80,6 +81,7 @@ export function buildNewScoringState(options: BuildNewStateOptions): ScoringStat
     winner,
     startedAt: Date.now(),
     secondServe: false,
+    ...(options.doubles ? { doubles: options.doubles } : {}),
   };
 }
 

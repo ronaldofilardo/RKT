@@ -13,6 +13,9 @@ export interface PointLogRow {
   timestamp: Date;
   sequenceNumber: number | null;
   clientEventId: string | null;
+  receiverId?: string | null;
+  courtSide?: 'deuce' | 'ad' | null;
+  hitterId?: string | null;
   annotations:
     | {
         rallyDetails?: RallyDetails | null;
@@ -23,6 +26,10 @@ export interface PointLogRow {
         note?: string;
         zone?: string;
         stroke?: string;
+        receiverId?: string;
+        courtSide?: 'deuce' | 'ad';
+        hitterId?: string;
+        serverId?: string;
       }
     | null;
   hasAudioNote?: boolean;
@@ -59,6 +66,9 @@ export function buildPointDetailsFromLog(log: PointLogRow): PointDetails {
     rallyDetails: ann?.rallyDetails ?? null,
     rallyLength: autoRallyLength,
     firstFaultDetail,
+    receiverId: log.receiverId ?? ann?.receiverId ?? undefined,
+    courtSide: (log.courtSide ?? ann?.courtSide ?? undefined) as 'deuce' | 'ad' | undefined,
+    hitterId: log.hitterId ?? ann?.hitterId ?? undefined,
   };
 }
 
@@ -131,6 +141,10 @@ export function mergeWithPointLog(
     secondServeOutcome,
     hasAudioNote: Boolean(log.hasAudioNote ?? (log.audioNoteDuration != null || log.audioNoteMime != null)),
     audioNoteDuration: log.audioNoteDuration ?? undefined,
+    serverId: log.serverId ?? ann?.serverId ?? p.serverId,
+    receiverId: (log.receiverId ?? ann?.receiverId ?? p.receiverId) || undefined,
+    courtSide: ((log.courtSide ?? ann?.courtSide ?? p.courtSide) as 'deuce' | 'ad' | undefined) || undefined,
+    hitterId: (log.hitterId ?? ann?.hitterId ?? p.hitterId) || undefined,
     pointDetails: {
       ...p.pointDetails,
       isFirstServe,
@@ -138,6 +152,10 @@ export function mergeWithPointLog(
       rallyDetails,
       rallyLength,
       firstFaultDetail,
+      serverId: log.serverId ?? ann?.serverId ?? p.serverId,
+      receiverId: (log.receiverId ?? ann?.receiverId ?? p.receiverId) || undefined,
+      courtSide: ((log.courtSide ?? ann?.courtSide ?? p.courtSide) as 'deuce' | 'ad' | undefined) || undefined,
+      hitterId: (log.hitterId ?? ann?.hitterId ?? p.hitterId) || undefined,
     },
   };
 }

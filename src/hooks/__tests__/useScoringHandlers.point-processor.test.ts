@@ -101,7 +101,15 @@ describe("createPointProcessorService — regressão de perda de anotação apó
 
     // Antes do fix isso nunca era chamado e o ponto era perdido.
     expect(queuePointForOffline).toHaveBeenCalledTimes(1);
-    expect(queuePointForOffline).toHaveBeenCalledWith(deps.enqueue, rallyFlow);
+    const firstSyncCallEventId = syncPointToServer.mock.calls[0][2];
+    const secondSyncCallEventId = syncPointToServer.mock.calls[1][2];
+    expect(firstSyncCallEventId).toBeDefined();
+    expect(secondSyncCallEventId).toBe(firstSyncCallEventId);
+
+    expect(queuePointForOffline).toHaveBeenCalledWith(deps.enqueue, {
+      ...rallyFlow,
+      clientEventId: firstSyncCallEventId,
+    });
 
     // Mensagem não deve mais afirmar que o ponto "não foi registrado" sem
     // dizer o que acontece com ele — deve indicar que foi salvo localmente.
@@ -153,13 +161,16 @@ describe("createPointProcessorService — regressão de perda de anotação apó
     expect(setError).toHaveBeenCalledWith(null);
   });
 
-  it("enfileira diretamente (sem tentar o servidor) quando isOnline é false, preservando rallyDetails/firstFaultDetail", async () => {
+  it("enfileira diretamente (sem tentar o servidor) quando isOnline é false, preservando rallyDetails/firstFaultDetail e clientEventId", async () => {
     const { deps, queuePointForOffline, syncPointToServer } = createDeps({ isOnline: false });
 
     const { applyPoint } = createPointProcessorService(deps);
     await applyPoint(rallyFlow);
 
     expect(syncPointToServer).not.toHaveBeenCalled();
-    expect(queuePointForOffline).toHaveBeenCalledWith(deps.enqueue, rallyFlow);
+    expect(queuePointForOffline).toHaveBeenCalledWith(deps.enqueue, {
+      ...rallyFlow,
+      clientEventId: expect.any(String),
+    });
   });
 });

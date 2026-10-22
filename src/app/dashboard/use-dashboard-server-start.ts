@@ -8,6 +8,8 @@ import { matchesClient } from '@/services/matchesClient';
 import type { DashboardMatchPayload } from '@/components/dashboard/MatchCard';
 import type { AppRouteInput } from '@/lib/app-router';
 
+import type { DoublesSetup } from '@/schemas/contracts';
+
 /**
  * Seleção de sacador inicial para partidas sem servidor definido (ou agendadas)
  * e partida em andamento do modal correspondente.
@@ -17,13 +19,15 @@ export function useDashboardServerStart(router: ReturnType<typeof useRouter>) {
   const [selectedMatchForServer, setSelectedMatchForServer] = useState<DashboardMatchPayload | null>(null);
   const [startingMatch, setStartingMatch] = useState(false);
 
-  const selectServingPlayer = useCallback(async (serverId: string) => {
+  const selectServingPlayer = useCallback(async (serverId: string, doublesSetup?: DoublesSetup) => {
     if (!selectedMatchForServer) return;
     setStartingMatch(true);
     try {
+      const effectiveDoublesSetup = doublesSetup ?? (selectedMatchForServer.doublesSetup as DoublesSetup | undefined);
       await matchesClient.startMatch(selectedMatchForServer.id, {
         state: 'IN_PROGRESS',
         initialServerId: serverId,
+        doublesSetup: effectiveDoublesSetup,
       });
       router.push(`/match/${selectedMatchForServer.id}/scoring` as AppRouteInput);
     } catch (err) {

@@ -1,4 +1,5 @@
 import { ScoringEngine } from "@/core/scoring/engine";
+import { buildEngineConfig } from "@/core/scoring/engine-config";
 import type { MatchFormat, MatchState, MatchFinishReason } from "@/schemas/contracts";
 import type { MatchScoreState, MatchScoreStateEnvelope } from "@/schemas/match";
 
@@ -26,11 +27,15 @@ export function unwrapScoreState(scoreState: unknown): MatchScoreState | null {
 
 export interface MatchData {
   format: MatchFormat;
+  matchType?: "SINGLES" | "DOUBLES" | null;
   player1Id: string;
   player2Id: string;
+  player1PartnerId?: string | null;
+  player2PartnerId?: string | null;
   initialServerId?: string | null;
   scoreState?: unknown;
   state: MatchState;
+  doublesSetup?: unknown;
 }
 
 export interface ValidationResult {
@@ -72,12 +77,7 @@ export function validateFinishMatch(
 
   const stateToValidate = scoreState ? JSON.stringify(scoreState) : JSON.stringify(match.scoreState);
   const engine = ScoringEngine.fromSerialized(
-    {
-      format: match.format,
-      player1Id: match.player1Id,
-      player2Id: match.player2Id,
-      initialServerId: match.initialServerId,
-    },
+    buildEngineConfig(match),
     stateToValidate,
   );
 
@@ -124,12 +124,7 @@ function validateFinishedTransition(
 
   const stateToValidate = scoreState ? JSON.stringify(scoreState) : JSON.stringify(match.scoreState);
   const engine = ScoringEngine.fromSerialized(
-    {
-      format: match.format,
-      player1Id: match.player1Id,
-      player2Id: match.player2Id,
-      initialServerId: match.initialServerId,
-    },
+    buildEngineConfig(match),
     stateToValidate,
   );
   if (!engine.isFinished()) {
@@ -193,14 +188,73 @@ function validateScoreProgression(
   return null;
 }
 
+export function validateDoublesState(
+  state: MatchScoreState | null,
+  match: MatchData,
+): ValidationResult | null {
+  if (match.matchType !== "DOUBLES") return null;
+  if (!state?.doubles) return null;
+
+  const { doubles } = state;
+  const p1Members = new Set([match.player1Id, match.player1PartnerId].filter(Boolean) as string[]);
+  const p2Members = new Set([match.player2Id, match.player2PartnerId].filter(Boolean) as string[]);
+
+  const p1Order = doubles.serveOrder?.player1;
+  const p2Order = doubles.serveOrder?.player2;
+  if (!Array.isArray(p1Order) || p1Order.length !== 2 || !Array.isArray(p2Order) || p2Order.length !== 2) {
+    return { error: "INVALID_DOUBLES_STATE: serveOrder deve conter 2 jogadores para cada lado", valid: false };
+  }
+  if (!p1Members.has(p1Order[0]) || !p1Members.has(p1Order[1]) || p1Order[0] === p1Order[1]) {
+    return { error: "INVALID_DOUBLES_STATE: serveOrder do player1 deve conter os 2 membros da dupla", valid: false };
+  }
+  if (!p2Members.has(p2Order[0]) || !p2Members.has(p2Order[1]) || p2Order[0] === p2Order[1]) {
+    return { error: "INVALID_DOUBLES_STATE: serveOrder do player2 deve conter os 2 membros da dupla", valid: false };
+  }
+
+  const p1Idx = doubles.serveIndex?.player1;
+  const p2Idx = doubles.serveIndex?.player2;
+  if (p1Idx !== 0 && p1Idx !== 1) {
+    return { error: "INVALID_DOUBLES_STATE: serveIndex do player1 deve ser 0 ou 1", valid: false };
+  }
+  if (p2Idx !== 0 && p2Idx !== 1) {
+    return { error: "INVALID_DOUBLES_STATE: serveIndex do player2 deve ser 0 ou 1", valid: false };
+  }
+
+  const p1Deuce = doubles.receiveDeuce?.player1;
+  const p2Deuce = doubles.receiveDeuce?.player2;
+  if (!p1Members.has(p1Deuce)) {
+    return { error: "INVALID_DOUBLES_STATE: receiveDeuce do player1 deve ser membro da dupla", valid: false };
+  }
+  if (!p2Members.has(p2Deuce)) {
+    return { error: "INVALID_DOUBLES_STATE: receiveDeuce do player2 deve ser membro da dupla", valid: false };
+  }
+
+  return null;
+}
+
 export function validateTransitionState(
   match: MatchData,
   newState: MatchState,
   scoreState?: unknown,
-  options?: { allowScoreEdit?: boolean; isUndo?: boolean },
+  options?: { doublesSetup?: unknown; allowScoreEdit?: boolean; isUndo?: boolean },
 ): ValidationResult {
   const transitionError = validateAllowedTransition(match.state, newState, options?.isUndo);
   if (transitionError) return transitionError;
+
+  if (match.matchType === "DOUBLES" && newState === "IN_PROGRESS" && match.state === "SCHEDULED") {
+    const setup = options?.doublesSetup ?? match.doublesSetup;
+    if (!setup) {
+      return { error: "DOUBLES_SETUP_REQUIRED", valid: false };
+    }
+  }
+
+  if (scoreState) {
+    const unwrapped = unwrapScoreState(scoreState);
+    if (unwrapped) {
+      const doublesError = validateDoublesState(unwrapped, match);
+      if (doublesError) return doublesError;
+    }
+  }
 
   if (options?.isUndo) {
     return { valid: true };

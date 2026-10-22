@@ -36,6 +36,8 @@ export function ScoringPagePlayArea({
     effectiveScoreState,
     p1IsServing,
     p2IsServing,
+    activeServerId,
+    activeReceiverId,
     isSetPoint,
     isBreakPoint,
     isMatchPoint,
@@ -55,6 +57,8 @@ export function ScoringPagePlayArea({
       completedSetsCount={derived.editScoreCompletedSets?.length ?? 0}
       p1IsServing={p1IsServing}
       p2IsServing={p2IsServing}
+      activeServerId={activeServerId}
+      activeReceiverId={activeReceiverId}
       isSetPoint={isSetPoint}
       isBreakPoint={isBreakPoint}
       isMatchPoint={isMatchPoint}

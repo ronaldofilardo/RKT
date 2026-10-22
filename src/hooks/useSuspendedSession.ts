@@ -3,11 +3,11 @@ import { logger } from "@/lib/logger";
 
 import { useEffect, useRef } from "react";
 import { ScoringEngine } from "@/core/scoring/engine";
+import { buildEngineConfig } from "@/core/scoring/engine-config";
 import type {
   HistoryEntry,
   ScoringEngineConfig,
   ScoringState,
-  TennisFormat,
 } from "@/core/scoring/types";
 import type { SuspendedSessionState } from "./useSessionManager";
 import type { MatchData } from "@/hooks/useScoringHandlers";
@@ -59,12 +59,7 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
 
     (async () => {
       try {
-        const engineConfig: ScoringEngineConfig = {
-          format: match.format as TennisFormat,
-          player1Id: match.player1.id,
-          player2Id: match.player2.id,
-          initialServerId: match.initialServerId || match.player1.id,
-        };
+        const engineConfig = buildEngineConfig(match);
 
         if (suspendedSession.snapshotStatus === "SNAPSHOT_AHEAD") {
           await resumeFromSnapshotAhead(engineConfig, controller.signal);

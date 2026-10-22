@@ -1,5 +1,6 @@
 import type { ScoringEngineConfig, ScoringState, SetScore } from './types';
 import { createEmptyGame } from './engine.state';
+import { advanceServeIndex } from './doubles';
 
 export function applyMatchTiebreak(
   winner: 'player1' | 'player2',
@@ -28,6 +29,12 @@ export function applyMatchTiebreak(
     : (state.server === 'player1' ? 'player2' : 'player1');
 
   if ((newTb.player1 >= 10 || newTb.player2 >= 10) && Math.abs(newTb.player1 - newTb.player2) >= 2) {
+    const t = newTb.player1 + newTb.player2 - 1;
+    const b = Math.floor((t + 1) / 2);
+    const s0: 'player1' | 'player2' = (b % 2 === 0)
+      ? state.server
+      : (state.server === 'player1' ? 'player2' : 'player1');
+    advanceServeIndex(state, s0);
     return completeMatchTiebreak(winner, newTb, newServer, state, config);
   }
 

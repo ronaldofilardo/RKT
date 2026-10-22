@@ -22,13 +22,26 @@ interface SectionRendererProps {
     /** Container com overflow-y — usado pelo auto-scroll da cascata. */
     containerRef?: React.RefObject<HTMLDivElement>;
   };
+  hitterCandidates?: { id: string; name: string }[];
+  receiverCandidates?: { id: string; name: string }[];
 }
 
-export function SectionRenderer({ form, vencedor, dispatch, refs }: SectionRendererProps) {
+export function SectionRenderer({ form, vencedor, dispatch, refs, hitterCandidates, receiverCandidates }: SectionRendererProps) {
   const computed = computeSectionRenderer(form, vencedor);
 
   return (
     <div ref={refs.containerRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-[18px]" data-testid="modal-content">
+      {receiverCandidates && receiverCandidates.length > 0 && (
+        <Section num="⚡" label="Lado de Devolução (Ponto Decisivo)">
+          <Pills
+            options={receiverCandidates.map(c => c.id)}
+            selected={form.receiverId}
+            onChange={v => dispatch({ type: 'SET_RECEIVER', value: v })}
+            labelMap={Object.fromEntries(receiverCandidates.map(c => [c.id, c.name]))}
+          />
+        </Section>
+      )}
+
       <Section num="1" label="Situação do Ponto">
         <Pills
           options={SITUACAO_OPTIONS.map(o => o.value)}
@@ -49,6 +62,17 @@ export function SectionRenderer({ form, vencedor, dispatch, refs }: SectionRende
           <p className="text-[11px] text-telemetry-text-muted mt-1.5 leading-relaxed">
             {form.tipo ? TIPO_DESCRIPTIONS[form.tipo] : 'Selecione como o ponto terminou'}
           </p>
+        </Section>
+      )}
+
+      {hitterCandidates && hitterCandidates.length > 0 && form.tipo && (
+        <Section num="" label={form.tipo === 'winner' ? 'Quem fez o Winner?' : 'Quem errou?'}>
+          <Pills
+            options={hitterCandidates.map(c => c.id)}
+            selected={form.hitterId}
+            onChange={v => dispatch({ type: 'SET_HITTER', value: form.hitterId === v ? null : v })}
+            labelMap={Object.fromEntries(hitterCandidates.map(c => [c.id, c.name]))}
+          />
         </Section>
       )}
 

@@ -12,6 +12,10 @@ export function createServerResolutionService(config: ServerResolutionConfig) {
   const { engineRef, match } = config;
 
   const getServerId = (): string => {
+    if (engineRef.current) {
+      const doublesServer = engineRef.current.getServingMemberId();
+      if (doublesServer) return doublesServer;
+    }
     const state = engineRef.current?.getState();
     if (!state) {
       return match?.initialServerId || match?.player1.id || "";
@@ -20,10 +24,12 @@ export function createServerResolutionService(config: ServerResolutionConfig) {
   };
 
   const getWinnerId = (isServer: boolean): string => {
-    const serverId = getServerId();
-    if (!match) return serverId;
-    const opponentId = serverId === match.player1.id ? match.player2.id : match.player1.id;
-    return isServer ? serverId : (opponentId || "");
+    const state = engineRef.current?.getState();
+    const serverSide = state ? state.server : (match?.initialServerId === match?.player2.id ? "player2" : "player1");
+    if (!match) return "";
+
+    const winningSide = isServer ? serverSide : (serverSide === "player1" ? "player2" : "player1");
+    return winningSide === "player1" ? match.player1.id : match.player2.id;
   };
 
   return {

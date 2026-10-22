@@ -4,6 +4,7 @@ export { PlayerSelection } from './PlayerSelection';
 export { AthleteDropdown } from './AthleteDropdown';
 export { NewAthleteModal } from './NewAthleteModal';
 export { ServerSelectionModal } from './ServerSelectionModal';
+export { DoublesServerSelectionModal } from './DoublesServerSelectionModal';
 export { DateTimeSection } from './DateTimeSection';
 export { MatchDetailsSection } from './MatchDetailsSection';
 export { DuplicateMatchModal } from './DuplicateMatchModal';

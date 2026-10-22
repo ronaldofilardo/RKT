@@ -20,6 +20,7 @@ export function EditScoreModalContent({
   effectiveFloorTiebreak,
   confirmError,
   floorValidationError,
+  doubles,
   state,
   setState,
   calculations,
@@ -28,6 +29,11 @@ export function EditScoreModalContent({
 }: EditScoreModalContentProps) {
   const { matchState } = calculations;
   const { p1SetsWon, p2SetsWon, setsToWin } = matchState;
+
+  const effectivePlayerNames = {
+    p1: doubles?.player1PartnerName ? `${playerNames.p1} / ${doubles.player1PartnerName}` : playerNames.p1,
+    p2: doubles?.player2PartnerName ? `${playerNames.p2} / ${doubles.player2PartnerName}` : playerNames.p2,
+  };
 
   const allCompletedSets = getAllCompletedSets(
     state.editableCompletedSets,
@@ -56,7 +62,7 @@ export function EditScoreModalContent({
       <EditableSetsSummary
         title="Sets Completados"
         sets={editableCompletedSets}
-        playerNames={playerNames}
+        playerNames={effectivePlayerNames}
         startIndex={0}
         onEditSet={(index: number, p1: number, p2: number) => handlers.openEditCompletedSet(index, p1, p2)}
         validationErrors={completedSetValidationErrors}
@@ -66,12 +72,12 @@ export function EditScoreModalContent({
         p1SetsWon={p1SetsWon}
         p2SetsWon={p2SetsWon}
         setsToWin={setsToWin}
-        playerNames={playerNames}
+        playerNames={effectivePlayerNames}
       />
 
       <EditScoreSetInputSection
         matchFormat={matchFormat}
-        playerNames={playerNames}
+        playerNames={effectivePlayerNames}
         currentServer={currentServer}
         floorCurrentSets={floorCurrentSets}
         effectiveFloorTiebreak={effectiveFloorTiebreak}

@@ -1,11 +1,11 @@
 import { ScoringEngine } from "@/core/scoring/engine";
+import { buildEngineConfig } from "@/core/scoring/engine-config";
 import { logger } from "@/lib/logger";
 import type {
   HistoryEntry,
   PointFlow,
   RallyDetails,
   ScoringState,
-  TennisFormat,
 } from "@/core/scoring/types";
 import type { QueuedAction } from "@/schemas/rally";
 import type { ScoreboardUIState } from "@/hooks/useScoreboardUIState";
@@ -110,12 +110,7 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
     } else {
       setScoreState({ type: "POINT_APPLIED", payload: serverState });
       engineRef.current = ScoringEngine.fromSerialized(
-        {
-          format: match!.format as TennisFormat,
-          player1Id: match!.player1.id,
-          player2Id: match!.player2.id,
-          initialServerId: match!.initialServerId || match!.player1.id,
-        },
+        buildEngineConfig(match!),
         JSON.stringify(serverState),
       );
       engineRef.current.restorePointHistory(historyToRestore);
@@ -160,22 +155,24 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
 
       if (isOnline) {
         const clientEventId =
-          typeof crypto !== "undefined" && crypto.randomUUID
+          flow.clientEventId ??
+          (typeof crypto !== "undefined" && crypto.randomUUID
             ? crypto.randomUUID()
-            : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-        const result = await pointSync.syncPointToServer(flow, seq, clientEventId);
+            : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+        const flowWithClientEventId: PointFlow = { ...flow, clientEventId };
+        const result = await pointSync.syncPointToServer(flowWithClientEventId, seq, clientEventId);
 
         if (result.success && result.serverResponse?.scoreState) {
           return applySuccessResult(result.serverResponse);
         } else if (result.needsLogin) {
           // 401 - token expirado: não tenta novamente, apenas enfileira para offline
           // e mostra mensagem para o usuário fazer login novamente
-          await pointSync.queuePointForOffline(enqueue, flow);
+          await pointSync.queuePointForOffline(enqueue, flowWithClientEventId);
           // O erro já foi setado pelo respondUnauthorized
         } else if (result.needsResync) {
           await fetchMatch(true);
           const retrySeq = ++pointSequenceRef.current;
-          const retryResult = await pointSync.syncPointToServer(flow, retrySeq, clientEventId);
+          const retryResult = await pointSync.syncPointToServer(flowWithClientEventId, retrySeq, clientEventId);
 
           if (retryResult.success && retryResult.serverResponse?.scoreState) {
             setError(null);
@@ -188,20 +185,24 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
             // era simplesmente descartado — fetchMatch(true) sobrescrevia o
             // estado local com o do servidor (sem o ponto) e não havia
             // nenhuma outra tentativa de reenvio. Agora o ponto é
-            // reenfileirado na fila offline (mesmo mecanismo usado quando
-            // isOnline é false) para ser reenviado automaticamente assim que
-            // a rede se estabilizar, em vez de ser perdido definitivamente.
-            await pointSync.queuePointForOffline(enqueue, flow);
+            // reenfileirado na fila offline com o mesmo clientEventId para
+            // garantir idempotência e evitar duplicação no reenvio.
+            await pointSync.queuePointForOffline(enqueue, flowWithClientEventId);
             setError(
               "Falha ao sincronizar com o servidor — o ponto foi salvo neste dispositivo e será reenviado automaticamente.",
             );
           } else if (retryResult.needsLogin) {
             // 401 no retry: enfileira para offline
-            await pointSync.queuePointForOffline(enqueue, flow);
+            await pointSync.queuePointForOffline(enqueue, flowWithClientEventId);
           }
         }
       } else {
-        await pointSync.queuePointForOffline(enqueue, flow);
+        const offlineClientEventId =
+          flow.clientEventId ??
+          (typeof crypto !== "undefined" && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+        await pointSync.queuePointForOffline(enqueue, { ...flow, clientEventId: offlineClientEventId });
       }
 
       if (newState.isFinished) setShowFinishedBanner(true);
@@ -265,6 +266,8 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
       rallyDetails: details,
       rallyLength: rallyLengthToUse,
       firstFaultDetail,
+      hitterId: (details as any).hitterId,
+      receiverId: (details as any).receiverId,
     }).then((pointLogId) => {
       clearFirstServeError();
       setServeStep("none");

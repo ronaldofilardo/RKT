@@ -44,7 +44,7 @@ function createMatchesClient(config: MatchesClientConfig) {
 
     startMatch: (
       matchId: string,
-      body: { state: string; initialServerId: string },
+      body: { state: string; initialServerId?: string; doublesSetup?: unknown; scoreState?: unknown },
     ): Promise<unknown> =>
       requestWithFallback(
         baseUrl,

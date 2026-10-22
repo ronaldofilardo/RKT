@@ -14,6 +14,14 @@ import {
   buildAnnotationsPayload,
   reportPointRouteFailure,
 } from './route.logic';
+import {
+  getServingMemberId,
+  courtSide,
+  getReceiverMemberId,
+  sideOfPlayer,
+  isNoAdDecidingPoint,
+} from '@/core/scoring/doubles';
+import { buildEngineConfig } from '@/core/scoring/engine-config';
 
 export async function POST(
   request: NextRequest,
@@ -64,7 +72,7 @@ export async function POST(
       const result: { scoreState: ScoringState; version: number; pointLogId: string } | null = await prisma.$transaction(async (tx) => {
         const match = await tx.match.findFirst({
           where: { id },
-          include: { player1: true, player2: true },
+          include: { player1: true, player2: true, player1Partner: true, player2Partner: true },
         });
 
         if (!match) {
@@ -99,20 +107,119 @@ export async function POST(
           throw new TransactionError('Defina o primeiro sacador antes de pontuar', 422, 'MATCH_NOT_STARTED');
         }
 
-        if (parsed.data.type === 'DOUBLE_FAULT' && parsed.data.winnerId === parsed.data.serverId) {
-          throw new TransactionError(
-            'Em um double fault, o vencedor do ponto deve ser o receptor, não o sacador',
-            400,
-            'DF_WINNER_MUST_BE_RECEIVER'
-          );
-        }
+        logger.point.engineCreated();
+        const engine = restoreEngineFromMatch(match as Parameters<typeof restoreEngineFromMatch>[0]);
+        const prePointState = engine.getState();
+        const isDoubles = match.matchType === 'DOUBLES';
+        const engineConfig = buildEngineConfig(match);
 
-        if (parsed.data.type === 'ACE' && parsed.data.winnerId !== parsed.data.serverId) {
-          throw new TransactionError(
-            'Em um ace, o vencedor do ponto deve ser o sacador',
-            400,
-            'ACE_WINNER_MUST_BE_SERVER'
-          );
+        let finalServerId = parsed.data.serverId;
+        let calculatedReceiverId = parsed.data.receiverId;
+        let calculatedCourtSide = parsed.data.courtSide;
+        let finalHitterId = parsed.data.hitterId;
+
+        if (isDoubles) {
+          if (!engineConfig.doubles) {
+            throw new TransactionError('Configuração de duplas ausente na partida', 400, 'DOUBLES_CONFIG_MISSING');
+          }
+
+          const serverMemberId = getServingMemberId(prePointState, engineConfig.doubles);
+          calculatedCourtSide = courtSide(prePointState);
+          calculatedReceiverId = getReceiverMemberId(prePointState, engineConfig.doubles, parsed.data.receiverId);
+
+          if (parsed.data.serverId && parsed.data.serverId !== serverMemberId) {
+            logger.warn({
+              message: '[POST /point doubles] client serverId diverged from server calculation, using server value',
+              clientServerId: parsed.data.serverId,
+              calculatedServerId: serverMemberId,
+              matchId: id,
+            });
+          }
+          finalServerId = serverMemberId;
+
+          const allMembers = [
+            match.player1Id,
+            match.player1PartnerId,
+            match.player2Id,
+            match.player2PartnerId,
+          ].filter(Boolean) as string[];
+
+          const winnerSide = sideOfPlayer(engineConfig.doubles, parsed.data.winnerId);
+          if (!winnerSide) {
+            throw new TransactionError('Jogador vencedor inválido para esta partida', 400, 'INVALID_WINNER');
+          }
+
+          const serverSide = prePointState.server;
+          if (parsed.data.type === 'DOUBLE_FAULT' && winnerSide === serverSide) {
+            throw new TransactionError(
+              'Em um double fault, o vencedor do ponto deve ser o receptor, não o sacador',
+              400,
+              'DF_WINNER_MUST_BE_RECEIVER'
+            );
+          }
+
+          if (parsed.data.type === 'ACE' && winnerSide !== serverSide) {
+            throw new TransactionError(
+              'Em um ace, o vencedor do ponto deve ser o sacador',
+              400,
+              'ACE_WINNER_MUST_BE_SERVER'
+            );
+          }
+
+          if (parsed.data.hitterId && !allMembers.includes(parsed.data.hitterId)) {
+            throw new TransactionError('hitterId deve ser um dos atletas da partida', 400, 'INVALID_HITTER');
+          }
+
+          if (parsed.data.type === 'ACE' || parsed.data.type === 'DOUBLE_FAULT') {
+            finalHitterId = finalServerId;
+          }
+
+          if (parsed.data.receiverId) {
+            if (isNoAdDecidingPoint(prePointState, match.format as any)) {
+              const receivingSide = serverSide === 'player1' ? 'player2' : 'player1';
+              const receivingMembers = engineConfig.doubles.members[receivingSide];
+              if (!receivingMembers.includes(parsed.data.receiverId)) {
+                throw new TransactionError('receiverId deve pertencer à dupla recebedora', 400, 'INVALID_RECEIVER');
+              }
+            }
+          }
+        } else {
+          if (parsed.data.type === 'DOUBLE_FAULT' && parsed.data.winnerId === parsed.data.serverId) {
+            throw new TransactionError(
+              'Em um double fault, o vencedor do ponto deve ser o receptor, não o sacador',
+              400,
+              'DF_WINNER_MUST_BE_RECEIVER'
+            );
+          }
+
+          if (parsed.data.type === 'ACE' && parsed.data.winnerId !== parsed.data.serverId) {
+            throw new TransactionError(
+              'Em um ace, o vencedor do ponto deve ser o sacador',
+              400,
+              'ACE_WINNER_MUST_BE_SERVER'
+            );
+          }
+
+          // Modo Sombra (D5): auditar se parsed.data.serverId coincide com o engine restaurado sem bloquear
+          const expectedEngineServer = typeof engine.getServer === 'function'
+            ? engine.getServer()
+            : (typeof engine.getState === 'function' ? engine.getState().server : undefined);
+          const expectedServerId = expectedEngineServer === 'player1'
+            ? match.player1Id
+            : expectedEngineServer === 'player2'
+            ? match.player2Id
+            : undefined;
+
+          if (parsed.data.serverId && expectedServerId && parsed.data.serverId !== expectedServerId) {
+            logger.warn({
+              message: '[POST /point shadow-mode] serverId mismatch',
+              matchId: id,
+              receivedServerId: parsed.data.serverId,
+              expectedServerId,
+              engineServer: expectedEngineServer,
+              sequenceNumber: parsed.data.sequenceNumber,
+            });
+          }
         }
 
         if (typeof tx.pointLog.updateMany === 'function') {
@@ -146,34 +253,17 @@ export async function POST(
         const expectedVersion = match.version;
         const nextVersion = match.version + 1;
 
-        logger.point.engineCreated();
-        const engine = restoreEngineFromMatch(match as Parameters<typeof restoreEngineFromMatch>[0]);
-
-        // Modo Sombra (D5): auditar se parsed.data.serverId coincide com o engine restaurado sem bloquear
-        const expectedEngineServer = typeof engine.getServer === 'function'
-          ? engine.getServer()
-          : (typeof engine.getState === 'function' ? engine.getState().server : undefined);
-        const expectedServerId = expectedEngineServer === 'player1'
-          ? match.player1Id
-          : expectedEngineServer === 'player2'
-          ? match.player2Id
-          : undefined;
-
-        if (parsed.data.serverId && expectedServerId && parsed.data.serverId !== expectedServerId) {
-          logger.warn({
-            message: '[POST /point shadow-mode] serverId mismatch',
-            matchId: id,
-            receivedServerId: parsed.data.serverId,
-            expectedServerId,
-            engineServer: expectedEngineServer,
-            sequenceNumber: parsed.data.sequenceNumber,
-          });
-        }
-
         logger.point.applying(parsed.data);
         let newState: ScoringState;
         try {
-          newState = engine.applyPoint(parsed.data);
+          const flowToApply = {
+            ...parsed.data,
+            serverId: finalServerId,
+            ...(calculatedReceiverId !== undefined ? { receiverId: calculatedReceiverId } : {}),
+            ...(calculatedCourtSide !== undefined ? { courtSide: calculatedCourtSide } : {}),
+            ...(finalHitterId !== undefined ? { hitterId: finalHitterId } : {}),
+          };
+          newState = engine.applyPoint(flowToApply);
         } catch (engineError) {
           const msg = engineError instanceof Error ? engineError.message : String(engineError);
           if (msg === 'MATCH_ALREADY_FINISHED') {
@@ -225,7 +315,11 @@ export async function POST(
           },
         });
 
-        const annotations = buildAnnotationsPayload(parsed.data);
+        const annotations = buildAnnotationsPayload(parsed.data, {
+          hitterId: finalHitterId,
+          receiverId: calculatedReceiverId,
+          courtSide: calculatedCourtSide,
+        });
 
         logger.point.creatingPointLog({
           winnerId: parsed.data.winnerId,
@@ -271,7 +365,7 @@ export async function POST(
             matchId: match.id,
             winnerId: parsed.data.winnerId,
             type: parsed.data.type,
-            serverId: parsed.data.serverId,
+            serverId: finalServerId,
             timestamp: validatedTimestamp,
             annotations,
             sequenceNumber: nextSequenceNumber,

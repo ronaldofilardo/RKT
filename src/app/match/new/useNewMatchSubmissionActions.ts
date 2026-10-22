@@ -17,7 +17,10 @@ export function useNewMatchSubmissionActions(
 ) {
   const buildPayload = useCallback((overrides?: Record<string, unknown>) => buildMatchPayload({
     sportType: state.sportType, format: state.format, courtType: state.courtType,
+    matchType: state.matchType,
     player1Id: state.selectedP1?.id, player2Id: state.selectedP2?.id,
+    player1PartnerId: state.selectedP1Partner?.id, player2PartnerId: state.selectedP2Partner?.id,
+    doublesSetup: state.doublesSetup,
     nickname: state.nickname, visibility: state.visibility, openForAnnotation: state.openForAnnotation,
     anotadorEmail: state.anotadorEmail, date: state.date, time: state.time, venueId: state.venueId,
     publicMatchCode: state.publicMatchCode, tournamentName: state.tournamentName, clubName: state.clubName,
@@ -30,11 +33,45 @@ export function useNewMatchSubmissionActions(
     if (!state.sportType) missing.push('Esporte');
     if (!state.format) missing.push('Modo de Jogo');
     if (state.sportType === 'TENNIS' && !state.courtType) missing.push('Tipo de Quadra');
-    if (!state.selectedP1) missing.push('Jogador 1');
-    if (!state.selectedP2) missing.push('Jogador 2');
     if (!state.date) missing.push('Data');
+
+    if (state.matchType === 'DOUBLES') {
+      if (!state.selectedP1) missing.push('Jogador 1 (Dupla 1)');
+      if (!state.selectedP1Partner) missing.push('Parceiro 1 (Dupla 1)');
+      if (!state.selectedP2) missing.push('Jogador 2 (Dupla 2)');
+      if (!state.selectedP2Partner) missing.push('Parceiro 2 (Dupla 2)');
+
+      if (state.selectedP1 && state.selectedP1Partner && state.selectedP2 && state.selectedP2Partner) {
+        const ids = [
+          state.selectedP1.id,
+          state.selectedP1Partner.id,
+          state.selectedP2.id,
+          state.selectedP2Partner.id,
+        ];
+        const unique = new Set(ids);
+        if (unique.size < 4) {
+          missing.push('Os 4 jogadores devem ser atletas diferentes');
+        }
+      }
+    } else {
+      if (!state.selectedP1) missing.push('Jogador 1');
+      if (!state.selectedP2) missing.push('Jogador 2');
+      if (state.selectedP1 && state.selectedP2 && state.selectedP1.id === state.selectedP2.id) {
+        missing.push('Jogador 1 e Jogador 2 devem ser diferentes');
+      }
+    }
     return missing;
-  }, [state.sportType, state.format, state.courtType, state.selectedP1, state.selectedP2, state.date]);
+  }, [
+    state.sportType,
+    state.format,
+    state.courtType,
+    state.matchType,
+    state.selectedP1,
+    state.selectedP2,
+    state.selectedP1Partner,
+    state.selectedP2Partner,
+    state.date,
+  ]);
 
   const createMatchIgnoringWarning = async () => {
     if (!state.pendingPayload || state.submittingRef.current) return;

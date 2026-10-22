@@ -8,8 +8,14 @@ import type { ScoreAction } from "@/hooks/useScoreReducer";
 export interface MatchData {
   id: string;
   format: string;
+  matchType?: 'SINGLES' | 'DOUBLES';
   player1: { id: string; name: string };
   player2: { id: string; name: string };
+  player1PartnerId?: string | null;
+  player2PartnerId?: string | null;
+  player1Partner?: { id: string; name: string } | null;
+  player2Partner?: { id: string; name: string } | null;
+  doublesSetup?: unknown;
   initialServerId: string | null;
   scoreState: ScoringState | null;
   state: string;
@@ -101,5 +107,6 @@ export interface ScoringHandlersReturn {
     details: RallyDetails,
     audio?: { blob: Blob; durationMs: number }
   ) => void;
+  updateDoublesArrangement?: (arrangement: any) => Promise<void>;
   isProcessing: boolean;
 }

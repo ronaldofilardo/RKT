@@ -5,6 +5,7 @@ import { createEmptySetForFormat, getInitialGames, usesNoAd } from './format-rul
 import { shouldStartTiebreak } from './tiebreak';
 import { shouldStartMatchTiebreak } from './match-tiebreak';
 import { completeSet, isSetComplete } from './set-completion';
+import { advanceServeIndex } from './doubles';
 
 /**
  * Ponto em formato "no-ad": ao empatar em 3-3 (40-40) o game NÃO encerra —
@@ -202,23 +203,14 @@ export function onGameWon(
   };
 
   const newServer = state.server === 'player1' ? 'player2' : 'player1';
+  advanceServeIndex(state, state.server);
 
   if (shouldStartMatchTiebreak(state, config)) {
     return transitionToMatchTiebreak(state, newServer);
   }
 
-  const initGames = getInitialGames(config.format);
   const newSets = [...state.sets];
-  // Formatos com placar inicial (Sets Curtos 2/2): o set em andamento já existe
-  // em state.sets com o placar inicial (2-2) e deve ser SUBSTITUÍDO pelo novo
-  // placar — só empilha quando o set ainda não existe no array. Antes, o 2-2
-  // inicial era confundido com "set novo" e empilhado, gerando um set fantasma
-  // 2-2 e deslocando todas as checagens baseadas em sets.length.
-  // Demais formatos (início em 0-0) mantêm a regra original.
-  const startsNewSet = initGames > 0
-    ? isNewSet
-    : currentSet.player1 === 0 && currentSet.player2 === 0 && !currentSet.isTiebreak;
-  if (startsNewSet) {
+  if (isNewSet) {
     newSets.push(newSet);
   } else {
     newSets[currentSetIndex] = newSet;

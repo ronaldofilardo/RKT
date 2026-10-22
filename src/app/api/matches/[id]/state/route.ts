@@ -10,6 +10,8 @@ async function checkCanModifyMatchState(
   match: {
     player1Id: string;
     player2Id: string;
+    player1PartnerId?: string | null;
+    player2PartnerId?: string | null;
     createdByUserId?: string | null;
     openForAnnotation?: boolean | null;
   },
@@ -21,6 +23,8 @@ async function checkCanModifyMatchState(
   const isParticipant =
     match.player1Id === currentUserId ||
     match.player2Id === currentUserId ||
+    match.player1PartnerId === currentUserId ||
+    match.player2PartnerId === currentUserId ||
     match.createdByUserId === currentUserId;
 
   if (isStaff || isParticipant || match.openForAnnotation === true) {
@@ -98,6 +102,8 @@ export async function PATCH(
           id: true,
           player1Id: true,
           player2Id: true,
+          player1PartnerId: true,
+          player2PartnerId: true,
           createdByUserId: true,
           openForAnnotation: true,
           state: true,
@@ -130,6 +136,7 @@ export async function PATCH(
         parsed.data.initialServerId,
         parsed.data.scoreState,
         {
+          doublesSetup: parsed.data.doublesSetup,
           allowScoreEdit: parsed.data.allowScoreEdit,
           expectedVersion: parsed.data.version,
           isManualScoreEdit: parsed.data.isManualScoreEdit,

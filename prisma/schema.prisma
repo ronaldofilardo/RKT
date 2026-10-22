@@ -60,6 +60,8 @@ model Player {
 
   matchesAsPlayer1   Match[]                  @relation("Player1")
   matchesAsPlayer2   Match[]                  @relation("Player2")
+  matchesAsPlayer1Partner Match[]             @relation("Player1Partner")
+  matchesAsPlayer2Partner Match[]             @relation("Player2Partner")
 
   @@map("Player")
 }
@@ -98,9 +100,15 @@ model Match {
   finishNote         String?
   finishReason       MatchFinishReason?
   createdByUserId    String?
+  matchType          MatchType                @default(SINGLES)
+  player1PartnerId   String?
+  player2PartnerId   String?
+  doublesSetup       Json?
   createdByUser      User?                    @relation("CreatedMatches", fields: [createdByUserId], references: [id], onDelete: SetNull)
   player1            Player                   @relation("Player1", fields: [player1Id], references: [id])
   player2            Player                   @relation("Player2", fields: [player2Id], references: [id])
+  player1Partner     Player?                  @relation("Player1Partner", fields: [player1PartnerId], references: [id])
+  player2Partner     Player?                  @relation("Player2Partner", fields: [player2PartnerId], references: [id])
   pointLog           PointLog[]
   annotationSessions MatchAnnotationSession[]
   scoreEdits         MatchScoreEdit[]
@@ -263,4 +271,9 @@ enum AnnotationSessionStatus {
   IN_PROGRESS
   COMPLETED
   ABANDONED
+}
+
+enum MatchType {
+  SINGLES
+  DOUBLES
 }

@@ -2,9 +2,13 @@ export interface DashboardMatchPayload {
   id: string;
   state: string;
   format: string;
+  matchType?: string;
   courtType?: string | null;
   player1: { name: string; id?: string };
   player2: { name: string; id?: string };
+  player1Partner?: { name: string; id?: string } | null;
+  player2Partner?: { name: string; id?: string } | null;
+  doublesSetup?: unknown;
   scheduledAt?: string | null;
   scoreState?: unknown;
   scoreSummary?: unknown;

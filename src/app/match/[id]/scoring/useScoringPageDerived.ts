@@ -13,6 +13,8 @@ import {
 } from "./scoring-domain";
 import { resolveDisplayScore } from "./resolveDisplayScore";
 import { getInitialGames } from "@/core/scoring/format-rules";
+import { buildEngineConfig } from "@/core/scoring/engine-config";
+import { getServingMemberId, getReceiverMemberId } from "@/core/scoring/doubles";
 
 export interface ScoringPageDerived {
   effectiveScoreState: ScoringState | null;
@@ -37,6 +39,8 @@ export interface ScoringPageDerived {
     tiebreakScore?: { player1: number; player2: number };
   }>;
   serverEffectWinnerName: string;
+  activeServerId: string | null;
+  activeReceiverId: string | null;
 }
 
 function derivePointBadges(
@@ -245,10 +249,27 @@ export function useScoringPageDerived(
     ? (effectiveScoreState.server === "player1" ? match.player2.name : match.player1.name)
     : "";
 
+  let activeServerId: string | null = null;
+  let activeReceiverId: string | null = null;
+  if (effectiveScoreState && match) {
+    try {
+      const engineConfig = buildEngineConfig(match);
+      if (engineConfig.doubles) {
+        activeServerId = getServingMemberId(effectiveScoreState, engineConfig.doubles);
+        activeReceiverId = getReceiverMemberId(effectiveScoreState, engineConfig.doubles);
+      }
+    } catch {
+      activeServerId = null;
+      activeReceiverId = null;
+    }
+  }
+
   return {
     effectiveScoreState,
     p1IsServing,
     p2IsServing,
+    activeServerId,
+    activeReceiverId,
     isMatchPoint,
     isSetPoint,
     isBreakPoint,

@@ -20,6 +20,18 @@ export function createInitialState(config: ScoringEngineConfig): ScoringState {
     setsWon: { player1: 0, player2: 0 },
     startedAt: null,
     secondServe: false,
+    ...(config.doubles
+      ? {
+          doubles: {
+            serveOrder: {
+              player1: [...config.doubles.initial.serveOrder.player1],
+              player2: [...config.doubles.initial.serveOrder.player2],
+            },
+            serveIndex: { player1: 0, player2: 0 },
+            receiveDeuce: { ...config.doubles.initial.receiveDeuce },
+          },
+        }
+      : {}),
   };
 }
 

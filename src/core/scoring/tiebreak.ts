@@ -2,6 +2,7 @@ import type { ScoringEngineConfig, ScoringState, SetScore } from './types';
 import { createEmptyGame } from './engine.state';
 import { completeSetWithTiebreak } from './set-completion';
 import { isFinalSet, getGamesToTiebreak } from './format-rules';
+import { advanceServeIndex } from './doubles';
 
 /**
  * BUG FIX (2026-09-22): sacador do 1º game do set seguinte após um set
@@ -103,6 +104,13 @@ export function applyTiebreakPoint(
   const tbMin = isMatchTb ? 10 : 7;
 
   if (hasTiebreakBeenWon(newTb, winner, tbMin)) {
+    const t = newTb.player1 + newTb.player2 - 1;
+    const b = Math.floor((t + 1) / 2);
+    const s0: 'player1' | 'player2' = (b % 2 === 0)
+      ? state.server
+      : (state.server === 'player1' ? 'player2' : 'player1');
+    advanceServeIndex(state, s0);
+
     // Em Match Tiebreak não há set seguinte — o "próximo sacador" é só o
     // alternador corrente. No tiebreak comum, ancora em initialServerId.
     const nextSetServer = isMatchTb

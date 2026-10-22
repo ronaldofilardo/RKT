@@ -20,6 +20,7 @@ interface Props {
   isMatchFinished?: boolean;
   onViewReport?: () => void;
   completedSetsData?: CompletedSetData[];
+  onOpenDoublesArrangement?: () => void;
 }
 
 export function SetSummaryModal({
@@ -34,6 +35,7 @@ export function SetSummaryModal({
   isMatchFinished = false,
   onViewReport,
   completedSetsData,
+  onOpenDoublesArrangement,
 }: Props) {
   const { availableSets, selectedSet, setSelectedSet, summary } = useSetSummaryReport({
     initialSetNumber,
@@ -83,6 +85,7 @@ export function SetSummaryModal({
           isLastCompletedSet={selectedSet >= completedSetsCount}
           nextSetNumber={selectedSet + 1}
           onClose={onClose}
+          onOpenDoublesArrangement={onOpenDoublesArrangement}
         />
       </div>
     </div>

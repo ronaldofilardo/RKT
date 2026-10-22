@@ -8,6 +8,10 @@ type MatchPlayer = ScoringPlayAreaProps['match']['player1'];
 interface PlayAreaPlayersProps {
   player1: MatchPlayer;
   player2: MatchPlayer;
+  player1Partner?: MatchPlayer;
+  player2Partner?: MatchPlayer;
+  activeServerId?: string | null;
+  activeReceiverId?: string | null;
   scoreState: ScoringPlayAreaProps['effectiveScoreState'];
   p1IsServing: boolean;
   p2IsServing: boolean;
@@ -22,6 +26,10 @@ interface PlayAreaPlayersProps {
 export function PlayAreaPlayers({
   player1,
   player2,
+  player1Partner,
+  player2Partner,
+  activeServerId,
+  activeReceiverId,
   scoreState,
   p1IsServing,
   p2IsServing,
@@ -37,9 +45,12 @@ export function PlayAreaPlayers({
       <div className="flex-1 min-w-0 flex">
         <PlayerCard
           player={player1}
+          partner={player1Partner}
           side="player1"
           scoreState={scoreState}
           isServing={p1IsServing}
+          activeServerId={activeServerId}
+          activeReceiverId={activeReceiverId}
           isSetPoint={isSetPoint}
           isBreakPoint={isBreakPoint}
           isWinner={winner === 'player1'}
@@ -54,9 +65,12 @@ export function PlayAreaPlayers({
       <div className="flex-1 min-w-0 flex">
         <PlayerCard
           player={player2}
+          partner={player2Partner}
           side="player2"
           scoreState={scoreState}
           isServing={p2IsServing}
+          activeServerId={activeServerId}
+          activeReceiverId={activeReceiverId}
           isSetPoint={isSetPoint}
           isBreakPoint={isBreakPoint}
           isWinner={winner === 'player2'}

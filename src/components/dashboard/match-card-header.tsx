@@ -91,7 +91,7 @@ export function MatchCardHeader({
           <HeaderButton id="edit-info" match={match} onClick={onEditInfo} title="Editar Informações da Partida" ariaLabel="Editar Informações" emoji="⚙️" label="Info" />
         )}
         <MatchActions match={match} onReport={onReport} onFinish={onFinish} onDelete={onDelete} />
-        <FormatLabel format={match.format} />
+        <FormatLabel format={match.format} matchType={match.matchType} />
       </div>
     </div>
   );

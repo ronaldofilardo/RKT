@@ -28,9 +28,12 @@ export interface ScoreState {
 
 export interface PlayerCardProps {
   player: Player;
+  partner?: Player | null;
   side: 'player1' | 'player2';
   scoreState: ScoreState | null;
   isServing: boolean;
+  activeServerId?: string | null;
+  activeReceiverId?: string | null;
   isSetPoint: boolean;
   isBreakPoint: boolean;
   isWinner: boolean;

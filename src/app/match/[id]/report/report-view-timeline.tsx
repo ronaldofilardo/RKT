@@ -30,6 +30,18 @@ export function ReportTimeline({ report, matchId, onContinue }: ReportTimelinePr
         showFinalResult
         scoreState={report.scoreState}
         comments={report.comments}
+        doubles={
+          report.matchType === 'DOUBLES'
+            ? {
+                player1PartnerName: report.player1Partner?.name,
+                player2PartnerName: report.player2Partner?.name,
+                player1Id: report.player1.id,
+                player2Id: report.player2.id,
+                player1PartnerId: report.player1Partner?.id,
+                player2PartnerId: report.player2Partner?.id,
+              }
+            : undefined
+        }
         matchInfo={{
           tournamentName: report.tournamentName,
           round: report.round,

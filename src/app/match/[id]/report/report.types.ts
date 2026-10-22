@@ -8,6 +8,10 @@ export interface ReportData {
   player1: { id: string; name: string };
   player2: { id: string; name: string };
   format: TennisFormat;
+  matchType?: 'SINGLES' | 'DOUBLES';
+  player1Partner?: { id: string; name: string } | null;
+  player2Partner?: { id: string; name: string } | null;
+  doublesSetup?: unknown;
   sportType?: string;
   courtType?: string | null;
   tournamentName?: string | null;

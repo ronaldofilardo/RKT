@@ -5,6 +5,8 @@ import { SetGroup } from './timeline-rows';
 import { TimelineTableHead } from './timeline-table-head';
 import { getSetResults } from './timeline-set-results';
 
+import type { TimelineDoublesConfig } from './timeline-row.logic';
+
 interface TimelineTableProps {
   groupedBySet: { setNumber: number; points: TimelinePoint[] }[];
   points: TimelinePoint[];
@@ -15,6 +17,7 @@ interface TimelineTableProps {
   player2Name: string;
   showFinalResult?: boolean;
   scoreState?: unknown;
+  doubles?: TimelineDoublesConfig;
 }
 
 export function TimelineTable({
@@ -27,6 +30,7 @@ export function TimelineTable({
   player2Name,
   showFinalResult,
   scoreState,
+  doubles,
 }: TimelineTableProps) {
   return (
     <div className="overflow-hidden border border-white/10 rounded-lg">
@@ -49,6 +53,7 @@ export function TimelineTable({
                   matchId={matchId}
                   player1Name={player1Name}
                   player2Name={player2Name}
+                  doubles={doubles}
                 />
               ))}
               {showFinalResult && <FinalResultRow points={points} scoreState={scoreState} />}

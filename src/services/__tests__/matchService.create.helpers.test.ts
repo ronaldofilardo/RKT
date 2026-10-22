@@ -54,6 +54,46 @@ describe('matchService.create.helpers', () => {
         } as any)
       ).not.toThrow();
     });
+
+    describe('em partidas de duplas', () => {
+      it('deve lancar erro quando falta parceiro do jogador 1 ou 2', () => {
+        expect(() =>
+          validateCreateMatchPlayers({
+            matchType: 'DOUBLES',
+            player1Id: 'p1',
+            player2Id: 'p2',
+            player1PartnerId: 'p1b',
+            format: 'BEST_OF_3',
+          } as any)
+        ).toThrow(ValidationError);
+      });
+
+      it('deve lancar erro quando ha jogadores repetidos nas duplas', () => {
+        expect(() =>
+          validateCreateMatchPlayers({
+            matchType: 'DOUBLES',
+            player1Id: 'p1',
+            player2Id: 'p2',
+            player1PartnerId: 'p1',
+            player2PartnerId: 'p2b',
+            format: 'BEST_OF_3',
+          } as any)
+        ).toThrow(ValidationError);
+      });
+
+      it('deve passar quando ha 4 jogadores distintos em duplas', () => {
+        expect(() =>
+          validateCreateMatchPlayers({
+            matchType: 'DOUBLES',
+            player1Id: 'p1',
+            player2Id: 'p2',
+            player1PartnerId: 'p1b',
+            player2PartnerId: 'p2b',
+            format: 'BEST_OF_3',
+          } as any)
+        ).not.toThrow();
+      });
+    });
   });
 
   describe('warnMissingCreator', () => {

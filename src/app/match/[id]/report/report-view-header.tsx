@@ -10,6 +10,9 @@ interface ReportHeaderProps {
 
 export function ReportHeader({ report, onContinue, onDashboard, onExport }: ReportHeaderProps) {
   const stateLabel = report.state === 'FINISHED' ? 'Finalizada' : report.state === 'IN_PROGRESS' ? 'Em andamento' : 'Aguardando';
+  const isDoubles = report.matchType === 'DOUBLES';
+  const p1Name = isDoubles && report.player1Partner ? `${report.player1.name} / ${report.player1Partner.name}` : report.player1.name;
+  const p2Name = isDoubles && report.player2Partner ? `${report.player2.name} / ${report.player2Partner.name}` : report.player2.name;
 
   const courtTypeMap: Record<string, string> = {
     GRASS: 'Saibro',
@@ -32,7 +35,7 @@ export function ReportHeader({ report, onContinue, onDashboard, onExport }: Repo
         <div>
           <h1 className="text-xl font-bold text-telemetry-text-primary">Relatório da Partida</h1>
           <p className="text-sm text-telemetry-text-muted mt-1">
-            <span className="font-semibold text-telemetry-blue">P1</span> {report.player1.name} vs <span className="font-semibold text-telemetry-error">P2</span> {report.player2.name} · {report.format.replace(/_/g, ' ')} · {stateLabel}
+            <span className="font-semibold text-telemetry-blue">P1</span> {p1Name} vs <span className="font-semibold text-telemetry-error">P2</span> {p2Name} · {isDoubles ? 'Duplas · ' : ''}{report.format.replace(/_/g, ' ')} · {stateLabel}
           </p>
           <p className="text-xs text-telemetry-text-muted/70 mt-1">Início: {formatDate(report.startedAt)} · Fim: {formatDate(report.finishedAt)}</p>
           <p className="text-xs text-telemetry-text-muted/70 mt-1">

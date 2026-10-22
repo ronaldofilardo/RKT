@@ -3,6 +3,7 @@ import type {
   PointDetails,
   ScoringEngineConfig,
   HistoryEntry,
+  DoublesConfig,
 } from '@/core/scoring/types';
 import type { PointLogRow } from './point-log-merge';
 import { ScoringEngine } from '@/core/scoring/engine';
@@ -53,6 +54,7 @@ export function rebuildTimelineFromPointLogs(
   initialServerId: string,
   format?: string,
   scoreEdits: TimelineScoreEdit[] = [],
+  doublesConfig?: DoublesConfig,
 ): TimelinePoint[] {
   if (pointLogs.length === 0) return history;
 
@@ -61,6 +63,7 @@ export function rebuildTimelineFromPointLogs(
     player1Id,
     player2Id,
     initialServerId,
+    ...(doublesConfig ? { doubles: doublesConfig } : {}),
   };
 
   // Caminho nominal: history cobre todos os PointLog — preserva stateBefore

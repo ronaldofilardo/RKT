@@ -1,4 +1,5 @@
-import { restoreEngineFromMatch, buildAnnotationsPayload } from '../route.logic';
+import { restoreEngineFromMatch, buildAnnotationsPayload, reportPointRouteFailure, TransactionError } from '../route.logic';
+import { Prisma } from '@prisma/client';
 
 // BUG FIX (2026-09-27) — CRÍTICO: restoreEngineFromMatch() passava o
 // scoreState por normalizeScoreState(), que sempre retorna só o `state`
@@ -209,3 +210,46 @@ describe('buildAnnotationsPayload', () => {
     });
   });
 });
+
+describe('reportPointRouteFailure', () => {
+  it('mapeia erro P2025 do Prisma para 409 VERSION_CONFLICT', async () => {
+    const p2025Error = new Prisma.PrismaClientKnownRequestError(
+      'An operation failed because it depends on one or more records that were required but not found.',
+      {
+        code: 'P2025',
+        clientVersion: '5.0.0',
+      },
+    );
+
+    const response = await reportPointRouteFailure(p2025Error, 'match-123');
+    expect(response.status).toBe(409);
+    const body = await response.json();
+    expect(body).toEqual({
+      error: 'VERSION_CONFLICT',
+      message: expect.stringContaining('Conflito de concorrência'),
+    });
+  });
+
+  it('retorna status e código customizados para TransactionError', async () => {
+    const txError = new TransactionError('Partida finalizada', 422, 'MATCH_ALREADY_FINISHED');
+    const response = await reportPointRouteFailure(txError, 'match-123');
+    expect(response.status).toBe(422);
+    const body = await response.json();
+    expect(body).toEqual({
+      error: 'MATCH_ALREADY_FINISHED',
+      message: 'Partida finalizada',
+    });
+  });
+
+  it('retorna 500 INTERNAL_ERROR para erros inesperados', async () => {
+    const error = new Error('Falha catastrófica');
+    const response = await reportPointRouteFailure(error, 'match-123');
+    expect(response.status).toBe(500);
+    const body = await response.json();
+    expect(body).toEqual({
+      error: 'INTERNAL_ERROR',
+      message: 'Falha catastrófica',
+    });
+  });
+});
+

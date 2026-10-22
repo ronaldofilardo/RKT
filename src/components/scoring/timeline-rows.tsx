@@ -4,6 +4,8 @@ import { getGameEndInfo } from './timeline.logic';
 import { GameEndRow } from './timeline-game-end-row';
 import { PointRow } from './timeline-point-row';
 
+import type { TimelineDoublesConfig } from './timeline-row.logic';
+
 // Re-exports de compatibilidade (módulo movido para ./timeline-point-row).
 export { PointRow } from './timeline-point-row';
 // Re-exports de compatibilidade (helpers movidos para ./timeline-row.logic).
@@ -18,9 +20,10 @@ interface SetGroupProps {
   matchId: string;
   player1Name: string;
   player2Name: string;
+  doubles?: TimelineDoublesConfig;
 }
 
-export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLast, matchId, player1Name, player2Name }: SetGroupProps) {
+export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLast, matchId, player1Name, player2Name, doubles }: SetGroupProps) {
   return (
     <>
       {!hasActiveFilters && (
@@ -51,7 +54,9 @@ export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLa
 
         const isLastPointOfSet = i === points.length - 1;
         const gameEnd = !hasActiveFilters ? getGameEndInfo(p, nextPoint, isLastPointOfSet) : null;
-        const winnerName = gameEnd?.winner === 'PLAYER_1' ? player1Name : player2Name;
+        const winnerName = gameEnd?.winner === 'PLAYER_1'
+          ? (doubles?.player1PartnerName ? `${player1Name} / ${doubles.player1PartnerName}` : player1Name)
+          : (doubles?.player2PartnerName ? `${player2Name} / ${doubles.player2PartnerName}` : player2Name);
 
         return (
           <Fragment key={`${p.setNumber}-${p.pointNumber}`}>
@@ -63,6 +68,7 @@ export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLa
               isFirstPointOfGame={isFirstPointOfGame}
               player1Name={player1Name}
               player2Name={player2Name}
+              doubles={doubles}
             />
             {gameEnd && (
               <GameEndRow

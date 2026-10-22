@@ -2,6 +2,8 @@
 
 import type { ComponentProps } from 'react';
 import { ServerSelectionModal } from '@/app/match/new/components/ServerSelectionModal';
+import { DoublesServerSelectionModal } from '@/app/match/new/components/DoublesServerSelectionModal';
+import type { DoublesSetup } from '@/schemas/contracts';
 import { SetSummaryModal } from '@/components/scoring/SetSummaryModal';
 import { EditMatchInfoModal } from '@/components/dashboard/EditMatchInfoModal';
 import type { DashboardMatchPayload } from '@/components/dashboard/MatchCard';
@@ -17,7 +19,7 @@ interface DashboardMatchModalsProps {
   onConfirmDelete: () => void;
   serverMatch: DashboardMatchPayload | null;
   startingMatch: boolean;
-  onSelectServer: (serverId: string) => Promise<void>;
+  onSelectServer: (serverId: string, doublesSetup?: DoublesSetup) => Promise<void>;
   onCloseServer: () => void;
   setSummaryMatch: DashboardMatchPayload | null;
   setSummaryTimelinePoints: TimelinePoint[];
@@ -55,16 +57,27 @@ export function DashboardMatchModals({
         <ConfirmDeleteMatchDialog onCancel={onCancelDelete} onConfirm={onConfirmDelete} />
       )}
 
-      {serverMatch && (
+      {serverMatch && serverMatch.matchType === 'DOUBLES' ? (
+        <DoublesServerSelectionModal
+          isOpen={Boolean(serverMatch)}
+          selectedP1={serverMatch.player1}
+          selectedP1Partner={serverMatch.player1Partner ?? null}
+          selectedP2={serverMatch.player2}
+          selectedP2Partner={serverMatch.player2Partner ?? null}
+          startingMatch={startingMatch}
+          onConfirmDoublesSetup={(initialServerId, setup) => onSelectServer(initialServerId, setup)}
+          onClose={onCloseServer}
+        />
+      ) : serverMatch ? (
         <ServerSelectionModal
           isOpen={Boolean(serverMatch)}
           selectedP1={serverMatch.player1}
           selectedP2={serverMatch.player2}
           startingMatch={startingMatch}
-          onSelectServer={onSelectServer}
+          onSelectServer={(serverId) => onSelectServer(serverId)}
           onClose={onCloseServer}
         />
-      )}
+      ) : null}
 
       {setSummaryMatch && (
         <SetSummaryModal

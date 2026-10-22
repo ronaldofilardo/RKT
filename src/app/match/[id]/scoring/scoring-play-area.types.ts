@@ -11,6 +11,8 @@ export interface ScoringPlayAreaProps {
   completedSetsCount: number;
   p1IsServing: boolean;
   p2IsServing: boolean;
+  activeServerId?: string | null;
+  activeReceiverId?: string | null;
   isSetPoint: boolean;
   isBreakPoint: boolean;
   isMatchPoint: boolean;

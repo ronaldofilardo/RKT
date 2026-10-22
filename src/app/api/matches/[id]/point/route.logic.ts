@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { ScoringEngine } from '@/core/scoring/engine';
 import { normalizeScoreState, extractHistory } from '@/core/scoring/score-normalizer';
+import { buildEngineConfig } from '@/core/scoring/engine-config';
 import { logger } from '@/lib/logger';
 import type { PointFlowInput } from '@/schemas/contracts';
 
@@ -23,6 +24,8 @@ export async function validateMatchAnnotatorPermission(
   match: {
     player1Id: string;
     player2Id: string;
+    player1PartnerId?: string | null;
+    player2PartnerId?: string | null;
     createdByUserId?: string | null;
     openForAnnotation?: boolean | null;
   },
@@ -35,6 +38,8 @@ export async function validateMatchAnnotatorPermission(
   const isPlayer =
     match.player1Id === currentUserId ||
     match.player2Id === currentUserId ||
+    match.player1PartnerId === currentUserId ||
+    match.player2PartnerId === currentUserId ||
     match.createdByUserId === currentUserId;
 
   if (isPrivilegedStaff || isPlayer || match.openForAnnotation === true) {
@@ -90,12 +95,7 @@ export function restoreEngineFromMatch(match: {
     }
   }
 
-  const engineConfig = {
-    format: match.format as NonNullable<Parameters<typeof ScoringEngine.fromSerialized>[0]['format']>,
-    player1Id: match.player1Id,
-    player2Id: match.player2Id,
-    initialServerId: match.initialServerId,
-  };
+  const engineConfig = buildEngineConfig(match);
 
   const engine = scoreStateToUse
     ? ScoringEngine.fromSerialized(engineConfig, JSON.stringify(scoreStateToUse))
@@ -127,7 +127,14 @@ export function restoreEngineFromMatch(match: {
   return engine;
 }
 
-export function buildAnnotationsPayload(data: PointFlowInput) {
+export function buildAnnotationsPayload(
+  data: PointFlowInput,
+  doublesMeta?: {
+    hitterId?: string;
+    receiverId?: string;
+    courtSide?: 'deuce' | 'ad';
+  },
+) {
   const hasFirstFaultDetail = Boolean(
     data.firstFaultDetail &&
       (data.firstFaultDetail.errorType ||
@@ -176,6 +183,10 @@ export function buildAnnotationsPayload(data: PointFlowInput) {
   const zone = data.annotations?.zone;
   const stroke = data.annotations?.stroke;
 
+  const hitterId = doublesMeta?.hitterId ?? data.hitterId ?? data.annotations?.hitterId;
+  const receiverId = doublesMeta?.receiverId ?? data.receiverId ?? data.annotations?.receiverId;
+  const courtSide = doublesMeta?.courtSide ?? data.courtSide ?? data.annotations?.courtSide;
+
   return {
     ...(data.annotations ?? {}),
     isFirstServe,
@@ -186,6 +197,9 @@ export function buildAnnotationsPayload(data: PointFlowInput) {
     ...(note !== undefined ? { note } : {}),
     ...(zone !== undefined ? { zone } : {}),
     ...(stroke !== undefined ? { stroke } : {}),
+    ...(hitterId !== undefined ? { hitterId } : {}),
+    ...(receiverId !== undefined ? { receiverId } : {}),
+    ...(courtSide !== undefined ? { courtSide } : {}),
   };
 }
 

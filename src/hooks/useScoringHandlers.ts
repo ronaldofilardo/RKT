@@ -300,6 +300,39 @@ export function useScoringHandlers(
     setServeStep,
   });
 
+  const updateDoublesArrangement = useCallback(
+    async (arrangement: any) => {
+      if (!match || match.matchType !== "DOUBLES") return;
+      try {
+        const state = engineRef.current?.getState();
+        const setIndex = (state?.sets.length || 1) - 1;
+        const res = await fetch(`/api/matches/${matchId}/arrangement`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}),
+          },
+          body: JSON.stringify({
+            serveOrder: arrangement.serveOrder,
+            serveIndex: arrangement.serveIndex,
+            receiveDeuce: arrangement.receiveDeuce,
+            setIndex: Math.max(0, setIndex),
+            expectedVersion: match.version,
+          }),
+        });
+        if (res.ok) {
+          engineRef.current?.setArrangement(arrangement);
+          await fetchMatch(true);
+        } else {
+          logger.error("[updateDoublesArrangement] Falha na API de arrangement", await res.text());
+        }
+      } catch (err) {
+        logger.error("[updateDoublesArrangement] Erro de rede", err);
+      }
+    },
+    [match, matchId, engineRef, tokenRef, fetchMatch],
+  );
+
   return {
     persistState,
     getServerId: serverHelpers.getServerId,
@@ -319,6 +352,7 @@ export function useScoringHandlers(
     recordDirectServeError: serveActionsService.recordDirectServeError,
     cancelServeError: serveActionsService.cancelServeError,
     confirmPointDetails,
+    updateDoublesArrangement,
     isProcessing: isProcessingRef.current,
   };
 }

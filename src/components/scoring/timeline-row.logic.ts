@@ -11,6 +11,15 @@ export const BADGE_COLORS: Record<BadgeColor, string> = {
   gray: 'bg-white/10 text-telemetry-text-primary',
 };
 
+export interface TimelineDoublesConfig {
+  player1PartnerName?: string;
+  player2PartnerName?: string;
+  player1Id?: string;
+  player2Id?: string;
+  player1PartnerId?: string;
+  player2PartnerId?: string;
+}
+
 /**
  * Iniciais do atleta para as colunas "P/" e "SAC":
  * - Nome + sobrenome (2+ palavras): iniciais de cada um, ex. "Rafael Nadal" → "R.N.".
@@ -27,6 +36,18 @@ export function getPlayerInitials(fullName: string): string {
   const single = parts[0];
   const letters = single.slice(0, 3);
   return letters.charAt(0).toUpperCase() + letters.slice(1).toLowerCase();
+}
+
+/**
+ * Iniciais da equipe de duplas (ex: "RN/RF" ou "Nad/Fed")
+ */
+export function getTeamInitials(name1: string, name2?: string): string {
+  const init1 = getPlayerInitials(name1);
+  if (!name2) return init1;
+  const init2 = getPlayerInitials(name2);
+  const clean1 = init1.replace(/\./g, '');
+  const clean2 = init2.replace(/\./g, '');
+  return `${clean1}/${clean2}`;
 }
 
 /** Evento (PointFlow.type) tem precedência sobre rd.tipo; fallback no rallyDetails. */
