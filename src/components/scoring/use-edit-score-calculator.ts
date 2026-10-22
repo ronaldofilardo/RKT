@@ -1,3 +1,5 @@
+// ste-exception R-03: casca de wiring React (useMemo) da API do calculator;
+// toda a lógica de decisão vive em src/core/scoring/edit-score-calculator.*.ts (≤100L).
 import { useMemo } from 'react';
 import type { TennisFormat } from '@/core/scoring/types';
 import type {
@@ -12,6 +14,8 @@ import {
   calculateTiebreakValidation,
 } from '@/core/scoring/edit-score-state';
 import type { SetEditData } from '@/core/scoring/edit-score-domain';
+import { evaluateCanConfirm, evaluateCanConfirmSet } from '@/core/scoring/edit-score-calculator.confirm';
+import { evaluateCanAddNextSet, evaluateShowGamePointsAtZero } from '@/core/scoring/edit-score-calculator.set-gates';
 
 interface UseEditScoreCalculatorParams {
   matchFormat: TennisFormat;
@@ -42,202 +46,6 @@ interface EditScoreCalculations {
   showGamePointsAtZero: boolean;
   isPotentialMTSet: boolean;
   currentScoreBelowOriginal: boolean;
-}
-
-function evaluateCanAddNextSet(
-  validation: EditScoreValidation,
-  matchState: EditScoreMatchState,
-  tiebreakValidation: { tiebreakComplete: boolean },
-): boolean {
-  if (!validation.isSetTrulyCompleted) return false;
-  if (matchState.totalEditedSets >= matchState.maxSets - 1) return false;
-  if (matchState.matchAlreadyOver || matchState.matchWouldEnd) return false;
-  if (matchState.isMatchTiebreakSet) return false;
-  if (validation.hasTiebreak && !tiebreakValidation.tiebreakComplete) return false;
-  return true;
-}
-
-function evaluateCanConfirmSet(
-  validation: EditScoreValidation,
-  tiebreakValidation: { tiebreakImpossible: boolean; hasValidTiebreak: boolean },
-  matchState: EditScoreMatchState,
-): boolean {
-  if (!validation.bothFilled || tiebreakValidation.tiebreakImpossible) return false;
-
-  if (matchState.isMatchTiebreakSet) {
-    return !validation.setValidationError || validation.isSetTrulyCompleted;
-  }
-
-  if (!validation.isSetTrulyCompleted) return false;
-
-  const tiebreakRequired = validation.setValidation?.tiebreakRequired ?? false;
-  if (validation.hasTiebreak && tiebreakRequired && !tiebreakValidation.hasValidTiebreak) {
-    return false;
-  }
-
-  return true;
-}
-
-function checkUnfilledAllowed(
-  bothFilled: boolean,
-  hasNewSets: boolean,
-  hasCompletedSets: boolean,
-): boolean | null {
-  if (!bothFilled) {
-    return hasNewSets || hasCompletedSets;
-  }
-  return null;
-}
-
-function checkZeroScoreAllowed(
-  p1Val: number,
-  p2Val: number,
-  hasNewSets: boolean,
-  hasCompletedSets: boolean,
-  hasGamePoints: boolean,
-): boolean {
-  const scoresAreZero = p1Val === 0 && p2Val === 0;
-  if (!scoresAreZero) return false;
-  if (hasCompletedSets || hasNewSets) return true;
-  return hasGamePoints;
-}
-
-function checkZeroOrEmptyAllowed(
-  bothFilled: boolean,
-  p1Val: number,
-  p2Val: number,
-  hasNewSets: boolean,
-  hasCompletedSets: boolean,
-  hasGamePoints: boolean,
-): boolean | null {
-  const unfilledResult = checkUnfilledAllowed(bothFilled, hasNewSets, hasCompletedSets);
-  if (unfilledResult !== null) return unfilledResult;
-  if (checkZeroScoreAllowed(p1Val, p2Val, hasNewSets, hasCompletedSets, hasGamePoints)) {
-    return true;
-  }
-  return null;
-}
-
-function checkScoreBoundsAndTiebreak(
-  p1Val: number,
-  p2Val: number,
-  floorCurrentSets: { player1: number; player2: number } | null | undefined,
-  tiebreakImpossible: boolean,
-  floorTiebreak?: { player1: number; player2: number } | null,
-  hasTiebreak?: boolean,
-  isSetTrulyCompleted?: boolean,
-  tbP1Num?: number,
-  tbP2Num?: number,
-): boolean {
-  if (floorCurrentSets && (p1Val < floorCurrentSets.player1 || p2Val < floorCurrentSets.player2)) {
-    return false;
-  }
-  if (floorTiebreak && hasTiebreak && !isSetTrulyCompleted && tbP1Num !== undefined && tbP2Num !== undefined) {
-    if (tbP1Num < floorTiebreak.player1 || tbP2Num < floorTiebreak.player2) {
-      return false;
-    }
-  }
-  if (tiebreakImpossible) {
-    return false;
-  }
-  return true;
-}
-
-function checkSetErrorValidity(
-  isMatchTiebreakSet: boolean,
-  setValidationError: string | undefined,
-  isSetTrulyCompleted: boolean,
-  tiebreakRequired: boolean,
-): boolean {
-  if (isMatchTiebreakSet) {
-    return !setValidationError || isSetTrulyCompleted;
-  }
-  if (setValidationError && !tiebreakRequired) {
-    return false;
-  }
-  return true;
-}
-
-function evaluateCanConfirm(params: {
-  validation: EditScoreValidation;
-  matchState: EditScoreMatchState;
-  newSetsCount: number;
-  p1Points: string;
-  p2Points: string;
-  completedSetsCount: number;
-  tiebreakImpossible: boolean;
-  floorCurrentSets?: { player1: number; player2: number } | null;
-  floorTiebreak?: { player1: number; player2: number } | null;
-  tiebreakP1Num: number;
-  tiebreakP2Num: number;
-}): boolean {
-  const {
-    validation,
-    matchState,
-    newSetsCount,
-    p1Points,
-    p2Points,
-    completedSetsCount,
-    tiebreakImpossible,
-    floorCurrentSets,
-    floorTiebreak,
-    tiebreakP1Num,
-    tiebreakP2Num,
-  } = params;
-  const hasNewSets = newSetsCount > 0;
-  const hasCompletedSets = completedSetsCount > 0;
-  const hasGamePoints = p1Points !== "0" || p2Points !== "0";
-
-  const emptyOrZeroResult = checkZeroOrEmptyAllowed(
-    validation.bothFilled,
-    validation.p1Val,
-    validation.p2Val,
-    hasNewSets,
-    hasCompletedSets,
-    hasGamePoints,
-  );
-  if (emptyOrZeroResult !== null) return emptyOrZeroResult;
-
-  if (
-    !checkScoreBoundsAndTiebreak(
-      validation.p1Val,
-      validation.p2Val,
-      floorCurrentSets,
-      tiebreakImpossible,
-      floorTiebreak,
-      validation.hasTiebreak,
-      validation.isSetTrulyCompleted,
-      tiebreakP1Num,
-      tiebreakP2Num,
-    )
-  ) {
-    return false;
-  }
-
-  const isMatchTiebreakSet = matchState.isMatchTiebreakSet;
-  const tiebreakRequired = validation.setValidation?.tiebreakRequired ?? false;
-  return checkSetErrorValidity(
-    isMatchTiebreakSet,
-    validation.setValidationError,
-    validation.isSetTrulyCompleted,
-    tiebreakRequired,
-  );
-}
-
-function evaluateShowGamePointsAtZero(
-  validation: EditScoreValidation,
-  completedSetsCount: number,
-  newSets: SetEditData[],
-): boolean {
-  const hasPreviousSets = completedSetsCount > 0 || newSets.length > 0 || validation.isSetTrulyCompleted;
-  const isAtZero =
-    !validation.bothFilled ||
-    (validation.p1Val === 0 && validation.p2Val === 0) ||
-    validation.isSetTrulyCompleted;
-  const prevSetCompleted = newSets.length > 0
-    ? newSets[newSets.length - 1].isPartial === false
-    : completedSetsCount > 0 || validation.isSetTrulyCompleted;
-  return hasPreviousSets && isAtZero && prevSetCompleted;
 }
 
 export function useEditScoreCalculator({
