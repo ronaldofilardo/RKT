@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withRLSHandler } from '@/lib/auth';
 import { getRLSUser } from '@/lib/rls-context';
-import { reportApiError } from '@/lib/api.logic';
+import { reportApiError, validatedRequest } from '@/lib/api.logic';
 import { emitMatchEvent } from '@/lib/match-events';
 import { logger } from '@/lib/logger';
-
-const MAX_CONTENT_LENGTH = 500;
+import { UpdateCommentInputSchema } from '@/schemas/comment';
 
 // ============================================================================
 // PATCH /api/matches/[id]/comments/[commentId]
@@ -23,8 +22,7 @@ export async function PATCH(
         return NextResponse.json({ error: 'FORBIDDEN', message: 'Unauthorized' }, { status: 401 });
       }
       const { id, commentId } = await params;
-      const body = await request.json();
-      const { content, category } = body ?? {};
+      const { content, category } = await validatedRequest(request, UpdateCommentInputSchema);
 
       const comment = await prisma.matchComment.findFirst({
         where: { id: commentId, matchId: id, deletedAt: null },
@@ -45,26 +43,11 @@ export async function PATCH(
         );
       }
 
-      if (content !== undefined) {
-        if (typeof content !== 'string' || content.trim().length === 0) {
-          return NextResponse.json(
-            { error: 'INVALID_CONTENT', message: 'Conteúdo do comentário é obrigatório' },
-            { status: 400 }
-          );
-        }
-        if (content.length > MAX_CONTENT_LENGTH) {
-          return NextResponse.json(
-            { error: 'CONTENT_TOO_LONG', message: `Comentário deve ter no máximo ${MAX_CONTENT_LENGTH} caracteres` },
-            { status: 400 }
-          );
-        }
-      }
-
       const updated = await prisma.matchComment.update({
         where: { id: commentId },
         data: {
-          ...(content !== undefined ? { content: content.trim() } : {}),
-          ...(category !== undefined ? { category: category?.trim() || null } : {}),
+          ...(content !== undefined ? { content } : {}),
+          ...(category !== undefined ? { category: category || null } : {}),
         },
         include: { author: { select: { name: true } } },
       });

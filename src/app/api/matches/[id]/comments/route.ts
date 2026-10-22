@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withRLSHandler } from '@/lib/auth';
 import { getRLSUser } from '@/lib/rls-context';
-import { reportApiError } from '@/lib/api.logic';
+import { reportApiError, validatedRequest, extractPagination } from '@/lib/api.logic';
 import { emitMatchEvent } from '@/lib/match-events';
 import { logger } from '@/lib/logger';
-
-const MAX_CONTENT_LENGTH = 500;
+import { CreateCommentInputSchema } from '@/schemas/comment';
 
 // ============================================================================
 // POST /api/matches/[id]/comments
@@ -23,36 +22,8 @@ export async function POST(
         return NextResponse.json({ error: 'FORBIDDEN', message: 'Unauthorized' }, { status: 401 });
       }
       const { id } = await params;
-      const body = await request.json();
-      const { content, category, pointId } = body ?? {};
-
-      if (!content || typeof content !== 'string' || content.trim().length === 0) {
-        return NextResponse.json(
-          { error: 'INVALID_CONTENT', message: 'Conteúdo do comentário é obrigatório' },
-          { status: 400 }
-        );
-      }
-
-      if (content.length > MAX_CONTENT_LENGTH) {
-        return NextResponse.json(
-          { error: 'CONTENT_TOO_LONG', message: `Comentário deve ter no máximo ${MAX_CONTENT_LENGTH} caracteres` },
-          { status: 400 }
-        );
-      }
-
-      if (category !== undefined && category !== null && typeof category !== 'string') {
-        return NextResponse.json(
-          { error: 'INVALID_CATEGORY', message: 'Categoria deve ser uma string' },
-          { status: 400 }
-        );
-      }
-
-      if (pointId !== undefined && pointId !== null && typeof pointId !== 'string') {
-        return NextResponse.json(
-          { error: 'INVALID_POINT_ID', message: 'pointId deve ser uma string' },
-          { status: 400 }
-        );
-      }
+      const input = await validatedRequest(request, CreateCommentInputSchema);
+      const { content, category, pointId } = input;
 
       const match = await prisma.match.findFirst({
         where: { id, deletedAt: null },
@@ -69,8 +40,8 @@ export async function POST(
       const comment = await prisma.matchComment.create({
         data: {
           matchId: id,
-          content: content.trim(),
-          category: category?.trim() || null,
+          content,
+          category: category || null,
           authorId: user.id,
           pointId: pointId || null,
         },
@@ -116,9 +87,7 @@ export async function GET(
   return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       const { id } = await params;
-      const { searchParams } = new URL(request.url);
-      const limit = Math.min(parseInt(searchParams.get('limit') ?? '20', 10) || 20, 100);
-      const cursor = searchParams.get('cursor');
+      const { limit, cursor } = extractPagination(request.nextUrl.searchParams);
 
       const match = await prisma.match.findFirst({
         where: { id, deletedAt: null },

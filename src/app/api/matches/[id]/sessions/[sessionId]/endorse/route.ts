@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { withRLSHandler, getRLSUser } from '@/lib/auth';
 import { getSessionWithMatch, createEndorsement } from '@/services/sessionService';
+import { SessionPathParamsSchema } from '@/schemas/comment';
+import { ZodError } from 'zod';
 
 export async function POST(
   request: NextRequest,
@@ -9,7 +11,7 @@ export async function POST(
 ) {
   return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
-      const { id: matchId, sessionId } = await params;
+      const { id: matchId, sessionId } = SessionPathParamsSchema.parse(await params);
       const user = getRLSUser();
       if (!user) {
         return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
@@ -41,6 +43,12 @@ export async function POST(
       const endorsement = await createEndorsement(sessionId, user.id);
       return NextResponse.json(endorsement, { status: 201 });
     } catch (error) {
+      if (error instanceof ZodError) {
+        return NextResponse.json(
+          { error: 'INVALID_PARAMS', message: 'Parâmetros de sessão inválidos' },
+          { status: 400 }
+        );
+      }
       logger.error('[POST /api/matches/:id/sessions/:sessionId/endorse] Error:', error);
       return NextResponse.json(
         { error: 'INTERNAL_SERVER_ERROR', message: 'Erro ao endossar sessão' },

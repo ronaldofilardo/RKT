@@ -4,3 +4,4 @@ export * from "./user";
 export * from "./player";
 export * from "./match";
 export * from "./annotation";
+export * from "./comment";
