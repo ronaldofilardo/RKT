@@ -421,10 +421,10 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | Pilar | Situação | Avaliação |
 |---|---|---|
 | **RBAC** | `withRLSHandler`/`requireRole` nas rotas de negócio; middleware higieniza headers forjados | CONFORME (ressalva §7.4) |
-| **RLS** | Políticas existem **apenas** em `prisma/legacy_sql/add_rls_policies.sql`; nenhuma migration Prisma aplica `ENABLE ROW LEVEL SECURITY` | **VIOLAÇÃO** |
-| **APIs** | Zod presente em ~12 rotas; comments, renew, endorse, events, point-logs-meta e refresh sem schema em runtime | **VIOLAÇÃO parcial** |
-| **Banco** | 13 migrations; duas colisionam (`sequenceNumber`); 1 usa hífen; scripts paralelos em `legacy_sql/` | **VIOLAÇÃO** |
-| **Back** | Serviços misturam regra e persistência; logs de auth em texto plano; `catch` vazios no login | **VIOLAÇÃO** |
+| **RLS** | ~~Políticas existem **apenas** em `prisma/legacy_sql/add_rls_policies.sql`~~ → migration `20261022000000_add_rls_policies` | **RESOLVIDO (V-01)** |
+| **APIs** | ~~comments, renew, endorse sem schema em runtime~~ → schemas Zod na borda (V-05); `events`, `point-logs-meta`, `refresh`, `audio` não têm body JSON (R-07 N/A) | **RESOLVIDO (V-05)** |
+| **Banco** | ~~duas migrations colisionam (`sequenceNumber`)~~ → duplicata excluída (V-02) | **RESOLVIDO (V-02)** |
+| **Back** | ~~`catch` vazios no login; logs de auth em texto plano~~ (V-03/V-04) | **RESOLVIDO (V-03/V-04)** |
 | **Front** | Backlog R-03 de `.tsx` zerado em 2026-10-16; restam monólitos em `.ts` (hooks/services) e hex solto pontual | **VIOLAÇÃO** (escopo `.ts`) |
 
 ### 7.2 Violações por Severidade
@@ -447,6 +447,10 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | **V-05** | R-07 / APIs | 8 rotas sem Zod em runtime: `comments` (POST), `comments/[commentId]`, `comments/[commentId]/audio`, `sessions/[sessionId]/renew`, `sessions/[sessionId]/endorse`, `events`, `point-logs-meta`, `auth/refresh` | Schemas Zod em `src/schemas/` + `safeParse` na borda (padrão de `point/route.ts:56`) |
 | **V-06** | R-06 / Back | 18 `any` em produção (hub `useScoringHandlers.types.ts:110`, `useScoringHandlers.ts:304`, `match-fetch.ts:19,134-136`, `point-processor.service.ts:269-270`, `matchService.ts:269-279`, `match-service-operations.logic.ts:162`) | Tipar `DoublesSetup`/`AnnotationDetails` em contratos compartilhados; eliminar casts |
 | **V-07** | R-15 / Legado | `use-edit-score-calculator.ts` (313L), `edit-score.logic.ts` (297L), `matchValidator.ts` (310L) | Characterization test obrigatório antes de qualquer corte (R-15) |
+
+> **Resolução V-05 (2026-10-22):** reavaliação mostrou que só `comments` POST/PATCH tinham body JSON sem schema — `renew`/`endorse` validam path params (`SessionPathParamsSchema`); `events` (query `since`), `point-logs-meta`, `auth/refresh` e `audio` não recebem body (R-07 N/A). Commit `10fa128`.
+>
+> **Resolução V-06 (2026-10-22):** 14 arquivos tipados; varredura de produção com `: any|as any|<any>|any[]` retorna **zero** ocorrências (só comentários). Commit `89e2e96`.
 
 #### Fase 3 — S3 (Modular) — Top refatorações `.ts` > 100 linhas (R-03)
 
@@ -503,6 +507,19 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-22 | V-02 resolvida: migrações duplicadas confirmadas como histórico aplicado em produção; risco restrito a deploy limpo | Registrado |
 | 2026-10-22 | R-25 resolvida: precedência de headers = canal interno middleware→handler; decisão Opção C (remover envio morto + ADR) | Registrado |
 | 2026-10-22 | Plano salvo em `docs/PLANO_REFATORACAO_STEDEV.md` §7 | Concluído |
+| 2026-10-22 | **V-01** migration `20261022000000_add_rls_policies` (idempotente, 6 tabelas + `match_score_edits`/`match_comments`); `legacy_sql/` deprecado | Concluído (`140ccf3`) |
+| 2026-10-22 | **V-02** excluída `20260825_add_pointlog_sequence`; mantida `20260825200000_add_point_sequence` | Concluído (`140ccf3`) |
+| 2026-10-22 | **V-03** `.catch` vazios do login → `logger.warn` estruturado (sem credenciais) | Concluído (`140ccf3`) |
+| 2026-10-22 | **V-04** `console.log` de id/role removidos de `src/lib/auth.ts` | Concluído (`140ccf3`) |
+| 2026-10-22 | **R-25 / Opção C** `playersClient.create` sem `x-user-id`; ADR-0005 em `ARCHITECTURE.md` §6 | Concluído (`140ccf3`) |
+| 2026-10-22 | **V-05** `src/schemas/comment.ts` (Create/UpdateComment, SessionPathParams); `comments` POST/PATCH via `validatedRequest`; `renew`/`endorse` validam path params; GET `comments` via `extractPagination` | Concluído (`10fa128`) |
+| 2026-10-22 | **V-06** zero `any` em produção (R-06): `RallyDetailsWithAttribution`, `PointLogAnnotations`, `DoublesSetup` em undo/arrangement, `unwrapStateEnvelope`, `val: unknown` no preprocess | Concluído (`89e2e96`) |
+
+**Verificação (após cada fatia):** `pnpm typecheck` verde. Suítes afetadas executadas via `node scripts/run-tests.js --ci "<padrão>"`.
+
+**Falhas pré-existentes no HEAD (fora de escopo, reproduzidas com `git stash`):** `useScoringHandlers.test.ts`, `matchService.test.ts`, `useScoringHandlers.server-helpers.service.test.ts` (17 testes), `dashboard.hooks.guards.test.tsx`, `useOfflineSync.real.test.ts`, `match-authorization.baseline.characterization.test.ts`.
+
+**Próximos (S2→S3):** V-07 (characterization test dos módulos edit-score antes de corte, R-15) → V-08 (unificação semântica dos edit-score) → V-09 (hex `CourtBackground`) → top-10 `.ts` > 100L (R-03).
 
 
 
