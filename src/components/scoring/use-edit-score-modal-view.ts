@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { CompletedSet } from './edit-score-state';
+import type { CompletedSet } from '@/core/scoring/edit-score-state';
 import type { EditScoreModalProps } from './edit-score-modal.types';
 import { useEditScoreModal } from './useEditScoreModal';
 

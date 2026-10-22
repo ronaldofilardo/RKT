@@ -4,8 +4,8 @@ import {
   createSetEditData,
   shouldAutoAddSet,
   type CompletedSet,
-} from '../edit-score-state';
-import { isPotentialMTSet } from '../edit-score-state';
+} from '@/core/scoring/edit-score-state';
+import { isPotentialMTSet } from '@/core/scoring/edit-score-state';
 import type { SetEditData } from '@/core/scoring/edit-score-domain';
 
 describe('edit-score-state - isMatchTiebreakSet', () => {
@@ -283,7 +283,7 @@ describe('edit-score-state - isMatchTiebreakSet', () => {
   });
 
   describe('calculateTiebreakValidation', () => {
-    const { calculateTiebreakValidation } = require('../edit-score-state');
+    const { calculateTiebreakValidation } = require('@/core/scoring/edit-score-state');
 
     it('deve retornar tiebreakComplete=true para tiebreak completo (7-5)', () => {
       const result = calculateTiebreakValidation('7', '5', true);

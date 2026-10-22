@@ -13,7 +13,7 @@
  */
 
 import { getNextServerAfterSet } from '@/core/scoring/edit-score-domain';
-import { calculateNextServer } from '@/components/scoring/edit-score-state';
+import { calculateNextServer } from '@/core/scoring/edit-score-state';
 
 describe('Regressão: âncora fixa (initialServer) ao corrigir set em andamento', () => {
   it('corrigir 2-1 (3 games, ímpar) para 3-1 (4 games, par) deve voltar ao sacador do Game 1, não ao sacador ao vivo desatualizado', () => {

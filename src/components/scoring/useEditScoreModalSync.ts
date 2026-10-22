@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import type { CompletedSet } from "./edit-score-state";
-import { createInitialEditScoreState } from "./edit-score-state";
+import type { CompletedSet } from "@/core/scoring/edit-score-state";
+import { createInitialEditScoreState } from "@/core/scoring/edit-score-state";
 import type { EditScoreModalState } from "./useEditScoreModal.types";
 
 interface UseEditScoreModalSyncParams {

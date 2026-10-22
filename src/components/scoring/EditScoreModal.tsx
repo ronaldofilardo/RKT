@@ -1,6 +1,6 @@
 'use client';
 
-import type { CompletedSet } from './edit-score-state';
+import type { CompletedSet } from '@/core/scoring/edit-score-state';
 import type { EditScoreModalContentProps, EditScoreModalProps } from './edit-score-modal.types';
 import { useEditScoreModalView } from './use-edit-score-modal-view';
 import { EditScoreModalFooter } from './EditScoreModalFooter';

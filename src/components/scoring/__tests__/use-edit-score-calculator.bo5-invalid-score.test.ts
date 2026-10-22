@@ -21,8 +21,8 @@ import {
   calculateValidation,
   calculateMatchState,
   calculateTiebreakValidation,
-} from '../edit-score-state';
-import type { CompletedSet } from '../edit-score-state';
+} from '@/core/scoring/edit-score-state';
+import type { CompletedSet } from '@/core/scoring/edit-score-state';
 
 function computeCanConfirm(
   p1Input: string,

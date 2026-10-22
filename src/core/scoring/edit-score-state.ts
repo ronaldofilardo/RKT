@@ -3,7 +3,7 @@ import type { SetEditData } from '@/core/scoring/edit-score-domain';
 import { getNextServerAfterSet } from '@/core/scoring/edit-score-domain';
 import { setsToWinForFormat, totalSetsForFormat } from '@/core/scoring/format-rules';
 import { parsePointValue } from '@/core/scoring/point.logic';
-import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from '@/hooks/use-session-manager.logic';
+import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from '@/core/scoring/match-tiebreak-logic';
 
 export type * from '@/core/scoring/edit-score-state.types';
 import type {

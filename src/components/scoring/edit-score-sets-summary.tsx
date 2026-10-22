@@ -1,4 +1,4 @@
-import type { Player } from './edit-score-state';
+import type { Player } from '@/core/scoring/edit-score-state';
 import { SetsSummaryHeader } from './edit-score-summary-header';
 
 interface SetsSummaryProps {

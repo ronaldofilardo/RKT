@@ -13,7 +13,7 @@
  * 0+1=1 para os formatos de MT "puro" (MATCH_TB_10 etc., que começam o
  * set já em 0x0). O modal de edição não replicava essa conversão.
  */
-import { createSetEditData } from '../edit-score-state';
+import { createSetEditData } from '@/core/scoring/edit-score-state';
 
 describe('createSetEditData — games do set de Match Tiebreak (bug 2026-09-02)', () => {
   it('BEST_OF_5, 5º set 10x8: deve salvar games 7x6 (não 10x8)', () => {

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import type { SetEditData } from '@/core/scoring/edit-score-domain';
-import { createInitialEditScoreState } from "./edit-score-state";
+import { createInitialEditScoreState } from "@/core/scoring/edit-score-state";
 import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from '@/hooks/use-session-manager.logic';
 import { useEditScoreCalculator } from "./use-edit-score-calculator";
 import {
