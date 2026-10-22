@@ -533,6 +533,10 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-22 | **S3 (top-10 #3a)** `matchValidator.ts` → `match-validator-envelope.ts` (`unwrapScoreState`) + `match-validator-points.logic.ts` (game points, regressão de tiebreak; re-export da API pública preservada) | Concluído (`1b119ee`) |
 | 2026-10-22 | **S3 (top-10 #3b)** `matchValidator.ts` → `match-validator-progression.logic.ts` (SCORE_REGRESSION) + `match-validator-types.ts` (`MatchData`/`ValidationResult`); arquivo 363 → 192 linhas | Concluído (`42619e3`) |
 | 2026-10-22 | **S3 (top-10 #6)** `point-processor.service.ts`: envelope do servidor (`unwrapEnvelopeWithHistory`) e regra de tiebreak mismatch (`shouldKeepLocalStateForMissingTiebreak`) extraídos para `core/scoring/state-envelope.ts`; characterization prévia de `applySuccessResult` (4 testes) | Concluído (`782c7d7`) |
+| 2026-10-22 | **S3 (top-10 #8)** `useOfflineSync.ts` (301L) → transporte IndexedDB (`use-offline-sync.db.ts`) + retry/loop de sync (`use-offline-sync.flush.ts`) + hook fino (fila/UI); 22 testes das suítes `useOfflineSync.*` verdes | Concluído (`13cacf7`) |
+| 2026-10-22 | **S3 (top-10 #9)** `DoublesServerSelectionModal.tsx`: estado e montagem do `DoublesSetup` extraídos para `use-doubles-server-selection.ts`; characterization `DashboardMatchModals.doubles` (3 testes) preservada | Concluído (`f51d99a`) |
+| 2026-10-22 | **S3 (top-10 #7)** Exceção R-03 declarada para `src/schemas/match.ts` (282L): arquivo canônico de definições Zod dos contratos de partida — côngruo acima de 100L; corte não se aplica | Registrado |
+| 2026-10-22 | Débito observado (S3 #8): `useCommentOfflineSync.ts` mantém `getDb` próprio sem cache (mesmo `DB_NAME`/`DB_VERSION`) — unificar com `use-offline-sync.db.ts` em V-08 | Débito |
 
 **Verificação (após cada fatia):** `pnpm typecheck` verde. Suítes afetadas executadas via `node scripts/run-tests.js --ci "<padrão>"`.
 
