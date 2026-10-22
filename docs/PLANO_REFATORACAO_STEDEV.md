@@ -532,6 +532,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-22 | **S3 (top-10 #5)** `matchService.ts`: poda de `doublesSetup.changes` no undo extraída para `match-service-doubles.logic.ts` (R-03); characterization prévia com 10 testes (cobertura 100% stmts / 94,73% branch do módulo novo) | Concluído (`7a255ae`) |
 | 2026-10-22 | **S3 (top-10 #3a)** `matchValidator.ts` → `match-validator-envelope.ts` (`unwrapScoreState`) + `match-validator-points.logic.ts` (game points, regressão de tiebreak; re-export da API pública preservada) | Concluído (`1b119ee`) |
 | 2026-10-22 | **S3 (top-10 #3b)** `matchValidator.ts` → `match-validator-progression.logic.ts` (SCORE_REGRESSION) + `match-validator-types.ts` (`MatchData`/`ValidationResult`); arquivo 363 → 192 linhas | Concluído (`42619e3`) |
+| 2026-10-22 | **S3 (top-10 #6)** `point-processor.service.ts`: envelope do servidor (`unwrapEnvelopeWithHistory`) e regra de tiebreak mismatch (`shouldKeepLocalStateForMissingTiebreak`) extraídos para `core/scoring/state-envelope.ts`; characterization prévia de `applySuccessResult` (4 testes) | Concluído (`782c7d7`) |
 
 **Verificação (após cada fatia):** `pnpm typecheck` verde. Suítes afetadas executadas via `node scripts/run-tests.js --ci "<padrão>"`.
 
