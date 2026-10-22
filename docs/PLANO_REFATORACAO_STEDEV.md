@@ -425,7 +425,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | **APIs** | ~~comments, renew, endorse sem schema em runtime~~ → schemas Zod na borda (V-05); `events`, `point-logs-meta`, `refresh`, `audio` não têm body JSON (R-07 N/A) | **RESOLVIDO (V-05)** |
 | **Banco** | ~~duas migrations colisionam (`sequenceNumber`)~~ → duplicata excluída (V-02) | **RESOLVIDO (V-02)** |
 | **Back** | ~~`catch` vazios no login; logs de auth em texto plano~~ (V-03/V-04) | **RESOLVIDO (V-03/V-04)** |
-| **Front** | Backlog R-03 de `.tsx` zerado em 2026-10-16; restam monólitos em `.ts` (hooks/services) e hex solto pontual | **VIOLAÇÃO** (escopo `.ts`) |
+| **Front** | Backlog R-03 de `.tsx` zerado em 2026-10-16; restam monólitos em `.ts` (hooks/services); hex soltos: **0 em componentes** — 2 literais restantes em `layout.tsx` (`viewport.themeColor`) cobertos por `ste-exception R-12` declarada | **VIOLAÇÃO** (escopo `.ts`; R-12 fechado) |
 
 ### 7.2 Violações por Severidade
 
@@ -561,6 +561,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-22 | **ste-exception (documentada)** migration `20260711125633-add_missing_columns_to_match_and_player` usa hífen (fora do padrão snake_case); **não renomear** — `_prisma_migrations` em produção referencia o nome exato; renomear quebraria o `migrate deploy` | Registrado |
 | 2026-10-22 | **Fix pós-R-07** `sessions` POST: body ausente voltou a ser aceito (default `autoStarted=false`) e catch preserva shape legado `{error: 'INTERNAL_SERVER_ERROR'}` (12/12 testes characterization verdes) | Concluído (`dd77c34`) |
 | 2026-10-22 | **Suíte completa ao fim da onda R-07 (`dd77c34`)** 322/329 suítes e 3319/3344 testes — 7 suítes e 25 testes falham, **idênticos ao baseline**, zero regressão das 3 fatias R-07 + fix | Concluído |
+| 2026-10-22 | **R-12 fechamento** `ste-exception R-12` declarada em `layout.tsx:16-18` (`viewport.themeColor`): 2 hex literais obrigatórios — `<meta name="theme-color">` é lido pelo chrome do navegador antes do CSS e não aceita `var(--token)`; valores espelham `--body-bg` dark/light de `globals.css`. Pilar Front: **0 hex soltos em componentes** | Concluído |
 
 **Verificação (após cada fatia):** `pnpm typecheck` verde. Suítes afetadas executadas via `node scripts/run-tests.js --ci "<padrão>"`.
 

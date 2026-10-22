@@ -13,6 +13,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  // ste-exception R-12: hex literais obrigatórios — <meta name="theme-color"> é
+  // lido pelo chrome do navegador ANTES do CSS; não aceita var(--token).
+  // Valores espelham --body-bg dark (#0A0F1D) e light (#F1F5F9) em globals.css.
   themeColor: [
     { media: '(prefers-color-scheme: dark)', color: '#0A0F1D' },
     { media: '(prefers-color-scheme: light)', color: '#F1F5F9' },
