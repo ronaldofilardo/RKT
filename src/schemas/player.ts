@@ -9,10 +9,10 @@ export const RankingEntrySchema = z.object({
 });
 export type RankingEntry = z.infer<typeof RankingEntrySchema>;
 
-export const RankingsSchema = z.record(
-  z.enum(['ESTADUAL', 'CBT', 'COSAT', 'ITF', 'ITF_Juniors', 'ATP', 'WTA']),
-  RankingEntrySchema,
-);
+export const RankingTypeSchema = z.enum(['ESTADUAL', 'CBT', 'COSAT', 'ITF', 'ITF_Juniors', 'ATP', 'WTA']);
+export type RankingType = z.infer<typeof RankingTypeSchema>;
+
+export const RankingsSchema = z.record(RankingTypeSchema, RankingEntrySchema);
 export type Rankings = z.infer<typeof RankingsSchema>;
 
 export const PlayerSchema = z.object({
@@ -43,6 +43,16 @@ export const CreatePlayerInputSchema = z.object({
   createdByUserId: z.string().optional(),
 });
 export type CreatePlayerInput = z.infer<typeof CreatePlayerInputSchema>;
+
+export const UpdatePlayerInputSchema = z.object({
+  name: z.string().min(2, 'Nome é obrigatório (mín 2 chars)').optional(),
+  gender: z.enum(['MALE', 'FEMALE']).nullish(),
+  birthDate: z.coerce.date({ errorMap: () => ({ message: 'Data de nascimento inválida' }) }).nullish(),
+  dominance: z.enum(['LEFT', 'RIGHT']).nullish(),
+  backhand: z.enum(['ONE_HANDED', 'TWO_HANDED']).nullish(),
+  rankings: RankingsSchema.nullish(),
+});
+export type UpdatePlayerInput = z.infer<typeof UpdatePlayerInputSchema>;
 
 export const ListPlayersInputSchema = z.object({
   userId: z.string().optional(),

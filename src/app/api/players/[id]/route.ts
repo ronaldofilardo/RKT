@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { withRLSHandler, getRLSUser } from '@/lib/auth';
+import { UpdatePlayerInputSchema, RankingTypeSchema } from '@/schemas/player';
 import { getPlayerById, updatePlayer, deletePlayer, countPlayerActiveMatches } from '@/services/playerService';
 import { isRankingCategoryAllowed, isRankingTypeAllowedForProfile } from '@/lib/ranking/rankingConstants';
 
@@ -24,8 +25,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       const { id } = await params;
-      const body = await request.json();
-      const { name, gender, birthDate, dominance, backhand, rankings } = body;
+      const parsedBody = UpdatePlayerInputSchema.safeParse(await request.json().catch(() => null));
+      if (!parsedBody.success) {
+        return NextResponse.json(
+          { error: 'VALIDATION_ERROR', message: parsedBody.error.issues[0]?.message ?? 'Dados inválidos' },
+          { status: 400 }
+        );
+      }
+      const { name, gender, birthDate, dominance, backhand, rankings } = parsedBody.data;
 
       const existing = await getPlayerById(id);
       if (!existing) {
@@ -44,57 +51,25 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         );
       }
 
-      if (name !== undefined && (typeof name !== 'string' || name.trim().length < 2)) {
-        return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Nome é obrigatório (mín 2 chars)' }, { status: 400 });
-      }
+      const parsedBirthDate = birthDate ?? undefined;
+      const calculatedAge = parsedBirthDate
+        ? new Date().getFullYear() - parsedBirthDate.getFullYear()
+        : undefined;
 
-      if (gender !== undefined && gender !== null && !['MALE', 'FEMALE'].includes(gender)) {
-        return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Gender must be MALE or FEMALE' }, { status: 400 });
-      }
-
-      if (dominance !== undefined && dominance !== null && !['LEFT', 'RIGHT'].includes(dominance)) {
-        return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Dominance must be LEFT or RIGHT' }, { status: 400 });
-      }
-
-      if (backhand !== undefined && backhand !== null && !['ONE_HANDED', 'TWO_HANDED'].includes(backhand)) {
-        return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Backhand must be ONE_HANDED or TWO_HANDED' }, { status: 400 });
-      }
-
-      let parsedBirthDate: Date | undefined = undefined;
-      let calculatedAge: number | undefined = undefined;
-
-      if (birthDate !== undefined && birthDate !== null) {
-        parsedBirthDate = new Date(birthDate);
-        if (isNaN(parsedBirthDate.getTime())) {
-          return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Data de nascimento inválida' }, { status: 400 });
-        }
-        calculatedAge = new Date().getFullYear() - parsedBirthDate.getFullYear();
-      }
-
-      if (rankings !== undefined && rankings !== null) {
-        if (typeof rankings !== 'object' || Array.isArray(rankings)) {
-          return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Rankings must be an object' }, { status: 400 });
-        }
-        const validRankingTypes = ['ESTADUAL', 'CBT', 'COSAT', 'ITF', 'ITF_Juniors', 'ATP', 'WTA'] as const;
+      if (rankings) {
         const effectiveAge = calculatedAge ?? existing.age ?? null;
-        const effectiveGender = gender !== undefined ? gender : existing.gender;
+        const effectiveGender = gender !== undefined && gender !== null ? gender : existing.gender;
         for (const [key, value] of Object.entries(rankings)) {
-          if (!validRankingTypes.includes(key as (typeof validRankingTypes)[number])) {
+          const parsedType = RankingTypeSchema.safeParse(key);
+          if (!parsedType.success) {
             return NextResponse.json({ error: 'VALIDATION_ERROR', message: `Invalid ranking type: ${key}` }, { status: 400 });
           }
-          const rankingType = key as (typeof validRankingTypes)[number];
-          if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-            return NextResponse.json({ error: 'VALIDATION_ERROR', message: `Ranking ${key} must be an object with position` }, { status: 400 });
-          }
-          const entry = value as Record<string, unknown>;
-          if (typeof entry.position !== 'number' || !Number.isInteger(entry.position) || entry.position < 1) {
-            return NextResponse.json({ error: 'VALIDATION_ERROR', message: `Ranking ${key} position must be a positive integer` }, { status: 400 });
-          }
+          const rankingType = parsedType.data;
           if (!isRankingTypeAllowedForProfile(rankingType, effectiveAge, effectiveGender)) {
             return NextResponse.json({ error: 'VALIDATION_ERROR', message: `Ranking ${key} não é elegível para idade/gênero informados` }, { status: 400 });
           }
-          if (typeof entry.category === 'string' && !isRankingCategoryAllowed(rankingType, entry.category, effectiveAge)) {
-            return NextResponse.json({ error: 'VALIDATION_ERROR', message: `Categoria ${entry.category} não é permitida para o ranking ${key}` }, { status: 400 });
+          if (typeof value.category === 'string' && !isRankingCategoryAllowed(rankingType, value.category, effectiveAge)) {
+            return NextResponse.json({ error: 'VALIDATION_ERROR', message: `Categoria ${value.category} não é permitida para o ranking ${key}` }, { status: 400 });
           }
         }
       }
