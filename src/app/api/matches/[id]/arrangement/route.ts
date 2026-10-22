@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withRLSHandler } from '@/lib/auth';
-import { ArrangementInputSchema } from '@/schemas/contracts';
+import { ArrangementInputSchema, type DoublesSetup } from '@/schemas/contracts';
 import { validateDoublesArrangement } from '@/core/scoring/doubles';
 import type { DoublesConfig, DoublesArrangement } from '@/core/scoring/types';
 import { emitMatchEvent } from '@/lib/match-events';
@@ -82,13 +82,21 @@ export async function POST(
           target.doubles = newArrangement;
 
           // Atualiza doublesSetup.changes
-          const rawSetup = typeof match.doublesSetup === 'string'
-            ? JSON.parse(match.doublesSetup)
-            : JSON.parse(JSON.stringify(match.doublesSetup ?? {}));
+          const rawSetup = (
+            typeof match.doublesSetup === 'string'
+              ? JSON.parse(match.doublesSetup)
+              : JSON.parse(JSON.stringify(match.doublesSetup ?? {}))
+          ) as Partial<DoublesSetup>;
 
-          const existingChanges = Array.isArray(rawSetup.changes) ? rawSetup.changes : [];
+          const existingChanges: NonNullable<DoublesSetup['changes']> = Array.isArray(
+            rawSetup.changes,
+          )
+            ? rawSetup.changes
+            : [];
           // Sobrescreve entrada existente do mesmo set (afterSet), se houver
-          const filteredChanges = existingChanges.filter((c: any) => c.afterSet !== parsed.data.afterSet);
+          const filteredChanges = existingChanges.filter(
+            (c) => c.afterSet !== parsed.data.afterSet,
+          );
           filteredChanges.push({
             afterSet: parsed.data.afterSet,
             serveOrder: parsed.data.serveOrder,

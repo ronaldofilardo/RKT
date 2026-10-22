@@ -1,6 +1,11 @@
 import type { MutableRefObject, Dispatch, SetStateAction } from "react";
 import { ScoringEngine } from "@/core/scoring/engine";
-import type { PointFlow, RallyDetails, ScoringState } from "@/core/scoring/types";
+import type {
+  PointFlow,
+  RallyDetailsWithAttribution,
+  DoublesArrangement,
+  ScoringState,
+} from "@/core/scoring/types";
 import type { QueuedAction } from "@/schemas/rally";
 import type { ScoreboardUIState } from "@/hooks/useScoreboardUIState";
 import type { ScoreAction } from "@/hooks/useScoreReducer";
@@ -104,9 +109,11 @@ export interface ScoringHandlersReturn {
   ) => void;
   cancelServeError: () => void;
   confirmPointDetails: (
-    details: RallyDetails,
+    details: RallyDetailsWithAttribution,
     audio?: { blob: Blob; durationMs: number }
   ) => void;
-  updateDoublesArrangement?: (arrangement: any) => Promise<void>;
+  updateDoublesArrangement?: (
+    arrangement: DoublesArrangement
+  ) => Promise<void>;
   isProcessing: boolean;
 }

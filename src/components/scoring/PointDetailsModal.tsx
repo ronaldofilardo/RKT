@@ -1,7 +1,7 @@
 'use client';
 
 import { createPortal } from 'react-dom';
-import type { RallyDetails } from '@/core/scoring/types';
+import type { RallyDetailsWithAttribution } from '@/core/scoring/types';
 import { WinnerInfo } from './WinnerInfo';
 import { ModalActions } from './ModalActions';
 import { SectionRenderer } from './SectionRenderer';
@@ -15,7 +15,10 @@ interface PointDetailsModalProps {
   player1Name: string;
   player2Name: string;
   fontScale: number;
-  onConfirm: (details: RallyDetails, audio?: { blob: Blob; durationMs: number }) => void;
+  onConfirm: (
+    details: RallyDetailsWithAttribution,
+    audio?: { blob: Blob; durationMs: number }
+  ) => void;
   onCancel: () => void;
   doubles?: PointDetailsDoublesInfo;
 }

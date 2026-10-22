@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useReducer, useCallback, useMemo } from 'react';
-import type { RallyDetails } from '@/core/scoring/types';
+import type { RallyDetailsWithAttribution } from '@/core/scoring/types';
 import { formReducer, initialForm } from './point-details-logic';
 import {
   getPointWinnerDetails,
@@ -25,7 +25,10 @@ interface UsePointDetailsModalOptions {
   currentServer: 'player1' | 'player2';
   player1Name: string;
   player2Name: string;
-  onConfirm: (details: RallyDetails, audio?: { blob: Blob; durationMs: number }) => void;
+  onConfirm: (
+    details: RallyDetailsWithAttribution,
+    audio?: { blob: Blob; durationMs: number }
+  ) => void;
   onCancel: () => void;
   doubles?: PointDetailsDoublesInfo;
 }

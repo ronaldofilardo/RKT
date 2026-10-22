@@ -5,10 +5,12 @@ import type {
   MatchFormat,
   CreateMatchInput,
   MatchFinishReason,
+  DoublesSetup,
 } from "@/schemas/contracts";
 
 import { logger } from "@/lib/logger";
 import { getPrismaErrorCode } from "@/lib/errors";
+import { unwrapStateEnvelope } from "@/core/scoring/state-envelope";
 import { listMatches, getMatch, findAbandonedSessionSnapshot } from "./matchRepository";
 import { validateFinishMatch, validateTransitionState } from "./matchValidator";
 import {
@@ -264,20 +266,24 @@ export async function transitionMatchState(
 
       if (options?.isUndo && match.matchType === 'DOUBLES' && match.doublesSetup) {
         try {
-          const currentSetup = (typeof match.doublesSetup === 'string'
-            ? JSON.parse(match.doublesSetup)
-            : JSON.parse(JSON.stringify(match.doublesSetup))) as any;
+          const currentSetup = (
+            typeof match.doublesSetup === 'string'
+              ? JSON.parse(match.doublesSetup)
+              : JSON.parse(JSON.stringify(match.doublesSetup))
+          ) as DoublesSetup;
 
-          if (Array.isArray(currentSetup?.changes) && currentSetup.changes.length > 0) {
-            const raw = typeof scoreState === 'string' ? JSON.parse(scoreState) : scoreState;
-            const targetState = (raw && typeof raw === 'object' && 'state' in raw && (raw as any).state) ? (raw as any).state : raw;
-            const completedSets = (targetState?.sets ?? []).filter((s: any) => {
+          const changes = currentSetup.changes;
+          if (Array.isArray(changes) && changes.length > 0) {
+            const targetState = unwrapStateEnvelope(
+              typeof scoreState === 'string' ? JSON.parse(scoreState) : scoreState,
+            );
+            const completedSets = (targetState?.sets ?? []).filter((s) => {
               if (s.isTiebreak && s.tiebreakScore) return true;
               return (s.player1 >= 6 || s.player2 >= 6) && Math.abs(s.player1 - s.player2) >= 2;
             }).length;
 
-            const filteredChanges = currentSetup.changes.filter((c: any) => c.afterSet < completedSets);
-            if (filteredChanges.length !== currentSetup.changes.length) {
+            const filteredChanges = changes.filter((c) => c.afterSet < completedSets);
+            if (filteredChanges.length !== changes.length) {
               updateData.doublesSetup = {
                 ...currentSetup,
                 changes: filteredChanges,

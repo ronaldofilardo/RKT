@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import type {
   ScoringState,
   PointFlow,
-  RallyDetails,
+  RallyDetailsWithAttribution,
+  DoublesArrangement,
   HistoryEntry,
 } from "@/core/scoring/types";
 import type {
@@ -247,7 +248,7 @@ export function useScoringHandlers(
   );
 
   const confirmPointDetails = useCallback(
-    (details: RallyDetails, audio?: { blob: Blob; durationMs: number }) => {
+    (details: RallyDetailsWithAttribution, audio?: { blob: Blob; durationMs: number }) => {
       pointProcessorService.confirmPointDetails(details, audio);
     },
     [pointProcessorService],
@@ -301,7 +302,7 @@ export function useScoringHandlers(
   });
 
   const updateDoublesArrangement = useCallback(
-    async (arrangement: any) => {
+    async (arrangement: DoublesArrangement) => {
       if (!match || match.matchType !== "DOUBLES") return;
       try {
         const state = engineRef.current?.getState();

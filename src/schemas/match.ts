@@ -96,12 +96,13 @@ export const DoublesSetupSchema = z.object({
 });
 export type DoublesSetup = z.infer<typeof DoublesSetupSchema>;
 
-export const ArrangementInputSchema = z.preprocess((val: any) => {
+export const ArrangementInputSchema = z.preprocess((val: unknown) => {
   if (val && typeof val === 'object') {
+    const obj = val as Record<string, unknown>;
     return {
-      ...val,
-      afterSet: val.afterSet ?? val.setIndex,
-      version: val.version ?? val.expectedVersion,
+      ...obj,
+      afterSet: obj.afterSet ?? obj.setIndex,
+      version: obj.version ?? obj.expectedVersion,
     };
   }
   return val;

@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { logger } from '../lib/logger';
 import type { DoublesArrangement, DoublesConfig } from '@/core/scoring/types';
+import type { DoublesSetup } from '@/schemas/contracts';
 import { validateDoublesArrangement } from '@/core/scoring/doubles';
 
 /**
@@ -159,7 +160,10 @@ export function buildTransitionUpdateData(
     updateData.winnerId = null;
 
     if (existingMatch?.matchType === 'DOUBLES') {
-      const setup = (doublesSetupInput ?? existingMatch.doublesSetup) as any;
+      const setup = (doublesSetupInput ?? existingMatch.doublesSetup) as
+        | DoublesSetup
+        | null
+        | undefined;
       if (!setup || !setup.serveOrder || !setup.receiveDeuce) {
         throw new Error('DOUBLES_SETUP_REQUIRED: Partida de duplas exige doublesSetup para iniciar');
       }

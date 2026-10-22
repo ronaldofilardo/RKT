@@ -27,6 +27,18 @@ export type RallyDuration = ContractRallyDuration;
 
 export type RallyDetails = ContractRallyDetails;
 
+/**
+ * RallyDetails acrescido da atribuição de golpe/recepção escolhida no
+ * modal de detalhes do ponto. `RallyDetails` (contrato) não contém esses
+ * campos — eles trafegam separadamente em `PointFlow.hitterId/receiverId`
+ * e em `annotations`. Tipado aqui para eliminar os casts `as any` na
+ * cadeia modal → point-processor (R-06).
+ */
+export type RallyDetailsWithAttribution = RallyDetails & {
+  hitterId?: string;
+  receiverId?: string;
+};
+
 export type Side = 'player1' | 'player2';
 
 export interface DoublesArrangement {

@@ -4,7 +4,7 @@ import { logger } from "@/lib/logger";
 import type {
   HistoryEntry,
   PointFlow,
-  RallyDetails,
+  RallyDetailsWithAttribution,
   ScoringState,
 } from "@/core/scoring/types";
 import type { QueuedAction } from "@/schemas/rally";
@@ -224,7 +224,7 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
   };
 
   const confirmPointDetails = (
-    details: RallyDetails,
+    details: RallyDetailsWithAttribution,
     audio?: { blob: Blob; durationMs: number },
   ) => {
     const winnerSide = modalParamsRef.current.winner as "player1" | "player2";
@@ -266,8 +266,8 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
       rallyDetails: details,
       rallyLength: rallyLengthToUse,
       firstFaultDetail,
-      hitterId: (details as any).hitterId,
-      receiverId: (details as any).receiverId,
+      hitterId: details.hitterId,
+      receiverId: details.receiverId,
     }).then((pointLogId) => {
       clearFirstServeError();
       setServeStep("none");

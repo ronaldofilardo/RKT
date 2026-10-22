@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { PointFlowInputSchema } from '@/schemas/contracts';
 import { withRLSHandler } from '@/lib/auth';
-import type { ScoringState } from '@/core/scoring/types';
+import type { ScoringState, TennisFormat } from '@/core/scoring/types';
 import { emitMatchEvent } from '@/lib/match-events';
 import { logger } from '@/lib/logger';
 import { ScoreEnvelopeSchema } from '@/schemas/score';
@@ -175,7 +175,7 @@ export async function POST(
           }
 
           if (parsed.data.receiverId) {
-            if (isNoAdDecidingPoint(prePointState, match.format as any)) {
+            if (isNoAdDecidingPoint(prePointState, match.format as TennisFormat)) {
               const receivingSide = serverSide === 'player1' ? 'player2' : 'player1';
               const receivingMembers = engineConfig.doubles.members[receivingSide];
               if (!receivingMembers.includes(parsed.data.receiverId)) {

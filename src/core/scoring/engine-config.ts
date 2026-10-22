@@ -42,7 +42,8 @@ export function buildEngineConfig(match: MatchLikeForEngine): ScoringEngineConfi
         receiveDeuce?: Record<Side, string>;
       } | undefined;
     const scoreStateObj = match.scoreState as Record<string, unknown> | null;
-    const scoreStateDoubles = (scoreStateObj?.doubles ?? (scoreStateObj?.state as any)?.doubles) as {
+    const nestedScoreState = scoreStateObj?.state as Record<string, unknown> | undefined;
+    const scoreStateDoubles = (scoreStateObj?.doubles ?? nestedScoreState?.doubles) as {
       serveOrder?: Record<Side, [string, string]>;
       receiveDeuce?: Record<Side, string>;
     } | undefined;

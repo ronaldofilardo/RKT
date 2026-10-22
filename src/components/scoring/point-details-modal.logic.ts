@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import type { RallyDetails } from "@/core/scoring/types";
+import type { RallyDetailsWithAttribution } from "@/core/scoring/types";
 import type { PointDetailsForm, Vencedor } from "./point-details-logic";
 
 export function getPointWinnerDetails(
@@ -28,7 +28,7 @@ export function buildRallyDetails(
   form: PointDetailsForm,
   vencedor: Vencedor,
   noteText: string
-): RallyDetails | null {
+): RallyDetailsWithAttribution | null {
   if (!form.situacao || !form.tipo || !form.golpe) {
     return null;
   }
@@ -47,7 +47,7 @@ export function buildRallyDetails(
     note: textNote,
     ...(form.hitterId ? { hitterId: form.hitterId } : {}),
     ...(form.receiverId ? { receiverId: form.receiverId } : {}),
-  } as RallyDetails;
+  };
 }
 
 export function usePointDetailsKeyboard(

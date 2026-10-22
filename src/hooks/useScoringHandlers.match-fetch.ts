@@ -1,12 +1,28 @@
 import { logger } from '@/lib/logger';
 import { ScoringEngine } from '@/core/scoring/engine';
 import { buildEngineConfig } from '@/core/scoring/engine-config';
-import type { HistoryEntry, ScoringState } from '@/core/scoring/types';
+import type { HistoryEntry, RallyDetails, ScoringState } from '@/core/scoring/types';
 import type { ScoreAction } from '@/hooks/useScoreReducer';
 import type { MatchData } from './useScoringHandlers.types';
 
 /** Envelope que o servidor pode devolver no `scoreState` (ver persistStateWithRetry). */
 type ScoreStateEnvelope = { state?: ScoringState; history?: HistoryEntry[] };
+
+/**
+ * Atributos de anotação persistidos no PointLog. Servidores legados podem
+ * omitir os campos opcionais; por isso todos são `| null`/opcional.
+ */
+type PointLogAnnotations = {
+  firstFaultDetail?: { errorType?: string; serveEffect?: string; direction?: string } | null;
+  rallyDetails?: RallyDetails | null;
+  rallyLength?: number;
+  isFirstServe?: boolean;
+  isSecondServe?: boolean;
+  note?: string;
+  hitterId?: string | null;
+  receiverId?: string | null;
+  courtSide?: 'deuce' | 'ad' | null;
+};
 
 export interface ActiveLogSummary {
   id: string;
@@ -14,14 +30,7 @@ export interface ActiveLogSummary {
   serverId: string;
   type: string;
   sequenceNumber?: number | null;
-  annotations?: {
-    firstFaultDetail?: { errorType?: string; serveEffect?: string; direction?: string } | null;
-    rallyDetails?: any;
-    rallyLength?: number;
-    isFirstServe?: boolean;
-    isSecondServe?: boolean;
-    note?: string;
-  } | null;
+  annotations?: PointLogAnnotations | null;
   timestamp?: string | Date;
 }
 
@@ -131,9 +140,9 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
                 firstFaultDetail,
                 rallyDetails: ann?.rallyDetails ?? null,
                 rallyLength: ann?.rallyLength,
-                hitterId: (ann as any)?.hitterId,
-                receiverId: (ann as any)?.receiverId,
-                courtSide: (ann as any)?.courtSide,
+                hitterId: ann?.hitterId ?? undefined,
+                receiverId: ann?.receiverId ?? undefined,
+                courtSide: ann?.courtSide ?? undefined,
               });
             }
 
