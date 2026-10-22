@@ -536,10 +536,13 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-22 | **S3 (top-10 #8)** `useOfflineSync.ts` (301L) → transporte IndexedDB (`use-offline-sync.db.ts`) + retry/loop de sync (`use-offline-sync.flush.ts`) + hook fino (fila/UI); 22 testes das suítes `useOfflineSync.*` verdes | Concluído (`13cacf7`) |
 | 2026-10-22 | **S3 (top-10 #9)** `DoublesServerSelectionModal.tsx`: estado e montagem do `DoublesSetup` extraídos para `use-doubles-server-selection.ts`; characterization `DashboardMatchModals.doubles` (3 testes) preservada | Concluído (`f51d99a`) |
 | 2026-10-22 | **S3 (top-10 #7)** Exceção R-03 declarada para `src/schemas/match.ts` (282L): arquivo canônico de definições Zod dos contratos de partida — côngruo acima de 100L; corte não se aplica | Registrado |
-| 2026-10-22 | Débito observado (S3 #8): `useCommentOfflineSync.ts` mantém `getDb` próprio sem cache (mesmo `DB_NAME`/`DB_VERSION`) — unificar com `use-offline-sync.db.ts` em V-08 | Débito |
+| 2026-10-22 | Débito observado (S3 #8): `useCommentOfflineSync.ts` mantém `getDb` próprio sem cache (mesmo `DB_NAME`/`DB_VERSION`) — unificar com `use-offline-sync.db.ts` (rodada S4) | Débito |
 | 2026-10-22 | **S3 (top-10 #1a)** `useScoringHandlers.ts`: `updateDoublesArrangement` → `useScoringHandlers.arrangement.service.ts` com POST unificado (elimina duplicação R-01 das duas chamadas fetch) | Concluído (`413a675`) |
 | 2026-10-22 | **S3 (top-10 #1b)** `useScoringHandlers.ts`: `persistState` → `useScoringHandlers.persist.ts`; orquestrador 387 → 288 linhas nas duas fatias | Concluído (`8f79e64`) |
 | 2026-10-22 | **S3 (top-10 #10)** Verificação de coesão de `serve-actions.service.ts`: duplicação confirmada de `firstFaultDetail`/`isSecond` (4×); **corte adiado** — as únicas suítes que cobrem as ações de saque (`useScoringHandlers.test.ts`, `useScoringHandlers.real.test.ts`) são falhas pré-existentes do baseline, sem characterization verde (R-15). Pré-requisito: characterization de `createServeActionsService` com deps mockadas | Adiado |
+| 2026-10-22 | **V-08a** (R-01) `edit-score.logic.ts` (345L, regras de domínio da edição de placar) → **`edit-score-domain.ts`** via `git mv`; 35 consumidores atualizados (imports apenas, zero mudança de lógica); canônico registrado no glossário §6 | Concluído (`2c3f354`) |
+| 2026-10-22 | **V-08b** (R-01) `edit-score-logic.ts` + `edit-score-logic.types.ts` → **`edit-score-state.ts`** + **`edit-score-state.types.ts`**; testes renomeados (`edit-score-state*.test.ts`); 30 consumidores atualizados; glossário §6 com papéis domain/state/validation da família | Concluído (`48d711b`) |
+| 2026-10-22 | Gates V-08: `pnpm typecheck` verde; suítes edit-score/session/scoring: **49 suítes / 625 testes verdes** (antes e depois de cada renome); zero resíduos de `edit-score.logic`/`edit-score-logic` em `src/` | Concluído |
 
 **Verificação (após cada fatia):** `pnpm typecheck` verde. Suítes afetadas executadas via `node scripts/run-tests.js --ci "<padrão>"`.
 
@@ -549,7 +552,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 
 **Suíte completa após as fatias S3 (`8f79e64`):** 7 suítes e 25 testes falham — **idênticos ao baseline**, zero regressão das fatias S3 (#5, #3a, #3b, #6, #8, #9, #1a, #1b).
 
-**Próximos (S3→S4):** S3 em curso — concluídos #5, #3, #6, #7 (exceção), #8, #9 e #1 (duas fatias); restam #10 (adiado por ausência de characterization verde) e V-08 (#2+#4 unificação dos edit-score, R-01) → V-09 (hex `CourtBackground`, R-12).
+**Próximos (S3→S4):** S3 concluída (#5, #3, #6, #7 exceção, #8, #9, #1 — #10 adiado por ausência de characterization verde). V-08 concluído em duas fatias de renome (`2c3f354`, `48d711b`). Restam: **#2** (extrair domínio puro de `use-edit-score-calculator.ts` para `src/core/scoring/`, agora sem colisão de nomes — prerequisite: verificar direção de dependência para não inverter camadas), unificação de `getDb` (`useCommentOfflineSync` → `use-offline-sync.db.ts`), characterization de `createServeActionsService` (destrava #10) e **V-09** (hex `CourtBackground`, R-12).
 
 
 
