@@ -33,6 +33,7 @@ import {
   LoginPayloadSchema,
   RankingEntrySchema,
   RankingsSchema,
+  ArrangementInputSchema,
 } from "../contracts";
 
 describe("Enum Schemas", () => {
@@ -573,5 +574,61 @@ describe("RankingsSchema", () => {
     expect(
       RankingsSchema.safeParse({ INVALID: { position: 1 } }).success,
     ).toBe(false);
+  });
+});
+
+describe("ArrangementInputSchema", () => {
+  const validPayload = {
+    afterSet: 1,
+    version: 5,
+    serveOrder: {
+      player1: ["p1", "p1p"],
+      player2: ["p2", "p2p"],
+    },
+    receiveDeuce: {
+      player1: "p1",
+      player2: "p2",
+    },
+  };
+
+  it("aceita payload canônico com afterSet e version", () => {
+    const res = ArrangementInputSchema.safeParse(validPayload);
+    expect(res.success).toBe(true);
+    if (res.success) {
+      expect(res.data.afterSet).toBe(1);
+      expect(res.data.version).toBe(5);
+    }
+  });
+
+  it("suporta aliases setIndex e expectedVersion via preprocess", () => {
+    const aliasedPayload = {
+      setIndex: 2,
+      expectedVersion: 10,
+      serveOrder: {
+        player1: ["p1", "p1p"],
+        player2: ["p2", "p2p"],
+      },
+      receiveDeuce: {
+        player1: "p1p",
+        player2: "p2p",
+      },
+    };
+    const res = ArrangementInputSchema.safeParse(aliasedPayload);
+    expect(res.success).toBe(true);
+    if (res.success) {
+      expect(res.data.afterSet).toBe(2);
+      expect(res.data.version).toBe(10);
+    }
+  });
+
+  it("rejeita serveOrder que não seja tupla de 2 strings", () => {
+    const invalid = {
+      ...validPayload,
+      serveOrder: {
+        player1: ["p1"],
+        player2: ["p2", "p2p"],
+      },
+    };
+    expect(ArrangementInputSchema.safeParse(invalid).success).toBe(false);
   });
 });

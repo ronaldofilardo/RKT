@@ -306,20 +306,46 @@ export function useScoringHandlers(
       try {
         const state = engineRef.current?.getState();
         const setIndex = (state?.sets.length || 1) - 1;
-        const res = await fetch(`/api/matches/${matchId}/arrangement`, {
+        const currentVersion = matchVersionRef.current ?? match.version ?? 0;
+        let res = await fetch(`/api/matches/${matchId}/arrangement`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}),
           },
           body: JSON.stringify({
+            afterSet: Math.max(0, setIndex),
+            version: currentVersion,
             serveOrder: arrangement.serveOrder,
             serveIndex: arrangement.serveIndex,
             receiveDeuce: arrangement.receiveDeuce,
             setIndex: Math.max(0, setIndex),
-            expectedVersion: match.version,
+            expectedVersion: currentVersion,
           }),
         });
+
+        // Se houver conflito de versão (409) decorrente de edição anterior, reidrata do servidor e retenta
+        if (res.status === 409) {
+          await fetchMatch(true);
+          const updatedVersion = matchVersionRef.current ?? match.version ?? 0;
+          res = await fetch(`/api/matches/${matchId}/arrangement`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {}),
+            },
+            body: JSON.stringify({
+              afterSet: Math.max(0, setIndex),
+              version: updatedVersion,
+              serveOrder: arrangement.serveOrder,
+              serveIndex: arrangement.serveIndex,
+              receiveDeuce: arrangement.receiveDeuce,
+              setIndex: Math.max(0, setIndex),
+              expectedVersion: updatedVersion,
+            }),
+          });
+        }
+
         if (res.ok) {
           engineRef.current?.setArrangement(arrangement);
           await fetchMatch(true);

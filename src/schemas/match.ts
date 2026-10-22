@@ -96,7 +96,16 @@ export const DoublesSetupSchema = z.object({
 });
 export type DoublesSetup = z.infer<typeof DoublesSetupSchema>;
 
-export const ArrangementInputSchema = z.object({
+export const ArrangementInputSchema = z.preprocess((val: any) => {
+  if (val && typeof val === 'object') {
+    return {
+      ...val,
+      afterSet: val.afterSet ?? val.setIndex,
+      version: val.version ?? val.expectedVersion,
+    };
+  }
+  return val;
+}, z.object({
   afterSet: z.number().int().min(0),
   serveOrder: z.object({
     player1: z.tuple([z.string(), z.string()]),
@@ -107,7 +116,7 @@ export const ArrangementInputSchema = z.object({
     player2: z.string(),
   }),
   version: z.number().int(),
-});
+}));
 export type ArrangementInput = z.infer<typeof ArrangementInputSchema>;
 
 export const MatchScoreStateSchema = z.object({

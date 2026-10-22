@@ -90,4 +90,35 @@ describe('DoublesArrangementModal', () => {
     });
     expect(onCloseMock).toHaveBeenCalledTimes(1);
   });
+
+  it('reseta isSubmitting e não trava o botão em Salvando... se onConfirm falhar', async () => {
+    const onConfirmMock = jest.fn().mockRejectedValue(new Error('Falha de rede'));
+    const onCloseMock = jest.fn();
+
+    render(
+      <DoublesArrangementModal
+        isOpen={true}
+        onClose={onCloseMock}
+        onConfirm={onConfirmMock}
+        player1={p1}
+        player1Partner={p1Partner}
+        player2={p2}
+        player2Partner={p2Partner}
+        currentArrangement={currentArrangement}
+        currentSetIndex={1}
+      />
+    );
+
+    const confirmBtn = screen.getByText('Confirmar Formação');
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(onConfirmMock).toHaveBeenCalledTimes(1);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Confirmar Formação')).not.toBeDisabled();
+    });
+    expect(onCloseMock).not.toHaveBeenCalled();
+  });
 });

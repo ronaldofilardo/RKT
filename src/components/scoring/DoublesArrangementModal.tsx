@@ -60,8 +60,9 @@ export function DoublesArrangementModal({
       await onConfirm(newArrangement);
       onClose();
     } catch (err) {
+      console.error('[DoublesArrangementModal] Erro ao confirmar formação:', err);
+    } finally {
       setIsSubmitting(false);
-      throw err;
     }
   };
 
