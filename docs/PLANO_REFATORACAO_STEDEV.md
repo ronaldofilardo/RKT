@@ -451,6 +451,16 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 > **Resolução V-05 (2026-10-22):** reavaliação mostrou que só `comments` POST/PATCH tinham body JSON sem schema — `renew`/`endorse` validam path params (`SessionPathParamsSchema`); `events` (query `since`), `point-logs-meta`, `auth/refresh` e `audio` não recebem body (R-07 N/A). Commit `10fa128`.
 >
 > **Resolução V-06 (2026-10-22):** 14 arquivos tipados; varredura de produção com `: any|as any|<any>|any[]` retorna **zero** ocorrências (só comentários). Commit `89e2e96`.
+>
+> **Resolução V-07 (2026-10-22) — pré-condição R-15 verificada:** os 3 módulos legados já possuem characterization tests dedicados que passam (23 suítes / 374 testes). Cobertura medida com `--coverage` direcionado:
+>
+> | Módulo | Stmts | Branch | Testes |
+> |---|---|---|---|
+> | `edit-score.logic.ts` | 91,88% | 92,96% | `editScoreHelpers.characterization` + 4 |
+> | `matchValidator.ts` | 87,87% | 73,00% | `matchValidator.characterization` + envelope/isUndo/tiebreak/real |
+> | `use-edit-score-calculator.ts` | 92,39% | **31,57%** | `use-edit-score-calculator.characterization` + bo5-invalid-score |
+>
+> **Nenhum corte foi executado (S3 não iniciado).** Liberação para corte: liberada para `edit-score.logic.ts` e `matchValidator.ts`; **`use-edit-score-calculator.ts` requer reforço de testes de branch antes de qualquer extração** (31,57% de branch — ver uncovered lines 68-157, 214-215, 238, 322).
 
 #### Fase 3 — S3 (Modular) — Top refatorações `.ts` > 100 linhas (R-03)
 
@@ -514,6 +524,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-22 | **R-25 / Opção C** `playersClient.create` sem `x-user-id`; ADR-0005 em `ARCHITECTURE.md` §6 | Concluído (`140ccf3`) |
 | 2026-10-22 | **V-05** `src/schemas/comment.ts` (Create/UpdateComment, SessionPathParams); `comments` POST/PATCH via `validatedRequest`; `renew`/`endorse` validam path params; GET `comments` via `extractPagination` | Concluído (`10fa128`) |
 | 2026-10-22 | **V-06** zero `any` em produção (R-06): `RallyDetailsWithAttribution`, `PointLogAnnotations`, `DoublesSetup` em undo/arrangement, `unwrapStateEnvelope`, `val: unknown` no preprocess | Concluído (`89e2e96`) |
+| 2026-10-22 | **V-07** pré-condição R-15 verificada: characterization tests dos 3 módulos legados existem e passam (374 testes); **S2 encerrado — nenhum corte executado** | Concluído (ver tabela §7.2) |
 
 **Verificação (após cada fatia):** `pnpm typecheck` verde. Suítes afetadas executadas via `node scripts/run-tests.js --ci "<padrão>"`.
 
@@ -521,7 +532,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 
 **Suíte completa (`pnpm test:strict`) em `0c34486`:** 324 suítes / 3302 testes → 7 suítes e 25 testes falham — **idênticos ao baseline**, zero regressão das fatias V-01..V-06.
 
-**Próximos (S2→S3):** V-07 (characterization test dos módulos edit-score antes de corte, R-15) → V-08 (unificação semântica dos edit-score) → V-09 (hex `CourtBackground`) → top-10 `.ts` > 100L (R-03).
+**Próximos (S3→S4):** V-08 (unificação semântica dos edit-score, R-01) → V-09 (hex `CourtBackground`, R-12) → top-10 `.ts` > 100L (R-03), **precedido** do reforço de branch coverage de `use-edit-score-calculator.ts` (bloqueio de corte).
 
 
 
