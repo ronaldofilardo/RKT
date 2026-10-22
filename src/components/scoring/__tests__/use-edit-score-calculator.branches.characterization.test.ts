@@ -22,7 +22,7 @@
 import { renderHook } from '@testing-library/react';
 import { useEditScoreCalculator } from '../use-edit-score-calculator';
 import type { CompletedSet, EditScoreState } from '../edit-score-state';
-import type { SetEditData } from '../edit-score-domain';
+import type { SetEditData } from '@/core/scoring/edit-score-domain';
 
 type CalculatorParams = Parameters<typeof useEditScoreCalculator>[0];
 

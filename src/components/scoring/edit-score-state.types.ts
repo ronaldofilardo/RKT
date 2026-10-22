@@ -1,7 +1,7 @@
 import type { TennisFormat } from '@/core/scoring/types';
-import type { SetEditData } from './edit-score-domain';
-export type { SetEditData } from './edit-score-domain';
-import type { validateSetResult } from './edit-score-domain';
+import type { SetEditData } from '@/core/scoring/edit-score-domain';
+export type { SetEditData } from '@/core/scoring/edit-score-domain';
+import type { validateSetResult } from '@/core/scoring/edit-score-domain';
 
 export type Player = 'player1' | 'player2';
 

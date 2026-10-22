@@ -12,7 +12,7 @@ import {
 } from "@/hooks/use-session-manager.logic";
 import { isMatchTiebreakActive } from "@/lib/matchConfig";
 import { buildNewScoringState } from "@/hooks/useSessionManager.state-builder";
-import type { SetEditData } from "@/components/scoring/edit-score-domain";
+import type { SetEditData } from "@/core/scoring/edit-score-domain";
 
 function makeConfig(format: string) {
   return {

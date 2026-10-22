@@ -12,7 +12,7 @@
  * cálculo nele em vez do sacador ao vivo.
  */
 
-import { getNextServerAfterSet } from '@/components/scoring/edit-score-domain';
+import { getNextServerAfterSet } from '@/core/scoring/edit-score-domain';
 import { calculateNextServer } from '@/components/scoring/edit-score-state';
 
 describe('Regressão: âncora fixa (initialServer) ao corrigir set em andamento', () => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { SetEditData } from "./edit-score-domain";
+import type { SetEditData } from '@/core/scoring/edit-score-domain';
 import { createInitialEditScoreState } from "./edit-score-state";
 import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from '@/hooks/use-session-manager.logic';
 import { useEditScoreCalculator } from "./use-edit-score-calculator";

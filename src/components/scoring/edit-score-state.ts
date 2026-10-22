@@ -1,6 +1,6 @@
 import type { TennisFormat } from '@/core/scoring/types';
-import type { SetEditData } from './edit-score-domain';
-import { getNextServerAfterSet } from './edit-score-domain';
+import type { SetEditData } from '@/core/scoring/edit-score-domain';
+import { getNextServerAfterSet } from '@/core/scoring/edit-score-domain';
 import { setsToWinForFormat, totalSetsForFormat } from '@/core/scoring/format-rules';
 import { parsePointValue } from '@/core/scoring/point.logic';
 import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from '@/hooks/use-session-manager.logic';

@@ -1,5 +1,5 @@
 import type { TennisFormat } from "@/core/scoring/types";
-import type { SetEditData } from "./edit-score-domain";
+import type { SetEditData } from '@/core/scoring/edit-score-domain';
 import type { CompletedSet } from "./edit-score-state";
 import type { useEditScoreCalculator } from "./use-edit-score-calculator";
 

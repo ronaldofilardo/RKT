@@ -1,8 +1,8 @@
 import type { TennisFormat } from "@/core/scoring/types";
 import { SCORING_LIMITS } from "@/lib/constants";
-import { validateSetResult, getMaxValidGames } from "./edit-score-domain";
+import { validateSetResult, getMaxValidGames } from '@/core/scoring/edit-score-domain';
 import type { CompletedSet } from "./edit-score-state";
-import type { SetEditData } from "./edit-score-domain";
+import type { SetEditData } from '@/core/scoring/edit-score-domain';
 import { calculateNextServer } from "./edit-score-state";
 import { getInitialGames } from "@/core/scoring/format-rules";
 import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from "@/hooks/use-session-manager.logic";

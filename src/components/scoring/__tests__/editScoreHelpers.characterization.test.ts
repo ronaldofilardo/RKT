@@ -17,7 +17,7 @@ import {
   validateSetResult,
   validateMatchTiebreakInput,
   getNextServerAfterSet,
-} from '../edit-score-domain';
+} from '@/core/scoring/edit-score-domain';
 import {
   setsToWinForFormat,
   totalSetsForFormat,

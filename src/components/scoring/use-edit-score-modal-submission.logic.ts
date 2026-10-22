@@ -1,7 +1,7 @@
 import type { TennisFormat } from "@/core/scoring/types";
 import type { CompletedSet } from "./edit-score-state";
 import type { EditScoreValidation } from "./edit-score-state.types";
-import type { SetEditData } from "./edit-score-domain";
+import type { SetEditData } from '@/core/scoring/edit-score-domain';
 import { calculateNextServer, createSetEditData, getEffectiveSetWinner } from "./edit-score-state";
 import { getCompletedSets, toCompletedSetsForServer, getFreshFloorError } from "./use-edit-score-modal-confirm.logic";
 import { validateConfirmForm, buildExistingSetsPayload } from "./use-edit-score-modal-validation.logic";

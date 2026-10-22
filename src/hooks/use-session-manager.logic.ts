@@ -1,4 +1,4 @@
-import type { SetEditData } from "@/components/scoring/edit-score-domain";
+import type { SetEditData } from "@/core/scoring/edit-score-domain";
 import { isMatchTiebreakSet } from "@/core/scoring/match-tiebreak-logic";
 
 export { isMatchTiebreakSet };

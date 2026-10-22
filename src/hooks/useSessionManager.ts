@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from "react";
 import type { MutableRefObject, Dispatch, SetStateAction } from "react";
 import { ScoringEngine } from "@/core/scoring/engine";
 import type { HistoryEntry, ScoringState } from "@/core/scoring/types";
-import type { SetEditData } from "@/components/scoring/edit-score-domain";
+import type { SetEditData } from "@/core/scoring/edit-score-domain";
 import { startSession, renewSession } from "@/services/annotationSessionService";
 import type { ScoreAction } from "@/hooks/useScoreReducer";
 import type { MatchData } from "@/hooks/useScoringHandlers";
