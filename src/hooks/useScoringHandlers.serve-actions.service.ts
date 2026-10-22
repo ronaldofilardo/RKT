@@ -5,6 +5,7 @@ import type { PointFlow } from "@/core/scoring/types";
 import type { ScoreboardUIState } from "@/hooks/useScoreboardUIState";
 import type { MatchData } from "./useScoringHandlers.types";
 import type { createModalHandlersService } from "./useScoringHandlers.modals.service";
+import { isSecondServePhase, buildFirstFaultDetail } from "./useScoringHandlers.serve-actions.logic";
 
 interface ServeActionsDeps {
   match: MatchData | null;
@@ -62,18 +63,10 @@ export function createServeActionsService(deps: ServeActionsDeps) {
   const recordAceDirectly = () => {
     if (!match || isProcessingRef.current) return;
     cancelPendingDebounce();
-    const isSecond =
-      serveErrorState.serveStep === "second" ||
-      serveErrorState.firstServeError !== null;
+    const isSecond = isSecondServePhase(serveErrorState);
     closeAll();
     const rallyDetails = modalService.createAceRallyDetails();
-    const firstFaultDetail = serveErrorState.firstServeError
-      ? {
-          errorType: serveErrorState.firstServeError.errorType,
-          serveEffect: serveErrorState.firstServeError.serveEffect,
-          direction: serveErrorState.firstServeError.direction,
-        }
-      : undefined;
+    const firstFaultDetail = buildFirstFaultDetail(serveErrorState.firstServeError);
 
     debounceTimerRef.current = setTimeout(() => {
       debounceTimerRef.current = null;
@@ -103,17 +96,9 @@ export function createServeActionsService(deps: ServeActionsDeps) {
     cancelPendingDebounce();
     closeAll();
 
-    const isSecond =
-      serveErrorState.serveStep === "second" ||
-      serveErrorState.firstServeError !== null;
+    const isSecond = isSecondServePhase(serveErrorState);
     const rallyDetails = modalService.createAceRallyDetails(effect, direction);
-    const firstFaultDetail = serveErrorState.firstServeError
-      ? {
-          errorType: serveErrorState.firstServeError.errorType,
-          serveEffect: serveErrorState.firstServeError.serveEffect,
-          direction: serveErrorState.firstServeError.direction,
-        }
-      : undefined;
+    const firstFaultDetail = buildFirstFaultDetail(serveErrorState.firstServeError);
 
     debounceTimerRef.current = setTimeout(() => {
       debounceTimerRef.current = null;
@@ -164,13 +149,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
       effect,
       direction,
     );
-    const firstFaultDetail = serveErrorState.firstServeError
-      ? {
-          errorType: serveErrorState.firstServeError.errorType,
-          serveEffect: serveErrorState.firstServeError.serveEffect,
-          direction: serveErrorState.firstServeError.direction,
-        }
-      : undefined;
+    const firstFaultDetail = buildFirstFaultDetail(serveErrorState.firstServeError);
     closeAll();
 
     debounceTimerRef.current = setTimeout(() => {
@@ -219,13 +198,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
       undefined,
       undefined,
     );
-    const firstFaultDetail = serveErrorState.firstServeError
-      ? {
-          errorType: serveErrorState.firstServeError.errorType,
-          serveEffect: serveErrorState.firstServeError.serveEffect,
-          direction: serveErrorState.firstServeError.direction,
-        }
-      : undefined;
+    const firstFaultDetail = buildFirstFaultDetail(serveErrorState.firstServeError);
     closeAll();
 
     debounceTimerRef.current = setTimeout(() => {
