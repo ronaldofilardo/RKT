@@ -517,7 +517,9 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 
 **Verificação (após cada fatia):** `pnpm typecheck` verde. Suítes afetadas executadas via `node scripts/run-tests.js --ci "<padrão>"`.
 
-**Falhas pré-existentes no HEAD (fora de escopo, reproduzidas com `git stash`):** `useScoringHandlers.test.ts`, `matchService.test.ts`, `useScoringHandlers.server-helpers.service.test.ts` (17 testes), `dashboard.hooks.guards.test.tsx`, `useOfflineSync.real.test.ts`, `match-authorization.baseline.characterization.test.ts`.
+**Falhas pré-existentes no baseline `aaf63bb` (fora de escopo; verificadas com `git checkout aaf63bb` + re-execução):** `useScoringHandlers.test.ts`, `matchService.test.ts`, `useScoringHandlers.server-helpers.service.test.ts` (17 testes), `api/matches/__tests__/route.test.ts` (select esperado sem `doublesSetup`/`matchType`), `api/matches/[id]/__tests__/route.test.ts` (3 testes), `timeline-rows.report-columns.test.tsx`, `match-authorization.baseline.characterization.test.ts`, `dashboard.hooks.guards.test.tsx`, `useOfflineSync.real.test.ts`.
+
+**Suíte completa (`pnpm test:strict`) em `0c34486`:** 324 suítes / 3302 testes → 7 suítes e 25 testes falham — **idênticos ao baseline**, zero regressão das fatias V-01..V-06.
 
 **Próximos (S2→S3):** V-07 (characterization test dos módulos edit-score antes de corte, R-15) → V-08 (unificação semântica dos edit-score) → V-09 (hex `CourtBackground`) → top-10 `.ts` > 100L (R-03).
 
