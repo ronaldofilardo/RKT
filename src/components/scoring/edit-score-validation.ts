@@ -1,5 +1,5 @@
 import type { TennisFormat } from '@/core/scoring/types';
-import { validateSetResult, isTiebreakScoreImpossible, validateMatchTiebreakInput } from './edit-score.logic';
+import { validateSetResult, isTiebreakScoreImpossible, validateMatchTiebreakInput } from './edit-score-domain';
 import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from '@/hooks/use-session-manager.logic';
 import type {
   SetEditData,

@@ -1,6 +1,6 @@
 import type { TennisFormat } from "@/core/scoring/types";
 import type { CompletedSet } from "./edit-score-logic";
-import type { SetEditData } from "./edit-score.logic";
+import type { SetEditData } from "./edit-score-domain";
 import type { EditScoreModalState } from "./useEditScoreModal.types";
 import { calculateNextServer } from "./edit-score-logic";
 import { getCompletedSets, getFloorError } from "./use-edit-score-modal-confirm.logic";

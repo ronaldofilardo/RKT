@@ -1,4 +1,4 @@
-import { validateSetResult, isTiebreakScoreImpossible } from '@/components/scoring/edit-score.logic';
+import { validateSetResult, isTiebreakScoreImpossible } from '@/components/scoring/edit-score-domain';
 
 describe('validateSetResult - Bug 6x5 fix', () => {
   it('deve identificar 6x5 como set parcial (não encerrado)', () => {

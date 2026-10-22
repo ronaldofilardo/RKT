@@ -11,7 +11,7 @@ import {
   calculateMatchState,
   calculateTiebreakValidation,
 } from './edit-score-logic';
-import type { SetEditData } from './edit-score.logic';
+import type { SetEditData } from './edit-score-domain';
 
 interface UseEditScoreCalculatorParams {
   matchFormat: TennisFormat;

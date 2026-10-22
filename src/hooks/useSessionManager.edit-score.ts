@@ -4,7 +4,7 @@ import { logger } from "@/lib/logger";
 import type { MutableRefObject, Dispatch, SetStateAction } from "react";
 import type { ScoringEngine } from "@/core/scoring/engine";
 import type { HistoryEntry, ScoringState, TennisFormat } from "@/core/scoring/types";
-import type { SetEditData } from "@/components/scoring/edit-score.logic";
+import type { SetEditData } from "@/components/scoring/edit-score-domain";
 import type { ScoreAction } from "@/hooks/useScoreReducer";
 import type { MatchData } from "@/hooks/useScoringHandlers";
 import { getMatchFormatRules } from "@/lib/matchConfig";

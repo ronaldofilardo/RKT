@@ -9,7 +9,7 @@
 
 import { ScoringEngine } from "@/core/scoring/engine";
 import type { ScoringState, SetScore } from "@/core/scoring/types";
-import type { SetEditData } from "@/components/scoring/edit-score.logic";
+import type { SetEditData } from "@/components/scoring/edit-score-domain";
 
 describe("Proteções do Mecanismo de Ajustar Placar", () => {
   describe("PROTEÇÃO #1: Validação Preventiva de Match Tie-Break", () => {

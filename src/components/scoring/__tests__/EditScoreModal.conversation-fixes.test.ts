@@ -9,7 +9,7 @@
 
 import { calculateValidation } from '../edit-score-logic';
 import { getFloorError } from '../use-edit-score-modal-confirm.logic';
-import type { SetEditData } from '../edit-score.logic';
+import type { SetEditData } from '../edit-score-domain';
 
 describe('Conversa 2026-09-08 - canConfirm resume logic', () => {
   describe('deve permitir confirmar ao retomar partida abandonada', () => {

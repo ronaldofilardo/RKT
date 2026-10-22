@@ -1,4 +1,4 @@
-import { validateMatchTiebreakInput } from '../edit-score.logic';
+import { validateMatchTiebreakInput } from '../edit-score-domain';
 import { isSetCompleted } from '../../../app/match/[id]/scoring/scoring-domain';
 
 describe('Match Tie-Break - Bug Fix: Placar 8x2 não deve encerrar partida', () => {

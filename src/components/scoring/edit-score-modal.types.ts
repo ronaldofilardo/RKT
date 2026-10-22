@@ -1,5 +1,5 @@
 import type { TennisFormat } from '@/core/scoring/types';
-import type { SetEditData } from './edit-score.logic';
+import type { SetEditData } from './edit-score-domain';
 import type { CompletedSet } from './edit-score-logic';
 
 export type Player = 'player1' | 'player2';

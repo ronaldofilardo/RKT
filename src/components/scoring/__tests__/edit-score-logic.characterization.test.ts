@@ -29,7 +29,7 @@ import {
   type ShouldAutoAddSetInput,
   type CalculateNextServerInput,
 } from '../edit-score-logic';
-import type { SetEditData } from '../edit-score.logic';
+import type { SetEditData } from '../edit-score-domain';
 
 describe('edit-score-logic (complete characterization)', () => {
   describe('createInitialEditScoreState', () => {

@@ -1,5 +1,5 @@
 import type { ScoringState, DoublesArrangement } from "@/core/scoring/types";
-import type { SetEditData } from "@/components/scoring/edit-score.logic";
+import type { SetEditData } from "@/components/scoring/edit-score-domain";
 import type { TennisFormat } from "@/core/scoring/types";
 import { parsePointValue } from "@/core/scoring/point.logic";
 import { isMatchTiebreakSet, calculateSetsWon } from "./use-session-manager.logic";

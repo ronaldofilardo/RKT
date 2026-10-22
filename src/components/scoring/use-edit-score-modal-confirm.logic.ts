@@ -1,7 +1,7 @@
 import type { TennisFormat } from '@/core/scoring/types';
 import type { CompletedSet } from './edit-score-logic';
-import type { SetEditData } from './edit-score.logic';
-import { validateSetResult } from './edit-score.logic';
+import type { SetEditData } from './edit-score-domain';
+import { validateSetResult } from './edit-score-domain';
 import { logger } from '@/lib/logger';
 
 type PlayerSide = 'player1' | 'player2';

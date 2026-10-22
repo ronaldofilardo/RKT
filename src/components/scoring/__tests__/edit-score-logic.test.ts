@@ -6,7 +6,7 @@ import {
   type CompletedSet,
 } from '../edit-score-logic';
 import { isPotentialMTSet } from '../edit-score-logic';
-import type { SetEditData } from '../edit-score.logic';
+import type { SetEditData } from '../edit-score-domain';
 
 describe('edit-score-logic - isMatchTiebreakSet', () => {
   describe('calculateValidation', () => {
@@ -344,7 +344,7 @@ describe('edit-score-logic - isMatchTiebreakSet', () => {
   });
 
   describe('validateSetResult com formatos especiais', () => {
-    const { validateSetResult } = require('../edit-score.logic');
+    const { validateSetResult } = require('../edit-score-domain');
 
     describe('PRO_SET_8', () => {
       it('deve validar set completo 8-6 sem tiebreak', () => {
