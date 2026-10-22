@@ -545,6 +545,9 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-22 | Gates V-08: `pnpm typecheck` verde; suítes edit-score/session/scoring: **49 suítes / 625 testes verdes** (antes e depois de cada renome); zero resíduos de `edit-score.logic`/`edit-score-logic` em `src/` | Concluído |
 | 2026-10-22 | **V-09** (R-12) `CourtBackground.tsx`: removido `lines: '#ffffff'` (4×) — campo **dead code** (as linhas do JSX usam `bg-white/30`/`border-white/30`); junto removido `label` (também unused). Fundo permanece em token `--telemetry-court-*` | Concluído (`7b3c55b`) |
 | 2026-10-22 | **Débito S3 #8 (getDb)** `useCommentOfflineSync.ts`: `getDb` local (sem cache, duplicado) → `getOfflineDb()` de `use-offline-sync.db.ts` (cache compartilhado + handlers blocked/blocking/terminated); `COMMENT_STORE_NAME` exportado do módulo de transporte. Characterization prévia R-15: `useCommentOfflineSync.characterization.test.ts` (3 testes: enqueue PENDING, flush com POST/remoção/evento, retry→FAILED) | Concluído (`fdde293`) |
+| 2026-10-22 | **S3 (top-10 #10) characterization** `createServeActionsService` com deps mockadas: `useScoringHandlers.serve-actions.characterization.test.ts` (6 testes: early-returns, ACE 1ª/2ª com firstFaultDetail, first→second do erro de saque, DOUBLE_FAULT) — pré-requisito R-15 do corte de dedup | Concluído (`2dc5eec`) |
+| 2026-10-22 | **S3 (top-10 #10) corte** `firstFaultDetail` (4×) e `isSecondServePhase` (3×) extraídos para `useScoringHandlers.serve-actions.logic.ts`; `serve-actions.service.ts` 267 → 240 linhas; characterization + suítes de handlers: 4 suítes / 30 testes verdes | Concluído (`6e72fc2`) |
+| 2026-10-22 | **#2 adiado (decisão técnica)** Extrair o domínio puro de `use-edit-score-calculator.ts` para `src/core/scoring/` **exige mover antes a família de tipos** (`edit-score-state.ts`/`edit-score-state.types.ts`/`edit-score-domain.ts`) — mover só o calculator inverteria camadas (core importando components). Epic separado multi-fatia; sem prazo nesta onda | Adiado |
 
 **Verificação (após cada fatia):** `pnpm typecheck` verde. Suítes afetadas executadas via `node scripts/run-tests.js --ci "<padrão>"`.
 
@@ -554,7 +557,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 
 **Suíte completa após as fatias S3 (`8f79e64`):** 7 suítes e 25 testes falham — **idênticos ao baseline**, zero regressão das fatias S3 (#5, #3a, #3b, #6, #8, #9, #1a, #1b).
 
-**Próximos (S3→S4):** S3 concluída (#5, #3, #6, #7 exceção, #8, #9, #1 — #10 adiado). V-08 concluído em duas fatias de renome (`2c3f354`, `48d711b`); V-09 concluído (`7b3c55b`); unificação de `getDb` concluída (`fdde293`). Restam: **#2** (extrair domínio puro de `use-edit-score-calculator.ts` para `src/core/scoring/` — prerequisite: checar direção de dependência para não inverter camadas) e characterization de `createServeActionsService` (destrava #10).
+**Próximos (S3→S4):** Onda STE-DEV concluída — S3 completa (#5, #3, #6, #7 exceção, #8, #9, #1, #10 com characterization+corte), V-08 (`2c3f354`, `48d711b`), V-09 (`7b3c55b`), unificação de `getDb` (`fdde293`). Único item adiado: **#2** (migração da família edit-score para `core/scoring` — epic multi-fatia; mover só o calculator inverteria camadas). Dívida residual conhecida: R-03 de `serve-actions.service.ts` (240L, pré-existente) e exceção declarada de `schemas/match.ts` (282L).
 
 
 
