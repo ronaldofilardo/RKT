@@ -22,8 +22,8 @@ export {
   isPotentialMTSet,
   calculateTiebreakValidation,
   calculateValidation,
-} from './edit-score-validation';
-import { isPotentialMTSet } from './edit-score-validation';
+} from '@/core/scoring/edit-score-validation';
+import { isPotentialMTSet } from '@/core/scoring/edit-score-validation';
 
 import { getInitialGames } from '@/core/scoring/format-rules';
 

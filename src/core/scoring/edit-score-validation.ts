@@ -1,6 +1,6 @@
 import type { TennisFormat } from '@/core/scoring/types';
 import { validateSetResult, isTiebreakScoreImpossible, validateMatchTiebreakInput } from '@/core/scoring/edit-score-domain';
-import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from '@/hooks/use-session-manager.logic';
+import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from '@/core/scoring/match-tiebreak-logic';
 import type {
   SetEditData,
   EditScoreValidation,
