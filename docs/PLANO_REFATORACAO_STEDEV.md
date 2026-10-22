@@ -562,6 +562,7 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-22 | **Fix pós-R-07** `sessions` POST: body ausente voltou a ser aceito (default `autoStarted=false`) e catch preserva shape legado `{error: 'INTERNAL_SERVER_ERROR'}` (12/12 testes characterization verdes) | Concluído (`dd77c34`) |
 | 2026-10-22 | **Suíte completa ao fim da onda R-07 (`dd77c34`)** 322/329 suítes e 3319/3344 testes — 7 suítes e 25 testes falham, **idênticos ao baseline**, zero regressão das 3 fatias R-07 + fix | Concluído |
 | 2026-10-22 | **R-12 fechamento** `ste-exception R-12` declarada em `layout.tsx:16-18` (`viewport.themeColor`): 2 hex literais obrigatórios — `<meta name="theme-color">` é lido pelo chrome do navegador antes do CSS e não aceita `var(--token)`; valores espelham `--body-bg` dark/light de `globals.css`. Pilar Front: **0 hex soltos em componentes** | Concluído |
+| 2026-10-22 | **Fase R-03 top-10 iniciada** — plano em `docs/PLANO_R03_TOP10_S3.md`: **A-0** baseline oficial 124 arquivos >100L (linhas cruas; "106" = SLOC) · **A-1** guarda ratchet `check-r03-line-limit.mjs` no CI (122 congelados, 2 isentos, nova violação/crescimento → exit 1) | Concluído (`e7bb474` + A-1) |
 
 **Verificação (após cada fatia):** `pnpm typecheck` verde. Suítes afetadas executadas via `node scripts/run-tests.js --ci "<padrão>"`.
 

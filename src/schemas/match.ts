@@ -1,3 +1,5 @@
+// ste-exception R-03: schema declarativo canônico dos contratos de partida (Zod);
+// acima de 100L por côngruencia — corte não se aplica (registrado no plano STE-DEV §7.5).
 import { z } from "zod";
 import { flexibleIdValidator } from "./common";
 import { PlayerSchema } from "./player";

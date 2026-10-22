@@ -42,5 +42,6 @@ jobs:
       - run: pnpm exec prisma db push --skip-generate
       - run: pnpm typecheck
       - run: node scripts/check-no-skipped-tests.mjs
+      - run: node scripts/check-r03-line-limit.mjs
       - run: pnpm test:strict
       - run: pnpm test:coverage

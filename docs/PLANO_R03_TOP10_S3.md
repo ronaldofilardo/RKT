@@ -80,7 +80,7 @@ Backlog `.tsx` zerado em 2026-10-16 (53→0); hoje **16 `.tsx` >100L**:
 | Fatia | Ação | Aceite |
 |---|---|---|
 | **A-0** | Congelar varredura canônica; reconciliar 106 vs 124; registrar baseline em §7.5 do plano STE-DEV | Comando + número oficiais publicados |
-| **A-1** | Guarda R-03 (script/CI): falha se arquivo produção >100L e sem `ste-exception R-03` no cabeçalho | Guarda vermelha no estado atual (sinal de progresso); exceções (`schemas/match.ts`, calculator) não disparam |
+| **A-1** | Guarda R-03 (`scripts/check-r03-line-limit.mjs` + `pnpm check:r03` + CI `quality.yml`): **padrão ratchet** — baseline `scripts/r03-baseline.json` congela 122 violações; falha em nova violação, crescimento de arquivo do baseline ou baseline obsoleto; isenta `ste-exception R-03` no cabeçalho | ✅ Exit 1 nas 3 falhas simuladas, exit 0 no estado limpo; 122 baseline + 2 isentas = 124 |
 | **A-2** | Triagem dos 16 `.tsx`: "cresceu pós-UI-44" vs "novo" | Tabela no plano; regressão vira backlog explícito (lote C-0) |
 
 ### Fase B — Top-10 (1 fatia = 1 arquivo)
@@ -138,3 +138,4 @@ Ordem por valor/risco (não por posição na tabela):
 |---|---|---|
 | 2026-10-22 | Plano criado (`docs/PLANO_R03_TOP10_S3.md`) | Concluído |
 | 2026-10-22 | **A-0** Varredura canônica congelada; reconciliação 106 (SLOC) vs 124 (linhas cruas = baseline oficial); 0 arquivos novos violando desde 2026-10-21; fronteira 98–102L mapeada (22 arquivos zona de risco) | Concluído |
+| 2026-10-22 | **A-1** Guarda R-03 ratchet: `check-r03-line-limit.mjs` (novo arquivo >100L / crescimento / baseline obsoleto → exit 1; `ste-exception R-03` isenta), baseline com 122 violações congeladas, `pnpm check:r03`, passo no CI `quality.yml`; `ste-exception R-03` ausente em `schemas/match.ts` adicionada ao cabeçalho (exceção já registrada no plano STE-DEV §7.5); modos de falha testados (exit 1/1/0) | Concluído |
