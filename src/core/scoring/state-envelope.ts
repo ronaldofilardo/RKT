@@ -1,4 +1,4 @@
-import type { ScoringState } from './types';
+import type { HistoryEntry, ScoringState } from './types';
 
 /**
  * Desembrulha um estado de scoring que pode vir cru ou dentro do envelope
@@ -19,4 +19,49 @@ export function unwrapStateEnvelope(raw: unknown): ScoringState {
     if (inner) return inner as ScoringState;
   }
   return raw as ScoringState;
+}
+
+/**
+ * Desembrulha a resposta do servidor preservando o contrato de
+ * `applySuccessResult`: o envelope só é assumido quando existe `state`
+ * truthy E `history` é um array; caso contrário o valor cru é tratado
+ * como estado plano e o `fallbackHistory` (história local) é mantido.
+ */
+export function unwrapEnvelopeWithHistory(
+  raw: unknown,
+  fallbackHistory: HistoryEntry[],
+): { state: ScoringState; historyToRestore: HistoryEntry[] } {
+  const envelopeCandidate = raw as {
+    state?: ScoringState;
+    history?: HistoryEntry[];
+  } | null;
+  const isEnvelope = Boolean(envelopeCandidate?.state) && Array.isArray(envelopeCandidate?.history);
+
+  return {
+    state:
+      isEnvelope && envelopeCandidate?.state
+        ? envelopeCandidate.state
+        : (raw as ScoringState),
+    historyToRestore:
+      isEnvelope && envelopeCandidate?.history ? envelopeCandidate.history : fallbackHistory,
+  };
+}
+
+/**
+ * Proteção do fluxo de ponto: quando o servidor devolve um placar sem
+ * tiebreak mas o estado local está em tiebreak, o local é mantido para
+ * não perder o progresso do super-tiebreak.
+ */
+export function shouldKeepLocalStateForMissingTiebreak(
+  localState: ScoringState,
+  serverState: ScoringState,
+): boolean {
+  const localInTiebreak = localState.sets?.some(
+    (s) => Boolean(s.isTiebreak) && Boolean(s.tiebreakScore),
+  );
+  const serverHasTiebreak = serverState.sets?.some(
+    (s) => Boolean(s.isTiebreak) && Boolean(s.tiebreakScore),
+  );
+
+  return Boolean(localInTiebreak && !serverHasTiebreak);
 }

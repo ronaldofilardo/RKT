@@ -1,8 +1,11 @@
 import { ScoringEngine } from "@/core/scoring/engine";
 import { buildEngineConfig } from "@/core/scoring/engine-config";
+import {
+  unwrapEnvelopeWithHistory,
+  shouldKeepLocalStateForMissingTiebreak,
+} from "@/core/scoring/state-envelope";
 import { logger } from "@/lib/logger";
 import type {
-  HistoryEntry,
   PointFlow,
   RallyDetailsWithAttribution,
   ScoringState,
@@ -87,22 +90,12 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
     const localState = engineRef.current!.getState();
     const rawServerState = serverResponse.scoreState!;
 
-    // O servidor pode devolver o estado plano ou o envelope `{state, history}`
-    // (ver `persistStateWithRetry`). Detecção estrutural em runtime.
-    const envelopeCandidate = rawServerState as unknown as {
-      state?: ScoringState;
-      history?: HistoryEntry[];
-    } | null;
-    const isEnvelope = Boolean(envelopeCandidate?.state) && Array.isArray(envelopeCandidate?.history);
-    const serverState: ScoringState =
-      isEnvelope && envelopeCandidate?.state ? envelopeCandidate.state : (rawServerState as unknown as ScoringState);
-    const historyToRestore: HistoryEntry[] =
-      isEnvelope && envelopeCandidate?.history ? envelopeCandidate.history : currentHistory;
+    const { state: serverState, historyToRestore } = unwrapEnvelopeWithHistory(
+      rawServerState,
+      currentHistory,
+    );
 
-    const localInTiebreak = localState.sets?.some((s) => Boolean(s.isTiebreak) && Boolean(s.tiebreakScore));
-    const serverHasTiebreak = serverState.sets?.some((s) => Boolean(s.isTiebreak) && Boolean(s.tiebreakScore));
-
-    if (localInTiebreak && !serverHasTiebreak) {
+    if (shouldKeepLocalStateForMissingTiebreak(localState, serverState)) {
       logger.warn("[applyPoint] server response missing tiebreak info — keeping local state", {
         localSets: localState.sets?.length,
         serverSets: serverState.sets?.length,
