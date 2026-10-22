@@ -1,3 +1,4 @@
+-- DEPRECADO (2026-10-22): superseded by prisma/migrations (source of truth). Reference only for manually-configured databases.
 ALTER TABLE "Match" ADD COLUMN "isResuming" BOOLEAN DEFAULT false;
 ALTER TABLE "Match" ADD COLUMN "openForAnnotation" BOOLEAN DEFAULT false;
 ALTER TABLE "Match" ADD COLUMN "tournamentName" TEXT;

@@ -1,3 +1,4 @@
+-- DEPRECADO (2026-10-22): superseded by prisma/migrations (source of truth). Reference only for manually-configured databases.
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'GESTOR', 'COACH', 'ATHLETE', 'SPECTATOR');
 
