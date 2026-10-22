@@ -29,6 +29,16 @@ export const CreateUserInputSchema = z.object({
 });
 export type CreateUserInput = z.infer<typeof CreateUserInputSchema>;
 
+export const UpdateUserInputSchema = z.object({
+  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres').optional(),
+  email: z.string().email('Email inválido').optional(),
+  cpf: z.string().min(11, 'CPF deve ter pelo menos 11 dígitos').optional(),
+  role: RoleSchema.optional(),
+  club: z.string().nullish(),
+  isActive: z.boolean().optional(),
+});
+export type UpdateUserInput = z.infer<typeof UpdateUserInputSchema>;
+
 export const ListUsersInputSchema = z.object({
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(20),

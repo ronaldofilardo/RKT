@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { withRLSHandler } from '@/lib/auth';
+import { UpdateUserInputSchema } from '@/schemas/user';
 import { updateUser, deleteUser } from '@/services/adminService';
 
 export async function PATCH(
@@ -10,17 +11,15 @@ export async function PATCH(
   return withRLSHandler(request, 'ADMIN', async () => {
     try {
       const { id } = await params;
-      const body = await request.json();
-
-      const validRoles = ['ADMIN', 'ANNOTATOR'];
-      if (body.role && !validRoles.includes(body.role)) {
+      const parsedBody = UpdateUserInputSchema.safeParse(await request.json().catch(() => null));
+      if (!parsedBody.success) {
         return NextResponse.json(
-          { error: 'VALIDATION_ERROR', message: `Role inválida. Use: ${validRoles.join(', ')}` },
+          { error: 'VALIDATION_ERROR', message: parsedBody.error.issues[0]?.message ?? 'Dados inválidos' },
           { status: 400 }
         );
       }
 
-      const result = await updateUser(id, body);
+      const result = await updateUser(id, parsedBody.data);
 
       if ('error' in result) {
         if (result.error === 'USER_NOT_FOUND') {
