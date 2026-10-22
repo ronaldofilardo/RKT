@@ -7,7 +7,6 @@ import {
   reactivateOrCreateSession,
 } from '@/services/sessionService';
 import { computeSnapshotStatus, type SnapshotStatus } from '@/lib/snapshot.logic';
-import { reportApiError, validatedRequest } from '@/lib/api.logic';
 import { StartSessionInputSchema } from '@/schemas/session';
 import { logger } from '@/lib/logger';
 
@@ -57,7 +56,10 @@ export async function POST(
         );
       }
 
-      const { autoStarted = false } = await validatedRequest(request, StartSessionInputSchema);
+      // Body ausente/inválido → {} (schema é todo opcional; comportamento legado aceitava POST sem body)
+      const rawBody = await request.json().catch(() => ({}));
+      const parsedBody = StartSessionInputSchema.safeParse(rawBody);
+      const autoStarted = parsedBody.success ? (parsedBody.data.autoStarted ?? false) : false;
 
       const allSessions = await getUserSessions(matchId, user.id);
 
@@ -106,7 +108,10 @@ export async function POST(
       }, { status: isNew ? 201 : 200 });
     } catch (error) {
       logger.error('[POST /api/matches/:id/sessions] Error:', error);
-      return reportApiError(error);
+      return NextResponse.json(
+        { error: 'INTERNAL_SERVER_ERROR', message: 'Erro ao criar sessão' },
+        { status: 500 }
+      );
     }
   });
 }
