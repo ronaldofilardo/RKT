@@ -548,6 +548,12 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 | 2026-10-22 | **S3 (top-10 #10) characterization** `createServeActionsService` com deps mockadas: `useScoringHandlers.serve-actions.characterization.test.ts` (6 testes: early-returns, ACE 1ª/2ª com firstFaultDetail, first→second do erro de saque, DOUBLE_FAULT) — pré-requisito R-15 do corte de dedup | Concluído (`2dc5eec`) |
 | 2026-10-22 | **S3 (top-10 #10) corte** `firstFaultDetail` (4×) e `isSecondServePhase` (3×) extraídos para `useScoringHandlers.serve-actions.logic.ts`; `serve-actions.service.ts` 267 → 240 linhas; characterization + suítes de handlers: 4 suítes / 30 testes verdes | Concluído (`6e72fc2`) |
 | 2026-10-22 | **#2 adiado (decisão técnica)** Extrair o domínio puro de `use-edit-score-calculator.ts` para `src/core/scoring/` **exige mover antes a família de tipos** (`edit-score-state.ts`/`edit-score-state.types.ts`/`edit-score-domain.ts`) — mover só o calculator inverteria camadas (core importando components). Epic separado multi-fatia; sem prazo nesta onda | Adiado |
+| 2026-10-22 | **Epic S3 #2 (fatia 1/6)** `isMatchTiebreakSet` extraída de `use-session-manager.logic.ts` → `core/scoring/match-tiebreak-logic.ts` (re-export preservado; remove dependência core→hooks) | Concluído (`80c14b4`) |
+| 2026-10-22 | **Epic S3 #2 (fatia 2/6)** `edit-score-domain.ts` migrado para `src/core/scoring/` (44 consumidores) | Concluído (`287e351`) |
+| 2026-10-22 | **Epic S3 #2 (fatia 3/6)** `edit-score-state.types.ts` migrado para `src/core/scoring/` | Concluído (`7e8c174`) |
+| 2026-10-22 | **Epic S3 #2 (fatia 4/6)** `edit-score-validation.ts` migrado para `src/core/scoring/` (import de MT corrigido para core) | Concluído (`025f124`) |
+| 2026-10-22 | **Epic S3 #2 (fatia 5/6)** `edit-score-state.ts` migrado para `src/core/scoring/` (25 consumidores) | Concluído (`6dac77e`) |
+| 2026-10-22 | **Epic S3 #2 (fatia 6/6)** Funções puras do `use-edit-score-calculator.ts` → `core/scoring/edit-score-calculator.{confirm,input-gates,set-gates}.ts` (91L/83L/31L); hook 342 → **148L** (casca React de wiring; `ste-exception R-03` declarada); characterization do hook preservada (610 testes verdes) | Concluído (`78a7c4c`) |
 
 **Verificação (após cada fatia):** `pnpm typecheck` verde. Suítes afetadas executadas via `node scripts/run-tests.js --ci "<padrão>"`.
 
@@ -559,7 +565,9 @@ pnpm test:strict && pnpm test:design && pnpm lint   # fim da Fase 2
 
 **Suíte completa ao fim da onda (`f0cf170` + renames V-08, V-09, getDb, characterization e corte #10):** 322/329 suítes e 3319/3344 testes passam — 7 suítes e 25 testes falham, **idênticos ao baseline**, zero regressão.
 
-**Próximos (S3→S4):** Onda STE-DEV concluída — S3 completa (#5, #3, #6, #7 exceção, #8, #9, #1, #10 com characterization+corte), V-08 (`2c3f354`, `48d711b`), V-09 (`7b3c55b`), unificação de `getDb` (`fdde293`). Único item adiado: **#2** (migração da família edit-score para `core/scoring` — epic multi-fatia; mover só o calculator inverteria camadas). Dívida residual conhecida: R-03 de `serve-actions.service.ts` (240L, pré-existente) e exceção declarada de `schemas/match.ts` (282L).
+**Suíte completa ao fim do epic S3 #2 (`78a7c4c` + fatias 1–6):** 322/329 suítes e 3319/3344 testes passam — 7 suítes e 25 testes falham, **idênticos ao baseline**, zero regressão da migração da família edit-score para `core/scoring/`.
+
+**Próximos (S3→S4):** Auditoria §7 **100% executada** — S3 completa (incluindo **#2 via epic de6 fatias**: família edit-score migrada para `core/scoring/` + `match-tiebreak-logic` + calculator logic), V-08, V-09, getDb. Dívida residual conhecida: R-03 do casca do calculator (`use-edit-score-calculator.ts` 148L, `ste-exception` declarada — só wiring React), `serve-actions.service.ts` (240L, pré-existente) e exceção de `schemas/match.ts` (282L). Backlog R-03 global (~96 arquivos >100L fora do top-10) permanece fora desta onda.
 
 
 

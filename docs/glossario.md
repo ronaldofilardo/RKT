@@ -129,9 +129,11 @@ Anotação tática detalhada de como o ponto terminou.
 | **Characterization test** | Teste que congela o comportamento atual de código legado antes de refatorá-lo (R-15). |
 | **Strangler** | Padrão de migração gradual: nova implementação ao lado da antiga, com troca de chamada quando pronta. |
 | **ste-exception** | Comentário `// ste-exception R-XX: <motivo>` que documenta uma exceção consciente a uma regra STE-DEV. |
-| **edit-score-domain** (`edit-score-domain.ts`) | Regras de domínio da edição de placar: validação de resultado de set, limites de games por formato, tiebreak impossível, próximo sacador após set e o contrato `SetEditData`. Nome canônico (V-08); antes era `edit-score.logic.ts`. |
-| **edit-score-state** (`edit-score-state.ts`) | Estado e cálculo do modal de edição: `createInitialEditScoreState`, `calculateMatchState`, `createSetEditData`, `calculateNextServer`; tipos em `edit-score-state.types.ts`. Nome canônico (V-08); antes era `edit-score-logic.ts`. |
-| **edit-score-validation** (`edit-score-validation.ts`) | Validação da UI do formulário de edição: `calculateValidation`, `calculateTiebreakValidation`, `isPotentialMTSet`. |
+| **edit-score-domain** (`core/scoring/edit-score-domain.ts`) | Regras de domínio da edição de placar: validação de resultado de set, limites de games por formato, tiebreak impossível, próximo sacador após set e o contrato `SetEditData`. Migrado para `core/` no epic S3 #2. |
+| **edit-score-state** (`core/scoring/edit-score-state.ts`) | Estado e cálculo do modal de edição: `createInitialEditScoreState`, `calculateMatchState`, `createSetEditData`, `calculateNextServer`; tipos em `edit-score-state.types.ts`. Migrado para `core/` no epic S3 #2. |
+| **edit-score-validation** (`core/scoring/edit-score-validation.ts`) | Validação da edição de placar: `calculateValidation`, `calculateTiebreakValidation`, `isPotentialMTSet`. Migrado para `core/` no epic S3 #2. |
+| **edit-score-calculator** (`core/scoring/edit-score-calculator.*.ts`) | Domínio puro do calculator de edição (S3 #2): `confirm` (pode confirmar set/partida), `input-gates` (limites de input/zero/vazio) e `set-gates` (próximo set, game points em 0-0). O hook `use-edit-score-calculator.ts` é só casca React de wiring. |
+| **match-tiebreak-logic** (`core/scoring/match-tiebreak-logic.ts`) | `isMatchTiebreakSet` (regra pura de MT por índice/formato), extraída de `use-session-manager.logic.ts` no epic S3 #2 para que `core` não dependa de `hooks`. |
 
 ---
 
