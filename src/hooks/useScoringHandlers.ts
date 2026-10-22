@@ -2,17 +2,14 @@
 import { logger } from "@/lib/logger";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import type {
-  ScoringState,
   PointFlow,
   RallyDetailsWithAttribution,
-  HistoryEntry,
 } from "@/core/scoring/types";
 import type {
   MatchData,
   ScoringHandlersContext,
   ScoringHandlersReturn,
 } from "./useScoringHandlers.types";
-import { persistStateWithRetry } from "./useScoringHandlers.persistence";
 import { createServerHelpersService } from "./use-scoring-handlers-server.service";
 import { createModalHandlersService } from "./useScoringHandlers.modals.service";
 import { createPointSyncService } from "./useScoringHandlers.point-sync";
@@ -21,6 +18,7 @@ import { createUndoRedoService } from "./useScoringHandlers.undo-redo.service";
 import { createMatchFetchService } from "./useScoringHandlers.match-fetch";
 import { createPointProcessorService } from "./useScoringHandlers.point-processor.service";
 import { createArrangementService } from "./useScoringHandlers.arrangement.service";
+import { createPersistStateService } from "./useScoringHandlers.persist";
 
 export function useScoringHandlers(
   ctx: ScoringHandlersContext,
@@ -126,63 +124,16 @@ export function useScoringHandlers(
   }, [fetchMatch]);
 
   // ─── State persistence ────────────────────────────────────────────────────
-  const persistState = useCallback(
-    async (
-      state: ScoringState,
-      label: string,
-      persistOptions?: {
-        allowScoreEdit?: boolean;
-        isManualScoreEdit?: boolean;
-        voidPointLogId?: string;
-        voidLastPoint?: boolean;
-        isUndo?: boolean;
-        history?: HistoryEntry[];
-        note?: string;
-      },
-    ): Promise<{
-      success: boolean;
-      needsResync?: boolean;
-      conflict?: boolean;
-      version?: number;
-    }> => {
-      const engineAny = engineRef.current as
-        | ({
-            getPointHistory?: () => HistoryEntry[];
-          } & typeof engineRef.current)
-        | null;
-      const history = persistOptions?.history !== undefined
-        ? persistOptions.history
-        : engineAny?.getPointHistory?.();
-
-      const currentVersion = matchVersionRef.current ?? match?.version;
-      const matchToUse = match ? { ...match, version: currentVersion } : null;
-
-      const result = await persistStateWithRetry(state, label, {
-        matchId,
-        match: matchToUse,
-        tokenRef,
-        setError,
-        fetchMatch,
-        allowScoreEdit: persistOptions?.allowScoreEdit,
-        isManualScoreEdit: persistOptions?.isManualScoreEdit,
-        note: persistOptions?.note,
-        voidPointLogId: persistOptions?.voidPointLogId,
-        voidLastPoint: persistOptions?.voidLastPoint,
-        isUndo: persistOptions?.isUndo ?? (label === "undo" || label === "undo-retry"),
-        history,
-      });
-
-      if (result.success && result.version !== undefined) {
-        matchVersionRef.current = result.version;
-        setMatch((prev) =>
-          prev ? { ...prev, version: result.version } : prev,
-        );
-      }
-
-      return result;
-    },
-    [matchId, match, tokenRef, setError, fetchMatch, setMatch, engineRef],
-  );
+  const { persistState } = createPersistStateService({
+    matchId,
+    match,
+    engineRef,
+    matchVersionRef,
+    tokenRef,
+    setError,
+    fetchMatch,
+    setMatch,
+  });
 
   // ─── Services ─────────────────────────────────────────────────────────────
   const serverHelpers = createServerHelpersService({ engineRef, match });
