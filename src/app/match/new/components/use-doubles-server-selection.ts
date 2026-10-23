@@ -2,20 +2,26 @@
 
 import { useState } from 'react';
 import type { DoublesSetup } from '@/schemas/contracts';
+import type { SelectablePlayer } from './ServerSelectionModal';
 
 interface DoublesSelectionPlayers {
-  p1Id: string;
-  p1PartnerId: string;
-  p2Id: string;
-  p2PartnerId: string;
+  selectedP1: SelectablePlayer | null;
+  selectedP1Partner: SelectablePlayer | null;
+  selectedP2: SelectablePlayer | null;
+  selectedP2Partner: SelectablePlayer | null;
 }
 
 export function useDoublesServerSelection({
-  p1Id,
-  p1PartnerId,
-  p2Id,
-  p2PartnerId,
+  selectedP1,
+  selectedP1Partner,
+  selectedP2,
+  selectedP2Partner,
 }: DoublesSelectionPlayers) {
+  const p1Id = selectedP1?.id || '';
+  const p1PartnerId = selectedP1Partner?.id || '';
+  const p2Id = selectedP2?.id || '';
+  const p2PartnerId = selectedP2Partner?.id || '';
+
   // Step 1: Qual dupla começa sacando? ('player1' ou 'player2')
   const [servingSide, setServingSide] = useState<'player1' | 'player2'>('player1');
   // Step 2: Quem saca primeiro na Dupla 1?
