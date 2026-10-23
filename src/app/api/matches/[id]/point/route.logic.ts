@@ -1,75 +1,12 @@
-import { NextResponse } from 'next/server';
-import { Prisma } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
 import { ScoringEngine } from '@/core/scoring/engine';
 import { normalizeScoreState, extractHistory } from '@/core/scoring/score-normalizer';
 import { buildEngineConfig } from '@/core/scoring/engine-config';
 import { logger } from '@/lib/logger';
 import type { PointFlowInput } from '@/schemas/contracts';
+import { TransactionError } from './point-route-errors';
 
-export class TransactionError extends Error {
-  status: number;
-  code: string;
-  extra?: Record<string, unknown>;
-
-  constructor(message: string, status: number, code?: string, extra?: Record<string, unknown>) {
-    super(message);
-    this.status = status;
-    this.code = code || status.toString();
-    this.extra = extra;
-  }
-}
-
-export async function validateMatchAnnotatorPermission(
-  match: {
-    player1Id: string;
-    player2Id: string;
-    player1PartnerId?: string | null;
-    player2PartnerId?: string | null;
-    createdByUserId?: string | null;
-    openForAnnotation?: boolean | null;
-  },
-  id: string,
-  currentUserId?: string,
-  currentUserRole?: string,
-  tx?: Prisma.TransactionClient,
-): Promise<void> {
-  const isPrivilegedStaff = currentUserRole === 'ADMIN';
-  const isPlayer =
-    match.player1Id === currentUserId ||
-    match.player2Id === currentUserId ||
-    match.player1PartnerId === currentUserId ||
-    match.player2PartnerId === currentUserId ||
-    match.createdByUserId === currentUserId;
-
-  if (isPrivilegedStaff || isPlayer || match.openForAnnotation === true) {
-    return;
-  }
-
-  // Detecção em runtime: o modelo pode ausentar em clientes Prisma desatualizados.
-  const txWithSessions = tx as unknown as {
-    matchAnnotationSession?: {
-      findFirst: (args: {
-        where: { matchId?: string; isActive: boolean; annotatorUserId?: string };
-      }) => Promise<unknown>;
-    };
-  };
-  const sessionModel = txWithSessions.matchAnnotationSession;
-  const hasSessionModel = typeof sessionModel?.findFirst === 'function';
-  const activeSession = hasSessionModel
-    ? await sessionModel.findFirst({
-        where: { matchId: id, isActive: true, annotatorUserId: currentUserId },
-      })
-    : null;
-
-  if (hasSessionModel && !activeSession) {
-    throw new TransactionError(
-      'Apenas os jogadores, equipe técnica ou o anotador da sessão ativa podem registrar pontos',
-      403,
-      'FORBIDDEN',
-    );
-  }
-}
+export { TransactionError, reportPointRouteFailure } from './point-route-errors';
+export { validateMatchAnnotatorPermission } from './point-route-permission.logic';
 
 export function restoreEngineFromMatch(match: {
   format: string;
@@ -203,65 +140,3 @@ export function buildAnnotationsPayload(
   };
 }
 
-export async function reportPointRouteFailure(
-  error: unknown,
-  requestId: string,
-  requestClientEventId?: string,
-): Promise<NextResponse> {
-  if (error instanceof TransactionError) {
-    return NextResponse.json(
-      { error: error.code, message: error.message, ...(error.extra ?? {}) },
-      { status: error.status },
-    );
-  }
-
-  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-    const target = (error.meta?.target as string[] | string | undefined) ?? [];
-    const isSequenceConflict = Array.isArray(target)
-      ? target.includes('sequenceNumber')
-      : typeof target === 'string' && target.includes('sequenceNumber');
-
-    if (isSequenceConflict) {
-      const pointCount = await prisma.pointLog.count({ where: { matchId: requestId, voidedAt: null } });
-      return NextResponse.json(
-        {
-          error: 'SEQUENCE_CONFLICT',
-          message: 'Conflito de sequência ao registrar ponto. Sincronize e tente novamente.',
-          expectedSequence: pointCount + 1,
-        },
-        { status: 409 },
-      );
-    }
-
-    if (requestClientEventId) {
-      const [existingPoint, currentMatch] = await Promise.all([
-        prisma.pointLog.findFirst({
-          where: { matchId: requestId, clientEventId: requestClientEventId },
-          select: { id: true },
-        }),
-        prisma.match.findUnique({ where: { id: requestId }, select: { scoreState: true, version: true } }),
-      ]);
-      if (existingPoint && currentMatch) {
-        return NextResponse.json({
-          scoreState: currentMatch.scoreState,
-          version: currentMatch.version,
-          pointLogId: existingPoint.id,
-        });
-      }
-    }
-  }
-
-  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-    return NextResponse.json(
-      {
-        error: 'VERSION_CONFLICT',
-        message: 'Conflito de concorrência: outro anotador registrou um ponto antes. Recarregue e tente novamente.',
-      },
-      { status: 409 },
-    );
-  }
-
-  logger.point.api.error(error);
-  const errorMessage = error instanceof Error ? error.message : 'Erro interno do servidor';
-  return NextResponse.json({ error: 'INTERNAL_ERROR', message: errorMessage }, { status: 500 });
-}
