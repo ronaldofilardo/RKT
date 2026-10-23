@@ -1,59 +1,14 @@
 import type { TimelinePoint } from './types';
 import type { GameErrorEntry } from './game-errors';
-import { classifyPointError, computeGameErrors } from './game-errors';
-import { calculateServiceStats, calculateReturnBreakPoints } from './set-summary-service.logic';
-import type { PlayerSetStats, SetSummaryReport } from './set-summary-stats.types';
+import { computeGameErrors } from './game-errors';
+import { calculatePlayerStats } from './set-summary-errors.logic';
+import type { SetSummaryReport } from './set-summary-stats.types';
 
 // Fonte canônica dos erros por game movida para `game-errors.ts`.
 // Re-exportados para manter a API pública existente.
 export type { GameErrorEntry };
 export { computeGameErrors };
 export type { SetSummaryReport };
-
-function calculatePlayerErrors(
-  points: TimelinePoint[],
-  targetServer: 'player1' | 'player2',
-  targetWinner: 'PLAYER_1' | 'PLAYER_2',
-) {
-  let unforcedErrors = 0;
-  let forcedErrors = 0;
-
-  for (const p of points) {
-    if (p.winner === targetWinner) continue;
-
-    // target perdeu o ponto → target é o ofensor.
-    const kind = classifyPointError(p, targetServer);
-    if (kind === 'unforced') {
-      unforcedErrors++;
-    } else if (kind === 'forced') {
-      forcedErrors++;
-    }
-  }
-
-  return {
-    unforcedErrors,
-    forcedErrors,
-    totalErrors: unforcedErrors + forcedErrors,
-  };
-}
-
-function calculatePlayerStats(points: TimelinePoint[], player: 'player1' | 'player2'): PlayerSetStats {
-  const isP1 = player === 'player1';
-  const targetWinner = isP1 ? 'PLAYER_1' : 'PLAYER_2';
-  const targetServer = isP1 ? 'player1' : 'player2';
-
-  const totalPointsWon = points.filter(p => p.winner === targetWinner).length;
-  const serviceStats = calculateServiceStats(points, targetServer, targetWinner);
-  const returnStats = calculateReturnBreakPoints(points, targetServer, targetWinner);
-  const errorStats = calculatePlayerErrors(points, targetServer, targetWinner);
-
-  return {
-    ...serviceStats,
-    ...returnStats,
-    ...errorStats,
-    totalPointsWon,
-  };
-}
 
 export function computeSetSummary(
   allPoints: TimelinePoint[],
