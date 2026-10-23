@@ -34,7 +34,6 @@
   "src/core/scoring/shadow-replay.ts": 102,
   "src/core/scoring/tiebreak.ts": 170,
   "src/core/scoring/timeline-rebuild.ts": 170,
-  "src/core/scoring/types.ts": 186,
   "src/hooks/use-offline-sync.logic.ts": 105,
   "src/hooks/useCommentOfflineSync.ts": 126,
   "src/hooks/useOfflineMatchSync.ts": 135,

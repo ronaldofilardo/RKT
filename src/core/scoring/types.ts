@@ -1,186 +1,29 @@
-import type {
-  PointType as ContractPointType,
-  RallyDetails as ContractRallyDetails,
-  RallySituacao as ContractRallySituacao,
-  RallyTipo as ContractRallyTipo,
-  RallyGolpe as ContractRallyGolpe,
-  RallySubtipo1 as ContractRallySubtipo1,
-  RallySubtipo2 as ContractRallySubtipo2,
-  RallyEfeito as ContractRallyEfeito,
-  RallyDirecao as ContractRallyDirecao,
-  RallyGolpeEsp as ContractRallyGolpeEsp,
-  RallyDuration as ContractRallyDuration,
-  MatchFormat as ContractMatchFormat,
-} from '@/schemas/contracts';
+export type {
+  TennisFormat,
+  Side,
+  DoublesArrangement,
+  DoublesConfig,
+  ScoringEngineConfig,
+  GameScore,
+  SetScore,
+  PointDetails,
+  HistoryEntry,
+  ScoringState,
+  PointFlow,
+} from './scoring-state.types';
 
-export type TennisFormat = ContractMatchFormat;
+export type {
+  RallySituacao,
+  RallyTipo,
+  RallyGolpe,
+  RallySubtipo1,
+  RallySubtipo2,
+  RallyEfeito,
+  RallyDirecao,
+  RallyGolpeEsp,
+  RallyDuration,
+  RallyDetails,
+  RallyDetailsWithAttribution,
+} from './rally.types';
 
-export type RallySituacao = ContractRallySituacao;
-export type RallyTipo = ContractRallyTipo;
-export type RallyGolpe = ContractRallyGolpe;
-export type RallySubtipo1 = ContractRallySubtipo1;
-export type RallySubtipo2 = ContractRallySubtipo2;
-export type RallyEfeito = ContractRallyEfeito;
-export type RallyDirecao = ContractRallyDirecao;
-export type RallyGolpeEsp = ContractRallyGolpeEsp;
-export type RallyDuration = ContractRallyDuration;
-
-export type RallyDetails = ContractRallyDetails;
-
-/**
- * RallyDetails acrescido da atribuição de golpe/recepção escolhida no
- * modal de detalhes do ponto. `RallyDetails` (contrato) não contém esses
- * campos — eles trafegam separadamente em `PointFlow.hitterId/receiverId`
- * e em `annotations`. Tipado aqui para eliminar os casts `as any` na
- * cadeia modal → point-processor (R-06).
- */
-export type RallyDetailsWithAttribution = RallyDetails & {
-  hitterId?: string;
-  receiverId?: string;
-};
-
-export type Side = 'player1' | 'player2';
-
-export interface DoublesArrangement {
-  serveOrder: Record<Side, [string, string]>;
-  serveIndex: Record<Side, 0 | 1>;
-  receiveDeuce: Record<Side, string>;
-}
-
-export interface DoublesConfig {
-  members: Record<Side, [string, string]>;
-  initial: {
-    serveOrder: Record<Side, [string, string]>;
-    receiveDeuce: Record<Side, string>;
-  };
-}
-
-export interface ScoringEngineConfig {
-  format: TennisFormat;
-  player1Id: string;
-  player2Id: string;
-  initialServerId: string;
-  doubles?: DoublesConfig;
-}
-
-export interface GameScore {
-  player1: number;
-  player2: number;
-  isDeuce: boolean;
-  advantage: 'player1' | 'player2' | null;
-  secondServe: boolean;
-}
-
-export interface SetScore {
-  player1: number;
-  player2: number;
-  isTiebreak: boolean;
-  tiebreakScore: { player1: number; player2: number } | null;
-}
-
-export interface PointDetails {
-  winnerId: string;
-  type: ContractPointType;
-  isFirstServe: boolean;
-  isSecondServe: boolean;
-  serverId: string;
-  timestamp: number;
-  rallyDetails?: ContractRallyDetails | null;
-  rallyLength?: number;
-  firstFaultDetail?: { errorType?: string; serveEffect?: string; direction?: string } | null;
-  receiverId?: string;
-  courtSide?: 'deuce' | 'ad';
-  hitterId?: string;
-}
-
-export interface HistoryEntry {
-  stateBefore: ScoringState;
-  point: PointDetails;
-}
-
-export interface ScoringState {
-  sets: SetScore[];
-  currentGame: GameScore;
-  server: 'player1' | 'player2';
-  isFinished: boolean;
-  winner: 'player1' | 'player2' | null;
-  setsWon: { player1: number; player2: number };
-  startedAt: number | null;
-  secondServe: boolean;
-  doubles?: DoublesArrangement;
-}
-
-export interface PointFlow {
-  winnerId: string;
-  type: string;
-  serverId: string;
-  timestamp?: number;
-  isFirstServe?: boolean;
-  isSecondServe?: boolean;
-  firstFault?: boolean;
-  rallyDetails?: ContractRallyDetails | null;
-  rallyLength?: number;
-  firstFaultDetail?: { errorType?: string; serveEffect?: string; direction?: string } | null;
-  clientEventId?: string;
-  receiverId?: string;
-  courtSide?: 'deuce' | 'ad';
-  hitterId?: string;
-}
-
-// Timeline types
-export interface TimelinePoint {
-  pointNumber: number;
-  winner: 'PLAYER_1' | 'PLAYER_2';
-  type: string;
-  server: 'player1' | 'player2';
-  isFirstServe: boolean;
-  isSecondServe: boolean;
-  gameScore: { player1: number; player2: number };
-  gamesScore: { player1: number; player2: number };
-  setNumber: number;
-  isBreakPoint: boolean;
-  isGameBall: boolean;
-  isSetBall: boolean;
-  rallyLength: number;
-  rallyDetails: ContractRallyDetails | null;
-  note?: string;
-  hasAudioNote?: boolean;
-  audioNoteMime?: string;
-  audioNoteDuration?: number;
-  pointId?: string;
-  sequenceNumber?: number;
-  clientEventId?: string;
-  recordedAt?: string;
-  zone?: string;
-  stroke?: string;
-  rawAnnotations?: Record<string, unknown> | null;
-  isTiebreak?: boolean;
-  gameIsDeuce?: boolean;
-  gameAdvantage?: 'player1' | 'player2' | null;
-  serveEffect?: string;
-  serveDirection?: string;
-  firstFault?: { errorType?: string; serveEffect?: string; direction?: string } | null;
-  firstServeOutcome?: 'ace' | 'out' | 'net' | null;
-  secondServeOutcome?: 'ace' | 'out' | 'net' | null;
-  pointDetails: PointDetails;
-  serverId?: string;
-  receiverId?: string;
-  courtSide?: 'deuce' | 'ad';
-  hitterId?: string;
-  /**
-   * Presente somente no primeiro ponto de um segmento de anotação que
-   * começou após uma correção manual de placar (ex.: retomada de partida
-   * interrompida). Usado pelo /report para renderizar um marcador de
-   * "interrupção" entre os dois trechos da timeline, sem alterar as
-   * colunas existentes da tabela.
-   */
-  segmentBreak?: {
-    editedAt: string;
-    editedByUserId?: string;
-    note?: string;
-    previousLabel: string;
-    newLabel: string;
-  };
-}
-
-
+export type { TimelinePoint } from './timeline.types';
