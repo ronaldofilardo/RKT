@@ -2,18 +2,10 @@
 
 import { useState } from 'react';
 import type { DoublesArrangement } from '@/core/scoring/types';
+import type { DoublesArrangementModalProps } from './doubles-arrangement-modal.types';
+import { DoublesArrangementSide } from './doubles-arrangement-side';
 
-export interface DoublesArrangementModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: (arrangement: DoublesArrangement) => Promise<void> | void;
-  player1: { id: string; name: string };
-  player1Partner: { id: string; name: string };
-  player2: { id: string; name: string };
-  player2Partner: { id: string; name: string };
-  currentArrangement?: DoublesArrangement | null;
-  currentSetIndex?: number;
-}
+export type { DoublesArrangementModalProps } from './doubles-arrangement-modal.types';
 
 export function DoublesArrangementModal({
   isOpen,
@@ -85,138 +77,26 @@ export function DoublesArrangementModal({
 
         <div className="p-5 overflow-y-auto space-y-6">
           {/* Lado A */}
-          <div className="p-3.5 bg-telemetry-elevated/40 border border-white/10 rounded-xl space-y-3">
-            <h3 className="text-xs font-bold text-telemetry-blue-light uppercase tracking-wider">
-              {player1.name} / {player1Partner.name}
-            </h3>
-            
-            <div>
-              <label className="text-[11px] text-telemetry-text-muted block mb-1.5 font-medium">
-                Primeiro a sacar no set:
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setP1Server(player1.id)}
-                  className={`py-2 px-2.5 text-xs font-semibold rounded-lg border transition-all text-center truncate ${
-                    p1Server === player1.id
-                      ? 'bg-telemetry-blue/20 border-telemetry-blue text-white ring-1 ring-telemetry-blue/50'
-                      : 'bg-telemetry-surface border-white/10 text-telemetry-text-muted hover:text-white'
-                  }`}
-                >
-                  🎾 {player1.name}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setP1Server(player1Partner.id)}
-                  className={`py-2 px-2.5 text-xs font-semibold rounded-lg border transition-all text-center truncate ${
-                    p1Server === player1Partner.id
-                      ? 'bg-telemetry-blue/20 border-telemetry-blue text-white ring-1 ring-telemetry-blue/50'
-                      : 'bg-telemetry-surface border-white/10 text-telemetry-text-muted hover:text-white'
-                  }`}
-                >
-                  🎾 {player1Partner.name}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[11px] text-telemetry-text-muted block mb-1.5 font-medium">
-                Recebe na quadra de iguais (lado direito):
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setP1Receiver(player1.id)}
-                  className={`py-2 px-2.5 text-xs font-semibold rounded-lg border transition-all text-center truncate ${
-                    p1Receiver === player1.id
-                      ? 'bg-telemetry-blue/20 border-telemetry-blue text-white ring-1 ring-telemetry-blue/50'
-                      : 'bg-telemetry-surface border-white/10 text-telemetry-text-muted hover:text-white'
-                  }`}
-                >
-                  {player1.name}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setP1Receiver(player1Partner.id)}
-                  className={`py-2 px-2.5 text-xs font-semibold rounded-lg border transition-all text-center truncate ${
-                    p1Receiver === player1Partner.id
-                      ? 'bg-telemetry-blue/20 border-telemetry-blue text-white ring-1 ring-telemetry-blue/50'
-                      : 'bg-telemetry-surface border-white/10 text-telemetry-text-muted hover:text-white'
-                  }`}
-                >
-                  {player1Partner.name}
-                </button>
-              </div>
-            </div>
-          </div>
+          <DoublesArrangementSide
+            accent="blue"
+            player={player1}
+            partner={player1Partner}
+            server={p1Server}
+            setServer={setP1Server}
+            receiver={p1Receiver}
+            setReceiver={setP1Receiver}
+          />
 
           {/* Lado B */}
-          <div className="p-3.5 bg-telemetry-elevated/40 border border-white/10 rounded-xl space-y-3">
-            <h3 className="text-xs font-bold text-telemetry-orange-light uppercase tracking-wider">
-              {player2.name} / {player2Partner.name}
-            </h3>
-            
-            <div>
-              <label className="text-[11px] text-telemetry-text-muted block mb-1.5 font-medium">
-                Primeiro a sacar no set:
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setP2Server(player2.id)}
-                  className={`py-2 px-2.5 text-xs font-semibold rounded-lg border transition-all text-center truncate ${
-                    p2Server === player2.id
-                      ? 'bg-telemetry-orange/20 border-telemetry-orange text-white ring-1 ring-telemetry-orange/50'
-                      : 'bg-telemetry-surface border-white/10 text-telemetry-text-muted hover:text-white'
-                  }`}
-                >
-                  🎾 {player2.name}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setP2Server(player2Partner.id)}
-                  className={`py-2 px-2.5 text-xs font-semibold rounded-lg border transition-all text-center truncate ${
-                    p2Server === player2Partner.id
-                      ? 'bg-telemetry-orange/20 border-telemetry-orange text-white ring-1 ring-telemetry-orange/50'
-                      : 'bg-telemetry-surface border-white/10 text-telemetry-text-muted hover:text-white'
-                  }`}
-                >
-                  🎾 {player2Partner.name}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[11px] text-telemetry-text-muted block mb-1.5 font-medium">
-                Recebe na quadra de iguais (lado direito):
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setP2Receiver(player2.id)}
-                  className={`py-2 px-2.5 text-xs font-semibold rounded-lg border transition-all text-center truncate ${
-                    p2Receiver === player2.id
-                      ? 'bg-telemetry-orange/20 border-telemetry-orange text-white ring-1 ring-telemetry-orange/50'
-                      : 'bg-telemetry-surface border-white/10 text-telemetry-text-muted hover:text-white'
-                  }`}
-                >
-                  {player2.name}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setP2Receiver(player2Partner.id)}
-                  className={`py-2 px-2.5 text-xs font-semibold rounded-lg border transition-all text-center truncate ${
-                    p2Receiver === player2Partner.id
-                      ? 'bg-telemetry-orange/20 border-telemetry-orange text-white ring-1 ring-telemetry-orange/50'
-                      : 'bg-telemetry-surface border-white/10 text-telemetry-text-muted hover:text-white'
-                  }`}
-                >
-                  {player2Partner.name}
-                </button>
-              </div>
-            </div>
-          </div>
+          <DoublesArrangementSide
+            accent="orange"
+            player={player2}
+            partner={player2Partner}
+            server={p2Server}
+            setServer={setP2Server}
+            receiver={p2Receiver}
+            setReceiver={setP2Receiver}
+          />
         </div>
 
         <div className="px-5 py-4 border-t border-white/10 bg-white/[0.02] flex items-center justify-end gap-3">
