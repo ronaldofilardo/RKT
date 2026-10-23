@@ -1,10 +1,8 @@
 import { logger } from "@/lib/logger";
-import type {
-  PointFlow,
-  ScoringState,
-} from "@/core/scoring/types";
+import type { PointFlow, ScoringState } from "@/core/scoring/types";
 import type { PointProcessorDeps } from "./point-processor.types";
 import { createApplySuccessResult } from "./point-processor.success.logic";
+import { createSyncPointFlow } from "./point-processor.sync.logic";
 import { createConfirmPointDetails } from "./point-processor.details.logic";
 
 export function createPointProcessorService(deps: PointProcessorDeps) {
@@ -23,6 +21,16 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
     lastPointLogIdRef,
     setScoreState,
     setMatch,
+  });
+
+  const syncPointFlow = createSyncPointFlow({
+    isOnline,
+    pointSync,
+    enqueue,
+    fetchMatch,
+    setError,
+    pointSequenceRef,
+    applySuccessResult,
   });
 
   const applyPoint = async (flow: PointFlow): Promise<string | undefined> => {
@@ -49,58 +57,8 @@ export function createPointProcessorService(deps: PointProcessorDeps) {
       setScoreState({ type: "POINT_APPLIED", payload: newState });
       setPointsHistory((prev) => [...prev.slice(-19), flow.winnerId]);
       const seq = ++pointSequenceRef.current;
-
-      if (isOnline) {
-        const clientEventId =
-          flow.clientEventId ??
-          (typeof crypto !== "undefined" && crypto.randomUUID
-            ? crypto.randomUUID()
-            : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
-        const flowWithClientEventId: PointFlow = { ...flow, clientEventId };
-        const result = await pointSync.syncPointToServer(flowWithClientEventId, seq, clientEventId);
-
-        if (result.success && result.serverResponse?.scoreState) {
-          return applySuccessResult(result.serverResponse);
-        } else if (result.needsLogin) {
-          // 401 - token expirado: não tenta novamente, apenas enfileira para offline
-          // e mostra mensagem para o usuário fazer login novamente
-          await pointSync.queuePointForOffline(enqueue, flowWithClientEventId);
-          // O erro já foi setado pelo respondUnauthorized
-        } else if (result.needsResync) {
-          await fetchMatch(true);
-          const retrySeq = ++pointSequenceRef.current;
-          const retryResult = await pointSync.syncPointToServer(flowWithClientEventId, retrySeq, clientEventId);
-
-          if (retryResult.success && retryResult.serverResponse?.scoreState) {
-            setError(null);
-            return applySuccessResult(retryResult.serverResponse);
-          } else if (retryResult.needsResync) {
-            await fetchMatch(true);
-            // BUG FIX (perda silenciosa de anotação ACE/dupla falta/rally):
-            // antes, quando as 2 tentativas online falhavam, o ponto (já
-            // aplicado localmente, incluindo rallyDetails/firstFaultDetail)
-            // era simplesmente descartado — fetchMatch(true) sobrescrevia o
-            // estado local com o do servidor (sem o ponto) e não havia
-            // nenhuma outra tentativa de reenvio. Agora o ponto é
-            // reenfileirado na fila offline com o mesmo clientEventId para
-            // garantir idempotência e evitar duplicação no reenvio.
-            await pointSync.queuePointForOffline(enqueue, flowWithClientEventId);
-            setError(
-              "Falha ao sincronizar com o servidor — o ponto foi salvo neste dispositivo e será reenviado automaticamente.",
-            );
-          } else if (retryResult.needsLogin) {
-            // 401 no retry: enfileira para offline
-            await pointSync.queuePointForOffline(enqueue, flowWithClientEventId);
-          }
-        }
-      } else {
-        const offlineClientEventId =
-          flow.clientEventId ??
-          (typeof crypto !== "undefined" && crypto.randomUUID
-            ? crypto.randomUUID()
-            : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
-        await pointSync.queuePointForOffline(enqueue, { ...flow, clientEventId: offlineClientEventId });
-      }
+      const synced = await syncPointFlow(flow, seq);
+      if (synced.handled) return synced.pointLogId;
 
       if (newState.isFinished) setShowFinishedBanner(true);
       return undefined;

@@ -85,7 +85,6 @@
   "src/hooks/useScoreboardUIState.ts": 128,
   "src/hooks/useScoringHandlers.match-fetch.ts": 228,
   "src/hooks/useScoringHandlers.persistence.ts": 151,
-  "src/hooks/useScoringHandlers.point-processor.service.ts": 289,
   "src/hooks/useScoringHandlers.point-sync.ts": 183,
   "src/hooks/useScoringHandlers.serve-actions.service.ts": 240,
   "src/hooks/useScoringHandlers.types.ts": 119,
