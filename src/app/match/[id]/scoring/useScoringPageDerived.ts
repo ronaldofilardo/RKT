@@ -11,8 +11,7 @@ import {
   deriveEditScoreCompletedSets,
 } from "./scoring-page-derived-edit-score.logic";
 import { resolveDisplayState } from "./scoring-page-display.logic";
-import { buildEngineConfig } from "@/core/scoring/engine-config";
-import { getServingMemberId, getReceiverMemberId } from "@/core/scoring/doubles";
+import { resolveActivePlayers } from "./scoring-page-active-players.logic";
 import type { ScoringPageDerived } from "./useScoringPageDerived.types";
 
 export type { ScoringPageDerived } from "./useScoringPageDerived.types";
@@ -55,20 +54,7 @@ export function useScoringPageDerived(
     ? (effectiveScoreState.server === "player1" ? match.player2.name : match.player1.name)
     : "";
 
-  let activeServerId: string | null = null;
-  let activeReceiverId: string | null = null;
-  if (effectiveScoreState && match) {
-    try {
-      const engineConfig = buildEngineConfig(match);
-      if (engineConfig.doubles) {
-        activeServerId = getServingMemberId(effectiveScoreState, engineConfig.doubles);
-        activeReceiverId = getReceiverMemberId(effectiveScoreState, engineConfig.doubles);
-      }
-    } catch {
-      activeServerId = null;
-      activeReceiverId = null;
-    }
-  }
+  const { activeServerId, activeReceiverId } = resolveActivePlayers(effectiveScoreState, match);
 
   return {
     effectiveScoreState,
