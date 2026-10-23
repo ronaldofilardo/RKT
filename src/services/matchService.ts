@@ -1,9 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import type { PrismaClient } from "@prisma/client";
 import type {
   MatchState,
   MatchFormat,
-  CreateMatchInput,
   MatchFinishReason,
 } from "@/schemas/contracts";
 
@@ -11,11 +9,6 @@ import { logger } from "@/lib/logger";
 import { getPrismaErrorCode } from "@/lib/errors";
 import { listMatches, getMatch, findAbandonedSessionSnapshot } from "./matchRepository";
 import { validateFinishMatch, validateTransitionState } from "./matchValidator";
-import {
-  validateCreateMatchPlayers,
-  warnMissingCreator,
-  buildCreateMatchData,
-} from "./match-service-create.logic";
 import {
   sanitizeMatchUpdate,
   buildMatchUpdateData,
@@ -27,23 +20,8 @@ import {
 import { pruneDoublesSetupChanges } from "./match-service-doubles.logic";
 
 export { listMatches, getMatch, findAbandonedSessionSnapshot };
-
-export async function createMatch(
-  data: CreateMatchInput,
-  createdByUserId?: string,
-  tx?: Parameters<Parameters<PrismaClient['$transaction']>[0]>[0],
-) {
-  validateCreateMatchPlayers(data);
-  warnMissingCreator(createdByUserId);
-
-  const client = tx ?? prisma;
-  const matchData = buildCreateMatchData(data, createdByUserId);
-
-  return client.match.create({
-    data: matchData,
-    include: { player1: true, player2: true },
-  });
-}
+export { createMatch } from './match-service-create.service';
+export { deleteMatch } from './match-service-delete.service';
 
 export async function updateMatch(
   id: string,
@@ -68,52 +46,6 @@ export async function updateMatch(
     if (getPrismaErrorCode(error) === 'P2025') return { error: 'VERSION_CONFLICT' } as const;
     throw error;
   }
-}
-
-export async function deleteMatch(
-  id: string,
-  options: { type: 'soft' | 'hard'; reason?: string; deletedBy?: string },
-) {
-  const match = await prisma.match.findFirst({
-    where: { id },
-    include: {
-      pointLog: { select: { id: true } },
-      annotationSessions: { select: { id: true } },
-    },
-  });
-
-  if (!match) return { error: 'MATCH_NOT_FOUND' } as const;
-
-  if (match.state === 'FINISHED') {
-    return {
-      error: 'CANNOT_DELETE_FINISHED: Partidas finalizadas não podem ser excluídas permanentemente',
-    } as const;
-  }
-
-  if (options.type === 'hard') {
-    await prisma.$transaction([
-      prisma.pointLog.deleteMany({ where: { matchId: id } }),
-      prisma.matchAnnotationSession.deleteMany({ where: { matchId: id } }),
-      prisma.match.delete({ where: { id } }),
-    ]);
-    return {
-      success: true,
-      type: 'hard',
-      stats: { points: match.pointLog.length, annotationSessions: match.annotationSessions.length },
-    } as const;
-  }
-
-  const updateData: Record<string, unknown> = { state: 'CANCELLED', deletedAt: new Date() };
-  if (options.deletedBy) updateData.deletedBy = options.deletedBy;
-  if (options.reason) updateData.finishNote = options.reason;
-
-  await prisma.match.update({ where: { id }, data: updateData });
-
-  return {
-    success: true,
-    type: 'soft',
-    stats: { points: match.pointLog.length, annotationSessions: match.annotationSessions.length },
-  } as const;
 }
 
 export async function finishMatch(
