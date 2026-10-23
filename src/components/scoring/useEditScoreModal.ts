@@ -6,14 +6,13 @@ import { createInitialEditScoreState } from "@/core/scoring/edit-score-state";
 import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from '@/hooks/use-session-manager.logic';
 import { useEditScoreCalculator } from "./use-edit-score-calculator";
 import {
-  computeGameInputChange,
-  computeTiebreakInputChange,
   performAddSet,
   performConfirmSet,
-  applyCompletedSetEdit,
 } from "./use-edit-score-modal-input.logic";
 import { executeConfirmFlow } from "./use-edit-score-modal-submission.logic";
 import { useEditScoreModalSync } from "./useEditScoreModalSync";
+import { useEditScoreModalInputActions } from "./use-edit-score-modal-input-actions";
+import { useEditScoreModalEditActions } from "./use-edit-score-modal-edit-actions";
 import type {
   UseEditScoreModalOptions,
   UseEditScoreModalReturn,
@@ -92,50 +91,19 @@ export function useEditScoreModal(
     setIsConfirming,
   });
 
-  const updateGameInputValue = useCallback((value: string, setter: (v: string) => void, player: 'p1' | 'p2', otherInput?: string): void => {
-    inputTouchedRef.current[player] = true;
-    setConfirmError(null);
-    setFloorValidationError(null);
-
-    const minGames = floorCurrentSets ? (player === 'p1' ? floorCurrentSets.player1 : floorCurrentSets.player2) : undefined;
-
-    const result = computeGameInputChange({
-      value,
-      isMatchTiebreakSet,
-      matchFormat,
-      otherInput,
-      currentSets,
-      player,
-      currentInputVal: player === 'p1' ? state.p1Input : state.p2Input,
-      minGames,
-    });
-
-    if (result.shouldSet) {
-      setter(result.valueToSet);
-      if (result.clearTiebreak) {
-        setState((prev) => ({ ...prev, tiebreakP1: "", tiebreakP2: "" }));
-      }
-    }
-  }, [matchFormat, isMatchTiebreakSet, currentSets, floorCurrentSets, state.p1Input, state.p2Input, inputTouchedRef]);
-
-  const updateTiebreakInputValue = useCallback((value: string, player: 'p1' | 'p2'): void => {
-    setConfirmError(null);
-    setFloorValidationError(null);
-
-    const minPoints = floorTiebreak ? (player === 'p1' ? floorTiebreak.player1 : floorTiebreak.player2) : undefined;
-
-    const result = computeTiebreakInputChange({
-      value,
-      player,
-      currentGamePoints,
-      currentTbInputVal: player === 'p1' ? state.tiebreakP1 : state.tiebreakP2,
-      minPoints,
-    });
-
-    if (result.shouldSet) {
-      setState((prev) => ({ ...prev, [player === 'p1' ? 'tiebreakP1' : 'tiebreakP2']: result.valueToSet }));
-    }
-  }, [currentGamePoints, floorTiebreak, state.tiebreakP1, state.tiebreakP2]);
+  const { updateGameInputValue, updateTiebreakInputValue, updatePointTotals } = useEditScoreModalInputActions({
+    state,
+    setState,
+    setConfirmError,
+    setFloorValidationError,
+    inputTouchedRef,
+    matchFormat,
+    currentSets,
+    floorCurrentSets,
+    floorTiebreak,
+    currentGamePoints,
+    isMatchTiebreakSet,
+  });
 
   const confirmCurrentAction = useCallback(async () => {
     await executeConfirmFlow({
@@ -196,26 +164,17 @@ export function useEditScoreModal(
     });
   }, [canAddNextSet, state, currentServer, initialServer, matchFormat, completedSets, isMatchTiebreakSet]);
 
-  const updatePointTotals = useCallback((p1: string, p2: string) => {
-    setConfirmError(null);
-    setFloorValidationError(null);
-    setState((prev) => ({ ...prev, p1Points: p1, p2Points: p2 }));
-  }, []);
-
-  const openEditCompletedSet = useCallback((index: number, p1Games: number, p2Games: number) => {
-    applyCompletedSetEdit({
-      index,
-      p1Games,
-      p2Games,
-      matchFormat,
-      completedSets,
-      floorCurrentSets,
-      editedCompletedSetIndicesRef,
-      setState,
-      setConfirmError,
-      setFloorValidationError,
-    });
-  }, [matchFormat, completedSets, floorCurrentSets, editedCompletedSetIndicesRef]);
+  const { openEditCompletedSet, resetState } = useEditScoreModalEditActions({
+    matchFormat,
+    completedSets,
+    currentServer,
+    floorCurrentSets,
+    editedCompletedSetIndicesRef,
+    initializedRef,
+    setState,
+    setConfirmError,
+    setFloorValidationError,
+  });
 
   const commitSetScore = useCallback(() => {
     performConfirmSet(
@@ -226,21 +185,6 @@ export function useEditScoreModal(
       inputTouchedRef,
     );
   }, [canConfirmSetCalc, isMatchTiebreakSet, addSetToMatch, confirmCurrentAction, inputTouchedRef]);
-
-  const resetState = useCallback(() => {
-    setState({
-      ...createInitialEditScoreState(currentServer, matchFormat),
-      editableCompletedSets: completedSets.map((cs) => ({
-        p1Games: cs.games.player1,
-        p2Games: cs.games.player2,
-        isPartial: false,
-        tiebreakScore: cs.tiebreakScore ?? undefined,
-      })),
-    });
-    setConfirmError(null);
-    setFloorValidationError(null);
-    initializedRef.current = false;
-  }, [currentServer, completedSets, initializedRef, matchFormat]);
 
   return {
     state,
