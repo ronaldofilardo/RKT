@@ -21,46 +21,28 @@ export class ScoringEngine {
   }
 
   applyPoint(flow: PointFlow): ScoringState {
-    if (this.state.isFinished) {
-      throw new Error('MATCH_ALREADY_FINISHED');
-    }
-
-    if (!this.state.startedAt) {
-      this.state.startedAt = flow.timestamp || Date.now();
-    }
-
+    if (this.state.isFinished) throw new Error('MATCH_ALREADY_FINISHED');
+    if (!this.state.startedAt) this.state.startedAt = flow.timestamp || Date.now();
     this.state = processPointFlow(this.config, this.state, this.history, flow);
     return getState(this.state);
   }
 
   undoLastPoint(): { point: PointDetails } | null {
     const result = undoHistory(this.history);
-    if (result) {
-      this.state = result.stateBefore;
-      return { point: result.point };
-    }
-    return null;
+    if (!result) return null;
+    this.state = result.stateBefore;
+    return { point: result.point };
   }
 
-  getHistoryLength(): number {
-    return getHistoryLength(this.history);
-  }
+  getHistoryLength(): number { return getHistoryLength(this.history); }
 
-  getState(): Readonly<ScoringState> {
-    return getState(this.state);
-  }
+  getState(): Readonly<ScoringState> { return getState(this.state); }
 
-  isFinished(): boolean {
-    return this.state.isFinished;
-  }
+  isFinished(): boolean { return this.state.isFinished; }
 
-  getWinner(): 'player1' | 'player2' | null {
-    return this.state.winner;
-  }
+  getWinner(): 'player1' | 'player2' | null { return this.state.winner; }
 
-  getServer(): 'player1' | 'player2' {
-    return this.state.server;
-  }
+  getServer(): 'player1' | 'player2' { return this.state.server; }
 
   getServingMemberId(): string | null {
     if (!this.config.doubles) return null;
@@ -73,18 +55,12 @@ export class ScoringEngine {
   }
 
   setArrangement(arrangement: DoublesArrangement): void {
-    if (this.config.doubles) {
-      this.state.doubles = arrangement;
-    }
+    if (this.config.doubles) this.state.doubles = arrangement;
   }
 
-  getPointHistory(): HistoryEntry[] {
-    return getPointHistory(this.history);
-  }
+  getPointHistory(): HistoryEntry[] { return getPointHistory(this.history); }
 
-  restorePointHistory(history: HistoryEntry[]): void {
-    restorePointHistory(this.history, history);
-  }
+  restorePointHistory(history: HistoryEntry[]): void { restorePointHistory(this.history, history); }
 
   reconcileWithCanonicalState(canonicalState: ScoringState, canonicalVersion: number): void {
     const result = reconcileWithCanonicalState(this.state, this.history, canonicalState, canonicalVersion);
@@ -94,25 +70,18 @@ export class ScoringEngine {
 
   loadState(newState: ScoringState | unknown): void {
     const raw = typeof newState === 'string' ? JSON.parse(newState) : newState;
-    const unpacked = unwrapStateEnvelope(raw);
-    this.state = JSON.parse(JSON.stringify(unpacked));
+    this.state = JSON.parse(JSON.stringify(unwrapStateEnvelope(raw)));
     this.history = [];
   }
 
-  clearHistory(): void {
-    clearHistory(this.history);
-  }
+  clearHistory(): void { clearHistory(this.history); }
 
-  serialize(): string {
-    return serialize(this.state, this.history);
-  }
+  serialize(): string { return serialize(this.state, this.history); }
 
   static fromSerialized(config: ScoringEngineConfig, serialized: string): ScoringEngine {
     const { state, history } = parseSerializedEnginePayload(serialized, config);
     const engine = new ScoringEngine(config, state);
-    if (history.length > 0) {
-      engine.restorePointHistory(history);
-    }
+    engine.restorePointHistory(history);
     return engine;
   }
 }
