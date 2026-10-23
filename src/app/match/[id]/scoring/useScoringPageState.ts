@@ -3,101 +3,24 @@
 import { useState, useRef, useReducer, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ScoringEngine } from "@/core/scoring/engine";
-import type { ScoringState, TimelinePoint } from "@/core/scoring/types";
+import type { ScoringState } from "@/core/scoring/types";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
 import { useOfflineMatchSync } from "@/hooks/useOfflineMatchSync";
 import { useScoreboardUIState } from "@/hooks/useScoreboardUIState";
 import { useToast } from "@/components/Toast";
 import { useModalStack } from "@/hooks/useModalStack";
 import { useSession } from "@/contexts/SessionContext";
-import type { SessionData } from "@/contexts/SessionContext";
 import type { MatchData } from "@/hooks/useScoringHandlers";
 import type { SuspendedSessionState } from "@/hooks/useSessionManager";
-import type { QueuedAction } from "@/schemas/contracts";
-import { scoreReducer, type ScoreAction } from "@/hooks/useScoreReducer";
+import { scoreReducer } from "@/hooks/useScoreReducer";
 import {
   useScoringTimelineSync,
   type MatchCommentData,
 } from "./useScoringTimelineSync";
+import type { ScoringPageState } from "./useScoringPageState.types";
 
 export type { MatchCommentData };
-
-export interface ScoringPageState {
-  matchId: string;
-  router: ReturnType<typeof useRouter>;
-  match: MatchData | null;
-  setMatch: React.Dispatch<React.SetStateAction<MatchData | null>>;
-  isLoading: boolean;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  error: string | null;
-  setError: React.Dispatch<React.SetStateAction<string | null>>;
-  scoreState: ScoringState | null;
-  setScoreState: React.Dispatch<ScoreAction>;
-  elapsed: number;
-  setElapsed: React.Dispatch<React.SetStateAction<number>>;
-  timerRef: React.MutableRefObject<ReturnType<typeof setInterval> | null>;
-  setupLoading: boolean;
-  setSetupLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  fontScale: number;
-  setFontScale: React.Dispatch<React.SetStateAction<number>>;
-  pointsHistory: string[];
-  setPointsHistory: React.Dispatch<React.SetStateAction<string[]>>;
-  showFinishedBanner: boolean;
-  setShowFinishedBanner: React.Dispatch<React.SetStateAction<boolean>>;
-  serveErrorState: ReturnType<typeof useScoreboardUIState>["state"];
-  openServeErrorModal: ReturnType<typeof useScoreboardUIState>["openServeErrorModal"];
-  closeServeErrorModal: ReturnType<typeof useScoreboardUIState>["closeServeErrorModal"];
-  setFirstServeError: ReturnType<typeof useScoreboardUIState>["setFirstServeError"];
-  clearFirstServeError: ReturnType<typeof useScoreboardUIState>["clearFirstServeError"];
-  setServeStep: ReturnType<typeof useScoreboardUIState>["setServeStep"];
-  pointSequenceRef: React.MutableRefObject<number>;
-  sessionIdRef: React.MutableRefObject<string | null>;
-  suspendedSession: SuspendedSessionState | null;
-  setSuspendedSession: React.Dispatch<React.SetStateAction<SuspendedSessionState | null>>;
-  pendingEditScore: {
-    scoreState: ScoringState;
-    floorSets: { player1: number; player2: number } | null;
-  } | null;
-  setPendingEdit: (scoreState: ScoringState, floorSets: { player1: number; player2: number } | null) => void;
-  floorCurrentSets: { player1: number; player2: number } | null;
-  setFloorCurrentSets: React.Dispatch<React.SetStateAction<{ player1: number; player2: number } | null>>;
-  viewMode: "scoring" | "timeline";
-  setViewMode: React.Dispatch<React.SetStateAction<"scoring" | "timeline">>;
-  engineTick: number | null;
-  setEngineTick: React.Dispatch<React.SetStateAction<number | null>>;
-  isProcessingRef: React.MutableRefObject<boolean>;
-  debounceTimerRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
-  tokenRef: React.MutableRefObject<string | null>;
-  sessionActive: boolean;
-  setSessionActive: React.Dispatch<React.SetStateAction<boolean>>;
-  activeModal: string | null;
-  modalParams: Record<string, string>;
-  open: (name: string, params?: Record<string, string>) => void;
-  close: () => void;
-  closeAll: () => void;
-  session: SessionData;
-  clearPendingEdit: () => void;
-  updateScore: (state: ScoringState) => void;
-  modalParamsRef: React.MutableRefObject<Record<string, string>>;
-  openRef: React.MutableRefObject<(name: string, params?: Record<string, string>) => void>;
-  matchIdRef: React.MutableRefObject<string>;
-  engineRef: React.MutableRefObject<ReturnType<typeof ScoringEngine.fromSerialized> | null>;
-  isOnline: boolean;
-  enqueue: (action: Omit<QueuedAction, "id" | "status" | "retries">) => Promise<QueuedAction>;
-  clearQueueForMatch: (matchId: string) => Promise<void>;
-  removeLastAction: (matchId: string) => Promise<boolean>;
-  syncPendingMatches: () => Promise<void>;
-  syncStatus: "offline" | "syncing" | "synced" | "auth-required";
-  setSyncStatus: React.Dispatch<React.SetStateAction<"offline" | "syncing" | "synced" | "auth-required">>;
-  toast: (options: { type: import("@/components/Toast").ToastType; message: string }) => void;
-  gamePointToDisplay: (p: number) => string;
-  timelinePoints: TimelinePoint[];
-  fetchTimelinePoints: () => Promise<void>;
-  fetchPointLogAudioMeta: () => Promise<void>;
-  comments: MatchCommentData[];
-  setComments: React.Dispatch<React.SetStateAction<MatchCommentData[]>>;
-  fetchComments: () => Promise<void>;
-}
+export type { ScoringPageState } from "./useScoringPageState.types";
 
 export function useScoringPageState(matchId: string): ScoringPageState {
   const router = useRouter();
