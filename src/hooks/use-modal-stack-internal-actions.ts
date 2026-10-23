@@ -5,8 +5,13 @@ import type { ModalParams } from './modal-stack.types';
 import { commitHistory } from './modal-stack-history.logic';
 import type { InternalModalStateContext } from './use-modal-stack-internal-state';
 
-export function useInternalModalActions(ctx: InternalModalStateContext) {
-  const { setInternalModal, setInternalParams, syncToUrlRef, modalHistoryRef, historyIndexRef } = ctx;
+export function useInternalModalActions({
+  setInternalModal,
+  setInternalParams,
+  syncToUrlRef,
+  modalHistoryRef,
+  historyIndexRef,
+}: InternalModalStateContext) {
 
   const open = useCallback((name: string, params?: ModalParams) => {
     const newParams = params || {};
@@ -16,7 +21,7 @@ export function useInternalModalActions(ctx: InternalModalStateContext) {
     const committed = commitHistory(modalHistoryRef.current, historyIndexRef.current, { modal: name, params: newParams });
     modalHistoryRef.current = committed.history;
     historyIndexRef.current = committed.index;
-  }, []);
+  }, [setInternalModal, setInternalParams, syncToUrlRef, modalHistoryRef, historyIndexRef]);
 
   const replace = useCallback((name: string, params?: ModalParams) => {
     const newParams = params || {};
@@ -26,7 +31,7 @@ export function useInternalModalActions(ctx: InternalModalStateContext) {
     const committed = commitHistory(modalHistoryRef.current, historyIndexRef.current, { modal: name, params: newParams });
     modalHistoryRef.current = committed.history;
     historyIndexRef.current = committed.index;
-  }, []);
+  }, [setInternalModal, setInternalParams, syncToUrlRef, modalHistoryRef, historyIndexRef]);
 
   const close = useCallback(() => {
     if (historyIndexRef.current > 0) {
@@ -40,7 +45,7 @@ export function useInternalModalActions(ctx: InternalModalStateContext) {
       setInternalParams({});
       syncToUrlRef.current(null, {}, 'replace');
     }
-  }, []);
+  }, [setInternalModal, setInternalParams, syncToUrlRef, modalHistoryRef, historyIndexRef]);
 
   const closeAll = useCallback(() => {
     setInternalModal(null);
@@ -51,7 +56,7 @@ export function useInternalModalActions(ctx: InternalModalStateContext) {
       modalHistoryRef.current[0] = { modal: null, params: {} };
       historyIndexRef.current = 0;
     }
-  }, []);
+  }, [setInternalModal, setInternalParams, syncToUrlRef, modalHistoryRef, historyIndexRef]);
 
   return { open, replace, close, closeAll };
 }
