@@ -32,7 +32,6 @@
   "src/app/match/[id]/scoring/useScoringTimelineSync.ts": 149,
   "src/components/dashboard/edit-match-info-sections.tsx": 115,
   "src/components/dashboard/match-card.logic.ts": 156,
-  "src/components/scoring/ActionBar.sections.tsx": 190,
   "src/components/scoring/comment-modal-body.tsx": 102,
   "src/components/scoring/edit-score-modal.types.ts": 107,
   "src/components/scoring/MatchTimelineView.tsx": 108,
