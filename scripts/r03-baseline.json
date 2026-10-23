@@ -8,7 +8,6 @@
   "src/app/api/matches/[id]/sessions/route.ts": 117,
   "src/app/api/matches/[id]/state/route.ts": 172,
   "src/app/api/players/[id]/route.ts": 136,
-  "src/app/atletas/rankingLogic.ts": 197,
   "src/app/dashboard/dashboard.actions.ts": 110,
   "src/app/dashboard/dashboard.resume.ts": 163,
   "src/app/dashboard/hooks/useDashboardMatches.ts": 159,
