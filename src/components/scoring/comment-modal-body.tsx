@@ -3,6 +3,7 @@
 import type { useNotesModal } from '@/hooks/useNotesModal';
 import { CommentSubmittingOverlay, CommentTextInput } from './comment-modal-views';
 import { CommentVoiceRecorderView } from './comment-voice-recorder';
+import { CommentModeTabs } from './comment-mode-tabs';
 
 interface CommentModalBodyProps {
   title: string;
@@ -35,32 +36,7 @@ export function CommentModalBody({
       <h3 className="text-white font-bold text-center text-lg mb-1">{title}</h3>
       <p className="text-telemetry-text-muted text-center text-sm mb-4">Registe um comentário sobre a partida</p>
 
-      <div role="tablist" aria-label="Modo de comentário" className="flex rounded-xl bg-white/5 border border-white/10 p-0.5 mb-4">
-        <button
-          role="tab"
-          aria-selected={notes.mode === 'text'}
-          onClick={() => notes.setMode('text')}
-          className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
-            notes.mode === 'text'
-              ? 'bg-blue-600 text-white shadow'
-              : 'text-telemetry-text-muted hover:text-white'
-          }`}
-        >
-          📝 Texto
-        </button>
-        <button
-          role="tab"
-          aria-selected={notes.mode === 'voice'}
-          onClick={() => notes.setMode('voice')}
-          className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
-            notes.mode === 'voice'
-              ? 'bg-green-600 text-white shadow'
-              : 'text-telemetry-text-muted hover:text-white'
-          }`}
-        >
-          🎤 Voz
-        </button>
-      </div>
+      <CommentModeTabs mode={notes.mode} onChange={notes.setMode} />
 
       {notes.mode === 'text' ? (
         <CommentTextInput
