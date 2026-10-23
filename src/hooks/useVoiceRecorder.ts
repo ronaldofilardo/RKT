@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import type { RecorderState, UseVoiceRecorderReturn } from './voice-recorder.types';
 import { PREFERRED_MIME, MAX_DURATION_MS, getSupportedMime } from './voice-recorder-support.logic';
+import { useVoiceRecorderLifecycle } from './use-voice-recorder-lifecycle';
 
 export type { RecorderState, UseVoiceRecorderReturn } from './voice-recorder.types';
 export { PREFERRED_MIME, FALLBACK_MIME, MAX_DURATION_MS, getSupportedMime } from './voice-recorder-support.logic';
@@ -21,55 +22,18 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
   const startTimeRef = useRef<number>(0);
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
 
-  const cleanupStream = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop());
-      streamRef.current = null;
-    }
-  }, []);
-
-  const cleanupTimer = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-  }, []);
-
-  const cleanupAudioUrl = useCallback(() => {
-    if (audioUrl) {
-      URL.revokeObjectURL(audioUrl);
-    }
-  }, [audioUrl]);
-
-  const stopPreview = useCallback(() => {
-    if (audioElementRef.current) {
-      audioElementRef.current.pause();
-      audioElementRef.current.currentTime = 0;
-      audioElementRef.current = null;
-    }
-  }, []);
-
-  const clear = useCallback(() => {
-    stopPreview();
-    cleanupTimer();
-    cleanupStream();
-    cleanupAudioUrl();
-    chunksRef.current = [];
-    setAudioBlob(null);
-    setAudioUrl(null);
-    setDurationMs(0);
-    setError(null);
-    setState('idle');
-  }, [stopPreview, cleanupTimer, cleanupStream, cleanupAudioUrl]);
-
-  useEffect(() => {
-    return () => {
-      stopPreview();
-      cleanupTimer();
-      cleanupStream();
-      if (audioUrl) URL.revokeObjectURL(audioUrl);
-    };
-  }, [stopPreview, cleanupTimer, cleanupStream, audioUrl]);
+  const { cleanupStream, cleanupTimer, stopPreview, clear } = useVoiceRecorderLifecycle({
+    audioUrl,
+    streamRef,
+    timerRef,
+    audioElementRef,
+    chunksRef,
+    setAudioBlob,
+    setAudioUrl,
+    setDurationMs,
+    setError,
+    setState,
+  });
 
   const startRecording = useCallback(async () => {
     clear();
