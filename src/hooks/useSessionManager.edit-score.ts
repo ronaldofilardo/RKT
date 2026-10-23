@@ -1,65 +1,15 @@
 "use client";
 
 import { logger } from "@/lib/logger";
-import type { MutableRefObject, Dispatch, SetStateAction } from "react";
-import type { ScoringEngine } from "@/core/scoring/engine";
-import type { HistoryEntry, ScoringState, TennisFormat } from "@/core/scoring/types";
-import type { SetEditData } from "@/core/scoring/edit-score-domain";
-import type { ScoreAction } from "@/hooks/useScoreReducer";
-import type { MatchData } from "@/hooks/useScoringHandlers";
-import { getMatchFormatRules } from "@/lib/matchConfig";
+import type { ScoringState, TennisFormat } from "@/core/scoring/types";
 import { validateMatchTiebreakComplete } from "./use-session-manager.logic";
 import { buildNewScoringState } from "./useSessionManager.state-builder";
 import { finishMatch } from "./useSessionManager.match-finish";
-import type { SessionManagerContext, SuspendedSessionState } from "./useSessionManager";
+import type { ExecuteEditScoreOptions } from "./useSessionManager.edit-score.types";
+import { mergeSuspendedSessionRules } from "./edit-score-suspended.logic";
 
-interface ExecuteEditScoreOptions {
-  setResults: SetEditData[];
-  server: "player1" | "player2";
-  note?: string;
-  onMatchFinished?: (winner: "player1" | "player2") => void;
-  ctx: SessionManagerContext;
-  match: MatchData | null;
-  matchId: string;
-  tokenRef: MutableRefObject<string | null>;
-  engineRef: MutableRefObject<ScoringEngine | null>;
-  suspendedSession: SuspendedSessionState | null;
-  persistState: (
-    state: ScoringState,
-    label: string,
-    persistOptions?: { allowScoreEdit?: boolean; isManualScoreEdit?: boolean; history?: HistoryEntry[]; note?: string },
-  ) => Promise<{ success: boolean; needsResync?: boolean }>;
-  fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
-  setScoreState: Dispatch<ScoreAction>;
-  setSessionActive: Dispatch<SetStateAction<boolean>>;
-  setSuspendedSession: Dispatch<SetStateAction<SuspendedSessionState | null>>;
-  abandonCurrentSession: () => Promise<boolean>;
-  toast: (options: { type: 'success' | 'error' | 'info'; message: string }) => void;
-}
-
-function mergeSuspendedSessionRules(newState: ScoringState, suspendedSession: SuspendedSessionState, format?: string) {
-  const bankSetsWon = suspendedSession.bankScoreState?.setsWon ?? {
-    player1: 0,
-    player2: 0,
-  };
-
-  newState.setsWon = {
-    player1: Math.max(newState.setsWon.player1, bankSetsWon.player1),
-    player2: Math.max(newState.setsWon.player2, bankSetsWon.player2),
-  };
-
-  const { setsToWin } = getMatchFormatRules((format as TennisFormat) || "BEST_OF_3");
-  if (newState.setsWon.player1 >= setsToWin) {
-    newState.isFinished = true;
-    newState.winner = "player1";
-  } else if (newState.setsWon.player2 >= setsToWin) {
-    newState.isFinished = true;
-    newState.winner = "player2";
-  } else {
-    newState.isFinished = false;
-    newState.winner = null;
-  }
-}
+export type { ExecuteEditScoreOptions } from "./useSessionManager.edit-score.types";
+export { mergeSuspendedSessionRules } from "./edit-score-suspended.logic";
 
 async function persistFinishedMatch(
   newState: ScoringState,
