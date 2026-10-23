@@ -4,6 +4,7 @@ import { RankingForm } from './RankingForm';
 import { EditAthletePersonalFields } from './components/EditAthletePersonalFields';
 import type { EditAthleteModalProps } from './edit-athlete-modal.types';
 import { useEditAthleteModal } from './use-edit-athlete-modal';
+import { EditAthleteModalFooter } from './edit-athlete-modal-footer';
 
 export type { EditAthleteSavePayload } from './edit-athlete-modal.types';
 
@@ -78,24 +79,12 @@ export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthle
           />
         </div>
 
-        <div className="px-4 py-3 border-t border-white/10 bg-telemetry-elevated flex gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={saving}
-            className="flex-1 px-4 py-2.5 bg-transparent border border-white/10 text-telemetry-text-muted font-medium rounded-lg hover:bg-white/5 hover:text-telemetry-text-primary disabled:opacity-50 transition-colors"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={saveEditedAthlete}
-            disabled={saving || !form.name.trim()}
-            className="flex-1 px-4 py-2.5 bg-telemetry-blue text-white font-medium rounded-lg hover:opacity-90 disabled:opacity-50 transition-colors shadow-sm shadow-telemetry-blue/20"
-          >
-            {saving ? 'Salvando...' : 'Salvar Alterações'}
-          </button>
-        </div>
+        <EditAthleteModalFooter
+          saving={saving}
+          canSave={Boolean(form.name.trim())}
+          onClose={onClose}
+          onSave={saveEditedAthlete}
+        />
       </div>
     </div>
   );
