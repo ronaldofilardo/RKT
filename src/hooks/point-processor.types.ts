@@ -2,6 +2,7 @@ import type { ScoringEngine } from "@/core/scoring/engine";
 import type { QueuedAction } from "@/schemas/rally";
 import type { ScoreboardUIState } from "@/hooks/useScoreboardUIState";
 import type { ScoreAction } from "@/hooks/useScoreReducer";
+import type { PointFlow } from "@/core/scoring/types";
 import type { MatchData } from "./useScoringHandlers.types";
 import type { createPointSyncService } from "./useScoringHandlers.point-sync";
 
@@ -41,4 +42,28 @@ export interface PointProcessorDeps {
   ) => Promise<void>;
   clearFirstServeError: () => void;
   setServeStep: (step: "none" | "second") => void;
+}
+
+export interface ConfirmPointDetailsDeps {
+  match: MatchData | null;
+  modalParamsRef: React.MutableRefObject<Record<string, string>>;
+  serveErrorState: ScoreboardUIState;
+  serverHelpers: {
+    getServerId: () => string;
+  };
+  closeAll: () => void;
+  isProcessingRef: React.MutableRefObject<boolean>;
+  applyPoint: (flow: PointFlow) => Promise<string | undefined>;
+  clearFirstServeError: () => void;
+  setServeStep: (step: "none" | "second") => void;
+  uploadAudioNote?: (
+    matchId: string,
+    pointLogId: string,
+    blob: Blob,
+    durationMs: number,
+    token: string | null,
+  ) => Promise<void>;
+  tokenRef: React.MutableRefObject<string | null>;
+  onAudioUploaded?: () => void;
+  setError: React.Dispatch<React.SetStateAction<string | null>>;
 }
