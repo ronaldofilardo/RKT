@@ -69,7 +69,7 @@ Backlog `.tsx` zerado em 2026-10-16 (53→0); hoje **16 `.tsx` >100L**:
 
 ### 0.4 Top do backlog fora do top-10
 
-`point/route.ts` (394), `rankingConstants.ts` (318), `engine.ts` (316), `matches/[id]/route.ts` (299), `use-edit-score-modal-submission.logic.ts` (290), `useScoringPageDerived.ts` (289), `useScoringPageState.ts` (283), `edit-score-state.ts` (281).
+`point/route.ts` (44 ✅ B-3), `rankingConstants.ts` (318), `engine.ts` (316), `matches/[id]/route.ts` (299), `use-edit-score-modal-submission.logic.ts` (290), `useScoringPageDerived.ts` (289), `useScoringPageState.ts` (283), `edit-score-state.ts` (281).
 
 ---
 
@@ -116,7 +116,7 @@ Ordem por valor/risco (não por posição na tabela):
 |---|---|---|---|---|
 | **B-1** ✅ | `core/scoring/edit-score-domain.ts` | 345 → **51** | Dividir por responsabilidade (validação de resultado, limites de games, tiebreak, próximo sacador) → `core/scoring/edit-score-*` c/ re-exports | `editScoreHelpers.characterization` ✓ |
 | **B-2** ✅ | `matchService.ts` | 304 → **24** | Nova(s) fatia(s) → `match-service-*.logic.ts` (padrão doubles 27L / create 104L / operations 234L) | `matchService.characterization` + `doubles-undo` ✓ |
-| **B-3** | `point/route.ts` | 394 → ≤100 | Completar extração p/ `point/route.logic.ts` (já 267L) | verificar characterization da rota |
+| **B-3** ✅ | `point/route.ts` | 394 → **44** | Completar extração p/ `point/route.logic.ts` (já 267L) — **desvio justificado**: route.logic está no baseline (crescimento proibido), então 6 módulos novos `point/route-*.logic.ts` | characterization da rota ✓ (5 suítes / 37 testes) |
 | **B-4** | `useScoringHandlers.ts` | 288 → ≤100 | Extrair wiring restante (effects/subscription/state bridge) | **Criar characterization mockada antes** (suíte main = baseline-failing; precedente `2dc5eec`) |
 | **B-5** | `DoublesServerSelectionModal.tsx` | 261 → ≤100 | JSX em seções/children; estado já no hook | `DashboardMatchModals.doubles` ✓ |
 | **B-6** | `point-processor.service.ts` | 289 → ≤100 | Próximos blocos puros → módulos | `point-processor.success-result.characterization` ✓ |
@@ -167,3 +167,4 @@ Ordem por valor/risco (não por posição na tabela):
 | 2026-10-22 | **A-2** Triagem dos 16 `.tsx`: 3 novos (`DoublesServerSelectionModal` 261, `DoublesArrangementModal` 243, `point-details-breadcrumb` 108) + 13 que cresceram desde `af705d5` (maiores: `ActionBar.sections` 46→190, `PlayerSelection` 64→189, `PlayerCard` 56→111); **causa-raiz: 9/13 + 2 novos = feature duplas `8479c4e` (mesmo dia da auditoria, pré-guarda)**; lote C-0 definido = os 16 | Concluído (`332bab2`) |
 | 2026-10-22 | **B-1** `edit-score-domain.ts` 345→**51L** em 4 commits atômicos: `edit-score-domain.types.ts` (16L, b649838) → `edit-score-match-tiebreak.ts` (62L) + `edit-score-set-guards.ts` (56L) (ea1c531) → `edit-score-standard-set.ts` (79L) (e94ea2b) → `edit-score-next-server.ts` (93L) + fachada (30e9db3); API pública preservada via re-exports (44 consumidores intactos); baseline r03 removida com diff = só remoção | Concluído (4 fatias, gates verdes em cada) |
 | 2026-10-22 | **B-2** `matchService.ts` 304→**24L** em 3 fatias: B-2a `match-service-create.service` (25L) + `match-service-delete.service` (47L) (b895207); B-2b `match-service-update.service` (31L) + `match-service-finish.service` (69L) (cd912e7); B-2c `match-service-transition.service` (95L) + `match-service-voidpoint.logic` (38L, dedup dos 2 ramos de void) (0ca6a4e); fachada = só re-exports + `getMatchScoreEdits`; `matchService.test.ts` confirmada no baseline via stash (2f/32p idêntico pré-extração; falhas em `listMatches`/`getMatch`, não relacionadas); baseline r03 removida (120 restantes) | Concluído (3 fatias, gates verdes em cada) |
+| 2026-10-22 | **B-3** `point/route.ts` 394→**44L** em 4 fatias: B-3a `route-load` (71L, idempotency+guards) + `route-sequence` (47L) (6d71196); B-3b `route-actors-doubles` (95L) + `route-actors-singles` (55L) (31e2234); B-3c+d `route-apply` (90L) + `route-pointlog` (77L) + `route-parse` (54L) + `route-transaction` (87L) (7f3c106, fatias encadeadas no mesmo route.ts); **desvio**: ação prevista "completar p/ route.logic.ts" não aplicável (baseline impedia crescimento) — 6 módulos `route-*.logic.ts` novos; characterization prévia 5 suítes/37 testes verdes antes de começar; baseline r03 removida (119 restantes) | Concluído (4 fatias, gates verdes em cada) |
