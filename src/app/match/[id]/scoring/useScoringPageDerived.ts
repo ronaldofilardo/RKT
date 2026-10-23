@@ -4,17 +4,18 @@ import type { ScoringState } from "@/core/scoring/types";
 import type { TennisFormat } from "@/core/scoring/types";
 import type { ScoringPageState } from "./useScoringPageState";
 import type { ScoringPageHandlers } from "./useScoringPageEffects";
-import {
-  checkMatchPoint,
-  checkSetPoint,
-  checkBreakPoint,
-  isSetCompleted,
-  isMatchTiebreakSetIndex,
-} from "./scoring-domain";
 import { resolveDisplayScore } from "./resolveDisplayScore";
 import { getInitialGames } from "@/core/scoring/format-rules";
 import { buildEngineConfig } from "@/core/scoring/engine-config";
 import { getServingMemberId, getReceiverMemberId } from "@/core/scoring/doubles";
+import {
+  derivePointBadges,
+  deriveTiebreakState,
+} from "./scoring-page-derived-flags.logic";
+import {
+  deriveEditScoreCurrentSets,
+  deriveEditScoreCompletedSets,
+} from "./scoring-page-derived-edit-score.logic";
 
 export interface ScoringPageDerived {
   effectiveScoreState: ScoringState | null;
@@ -41,109 +42,6 @@ export interface ScoringPageDerived {
   serverEffectWinnerName: string;
   activeServerId: string | null;
   activeReceiverId: string | null;
-}
-
-function derivePointBadges(
-  effectiveScoreState: ScoringState | null,
-  format?: string,
-): { isMatchPoint: boolean; isSetPoint: boolean; isBreakPoint: boolean } {
-  if (!effectiveScoreState) {
-    return { isMatchPoint: false, isSetPoint: false, isBreakPoint: false };
-  }
-  const isMatchPoint = checkMatchPoint(effectiveScoreState, format);
-  const isSetPoint = !isMatchPoint && checkSetPoint(effectiveScoreState, format);
-  const isBreakPoint = !isMatchPoint && !isSetPoint && checkBreakPoint(effectiveScoreState, format);
-
-  return { isMatchPoint, isSetPoint, isBreakPoint };
-}
-
-function deriveTiebreakState(
-  effectiveScoreState: ScoringState | null,
-  format?: string,
-): { isTiebreak: boolean; isSuperTiebreak: boolean } {
-  if (!effectiveScoreState) {
-    return { isTiebreak: false, isSuperTiebreak: false };
-  }
-
-  const lastSet = effectiveScoreState.sets[effectiveScoreState.sets.length - 1];
-  if (!lastSet) {
-    return { isTiebreak: false, isSuperTiebreak: false };
-  }
-
-  let isTb = lastSet.isTiebreak;
-  if (!isTb && lastSet.player1 === 0 && lastSet.player2 === 0 && effectiveScoreState.sets.length > 1) {
-    const prevSet = effectiveScoreState.sets[effectiveScoreState.sets.length - 2];
-    isTb = prevSet?.isTiebreak ?? false;
-  }
-
-  const isSuperTb = isTb
-    ? isMatchTiebreakSetIndex(
-        format as TennisFormat | undefined,
-        effectiveScoreState.sets.length - 1,
-        effectiveScoreState.setsWon,
-      )
-    : false;
-
-  return { isTiebreak: isTb, isSuperTiebreak: isSuperTb };
-}
-
-function deriveEditScoreCurrentSets(
-  effectiveScoreState: ScoringState | null,
-  format?: string,
-): { player1: number; player2: number } {
-  const defaultInitialVal = format ? getInitialGames(format as TennisFormat) : 0;
-  
-  if (!effectiveScoreState) return { player1: defaultInitialVal, player2: defaultInitialVal };
-  
-  const lastSet = effectiveScoreState.sets[effectiveScoreState.sets.length - 1];
-  if (!lastSet) return { player1: defaultInitialVal, player2: defaultInitialVal };
-  
-  // Se o último set já está finalizado, significa que estamos num set NOVO (que ainda não foi pro array de sets)
-  if (isSetCompleted(lastSet, format as TennisFormat, effectiveScoreState.sets.length - 1, effectiveScoreState.setsWon)) {
-    const isNextMtSet = isMatchTiebreakSetIndex(
-      format as TennisFormat | undefined,
-      effectiveScoreState.sets.length,
-      effectiveScoreState.setsWon,
-    );
-    const initialGames = isNextMtSet ? 0 : defaultInitialVal;
-    return { player1: initialGames, player2: initialGames };
-  }
-
-  if (lastSet.isTiebreak && lastSet.tiebreakScore) {
-    if (lastSet.player1 > 0 || lastSet.player2 > 0) {
-      return { player1: lastSet.player1, player2: lastSet.player2 };
-    }
-    return {
-      player1: lastSet.tiebreakScore.player1,
-      player2: lastSet.tiebreakScore.player2,
-    };
-  }
-
-  return { player1: lastSet.player1, player2: lastSet.player2 };
-}
-
-function deriveEditScoreCompletedSets(
-  effectiveScoreState: ScoringState | null,
-  format?: string,
-) {
-  if (!effectiveScoreState) return [];
-
-  return effectiveScoreState.sets
-    .filter((s, i) => isSetCompleted(s, format as TennisFormat, i, effectiveScoreState.setsWon))
-    .map((s) => {
-      const winner = s.tiebreakScore
-        ? s.tiebreakScore.player1 > s.tiebreakScore.player2
-          ? "player1"
-          : "player2"
-        : s.player1 > s.player2
-          ? "player1"
-          : "player2";
-      return {
-        games: { player1: s.player1, player2: s.player2 } as Record<"player1" | "player2", number>,
-        winner: winner as "player1" | "player2",
-        ...(s.isTiebreak && s.tiebreakScore ? { tiebreakScore: s.tiebreakScore } : {}),
-      };
-    });
 }
 
 export function useScoringPageDerived(
