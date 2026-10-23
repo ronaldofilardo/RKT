@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { withRLSHandler } from '@/lib/auth';
 import { updateMatch, deleteMatch } from '@/services/matchService';
 import { DeleteMatchInputSchema } from '@/schemas/contracts';
+import { MATCH_SELECT } from './route-match-select';
+import { fetchMatchPointExtras } from './route-get-extras.queries';
 
 export async function GET(
   request: NextRequest,
@@ -30,41 +32,7 @@ export async function GET(
       const { id } = await params;
       const match = await prisma.match.findFirst({
         where: { id, deletedAt: null },
-        select: {
-          id: true,
-          state: true,
-          format: true,
-          sportType: true,
-          courtType: true,
-          scheduledAt: true,
-          startedAt: true,
-          finishedAt: true,
-          nickname: true,
-          visibility: true,
-          isResuming: true,
-          openForAnnotation: true,
-          tournamentName: true,
-          category: true,
-          round: true,
-          bracketType: true,
-          temperature: true,
-          humidity: true,
-          version: true,
-          scoreState: true,
-          initialServerId: true,
-          matchType: true,
-          player1Id: true,
-          player2Id: true,
-          player1PartnerId: true,
-          player2PartnerId: true,
-          player1: { select: { id: true, name: true } },
-          player2: { select: { id: true, name: true } },
-          player1Partner: { select: { id: true, name: true } },
-          player2Partner: { select: { id: true, name: true } },
-          doublesSetup: true,
-          createdByUserId: true,
-          _count: { select: { pointLog: { where: { voidedAt: null } } } },
-        },
+        select: MATCH_SELECT,
       });
 
       if (!match) {
@@ -95,63 +63,9 @@ export async function GET(
         );
       }
 
-      const maxSequenceRow = await prisma.pointLog.aggregate({
-        where: { matchId: id, voidedAt: null, sequenceNumber: { not: null } },
-        _max: { sequenceNumber: true },
-      });
-      const lastPointSequence = maxSequenceRow._max.sequenceNumber ?? 0;
+      const extras = await fetchMatchPointExtras(id);
 
-      const recentLogs = await prisma.pointLog.findMany({
-        where: { matchId: id, voidedAt: null },
-        orderBy: { sequenceNumber: 'desc' },
-        take: 20,
-        select: { winnerId: true },
-      });
-      const recentWinnerIds = recentLogs.reverse().map((l) => l.winnerId);
-
-      const lastScoreEdit = await prisma.matchScoreEdit.findFirst({
-        where: { matchId: id },
-        orderBy: { editedAt: 'desc' },
-        select: {
-          id: true,
-          editedAt: true,
-          newScoreState: true,
-        },
-      });
-
-      const editSeq =
-        lastScoreEdit &&
-        typeof lastScoreEdit.newScoreState === 'object' &&
-        lastScoreEdit.newScoreState !== null &&
-        'pointLogSequenceAtEdit' in (lastScoreEdit.newScoreState as Record<string, unknown>)
-          ? ((lastScoreEdit.newScoreState as Record<string, unknown>).pointLogSequenceAtEdit as number)
-          : 0;
-
-      const activeLogsSinceEdit = await prisma.pointLog.findMany({
-        where: {
-          matchId: id,
-          voidedAt: null,
-          ...(editSeq > 0 ? { sequenceNumber: { gt: editSeq } } : {}),
-        },
-        orderBy: { sequenceNumber: 'asc' },
-        select: {
-          id: true,
-          winnerId: true,
-          serverId: true,
-          type: true,
-          sequenceNumber: true,
-          annotations: true,
-          timestamp: true,
-        },
-      });
-
-      return NextResponse.json({
-        ...match,
-        lastPointSequence,
-        recentWinnerIds,
-        lastScoreEdit,
-        activeLogsSinceEdit,
-      });
+      return NextResponse.json({ ...match, ...extras });
     } catch (error) {
       logger.error('[MATCH GET]', error);
       return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });
