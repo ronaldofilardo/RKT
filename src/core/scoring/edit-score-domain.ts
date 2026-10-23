@@ -4,10 +4,13 @@ import {
   getTiebreakAtForFormat,
 } from '@/core/scoring/format-rules';
 import { isMatchTiebreakSetIndex as isMatchTiebreakSetIndexCanonical } from '@/lib/matchConfig';
-import { SCORING_LIMITS, TIEBREAK } from '@/lib/constants';
+import { SCORING_LIMITS } from '@/lib/constants';
 import type { SetEditData, SetValidation } from './edit-score-domain.types';
+import { validateMatchTiebreak } from './edit-score-match-tiebreak';
+import { validateGameBounds, checkTiebreakThreshold } from './edit-score-set-guards';
 
 export type { SetEditData };
+export { validateMatchTiebreakInput, isTiebreakScoreImpossible } from './edit-score-match-tiebreak';
 
 export function getMaxValidGames(_otherGames: number, format: TennisFormat): number {
   if (format === 'MATCH_TB_10') return SCORING_LIMITS.TIEBREAK_INPUT_CAP;
@@ -45,92 +48,6 @@ export function validateSetResult(
   const gamesNeeded = format === 'PRO_SET_8' ? 8 : 6;
 
   return validateStandardSet(p1Games, p2Games, gamesNeeded, true, hasTiebreak, tiebreakAt);
-}
-
-export function validateMatchTiebreakInput(
-  result: { p1Points: number; p2Points: number },
-): SetValidation {
-  const { p1Points, p2Points } = result;
-
-  if (p1Points < 0 || p2Points < 0) {
-    return { isValid: false, error: 'Points cannot be negative' };
-  }
-
-  if (p1Points === 0 && p2Points === 0) {
-    return { isValid: true, isPartial: true };
-  }
-
-  // Match tiebreak: first to 10 with 2-point lead
-  if (p1Points >= TIEBREAK.MIN_WIN_POINTS_MATCH && p1Points - p2Points >= TIEBREAK.WIN_MARGIN) {
-    return { isValid: true, winner: 'player1' };
-  }
-  if (p2Points >= TIEBREAK.MIN_WIN_POINTS_MATCH && p2Points - p1Points >= TIEBREAK.WIN_MARGIN) {
-    return { isValid: true, winner: 'player2' };
-  }
-  // Allow partial scores up to max points (flexible for edits)
-  if (p1Points > SCORING_LIMITS.MAX_TIEBREAK_POINTS_MATCH || p2Points > SCORING_LIMITS.MAX_TIEBREAK_POINTS_MATCH) {
-    return { isValid: false, error: `Maximum ${SCORING_LIMITS.MAX_TIEBREAK_POINTS_MATCH} points in match tiebreak` };
-  }
-  // Partial score (in progress)
-  return {
-    isValid: true,
-    isPartial: true,
-  };
-}
-
-function validateGameBounds(
-  p1Games: number,
-  p2Games: number,
-  hasTiebreak: boolean,
-  tiebreakAt: number,
-): SetValidation | null {
-  if (p1Games < 0 || p2Games < 0) {
-    return { isValid: false, error: 'Games cannot be negative' };
-  }
-
-  if (p1Games === 0 && p2Games === 0) {
-    return { isValid: true, isPartial: true };
-  }
-
-  if (hasTiebreak) {
-    const maxValid = tiebreakAt + 1;
-    if (p1Games > maxValid || p2Games > maxValid) {
-      return { isValid: false, error: `Maximum ${maxValid} games in a set` };
-    }
-    if (p1Games === maxValid && p2Games === maxValid) {
-      return {
-        isValid: false,
-        error: `Set score ${p1Games}x${p2Games} is not possible — tiebreak ends ${maxValid}x${tiebreakAt}`,
-      };
-    }
-  }
-
-  return null;
-}
-
-function checkTiebreakThreshold(
-  p1Games: number,
-  p2Games: number,
-  tiebreakAt: number,
-): SetValidation | null {
-  if (p1Games === tiebreakAt && p2Games === tiebreakAt) {
-    return {
-      isValid: false,
-      hasTiebreak: true,
-      tiebreakRequired: true,
-      error: 'Tiebreak required',
-    };
-  }
-
-  if (p1Games === tiebreakAt + 1 && p2Games === tiebreakAt) {
-    return { isValid: true, winner: 'player1', hasTiebreak: true, tiebreakRequired: true };
-  }
-
-  if (p2Games === tiebreakAt + 1 && p1Games === tiebreakAt) {
-    return { isValid: true, winner: 'player2', hasTiebreak: true, tiebreakRequired: true };
-  }
-
-  return null;
 }
 
 function validateTiebreakLoserGames(
@@ -208,35 +125,6 @@ function validateStandardSet(
     winner,
     hasTiebreak: hasTiebreak && (p1Games === tiebreakAt + 1 || p2Games === tiebreakAt + 1),
   };
-}
-
-function validateMatchTiebreak(p1Points: number, p2Points: number): SetValidation {
-  if (p1Points >= TIEBREAK.MIN_WIN_POINTS_MATCH && p1Points - p2Points >= TIEBREAK.WIN_MARGIN) {
-    return { isValid: true, winner: 'player1' };
-  }
-  if (p2Points >= TIEBREAK.MIN_WIN_POINTS_MATCH && p2Points - p1Points >= TIEBREAK.WIN_MARGIN) {
-    return { isValid: true, winner: 'player2' };
-  }
-  if (p1Points > SCORING_LIMITS.MAX_TIEBREAK_POINTS_MATCH || p2Points > SCORING_LIMITS.MAX_TIEBREAK_POINTS_MATCH) {
-    return { isValid: false, error: `Match Tiebreak: maximum ${SCORING_LIMITS.MAX_TIEBREAK_POINTS_MATCH} points` };
-  }
-  return {
-    isValid: true,
-    isPartial: true,
-  };
-}
-
-export function isTiebreakScoreImpossible(p1: number, p2: number): boolean {
-  if (p1 < 0 || p2 < 0) return false;
-  if (p1 === p2) return false;
-
-  const winner = Math.max(p1, p2);
-  const loser = Math.min(p1, p2);
-
-  if (loser < 6 && winner > 7) return true;
-  if (loser >= 6 && winner > loser + 2) return true;
-
-  return false;
 }
 
 export function getNextServerAfterSet(params: {
