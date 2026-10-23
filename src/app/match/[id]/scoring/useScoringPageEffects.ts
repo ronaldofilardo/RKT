@@ -1,78 +1,30 @@
 "use client";
 
 import { useCallback } from "react";
-import { useScoringHandlers } from "@/hooks/useScoringHandlers";
 import { useSessionManager } from "@/hooks/useSessionManager";
-import type { SetEditData } from "@/core/scoring/edit-score-domain";
 import type { ScoringPageState } from "./useScoringPageState";
+import type { ScoringPageHandlers } from "./useScoringPageHandlers.types";
+import { useScoringPageHandlersBridge } from "./useScoringPageHandlersBridge";
 import { useScoringLifecycleEffects } from "./useScoringLifecycleEffects";
 import { useScoringComment } from "./useScoringComment";
 import { useScoringEditScore } from "./useScoringEditScore";
 
-export interface ScoringPageHandlers {
-  persistState: ReturnType<typeof useScoringHandlers>["persistState"];
-  fetchMatch: ReturnType<typeof useScoringHandlers>["fetchMatch"];
-  confirmMatchSetup: ReturnType<typeof useScoringHandlers>["confirmMatchSetup"];
-  undoLastPoint: ReturnType<typeof useScoringHandlers>["undoLastPoint"];
-  returnToPreviousScreen: ReturnType<typeof useScoringHandlers>["returnToPreviousScreen"];
-  openAceModal: ReturnType<typeof useScoringHandlers>["openAceModal"];
-  recordAceDirectly: ReturnType<typeof useScoringHandlers>["recordAceDirectly"];
-  confirmServerEffect: ReturnType<typeof useScoringHandlers>["confirmServerEffect"];
-  confirmServeError: ReturnType<typeof useScoringHandlers>["confirmServeError"];
-  recordDirectServeError: ReturnType<typeof useScoringHandlers>["recordDirectServeError"];
-  cancelServeError: ReturnType<typeof useScoringHandlers>["cancelServeError"];
-  confirmPointDetails: ReturnType<typeof useScoringHandlers>["confirmPointDetails"];
-  updateDoublesArrangement?: ReturnType<typeof useScoringHandlers>["updateDoublesArrangement"];
-  onPointSelectFromCard: (winnerSide: "player1" | "player2") => void;
-  recordServeErrorWithModal: (errorType: "out" | "net", step: "first" | "second") => void;
-  cancelEditScore: () => void;
-  refreshEditScoreFloor: () => Promise<{ player1: number; player2: number } | null>;
-  isProcessing: boolean;
-  abandonCurrentSession: ReturnType<typeof useSessionManager>["abandonCurrentSession"];
-  openEditScoreModal: (setResults: SetEditData[], server: "player1" | "player2", note?: string) => Promise<void>;
-  createMatchComment: (content: string, audio?: { blob: Blob; durationMs: number }, category?: string) => Promise<void>;
-}
+export type { ScoringPageHandlers } from "./useScoringPageHandlers.types";
 
 export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandlers {
   const {
-    matchId,
-    match,
-    isOnline,
-    enqueue,
-    engineRef,
-    tokenRef,
-    modalParamsRef,
-    openRef,
-    pointSequenceRef,
-    serveErrorState,
-    setMatch,
-    setScoreState,
-    setIsLoading,
-    setError,
-    setSetupLoading,
-    setPointsHistory,
-    setShowFinishedBanner,
-    openServeErrorModal,
-    closeServeErrorModal,
-    setFirstServeError,
-    clearFirstServeError,
-    setServeStep,
-    open,
-    close,
-    closeAll,
-    isProcessingRef,
-    debounceTimerRef,
     suspendedSession,
+    setScoreState,
     setSessionActive,
     setSuspendedSession,
     setFloorCurrentSets,
     clearPendingEdit,
     updateScore,
-    setEngineTick,
-    fetchPointLogAudioMeta,
-    fetchTimelinePoints,
+    close,
+    closeAll,
     clearQueueForMatch,
-    removeLastAction,
+    open,
+    openServeErrorModal,
   } = state;
 
   const {
@@ -90,51 +42,15 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     confirmPointDetails,
     updateDoublesArrangement,
     isProcessing,
-  } = useScoringHandlers({
-    matchId,
-    match,
-    isOnline,
-    enqueue,
-    engineRef,
-    tokenRef,
-    modalParamsRef,
-    openRef,
-    pointSequenceRef,
-    serveErrorState,
-    setMatch,
-    setScoreState,
-    setIsLoading,
-    setError,
-    setSetupLoading,
-    setPointsHistory,
-    setShowFinishedBanner,
-    openServeErrorModal,
-    closeServeErrorModal,
-    setFirstServeError,
-    clearFirstServeError,
-    setServeStep,
-    open,
-    close,
-    closeAll,
-    onUndoComplete: () => setEngineTick(Date.now()),
-    onPointProcessed: () => setEngineTick(Date.now()),
-    onAudioUploaded: () => {
-      fetchPointLogAudioMeta();
-      fetchTimelinePoints?.();
-      setEngineTick(Date.now());
-    },
-    removeLastAction,
-    isProcessingRef,
-    debounceTimerRef,
-  });
+  } = useScoringPageHandlersBridge(state);
 
   const { abandonCurrentSession, openEditScoreModal: originalHandleEditScore } =
     useSessionManager({
-      matchId,
-      match,
+      matchId: state.matchId,
+      match: state.match,
       isLoading: state.isLoading,
-      engineRef,
-      tokenRef,
+      engineRef: state.engineRef,
+      tokenRef: state.tokenRef,
       sessionIdRef: state.sessionIdRef,
       matchIdRef: state.matchIdRef,
       suspendedSession,
@@ -148,7 +64,7 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
       updateScoreContext: updateScore,
       close,
       closeAll,
-      isProcessingRef,
+      isProcessingRef: state.isProcessingRef,
       clearQueueForMatch,
     });
 
