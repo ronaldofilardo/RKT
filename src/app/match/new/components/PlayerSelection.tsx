@@ -1,33 +1,10 @@
 'use client';
 
-import type { Athlete } from '../types';
 import { AthleteDropdown } from './AthleteDropdown';
+import { MatchTypeToggle } from './match-type-toggle';
+import type { PlayerSelectionProps } from './player-selection.types';
 
-interface PlayerSelectionProps {
-  matchType?: 'SINGLES' | 'DOUBLES';
-  onMatchTypeChange?: (type: 'SINGLES' | 'DOUBLES') => void;
-  athletes: Athlete[];
-  selectedP1: Athlete | null;
-  selectedP2: Athlete | null;
-  selectedP1Partner?: Athlete | null;
-  selectedP2Partner?: Athlete | null;
-  player1DropdownOpen: boolean;
-  player2DropdownOpen: boolean;
-  player1PartnerDropdownOpen?: boolean;
-  player2PartnerDropdownOpen?: boolean;
-  onToggleP1: () => void;
-  onToggleP2: () => void;
-  onToggleP1Partner?: () => void;
-  onToggleP2Partner?: () => void;
-  onSelectP1: (athlete: Athlete | null) => void;
-  onSelectP2: (athlete: Athlete | null) => void;
-  onSelectP1Partner?: (athlete: Athlete | null) => void;
-  onSelectP2Partner?: (athlete: Athlete | null) => void;
-  onCreateNewP1: () => void;
-  onCreateNewP2: () => void;
-  onCreateNewP1Partner?: () => void;
-  onCreateNewP2Partner?: () => void;
-}
+export type { PlayerSelectionProps } from './player-selection.types';
 
 export function PlayerSelection({
   matchType = 'SINGLES',
@@ -63,32 +40,7 @@ export function PlayerSelection({
           <h2 className="text-base font-semibold text-telemetry-text-primary">
             MODALIDADE & JOGADORES *
           </h2>
-          {onMatchTypeChange && (
-            <div className="inline-flex rounded-lg bg-telemetry-elevated p-1 border border-white/10 self-start sm:self-auto">
-              <button
-                type="button"
-                onClick={() => onMatchTypeChange('SINGLES')}
-                className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
-                  !isDoubles
-                    ? 'bg-telemetry-blue text-white shadow-sm'
-                    : 'text-telemetry-text-muted hover:text-telemetry-text-primary'
-                }`}
-              >
-                Simples (1 vs 1)
-              </button>
-              <button
-                type="button"
-                onClick={() => onMatchTypeChange('DOUBLES')}
-                className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
-                  isDoubles
-                    ? 'bg-telemetry-blue text-white shadow-sm'
-                    : 'text-telemetry-text-muted hover:text-telemetry-text-primary'
-                }`}
-              >
-                Duplas (2 vs 2)
-              </button>
-            </div>
-          )}
+          <MatchTypeToggle isDoubles={isDoubles} onMatchTypeChange={onMatchTypeChange} />
         </div>
 
         {!isDoubles ? (
