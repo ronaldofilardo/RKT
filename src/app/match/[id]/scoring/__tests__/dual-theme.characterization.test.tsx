@@ -95,7 +95,7 @@ describe('Dual Theme Design System (Light & Dark)', () => {
     });
 
     it('inclui o botao unico de tema (ThemeToggleButton) no rodape ActionFooter para alternar tema diretamente no scoring', () => {
-      const sections = fs.readFileSync(path.resolve(process.cwd(), 'src/components/scoring/ActionBar.sections.tsx'), 'utf-8');
+      const sections = fs.readFileSync(path.resolve(process.cwd(), 'src/components/scoring/action-bar-footer.tsx'), 'utf-8');
       expect(sections).toContain('<ThemeToggleButton />');
       const matchHeader = fs.readFileSync(path.resolve(process.cwd(), 'src/components/scoring/MatchHeader.tsx'), 'utf-8');
       expect(matchHeader).not.toContain('<ThemeToggle');

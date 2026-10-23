@@ -74,7 +74,8 @@ describe('Telemetry Design System — Guardrail de Integridade Anti-Regressão',
       'src/components/scoring/ScoreboardCard.tsx',
       'src/components/scoring/PlayerCard.tsx',
       'src/components/scoring/LiveCountersBar.tsx',
-      'src/components/scoring/ActionBar.sections.tsx',
+      'src/components/scoring/action-bar-serve-section.tsx',
+      'src/components/scoring/action-bar-footer.tsx',
       'src/app/match/[id]/scoring/ScoringPlayArea.tsx',
     ];
 
