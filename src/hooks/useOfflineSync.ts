@@ -9,6 +9,7 @@ import {
   dispatchStuckEventIfNeeded,
 } from "./use-offline-sync.flush";
 import { createOfflineQueueActions } from "./use-offline-sync.queue";
+import { attachNetworkListeners } from "./use-offline-sync.network";
 
 export function useOfflineSync() {
   const [online, setOnline] = useState(
@@ -48,37 +49,10 @@ export function useOfflineSync() {
     }
   }, []);
 
-  useEffect(() => {
-    const onNetworkOnline = () => {
-      setOnline(true);
-      flush();
-    };
-
-    const onNetworkOffline = () => {
-      setOnline(false);
-    };
-
-    window.addEventListener("online", onNetworkOnline);
-    window.addEventListener("offline", onNetworkOffline);
-
-    // Tentar flush na inicialização (e periodicamente quando online)
-    if (online) {
-      flush();
-    }
-
-    let intervalId: NodeJS.Timeout;
-    if (online) {
-      intervalId = setInterval(() => {
-        flush();
-      }, 30000); // Tentar a cada 30 segundos
-    }
-
-    return () => {
-      window.removeEventListener("online", onNetworkOnline);
-      window.removeEventListener("offline", onNetworkOffline);
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [flush, online]);
+  useEffect(
+    () => attachNetworkListeners({ online, flush, setOnline }),
+    [flush, online],
+  );
 
   return {
     ...queueActions,
