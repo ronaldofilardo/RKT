@@ -8,7 +8,6 @@
   "src/app/api/matches/[id]/point/[pointId]/audio/route.ts": 209,
   "src/app/api/matches/[id]/point/[pointId]/route.ts": 151,
   "src/app/api/matches/[id]/report/route.ts": 265,
-  "src/app/api/matches/[id]/route.ts": 299,
   "src/app/api/matches/[id]/sessions/route.ts": 117,
   "src/app/api/matches/[id]/state/route.ts": 172,
   "src/app/api/players/[id]/route.ts": 136,
