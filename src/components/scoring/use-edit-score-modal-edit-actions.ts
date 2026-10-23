@@ -3,6 +3,7 @@
 import { useCallback } from 'react';
 import type { TennisFormat } from '@/core/scoring/types';
 import { createInitialEditScoreState } from '@/core/scoring/edit-score-state';
+import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from '@/hooks/use-session-manager.logic';
 import { applyCompletedSetEdit } from './use-edit-score-modal-input.logic';
 import type { CompletedSet } from '@/core/scoring/edit-score-state';
 import type { EditScoreModalState } from './useEditScoreModal.types';
@@ -20,6 +21,28 @@ export interface EditActionsParams {
   setState: SetState;
   setConfirmError: SetError;
   setFloorValidationError: SetError;
+}
+
+/**
+ * Estado inicial do modal: sets concluídos convertidos em SetEditData
+ * (detectando automaticamente se o último set é Match Tiebreak).
+ */
+export function createEditableInitialState(
+  currentServer: 'player1' | 'player2',
+  matchFormat: TennisFormat,
+  completedSets: CompletedSet[],
+): EditScoreModalState {
+  const editableCompletedSets = completedSets.map((cs) => ({
+    p1Games: cs.games.player1,
+    p2Games: cs.games.player2,
+    isPartial: false,
+    tiebreakScore: cs.tiebreakScore ?? undefined,
+  }));
+  const isMT = isMatchTiebreakSetUtil(completedSets.length, editableCompletedSets, matchFormat);
+  return {
+    ...createInitialEditScoreState(currentServer, matchFormat, isMT),
+    editableCompletedSets,
+  };
 }
 
 export function useEditScoreModalEditActions({
