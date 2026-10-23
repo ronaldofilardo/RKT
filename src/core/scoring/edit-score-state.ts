@@ -1,18 +1,12 @@
 import type { TennisFormat } from '@/core/scoring/types';
 import type { SetEditData } from '@/core/scoring/edit-score-domain';
 import { getNextServerAfterSet } from '@/core/scoring/edit-score-domain';
-import { setsToWinForFormat, totalSetsForFormat } from '@/core/scoring/format-rules';
 import { parsePointValue } from '@/core/scoring/point.logic';
-import { isMatchTiebreakSet as isMatchTiebreakSetUtil } from '@/core/scoring/match-tiebreak-logic';
 
 export type * from '@/core/scoring/edit-score-state.types';
 import type {
   Player,
-  CompletedSet,
   EditScoreState,
-  EditScoreValidation,
-  EditScoreMatchState,
-  EditScoreMatchStateInput,
   CreateSetEditDataInput,
   ShouldAutoAddSetInput,
   CalculateNextServerInput,
@@ -23,7 +17,6 @@ export {
   calculateTiebreakValidation,
   calculateValidation,
 } from '@/core/scoring/edit-score-validation';
-import { isPotentialMTSet } from '@/core/scoring/edit-score-validation';
 
 import { getInitialGames } from '@/core/scoring/format-rules';
 
@@ -42,154 +35,8 @@ export function createInitialEditScoreState(currentServer: Player, format?: Tenn
   };
 }
 
-export function getEffectiveSetWinner(validation: EditScoreValidation): Player | undefined {
-  if (validation.setValidation?.winner) return validation.setValidation.winner;
-  if (
-    validation.p1Val === validation.p2Val &&
-    typeof validation.tiebreakP1Num === 'number' &&
-    typeof validation.tiebreakP2Num === 'number' &&
-    validation.tiebreakP1Num !== validation.tiebreakP2Num
-  ) {
-    return validation.tiebreakP1Num > validation.tiebreakP2Num ? 'player1' : 'player2';
-  }
-  return undefined;
-}
-
-function buildSetResultsForCheck(
-  completedSets: CompletedSet[],
-  newSets: SetEditData[],
-): SetEditData[] {
-  return [
-    ...completedSets.map((s) => ({
-      p1Games: s.games.player1,
-      p2Games: s.games.player2,
-      isPartial: false,
-    })),
-    ...newSets,
-  ];
-}
-
-function countNewSetsWon(newSets: SetEditData[]): { newP1SetsWon: number; newP2SetsWon: number } {
-  const newP1SetsWon = newSets.filter((s) => {
-    if (s.isPartial) return false;
-    if (s.tiebreakScore) {
-      return s.tiebreakScore.player1 > s.tiebreakScore.player2;
-    }
-    return s.p1Games > s.p2Games;
-  }).length;
-  const newP2SetsWon = newSets.filter((s) => {
-    if (s.isPartial) return false;
-    if (s.tiebreakScore) {
-      return s.tiebreakScore.player2 > s.tiebreakScore.player1;
-    }
-    return s.p2Games > s.p1Games;
-  }).length;
-  return { newP1SetsWon, newP2SetsWon };
-}
-
-function computeSetsWon(
-  completedSets: CompletedSet[],
-  newSets: SetEditData[],
-  validation: EditScoreValidation,
-): {
-  p1SetsWon: number;
-  p2SetsWon: number;
-  p1SetsWonFromProp: number;
-  p2SetsWonFromProp: number;
-  newP1SetsWon: number;
-  newP2SetsWon: number;
-} {
-  const p1SetsWonFromProp = completedSets.filter((s) => s.winner === 'player1').length;
-  const p2SetsWonFromProp = completedSets.filter((s) => s.winner === 'player2').length;
-  const { newP1SetsWon, newP2SetsWon } = countNewSetsWon(newSets);
-
-  const currentSetWinner = getEffectiveSetWinner(validation);
-  const p1SetsWon =
-    p1SetsWonFromProp +
-    newP1SetsWon +
-    (validation.isSetTrulyCompleted && currentSetWinner === 'player1' ? 1 : 0);
-  const p2SetsWon =
-    p2SetsWonFromProp +
-    newP2SetsWon +
-    (validation.isSetTrulyCompleted && currentSetWinner === 'player2' ? 1 : 0);
-
-  return {
-    p1SetsWon,
-    p2SetsWon,
-    p1SetsWonFromProp,
-    p2SetsWonFromProp,
-    newP1SetsWon,
-    newP2SetsWon,
-  };
-}
-
-function determineMatchTiebreakStatus(
-  format: TennisFormat,
-  totalEditedSets: number,
-  setResultsForCheck: SetEditData[],
-  potentialMT: boolean,
-  validation: EditScoreValidation,
-): { isMatchTiebreakSet: boolean; isPotentialMTSetResult: boolean } {
-  let isMatchTiebreakSet: boolean;
-  if (potentialMT) {
-    isMatchTiebreakSet = validation.isMatchTiebreakSet;
-  } else if (setResultsForCheck.length > 0) {
-    isMatchTiebreakSet = isMatchTiebreakSetUtil(totalEditedSets, setResultsForCheck, format);
-  } else {
-    isMatchTiebreakSet =
-      format === 'MATCH_TB_10' ||
-      (format === 'BEST_OF_3_MATCH_TB' && totalEditedSets === 2) ||
-      (format === 'SHORT_SET_2V2_NO_AD' && totalEditedSets === 2) ||
-      (format === 'BEST_OF_3_NO_AD' && totalEditedSets === 2);
-  }
-
-  const isPotentialMTSetResult = potentialMT && !isMatchTiebreakSet;
-  return { isMatchTiebreakSet, isPotentialMTSetResult };
-}
-
-export function calculateMatchState(input: EditScoreMatchStateInput): EditScoreMatchState {
-  const { matchFormat, completedSets, newSets, validation, currentSets } = input;
-  const maxSets = totalSetsForFormat(matchFormat);
-  const setsToWin = setsToWinForFormat(matchFormat);
-  const totalEditedSets = completedSets.length + newSets.length;
-
-  const setResultsForCheck = buildSetResultsForCheck(completedSets, newSets);
-  const potentialMT = isPotentialMTSet(matchFormat, totalEditedSets, setResultsForCheck);
-
-  const { isMatchTiebreakSet, isPotentialMTSetResult } = determineMatchTiebreakStatus(
-    matchFormat,
-    totalEditedSets,
-    setResultsForCheck,
-    potentialMT,
-    validation,
-  );
-
-  const { p1SetsWon, p2SetsWon, p1SetsWonFromProp, p2SetsWonFromProp, newP1SetsWon, newP2SetsWon } = computeSetsWon(
-    completedSets,
-    newSets,
-    validation,
-  );
-
-  const matchAlreadyOver = p1SetsWonFromProp >= setsToWin || p2SetsWonFromProp >= setsToWin;
-  const matchWouldEnd = p1SetsWon >= setsToWin || p2SetsWon >= setsToWin;
-
-  return {
-    p1SetsWonFromProp,
-    p2SetsWonFromProp,
-    newP1SetsWon,
-    newP2SetsWon,
-    p1SetsWon,
-    p2SetsWon,
-    matchAlreadyOver,
-    matchWouldEnd,
-    totalEditedSets,
-    isMatchTiebreakSet,
-    isPotentialMTSet: isPotentialMTSetResult,
-    maxSets,
-    setsToWin,
-    currentSets,
-  };
-}
+export { getEffectiveSetWinner, computeSetsWon } from '@/core/scoring/edit-score-sets-won.logic';
+export { calculateMatchState } from '@/core/scoring/edit-score-match-state.logic';
 
 function applyMatchTiebreakSetData(
   setData: SetEditData,
