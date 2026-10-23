@@ -58,7 +58,7 @@ Backlog `.tsx` zerado em 2026-10-16 (53→0); hoje **16 `.tsx` >100L**:
 | 2 | `use-edit-score-calculator.ts` | 313 | **150** | Epic #2 feito; `ste-exception R-03` declarada |
 | 3 | `matchValidator.ts` | 310 | **191** | 3a/3b feitos; ainda >100 |
 | 4 | `core/scoring/edit-score-domain.ts` | 297/345 | **51** | ✅ **B-1 feito** — fatiado em 5 módulos `edit-score-*` (345→51L) |
-| 5 | `matchService.ts` | 283 | **304** | Doubles-undo extraído; medição nova |
+| 5 | `matchService.ts` | 283 | **24** | ✅ **B-2 feito** — fachada de re-exports; 6 módulos `match-service-*.service/logic` novos |
 | 6 | `useScoringHandlers.point-processor.service.ts` | 272 | **289** | Envelope extraído; ainda >100 |
 | 7 | `schemas/match.ts` | 272 | **298** | `ste-exception R-03` declarada (schema declarativo) |
 | 8 | `useOfflineSync.ts` | 268 | **158** | Split #8 feito; ainda >100 |
@@ -115,7 +115,7 @@ Ordem por valor/risco (não por posição na tabela):
 | Ordem | Alvo | Hoje → Meta | Ação | R-15 (characterization) |
 |---|---|---|---|---|
 | **B-1** ✅ | `core/scoring/edit-score-domain.ts` | 345 → **51** | Dividir por responsabilidade (validação de resultado, limites de games, tiebreak, próximo sacador) → `core/scoring/edit-score-*` c/ re-exports | `editScoreHelpers.characterization` ✓ |
-| **B-2** | `matchService.ts` | 304 → ≤100 | Nova(s) fatia(s) → `match-service-*.logic.ts` (padrão doubles 27L / create 104L / operations 234L) | `matchService.characterization` + `doubles-undo` ✓ |
+| **B-2** ✅ | `matchService.ts` | 304 → **24** | Nova(s) fatia(s) → `match-service-*.logic.ts` (padrão doubles 27L / create 104L / operations 234L) | `matchService.characterization` + `doubles-undo` ✓ |
 | **B-3** | `point/route.ts` | 394 → ≤100 | Completar extração p/ `point/route.logic.ts` (já 267L) | verificar characterization da rota |
 | **B-4** | `useScoringHandlers.ts` | 288 → ≤100 | Extrair wiring restante (effects/subscription/state bridge) | **Criar characterization mockada antes** (suíte main = baseline-failing; precedente `2dc5eec`) |
 | **B-5** | `DoublesServerSelectionModal.tsx` | 261 → ≤100 | JSX em seções/children; estado já no hook | `DashboardMatchModals.doubles` ✓ |
@@ -166,3 +166,4 @@ Ordem por valor/risco (não por posição na tabela):
 | 2026-10-22 | **A-1** Guarda R-03 ratchet: `check-r03-line-limit.mjs` (novo arquivo >100L / crescimento / baseline obsoleto → exit 1; `ste-exception R-03` isenta), baseline com 122 violações congeladas, `pnpm check:r03`, passo no CI `quality.yml`; `ste-exception R-03` ausente em `schemas/match.ts` adicionada ao cabeçalho (exceção já registrada no plano STE-DEV §7.5); modos de falha testados (exit 1/1/0) | Concluído (`2f42d15`) |
 | 2026-10-22 | **A-2** Triagem dos 16 `.tsx`: 3 novos (`DoublesServerSelectionModal` 261, `DoublesArrangementModal` 243, `point-details-breadcrumb` 108) + 13 que cresceram desde `af705d5` (maiores: `ActionBar.sections` 46→190, `PlayerSelection` 64→189, `PlayerCard` 56→111); **causa-raiz: 9/13 + 2 novos = feature duplas `8479c4e` (mesmo dia da auditoria, pré-guarda)**; lote C-0 definido = os 16 | Concluído (`332bab2`) |
 | 2026-10-22 | **B-1** `edit-score-domain.ts` 345→**51L** em 4 commits atômicos: `edit-score-domain.types.ts` (16L, b649838) → `edit-score-match-tiebreak.ts` (62L) + `edit-score-set-guards.ts` (56L) (ea1c531) → `edit-score-standard-set.ts` (79L) (e94ea2b) → `edit-score-next-server.ts` (93L) + fachada (30e9db3); API pública preservada via re-exports (44 consumidores intactos); baseline r03 removida com diff = só remoção | Concluído (4 fatias, gates verdes em cada) |
+| 2026-10-22 | **B-2** `matchService.ts` 304→**24L** em 3 fatias: B-2a `match-service-create.service` (25L) + `match-service-delete.service` (47L) (b895207); B-2b `match-service-update.service` (31L) + `match-service-finish.service` (69L) (cd912e7); B-2c `match-service-transition.service` (95L) + `match-service-voidpoint.logic` (38L, dedup dos 2 ramos de void) (0ca6a4e); fachada = só re-exports + `getMatchScoreEdits`; `matchService.test.ts` confirmada no baseline via stash (2f/32p idêntico pré-extração; falhas em `listMatches`/`getMatch`, não relacionadas); baseline r03 removida (120 restantes) | Concluído (3 fatias, gates verdes em cada) |
