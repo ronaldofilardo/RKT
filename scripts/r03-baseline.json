@@ -44,7 +44,6 @@
   "src/core/scoring/edit-score-validation.ts": 245,
   "src/core/scoring/game-errors.ts": 107,
   "src/core/scoring/game-processing.ts": 231,
-  "src/core/scoring/live-tactical-insights.ts": 276,
   "src/core/scoring/match-tiebreak.ts": 138,
   "src/core/scoring/point-context.ts": 159,
   "src/core/scoring/point-log-merge.ts": 161,
