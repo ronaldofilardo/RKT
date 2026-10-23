@@ -66,7 +66,6 @@
   "src/lib/auth.ts": 156,
   "src/lib/errors.ts": 124,
   "src/lib/logger.ts": 134,
-  "src/lib/matchConfig.ts": 240,
   "src/lib/rls-context.ts": 213,
   "src/middleware.ts": 122,
   "src/schemas/rally.ts": 140,
