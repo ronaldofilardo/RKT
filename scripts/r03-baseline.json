@@ -39,7 +39,7 @@
   "src/core/scoring/timeline-rebuild.ts": 170,
   "src/core/scoring/types.ts": 186,
   "src/hooks/use-offline-sync.logic.ts": 105,
-  "src/hooks/use-session-manager.logic.ts": 197,
+  "src/hooks/use-session-manager.logic.validate.ts": 129,
   "src/hooks/useCommentOfflineSync.ts": 126,
   "src/hooks/useOfflineMatchSync.ts": 135,
   "src/hooks/useScoreboardUIState.ts": 128,
