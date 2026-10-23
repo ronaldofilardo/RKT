@@ -20,7 +20,6 @@
   "src/app/match/[id]/scoring/useScoringTimelineSync.ts": 149,
   "src/components/dashboard/match-card.logic.ts": 156,
   "src/components/scoring/edit-score-modal.types.ts": 107,
-  "src/components/scoring/timeline-format.ts": 199,
   "src/components/scoring/timeline-set-results.ts": 179,
   "src/components/scoring/use-edit-score-modal-confirm.logic.ts": 189,
   "src/components/scoring/use-edit-score-modal-validation.logic.ts": 169,
