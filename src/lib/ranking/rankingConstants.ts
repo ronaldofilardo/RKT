@@ -7,24 +7,17 @@
  * Owner: @frontend
  */
 
-import { CATEGORIES_BY_RANKING, HIGHER_CATEGORY, LOWER_CATEGORY } from './ranking-categories.data';
+import type { RankingType } from './ranking-types';
+import { RANKING_TYPES } from './ranking-types';
+import { hasCategories, getCategoriesForAge, getAllowedCategoriesForAge } from './ranking-category-logic';
+
+export { RANKING_TYPES, RANKING_TYPE_LABELS } from './ranking-types';
+export type { RankingType } from './ranking-types';
+export { YOUTH_CATEGORIES, isYouthCategory, hasCategories, hasClasses, getCategoriesForAge, getAllowedCategoriesForAge, getAutoCategoryForAge } from './ranking-category-logic';
 
 export { getClassesForSelection } from './ranking-class-logic';
 
 export { CATEGORIES_BY_RANKING, CATEGORY_TO_NUMBER, HIGHER_CATEGORY } from './ranking-categories.data';
-
-export const RANKING_TYPES = ['ESTADUAL', 'CBT', 'COSAT', 'ITF', 'ITF_Juniors', 'ATP', 'WTA'] as const;
-export type RankingType = (typeof RANKING_TYPES)[number];
-
-export const RANKING_TYPE_LABELS: Record<RankingType, string> = {
-  ESTADUAL: 'Estadual',
-  CBT: 'CBT',
-  COSAT: 'COSAT',
-  ITF: 'ITF',
-  ITF_Juniors: 'ITF Juniors',
-  ATP: 'ATP',
-  WTA: 'WTA',
-};
 
 export function calculateAgeFromYear(birthYear: number): number {
   return new Date().getFullYear() - birthYear;
@@ -40,14 +33,6 @@ export function calculateAge(year: number, month: number, day: number): number {
   return age;
 }
 
-/**
- * Categorias juvenis do ranking estadual (infanto-juvenil).
- */
-export const YOUTH_CATEGORIES = ['11', '11-12', '13-14', '15-16', '17-18'];
-
-export function isYouthCategory(category: string): boolean {
-  return YOUTH_CATEGORIES.includes(category);
-}
 
 /**
  * Idade efetiva usada para classificar o atleta em um ranking específico.
@@ -62,14 +47,6 @@ export function getCosatCategoryAge(currentAge: number, birthYear: number): numb
     return calculateAgeFromYear(birthYear);
   }
   return currentAge;
-}
-
-export function hasCategories(rankingType: RankingType): boolean {
-  return rankingType in CATEGORIES_BY_RANKING;
-}
-
-export function hasClasses(rankingType: RankingType): boolean {
-  return rankingType === 'ESTADUAL';
 }
 
 const MATCH_CATEGORIES = ['INFANTIL', 'JUVENIL', 'ADULTO', 'VETERANO'] as const;
@@ -96,46 +73,6 @@ export function getMatchCategoriesForAge(age: number): MatchCategory[] {
   if (age <= 18) return ['JUVENIL', 'ADULTO'];
   if (age < 35) return ['ADULTO'];
   return ['VETERANO'];
-}
-
-export function getCategoriesForAge(rankingType: RankingType, age: number): string[] {
-  const categories = CATEGORIES_BY_RANKING[rankingType];
-  if (!categories) return [];
-
-  return Object.entries(categories)
-    .filter(([, validAges]) => validAges.includes(age))
-    .map(([category]) => category);
-}
-
-function getYouthCategoriesFrom(natural: string[], validKeys: string[]): string[] {
-  const result = [...natural];
-  let current = natural.at(-1);
-  while (current) {
-    current = HIGHER_CATEGORY[current];
-    if (current && validKeys.includes(current)) result.push(current);
-  }
-  return result;
-}
-
-function getVeteranCategoriesFrom(natural: string[], validKeys: string[]): string[] {
-  const current = natural[0];
-  const lower = current ? LOWER_CATEGORY[current] : undefined;
-  return lower && validKeys.includes(lower) ? [natural[0], lower] : natural;
-}
-
-export function getAllowedCategoriesForAge(rankingType: RankingType, age: number): string[] {
-  const categories = CATEGORIES_BY_RANKING[rankingType];
-  if (!categories) return [];
-
-  const validKeys = Object.keys(categories);
-  const natural = getCategoriesForAge(rankingType, age);
-  if (natural.length === 0) return [];
-  if (age >= 35) return getVeteranCategoriesFrom(natural, validKeys);
-  return getYouthCategoriesFrom(natural, validKeys);
-}
-
-export function getAutoCategoryForAge(rankingType: RankingType, age: number): string[] {
-  return getCategoriesForAge(rankingType, age);
 }
 
 function isRankingGenderCompatible(rankingType: RankingType, gender: string): boolean {
