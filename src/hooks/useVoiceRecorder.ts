@@ -1,32 +1,11 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import type { RecorderState, UseVoiceRecorderReturn } from './voice-recorder.types';
+import { PREFERRED_MIME, MAX_DURATION_MS, getSupportedMime } from './voice-recorder-support.logic';
 
-const PREFERRED_MIME = 'audio/webm;codecs=opus';
-const FALLBACK_MIME = 'audio/mp4';
-const MAX_DURATION_MS = 15_000;
-
-type RecorderState = 'idle' | 'recording' | 'recorded';
-
-interface UseVoiceRecorderReturn {
-  state: RecorderState;
-  audioBlob: Blob | null;
-  audioUrl: string | null;
-  durationMs: number;
-  error: string | null;
-  startRecording: () => Promise<void>;
-  stopRecording: () => Promise<{ blob: Blob; durationMs: number } | null>;
-  playPreview: () => void;
-  stopPreview: () => void;
-  clear: () => void;
-}
-
-function getSupportedMime(): string | null {
-  if (typeof MediaRecorder === 'undefined' || typeof MediaRecorder !== 'function') return null;
-  if (MediaRecorder.isTypeSupported(PREFERRED_MIME)) return PREFERRED_MIME;
-  if (MediaRecorder.isTypeSupported(FALLBACK_MIME)) return FALLBACK_MIME;
-  return null;
-}
+export type { RecorderState, UseVoiceRecorderReturn } from './voice-recorder.types';
+export { PREFERRED_MIME, FALLBACK_MIME, MAX_DURATION_MS, getSupportedMime } from './voice-recorder-support.logic';
 
 export function useVoiceRecorder(): UseVoiceRecorderReturn {
   const [state, setState] = useState<RecorderState>('idle');
