@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from 'react';
 import type { RecorderState, UseVoiceRecorderReturn } from './voice-recorder.types';
 import { PREFERRED_MIME, MAX_DURATION_MS, getSupportedMime } from './voice-recorder-support.logic';
 import { useVoiceRecorderLifecycle } from './use-voice-recorder-lifecycle';
+import { useVoiceRecorderCaptureStart } from './use-voice-recorder-capture-start';
 
 export type { RecorderState, UseVoiceRecorderReturn } from './voice-recorder.types';
 export { PREFERRED_MIME, FALLBACK_MIME, MAX_DURATION_MS, getSupportedMime } from './voice-recorder-support.logic';
@@ -35,66 +36,20 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
     setState,
   });
 
-  const startRecording = useCallback(async () => {
-    clear();
-    setError(null);
-
-    const mime = getSupportedMime();
-    if (!mime) {
-      setError('Gravação de áudio não suportada neste navegador');
-      return;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-
-      const recorder = new MediaRecorder(stream, { mimeType: mime });
-      mediaRecorderRef.current = recorder;
-      chunksRef.current = [];
-
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          chunksRef.current.push(e.data);
-        }
-      };
-
-      recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: mime });
-        const elapsed = Date.now() - startTimeRef.current;
-        const cappedMs = Math.min(elapsed, MAX_DURATION_MS);
-
-        setAudioBlob(blob);
-        setDurationMs(cappedMs);
-        setState('recorded');
-        cleanupTimer();
-        cleanupStream();
-      };
-
-      recorder.start(100);
-      startTimeRef.current = Date.now();
-      setState('recording');
-
-      timerRef.current = setInterval(() => {
-        const elapsed = Date.now() - startTimeRef.current;
-        setDurationMs(elapsed);
-        if (elapsed >= MAX_DURATION_MS) {
-          if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-            mediaRecorderRef.current.stop();
-          }
-        }
-      }, 200);
-    } catch (err) {
-      cleanupStream();
-      cleanupTimer();
-      if (err instanceof DOMException && err.name === 'NotAllowedError') {
-        setError('Permissão de microfone negada');
-      } else {
-        setError('Erro ao acessar microfone');
-      }
-      setState('idle');
-    }
-  }, [clear, cleanupStream, cleanupTimer]);
+  const { startRecording } = useVoiceRecorderCaptureStart({
+    clear,
+    cleanupStream,
+    cleanupTimer,
+    setError,
+    setState,
+    setAudioBlob,
+    setDurationMs,
+    mediaRecorderRef,
+    streamRef,
+    chunksRef,
+    timerRef,
+    startTimeRef,
+  });
 
   const stopRecording = useCallback((): Promise<{ blob: Blob; durationMs: number } | null> => {
     return new Promise((resolve) => {
