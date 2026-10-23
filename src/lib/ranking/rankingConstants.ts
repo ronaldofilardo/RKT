@@ -7,6 +7,10 @@
  * Owner: @frontend
  */
 
+import { CATEGORIES_BY_RANKING, CATEGORY_TO_NUMBER, HIGHER_CATEGORY, LOWER_CATEGORY } from './ranking-categories.data';
+
+export { CATEGORIES_BY_RANKING, CATEGORY_TO_NUMBER, HIGHER_CATEGORY } from './ranking-categories.data';
+
 export const RANKING_TYPES = ['ESTADUAL', 'CBT', 'COSAT', 'ITF', 'ITF_Juniors', 'ATP', 'WTA'] as const;
 export type RankingType = (typeof RANKING_TYPES)[number];
 
@@ -18,65 +22,6 @@ export const RANKING_TYPE_LABELS: Record<RankingType, string> = {
   ITF_Juniors: 'ITF Juniors',
   ATP: 'ATP',
   WTA: 'WTA',
-};
-
-export const CATEGORIES_BY_RANKING: Record<string, Record<string, number[]>> = {
-  ESTADUAL: {
-    '11': [11],
-    '11-12': [11, 12],
-    '13-14': [13, 14],
-    '15-16': [15, 16],
-    '17-18': [17, 18],
-    '35-39': [35, 36, 37, 38, 39],
-    '40-44': [40, 41, 42, 43, 44],
-    '45-49': [45, 46, 47, 48, 49],
-    '50-54': [50, 51, 52, 53, 54],
-    '55-59': [55, 56, 57, 58, 59],
-    '60-64': [60, 61, 62, 63, 64],
-    '65-69': [65, 66, 67, 68, 69],
-    '70-74': [70, 71, 72, 73, 74],
-    '75+': [75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100],
-  },
-  CBT: {
-    '11-12': [11, 12],
-    '13-14': [13, 14],
-    '15-16': [15, 16],
-    '17-18': [17, 18],
-  },
-  COSAT: {
-    '13-14': [13, 14],
-    '15-16': [15, 16],
-  },
-  ITF: {
-    '18': [18],
-    '35-39': [35, 36, 37, 38, 39],
-    '40-44': [40, 41, 42, 43, 44],
-    '45-49': [45, 46, 47, 48, 49],
-    '50-54': [50, 51, 52, 53, 54],
-    '55-59': [55, 56, 57, 58, 59],
-    '60-64': [60, 61, 62, 63, 64],
-    '65-69': [65, 66, 67, 68, 69],
-    '70-74': [70, 71, 72, 73, 74],
-    '75+': [75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100],
-  },
-  
-};
-
-export const CATEGORY_TO_NUMBER: Record<string, number> = {
-  '11': 1,
-  '11-12': 1,
-  '13-14': 2,
-  '15-16': 3,
-  '17-18': 4,
-  '35-39': 1,
-  '40-44': 1,
-  '45-49': 1,
-  '50-54': 1,
-  '55-59': 1,
-  '60-64': 1,
-  '65-69': 1,
-  '70-74': 1,
-  '75+': 1,
 };
 
 const AGE_GROUP_RANGES: Record<string, [number, number]> = {
@@ -168,26 +113,6 @@ export function getCategoriesForAge(rankingType: RankingType, age: number): stri
     .filter(([, validAges]) => validAges.includes(age))
     .map(([category]) => category);
 }
-
-export const HIGHER_CATEGORY: Record<string, string | undefined> = {
-  '11': '13-14',
-  '11-12': '13-14',
-  '13-14': '15-16',
-  '15-16': '17-18',
-  '17-18': undefined,
-};
-
-const LOWER_CATEGORY: Record<string, string | undefined> = {
-  '35-39': undefined,
-  '40-44': '35-39',
-  '45-49': '40-44',
-  '50-54': '45-49',
-  '55-59': '50-54',
-  '60-64': '55-59',
-  '65-69': '60-64',
-  '70-74': '65-69',
-  '75+': '70-74',
-};
 
 function getYouthCategoriesFrom(natural: string[], validKeys: string[]): string[] {
   const result = [...natural];
