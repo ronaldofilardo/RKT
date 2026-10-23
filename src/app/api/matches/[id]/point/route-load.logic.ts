@@ -9,6 +9,13 @@ export interface PointTransactionResult {
   pointLogId: string;
 }
 
+export interface PointActorFinals {
+  finalServerId: string;
+  calculatedReceiverId: string | undefined;
+  calculatedCourtSide: import('@/schemas/contracts').PointFlowInput['courtSide'];
+  finalHitterId: string | undefined;
+}
+
 export type LoadedPointMatch = NonNullable<Awaited<ReturnType<typeof findMatchWithPlayers>>>;
 
 async function findMatchWithPlayers(tx: Prisma.TransactionClient, id: string) {

@@ -1,23 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { PointFlowInputSchema } from '@/schemas/contracts';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { withRLSHandler } from '@/lib/auth';
-import type { ScoringState } from '@/core/scoring/types';
 import { emitMatchEvent } from '@/lib/match-events';
-import { logger } from '@/lib/logger';
-import { ScoreEnvelopeSchema } from '@/schemas/score';
-import { Prisma } from '@prisma/client';
-import {
-  TransactionError,
-  restoreEngineFromMatch,
-  buildAnnotationsPayload,
-  reportPointRouteFailure,
-} from './route.logic';
-import { loadMatchForPoint, type PointTransactionResult } from './route-load.logic';
-import { resolveDoublesActors } from './route-actors-doubles.logic';
-import { validateSinglesActors } from './route-actors-singles.logic';
-import { resolveNextSequence } from './route-sequence.logic';
-import { buildEngineConfig } from '@/core/scoring/engine-config';
+import { reportPointRouteFailure } from './route.logic';
+import { parsePointRequestBody } from './route-parse.logic';
+import { runPointTransaction } from './route-transaction.logic';
 
 export async function POST(
   request: NextRequest,
@@ -30,207 +17,15 @@ export async function POST(
       const { id } = await params;
       requestId = id;
 
-      let body;
-      try {
-        body = await request.json();
-      } catch (e) {
-        logger.point.parseError(e);
-        return NextResponse.json(
-          { error: 'INVALID_BODY', message: 'Request body must be valid JSON' },
-          { status: 400 }
-        );
-      }
-
-      if (!body || typeof body !== 'object') {
-        return NextResponse.json(
-          { error: 'INVALID_BODY', message: 'Request body is required' },
-          { status: 400 }
-        );
-      }
-
-      logger.point.received(body);
-      const parsed = PointFlowInputSchema.safeParse(body);
-
-      if (!parsed.success) {
-        logger.point.validationError({
-          body,
-          issues: parsed.error.issues,
-          flattened: parsed.error.flatten(),
-        });
-        return NextResponse.json(
-          { error: 'VALIDATION_ERROR', details: parsed.error.flatten() },
-          { status: 400 }
-        );
-      }
-
+      const parsed = await parsePointRequestBody(request);
+      if (!parsed.ok) return parsed.response;
       requestClientEventId = parsed.data.clientEventId;
 
-      const result: PointTransactionResult | null = await prisma.$transaction(async (tx) => {
-        const loaded = await loadMatchForPoint(
-          tx,
-          id,
-          parsed.data.clientEventId,
-          user?.id,
-          user?.role,
-        );
-        if (loaded.kind === 'existing') return loaded.result;
-        const match = loaded.match;
-
-        logger.point.engineCreated();
-        const engine = restoreEngineFromMatch(match as Parameters<typeof restoreEngineFromMatch>[0]);
-        const prePointState = engine.getState();
-        const isDoubles = match.matchType === 'DOUBLES';
-        const engineConfig = buildEngineConfig(match);
-
-        let finalServerId = parsed.data.serverId;
-        let calculatedReceiverId = parsed.data.receiverId;
-        let calculatedCourtSide = parsed.data.courtSide;
-        let finalHitterId = parsed.data.hitterId;
-
-        if (isDoubles) {
-          const doublesActors = resolveDoublesActors({
-            matchId: id,
-            match,
-            data: parsed.data,
-            prePointState,
-            engineConfig,
-          });
-          finalServerId = doublesActors.finalServerId;
-          calculatedReceiverId = doublesActors.calculatedReceiverId;
-          calculatedCourtSide = doublesActors.calculatedCourtSide;
-          finalHitterId = doublesActors.finalHitterId;
-        } else {
-          validateSinglesActors({ matchId: id, match, data: parsed.data, engine });
-        }
-
-        const nextSequenceNumber = await resolveNextSequence(tx, id, parsed.data.sequenceNumber);
-
-        const expectedVersion = match.version;
-        const nextVersion = match.version + 1;
-
-        logger.point.applying(parsed.data);
-        let newState: ScoringState;
-        try {
-          const flowToApply = {
-            ...parsed.data,
-            serverId: finalServerId,
-            ...(calculatedReceiverId !== undefined ? { receiverId: calculatedReceiverId } : {}),
-            ...(calculatedCourtSide !== undefined ? { courtSide: calculatedCourtSide } : {}),
-            ...(finalHitterId !== undefined ? { hitterId: finalHitterId } : {}),
-          };
-          newState = engine.applyPoint(flowToApply);
-        } catch (engineError) {
-          const msg = engineError instanceof Error ? engineError.message : String(engineError);
-          if (msg === 'MATCH_ALREADY_FINISHED') {
-            throw new TransactionError('Partida já finalizada', 422, 'MATCH_ALREADY_FINISHED');
-          }
-          if (msg === 'INVALID_WINNER') {
-            throw new TransactionError('Jogador vencedor inválido para esta partida', 400, 'INVALID_WINNER');
-          }
-          throw engineError;
-        }
-
-        const isMatchFinished = newState.isFinished;
-        // Performance fix: persiste snapshot enxuto { state: newState, history: [] } no caminho quente,
-        // eliminando o custo quadrático de serializar e persistir histórico acumulado a cada ponto.
-        const snapshot = {
-          state: newState,
-          history: [],
-        };
-
-        const envelopeParsed = ScoreEnvelopeSchema.safeParse(snapshot);
-        if (!envelopeParsed.success) {
-          logger.warn({
-            message: "ScoreEnvelope format anomaly detected",
-            matchId: id,
-            issues: envelopeParsed.error.issues,
-          });
-        }
-
-        logger.point.updatingMatch({ version: match.version, isFinished: isMatchFinished });
-        const finishData = isMatchFinished
-          ? {
-              state: 'FINISHED' as const,
-              finishedAt: new Date(),
-              winnerId: newState.winner === 'player1' ? match.player1Id : match.player2Id,
-            }
-          : {};
-
-        const startedAtData = !match.startedAt
-          ? { startedAt: new Date(newState.startedAt ?? Date.now()) }
-          : {};
-
-        await tx.match.update({
-          where: { id, version: expectedVersion },
-          data: {
-            scoreState: snapshot as unknown as Prisma.InputJsonValue,
-            version: { increment: 1 },
-            ...finishData,
-            ...startedAtData,
-          },
-        });
-
-        const annotations = buildAnnotationsPayload(parsed.data, {
-          hitterId: finalHitterId,
-          receiverId: calculatedReceiverId,
-          courtSide: calculatedCourtSide,
-        });
-
-        logger.point.creatingPointLog({
-          winnerId: parsed.data.winnerId,
-          type: parsed.data.type,
-          rallyLength: parsed.data.rallyLength,
-        });
-
-        const nowMs = Date.now();
-        let validatedTimestamp: Date;
-
-        if (parsed.data.timestamp) {
-          const clientMs = typeof parsed.data.timestamp === 'number'
-            ? parsed.data.timestamp
-            : new Date(parsed.data.timestamp).getTime();
-
-          const maxAllowedFuture = nowMs + 5 * 60 * 1000;
-          const matchStartMs = match.startedAt ? new Date(match.startedAt).getTime() : match.createdAt.getTime();
-          const minAllowedPast = matchStartMs - 60 * 60 * 1000;
-
-          if (clientMs > maxAllowedFuture) {
-            logger.warn({
-              message: '[POST /point] client timestamp in future clamped to now',
-              clientMs,
-              nowMs,
-            });
-            validatedTimestamp = new Date(nowMs);
-          } else if (clientMs < minAllowedPast) {
-            logger.warn({
-              message: '[POST /point] client timestamp too far in past clamped to match start',
-              clientMs,
-              matchStartMs,
-            });
-            validatedTimestamp = new Date(matchStartMs);
-          } else {
-            validatedTimestamp = new Date(clientMs);
-          }
-        } else {
-          validatedTimestamp = new Date(nowMs);
-        }
-
-        const pointLog = await tx.pointLog.create({
-          data: {
-            matchId: match.id,
-            winnerId: parsed.data.winnerId,
-            type: parsed.data.type,
-            serverId: finalServerId,
-            timestamp: validatedTimestamp,
-            annotations,
-            sequenceNumber: nextSequenceNumber,
-            clientEventId: parsed.data.clientEventId,
-          },
-        });
-
-        logger.point.transactionCompleted();
-        logger.point.newStateSets(newState.sets);
-        return { scoreState: newState, version: nextVersion, pointLogId: pointLog.id };
+      const result = await runPointTransaction({
+        matchId: id,
+        data: parsed.data,
+        userId: user?.id,
+        userRole: user?.role,
       });
 
       if (result?.scoreState) {
