@@ -79,9 +79,34 @@ Backlog `.tsx` zerado em 2026-10-16 (53→0); hoje **16 `.tsx` >100L**:
 
 | Fatia | Ação | Aceite |
 |---|---|---|
-| **A-0** | Congelar varredura canônica; reconciliar 106 vs 124; registrar baseline em §7.5 do plano STE-DEV | Comando + número oficiais publicados |
-| **A-1** | Guarda R-03 (`scripts/check-r03-line-limit.mjs` + `pnpm check:r03` + CI `quality.yml`): **padrão ratchet** — baseline `scripts/r03-baseline.json` congela 122 violações; falha em nova violação, crescimento de arquivo do baseline ou baseline obsoleto; isenta `ste-exception R-03` no cabeçalho | ✅ Exit 1 nas 3 falhas simuladas, exit 0 no estado limpo; 122 baseline + 2 isentas = 124 |
-| **A-2** | Triagem dos 16 `.tsx`: "cresceu pós-UI-44" vs "novo" | Tabela no plano; regressão vira backlog explícito (lote C-0) |
+| **A-0** | Congelar varredura canônica; reconciliar 106 vs 124; registrar baseline em §7.5 do plano STE-DEV | ✅ Comando + número oficiais publicados |
+| **A-1** | Guarda R-03 (ratchet no CI): falha se arquivo produção >100L e fora do baseline, se cresceu, ou baseline obsoleto; `ste-exception R-03` no cabeçalho isenta | ✅ Exit 1 nas 3 falhas simuladas, exit 0 no estado limpo |
+| **A-2** | Triagem dos 16 `.tsx`: "cresceu pós-UI-44" vs "novo" | ✅ Tabela abaixo; regressão vira lote C-0 |
+
+#### ✅ A-2 CONCLUÍDO (2026-10-22) — Triagem dos 16 `.tsx` >100L
+
+Comparação vs `af705d5` (zeramento UI-44, 2026-10-16):
+
+| Classe | Arquivo | 16-10 | Hoje | Δ | Causa-raiz |
+|---|---|---|---|---|---|
+| **Novo** (não existia) | `DoublesServerSelectionModal.tsx` | — | 261 | — | feature duplas `8479c4e` |
+| **Novo** | `DoublesArrangementModal.tsx` | — | 243 | — | feature duplas `8479c4e` |
+| **Novo** | `point-details-breadcrumb.tsx` | — | 108 | — | Stitch `0cd303a` (10-17) |
+| **Cresceu** | `ActionBar.sections.tsx` | 46 | 190 | **+144** | Stitch `0cd303a` (10-17) |
+| **Cresceu** | `PlayerSelection.tsx` | 64 | 189 | **+125** | duplas `8479c4e` |
+| **Cresceu** | `PlayerCard.tsx` | 56 | 111 | +55 | duplas `8479c4e` |
+| **Cresceu** | `edit-match-info-sections.tsx` | 98 | 115 | +17 | `24691e8` (10-17) |
+| **Cresceu** | `timeline-point-row.tsx` | 86 | 109 | +23 | duplas `8479c4e` |
+| **Cresceu** | `ScoringModals.tsx` | 91 | 109 | +18 | duplas `8479c4e` |
+| **Cresceu** | `MatchTimelineView.tsx` | 100 | 108 | +8 | duplas `8479c4e` |
+| **Cresceu** | `DashboardMatchModals.tsx` | 93 | 106 | +13 | duplas `8479c4e` |
+| **Cresceu** | `MatchNewFormSections.tsx` | 93 | 105 | +12 | duplas `8479c4e` |
+| **Cresceu** | `AthleteDropdown.tsx` | 97 | 104 | +7 | duplas `8479c4e` |
+| **Cresceu** | `ScoringPlayArea.tsx` | 98 | 102 | +4 | duplas `8479c4e` |
+| **Cresceu** | `EditAthleteModal.tsx` | 97 | 102 | +5 | `6804705` (10-16) |
+| **Cresceu** | `comment-modal-body.tsx` | 97 | 102 | +5 | `6804705` (10-16) |
+
+**Achado-chave:** 9 dos 13 "cresceram" + os 2 novos grandes regrediram no **commit de feature duplas `8479c4e` (2026-10-22)** — feature entregue no mesmo dia da auditoria, **antes** da guarda A-1. O ratchet agora impede repetição. Lote **C-0 = os 16 `.tsx`** (prioridade máxima da Fase C).
 
 ### Fase B — Top-10 (1 fatia = 1 arquivo)
 
@@ -138,4 +163,5 @@ Ordem por valor/risco (não por posição na tabela):
 |---|---|---|
 | 2026-10-22 | Plano criado (`docs/PLANO_R03_TOP10_S3.md`) | Concluído |
 | 2026-10-22 | **A-0** Varredura canônica congelada; reconciliação 106 (SLOC) vs 124 (linhas cruas = baseline oficial); 0 arquivos novos violando desde 2026-10-21; fronteira 98–102L mapeada (22 arquivos zona de risco) | Concluído |
-| 2026-10-22 | **A-1** Guarda R-03 ratchet: `check-r03-line-limit.mjs` (novo arquivo >100L / crescimento / baseline obsoleto → exit 1; `ste-exception R-03` isenta), baseline com 122 violações congeladas, `pnpm check:r03`, passo no CI `quality.yml`; `ste-exception R-03` ausente em `schemas/match.ts` adicionada ao cabeçalho (exceção já registrada no plano STE-DEV §7.5); modos de falha testados (exit 1/1/0) | Concluído |
+| 2026-10-22 | **A-1** Guarda R-03 ratchet: `check-r03-line-limit.mjs` (novo arquivo >100L / crescimento / baseline obsoleto → exit 1; `ste-exception R-03` isenta), baseline com 122 violações congeladas, `pnpm check:r03`, passo no CI `quality.yml`; `ste-exception R-03` ausente em `schemas/match.ts` adicionada ao cabeçalho (exceção já registrada no plano STE-DEV §7.5); modos de falha testados (exit 1/1/0) | Concluído (`2f42d15`) |
+| 2026-10-22 | **A-2** Triagem dos 16 `.tsx`: 3 novos (`DoublesServerSelectionModal` 261, `DoublesArrangementModal` 243, `point-details-breadcrumb` 108) + 13 que cresceram desde `af705d5` (maiores: `ActionBar.sections` 46→190, `PlayerSelection` 64→189, `PlayerCard` 56→111); **causa-raiz: 9/13 + 2 novos = feature duplas `8479c4e` (mesmo dia da auditoria, pré-guarda)**; lote C-0 definido = os 16 | Concluído |
