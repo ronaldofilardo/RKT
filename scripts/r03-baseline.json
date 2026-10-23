@@ -29,7 +29,6 @@
   "src/core/scoring/point-log-merge.ts": 161,
   "src/core/scoring/set-completion.ts": 151,
   "src/core/scoring/shadow-replay.ts": 102,
-  "src/core/scoring/timeline-rebuild.ts": 170,
   "src/hooks/use-offline-sync.logic.ts": 105,
   "src/hooks/useCommentOfflineSync.ts": 126,
   "src/hooks/useOfflineMatchSync.ts": 135,
