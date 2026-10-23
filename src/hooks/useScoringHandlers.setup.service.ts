@@ -1,26 +1,16 @@
 import { logger } from "@/lib/logger";
-import type { Dispatch, SetStateAction } from "react";
-import type { MatchData } from "./useScoringHandlers.types";
+import type { ScoringHandlersContext } from "./useScoringHandlers.types";
 
 interface SetupConfirmServiceDeps {
-  matchId: string;
-  match: MatchData | null;
-  tokenRef: React.MutableRefObject<string | null>;
+  ctx: ScoringHandlersContext;
   fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
-  close: () => void;
-  setSetupLoading: Dispatch<SetStateAction<boolean>>;
-  setError: Dispatch<SetStateAction<string | null>>;
 }
 
 export function createSetupConfirmService({
-  matchId,
-  match,
-  tokenRef,
+  ctx,
   fetchMatch,
-  close,
-  setSetupLoading,
-  setError,
 }: SetupConfirmServiceDeps) {
+  const { matchId, match, tokenRef, close, setSetupLoading, setError } = ctx;
   const confirmMatchSetup = async (serverId: string): Promise<void> => {
     if (!match) return;
     setSetupLoading(true);

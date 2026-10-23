@@ -89,7 +89,6 @@
   "src/hooks/useScoringHandlers.point-processor.service.ts": 289,
   "src/hooks/useScoringHandlers.point-sync.ts": 183,
   "src/hooks/useScoringHandlers.serve-actions.service.ts": 240,
-  "src/hooks/useScoringHandlers.ts": 288,
   "src/hooks/useScoringHandlers.types.ts": 119,
   "src/hooks/useScoringHandlers.undo-redo.service.ts": 164,
   "src/hooks/useSessionManager.abandon.ts": 126,
