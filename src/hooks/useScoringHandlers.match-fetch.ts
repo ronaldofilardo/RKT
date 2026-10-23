@@ -1,65 +1,12 @@
 import { logger } from '@/lib/logger';
 import { ScoringEngine } from '@/core/scoring/engine';
 import { buildEngineConfig } from '@/core/scoring/engine-config';
-import type { HistoryEntry, RallyDetails, ScoringState } from '@/core/scoring/types';
-import type { ScoreAction } from '@/hooks/useScoreReducer';
-import type { MatchData } from './useScoringHandlers.types';
+import type { HistoryEntry, ScoringState } from '@/core/scoring/types';
+import type { MatchDataWithSequence, MatchFetchDeps, ScoreStateEnvelope } from './useScoringHandlers.match-fetch.types';
+import { rehydrateEngineFromLogs } from './match-fetch-replay.logic';
 
-/** Envelope que o servidor pode devolver no `scoreState` (ver persistStateWithRetry). */
-type ScoreStateEnvelope = { state?: ScoringState; history?: HistoryEntry[] };
-
-/**
- * Atributos de anotação persistidos no PointLog. Servidores legados podem
- * omitir os campos opcionais; por isso todos são `| null`/opcional.
- */
-type PointLogAnnotations = {
-  firstFaultDetail?: { errorType?: string; serveEffect?: string; direction?: string } | null;
-  rallyDetails?: RallyDetails | null;
-  rallyLength?: number;
-  isFirstServe?: boolean;
-  isSecondServe?: boolean;
-  note?: string;
-  hitterId?: string | null;
-  receiverId?: string | null;
-  courtSide?: 'deuce' | 'ad' | null;
-};
-
-export interface ActiveLogSummary {
-  id: string;
-  winnerId: string;
-  serverId: string;
-  type: string;
-  sequenceNumber?: number | null;
-  annotations?: PointLogAnnotations | null;
-  timestamp?: string | Date;
-}
-
-/** Campo defensivo: alguns servidores podem devolver além do schema atual. */
-type MatchDataWithSequence = MatchData & {
-  lastPointSequence?: number;
-  lastScoreEdit?: {
-    id: string;
-    editedAt: string | Date;
-    newScoreState: unknown;
-  } | null;
-  activeLogsSinceEdit?: ActiveLogSummary[];
-};
-
-interface MatchFetchDeps {
-  matchId: string;
-  tokenRef: React.MutableRefObject<string | null>;
-  matchVersionRef: React.MutableRefObject<number | null>;
-  pointSequenceRef: React.MutableRefObject<number>;
-  engineRef: React.MutableRefObject<ScoringEngine | null>;
-  openRef: React.MutableRefObject<
-    (modal: string, params?: Record<string, string>) => void
-  >;
-  setMatch: (match: MatchData) => void;
-  setScoreState: (action: ScoreAction) => void;
-  setPointsHistory: React.Dispatch<React.SetStateAction<string[]>>;
-  setIsLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
-}
+export type { ScoreStateEnvelope, PointLogAnnotations, ActiveLogSummary, MatchDataWithSequence, MatchFetchDeps } from './useScoringHandlers.match-fetch.types';
+export { rehydrateEngineFromLogs } from './match-fetch-replay.logic';
 
 export function createMatchFetchService(deps: MatchFetchDeps) {
   const {
@@ -111,45 +58,10 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
 
         const hasActiveLogs = Array.isArray(data.activeLogsSinceEdit) && data.activeLogsSinceEdit.length > 0;
         if (hasActiveLogs) {
-          try {
-            let rehydratedEngine: ScoringEngine;
-            if (data.lastScoreEdit?.newScoreState) {
-              rehydratedEngine = ScoringEngine.fromSerialized(config, JSON.stringify(data.lastScoreEdit.newScoreState));
-            } else {
-              rehydratedEngine = new ScoringEngine(config);
-            }
-
-            for (const log of data.activeLogsSinceEdit!) {
-              const ann = log.annotations;
-              const firstFaultDetail = ann?.firstFaultDetail ?? null;
-              const isSecondServe =
-                log.type === 'DOUBLE_FAULT' ||
-                Boolean(firstFaultDetail) ||
-                ann?.isSecondServe === true ||
-                ann?.isFirstServe === false;
-              const isFirstServe = !isSecondServe;
-
-              rehydratedEngine.applyPoint({
-                winnerId: log.winnerId,
-                type: log.type,
-                serverId: log.serverId,
-                timestamp: log.timestamp ? new Date(log.timestamp).getTime() : Date.now(),
-                isFirstServe,
-                isSecondServe,
-                firstFault: log.type === 'FAULT_FIRST',
-                firstFaultDetail,
-                rallyDetails: ann?.rallyDetails ?? null,
-                rallyLength: ann?.rallyLength,
-                hitterId: ann?.hitterId ?? undefined,
-                receiverId: ann?.receiverId ?? undefined,
-                courtSide: ann?.courtSide ?? undefined,
-              });
-            }
-
-            engineRef.current = rehydratedEngine;
+          const replayedEngine = rehydrateEngineFromLogs(config, data);
+          if (replayedEngine) {
+            engineRef.current = replayedEngine;
             rehydratedViaLogs = true;
-          } catch (replayError) {
-            logger.warn('[MATCH FETCH] Replay de activeLogsSinceEdit falhou; caindo para fromSerialized:', replayError);
           }
         }
 
