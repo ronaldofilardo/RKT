@@ -5,23 +5,9 @@ import {
 } from '@/core/scoring/format-rules';
 import { isMatchTiebreakSetIndex as isMatchTiebreakSetIndexCanonical } from '@/lib/matchConfig';
 import { SCORING_LIMITS, TIEBREAK } from '@/lib/constants';
+import type { SetEditData, SetValidation } from './edit-score-domain.types';
 
-export interface SetEditData {
-  p1Games: number;
-  p2Games: number;
-  isPartial: boolean;
-  tiebreakScore?: { player1: number; player2: number };
-  currentGamePoints?: { player1: number | string; player2: number | string };
-}
-
-interface SetValidation {
-  isValid: boolean;
-  error?: string;
-  winner?: 'player1' | 'player2';
-  hasTiebreak?: boolean;
-  isPartial?: boolean;
-  tiebreakRequired?: boolean;
-}
+export type { SetEditData };
 
 export function getMaxValidGames(_otherGames: number, format: TennisFormat): number {
   if (format === 'MATCH_TB_10') return SCORING_LIMITS.TIEBREAK_INPUT_CAP;
