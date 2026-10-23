@@ -50,7 +50,6 @@
   "src/hooks/useScoringHandlers.types.ts": 119,
   "src/hooks/useScoringHandlers.undo-redo.service.ts": 164,
   "src/hooks/useSessionManager.abandon.ts": 126,
-  "src/hooks/useSessionManager.state-builder.ts": 202,
   "src/lib/api.logic.ts": 105,
   "src/lib/auth-client.ts": 129,
   "src/lib/auth.ts": 156,
