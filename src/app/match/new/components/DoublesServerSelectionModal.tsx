@@ -3,6 +3,8 @@
 import type { SelectablePlayer } from './ServerSelectionModal';
 import type { DoublesSetup } from '@/schemas/contracts';
 import { useDoublesServerSelection } from './use-doubles-server-selection';
+import { DoublesServingSideSection } from './doubles-serving-side-section';
+import { DoublesServeOrderSection } from './doubles-serve-order-section';
 
 interface DoublesServerSelectionModalProps {
   isOpen: boolean;
@@ -74,106 +76,26 @@ export function DoublesServerSelectionModal({
         </p>
 
         {/* 1. Dupla que começa sacando */}
-        <div className="mb-5 space-y-2">
-          <label className="text-xs font-bold text-telemetry-text-muted uppercase tracking-wider block">
-            1. Qual dupla começa no saque?
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setServingSide('player1')}
-              className={`p-3 rounded-xl border text-left transition-all ${
-                servingSide === 'player1'
-                  ? 'border-sky-500 bg-sky-500/10 text-white font-semibold'
-                  : 'border-white/10 hover:border-white/20 text-telemetry-text-muted'
-              }`}
-            >
-              <div className="text-xs font-bold text-sky-400 mb-0.5">Dupla 1</div>
-              <div className="text-sm truncate font-medium text-telemetry-text-primary">
-                {selectedP1.name} &amp; {selectedP1Partner.name}
-              </div>
-            </button>
-            <button
-              type="button"
-              onClick={() => setServingSide('player2')}
-              className={`p-3 rounded-xl border text-left transition-all ${
-                servingSide === 'player2'
-                  ? 'border-emerald-500 bg-emerald-500/10 text-white font-semibold'
-                  : 'border-white/10 hover:border-white/20 text-telemetry-text-muted'
-              }`}
-            >
-              <div className="text-xs font-bold text-emerald-400 mb-0.5">Dupla 2</div>
-              <div className="text-sm truncate font-medium text-telemetry-text-primary">
-                {selectedP2.name} &amp; {selectedP2Partner.name}
-              </div>
-            </button>
-          </div>
-        </div>
+        <DoublesServingSideSection
+          servingSide={servingSide}
+          onServingSideChange={setServingSide}
+          selectedP1={selectedP1}
+          selectedP1Partner={selectedP1Partner}
+          selectedP2={selectedP2}
+          selectedP2Partner={selectedP2Partner}
+        />
 
         {/* 2. Ordem de saque */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-          {/* Sacador 1 da Dupla 1 */}
-          <div className="p-3 bg-telemetry-card rounded-xl border border-sky-500/20 space-y-2">
-            <span className="text-xs font-bold text-sky-400 block">
-              Quem saca 1º na Dupla 1?
-            </span>
-            <div className="flex flex-col gap-1.5">
-              <button
-                type="button"
-                onClick={() => setFirstServerP1(p1Id)}
-                className={`py-2 px-3 text-xs rounded-lg text-left transition-all ${
-                  activeFirstServerP1 === p1Id
-                    ? 'bg-telemetry-blue text-white font-bold'
-                    : 'bg-telemetry-elevated text-telemetry-text-muted hover:text-white'
-                }`}
-              >
-                1º: {selectedP1.name}
-              </button>
-              <button
-                type="button"
-                onClick={() => setFirstServerP1(p1PartnerId)}
-                className={`py-2 px-3 text-xs rounded-lg text-left transition-all ${
-                  activeFirstServerP1 === p1PartnerId
-                    ? 'bg-telemetry-blue text-white font-bold'
-                    : 'bg-telemetry-elevated text-telemetry-text-muted hover:text-white'
-                }`}
-              >
-                1º: {selectedP1Partner.name}
-              </button>
-            </div>
-          </div>
-
-          {/* Sacador 1 da Dupla 2 */}
-          <div className="p-3 bg-telemetry-card rounded-xl border border-emerald-500/20 space-y-2">
-            <span className="text-xs font-bold text-emerald-400 block">
-              Quem saca 1º na Dupla 2?
-            </span>
-            <div className="flex flex-col gap-1.5">
-              <button
-                type="button"
-                onClick={() => setFirstServerP2(p2Id)}
-                className={`py-2 px-3 text-xs rounded-lg text-left transition-all ${
-                  activeFirstServerP2 === p2Id
-                    ? 'bg-emerald-600 text-white font-bold'
-                    : 'bg-telemetry-elevated text-telemetry-text-muted hover:text-white'
-                }`}
-              >
-                1º: {selectedP2.name}
-              </button>
-              <button
-                type="button"
-                onClick={() => setFirstServerP2(p2PartnerId)}
-                className={`py-2 px-3 text-xs rounded-lg text-left transition-all ${
-                  activeFirstServerP2 === p2PartnerId
-                    ? 'bg-emerald-600 text-white font-bold'
-                    : 'bg-telemetry-elevated text-telemetry-text-muted hover:text-white'
-                }`}
-              >
-                1º: {selectedP2Partner.name}
-              </button>
-            </div>
-          </div>
-        </div>
+        <DoublesServeOrderSection
+          activeFirstServerP1={activeFirstServerP1}
+          activeFirstServerP2={activeFirstServerP2}
+          onFirstServerP1={setFirstServerP1}
+          onFirstServerP2={setFirstServerP2}
+          selectedP1={selectedP1}
+          selectedP1Partner={selectedP1Partner}
+          selectedP2={selectedP2}
+          selectedP2Partner={selectedP2Partner}
+        />
 
         {/* 3. Lado de Recepção (Deuce) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
