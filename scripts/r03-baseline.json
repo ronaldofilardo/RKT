@@ -57,7 +57,6 @@
   "src/hooks/useSessionManager.edit-score.ts": 212,
   "src/hooks/useSessionManager.state-builder.ts": 202,
   "src/hooks/useSessionManager.ts": 208,
-  "src/hooks/useVoiceRecorder.ts": 217,
   "src/lib/api.logic.ts": 105,
   "src/lib/auth-client.ts": 129,
   "src/lib/auth.ts": 156,

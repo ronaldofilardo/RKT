@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import type { RecorderState, UseVoiceRecorderReturn } from './voice-recorder.types';
-import { PREFERRED_MIME, MAX_DURATION_MS, getSupportedMime } from './voice-recorder-support.logic';
 import { useVoiceRecorderLifecycle } from './use-voice-recorder-lifecycle';
 import { useVoiceRecorderCaptureStart } from './use-voice-recorder-capture-start';
+import { useVoiceRecorderCaptureStop } from './use-voice-recorder-capture-stop';
+import { useVoiceRecorderPreview } from './use-voice-recorder-preview';
 
 export type { RecorderState, UseVoiceRecorderReturn } from './voice-recorder.types';
 export { PREFERRED_MIME, FALLBACK_MIME, MAX_DURATION_MS, getSupportedMime } from './voice-recorder-support.logic';
@@ -51,54 +52,20 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
     startTimeRef,
   });
 
-  const stopRecording = useCallback((): Promise<{ blob: Blob; durationMs: number } | null> => {
-    return new Promise((resolve) => {
-      const recorder = mediaRecorderRef.current;
-      if (!recorder || recorder.state !== 'recording') {
-        if (audioBlob) {
-          resolve({ blob: audioBlob, durationMs });
-        } else {
-          resolve(null);
-        }
-        return;
-      }
+  const { stopRecording } = useVoiceRecorderCaptureStop({
+    audioBlob,
+    durationMs,
+    cleanupTimer,
+    mediaRecorderRef,
+    chunksRef,
+    startTimeRef,
+  });
 
-      cleanupTimer();
-      const origOnStop = recorder.onstop;
-      recorder.onstop = (e) => {
-        if (origOnStop) {
-          origOnStop.call(recorder, e);
-        }
-        const mime = recorder.mimeType || getSupportedMime() || PREFERRED_MIME;
-        const blob = new Blob(chunksRef.current, { type: mime });
-        const elapsed = Date.now() - startTimeRef.current;
-        const cappedMs = Math.min(elapsed, MAX_DURATION_MS);
-        resolve({ blob, durationMs: cappedMs });
-      };
-
-      recorder.stop();
-    });
-  }, [audioBlob, durationMs, cleanupTimer]);
-
-  const playPreview = useCallback(() => {
-    if (!audioBlob) return;
-
-    stopPreview();
-
-    const url = URL.createObjectURL(audioBlob);
-    const audio = new Audio(url);
-    audioElementRef.current = audio;
-
-    audio.onended = () => {
-      URL.revokeObjectURL(url);
-      audioElementRef.current = null;
-    };
-
-    audio.play().catch(() => {
-      URL.revokeObjectURL(url);
-      audioElementRef.current = null;
-    });
-  }, [audioBlob, stopPreview]);
+  const { playPreview } = useVoiceRecorderPreview({
+    audioBlob,
+    audioElementRef,
+    stopPreview,
+  });
 
   return {
     state,
