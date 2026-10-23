@@ -1,111 +1,18 @@
 "use client";
 
-import type { PointFlow, ScoringState } from "@/core/scoring/types";
+import type { PointFlow } from "@/core/scoring/types";
 import { buildPointPayload } from "@/core/scoring/point-payload";
-import type { MatchData } from "./useScoringHandlers";
 import type { QueuedAction } from "@/schemas/contracts";
 import { logger } from "@/lib/logger";
 import { TIMEOUTS } from "@/lib/constants";
-
-interface PointSyncConfig {
-  matchId: string;
-  match: MatchData | null;
-  tokenRef: React.MutableRefObject<string | null>;
-  pointSequenceRef: React.MutableRefObject<number>;
-  setError: (error: string) => void;
-}
-
-interface PointSyncResult {
-  success: boolean;
-  needsResync?: boolean;
-  serverResponse?: ServerResponse;
-  needsLogin?: boolean;
-}
-
-interface ServerResponse {
-  scoreState?: ScoringState;
-  version?: number;
-  pointLogId?: string;
-}
-
-interface VersionConflictBody {
-  error?: string;
-  expectedSequence?: number;
-}
-
-interface ErrorResponseBody {
-  error?: string;
-  message?: string;
-}
-
-
-async function respondWithApiSuccess(res: Response): Promise<PointSyncResult> {
-  try {
-    const data = await res.json();
-    return {
-      success: true,
-      needsResync: false,
-      serverResponse: data,
-    };
-  } catch (err) {
-    logger.point.parseResponseError(err);
-    return { success: true, needsResync: false };
-  }
-}
-
-async function respondWithConflict(
-  res: Response,
-  pointSequenceRef: React.MutableRefObject<number>,
-  setError: (msg: string) => void,
-): Promise<PointSyncResult> {
-  try {
-    const errData = (await res.json()) as VersionConflictBody;
-    if (errData.error === "SEQUENCE_CONFLICT" && errData.expectedSequence) {
-      pointSequenceRef.current = errData.expectedSequence - 1;
-    }
-  } catch (e) {
-    logger.warn("[syncPointToServer] Falha ao parsear body do 409:", e);
-  }
-  setError("Conflito de sequência — sincronizando...");
-  return { success: false, needsResync: true };
-}
-
-async function respondWithApiError(
-  res: Response,
-  setError: (msg: string) => void,
-): Promise<PointSyncResult> {
-  let errorMsg = `Erro ao registrar ponto (${res.status})`;
-  try {
-    const errData = (await res.json()) as ErrorResponseBody;
-    logger.point.responseError(res.status, errData);
-    if (errData.error) {
-      errorMsg = `Erro: ${errData.error} — ${errData.message || "sincronizando..."}`;
-    }
-  } catch (e) {
-    const text = await res.text();
-    logger.point.responseErrorText(res.status, text);
-  }
-  setError(errorMsg);
-  return { success: false, needsResync: true };
-}
-
-async function respondUnauthorized(
-  setError: (msg: string) => void,
-): Promise<PointSyncResult> {
-  setError("Sessão expirada — o ponto foi salvo localmente. Faça login novamente para sincronizar.");
-  return { success: false, needsResync: false, needsLogin: true };
-}
-
-function reportFetchFailure(err: unknown, setError: (msg: string) => void): PointSyncResult {
-  if (err instanceof Error && err.name === "AbortError") {
-    logger.point.requestTimeout();
-    setError("Tempo esgotado — sincronizando placar...");
-  } else {
-    logger.point.requestError(err);
-    setError("Erro de conexão — sincronizando...");
-  }
-  return { success: false, needsResync: true };
-}
+import type { PointSyncConfig, PointSyncResult } from "./point-sync.types";
+import {
+  respondWithApiSuccess,
+  respondWithConflict,
+  respondWithApiError,
+  respondUnauthorized,
+  reportFetchFailure,
+} from "./point-sync-responders.logic";
 
 export function createPointSyncService(config: PointSyncConfig) {
   const { matchId, match, tokenRef, pointSequenceRef, setError } = config;
@@ -181,3 +88,5 @@ export function createPointSyncService(config: PointSyncConfig) {
     queuePointForOffline,
   };
 }
+
+export type { PointSyncConfig, PointSyncResult, ServerResponse } from "./point-sync.types";

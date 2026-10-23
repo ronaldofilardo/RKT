@@ -39,7 +39,6 @@
   "src/hooks/useOfflineMatchSync.ts": 135,
   "src/hooks/useScoreboardUIState.ts": 128,
   "src/hooks/useScoringHandlers.persistence.ts": 151,
-  "src/hooks/useScoringHandlers.point-sync.ts": 183,
   "src/hooks/useScoringHandlers.types.ts": 119,
   "src/hooks/useScoringHandlers.undo-redo.service.ts": 164,
   "src/hooks/useSessionManager.abandon.ts": 126,
