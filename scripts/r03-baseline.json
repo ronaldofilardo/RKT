@@ -53,7 +53,6 @@
   "src/hooks/useScoringHandlers.types.ts": 119,
   "src/hooks/useScoringHandlers.undo-redo.service.ts": 164,
   "src/hooks/useSessionManager.abandon.ts": 126,
-  "src/hooks/useSessionManager.edit-score.ts": 212,
   "src/hooks/useSessionManager.state-builder.ts": 202,
   "src/hooks/useSessionManager.ts": 208,
   "src/lib/api.logic.ts": 105,
