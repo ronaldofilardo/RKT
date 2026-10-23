@@ -1,6 +1,7 @@
 'use client';
 
 import { AthleteDropdown } from './AthleteDropdown';
+import { DoublesPlayerPair } from './doubles-player-pair';
 import { MatchTypeToggle } from './match-type-toggle';
 import type { PlayerSelectionProps } from './player-selection.types';
 
@@ -18,18 +19,9 @@ export function PlayerSelection({
   player2DropdownOpen,
   player1PartnerDropdownOpen = false,
   player2PartnerDropdownOpen = false,
-  onToggleP1,
-  onToggleP2,
-  onToggleP1Partner,
-  onToggleP2Partner,
-  onSelectP1,
-  onSelectP2,
-  onSelectP1Partner,
-  onSelectP2Partner,
-  onCreateNewP1,
-  onCreateNewP2,
-  onCreateNewP1Partner,
-  onCreateNewP2Partner,
+  onToggleP1, onToggleP2, onToggleP1Partner, onToggleP2Partner,
+  onSelectP1, onSelectP2, onSelectP1Partner, onSelectP2Partner,
+  onCreateNewP1, onCreateNewP2, onCreateNewP1Partner, onCreateNewP2Partner,
 }: PlayerSelectionProps) {
   const isDoubles = matchType === 'DOUBLES';
 
@@ -70,69 +62,36 @@ export function PlayerSelection({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Dupla 1 */}
-            <div className="bg-telemetry-elevated/40 rounded-xl border border-sky-500/20 p-3 space-y-3">
-              <div className="flex items-center gap-2 border-b border-sky-500/10 pb-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-sky-400" />
-                <span className="text-xs font-bold text-sky-400 uppercase tracking-wider">
-                  Dupla 1 (Lado A)
-                </span>
-              </div>
-              <AthleteDropdown
-                label="Jogador 1"
-                athletes={athletes}
-                selectedAthlete={selectedP1}
-                excludedAthletes={[selectedP2, selectedP1Partner, selectedP2Partner]}
-                isOpen={player1DropdownOpen}
-                colorClass="sky"
-                onToggle={onToggleP1}
-                onSelect={onSelectP1}
-                onCreateNew={onCreateNewP1}
-              />
-              <AthleteDropdown
-                label="Parceiro 1"
-                athletes={athletes}
-                selectedAthlete={selectedP1Partner}
-                excludedAthletes={[selectedP1, selectedP2, selectedP2Partner]}
-                isOpen={player1PartnerDropdownOpen}
-                colorClass="sky"
-                onToggle={onToggleP1Partner || (() => {})}
-                onSelect={onSelectP1Partner || (() => {})}
-                onCreateNew={onCreateNewP1Partner || (() => {})}
-              />
-            </div>
-
-            {/* Dupla 2 */}
-            <div className="bg-telemetry-elevated/40 rounded-xl border border-emerald-500/20 p-3 space-y-3">
-              <div className="flex items-center gap-2 border-b border-emerald-500/10 pb-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
-                  Dupla 2 (Lado B)
-                </span>
-              </div>
-              <AthleteDropdown
-                label="Jogador 2"
-                athletes={athletes}
-                selectedAthlete={selectedP2}
-                excludedAthletes={[selectedP1, selectedP1Partner, selectedP2Partner]}
-                isOpen={player2DropdownOpen}
-                colorClass="emerald"
-                onToggle={onToggleP2}
-                onSelect={onSelectP2}
-                onCreateNew={onCreateNewP2}
-              />
-              <AthleteDropdown
-                label="Parceiro 2"
-                athletes={athletes}
-                selectedAthlete={selectedP2Partner}
-                excludedAthletes={[selectedP1, selectedP2, selectedP1Partner]}
-                isOpen={player2PartnerDropdownOpen}
-                colorClass="emerald"
-                onToggle={onToggleP2Partner || (() => {})}
-                onSelect={onSelectP2Partner || (() => {})}
-                onCreateNew={onCreateNewP2Partner || (() => {})}
-              />
-            </div>
+            <DoublesPlayerPair
+              accent="sky"
+              title="Dupla 1 (Lado A)"
+              athletes={athletes}
+              primary={{
+                label: 'Jogador 1', selected: selectedP1, isOpen: player1DropdownOpen,
+                excluded: [selectedP2, selectedP1Partner, selectedP2Partner],
+                onToggle: onToggleP1, onSelect: onSelectP1, onCreateNew: onCreateNewP1,
+              }}
+              partner={{
+                label: 'Parceiro 1', selected: selectedP1Partner, isOpen: player1PartnerDropdownOpen,
+                excluded: [selectedP1, selectedP2, selectedP2Partner],
+                onToggle: onToggleP1Partner, onSelect: onSelectP1Partner, onCreateNew: onCreateNewP1Partner,
+              }}
+            />
+            <DoublesPlayerPair
+              accent="emerald"
+              title="Dupla 2 (Lado B)"
+              athletes={athletes}
+              primary={{
+                label: 'Jogador 2', selected: selectedP2, isOpen: player2DropdownOpen,
+                excluded: [selectedP1, selectedP1Partner, selectedP2Partner],
+                onToggle: onToggleP2, onSelect: onSelectP2, onCreateNew: onCreateNewP2,
+              }}
+              partner={{
+                label: 'Parceiro 2', selected: selectedP2Partner, isOpen: player2PartnerDropdownOpen,
+                excluded: [selectedP1, selectedP2, selectedP1Partner],
+                onToggle: onToggleP2Partner, onSelect: onSelectP2Partner, onCreateNew: onCreateNewP2Partner,
+              }}
+            />
           </div>
         )}
       </div>
