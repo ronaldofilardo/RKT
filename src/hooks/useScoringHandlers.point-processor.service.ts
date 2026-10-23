@@ -1,125 +1,29 @@
-import { ScoringEngine } from "@/core/scoring/engine";
-import { buildEngineConfig } from "@/core/scoring/engine-config";
-import {
-  unwrapEnvelopeWithHistory,
-  shouldKeepLocalStateForMissingTiebreak,
-} from "@/core/scoring/state-envelope";
 import { logger } from "@/lib/logger";
 import type {
   PointFlow,
   RallyDetailsWithAttribution,
   ScoringState,
 } from "@/core/scoring/types";
-import type { QueuedAction } from "@/schemas/rally";
-import type { ScoreboardUIState } from "@/hooks/useScoreboardUIState";
-import type { ScoreAction } from "@/hooks/useScoreReducer";
-import type { MatchData } from "./useScoringHandlers.types";
-import type { createPointSyncService } from "./useScoringHandlers.point-sync";
-
-interface PointProcessorDeps {
-  match: MatchData | null;
-  isOnline: boolean;
-  enqueue: (
-    action: Omit<QueuedAction, "id" | "status" | "retries">
-  ) => Promise<QueuedAction>;
-  engineRef: React.MutableRefObject<ScoringEngine | null>;
-  tokenRef: React.MutableRefObject<string | null>;
-  modalParamsRef: React.MutableRefObject<Record<string, string>>;
-  pointSequenceRef: React.MutableRefObject<number>;
-  matchVersionRef: React.MutableRefObject<number | null>;
-  lastPointLogIdRef: React.MutableRefObject<string | null>;
-  isProcessingRef: React.MutableRefObject<boolean>;
-  serveErrorState: ScoreboardUIState;
-  serverHelpers: {
-    getServerId: () => string;
-  };
-  pointSync: ReturnType<typeof createPointSyncService>;
-  closeAll: () => void;
-  setScoreState: (action: ScoreAction) => void;
-  setPointsHistory: React.Dispatch<React.SetStateAction<string[]>>;
-  setMatch: React.Dispatch<React.SetStateAction<MatchData | null>>;
-  setShowFinishedBanner: React.Dispatch<React.SetStateAction<boolean>>;
-  setError: React.Dispatch<React.SetStateAction<string | null>>;
-  fetchMatch: (forceReset?: boolean) => Promise<void>;
-  onPointProcessed?: () => void;
-  onAudioUploaded?: () => void;
-  uploadAudioNote?: (
-    matchId: string,
-    pointLogId: string,
-    blob: Blob,
-    durationMs: number,
-    token: string | null,
-  ) => Promise<void>;
-  clearFirstServeError: () => void;
-  setServeStep: (step: "none" | "second") => void;
-}
+import type { PointProcessorDeps } from "./point-processor.types";
+import { createApplySuccessResult } from "./point-processor.success.logic";
 
 export function createPointProcessorService(deps: PointProcessorDeps) {
   const {
-    match,
-    isOnline,
-    enqueue,
-    engineRef,
-    tokenRef,
-    modalParamsRef,
-    pointSequenceRef,
-    matchVersionRef,
-    lastPointLogIdRef,
-    isProcessingRef,
-    serveErrorState,
-    serverHelpers,
-    pointSync,
-    closeAll,
-    setScoreState,
-    setPointsHistory,
-    setMatch,
-    setShowFinishedBanner,
-    setError,
-    fetchMatch,
-    onPointProcessed,
-    onAudioUploaded,
-    uploadAudioNote,
-    clearFirstServeError,
-    setServeStep,
+    match, isOnline, enqueue, engineRef, tokenRef, modalParamsRef, pointSequenceRef,
+    matchVersionRef, lastPointLogIdRef, isProcessingRef, serveErrorState, serverHelpers,
+    pointSync, closeAll, setScoreState, setPointsHistory, setMatch, setShowFinishedBanner,
+    setError, fetchMatch, onPointProcessed, onAudioUploaded, uploadAudioNote,
+    clearFirstServeError, setServeStep,
   } = deps;
 
-  const applySuccessResult = (
-    serverResponse: NonNullable<Awaited<ReturnType<typeof pointSync.syncPointToServer>>["serverResponse"]>,
-  ) => {
-    const currentHistory = engineRef.current!.getPointHistory();
-    const localState = engineRef.current!.getState();
-    const rawServerState = serverResponse.scoreState!;
-
-    const { state: serverState, historyToRestore } = unwrapEnvelopeWithHistory(
-      rawServerState,
-      currentHistory,
-    );
-
-    if (shouldKeepLocalStateForMissingTiebreak(localState, serverState)) {
-      logger.warn("[applyPoint] server response missing tiebreak info — keeping local state", {
-        localSets: localState.sets?.length,
-        serverSets: serverState.sets?.length,
-      });
-    } else {
-      setScoreState({ type: "POINT_APPLIED", payload: serverState });
-      engineRef.current = ScoringEngine.fromSerialized(
-        buildEngineConfig(match!),
-        JSON.stringify(serverState),
-      );
-      engineRef.current.restorePointHistory(historyToRestore);
-    }
-
-    if (serverResponse.version !== undefined) {
-      matchVersionRef.current = serverResponse.version;
-      setMatch((prev) => (prev ? { ...prev, version: serverResponse.version } : prev));
-    }
-
-    if (serverResponse.pointLogId) {
-      lastPointLogIdRef.current = serverResponse.pointLogId;
-    }
-
-    return serverResponse.pointLogId;
-  };
+  const applySuccessResult = createApplySuccessResult({
+    engineRef,
+    match,
+    matchVersionRef,
+    lastPointLogIdRef,
+    setScoreState,
+    setMatch,
+  });
 
   const applyPoint = async (flow: PointFlow): Promise<string | undefined> => {
     if (!engineRef.current || !match || isProcessingRef.current) return undefined;
