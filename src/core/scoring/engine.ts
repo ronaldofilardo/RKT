@@ -1,42 +1,10 @@
 import type { ScoringEngineConfig, ScoringState, PointFlow, PointDetails, HistoryEntry, DoublesArrangement } from './types';
-import { logger } from '@/lib/logger';
 import { createInitialState, getState, serialize, reconcileWithCanonicalState } from './engine.state';
-import { saveToHistory, undoLastPoint as undoHistory, getHistoryLength, getPointHistory, restorePointHistory, clearHistory } from './engine.history';
-import {
-  applyRegularPoint as applyRegularPointFlow,
-  applyTiebreakPoint as applyTiebreakPointToGame,
-  applyMatchTiebreak as applyMatchTiebreakFlow,
-  isMatchTiebreakActive,
-} from './engine.flow';
+import { undoLastPoint as undoHistory, getHistoryLength, getPointHistory, restorePointHistory, clearHistory } from './engine.history';
 import { parseSerializedEnginePayload } from './engine-from-serialized';
-import { buildPointDetails } from './engine-point-details';
+import { processPointFlow } from './engine-apply-point';
 import { unwrapStateEnvelope } from './state-envelope';
-import { sideOfPlayer, getServingMemberId, getReceiverMemberId,  } from './doubles';
-
-function resolveWinner(
-  flow: PointFlow,
-  config: ScoringEngineConfig,
-  isFaultFirst: boolean,
-): 'player1' | 'player2' {
-  if (isFaultFirst) {
-    return 'player1';
-  }
-  if (flow.winnerId === config.player1Id) return 'player1';
-  if (flow.winnerId === config.player2Id) return 'player2';
-
-  if (config.doubles) {
-    const side = sideOfPlayer(config.doubles, flow.winnerId);
-    if (side) return side;
-  }
-
-  logger.error('[ScoringEngine] applyPoint: invalid winnerId', {
-    winnerId: flow.winnerId,
-    player1Id: config.player1Id,
-    player2Id: config.player2Id,
-    type: flow.type,
-  });
-  throw new Error('INVALID_WINNER');
-}
+import { getServingMemberId, getReceiverMemberId } from './doubles';
 
 export class ScoringEngine {
   private state: ScoringState;
@@ -61,54 +29,8 @@ export class ScoringEngine {
       this.state.startedAt = flow.timestamp || Date.now();
     }
 
-    const isFaultFirst = Boolean(flow.type === 'FAULT_FIRST' || flow.firstFault);
-    const winner = resolveWinner(flow, this.config, isFaultFirst);
-    const isSecondServeState = Boolean(this.state.secondServe || this.state.currentGame?.secondServe);
-    const details = buildPointDetails(flow, this.state, this.config, isSecondServeState);
-
-    if (flow.type === 'DOUBLE_FAULT') {
-      this.state = this.recordDoubleFault(winner, details);
-      return getState(this.state);
-    }
-
-    if (isFaultFirst) {
-      return this.recordFirstServeFault(this.state.server, details);
-    }
-
-    saveToHistory(this.history, this.state, details);
-
-    this.state = this.applyResolvedPoint(winner);
+    this.state = processPointFlow(this.config, this.state, this.history, flow);
     return getState(this.state);
-  }
-
-  private recordFirstServeFault(_winner: 'player1' | 'player2', details: PointDetails): ScoringState {
-    saveToHistory(this.history, this.state, details);
-    this.state.currentGame.secondServe = true;
-    this.state.secondServe = true;
-    return getState(this.state);
-  }
-
-  private recordDoubleFault(winner: 'player1' | 'player2', details: PointDetails): ScoringState {
-    saveToHistory(this.history, this.state, details);
-    this.state.secondServe = false;
-    this.state.currentGame.secondServe = false;
-    return this.applyResolvedPoint(winner);
-  }
-
-  private applyResolvedPoint(winner: 'player1' | 'player2'): ScoringState {
-    this.state.secondServe = false;
-    this.state.currentGame.secondServe = false;
-
-    if (isMatchTiebreakActive(this.state, this.config)) {
-      return applyMatchTiebreakFlow(winner, this.state, this.config);
-    }
-
-    const currentSet = this.state.sets[this.state.sets.length - 1];
-    if (currentSet?.isTiebreak) {
-      return applyTiebreakPointToGame(this.state, winner, this.config);
-    }
-
-    return applyRegularPointFlow(winner, this.state, this.config);
   }
 
   undoLastPoint(): { point: PointDetails } | null {
