@@ -40,7 +40,6 @@
   "src/core/report/serve-return-stats.ts": 193,
   "src/core/report/types.ts": 119,
   "src/core/scoring/doubles.ts": 210,
-  "src/core/scoring/edit-score-state.ts": 281,
   "src/core/scoring/edit-score-state.types.ts": 141,
   "src/core/scoring/edit-score-validation.ts": 245,
   "src/core/scoring/game-errors.ts": 107,
