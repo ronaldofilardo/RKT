@@ -86,7 +86,6 @@
   "src/hooks/useScoringHandlers.match-fetch.ts": 228,
   "src/hooks/useScoringHandlers.persistence.ts": 151,
   "src/hooks/useScoringHandlers.point-sync.ts": 183,
-  "src/hooks/useScoringHandlers.serve-actions.service.ts": 240,
   "src/hooks/useScoringHandlers.types.ts": 119,
   "src/hooks/useScoringHandlers.undo-redo.service.ts": 164,
   "src/hooks/useSessionManager.abandon.ts": 126,

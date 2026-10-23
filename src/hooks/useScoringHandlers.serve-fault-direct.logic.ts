@@ -1,0 +1,75 @@
+import { buildFirstFaultDetail } from "./useScoringHandlers.serve-actions.logic";
+import type { ServeActionsDeps } from "./useScoringHandlers.serve-actions.types";
+
+type ServeFaultDirectDeps = ServeActionsDeps & {
+  cancelPendingDebounce: () => void;
+};
+
+export function createServeFaultDirectActions({
+  match,
+  serveErrorState,
+  serverHelpers,
+  modalService,
+  applyPoint,
+  engineRef,
+  isProcessingRef,
+  debounceTimerRef,
+  closeAll,
+  setFirstServeError,
+  clearFirstServeError,
+  openServeErrorModal,
+  closeServeErrorModal,
+  setServeStep,
+  cancelPendingDebounce,
+}: ServeFaultDirectDeps) {
+  const recordDirectServeError = (
+    errorType: "out" | "net",
+    step: "first" | "second",
+  ) => {
+    if (!match || isProcessingRef.current) return;
+    cancelPendingDebounce();
+    openServeErrorModal(errorType, step);
+
+    if (step === "first") {
+      if (!engineRef.current) return;
+      setFirstServeError({
+        errorType: serveErrorState.pendingServeError?.errorType ?? errorType,
+        serveEffect: undefined,
+        direction: undefined,
+      });
+      closeServeErrorModal();
+      setServeStep("second");
+      closeAll();
+      return;
+    }
+
+    const rallyDetails = modalService.createDoubleFaultRallyDetails(
+      errorType,
+      undefined,
+      undefined,
+    );
+    const firstFaultDetail = buildFirstFaultDetail(serveErrorState.firstServeError);
+    closeAll();
+
+    debounceTimerRef.current = setTimeout(() => {
+      debounceTimerRef.current = null;
+      applyPoint({
+        winnerId: serverHelpers.getWinnerId(false),
+        type: "DOUBLE_FAULT",
+        serverId: serverHelpers.getServerId(),
+        timestamp: Date.now(),
+        rallyDetails,
+        rallyLength: 1,
+        isFirstServe: false,
+        isSecondServe: true,
+        firstFaultDetail,
+      }).finally(() => {
+        clearFirstServeError();
+        closeServeErrorModal();
+        setServeStep("none");
+      });
+    }, 50);
+  };
+
+  return { recordDirectServeError };
+}
