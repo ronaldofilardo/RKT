@@ -49,7 +49,6 @@
   "src/middleware.ts": 122,
   "src/schemas/rally.ts": 140,
   "src/services/adminService.ts": 139,
-  "src/services/annotationSessionService.ts": 181,
   "src/services/match-service-create.logic.ts": 104,
   "src/services/matchesClient.ts": 137,
   "src/services/matchRepository.ts": 118,
