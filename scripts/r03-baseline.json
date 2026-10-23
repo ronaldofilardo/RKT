@@ -71,7 +71,6 @@
   "src/services/adminService.ts": 139,
   "src/services/annotationSessionService.ts": 181,
   "src/services/match-service-create.logic.ts": 104,
-  "src/services/match-service-operations.logic.ts": 234,
   "src/services/matchesClient.ts": 137,
   "src/services/matchRepository.ts": 118,
   "src/services/playerService.ts": 107,
