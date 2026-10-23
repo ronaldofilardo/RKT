@@ -115,7 +115,6 @@
   "src/services/match-service-operations.logic.ts": 234,
   "src/services/matchesClient.ts": 137,
   "src/services/matchRepository.ts": 118,
-  "src/services/matchService.ts": 304,
   "src/services/matchValidator.ts": 191,
   "src/services/playerService.ts": 107,
   "src/services/sessionService.ts": 244,
