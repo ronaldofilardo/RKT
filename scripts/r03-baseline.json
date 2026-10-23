@@ -29,7 +29,6 @@
   "src/components/scoring/use-edit-score-modal-validation.logic.ts": 169,
   "src/components/scoring/use-point-details-modal.ts": 148,
   "src/components/scoring/use-point-details-scroll.logic.ts": 119,
-  "src/components/scoring/useEditScoreModalSync.ts": 235,
   "src/components/scoring/usePointDetailsScroll.ts": 111,
   "src/core/report/momentum-set-stats.ts": 196,
   "src/core/report/serve-return-stats.ts": 193,
