@@ -9,11 +9,12 @@ import { ScoreEnvelopeSchema } from '@/schemas/score';
 import { Prisma } from '@prisma/client';
 import {
   TransactionError,
-  validateMatchAnnotatorPermission,
   restoreEngineFromMatch,
   buildAnnotationsPayload,
   reportPointRouteFailure,
 } from './route.logic';
+import { loadMatchForPoint, type PointTransactionResult } from './route-load.logic';
+import { resolveNextSequence } from './route-sequence.logic';
 import {
   getServingMemberId,
   courtSide,
@@ -69,43 +70,16 @@ export async function POST(
 
       requestClientEventId = parsed.data.clientEventId;
 
-      const result: { scoreState: ScoringState; version: number; pointLogId: string } | null = await prisma.$transaction(async (tx) => {
-        const match = await tx.match.findFirst({
-          where: { id },
-          include: { player1: true, player2: true, player1Partner: true, player2Partner: true },
-        });
-
-        if (!match) {
-          logger.point.matchNotFound(id);
-          throw new TransactionError('Partida não encontrada', 404, 'MATCH_NOT_FOUND');
-        }
-
-        const currentUser = user;
-        await validateMatchAnnotatorPermission(match, id, currentUser?.id, currentUser?.role, tx);
-
-        if (parsed.data.clientEventId) {
-          const existingPoint = await tx.pointLog.findFirst({
-            where: { matchId: id, clientEventId: parsed.data.clientEventId },
-            select: { id: true },
-          });
-          if (existingPoint) {
-            return {
-              scoreState: match.scoreState as unknown as ScoringState,
-              version: match.version,
-              pointLogId: existingPoint.id,
-            };
-          }
-        }
-
-        if (match.state !== 'IN_PROGRESS') {
-          logger.point.matchNotInProgress(match.state);
-          throw new TransactionError('Partida não está em andamento', 422, 'MATCH_NOT_IN_PROGRESS');
-        }
-
-        if (!match.initialServerId) {
-          logger.point.noInitialServer();
-          throw new TransactionError('Defina o primeiro sacador antes de pontuar', 422, 'MATCH_NOT_STARTED');
-        }
+      const result: PointTransactionResult | null = await prisma.$transaction(async (tx) => {
+        const loaded = await loadMatchForPoint(
+          tx,
+          id,
+          parsed.data.clientEventId,
+          user?.id,
+          user?.role,
+        );
+        if (loaded.kind === 'existing') return loaded.result;
+        const match = loaded.match;
 
         logger.point.engineCreated();
         const engine = restoreEngineFromMatch(match as Parameters<typeof restoreEngineFromMatch>[0]);
@@ -222,33 +196,7 @@ export async function POST(
           }
         }
 
-        if (typeof tx.pointLog.updateMany === 'function') {
-          await tx.pointLog.updateMany({
-            where: { matchId: id, voidedAt: { not: null }, sequenceNumber: { not: null } },
-            data: { sequenceNumber: null },
-          });
-        }
-
-        // P2-12 FIX: Usar MAX(sequenceNumber) + 1 em vez de count + 1
-        // para evitar conflito de unique constraint após anulação de pontos.
-        const maxRow = await tx.pointLog.aggregate({
-          where: { matchId: id, voidedAt: null, sequenceNumber: { not: null } },
-          _max: { sequenceNumber: true },
-        });
-        const nextSequenceNumber = (maxRow._max.sequenceNumber ?? 0) + 1;
-
-        if (parsed.data.sequenceNumber !== undefined && parsed.data.sequenceNumber !== nextSequenceNumber) {
-          logger.point.sequenceConflict({
-            expected: nextSequenceNumber,
-            received: parsed.data.sequenceNumber,
-          });
-          throw new TransactionError(
-            `Conflito de sequência: esperado ${nextSequenceNumber}, recebido ${parsed.data.sequenceNumber}`,
-            409,
-            'SEQUENCE_CONFLICT',
-            { expectedSequence: nextSequenceNumber }
-          );
-        }
+        const nextSequenceNumber = await resolveNextSequence(tx, id, parsed.data.sequenceNumber);
 
         const expectedVersion = match.version;
         const nextVersion = match.version + 1;
