@@ -25,7 +25,6 @@
   "src/app/match/[id]/scoring/useScoringTimelineSync.ts": 149,
   "src/components/dashboard/match-card.logic.ts": 156,
   "src/components/scoring/edit-score-modal.types.ts": 107,
-  "src/components/scoring/point-details-breadcrumb.tsx": 108,
   "src/components/scoring/point-details-logic.ts": 257,
   "src/components/scoring/timeline-format.ts": 199,
   "src/components/scoring/timeline-set-results.ts": 179,
