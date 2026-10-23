@@ -9,26 +9,12 @@ import type {
   ScoringEngineConfig,
   ScoringState,
 } from "@/core/scoring/types";
-import type { SuspendedSessionState } from "./useSessionManager";
 import type { MatchData } from "@/hooks/useScoringHandlers";
 import { normalizeMatchTiebreakState } from "./use-session-manager.logic";
-import type { ScoreAction } from "@/hooks/useScoreReducer";
+import type { SuspendedSessionConfig } from "./suspended-session.types";
+import { fetchServerSequence, replayOfflinePoints } from "./suspended-resume-replay.logic";
 
-interface SuspendedSessionConfig {
-  suspendedSession: SuspendedSessionState | null;
-  match: MatchData | null;
-  matchId: string;
-  fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
-  sessionIdRef: React.MutableRefObject<string | null>;
-  tokenRef: React.MutableRefObject<string | null>;
-  engineRef: React.MutableRefObject<ScoringEngine | null>;
-  setScoreState: (action: ScoreAction) => void;
-  setSessionActive: (active: boolean) => void;
-  setSuspendedSession: (state: SuspendedSessionState | null) => void;
-  setFloorCurrentSets: (sets: { player1: number; player2: number } | null) => void;
-  clearPendingEdit: () => void;
-  startSession: (matchId: string, createNew: boolean) => Promise<{ id: string }>;
-}
+export type { SuspendedSessionConfig } from "./suspended-session.types";
 
 export function useSuspendedSession(config: SuspendedSessionConfig) {
   const {
@@ -92,62 +78,16 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
       if (suspendedSession?.matchStateSnapshot) {
         const parsed = JSON.parse(suspendedSession.matchStateSnapshot);
         const history: HistoryEntry[] = Array.isArray(parsed?.history) ? parsed.history : [];
-        const offlinePoints = history.slice(suspendedSession.bankPointCount);
-        
-        // Buscar sequência atual do servidor antes de replayar pontos.
-        // Cada ponto offline precisa de um sequenceNumber válido e um
-        // clientEventId para dedup (evitar duplicação em caso de retry).
-        let serverSequence = 0;
-        try {
-          const seqRes = await fetch(`/api/matches/${matchId}`, {
-            headers: { authorization: `Bearer ${tokenRef.current}` },
-            signal,
-          });
-          if (seqRes.ok) {
-            const seqData = await seqRes.json();
-            serverSequence = seqData._count?.pointLog ?? seqData.version ?? 0;
-          }
-        } catch (error) {
-          logger.warn('[SUSPENDED RESUME] Falha ao obter sequence do servidor; replay inicia em 0:', error);
-        }
 
-        for (let i = 0; i < offlinePoints.length; i++) {
-          const entry = offlinePoints[i];
-          try {
-            if (!entry?.point?.winnerId || !entry?.point?.type || !entry?.point?.serverId) {
-              logger.warn('[suspended session resume] Skipping invalid offline point:', entry);
-              continue;
-            }
-
-            const sequenceNumber = serverSequence + i + 1;
-            const clientEventId = `resume-${matchId}-${suspendedSession.bankPointCount + i}`;
-            
-            await fetch(`/api/matches/${matchId}/point`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                authorization: `Bearer ${tokenRef.current}`,
-              },
-              body: JSON.stringify({
-                winnerId: entry.point.winnerId,
-                type: entry.point.type,
-                serverId: entry.point.serverId,
-                isFirstServe: entry.point.isFirstServe ?? true,
-                isSecondServe: entry.point.isSecondServe ?? false,
-                timestamp: entry.point.timestamp ?? Date.now(),
-                sequenceNumber,
-                clientEventId,
-                ...(entry.point.rallyDetails != null ? { rallyDetails: entry.point.rallyDetails } : {}),
-                ...(entry.point.rallyLength != null ? { rallyLength: entry.point.rallyLength } : {}),
-                ...(entry.point.firstFaultDetail != null ? { firstFaultDetail: entry.point.firstFaultDetail } : {}),
-              }),
-              signal,
-            });
-          } catch (err) {
-            if ((err as Error)?.name === 'AbortError') throw err;
-            logger.error('[suspended session resume] Failed to sync offline point:', err);
-          }
-        }
+        const serverSequence = await fetchServerSequence(matchId, () => tokenRef.current, signal);
+        await replayOfflinePoints({
+          matchId,
+          bankPointCount: suspendedSession.bankPointCount,
+          serverSequence,
+          getToken: () => tokenRef.current,
+          history,
+          signal,
+        });
 
         await fetchMatch(true);
         const freshRes = await fetch(`/api/matches/${matchId}`, {
