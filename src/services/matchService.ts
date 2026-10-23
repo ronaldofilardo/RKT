@@ -2,18 +2,13 @@ import { prisma } from "@/lib/prisma";
 import type {
   MatchState,
   MatchFormat,
-  MatchFinishReason,
 } from "@/schemas/contracts";
 
 import { logger } from "@/lib/logger";
 import { getPrismaErrorCode } from "@/lib/errors";
 import { listMatches, getMatch, findAbandonedSessionSnapshot } from "./matchRepository";
-import { validateFinishMatch, validateTransitionState } from "./matchValidator";
+import { validateTransitionState } from "./matchValidator";
 import {
-  sanitizeMatchUpdate,
-  buildMatchUpdateData,
-  buildFinishUpdateData,
-  resolvePersistedScoreState,
   recordScoreEditSegment,
   buildTransitionUpdateData,
 } from "./match-service-operations.logic";
@@ -22,91 +17,8 @@ import { pruneDoublesSetupChanges } from "./match-service-doubles.logic";
 export { listMatches, getMatch, findAbandonedSessionSnapshot };
 export { createMatch } from './match-service-create.service';
 export { deleteMatch } from './match-service-delete.service';
-
-export async function updateMatch(
-  id: string,
-  data: Record<string, unknown>,
-  expectedVersion?: number,
-) {
-  const match = await prisma.match.findFirst({ where: { id } });
-  if (!match) return null;
-
-  const sanitized = sanitizeMatchUpdate(data);
-  const updateData = buildMatchUpdateData(sanitized);
-
-  const whereClause = expectedVersion !== undefined ? { id, version: expectedVersion } : { id };
-
-  try {
-    return await prisma.match.update({
-      where: whereClause,
-      data: { ...updateData, version: { increment: 1 } },
-      include: { player1: true, player2: true },
-    });
-  } catch (error) {
-    if (getPrismaErrorCode(error) === 'P2025') return { error: 'VERSION_CONFLICT' } as const;
-    throw error;
-  }
-}
-
-export async function finishMatch(
-  id: string,
-  scoreState: unknown,
-  options?: {
-    reason?: MatchFinishReason;
-    note?: string;
-    winnerId?: string;
-    expectedVersion?: number;
-    isManualScoreEdit?: boolean;
-    editedByUserId?: string;
-  },
-) {
-  const match = await prisma.match.findFirst({
-    where: { id },
-    include: { player1: true, player2: true },
-  });
-
-  if (!match) return { error: 'MATCH_NOT_FOUND' } as const;
-
-  const validation = validateFinishMatch(
-    {
-      format: match.format as MatchFormat,
-      player1Id: match.player1Id,
-      player2Id: match.player2Id,
-      initialServerId: match.initialServerId,
-      scoreState: match.scoreState,
-      state: match.state,
-    },
-    scoreState,
-    options?.reason,
-  );
-
-  if (!validation.valid) return { error: validation.error } as const;
-
-  const resolvedScoreState = options?.isManualScoreEdit
-    ? { ...(scoreState as Record<string, unknown> | undefined), history: [] }
-    : resolvePersistedScoreState(scoreState, match.scoreState);
-
-  const updateData = buildFinishUpdateData(
-    resolvedScoreState,
-    options?.reason,
-    options?.note,
-    options?.winnerId,
-  );
-
-  const whereClause = options?.expectedVersion !== undefined ? { id, version: options.expectedVersion } : { id };
-
-  try {
-    return await prisma.$transaction(async (tx) => {
-      await recordScoreEditSegment(tx, id, options, match.scoreState, scoreState);
-      return tx.match.update({ where: whereClause, data: updateData, include: { player1: true, player2: true } });
-    });
-  } catch (error) {
-    if (getPrismaErrorCode(error) === 'P2025' && options?.expectedVersion !== undefined) {
-      return { error: 'VERSION_CONFLICT' } as const;
-    }
-    throw error;
-  }
-}
+export { updateMatch } from './match-service-update.service';
+export { finishMatch } from './match-service-finish.service';
 
 export async function transitionMatchState(
   id: string,
