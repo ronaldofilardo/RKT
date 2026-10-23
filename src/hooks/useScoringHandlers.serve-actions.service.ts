@@ -1,38 +1,6 @@
-import { logger } from "@/lib/logger";
-import { TIMEOUTS } from "@/lib/constants";
-import { type ScoringEngine } from "@/core/scoring/engine";
-import type { PointFlow } from "@/core/scoring/types";
-import type { ScoreboardUIState } from "@/hooks/useScoreboardUIState";
-import type { MatchData } from "./useScoringHandlers.types";
-import type { createModalHandlersService } from "./useScoringHandlers.modals.service";
-import { isSecondServePhase, buildFirstFaultDetail } from "./useScoringHandlers.serve-actions.logic";
-
-interface ServeActionsDeps {
-  match: MatchData | null;
-  serveErrorState: ScoreboardUIState;
-  serverHelpers: {
-    getServerId: () => string;
-    getWinnerId: (isServerWinner: boolean) => string;
-  };
-  modalService: ReturnType<typeof createModalHandlersService>;
-  applyPoint: (flow: PointFlow) => Promise<string | undefined>;
-  engineRef: React.MutableRefObject<ScoringEngine | null>;
-  isProcessingRef: React.MutableRefObject<boolean>;
-  debounceTimerRef: React.MutableRefObject<NodeJS.Timeout | null>;
-  closeAll: () => void;
-  setFirstServeError: (val: {
-    errorType: "out" | "net";
-    serveEffect?: string;
-    direction?: string;
-  }) => void;
-  clearFirstServeError: () => void;
-  openServeErrorModal: (
-    errorType: "out" | "net",
-    step: "first" | "second",
-  ) => void;
-  closeServeErrorModal: () => void;
-  setServeStep: (step: "none" | "second") => void;
-}
+import { buildFirstFaultDetail } from "./useScoringHandlers.serve-actions.logic";
+import type { ServeActionsDeps } from "./useScoringHandlers.serve-actions.types";
+import { createServeAceActions } from "./useScoringHandlers.serve-ace.logic";
 
 export function createServeActionsService(deps: ServeActionsDeps) {
   const {
@@ -60,71 +28,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
     }
   };
 
-  const recordAceDirectly = () => {
-    if (!match || isProcessingRef.current) return;
-    cancelPendingDebounce();
-    const isSecond = isSecondServePhase(serveErrorState);
-    closeAll();
-    const rallyDetails = modalService.createAceRallyDetails();
-    const firstFaultDetail = buildFirstFaultDetail(serveErrorState.firstServeError);
-
-    debounceTimerRef.current = setTimeout(() => {
-      debounceTimerRef.current = null;
-      applyPoint({
-        winnerId: serverHelpers.getWinnerId(true),
-        type: "ACE",
-        serverId: serverHelpers.getServerId(),
-        isFirstServe: !isSecond,
-        isSecondServe: isSecond,
-        timestamp: Date.now(),
-        rallyDetails,
-        rallyLength: 1,
-        firstFaultDetail,
-      })
-        .finally(() => {
-          clearFirstServeError();
-          setServeStep("none");
-        })
-        .catch((err: unknown) =>
-          logger.error("[recordAceDirectly] Error processing ACE:", err),
-        );
-    }, TIMEOUTS.DEBOUNCE_MS);
-  };
-
-  const confirmServerEffect = (effect?: string, direction?: string) => {
-    if (!match || isProcessingRef.current) return;
-    cancelPendingDebounce();
-    closeAll();
-
-    const isSecond = isSecondServePhase(serveErrorState);
-    const rallyDetails = modalService.createAceRallyDetails(effect, direction);
-    const firstFaultDetail = buildFirstFaultDetail(serveErrorState.firstServeError);
-
-    debounceTimerRef.current = setTimeout(() => {
-      debounceTimerRef.current = null;
-      applyPoint({
-        winnerId: serverHelpers.getWinnerId(true),
-        type: "ACE",
-        serverId: serverHelpers.getServerId(),
-        isFirstServe: !isSecond,
-        isSecondServe: isSecond,
-        timestamp: Date.now(),
-        rallyDetails,
-        rallyLength: 1,
-        firstFaultDetail,
-      })
-        .finally(() => {
-          clearFirstServeError();
-          setServeStep("none");
-        })
-        .catch((err) =>
-          logger.error(
-            "[confirmServerEffect] Error processing ACE:",
-            err,
-          ),
-        );
-    }, TIMEOUTS.DEBOUNCE_MS);
-  };
+  const aceActions = createServeAceActions({ ...deps, cancelPendingDebounce });
 
   const confirmServeError = (effect?: string, direction?: string) => {
     if (!match || !serveErrorState.pendingServeError || isProcessingRef.current)
@@ -231,8 +135,7 @@ export function createServeActionsService(deps: ServeActionsDeps) {
   };
 
   return {
-    recordAceDirectly,
-    confirmServerEffect,
+    ...aceActions,
     confirmServeError,
     recordDirectServeError,
     cancelServeError,
