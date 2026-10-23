@@ -2,6 +2,7 @@ import type { TennisFormat } from "@/core/scoring/types";
 import type { CompletedSet } from "@/core/scoring/edit-score-state";
 import type { SetEditData } from '@/core/scoring/edit-score-domain';
 import type { EditScoreModalState } from "./useEditScoreModal.types";
+import type { ConfirmFlowParams } from "./use-edit-score-modal-submission.types";
 import { calculateNextServer } from "@/core/scoring/edit-score-state";
 import { getCompletedSets, getFloorError } from "./use-edit-score-modal-confirm.logic";
 import {
@@ -48,29 +49,10 @@ function checkSameSetRegressions(params: {
   return validateTiebreakPointsRegression(initialGame, state.tiebreakP1, state.tiebreakP2);
 }
 
-export function validateConfirmForm(params: {
-  bothFilled: boolean;
-  floorValidationError: string | null;
-  setValidationError?: string | null;
-  partial: boolean;
-  hasTiebreak: boolean;
-  isSetTrulyCompleted: boolean;
-  tiebreakComplete?: boolean;
-  p1Val: number;
-  p2Val: number;
-  tiebreakP1Num: number;
-  tiebreakP2Num: number;
-  floorCurrentSets?: { player1: number; player2: number } | null;
-  floorTiebreak?: { player1: number; player2: number } | null;
-  initialGame: { player1: string; player2: string } | null;
-  isMatchTiebreakSet: boolean;
-  currentSets: { player1: number; player2: number };
-  state: { tiebreakP1: string; tiebreakP2: string; p1Points: string; p2Points: string };
-}): string | null {
+export function validateConfirmForm(params: ConfirmFlowParams): string | null {
   const {
     bothFilled,
     floorValidationError,
-    setValidationError,
     partial,
     hasTiebreak,
     isSetTrulyCompleted,
@@ -87,7 +69,7 @@ export function validateConfirmForm(params: {
     state,
   } = params;
 
-  const basicError = checkBasicFormErrors(bothFilled, floorValidationError, setValidationError, partial);
+  const basicError = checkBasicFormErrors(bothFilled, floorValidationError, params.validation.setValidationError, partial);
   if (basicError) return basicError;
 
   const tbWinnerErr = validateTiebreakWinnerMatch(

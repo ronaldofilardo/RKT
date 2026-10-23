@@ -1,81 +1,10 @@
-import type { TennisFormat } from "@/core/scoring/types";
-import type { CompletedSet } from "@/core/scoring/edit-score-state";
-import type { EditScoreValidation } from "@/core/scoring/edit-score-state.types";
-import type { SetEditData } from '@/core/scoring/edit-score-domain';
-import { getEffectiveSetWinner } from "@/core/scoring/edit-score-state";
 import { getFreshFloorError } from "./use-edit-score-modal-confirm.logic";
 import { validateConfirmForm, buildExistingSetsPayload } from "./use-edit-score-modal-validation.logic";
-import type { EditScoreModalState } from "./useEditScoreModal.types";
 import { prepareFullSetSubmission } from "./use-edit-score-modal-submission-prepare.logic";
+import { applyFullSetSubmission } from "./use-edit-score-modal-submission-apply.logic";
+import type { ConfirmFlowParams } from "./use-edit-score-modal-submission.types";
 
-async function applyFullSetSubmission(params: {
-  submission: ReturnType<typeof prepareFullSetSubmission>;
-  validation: EditScoreValidation;
-  matchWouldEnd: boolean;
-  isSetTrulyCompleted: boolean;
-  p1Val: number;
-  p2Val: number;
-  onConfirm: (sets: SetEditData[], server: "player1" | "player2", note?: string) => void | Promise<void>;
-  onMatchFinished?: (winner: "player1" | "player2") => void;
-  setState: React.Dispatch<React.SetStateAction<EditScoreModalState>>;
-  inputTouchedRef: React.MutableRefObject<{ p1: boolean; p2: boolean }>;
-  state?: EditScoreModalState;
-}) {
-  const { submission, validation, matchWouldEnd, isSetTrulyCompleted, p1Val, p2Val, onConfirm, onMatchFinished, setState, inputTouchedRef, state } = params;
-  await onConfirm(submission.allSets, submission.nextServer, state?.note);
-
-  if (matchWouldEnd && isSetTrulyCompleted && onMatchFinished) {
-    const winner = getEffectiveSetWinner(validation) ?? (p1Val > p2Val ? "player1" : "player2");
-    await onMatchFinished(winner);
-  }
-
-  setState((prev: EditScoreModalState) => ({
-    ...prev,
-    newSets: [...prev.newSets, submission.setData],
-    p1Input: "",
-    p2Input: "",
-    tiebreakP1: "",
-    tiebreakP2: "",
-    p1Points: "0",
-    p2Points: "0",
-    nextServer: submission.nextServer || prev.nextServer,
-  }));
-  inputTouchedRef.current = { p1: false, p2: false };
-}
-
-export async function executeConfirmFlow(params: {
-  state: EditScoreModalState;
-  completedSets: CompletedSet[];
-  matchFormat: TennisFormat;
-  currentServer: "player1" | "player2";
-  initialServer?: "player1" | "player2";
-  bothFilled: boolean;
-  p1Val: number;
-  p2Val: number;
-  tiebreakImpossible?: boolean;
-  onRefreshFloor?: () => Promise<{ player1: number; player2: number } | null>;
-  floorCurrentSets?: { player1: number; player2: number } | null;
-  floorTiebreak?: { player1: number; player2: number } | null;
-  isSetTrulyCompleted: boolean;
-  validation: EditScoreValidation;
-  floorValidationError: string | null;
-  partial: boolean;
-  hasTiebreak: boolean;
-  tiebreakComplete?: boolean;
-  tiebreakP1Num: number;
-  tiebreakP2Num: number;
-  initialGame: { player1: string; player2: string } | null;
-  isMatchTiebreakSet: boolean;
-  isPotentialMTSet: boolean;
-  currentSets: { player1: number; player2: number };
-  matchWouldEnd: boolean;
-  onConfirm: (sets: SetEditData[], server: "player1" | "player2", note?: string) => void | Promise<void>;
-  onMatchFinished?: (winner: "player1" | "player2") => void;
-  setState: React.Dispatch<React.SetStateAction<EditScoreModalState>>;
-  setConfirmError: (err: string | null) => void;
-  setIsConfirming: (val: boolean) => void;
-  inputTouchedRef: React.MutableRefObject<{ p1: boolean; p2: boolean }>;
-}) {
+export async function executeConfirmFlow(params: ConfirmFlowParams) {
   params.setConfirmError(null);
 
   const existingPayload = buildExistingSetsPayload({
@@ -118,25 +47,7 @@ export async function executeConfirmFlow(params: {
     }
   }
 
-  const formError = validateConfirmForm({
-    bothFilled: params.bothFilled,
-    floorValidationError: params.floorValidationError,
-    setValidationError: params.validation.setValidationError,
-    partial: params.partial,
-    hasTiebreak: params.hasTiebreak,
-    isSetTrulyCompleted: params.isSetTrulyCompleted,
-    tiebreakComplete: params.tiebreakComplete,
-    p1Val: params.p1Val,
-    p2Val: params.p2Val,
-    tiebreakP1Num: params.tiebreakP1Num,
-    tiebreakP2Num: params.tiebreakP2Num,
-    floorCurrentSets: params.floorCurrentSets,
-    floorTiebreak: params.floorTiebreak,
-    initialGame: params.initialGame,
-    isMatchTiebreakSet: params.isMatchTiebreakSet,
-    currentSets: params.currentSets,
-    state: params.state,
-  });
+  const formError = validateConfirmForm(params);
 
   if (formError) {
     params.setConfirmError(formError);
