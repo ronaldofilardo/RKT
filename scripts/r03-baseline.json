@@ -49,7 +49,6 @@
   "src/hooks/useCommentOfflineSync.ts": 126,
   "src/hooks/useOfflineMatchSync.ts": 135,
   "src/hooks/useScoreboardUIState.ts": 128,
-  "src/hooks/useScoringHandlers.match-fetch.ts": 228,
   "src/hooks/useScoringHandlers.persistence.ts": 151,
   "src/hooks/useScoringHandlers.point-sync.ts": 183,
   "src/hooks/useScoringHandlers.types.ts": 119,

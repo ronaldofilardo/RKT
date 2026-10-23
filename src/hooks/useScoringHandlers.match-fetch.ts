@@ -1,12 +1,15 @@
 import { logger } from '@/lib/logger';
-import { ScoringEngine } from '@/core/scoring/engine';
 import { buildEngineConfig } from '@/core/scoring/engine-config';
 import type { HistoryEntry, ScoringState } from '@/core/scoring/types';
 import type { MatchDataWithSequence, MatchFetchDeps, ScoreStateEnvelope } from './useScoringHandlers.match-fetch.types';
 import { rehydrateEngineFromLogs } from './match-fetch-replay.logic';
+import { restoreEngineFromScoreState } from './match-fetch-restore.logic';
+import { syncRecentBadges } from './match-fetch-badges.logic';
 
 export type { ScoreStateEnvelope, PointLogAnnotations, ActiveLogSummary, MatchDataWithSequence, MatchFetchDeps } from './useScoringHandlers.match-fetch.types';
 export { rehydrateEngineFromLogs } from './match-fetch-replay.logic';
+export { restoreEngineFromScoreState } from './match-fetch-restore.logic';
+export { syncRecentBadges } from './match-fetch-badges.logic';
 
 export function createMatchFetchService(deps: MatchFetchDeps) {
   const {
@@ -64,46 +67,8 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
             rehydratedViaLogs = true;
           }
         }
-
         if (!rehydratedViaLogs) {
-          let scoreStateToUse: ScoringState | ScoreStateEnvelope | string | null = data.scoreState;
-
-          if (scoreStateToUse) {
-            if (typeof scoreStateToUse === 'string') {
-              try {
-                scoreStateToUse = JSON.parse(scoreStateToUse) as ScoringState | ScoreStateEnvelope;
-              } catch (error) {
-                logger.warn('[MATCH FETCH] Falha ao parsear scoreState string; seguindo com o valor original:', error);
-              }
-            }
-            const envelope: ScoreStateEnvelope | null =
-              typeof scoreStateToUse === 'object' && scoreStateToUse !== null
-                ? (scoreStateToUse as ScoreStateEnvelope)
-                : null;
-            const targetObj = (envelope?.state ? envelope.state : (scoreStateToUse as ScoringState))!;
-            if (!targetObj.setsWon) {
-              targetObj.setsWon = { player1: 0, player2: 0 };
-            }
-
-            const hasHistory = Array.isArray(envelope?.history) && envelope.history.length > 0;
-            const hasPointsInGame = Boolean(
-              targetObj?.currentGame && (targetObj.currentGame.player1 > 0 || targetObj.currentGame.player2 > 0)
-            );
-            const hasGamesInSets = (targetObj?.sets ?? []).some(
-              (s) => (s.player1 || 0) > 0 || (s.player2 || 0) > 0
-            );
-            const hasStartedScoring = hasHistory || hasPointsInGame || hasGamesInSets;
-
-            if (data.initialServerId || hasStartedScoring) {
-              engineRef.current = ScoringEngine.fromSerialized(config, JSON.stringify(scoreStateToUse));
-            } else {
-              openRef.current('setup');
-            }
-          } else if (data.initialServerId) {
-            engineRef.current = new ScoringEngine(config);
-          } else {
-            openRef.current('setup');
-          }
+          restoreEngineFromScoreState(config, data, openRef, engineRef);
         }
 
         const serverHistoryLength = Array.isArray((data.scoreState as ScoreStateEnvelope | null)?.history)
@@ -118,13 +83,8 @@ export function createMatchFetchService(deps: MatchFetchDeps) {
           payload: (engineRef.current?.getState() as ScoringState) ?? null,
         });
 
-        if (forceEngineReset && engineRef.current) {
-          // Lê do engine com histórico restaurado ou do recente de PointLogs do servidor
-          const engineHistory = engineRef.current.getPointHistory();
-          const synced = engineHistory.slice(-20).map((entry) => entry.point.winnerId);
-          const serverRecent = Array.isArray(data.recentWinnerIds) ? data.recentWinnerIds : [];
-          const finalBadges = synced.length > 0 ? synced : serverRecent;
-          setPointsHistory(finalBadges.length > 0 ? finalBadges : []);
+        if (forceEngineReset) {
+          syncRecentBadges(engineRef, data, setPointsHistory);
         }
       }
 
