@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback } from "react";
 import type {
   PointFlow,
   RallyDetailsWithAttribution,
@@ -10,11 +10,11 @@ import type {
   ScoringHandlersReturn,
 } from "./useScoringHandlers.types";
 import { createServeActionsService } from "./useScoringHandlers.serve-actions.service";
-import { createMatchFetchService } from "./useScoringHandlers.match-fetch";
 import { createArrangementService } from "./useScoringHandlers.arrangement.service";
 import { createSetupConfirmService } from "./useScoringHandlers.setup.service";
 import { createCoreServices } from "./useScoringHandlers.services";
 import { createProcessorWiring } from "./useScoringHandlers.processor-wiring";
+import { useStateBridge } from "./useScoringHandlers.state-bridge";
 
 export function useScoringHandlers(
   ctx: ScoringHandlersContext,
@@ -24,15 +24,9 @@ export function useScoringHandlers(
     match,
     engineRef,
     tokenRef,
-    openRef,
-    pointSequenceRef,
     serveErrorState,
-    setMatch,
-    setScoreState,
-    setIsLoading,
     setError,
     setSetupLoading,
-    setPointsHistory,
     openServeErrorModal,
     closeServeErrorModal,
     setFirstServeError,
@@ -44,72 +38,8 @@ export function useScoringHandlers(
     debounceTimerRef,
   } = ctx;
 
-  const matchVersionRef = useRef<number | null>(match?.version ?? null);
-  const lastPointLogIdRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (match?.version !== undefined && match?.version !== null) {
-      matchVersionRef.current = match.version;
-    }
-  }, [match?.version]);
-
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-        debounceTimerRef.current = null;
-      }
-      isProcessingRef.current = false;
-    };
-  }, [debounceTimerRef, isProcessingRef]);
-
-  // ─── Fetch Match & Engine Setup ───────────────────────────────────────────
-  const matchFetchService = useMemo(
-    () =>
-      createMatchFetchService({
-        matchId,
-        tokenRef,
-        matchVersionRef,
-        pointSequenceRef,
-        engineRef,
-        openRef,
-        setMatch,
-        setScoreState,
-        setPointsHistory,
-        setIsLoading,
-        setError,
-      }),
-    [
-      matchId,
-      tokenRef,
-      matchVersionRef,
-      pointSequenceRef,
-      engineRef,
-      openRef,
-      setMatch,
-      setScoreState,
-      setPointsHistory,
-      setIsLoading,
-      setError,
-    ],
-  );
-
-  const fetchMatch = useCallback(
-    async (forceEngineReset = false) => {
-      await matchFetchService.fetchMatch(forceEngineReset);
-    },
-    [matchFetchService],
-  );
-
-  useEffect(() => {
-    const completeSyncCycle = () => {
-      fetchMatch(true);
-    };
-    window.addEventListener("offline-sync-complete", completeSyncCycle);
-    return () => {
-      window.removeEventListener("offline-sync-complete", completeSyncCycle);
-    };
-  }, [fetchMatch]);
+  // ─── State bridge (refs, effects, fetch) ──────────────────────────────────
+  const { fetchMatch, matchVersionRef, lastPointLogIdRef } = useStateBridge(ctx);
 
   // ─── State persistence & core services ────────────────────────────────────
   const { persistState, serverHelpers, modalService, pointSync, undoRedoService } =
