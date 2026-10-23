@@ -9,16 +9,12 @@ import type {
   ScoringHandlersContext,
   ScoringHandlersReturn,
 } from "./useScoringHandlers.types";
-import { createServerHelpersService } from "./use-scoring-handlers-server.service";
-import { createModalHandlersService } from "./useScoringHandlers.modals.service";
-import { createPointSyncService } from "./useScoringHandlers.point-sync";
 import { createServeActionsService } from "./useScoringHandlers.serve-actions.service";
-import { createUndoRedoService } from "./useScoringHandlers.undo-redo.service";
 import { createMatchFetchService } from "./useScoringHandlers.match-fetch";
-import { createPointProcessorService } from "./useScoringHandlers.point-processor.service";
 import { createArrangementService } from "./useScoringHandlers.arrangement.service";
-import { createPersistStateService } from "./useScoringHandlers.persist";
 import { createSetupConfirmService } from "./useScoringHandlers.setup.service";
+import { createCoreServices } from "./useScoringHandlers.services";
+import { createProcessorWiring } from "./useScoringHandlers.processor-wiring";
 
 export function useScoringHandlers(
   ctx: ScoringHandlersContext,
@@ -26,11 +22,8 @@ export function useScoringHandlers(
   const {
     matchId,
     match,
-    isOnline,
-    enqueue,
     engineRef,
     tokenRef,
-    modalParamsRef,
     openRef,
     pointSequenceRef,
     serveErrorState,
@@ -40,18 +33,13 @@ export function useScoringHandlers(
     setError,
     setSetupLoading,
     setPointsHistory,
-    setShowFinishedBanner,
     openServeErrorModal,
     closeServeErrorModal,
     setFirstServeError,
     clearFirstServeError,
     setServeStep,
-    open,
     close,
     closeAll,
-    onUndoComplete,
-    onPointProcessed,
-    onAudioUploaded,
     isProcessingRef,
     debounceTimerRef,
   } = ctx;
@@ -123,72 +111,17 @@ export function useScoringHandlers(
     };
   }, [fetchMatch]);
 
-  // ─── State persistence ────────────────────────────────────────────────────
-  const { persistState } = createPersistStateService({
-    matchId,
-    match,
-    engineRef,
+  // ─── State persistence & core services ────────────────────────────────────
+  const { persistState, serverHelpers, modalService, pointSync, undoRedoService } =
+    createCoreServices({ ctx, matchVersionRef, lastPointLogIdRef, fetchMatch });
+  const pointProcessorService = createProcessorWiring({
+    ctx,
     matchVersionRef,
-    tokenRef,
-    setError,
+    lastPointLogIdRef,
     fetchMatch,
-    setMatch,
-  });
-
-  // ─── Services ─────────────────────────────────────────────────────────────
-  const serverHelpers = createServerHelpersService({ engineRef, match });
-  const modalService = createModalHandlersService({ serveErrorState, open });
-  const pointSync = createPointSyncService({
-    matchId,
-    match,
-    tokenRef,
-    pointSequenceRef,
-    setError,
-  });
-
-  const undoRedoService = createUndoRedoService({
-    engineRef,
-    isProcessingRef,
-    debounceTimerRef,
-    lastPointLogIdRef,
-    pointSequenceRef,
-    setScoreState,
-    setPointsHistory,
-    persistState,
-    closeAll,
-    clearFirstServeError,
-    setServeStep,
-    closeServeErrorModal,
-    onUndoComplete,
-    open,
-  });
-
-  const pointProcessorService = createPointProcessorService({
-    match,
-    isOnline,
-    enqueue,
-    engineRef,
-    tokenRef,
-    modalParamsRef,
-    pointSequenceRef,
-    matchVersionRef,
-    lastPointLogIdRef,
-    isProcessingRef,
-    serveErrorState,
     serverHelpers,
     pointSync,
-    closeAll,
-    setScoreState,
-    setPointsHistory,
-    setMatch,
-    setShowFinishedBanner,
-    setError,
-    fetchMatch,
-    onPointProcessed,
-    onAudioUploaded,
     uploadAudioNote: undoRedoService.uploadAudioNote,
-    clearFirstServeError,
-    setServeStep,
   });
 
   const applyPoint = useCallback(
