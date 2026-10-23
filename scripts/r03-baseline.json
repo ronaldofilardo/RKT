@@ -22,7 +22,6 @@
   "src/app/match/new/MatchNewFormSections.tsx": 105,
   "src/app/match/new/useNewMatchSubmissionActions.ts": 146,
   "src/app/match/[id]/scoring/scoring-domain.ts": 121,
-  "src/app/match/[id]/scoring/ScoringModals.tsx": 109,
   "src/app/match/[id]/scoring/ScoringPlayArea.tsx": 102,
   "src/app/match/[id]/scoring/use-scoring-page-chrome.ts": 115,
   "src/app/match/[id]/scoring/useScoringComment.ts": 154,
