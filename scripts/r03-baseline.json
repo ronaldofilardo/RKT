@@ -25,7 +25,6 @@
   "src/components/scoring/timeline-format.ts": 199,
   "src/components/scoring/timeline-set-results.ts": 179,
   "src/components/scoring/use-edit-score-modal-confirm.logic.ts": 189,
-  "src/components/scoring/use-edit-score-modal-input.logic.ts": 216,
   "src/components/scoring/use-edit-score-modal-validation.logic.ts": 169,
   "src/components/scoring/use-point-details-modal.ts": 148,
   "src/components/scoring/use-point-details-scroll.logic.ts": 119,
