@@ -5,6 +5,8 @@ import type { DoublesSetup } from '@/schemas/contracts';
 import { useDoublesServerSelection } from './use-doubles-server-selection';
 import { DoublesServingSideSection } from './doubles-serving-side-section';
 import { DoublesServeOrderSection } from './doubles-serve-order-section';
+import { DoublesReceiveSideSection } from './doubles-receive-side-section';
+import { DoublesConfirmButton } from './doubles-confirm-button';
 
 interface DoublesServerSelectionModalProps {
   isOpen: boolean;
@@ -98,85 +100,18 @@ export function DoublesServerSelectionModal({
         />
 
         {/* 3. Lado de Recepção (Deuce) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {/* Recepção Deuce Dupla 1 */}
-          <div className="p-3 bg-telemetry-card rounded-xl border border-sky-500/20 space-y-2">
-            <span className="text-xs font-bold text-sky-400 block">
-              Recebedor no Deuce (Lado Direito) - Dupla 1
-            </span>
-            <div className="flex flex-col gap-1.5">
-              <button
-                type="button"
-                onClick={() => setReceiveDeuceP1(p1Id)}
-                className={`py-2 px-3 text-xs rounded-lg text-left transition-all ${
-                  activeReceiveDeuceP1 === p1Id
-                    ? 'bg-telemetry-blue text-white font-bold'
-                    : 'bg-telemetry-elevated text-telemetry-text-muted hover:text-white'
-                }`}
-              >
-                Deuce: {selectedP1.name}
-              </button>
-              <button
-                type="button"
-                onClick={() => setReceiveDeuceP1(p1PartnerId)}
-                className={`py-2 px-3 text-xs rounded-lg text-left transition-all ${
-                  activeReceiveDeuceP1 === p1PartnerId
-                    ? 'bg-telemetry-blue text-white font-bold'
-                    : 'bg-telemetry-elevated text-telemetry-text-muted hover:text-white'
-                }`}
-              >
-                Deuce: {selectedP1Partner.name}
-              </button>
-            </div>
-          </div>
+        <DoublesReceiveSideSection
+          activeReceiveDeuceP1={activeReceiveDeuceP1}
+          activeReceiveDeuceP2={activeReceiveDeuceP2}
+          onReceiveDeuceP1={setReceiveDeuceP1}
+          onReceiveDeuceP2={setReceiveDeuceP2}
+          selectedP1={selectedP1}
+          selectedP1Partner={selectedP1Partner}
+          selectedP2={selectedP2}
+          selectedP2Partner={selectedP2Partner}
+        />
 
-          {/* Recepção Deuce Dupla 2 */}
-          <div className="p-3 bg-telemetry-card rounded-xl border border-emerald-500/20 space-y-2">
-            <span className="text-xs font-bold text-emerald-400 block">
-              Recebedor no Deuce (Lado Direito) - Dupla 2
-            </span>
-            <div className="flex flex-col gap-1.5">
-              <button
-                type="button"
-                onClick={() => setReceiveDeuceP2(p2Id)}
-                className={`py-2 px-3 text-xs rounded-lg text-left transition-all ${
-                  activeReceiveDeuceP2 === p2Id
-                    ? 'bg-emerald-600 text-white font-bold'
-                    : 'bg-telemetry-elevated text-telemetry-text-muted hover:text-white'
-                }`}
-              >
-                Deuce: {selectedP2.name}
-              </button>
-              <button
-                type="button"
-                onClick={() => setReceiveDeuceP2(p2PartnerId)}
-                className={`py-2 px-3 text-xs rounded-lg text-left transition-all ${
-                  activeReceiveDeuceP2 === p2PartnerId
-                    ? 'bg-emerald-600 text-white font-bold'
-                    : 'bg-telemetry-elevated text-telemetry-text-muted hover:text-white'
-                }`}
-              >
-                Deuce: {selectedP2Partner.name}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleConfirm}
-          disabled={startingMatch}
-          className="w-full py-3.5 px-4 bg-telemetry-blue hover:opacity-90 disabled:opacity-50 text-white font-bold rounded-xl text-base transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2"
-        >
-          {startingMatch ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/20 border-t-white" />
-              <span>Iniciando Partida...</span>
-            </>
-          ) : (
-            <span>Confirmar e Iniciar Partida</span>
-          )}
-        </button>
+        <DoublesConfirmButton startingMatch={startingMatch} onConfirm={handleConfirm} />
       </div>
     </div>
   );
