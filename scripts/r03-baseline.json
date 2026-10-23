@@ -36,7 +36,6 @@
   "src/components/scoring/point-details-breadcrumb.tsx": 108,
   "src/components/scoring/point-details-logic.ts": 257,
   "src/components/scoring/timeline-format.ts": 199,
-  "src/components/scoring/timeline-point-row.tsx": 109,
   "src/components/scoring/timeline-set-results.ts": 179,
   "src/components/scoring/use-edit-score-modal-confirm.logic.ts": 189,
   "src/components/scoring/use-edit-score-modal-input.logic.ts": 216,
