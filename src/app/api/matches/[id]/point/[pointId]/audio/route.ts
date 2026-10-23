@@ -1,26 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest } from 'next/server';
 import { withRLSHandler } from '@/lib/auth';
 import { reportApiError } from '@/lib/api.logic';
 import { logger } from '@/lib/logger';
-
-const ALLOWED_MIME_TYPES = new Set([
-  'audio/webm',
-  'audio/webm;codecs=opus',
-  'audio/mp4',
-  'audio/ogg',
-  'audio/ogg;codecs=opus',
-]);
-
-const MAX_AUDIO_SIZE = 500 * 1024;
-const MAX_DURATION_MS = 15_000;
-
-function normalizeMime(raw: string): string {
-  if (raw.startsWith('audio/webm')) return 'audio/webm';
-  if (raw.startsWith('audio/mp4')) return 'audio/mp4';
-  if (raw.startsWith('audio/ogg')) return 'audio/ogg';
-  return raw;
-}
+import { deleteAudioResponse, getAudioResponse, postAudioResponse } from './audio-handlers';
 
 // ============================================================================
 // GET /api/matches/[id]/point/[pointId]/audio
@@ -33,31 +15,7 @@ export async function GET(
   return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       const { id, pointId } = await params;
-
-      const pointLog = await prisma.pointLog.findFirst({
-        where: { id: pointId, matchId: id, voidedAt: null },
-        select: { audioNote: true, audioNoteMime: true, audioNoteDuration: true },
-      });
-
-      if (!pointLog || !pointLog.audioNote) {
-        return NextResponse.json(
-          { error: 'NOT_FOUND', message: 'Nota de áudio não encontrada' },
-          { status: 404 }
-        );
-      }
-
-      const mime = pointLog.audioNoteMime ?? 'audio/webm';
-      const buffer = Buffer.from(pointLog.audioNote);
-
-      return new NextResponse(buffer, {
-        status: 200,
-        headers: {
-          'Content-Type': mime,
-          'Content-Length': String(buffer.length),
-          'Cache-Control': 'public, max-age=86400',
-          'X-Audio-Duration-Ms': String(pointLog.audioNoteDuration ?? 0),
-        },
-      });
+      return await getAudioResponse(id, pointId);
     } catch (error) {
       logger.error('[AUDIO GET]', error);
       return reportApiError(error);
@@ -76,88 +34,7 @@ export async function POST(
   return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       const { id, pointId } = await params;
-
-      const contentType = request.headers.get('content-type') ?? '';
-      if (!contentType.includes('multipart/form-data')) {
-        return NextResponse.json(
-          { error: 'INVALID_CONTENT_TYPE', message: 'Esperado multipart/form-data' },
-          { status: 400 }
-        );
-      }
-
-      const formData = await request.formData();
-      const file = formData.get('file');
-      const durationMsRaw = formData.get('durationMs');
-
-      if (!(file instanceof File)) {
-        return NextResponse.json(
-          { error: 'MISSING_FILE', message: 'Campo "file" é obrigatório' },
-          { status: 400 }
-        );
-      }
-
-      const rawMime = file.type;
-      if (!ALLOWED_MIME_TYPES.has(rawMime)) {
-        return NextResponse.json(
-          { error: 'INVALID_MIME', message: `Tipo "${rawMime}" não suportado. Use: audio/webm, audio/mp4 ou audio/ogg` },
-          { status: 400 }
-        );
-      }
-
-      if (file.size > MAX_AUDIO_SIZE) {
-        return NextResponse.json(
-          { error: 'FILE_TOO_LARGE', message: `Áudio deve ter no máximo ${MAX_AUDIO_SIZE / 1024}KB. Tamanho: ${Math.round(file.size / 1024)}KB` },
-          { status: 400 }
-        );
-      }
-
-      const durationMs = durationMsRaw ? parseInt(String(durationMsRaw), 10) : 0;
-      if (!Number.isFinite(durationMs) || durationMs < 0) {
-        return NextResponse.json(
-          { error: 'INVALID_DURATION', message: 'Duração inválida' },
-          { status: 400 }
-        );
-      }
-      if (durationMs > MAX_DURATION_MS) {
-        return NextResponse.json(
-          { error: 'DURATION_TOO_LONG', message: `Duração máxima: ${MAX_DURATION_MS / 1000}s. Duração: ${Math.round(durationMs / 1000)}s` },
-          { status: 400 }
-        );
-      }
-
-      const pointLog = await prisma.pointLog.findFirst({
-        where: { id: pointId, matchId: id, voidedAt: null },
-        select: { id: true },
-      });
-
-      if (!pointLog) {
-        return NextResponse.json(
-          { error: 'NOT_FOUND', message: 'Ponto não encontrado' },
-          { status: 404 }
-        );
-      }
-
-      const arrayBuffer = await file.arrayBuffer();
-      const audioBuffer = Buffer.from(arrayBuffer);
-      const mime = normalizeMime(rawMime);
-
-      await prisma.pointLog.update({
-        where: { id: pointId },
-        data: {
-          audioNote: audioBuffer,
-          audioNoteMime: mime,
-          audioNoteDuration: durationMs,
-        },
-      });
-
-      logger.log(`[AUDIO] Saved ${audioBuffer.length} bytes (${mime}) for point ${pointId}`);
-
-      return NextResponse.json({
-        ok: true,
-        size: audioBuffer.length,
-        mime,
-        durationMs,
-      });
+      return await postAudioResponse(id, pointId, request);
     } catch (error) {
       logger.error('[AUDIO POST]', error);
       return reportApiError(error);
@@ -176,31 +53,7 @@ export async function DELETE(
   return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
       const { id, pointId } = await params;
-
-      const pointLog = await prisma.pointLog.findFirst({
-        where: { id: pointId, matchId: id, voidedAt: null },
-        select: { audioNote: true },
-      });
-
-      if (!pointLog || !pointLog.audioNote) {
-        return NextResponse.json(
-          { error: 'NOT_FOUND', message: 'Nota de áudio não encontrada' },
-          { status: 404 }
-        );
-      }
-
-      await prisma.pointLog.update({
-        where: { id: pointId },
-        data: {
-          audioNote: null,
-          audioNoteMime: null,
-          audioNoteDuration: null,
-        },
-      });
-
-      logger.log(`[AUDIO] Deleted audio for point ${pointId}`);
-
-      return new NextResponse(null, { status: 204 });
+      return await deleteAudioResponse(id, pointId);
     } catch (error) {
       logger.error('[AUDIO DELETE]', error);
       return reportApiError(error);

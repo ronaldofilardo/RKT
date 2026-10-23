@@ -4,7 +4,6 @@
   "src/app/api/matches/[id]/comments/route.ts": 147,
   "src/app/api/matches/[id]/comments/[commentId]/audio/route.ts": 181,
   "src/app/api/matches/[id]/comments/[commentId]/route.ts": 136,
-  "src/app/api/matches/[id]/point/[pointId]/audio/route.ts": 209,
   "src/app/api/matches/[id]/point/[pointId]/route.ts": 151,
   "src/app/api/matches/[id]/sessions/route.ts": 117,
   "src/app/api/matches/[id]/state/route.ts": 172,
