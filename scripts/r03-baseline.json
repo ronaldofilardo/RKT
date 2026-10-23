@@ -29,7 +29,6 @@
   "src/app/match/[id]/scoring/useScoringComment.ts": 154,
   "src/app/match/[id]/scoring/useScoringLifecycleEffects.ts": 134,
   "src/app/match/[id]/scoring/useScoringPageEffects.ts": 211,
-  "src/app/match/[id]/scoring/useScoringPageState.ts": 283,
   "src/app/match/[id]/scoring/useScoringTimelineSync.ts": 149,
   "src/components/dashboard/edit-match-info-sections.tsx": 115,
   "src/components/dashboard/match-card.logic.ts": 156,
