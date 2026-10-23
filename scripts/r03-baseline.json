@@ -34,7 +34,6 @@
   "src/components/scoring/comment-modal-body.tsx": 102,
   "src/components/scoring/edit-score-modal.types.ts": 107,
   "src/components/scoring/MatchTimelineView.tsx": 108,
-  "src/components/scoring/PlayerCard.tsx": 111,
   "src/components/scoring/point-details-breadcrumb.tsx": 108,
   "src/components/scoring/point-details-logic.ts": 257,
   "src/components/scoring/timeline-format.ts": 199,
