@@ -42,7 +42,6 @@
   "src/core/scoring/match-tiebreak.ts": 138,
   "src/core/scoring/point-context.ts": 159,
   "src/core/scoring/point-log-merge.ts": 161,
-  "src/core/scoring/score-normalizer.ts": 247,
   "src/core/scoring/set-completion.ts": 151,
   "src/core/scoring/shadow-replay.ts": 102,
   "src/core/scoring/tiebreak.ts": 170,

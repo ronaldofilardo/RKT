@@ -1,11 +1,13 @@
 // TODO: Remove this file after data migration window closes. It normalizes corrupted data from a historical bug (Bug #4, 2026-08-07).
 import type { TennisFormat } from './types';
-import { isMatchTiebreakSetIndex as isMatchTiebreakSetIndexCanonical } from '@/lib/matchConfig';
 import type { NormalizedScoreState } from './score-normalizer.types';
-import { parseRawScoreState, extractHistory, reconstructTiebreakFromHistory } from './score-normalizer-history.logic';
+import { parseRawScoreState } from './score-normalizer-history.logic';
+import { looksLikeMatchTiebreakFormat, normalizeMatchTiebreakSets } from './score-normalizer-sets.logic';
+import { normalizeRegularTiebreakSets, stripLegacyInitialPlaceholder } from './score-normalizer-legacy.logic';
 
 export type { NormalizedScoreState } from './score-normalizer.types';
 export { extractHistory } from './score-normalizer-history.logic';
+export { isMatchTiebreakSetIndex } from './score-normalizer-sets.logic';
 
 /**
  * Sanea um scoreState legado/corrompido para o formato canonical.
@@ -22,117 +24,6 @@ export { extractHistory } from './score-normalizer-history.logic';
  * Esta é a versão unificada — substitui a implementação fragmentada em
  * src/components/dashboard/match-card-utils.ts (que não cobria BEST_OF_5).
  */
-
-/**
- * Determina se um índice de set em um formato dado deve ser tratado como
- * Match Tiebreak decisivo (5º set no BO5, 3º set em BO3 MT, etc.).
- * Delega à função canônica em lib/matchConfig.ts.
- */
-export function isMatchTiebreakSetIndex(
-  setIndex: number,
-  _totalSets: number,
-  format: TennisFormat,
-  completedSetsBefore: { p1Won: number; p2Won: number } = { p1Won: 0, p2Won: 0 },
-): boolean {
-  return isMatchTiebreakSetIndexCanonical(
-    setIndex,
-    { player1: completedSetsBefore.p1Won, player2: completedSetsBefore.p2Won },
-    format,
-  );
-}
-
-function looksLikeMatchTiebreakFormat(format: TennisFormat): boolean {
-  return (
-    format === 'MATCH_TB_10' ||
-    format === 'BEST_OF_3_MATCH_TB' ||
-    format === 'BEST_OF_5' ||
-    format === 'BEST_OF_3_NO_AD' ||
-    format === 'SHORT_SET_2V2_NO_AD'
-  );
-}
-
-function sanitizeMatchTiebreakSet(set: Record<string, unknown>): Record<string, unknown> {
-  return {
-    ...set,
-    tiebreakScore: { player1: set.player1, player2: set.player2 },
-    player1: 0,
-    player2: 0,
-    isTiebreak: true,
-  };
-}
-
-function updateSetsWon(
-  set: Record<string, unknown>,
-  counts: { p1Won: number; p2Won: number },
-): void {
-  if (!set) return;
-  const isSetFinished =
-    !set.isTiebreak || (set.isTiebreak && set.tiebreakScore);
-  if (isSetFinished) {
-    if ((set.player1 as number) > (set.player2 as number)) counts.p1Won++;
-    else if ((set.player2 as number) > (set.player1 as number)) counts.p2Won++;
-  }
-}
-
-function normalizeMatchTiebreakSets(sets: Record<string, unknown>[], format: TennisFormat): Record<string, unknown>[] {
-  const counts = { p1Won: 0, p2Won: 0 };
-  return sets.map((set: Record<string, unknown>, idx: number) => {
-    const isMtSet = isMatchTiebreakSetIndex(
-      idx,
-      sets.length,
-      format,
-      counts,
-    );
-
-    const isCorruptedMt =
-      isMtSet &&
-      set &&
-      ((set.player1 as number) > 0 || (set.player2 as number) > 0) &&
-      !set.isTiebreak &&
-      !set.tiebreakScore;
-
-    if (isCorruptedMt) {
-      return sanitizeMatchTiebreakSet(set);
-    }
-
-    updateSetsWon(set, counts);
-    return set;
-  });
-}
-
-function normalizeRegularTiebreakSets(sets: Record<string, unknown>[], rawScoreState: unknown): Record<string, unknown>[] {
-  const history = extractHistory(rawScoreState);
-  return sets.map((set: Record<string, unknown>, idx: number) => {
-    if (!set || set.tiebreakScore != null) return set;
-    const is76 = set.player1 === 7 && set.player2 === 6;
-    const is67 = set.player1 === 6 && set.player2 === 7;
-    if (!is76 && !is67) return set;
-    const reconstructed = reconstructTiebreakFromHistory(history, idx);
-    return reconstructed ? { ...set, tiebreakScore: reconstructed } : set;
-  });
-}
-
-/**
- * Legado — Sets Curtos 2/2: versões antigas do motor empilhavam o placar
- * inicial 2-2 como se fosse um set (ex.: [2-2, 4-2, 4-2]). Um set 2-2 sem
- * tiebreak que NÃO é o último item do array nunca é um set real (um set
- * concluído não termina em 2-2), então é descartado para que a posição de
- * cada set volte a bater com o número do set.
- */
-function stripLegacyInitialPlaceholder(
-  sets: Record<string, unknown>[],
-  format?: TennisFormat,
-): Record<string, unknown>[] {
-  if (format !== 'SHORT_SET_2V2_NO_AD' || sets.length < 2) return sets;
-  const first = sets[0];
-  const isPlaceholder =
-    first &&
-    first.player1 === 2 &&
-    first.player2 === 2 &&
-    !first.isTiebreak &&
-    first.tiebreakScore == null;
-  return isPlaceholder ? sets.slice(1) : sets;
-}
 
 function ensureDefaultCurrentGame(parsed: Record<string, unknown>): NormalizedScoreState {
   return {
