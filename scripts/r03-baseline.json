@@ -77,6 +77,5 @@
   "src/services/matchesClient.ts": 137,
   "src/services/matchRepository.ts": 118,
   "src/services/playerService.ts": 107,
-  "src/services/sessionService.ts": 244,
   "src/test-helpers/auth.ts": 135
 }
