@@ -25,7 +25,6 @@
   "src/components/scoring/use-point-details-modal.ts": 148,
   "src/components/scoring/use-point-details-scroll.logic.ts": 119,
   "src/components/scoring/usePointDetailsScroll.ts": 111,
-  "src/core/report/serve-return-stats.ts": 193,
   "src/core/report/types.ts": 119,
   "src/core/scoring/edit-score-state.types.ts": 141,
   "src/core/scoring/game-errors.ts": 107,
