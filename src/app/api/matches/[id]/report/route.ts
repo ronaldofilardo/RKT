@@ -9,72 +9,12 @@ import {
 } from '@/core/scoring/timeline-rebuild';
 import { getMatch, findAbandonedSessionSnapshot, getMatchScoreEdits } from '@/services/matchService';
 import { prisma } from '@/lib/prisma';
-import type { ReportSummary, PlayerPointSummary } from '@/core/report/report-types';
 import { buildReportIntegrity } from './report.integrity';
 import { computeAdvancedStats } from '@/core/report/compute-stats';
 import { addScoreEditBreaks } from './route-timeline.logic';
 import { buildEngineConfig } from '@/core/scoring/engine-config';
-
-function buildPlayerSummary(
-  points: TimelinePoint[],
-  isPlayer1: boolean,
-): PlayerPointSummary {
-  const winner = isPlayer1 ? 'PLAYER_1' : 'PLAYER_2';
-  const pointsWon = points.filter(p => p.winner === winner).length;
-  const aces = points.filter(p => p.type === 'ACE' && p.server === (isPlayer1 ? 'player1' : 'player2')).length;
-  const doubleFaults = points.filter(p => p.type === 'DOUBLE_FAULT' && p.server === (isPlayer1 ? 'player1' : 'player2')).length;
-
-  let winners = 0;
-  let forcedErrors = 0;
-  let unforcedErrors = 0;
-  for (const p of points) {
-    const tipo = p.rallyDetails?.tipo;
-    const isWinnerPoint = tipo === 'winner' || p.type === 'WINNER';
-    const isForcedErrorPoint = tipo === 'erro_forcado' || p.type === 'FORCED_ERROR';
-    const isUnforcedErrorPoint = tipo === 'erro_nao_forcado' || p.type === 'UNFORCED_ERROR';
-
-    if (p.winner === winner) {
-      if (isWinnerPoint) winners++;
-    } else {
-      if (isForcedErrorPoint) forcedErrors++;
-      else if (isUnforcedErrorPoint) unforcedErrors++;
-    }
-  }
-
-  const isServer = (p: TimelinePoint) =>
-    (isPlayer1 && p.server === 'player1') || (!isPlayer1 && p.server === 'player2');
-  const breakPoints = points.filter(p => p.isBreakPoint && !isServer(p)).length;
-  const breakPointsWon = points.filter(p => p.isBreakPoint && !isServer(p) && p.winner === winner).length;
-
-  return { pointsWon, aces, winners, forcedErrors, unforcedErrors, doubleFaults, breakPoints, breakPointsWon };
-}
-
-function buildReportSummary(
-  timelinePoints: TimelinePoint[],
-): ReportSummary {
-  const sets: ReportSummary['sets'] = [];
-  const setMap = new Map<number, { p1: number; p2: number; isTiebreak: boolean }>();
-
-  for (const p of timelinePoints) {
-    const s = p.setNumber;
-    if (!setMap.has(s)) setMap.set(s, { p1: 0, p2: 0, isTiebreak: false });
-    const entry = setMap.get(s)!;
-    if (p.winner === 'PLAYER_1') entry.p1++;
-    else entry.p2++;
-    if (p.isTiebreak) entry.isTiebreak = true;
-  }
-
-  for (const [, v] of setMap) {
-    sets.push({ player1: v.p1, player2: v.p2, isTiebreak: v.isTiebreak });
-  }
-
-  return {
-    totalPoints: timelinePoints.length,
-    player1: buildPlayerSummary(timelinePoints, true),
-    player2: buildPlayerSummary(timelinePoints, false),
-    sets,
-  };
-}
+import { buildReportSummary } from './report-summary.logic';
+import { buildReportResponse } from './report-payload.logic';
 
 export async function GET(
   request: NextRequest,
@@ -216,47 +156,17 @@ export async function GET(
         orderBy: { createdAt: 'asc' },
       });
 
-      return NextResponse.json({
-        matchId: id,
-        matchType: match.matchType ?? 'SINGLES',
-        player1: { id: match.player1.id, name: match.player1.name },
-        player2: { id: match.player2.id, name: match.player2.name },
-        player1Partner: match.player1Partner ? { id: match.player1Partner.id, name: match.player1Partner.name } : null,
-        player2Partner: match.player2Partner ? { id: match.player2Partner.id, name: match.player2Partner.name } : null,
-        doublesSetup: match.doublesSetup ?? null,
-        format: match.format,
-        sportType: match.sportType,
-        courtType: match.courtType ?? null,
-        tournamentName: match.tournamentName ?? null,
-        clubName: match.clubName ?? null,
-        category: match.category ?? null,
-        round: match.round ?? null,
-        bracketType: match.bracketType ?? null,
-        temperature: match.temperature ?? null,
-        humidity: match.humidity ?? null,
-        winnerId: match.winnerId ?? null,
-        finishReason: match.finishReason ?? null,
-        finishNote: match.finishNote ?? null,
-        details: match.details ?? null,
-        scoreState: responseScoreState,
+      return NextResponse.json(buildReportResponse({
+        match,
+        id,
+        responseScoreState,
         timelinePoints,
-        comments: comments.map((c) => ({
-          id: c.id,
-          content: c.content,
-          category: c.category,
-          authorName: c.author.name,
-          createdAt: c.createdAt.toISOString(),
-          hasAudioNote: c.audioNoteDuration != null,
-          audioNoteDuration: c.audioNoteDuration,
-        })),
+        comments,
         summary,
         integrity,
         advancedStats,
-        scoreEditsCount: scoreEdits.length,
-        state: match.state,
-        startedAt: match.startedAt,
-        finishedAt: match.finishedAt,
-      });
+        scoreEdits,
+      }));
     } catch (error) {
       logger.error('[MATCH REPORT]', error);
       return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });
