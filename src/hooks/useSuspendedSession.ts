@@ -2,17 +2,10 @@
 import { logger } from "@/lib/logger";
 
 import { useEffect, useRef } from "react";
-import { ScoringEngine } from "@/core/scoring/engine";
 import { buildEngineConfig } from "@/core/scoring/engine-config";
-import type {
-  HistoryEntry,
-  ScoringEngineConfig,
-  ScoringState,
-} from "@/core/scoring/types";
-import type { MatchData } from "@/hooks/useScoringHandlers";
-import { normalizeMatchTiebreakState } from "./use-session-manager.logic";
+import type { ScoringState } from "@/core/scoring/types";
 import type { SuspendedSessionConfig } from "./suspended-session.types";
-import { fetchServerSequence, replayOfflinePoints } from "./suspended-resume-replay.logic";
+import { resumeFromSnapshotAhead, resumeFromBankAhead } from "./suspended-resume-logic";
 
 export type { SuspendedSessionConfig } from "./suspended-session.types";
 
@@ -43,14 +36,19 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
     let ignored = false;
     const controller = new AbortController();
 
+    const resumeCtx = {
+      suspendedSession, match, matchId, fetchMatch, sessionIdRef, tokenRef,
+      engineRef, setScoreState, setSessionActive, startSession,
+    };
+
     (async () => {
       try {
         const engineConfig = buildEngineConfig(match);
 
         if (suspendedSession.snapshotStatus === "SNAPSHOT_AHEAD") {
-          await resumeFromSnapshotAhead(engineConfig, controller.signal);
+          await resumeFromSnapshotAhead(resumeCtx, engineConfig, controller.signal);
         } else {
-          await resumeFromBankAhead(engineConfig);
+          await resumeFromBankAhead(resumeCtx, engineConfig);
         }
 
         if (!ignored) {
@@ -69,76 +67,6 @@ export function useSuspendedSession(config: SuspendedSessionConfig) {
       ignored = true;
       controller.abort();
     };
-
-    async function resumeFromSnapshotAhead(engineConfig: ScoringEngineConfig, signal?: AbortSignal) {
-      const session = await startSession(matchId, false);
-      sessionIdRef.current = session.id;
-      setSessionActive(true);
-
-      if (suspendedSession?.matchStateSnapshot) {
-        const parsed = JSON.parse(suspendedSession.matchStateSnapshot);
-        const history: HistoryEntry[] = Array.isArray(parsed?.history) ? parsed.history : [];
-
-        const serverSequence = await fetchServerSequence(matchId, () => tokenRef.current, signal);
-        await replayOfflinePoints({
-          matchId,
-          bankPointCount: suspendedSession.bankPointCount,
-          serverSequence,
-          getToken: () => tokenRef.current,
-          history,
-          signal,
-        });
-
-        await fetchMatch(true);
-        const freshRes = await fetch(`/api/matches/${matchId}`, {
-          headers: { authorization: `Bearer ${tokenRef.current}` },
-          signal,
-        });
-        if (freshRes.ok) {
-          const freshData: MatchData = await freshRes.json();
-          
-          if (freshData.version !== undefined && freshData.version <= (match?.version ?? -1)) {
-            logger.warn('[useSuspendedSession] freshData has no updated version, skipping engine reload');
-          } else if (freshData.scoreState) {
-            engineRef.current = ScoringEngine.fromSerialized(
-              engineConfig,
-              JSON.stringify(freshData.scoreState),
-            );
-            setScoreState({ type: "RESYNCED_FROM_SERVER", payload: engineRef.current.getState() });
-          }
-        }
-      }
-    }
-
-    async function resumeFromBankAhead(engineConfig: ScoringEngineConfig) {
-      const session = await startSession(matchId, false);
-      sessionIdRef.current = session.id;
-      setSessionActive(true);
-
-      if (suspendedSession?.matchStateSnapshot && match) {
-        engineRef.current = ScoringEngine.fromSerialized(
-          engineConfig,
-          JSON.stringify(normalizeMatchTiebreakState(JSON.parse(suspendedSession.matchStateSnapshot), match.format)),
-        );
-
-        const canonicalState = suspendedSession.bankScoreState ?? match.scoreState;
-        const canonicalVersion = suspendedSession.bankPointCount;
-        if (canonicalState) {
-          engineRef.current.reconcileWithCanonicalState(canonicalState, canonicalVersion);
-          setScoreState({ type: "RESYNCED_FROM_SERVER", payload: canonicalState });
-        } else {
-          const restored = engineRef.current.getState();
-          setScoreState({ type: "RESYNCED_FROM_SERVER", payload: restored });
-        }
-      } else if (suspendedSession?.bankScoreState && match) {
-        const normalizedBankState = normalizeMatchTiebreakState(suspendedSession.bankScoreState, match.format);
-        engineRef.current = ScoringEngine.fromSerialized(
-          engineConfig,
-          JSON.stringify(normalizedBankState),
-        );
-        setScoreState({ type: "RESYNCED_FROM_SERVER", payload: engineRef.current.getState() });
-      }
-    }
 
     function cleanupAfterResume() {
       const engineState: ScoringState | null = engineRef.current?.getState() ?? null;
