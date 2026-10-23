@@ -1,5 +1,4 @@
 "use client";
-import { logger } from "@/lib/logger";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import type {
   PointFlow,
@@ -19,6 +18,7 @@ import { createMatchFetchService } from "./useScoringHandlers.match-fetch";
 import { createPointProcessorService } from "./useScoringHandlers.point-processor.service";
 import { createArrangementService } from "./useScoringHandlers.arrangement.service";
 import { createPersistStateService } from "./useScoringHandlers.persist";
+import { createSetupConfirmService } from "./useScoringHandlers.setup.service";
 
 export function useScoringHandlers(
   ctx: ScoringHandlersContext,
@@ -206,34 +206,15 @@ export function useScoringHandlers(
   );
 
   // ─── Setup confirm ────────────────────────────────────────────────────────
-  const confirmMatchSetup = useCallback(
-    async (serverId: string) => {
-      if (!match) return;
-      setSetupLoading(true);
-      try {
-        const res = await fetch(`/api/matches/${matchId}/state`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            authorization: `Bearer ${tokenRef.current}`,
-          },
-          body: JSON.stringify({
-            state: "IN_PROGRESS",
-            initialServerId: serverId,
-          }),
-        });
-        if (!res.ok) throw new Error();
-        close();
-        await fetchMatch(true);
-      } catch (err) {
-        logger.error("[confirmMatchSetup]", err);
-        setError("Erro ao iniciar partida");
-      } finally {
-        setSetupLoading(false);
-      }
-    },
-    [matchId, match, fetchMatch, close, tokenRef, setSetupLoading, setError],
-  );
+  const { confirmMatchSetup } = createSetupConfirmService({
+    matchId,
+    match,
+    tokenRef,
+    fetchMatch,
+    close,
+    setSetupLoading,
+    setError,
+  });
 
   const serveActionsService = createServeActionsService({
     match,
