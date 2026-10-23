@@ -32,7 +32,6 @@
   "src/components/scoring/useEditScoreModalSync.ts": 235,
   "src/components/scoring/usePointDetailsScroll.ts": 111,
   "src/core/report/momentum-set-stats.ts": 196,
-  "src/core/report/pressure-shot-stats.ts": 255,
   "src/core/report/serve-return-stats.ts": 193,
   "src/core/report/types.ts": 119,
   "src/core/scoring/doubles.ts": 210,

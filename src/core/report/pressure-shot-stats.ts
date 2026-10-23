@@ -1,90 +1,11 @@
 import type { TimelinePoint } from '@/core/scoring/types';
-import { type ShotAnalysis, type StrokeSideStats } from './types';
+import { type ShotAnalysis } from './types';
 import { calcPercentage } from './pressure-break-stats.logic';
-import { getPointShotDetails } from './pressure-shot-details.logic';
+import { aggregatePlayerOutcomes } from './pressure-outcome-aggregate.logic';
 
 export { computePressureStats } from './pressure-break-stats.logic';
 export { getPointShotDetails } from './pressure-shot-details.logic';
 export type { PointShotDetails } from './pressure-shot-details.logic';
-
-
-interface OutcomeStats {
-  winners: number;
-  winnersByStroke: Record<string, number>;
-  forcedErrors: number;
-  forcedErrorsByStroke: Record<string, number>;
-  unforcedErrors: number;
-  unforcedErrorsByStroke: Record<string, number>;
-  backhandStats: StrokeSideStats;
-  forehandStats: StrokeSideStats;
-}
-
-function updateSideStats(stats: StrokeSideStats, outcome: 'winner' | 'unforced_error' | 'forced_error'): void {
-  stats.total++;
-  if (outcome === 'winner') stats.winners++;
-  else if (outcome === 'unforced_error') stats.unforcedErrors++;
-  else if (outcome === 'forced_error') stats.forcedErrors++;
-}
-
-function applyLegacyFallback(
-  points: TimelinePoint[],
-  player: 'PLAYER_1' | 'PLAYER_2',
-  current: OutcomeStats,
-): OutcomeStats {
-  const legacyWinners = points.filter(p => p.winner === player && p.rallyDetails?.tipo === 'winner').length;
-  const legacyForced = points.filter(p => p.winner !== player && p.rallyDetails?.tipo === 'erro_forcado').length;
-  const legacyUnforced = points.filter(p => p.winner !== player && p.rallyDetails?.tipo === 'erro_nao_forcado').length;
-
-  return {
-    ...current,
-    winners: Math.max(current.winners, legacyWinners),
-    forcedErrors: Math.max(current.forcedErrors, legacyForced),
-    unforcedErrors: Math.max(current.unforcedErrors, legacyUnforced),
-  };
-}
-
-function aggregatePlayerOutcomes(points: TimelinePoint[], player: 'PLAYER_1' | 'PLAYER_2'): OutcomeStats {
-  const result: OutcomeStats = {
-    winners: 0,
-    winnersByStroke: {},
-    forcedErrors: 0,
-    forcedErrorsByStroke: {},
-    unforcedErrors: 0,
-    unforcedErrorsByStroke: {},
-    backhandStats: { winners: 0, unforcedErrors: 0, forcedErrors: 0, total: 0 },
-    forehandStats: { winners: 0, unforcedErrors: 0, forcedErrors: 0, total: 0 },
-  };
-
-  for (const p of points) {
-    const details = getPointShotDetails(p);
-    if (!details || details.executor !== player) continue;
-
-    if (details.outcome === 'winner') {
-      result.winners++;
-      if (details.stroke) {
-        result.winnersByStroke[details.stroke] = (result.winnersByStroke[details.stroke] || 0) + 1;
-      }
-    } else if (details.outcome === 'unforced_error') {
-      result.unforcedErrors++;
-      if (details.stroke) {
-        result.unforcedErrorsByStroke[details.stroke] = (result.unforcedErrorsByStroke[details.stroke] || 0) + 1;
-      }
-    } else if (details.outcome === 'forced_error') {
-      result.forcedErrors++;
-      if (details.stroke) {
-        result.forcedErrorsByStroke[details.stroke] = (result.forcedErrorsByStroke[details.stroke] || 0) + 1;
-      }
-    }
-
-    if (details.strokeSide === 'backhand') {
-      updateSideStats(result.backhandStats, details.outcome);
-    } else if (details.strokeSide === 'forehand') {
-      updateSideStats(result.forehandStats, details.outcome);
-    }
-  }
-
-  return applyLegacyFallback(points, player, result);
-}
 
 function computeNetApproaches(points: TimelinePoint[], player: 'PLAYER_1' | 'PLAYER_2') {
   const netApproaches = points.filter(p => p.rallyDetails?.situacao === 'rede').length;
