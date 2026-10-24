@@ -25,7 +25,6 @@
   "src/lib/errors.ts": 124,
   "src/lib/logger.ts": 134,
   "src/middleware.ts": 122,
-  "src/services/adminService.ts": 139,
   "src/services/match-service-create.logic.ts": 104,
   "src/services/matchesClient.ts": 137,
   "src/services/matchRepository.ts": 118,

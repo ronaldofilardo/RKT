@@ -1,24 +1,8 @@
 import { prisma } from '@/lib/prisma';
-import type { Prisma } from '@prisma/client';
 import type { Role } from '@/schemas/contracts';
-import bcrypt from 'bcryptjs';
 
-/**
- * Extrai `code` e `meta.target` do erro do Prisma sem depender de `any`.
- * Espelha `err?.code` / `err?.meta?.target` sobre valores arbitrários.
- */
-function readPrismaError(error: unknown): { code?: string; target?: unknown } {
-  if (typeof error !== 'object' || error === null) return {};
-  const candidate = error as { code?: unknown; meta?: unknown };
-  const meta =
-    typeof candidate.meta === 'object' && candidate.meta !== null
-      ? (candidate.meta as { target?: unknown })
-      : undefined;
-  return {
-    code: typeof candidate.code === 'string' ? candidate.code : undefined,
-    target: meta?.target,
-  };
-}
+export { createUser } from './admin-service-create.logic';
+export { updateUser, deleteUser } from './admin-service-update-delete.logic';
 
 export async function listAllUsers(options?: {
   cursor?: string;
@@ -45,95 +29,4 @@ export async function listAllUsers(options?: {
     take: limit,
     orderBy: { createdAt: 'desc' },
   });
-}
-
-export async function createUser(data: {
-  name: string;
-  email: string;
-  cpf?: string;
-  password: string;
-  role: Role;
-  club?: string;
-}) {
-  const cleanEmail = data.email.trim().toLowerCase();
-  const cleanCpf = (data.cpf || `temp_${Date.now()}`).replace(/\D/g, '') || `cpf_${Date.now()}`;
-
-  const existingEmail = await prisma.user.findUnique({ where: { email: cleanEmail } });
-  if (existingEmail) return { error: 'EMAIL_ALREADY_EXISTS' };
-
-  if (data.cpf) {
-    const existingCpf = await prisma.user.findUnique({ where: { cpf: cleanCpf } });
-    if (existingCpf) return { error: 'CPF_ALREADY_EXISTS' };
-  }
-
-  const passwordHash = await bcrypt.hash(data.password, 10);
-
-  try {
-    return await prisma.user.create({
-      data: {
-        name: data.name,
-        email: cleanEmail,
-        cpf: cleanCpf,
-        passwordHash,
-        role: data.role,
-        club: data.club || null,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        cpf: true,
-        role: true,
-        club: true,
-        isActive: true,
-        createdAt: true,
-      },
-    });
-  } catch (err) {
-    const { code, target } = readPrismaError(err);
-    if (code === 'P2002') {
-      if (Array.isArray(target) && target.includes('cpf')) {
-        return { error: 'CPF_ALREADY_EXISTS' };
-      }
-      return { error: 'EMAIL_ALREADY_EXISTS' };
-    }
-    throw err;
-  }
-}
-
-export async function updateUser(
-  id: string,
-  data: { name?: string; email?: string; cpf?: string; role?: Role; club?: string | null; isActive?: boolean }
-) {
-  const user = await prisma.user.findUnique({ where: { id } });
-  if (!user) return { error: 'USER_NOT_FOUND' };
-
-  const updateData: Prisma.UserUpdateInput = {};
-  if (data.name !== undefined) updateData.name = data.name;
-  if (data.email !== undefined) updateData.email = data.email.trim().toLowerCase();
-  if (data.cpf !== undefined) updateData.cpf = data.cpf.replace(/\D/g, '');
-  if (data.role !== undefined) updateData.role = data.role;
-  if (data.club !== undefined) updateData.club = data.club;
-  if (data.isActive !== undefined) updateData.isActive = data.isActive;
-
-  try {
-    return await prisma.user.update({
-      where: { id },
-      data: updateData,
-      select: { id: true, name: true, email: true, cpf: true, role: true, club: true, isActive: true },
-    });
-  } catch (err) {
-    if (readPrismaError(err).code === 'P2002') {
-      return { error: 'DUPLICATE_ENTRY' };
-    }
-    throw err;
-  }
-}
-
-export async function deleteUser(id: string) {
-  const user = await prisma.user.findUnique({ where: { id } });
-  if (!user) return { error: 'USER_NOT_FOUND' };
-
-  await prisma.user.delete({ where: { id } });
-  return { success: true };
 }
