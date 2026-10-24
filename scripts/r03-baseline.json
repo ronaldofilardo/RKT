@@ -23,6 +23,5 @@
   "src/middleware.ts": 122,
   "src/services/match-service-create.logic.ts": 104,
   "src/services/matchRepository.ts": 118,
-  "src/services/playerService.ts": 107,
-  "src/test-helpers/auth.ts": 135
+  "src/services/playerService.ts": 107
 }
