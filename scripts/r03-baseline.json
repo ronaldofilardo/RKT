@@ -1,7 +1,6 @@
 {
   "src/app/api/matches/route.ts": 127,
   "src/app/api/matches/[id]/sessions/route.ts": 117,
-  "src/app/api/players/[id]/route.ts": 136,
   "src/app/dashboard/dashboard.actions.ts": 110,
   "src/app/match/[id]/scoring/scoring-domain.ts": 121,
   "src/app/match/[id]/scoring/use-scoring-page-chrome.ts": 115,
