@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { enqueueComment as enqueueToQueue, flushCommentsQueue, type QueuedCommentAction } from './comment-offline-sync.queue.logic';
+import { enqueueComment as enqueueToQueue, type QueuedCommentAction } from './comment-offline-sync.queue.logic';
+import { flushCommentsQueue } from './comment-offline-sync-flush.logic';
 
 export function useCommentOfflineSync() {
   const [isSyncing, setIsSyncing] = useState(false);
