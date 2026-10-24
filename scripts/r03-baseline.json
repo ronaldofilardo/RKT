@@ -23,7 +23,6 @@
   "src/hooks/useCommentOfflineSync.ts": 126,
   "src/hooks/useOfflineMatchSync.ts": 135,
   "src/hooks/useScoreboardUIState.ts": 128,
-  "src/hooks/useScoringHandlers.persistence.ts": 151,
   "src/hooks/useScoringHandlers.types.ts": 119,
   "src/hooks/useSessionManager.abandon.ts": 126,
   "src/lib/api.logic.ts": 105,

@@ -1,67 +1,17 @@
-import type { ScoringState, HistoryEntry } from "@/core/scoring/types";
+import type { ScoringState } from "@/core/scoring/types";
 import { logger } from "@/lib/logger";
 import { PERSIST, calculateBackoffDelay } from "@/lib/constants";
+import type { PersistStateOptions, ErrorResponseBody, SuccessResponseBody } from "./persistence.types";
+import { readConflict, handleVersionConflict } from "./persistence-conflict.logic";
 
-interface PersistStateOptions {
-  matchId: string;
-  match: { version?: number | null } | null;
-  tokenRef: { current: string | null };
-  setError: (error: string | null) => void;
-  fetchMatch?: (forceEngineReset?: boolean) => Promise<void>;
-  allowScoreEdit?: boolean;
-  /**
-   * Histórico de pontos detalhado (rallyDetails, firstFaultDetail, etc).
-   * Quando fornecido, o snapshot persistido envia `{ state, history }`
-   * (formato aceito por `ScoringEngine.fromSerialized`), preservando os
-   * dados necessários para o relatório. Quando ausente, mantém o
-   * comportamento legado (somente `state`) — usado por fluxos que já
-   * persistem history via POST /point.
-   */
-  history?: HistoryEntry[];
-  /**
-   * true apenas no fluxo "Editar Placar" (retomada de partida
-   * interrompida). Instrui o backend a preservar o `scoreState` anterior
-   * em `MatchScoreEdit` antes de sobrescrevê-lo, para a timeline do
-   * /report não perder o trecho já anotado antes da correção.
-   */
-  isManualScoreEdit?: boolean;
-  /**
-   * ID do PointLog a ser anulado atomicamente junto com a atualização de estado.
-   */
-  voidPointLogId?: string;
-  voidLastPoint?: boolean;
-  isUndo?: boolean;
-  note?: string;
-}
-
-interface VersionConflictPayload {
-  error?: string;
-  currentVersion?: number;
-}
-
-interface ErrorResponseBody {
-  error?: string;
-  message?: string;
-}
-
-interface SuccessResponseBody {
-  version?: number;
-}
-
-async function readConflict(response: Response): Promise<VersionConflictPayload> {
-  try {
-    return (await response.json()) as VersionConflictPayload;
-  } catch {
-    return {};
-  }
-}
+export type PersistResult = { success: boolean; needsResync?: boolean; conflict?: boolean; version?: number };
 
 export async function persistStateWithRetry(
   state: ScoringState,
   label: string,
   options: PersistStateOptions,
-): Promise<{ success: boolean; needsResync?: boolean; conflict?: boolean; version?: number }> {
-  const { matchId, match, tokenRef, setError, fetchMatch, history, isManualScoreEdit } = options;
+): Promise<PersistResult> {
+  const { matchId, match, tokenRef, setError } = options;
 
   if (!match) return { success: false };
 
@@ -84,10 +34,10 @@ export async function persistStateWithRetry(
           // Persiste snapshot `{ state, history }` quando history estiver
           // disponível, preservando anotações detalhadas para o relatório.
           // Caso contrário, mantém o legado (somente `state`).
-          scoreState: history ? { state, history } : state,
+          scoreState: options.history ? { state, history: options.history } : state,
           version: currentMatch.version,
           allowScoreEdit,
-          isManualScoreEdit,
+          isManualScoreEdit: options.isManualScoreEdit,
           note: options.note,
           voidPointLogId: options.voidPointLogId,
           voidLastPoint: options.voidLastPoint,
@@ -97,27 +47,7 @@ export async function persistStateWithRetry(
 
       if (response.status === 409) {
         const errorData = await readConflict(response);
-        logger.persist.conflict(label, errorData.currentVersion, currentMatch.version);
-
-        if (!fetchMatch) {
-          setError("Conflito de versão: re-sincronize o placar manualmente");
-          return { success: false, needsResync: true, conflict: true };
-        }
-
-        try {
-          await fetchMatch(true);
-        } catch (refetchErr) {
-          logger.persist.refetchFailed(label, refetchErr);
-          setError("Conflito de versão: re-sincronize o placar manualmente");
-          return { success: false, needsResync: true, conflict: true };
-        }
-
-        setError(
-          label === "undo"
-            ? "Outro dispositivo atualizou o placar. Sincronizado com a versão mais recente."
-            : "Conflito de versão resolvido: placar re-sincronizado.",
-        );
-        return { success: false, needsResync: true, conflict: true };
+        return await handleVersionConflict(label, options, currentMatch, errorData);
       }
 
       if (!response.ok) {
@@ -148,4 +78,3 @@ export async function persistStateWithRetry(
 
   return { success: false };
 }
-
