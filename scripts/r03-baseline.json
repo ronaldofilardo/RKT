@@ -12,7 +12,6 @@
   "src/hooks/use-offline-sync.logic.ts": 105,
   "src/hooks/useScoringHandlers.types.ts": 119,
   "src/lib/api.logic.ts": 105,
-  "src/middleware.ts": 122,
   "src/services/match-service-create.logic.ts": 104,
   "src/services/matchRepository.ts": 118,
   "src/services/playerService.ts": 107

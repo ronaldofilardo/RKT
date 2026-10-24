@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { decodeJwtPayload } from '@/lib/jwt-client';
+import { enforceOriginCheck } from './middleware-csrf.logic';
+import { handleAuthenticated } from './middleware-auth.logic';
 
 const PUBLIC_ROUTES = [
   '/api/auth/login',
@@ -11,19 +12,7 @@ const PUBLIC_ROUTES = [
 
 const BYPASS_ROUTES = ['/_next/', '/favicon'];
 
-export function getAuthToken(request: Pick<NextRequest, 'headers' | 'cookies'>) {
-  const authHeader = request.headers.get('authorization');
-  let bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
-  if (bearerToken === 'null' || bearerToken === 'undefined') {
-    bearerToken = null;
-  }
-  return (
-    bearerToken ??
-    request.cookies.get('rkt_access_token')?.value ??
-    request.cookies.get('access_token')?.value ??
-    null
-  );
-}
+export { getAuthToken } from './middleware-csrf.logic';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -37,32 +26,8 @@ export async function middleware(request: NextRequest) {
   requestHeaders.delete('x-user-id');
   requestHeaders.delete('x-user-role');
 
-  // Fase 5: Verificação de Origem contra CSRF em Mutações de API
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method) && pathname.startsWith('/api/')) {
-    const origin = request.headers.get('origin');
-    const referer = request.headers.get('referer');
-    const host = request.headers.get('host');
-
-    let sourceUrl: URL | null = null;
-    try {
-      if (origin) sourceUrl = new URL(origin);
-      else if (referer) sourceUrl = new URL(referer);
-    } catch {
-      // ste-exception R-08: `new URL` lança sobre Origin/Referer malformados.
-      // Comportamento desejado: sourceUrl fica null e a checagem CSRs segue.
-    }
-
-    // Ambiente de testes locais (Jest) ou chamadas servidor-servidor que não enviam origin/referer
-    // podem precisar de bypass, mas browsers sempre enviam.
-    if (process.env.NODE_ENV !== 'test') {
-      if (!sourceUrl || sourceUrl.host !== host) {
-        return NextResponse.json(
-          { error: 'CSRF_VIOLATION', message: 'Origem da requisição não permitida' },
-          { status: 403 }
-        );
-      }
-    }
-  }
+  const csrfViolation = enforceOriginCheck(request);
+  if (csrfViolation) return csrfViolation;
 
   const isPublic = PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
   if (isPublic) return NextResponse.next({ request: { headers: requestHeaders } });
@@ -70,38 +35,7 @@ export async function middleware(request: NextRequest) {
   const isBypass = BYPASS_ROUTES.some((route) => pathname.startsWith(route));
   if (isBypass) return NextResponse.next();
 
-  const token = getAuthToken(request);
-
-  if (!token) {
-    if (pathname.startsWith('/api/')) {
-      return NextResponse.json(
-        { error: 'UNAUTHORIZED', message: 'Token de acesso requerido' },
-        { status: 401 },
-      );
-    }
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  const decoded = await decodeJwtPayload(token);
-
-  if (!decoded) {
-    if (pathname.startsWith('/api/')) {
-      return NextResponse.json(
-        { error: 'UNAUTHORIZED', message: 'Token inválido ou expirado' },
-        { status: 401 },
-      );
-    }
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  requestHeaders.set('x-user-id', decoded.sub);
-  requestHeaders.set('x-user-role', decoded.role);
-
-  if (pathname.startsWith('/admin') && decoded.role !== 'ADMIN') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-
-  return NextResponse.next({ request: { headers: requestHeaders } });
+  return handleAuthenticated(request, requestHeaders);
 }
 
 export const config = {
