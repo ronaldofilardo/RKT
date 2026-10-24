@@ -7,7 +7,6 @@
   "src/app/api/matches/[id]/sessions/route.ts": 117,
   "src/app/api/players/[id]/route.ts": 136,
   "src/app/dashboard/dashboard.actions.ts": 110,
-  "src/app/dashboard/dashboard.resume.ts": 163,
   "src/app/dashboard/hooks/useDashboardMatches.ts": 159,
   "src/app/match/new/useNewMatchSubmissionActions.ts": 146,
   "src/app/match/[id]/scoring/scoring-domain.ts": 121,
