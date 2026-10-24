@@ -18,7 +18,6 @@
   "src/lib/api.logic.ts": 105,
   "src/lib/auth-client.ts": 129,
   "src/lib/errors.ts": 124,
-  "src/lib/logger.ts": 134,
   "src/middleware.ts": 122,
   "src/services/match-service-create.logic.ts": 104,
   "src/services/matchRepository.ts": 118,
