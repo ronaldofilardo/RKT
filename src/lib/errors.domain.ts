@@ -1,0 +1,57 @@
+import { ApiError } from './errors.api-error';
+
+/**
+ * Erro de conflito (duplicate)
+ * 
+ * @example
+ * throw new ConflictError('Partida já existe', { existing: duplicate });
+ */
+export class ConflictError extends ApiError {
+  constructor(_message: string, existing?: unknown) {
+    // `details` fica com o objeto `existing` "cru" (ex.: { id, playerP1, playerP2 }),
+    // sem embrulhar em { message, existing }: o front-end (online-match-submit.helpers.ts /
+    // useNewMatchSubmissionActions.ts) espera `data.details` já no formato plano usado
+    // para popular o modal de partida duplicada (duplicateInfo: { id, playerP1, playerP2 }).
+    // A mensagem já viaja separadamente em `error.message` / `data.message`.
+    super('CONFLICT', existing, 409);
+    this.name = 'ConflictError';
+  }
+}
+
+/**
+ * Erro de método não permitido
+ * 
+ * @example
+ * throw new MethodNotAllowedError('GET');
+ */
+export class MethodNotAllowedError extends ApiError {
+  constructor(method: string) {
+    super('METHOD_NOT_ALLOWED', { method }, 405);
+    this.name = 'MethodNotAllowedError';
+  }
+}
+
+/**
+ * Erro de rate limit
+ * 
+ * @example
+ * throw new RateLimitError('login', 10, '1h');
+ */
+export class RateLimitError extends ApiError {
+  constructor(endpoint: string, limit: number, window: string) {
+    super('RATE_LIMIT_EXCEEDED', { endpoint, limit, window }, 429);
+    this.name = 'RateLimitError';
+  }
+}
+
+/**
+ * Extrai o código de erro do Prisma sem depender de `any`.
+ * Espelha o comportamento de `error?.code` sobre valores arbitrários.
+ */
+export function getPrismaErrorCode(error: unknown): string | undefined {
+  if (typeof error !== 'object' || error === null || !('code' in error)) {
+    return undefined;
+  }
+  const code = (error as { code?: unknown }).code;
+  return typeof code === 'string' ? code : undefined;
+}
