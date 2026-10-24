@@ -12,7 +12,6 @@
   "src/components/scoring/usePointDetailsScroll.ts": 111,
   "src/core/report/types.ts": 119,
   "src/core/scoring/game-errors.ts": 107,
-  "src/core/scoring/match-tiebreak.ts": 138,
   "src/core/scoring/shadow-replay.ts": 102,
   "src/hooks/use-offline-sync.logic.ts": 105,
   "src/hooks/useCommentOfflineSync.ts": 126,
