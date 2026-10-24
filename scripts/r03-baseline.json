@@ -1,5 +1,4 @@
 {
-  "src/app/dashboard/dashboard.actions.ts": 110,
   "src/components/scoring/edit-score-modal.types.ts": 107,
   "src/core/scoring/game-errors.ts": 107,
   "src/core/scoring/shadow-replay.ts": 102,
