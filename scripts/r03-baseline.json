@@ -12,7 +12,6 @@
   "src/app/match/[id]/scoring/useScoringComment.ts": 154,
   "src/app/match/[id]/scoring/useScoringLifecycleEffects.ts": 134,
   "src/app/match/[id]/scoring/useScoringTimelineSync.ts": 149,
-  "src/components/dashboard/match-card.logic.ts": 156,
   "src/components/scoring/edit-score-modal.types.ts": 107,
   "src/components/scoring/use-point-details-modal.ts": 148,
   "src/components/scoring/use-point-details-scroll.logic.ts": 119,
