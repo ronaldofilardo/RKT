@@ -1,6 +1,6 @@
 # Plano R-03 — Top-10 da Fase 3/S3 e Backlog >100L
 
-> **Data:** 2026-10-23 · **Status:** EM EXECUÇÃO (Faixa E 150–199L — **27/27 alvos concluídos**, baseline 65→38; próxima: Faixa F 101–149L)
+> **Data:** 2026-10-23 · **Status:** ✅ **CONCLUÍDO — META ALCANÇADA** (Faixas C/D/E/F 100%; baseline r03 **124 → 0**; restam 2 `ste-exception` justificadas)
 > **Regra-mãe:** R-03 (nenhum arquivo de produção >100 linhas) · Protocolo: `docs/PLANO_REFATORACAO_STEDEV.md` §4/§7.
 > **Fonte:** continuação direta da Fase 3/S3 do plano STE-DEV (auditoria §7 100% executada; R-07 e R-12 fechados).
 
@@ -71,12 +71,12 @@ Backlog `.tsx` zerado em 2026-10-16 (53→0); hoje **16 `.tsx` >100L**:
 
 `point/route.ts` (44 ✅ B-3), `rankingConstants.ts` (318), `engine.ts` (316), `matches/[id]/route.ts` (299), `use-edit-score-modal-submission.logic.ts` (290), `useScoringPageDerived.ts` (289), `useScoringPageState.ts` (283), `edit-score-state.ts` (281).
 
-### 0.5 Estado atual do Ratchet (2026-10-23, pós-Faixa E)
+### 0.5 Estado atual do Ratchet (2026-10-23, pós-Faixa F — CONCLUÍDO)
 
 - **Baseline inicial (A-0/A-1):** 124 violações cruas (122 no baseline + 2 isentas via `ste-exception R-03`).
-- **Baseline atual (`scripts/r03-baseline.json`):** **38 entradas** (+ 2 isentas: `schemas/match.ts` e `use-edit-score-calculator.ts`).
-- **Progresso cumulativo:** **-86 arquivos** retirados do baseline com zero regressão funcional.
-- **Distribuição restante (38 arquivos):** **0 arquivos ≥150L** · 38 arquivos na faixa 101–149L (máx. atual: `useScoringTimelineSync.ts` 149L).
+- **Baseline atual (`scripts/r03-baseline.json`):** **0 entradas** (+ 2 isentas: `schemas/match.ts` e `use-edit-score-calculator.ts`).
+- **Progresso cumulativo:** **-122 arquivos** retirados do baseline com zero regressão funcional.
+- **Distribuição restante:** **nenhum arquivo de produção >100L fora das 2 exceções declaradas** — meta R-03 atingida (≤5 `ste-exception` justificadas).
 
 ---
 
@@ -143,9 +143,9 @@ Ordem por valor/risco (não por posição na tabela):
   - *Concluídos (15/19):* D-1 `useModalStack` (249→28L), D-2 `set-summary-stats` (248→78L), D-3 `score-normalizer` (247→64L), D-4 `edit-score-validation` (245→89L), D-5 `sessionService` (244→13L), D-6 `matchConfig` (240→60L), D-7 `useEditScoreModalSync` (235→45L), D-8 `match-service-operations.logic` (234→53L), D-9 `game-processing` (231→25L), D-10 `useScoringHandlers.match-fetch` (228→100L), D-11 `useVoiceRecorder` (217→82L), D-12 `use-edit-score-modal-input.logic` (216→51L), D-13 `rls-context` (213→59L), D-14 `useSessionManager.edit-score` (212→99L), D-15 `useScoringPageEffects` (211→93L).
   - *Fechamento (4/19):* D-16 `doubles.ts` (210→24L), D-17 `audio/route.ts` (209→62L), D-18 `useSessionManager.ts` (208→85L), D-19 `useSessionManager.state-builder.ts` (202→86L) — detalhes em §4.
 - **Faixa E (150–199L):** 27 arquivos mapeados → ✅ **27/27 concluído** (28 commits, baseline 65→38). Checkpoint `test:strict`: **7 falhas / 336 suítes / 25 falhas em 3379 testes** = baseline exata (mesmas 7 suítes), zero regressão — detalhes em §4.
-- **Próximas faixas:** Faixa F 101–149L (38 arquivos).
-- Meta: 124 → 0 (ou → nº de `ste-exception` justificadas, ideal ≤5).
-- Recontagem oficial ao fim de cada faixa.
+- **Faixa F (101–149L):** 38 arquivos mapeados → ✅ **38/38 concluído** (40 commits, baseline 38→**0**). Checkpoint `test:strict`: **7 falhas / 336 suítes / 25 falhas em 3379 testes** = baseline exata, zero regressão — detalhes em §4.
+- **Meta: ✅ ALCANÇADA** — 124 → **0** (com 2 `ste-exception` justificadas, abaixo do ideal ≤5).
+- Recontagem oficial ao fim de cada faixa. ✅ Executada em todas.
 
 ---
 
@@ -198,4 +198,6 @@ Ordem por valor/risco (não por posição na tabela):
 | 2026-10-23 | **CHECKPOINT `test:strict` fim da Faixa D (19/19 arquivos)**: **7 falhas / 336 suítes / 25 falhas em 3379 testes** = baseline exata (mesmas 7 suítes), zero regressão; **0 arquivos ≥200L restantes** — próxima Faixa E (150–199L, 27 arquivos) | Concluído |
 | 2026-10-23 | **FAIXA E (150–199L) — 27/27 concluído (28 commits)**: E-1 `timeline-format` 199→6L (`3c18254`) · E-2 `rankingLogic` 197→25L (`5ee3fe2`) · E-3 `use-session-manager.logic` 197→4L (`8e36704`+`b99d998`: validate 129L→split validate+sets-won) · E-4 `momentum-set-stats` 196→2L (`4ba6a3c`) · E-5 `serve-return-stats` 193→3L (`089f9e1`) · E-6 `use-edit-score-modal-confirm.logic` 189→15L (`57f6f6a`) · E-7 `core/scoring/types` 186→20L (`d3fd1f8`; gate amplo scoring 3 falhas/16 testes = ref) · E-8 `useScoringHandlers.point-sync` 184→86L (`581671f`) · E-9 `comments/[commentId]/audio/route` 181→17L (`8fe5fb0`) · E-10 `annotationSessionService` 181→53L (`51c746a`) · E-11 `timeline-set-results` 179→15L (`8b2eca7`) · E-12 `state/route` 172→11L (`0e8b181`) · E-13 `core/scoring/tiebreak` 170→6L (`8faf845`) · E-14 `timeline-rebuild` 170→75L (`aa247ff`) · E-15 `use-edit-score-modal-validation` 169→7L (`3910c97`) · E-16 `undo-redo.service` 164→65L (`05ad486`) · E-17 `dashboard.resume` 163→68L (`0cebbce`) · E-18 `point-log-merge` 161→3L (`f2d379d`) · E-19 `useDashboardMatches` 159→72L (`8b6303b`) · E-20 `point-context` 159→3L (`143f047`) · E-21 `arrangement/route` 158→81L (`59d8d1b`) · E-22 `match-card.logic` 156→21L (`fac090e`) · E-23 `lib/auth` 156→17L (`5019e80`; characterization prévia 5 suítes/49 testes) · E-24 `useScoringComment` 154→71L (`0c55f78`) · E-25 `point/[pointId]/route` 151→14L (`3daea27`) · E-26 `set-completion` 151→7L (`b5e6526`) · E-27 `useScoringHandlers.persistence` 151→83L (`e0e0829`); **baseline r03 65→38** (27 remoções, diff = só remoções em todas); gates por fatia: typecheck + check:r03 + suítes dos alvos | Concluído (28 commits `3c18254`…`e0e0829`) |
 | 2026-10-23 | **CHECKPOINT `test:strict` fim da Faixa E (27/27 arquivos)**: **7 falhas / 336 suítes / 25 falhas em 3379 testes** = baseline exata (mesmas 7 suítes), zero regressão; **0 arquivos ≥150L restantes** (máx. atual 149L) — próxima Faixa F (101–149L, 38 arquivos) | Concluído |
+| 2026-10-23 | **FAIXA F (101–149L) — 38/38 concluído (40 commits)**: F-1 `useScoringTimelineSync` 149→75L (`2ef8b7e`) · F-2 `use-point-details-modal` 148→84L (`783bcaa`) · F-3 `comments/route` 147→13L (`938fcdb`) · F-4 `useNewMatchSubmissionActions` 146→79L (`0dd4119`) · F-5 `edit-score-state.types` 141→14L (`e0f1eac`) · F-6 `schemas/rally` 140→3L (`6e49996`) · F-7 `adminService` 139→31L (`dde8f79`) · F-8 `match-tiebreak` 138→2L (`c726d66`) · F-9 `matchesClient` 137→19L (`7d6f5bb`) · F-10 `comments/[commentId]/route` 136→13L (`d11689a`) · F-11 `players/[id]/route` 136→31L (`d18c606`) · F-12 `useOfflineMatchSync` 135→45L (`5683b25`) · F-13 `test-helpers/auth` 135→28L (`ddb3d84`) · F-14 `useScoringLifecycleEffects` 134→68L (`ee2ea02`) · F-15 `lib/logger` 134→45L (`6e919b9`) · F-16 `auth-client` 129→12L (`e138d95`) · F-17 `useScoreboardUIState` 128→48L (`262cd5a`) · F-18 `matches/route` 127→13L (`2ec4e4e`) · F-19 `useCommentOfflineSync` 126→40L (`ecf5be4`+`47d30aa`: queue 108L→split queue+flush) · F-20 `useSessionManager.abandon` 126→37L (`c4b373e`) · F-21 `lib/errors` 124→15L (`b94e05a`) · F-22 `middleware` 122→55L (`a1df5cb`) · F-23 `scoring-domain` 121→9L (`3710006`) · F-24 `use-point-details-scroll.logic` 119→3L (`7f472a2`) · F-25 `core/report/types` 119→15L (`b31e701`) · F-26 `useScoringHandlers.types` 119→3L (`cc395c3`) · F-27 `matchRepository` 118→44L (`e2ea66f`) · F-28 `sessions/route` 117→35L (`d1a64ab`) · F-29 `use-scoring-page-chrome` 115→74L (`66972bf`) · F-30 `usePointDetailsScroll` 111→82L (`f573569`) · F-31 `dashboard.actions` 110→2L (`993316a`) · F-32 `edit-score-modal.types` 107→2L (`cbd16f7`) · F-33 `game-errors` 107→68L (`94f8cb5`) · F-34 `playerService` 107→9L (`f8fb21d`) · F-35 `use-offline-sync.logic` 105→12L (`99ec3c2`) · F-36 `api.logic` 105→9L (`8f3b2a6`) · F-37 `match-service-create.logic` 104→4L (`7dbb20e`) · F-38 `shadow-replay` 102→58L (`0d455c3`); **baseline r03 38→0** (38 remoções, diff = só remoções); gates por fatia: typecheck + check:r03 + suítes dos alvos | Concluído (40 commits `2ef8b7e`…`0d455c3`) |
+| 2026-10-23 | **CHECKPOINT `test:strict` fim da Faixa F + PLANO R-03 CONCLUÍDO**: **7 falhas / 336 suítes / 25 falhas em 3379 testes** = baseline exata (mesmas 7 suítes), zero regressão; **baseline r03 = 0 entradas** + 2 `ste-exception` (`schemas/match.ts` 298L declarativo, `use-edit-score-calculator.ts` 150L wiring React) — **meta 124→0 alcançada**, abaixo do ideal ≤5 exceções; 106 arquivos totais fatiados em Fases A–F (68 commits Faixas C+D+28 E+40 F + Fases A/B) | Concluído |
 
