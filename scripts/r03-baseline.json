@@ -3,7 +3,6 @@
   "src/app/dashboard/dashboard.actions.ts": 110,
   "src/app/match/[id]/scoring/use-scoring-page-chrome.ts": 115,
   "src/components/scoring/edit-score-modal.types.ts": 107,
-  "src/components/scoring/use-point-details-scroll.logic.ts": 119,
   "src/components/scoring/usePointDetailsScroll.ts": 111,
   "src/core/report/types.ts": 119,
   "src/core/scoring/game-errors.ts": 107,
