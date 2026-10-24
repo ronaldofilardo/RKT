@@ -1,19 +1,17 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { computeLiveCounters, detectTacticalTrends } from '@/core/scoring/live-tactical-insights';
 import { useScoringPageState } from './useScoringPageState';
 import { useScoringPageEffects } from './useScoringPageEffects';
 import { useScoringPageDerived } from './useScoringPageDerived';
+import { useSetSummaryAutoOpen, type SetSummaryModalState } from './scoring-set-summary-auto.logic';
 
 export type ScoringPageState = ReturnType<typeof useScoringPageState>;
 export type ScoringPageEffects = ReturnType<typeof useScoringPageEffects>;
 export type ScoringPageDerived = ReturnType<typeof useScoringPageDerived>;
 
-export interface SetSummaryModalState {
-  isOpen: boolean;
-  setNumber: number;
-}
+export type { SetSummaryModalState };
 
 /**
  * Estado "de chrome" da página: contadores táticos, modal de resumo de set e
@@ -54,43 +52,13 @@ export function useScoringPageChrome(
     isOpen: false,
     setNumber: 1,
   });
-  const completedSetsCountRef = useRef<number>(derived.editScoreCompletedSets?.length ?? 0);
-  const isInitialLoadRef = useRef(true);
 
-  useEffect(() => {
-    const isEditScoreFlow =
-      state.activeModal === 'edit-score' ||
-      (typeof window !== 'undefined' &&
-        new URLSearchParams(window.location.search).get('modal') === 'edit-score');
-
-    if (isEditScoreFlow) {
-      if (setSummaryModalState.isOpen) {
-        setSetSummaryModalState((prev) => ({ ...prev, isOpen: false }));
-      }
-      return;
-    }
-
-    if (state.isLoading) {
-      return;
-    }
-
-    const currentCompleted = derived.editScoreCompletedSets?.length ?? 0;
-    if (isInitialLoadRef.current) {
-      isInitialLoadRef.current = false;
-      completedSetsCountRef.current = currentCompleted;
-      return;
-    }
-
-    if (currentCompleted > completedSetsCountRef.current && currentCompleted > 0) {
-      setSetSummaryModalState({ isOpen: true, setNumber: currentCompleted });
-    }
-    completedSetsCountRef.current = currentCompleted;
-  }, [
-    derived.editScoreCompletedSets?.length,
-    state.isLoading,
-    state.activeModal,
+  useSetSummaryAutoOpen(
+    state,
+    derived.editScoreCompletedSets?.length ?? 0,
+    setSetSummaryModalState,
     setSummaryModalState.isOpen,
-  ]);
+  );
 
   const openTimelineView = async () => {
     if (isTimelineLoading) return;
