@@ -31,7 +31,6 @@
   "src/hooks/useSessionManager.abandon.ts": 126,
   "src/lib/api.logic.ts": 105,
   "src/lib/auth-client.ts": 129,
-  "src/lib/auth.ts": 156,
   "src/lib/errors.ts": 124,
   "src/lib/logger.ts": 134,
   "src/middleware.ts": 122,
