@@ -2,13 +2,13 @@ import type { FormEvent } from 'react';
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/Toast';
-import { logger } from '@/lib/logger';
 import type { NewMatchState } from './useNewMatchState';
-import { createMatchRequest } from './new-match-submit.logic';
 import { buildMatchPayload } from './build-match-payload.logic';
 import { saveOfflineIfNeeded } from './offline-match.logic';
 import { submitOnlineMatch } from './online-match-submit.logic';
 import { isMatchScheduledForFuture } from './schedule-check.logic';
+import { getMissingFields } from './new-match-validate-fields.logic';
+import { createMatchIgnoringWarning, notifyMatchCreated } from './new-match-ignore-warning.logic';
 
 export function useNewMatchSubmissionActions(
   state: NewMatchState,
@@ -28,76 +28,7 @@ export function useNewMatchSubmissionActions(
     temperature: state.temperature, humidity: state.humidity, tags: state.tags, details: state.details,
   }, overrides), [state]);
 
-  const validateFields = useCallback((): string[] => {
-    const missing: string[] = [];
-    if (!state.sportType) missing.push('Esporte');
-    if (!state.format) missing.push('Modo de Jogo');
-    if (state.sportType === 'TENNIS' && !state.courtType) missing.push('Tipo de Quadra');
-    if (!state.date) missing.push('Data');
-
-    if (state.matchType === 'DOUBLES') {
-      if (!state.selectedP1) missing.push('Jogador 1 (Dupla 1)');
-      if (!state.selectedP1Partner) missing.push('Parceiro 1 (Dupla 1)');
-      if (!state.selectedP2) missing.push('Jogador 2 (Dupla 2)');
-      if (!state.selectedP2Partner) missing.push('Parceiro 2 (Dupla 2)');
-
-      if (state.selectedP1 && state.selectedP1Partner && state.selectedP2 && state.selectedP2Partner) {
-        const ids = [
-          state.selectedP1.id,
-          state.selectedP1Partner.id,
-          state.selectedP2.id,
-          state.selectedP2Partner.id,
-        ];
-        const unique = new Set(ids);
-        if (unique.size < 4) {
-          missing.push('Os 4 jogadores devem ser atletas diferentes');
-        }
-      }
-    } else {
-      if (!state.selectedP1) missing.push('Jogador 1');
-      if (!state.selectedP2) missing.push('Jogador 2');
-      if (state.selectedP1 && state.selectedP2 && state.selectedP1.id === state.selectedP2.id) {
-        missing.push('Jogador 1 e Jogador 2 devem ser diferentes');
-      }
-    }
-    return missing;
-  }, [
-    state.sportType,
-    state.format,
-    state.courtType,
-    state.matchType,
-    state.selectedP1,
-    state.selectedP2,
-    state.selectedP1Partner,
-    state.selectedP2Partner,
-    state.date,
-  ]);
-
-  const createMatchIgnoringWarning = async () => {
-    if (!state.pendingPayload || state.submittingRef.current) return;
-    state.submittingRef.current = true;
-    state.setShowDuplicateModal(false);
-    state.setLoading(true);
-    state.setError(null);
-    try {
-      const { response, data: match } = await createMatchRequest(state.pendingPayload, true);
-      if (!response.ok) throw new Error(match.message || 'Erro ao criar partida');
-      const isScheduled = isMatchScheduledForFuture(state.date, state.time);
-      if (isScheduled) {
-        toast({ type: 'success', message: 'Partida agendada com sucesso!' });
-      } else {
-        toast({ type: 'success', message: 'Partida criada com sucesso!' });
-      }
-      router.push('/dashboard');
-    } catch (err) {
-      logger.error('[createMatchIgnoringWarning] Error:', err);
-      state.setError('Erro ao criar partida');
-      toast({ type: 'error', message: 'Erro ao criar partida' });
-    } finally {
-      state.setLoading(false);
-      state.submittingRef.current = false;
-    }
-  };
+  const validateFields = useCallback((): string[] => getMissingFields(state), [state]);
 
   const submitNewMatchForm = async (event: FormEvent) => {
     event.preventDefault();
@@ -126,14 +57,9 @@ export function useNewMatchSubmissionActions(
         state.setShowDuplicateModal(true);
         return;
       }
-      const isScheduled = isMatchScheduledForFuture(state.date, state.time);
-      if (isScheduled) {
-        toast({ type: 'success', message: 'Partida agendada com sucesso!' });
-      } else {
-        toast({ type: 'success', message: 'Partida criada com sucesso!' });
-      }
+      notifyMatchCreated(isMatchScheduledForFuture(state.date, state.time), toast);
       router.push('/dashboard');
-    } catch (err) {
+    } catch {
       state.setError('Erro ao criar partida');
       toast({ type: 'error', message: 'Erro ao criar partida' });
     } finally {
@@ -142,5 +68,10 @@ export function useNewMatchSubmissionActions(
     }
   };
 
-  return { buildPayload, validateFields, createMatchIgnoringWarning, submitNewMatchForm };
+  return {
+    buildPayload,
+    validateFields,
+    createMatchIgnoringWarning: () => createMatchIgnoringWarning(state, router, toast),
+    submitNewMatchForm,
+  };
 }
