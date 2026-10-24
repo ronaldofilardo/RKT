@@ -2,6 +2,5 @@
   "src/core/scoring/shadow-replay.ts": 102,
   "src/hooks/use-offline-sync.logic.ts": 105,
   "src/lib/api.logic.ts": 105,
-  "src/services/match-service-create.logic.ts": 104,
-  "src/services/playerService.ts": 107
+  "src/services/match-service-create.logic.ts": 104
 }
