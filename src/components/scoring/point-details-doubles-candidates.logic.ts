@@ -50,7 +50,7 @@ export function useDoublesReceiverDefault(
     if (doubles?.isDecidingPoint && doubles.activeReceiverId && !form.receiverId) {
       dispatch({ type: 'SET_RECEIVER', value: doubles.activeReceiverId });
     }
-  }, [doubles?.isDecidingPoint, doubles?.activeReceiverId, form.receiverId]);
+  }, [doubles?.isDecidingPoint, doubles?.activeReceiverId, form.receiverId, dispatch]);
 }
 
 export function useDoublesHitterDefault(
@@ -67,5 +67,5 @@ export function useDoublesHitterDefault(
         dispatch({ type: 'SET_HITTER', value: doubles.activeServerId });
       }
     }
-  }, [hitterCandidates, form.hitterId, form.situacao, doubles?.activeReceiverId, doubles?.activeServerId]);
+  }, [hitterCandidates, form.hitterId, form.situacao, doubles?.activeReceiverId, doubles?.activeServerId, dispatch]);
 }

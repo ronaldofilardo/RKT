@@ -12,6 +12,7 @@ interface BuildNewStateOptions {
   format: TennisFormat;
   partialSet?: SetEditData;
   doubles?: DoublesArrangement;
+  startedAt?: number | null;
 }
 
 export function buildNewScoringState(options: BuildNewStateOptions): ScoringState {
@@ -29,7 +30,7 @@ export function buildNewScoringState(options: BuildNewStateOptions): ScoringStat
 
   const builtSets = setResults.map((set, idx) => {
     const isMatchTiebreak = isMatchTiebreakSet(idx, setResults, format);
-    const isRegularTiebreak = !isMatchTiebreak && set.tiebreakScore !== undefined;
+    const isRegularTiebreak = !isMatchTiebreak && set.tiebreakScore != null;
     
     if (isMatchTiebreak) {
       return {
@@ -79,7 +80,7 @@ export function buildNewScoringState(options: BuildNewStateOptions): ScoringStat
     setsWon,
     isFinished,
     winner,
-    startedAt: Date.now(),
+    startedAt: options.startedAt ?? Date.now(),
     secondServe: false,
     ...(options.doubles ? { doubles: options.doubles } : {}),
   };

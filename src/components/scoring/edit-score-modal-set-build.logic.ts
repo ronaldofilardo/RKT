@@ -10,10 +10,16 @@ export function validateCompletedSetEdit(params: {
   originalSet?: CompletedSet;
   floorCurrentSets?: { player1: number; player2: number } | null;
 }): string | null {
-  const { p1Games, p2Games, matchFormat } = params;
+  const { p1Games, p2Games, matchFormat, originalSet } = params;
   const validation = validateSetResult({ p1Games, p2Games }, matchFormat);
   if (validation.error && !validation.isPartial) {
     return validation.error;
+  }
+  if (originalSet) {
+    const editedWinner = p1Games > p2Games ? "player1" : "player2";
+    if (editedWinner !== originalSet.winner) {
+      return "Não é possível inverter o vencedor de um set concluído";
+    }
   }
   return null;
 }

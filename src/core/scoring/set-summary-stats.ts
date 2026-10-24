@@ -10,10 +10,18 @@ export type { GameErrorEntry };
 export { computeGameErrors };
 export type { SetSummaryReport };
 
+/**
+ * ATENÇÃO: `TimelinePoint.gamesScore` é o placar ANTES do ponto (stateBefore).
+ * O último ponto de um set fechado, portanto, NÃO traz o placar final do set.
+ * Por isso `fallbackScore` (vindo de `scoreState.sets[i]`) deve ser sempre
+ * informado pelos chamadores; sem ele o placar é apenas uma aproximação.
+ * `fallbackScore.isCompleted` (quando informado) define se o set está
+ * concluído; sem ele vale "há vencedor pelo placar".
+ */
 export function computeSetSummary(
   allPoints: TimelinePoint[],
   setNumber: number,
-  fallbackScore?: { player1: number; player2: number; isTiebreak?: boolean; tiebreakScore?: { player1: number; player2: number } }
+  fallbackScore?: { player1: number; player2: number; isTiebreak?: boolean; isCompleted?: boolean; tiebreakScore?: { player1: number; player2: number } }
 ): SetSummaryReport {
   const setPoints = allPoints.filter(p => p.setNumber === setNumber);
 
@@ -37,7 +45,7 @@ export function computeSetSummary(
     }
   }
 
-  const winner: 'player1' | 'player2' | null =
+  const winnerByScore: 'player1' | 'player2' | null =
     p1Games > p2Games
       ? 'player1'
       : p2Games > p1Games
@@ -47,6 +55,9 @@ export function computeSetSummary(
             ? 'player1'
             : 'player2'
           : null;
+
+  const isCompleted = fallbackScore?.isCompleted ?? winnerByScore !== null;
+  const winner = isCompleted ? winnerByScore : null;
 
   let durationMinutes: number | undefined;
   if (setPoints.length >= 2) {
@@ -62,7 +73,7 @@ export function computeSetSummary(
 
   return {
     setNumber,
-    isCompleted: winner !== null,
+    isCompleted,
     score: {
       player1: p1Games,
       player2: p2Games,

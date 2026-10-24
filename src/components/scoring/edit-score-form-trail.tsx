@@ -4,6 +4,7 @@ import type { SetInputFormProps } from './edit-score-form';
 import { EditScoreFormFeedback } from './edit-score-form-feedback';
 import { EditScoreFormActions } from './edit-score-form-actions';
 import { EditScoreGamePoints } from './edit-score-game-points';
+import { computeGamePointsMinProgress } from './edit-score-game-points-floor.logic';
 
 interface EditScoreFormTrailProps {
   props: SetInputFormProps;
@@ -31,6 +32,7 @@ export function EditScoreFormTrail({ props, isMatchOver }: EditScoreFormTrailPro
     p2SetsWon,
     partial,
     floorCurrentSets,
+    currentGamePoints,
     showGamePointsAtZero,
     currentServer,
     p1Points,
@@ -38,6 +40,13 @@ export function EditScoreFormTrail({ props, isMatchOver }: EditScoreFormTrailPro
     onP1PointsChange,
     onP2PointsChange,
   } = props;
+
+  const { minP1, minP2 } = computeGamePointsMinProgress({
+    p1Val,
+    p2Val,
+    floorCurrentSets,
+    currentGamePoints,
+  });
 
   return (
     <>
@@ -74,6 +83,8 @@ export function EditScoreFormTrail({ props, isMatchOver }: EditScoreFormTrailPro
             currentServer={currentServer}
             p1Points={p1Points}
             p2Points={p2Points}
+            minP1Progress={minP1}
+            minP2Progress={minP2}
             onP1PointsChange={onP1PointsChange}
             onP2PointsChange={onP2PointsChange}
           />

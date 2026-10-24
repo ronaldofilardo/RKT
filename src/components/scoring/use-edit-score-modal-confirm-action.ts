@@ -25,7 +25,7 @@ export interface ConfirmActionParams {
   onRefreshFloor: UseEditScoreModalOptions['onRefreshFloor'];
   initialGameRef: React.MutableRefObject<{ player1: string; player2: string } | null>;
   inputTouchedRef: React.MutableRefObject<{ p1: boolean; p2: boolean }>;
-  onConfirm: (setResults: import('@/core/scoring/edit-score-domain').SetEditData[], server: 'player1' | 'player2', note?: string) => void | Promise<void>;
+  onConfirm: (setResults: import('@/core/scoring/edit-score-domain').SetEditData[], server: 'player1' | 'player2', note?: string) => void | import('../../hooks/useSessionManager.edit-score').EditScoreResult | Promise<void | import('../../hooks/useSessionManager.edit-score').EditScoreResult>;
   onMatchFinished?: (winner: 'player1' | 'player2') => void;
   setState: SetState;
   setConfirmError: SetError;

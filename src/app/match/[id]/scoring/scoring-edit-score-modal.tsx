@@ -1,5 +1,6 @@
 import type { TennisFormat } from '@/core/scoring/types';
 import { EditScoreModal } from '@/components/scoring/EditScoreModal';
+import { resolveInitialServerSide } from '@/lib/resolveInitialServerSide';
 import type { ScoringPageState } from './useScoringPageState';
 import type { ScoringPageHandlers } from './useScoringPageEffects';
 import type { ScoringPageDerived } from './useScoringPageDerived';
@@ -39,7 +40,7 @@ export function ScoringEditScoreModal({
       playerNames={{ p1: match.player1.name, p2: match.player2.name }}
       currentSets={editScoreCurrentSets}
       currentServer={effectiveScoreState.server}
-      initialServer={match.initialServerId === match.player1.id ? 'player1' : 'player2'}
+      initialServer={resolveInitialServerSide(match)}
       completedSets={editScoreCompletedSets}
       currentGamePoints={buildCurrentGamePoints(effectiveScoreState, isTiebreak, gamePointToDisplay)}
       isTiebreak={isTiebreak}

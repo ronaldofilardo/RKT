@@ -31,7 +31,7 @@ export function validateSetResult(
   const { p1Games, p2Games } = result;
 
   if (p1Games < 0 || p2Games < 0) {
-    return { isValid: false, error: 'Games cannot be negative' };
+    return { isValid: false, error: 'Games não podem ser negativos' };
   }
 
   if (p1Games === 0 && p2Games === 0) {

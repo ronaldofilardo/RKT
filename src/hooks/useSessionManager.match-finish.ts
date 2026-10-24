@@ -5,8 +5,15 @@ import type { ScoringState } from "@/core/scoring/types";
 
 interface MatchFinishConfig {
   matchId: string;
-  tokenRef: React.MutableRefObject<string | null>;
+  tokenRef?: React.MutableRefObject<string | null>;
   matchVersion?: number | null;
+}
+
+export interface MatchFinishResult {
+  success: boolean;
+  status?: number;
+  code?: string;
+  error?: string;
 }
 
 export async function finishMatch(
@@ -14,7 +21,7 @@ export async function finishMatch(
   winnerId: string,
   scoreState: ScoringState,
   options?: { isManualScoreEdit?: boolean; note?: string }
-): Promise<{ success: boolean; error?: string }> {
+): Promise<MatchFinishResult> {
   const { matchId, matchVersion } = config;
 
   try {
@@ -35,19 +42,25 @@ export async function finishMatch(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || 'Failed to update match winner');
+      return {
+        success: false,
+        status: response.status,
+        code: errorData.error,
+        error: errorData.error || 'Failed to update match winner',
+      };
     }
 
-    const result = await response.json();
-    logger.log('Match finished successfully:', result.match);
-    return { success: true };
+    return { success: true, status: response.status };
   } catch (err) {
     logger.error('Failed to update match winner:', err);
     
-    const isOffline = !navigator.onLine;
-    if (isOffline || (err instanceof TypeError && err.message === 'Failed to fetch')) {
+    const isOffline = (typeof navigator !== 'undefined' && !navigator.onLine) || err instanceof TypeError;
+    if (options?.isManualScoreEdit) {
+      return { success: false, code: 'offline', error: 'Sem conexão: editar o placar exige internet.' };
+    }
+    if (isOffline) {
       saveMatchFinishForOfflineSync(matchId, winnerId);
-      return { success: true, error: 'offline' };
+      return { success: true, code: 'offline', error: 'offline' };
     }
     
     const errorMessage = err instanceof Error ? err.message : 'Erro ao finalizar partida';

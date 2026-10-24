@@ -19,9 +19,9 @@ export function DoublesServingSideSection({
 }: DoublesServingSideSectionProps) {
   return (
     <div className="mb-5 space-y-2">
-      <label className="text-xs font-bold text-telemetry-text-muted uppercase tracking-wider block">
+      <h3 className="text-xs font-bold text-telemetry-text-muted uppercase tracking-wider block">
         1. Qual dupla começa no saque?
-      </label>
+      </h3>
       <div className="grid grid-cols-2 gap-3">
         <button
           type="button"

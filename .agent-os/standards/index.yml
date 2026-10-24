@@ -1,0 +1,16 @@
+# Agent OS Standards Index
+root:
+  tech-stack:
+    description: "Stack principal (Next.js, React, Tailwind, Prisma, RTK) e regras gerais de implementação"
+architecture:
+  clean-code:
+    description: "Regras de coesão, arquivos modulares, validação defensiva e economia de tokens"
+api:
+  response-format:
+    description: "Estrutura unificada de envelopes JSON (success/data/error) e códigos HTTP padrão"
+frontend:
+  ui-components:
+    description: "Design system com Tailwind e Shadcn UI, micro-interações, acessibilidade e temas"
+database:
+  prisma-database:
+    description: "Convenções de modelagem Prisma, migrações seguras e queries performáticas"

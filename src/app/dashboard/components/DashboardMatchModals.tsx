@@ -4,17 +4,21 @@ import { ServerSelectionModal } from '@/app/match/new/components/ServerSelection
 import { DoublesServerSelectionModal } from '@/app/match/new/components/DoublesServerSelectionModal';
 import { SetSummaryModal } from '@/components/scoring/SetSummaryModal';
 import { EditMatchInfoModal } from '@/components/dashboard/EditMatchInfoModal';
+import { CommentModal } from '@/components/scoring/CommentModal';
 import { ConfirmDeleteMatchDialog } from './ConfirmDeleteMatchDialog';
 
 import type { DashboardMatchModalsProps } from './dashboard-match-modals.types';
 
 export type { DashboardMatchModalsProps, CompletedSetsData } from './dashboard-match-modals.types';
 
-/** Modais do dashboard: exclusão, seleção de sacador, resumo de set e edição de infos. */
+/** Modais do dashboard: exclusão, finalização com comentário, seleção de sacador, resumo de set e edição de infos. */
 export function DashboardMatchModals({
   matchToDelete,
   onCancelDelete,
   onConfirmDelete,
+  matchToFinish,
+  onCancelFinish,
+  onConfirmFinish,
   serverMatch,
   startingMatch,
   onSelectServer,
@@ -33,6 +37,15 @@ export function DashboardMatchModals({
     <>
       {matchToDelete && (
         <ConfirmDeleteMatchDialog onCancel={onCancelDelete} onConfirm={onConfirmDelete} />
+      )}
+
+      {matchToFinish && (
+        <CommentModal
+          isOpen={Boolean(matchToFinish)}
+          title="Encerrar Partida - Comentário Final"
+          onClose={onCancelFinish ?? (() => {})}
+          onSave={onConfirmFinish ?? (() => {})}
+        />
       )}
 
       {serverMatch && serverMatch.matchType === 'DOUBLES' ? (

@@ -38,6 +38,9 @@ export function resolvePersistedScoreState(
   return incomingScoreState ?? undefined;
 }
 
+export function buildManualEditScoreState(newScoreState: unknown): { state: unknown; history: [] } {
+  return { state: newScoreState, history: [] };
+}
 export async function recordScoreEditSegment(
   tx: Prisma.TransactionClient,
   matchId: string,

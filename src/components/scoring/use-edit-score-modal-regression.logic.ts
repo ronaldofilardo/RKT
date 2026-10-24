@@ -25,7 +25,7 @@ export function validateGamePointsRegression(
   const oldP2 = pointToProgress(parsePointValue(initialGame.player2));
   const newP1 = pointToProgress(parsePointValue(p1Points));
   const newP2 = pointToProgress(parsePointValue(p2Points));
-  if ((newP1 < oldP1 && newP2 <= oldP2) || (newP2 < oldP2 && newP1 <= oldP1)) {
+  if (newP1 < oldP1 || newP2 < oldP2) {
     return "Placar não pode ser inferior ao estado atual";
   }
   return null;
@@ -41,8 +41,7 @@ export function validateTiebreakPointsRegression(
   const initialTbP2 = Number(initialGame.player2) || 0;
   const currentTbP1 = Number(tiebreakP1) || 0;
   const currentTbP2 = Number(tiebreakP2) || 0;
-  if ((currentTbP1 < initialTbP1 && currentTbP2 <= initialTbP2) ||
-      (currentTbP2 < initialTbP2 && currentTbP1 <= initialTbP1)) {
+  if (currentTbP1 < initialTbP1 || currentTbP2 < initialTbP2) {
     return "Placar do tiebreak não pode ser inferior ao estado atual";
   }
   return null;

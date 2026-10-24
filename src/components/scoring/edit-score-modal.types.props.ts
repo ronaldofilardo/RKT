@@ -2,6 +2,8 @@ import type { TennisFormat } from '@/core/scoring/types';
 import type { SetEditData } from '@/core/scoring/edit-score-domain';
 import type { CompletedSet } from '@/core/scoring/edit-score-state';
 
+import type { EditScoreResult } from '@/hooks/useSessionManager.edit-score';
+
 export type Player = 'player1' | 'player2';
 
 export interface EditScoreModalProps {
@@ -23,7 +25,7 @@ export interface EditScoreModalProps {
   isTiebreak?: boolean;
   floorCurrentSets?: { player1: number; player2: number } | null;
   floorTiebreak?: { player1: number; player2: number } | null;
-  onConfirm: (setResults: SetEditData[], server: Player) => void | Promise<void>;
+  onConfirm: (setResults: SetEditData[], server: Player, note?: string) => void | Promise<void | EditScoreResult> | EditScoreResult;
   onCancel: () => void;
   onMatchFinished?: (winner: 'player1' | 'player2') => void;
   suspendedSession?: {

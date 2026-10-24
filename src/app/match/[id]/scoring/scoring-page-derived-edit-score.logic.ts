@@ -1,6 +1,7 @@
 import type { ScoringState, TennisFormat } from "@/core/scoring/types";
 import { isSetCompleted, isMatchTiebreakSetIndex } from "./scoring-domain";
 import { getInitialGames } from "@/core/scoring/format-rules";
+import { deriveMatchCompletedSets } from "@/core/scoring/completed-sets.logic";
 
 export function deriveEditScoreCurrentSets(
   effectiveScoreState: ScoringState | null,
@@ -41,22 +42,14 @@ export function deriveEditScoreCompletedSets(
   effectiveScoreState: ScoringState | null,
   format?: string,
 ) {
-  if (!effectiveScoreState) return [];
-
-  return effectiveScoreState.sets
-    .filter((s, i) => isSetCompleted(s, format as TennisFormat, i, effectiveScoreState.setsWon))
-    .map((s) => {
-      const winner = s.tiebreakScore
-        ? s.tiebreakScore.player1 > s.tiebreakScore.player2
-          ? "player1"
-          : "player2"
-        : s.player1 > s.player2
-          ? "player1"
-          : "player2";
-      return {
-        games: { player1: s.player1, player2: s.player2 } as Record<"player1" | "player2", number>,
-        winner: winner as "player1" | "player2",
-        ...(s.isTiebreak && s.tiebreakScore ? { tiebreakScore: s.tiebreakScore } : {}),
-      };
-    });
+  // Delega para a função canônica (mesma regra usada no dashboard).
+  return deriveMatchCompletedSets(effectiveScoreState, format).setsData.flatMap((s) =>
+    s.isCompleted && s.winner
+      ? [{
+          games: s.games,
+          winner: s.winner,
+          ...(s.tiebreakScore ? { tiebreakScore: s.tiebreakScore } : {}),
+        }]
+      : [],
+  );
 }

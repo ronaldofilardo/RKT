@@ -6,6 +6,7 @@ import {
   buildFinishUpdateData,
   resolvePersistedScoreState,
   recordScoreEditSegment,
+  buildManualEditScoreState,
 } from "./match-service-operations.logic";
 
 export async function finishMatch(
@@ -43,7 +44,7 @@ export async function finishMatch(
   if (!validation.valid) return { error: validation.error } as const;
 
   const resolvedScoreState = options?.isManualScoreEdit
-    ? { ...(scoreState as Record<string, unknown> | undefined), history: [] }
+    ? buildManualEditScoreState(scoreState)
     : resolvePersistedScoreState(scoreState, match.scoreState);
 
   const updateData = buildFinishUpdateData(

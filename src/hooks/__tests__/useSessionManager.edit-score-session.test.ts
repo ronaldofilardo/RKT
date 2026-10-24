@@ -1,5 +1,9 @@
 import { executeScoreEdit } from '../useSessionManager.edit-score';
 
+jest.mock('../useSessionManager.match-finish', () => ({
+  finishMatch: jest.fn().mockResolvedValue({ success: true }),
+}));
+
 jest.mock('../useSessionManager.state-builder', () => ({
   buildNewScoringState: jest.fn().mockReturnValue({
     sets: [{ player1: 1, player2: 0, isTiebreak: false }],

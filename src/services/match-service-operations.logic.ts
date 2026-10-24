@@ -2,7 +2,7 @@ import { logger } from '../lib/logger';
 import { applyDoublesStartUpdates } from './match-service-transition-doubles.logic';
 
 export { ALLOWED_MATCH_FIELDS, sanitizeMatchUpdate, buildMatchUpdateData, buildFinishUpdateData } from './match-service-update-fields';
-export { resolvePersistedScoreState, recordScoreEditSegment } from './match-service-score-state.logic';
+export { resolvePersistedScoreState, recordScoreEditSegment, buildManualEditScoreState } from './match-service-score-state.logic';
 export type { AllowedField } from './match-service-update-fields';
 
 export function buildTransitionUpdateData(
@@ -16,6 +16,7 @@ export function buildTransitionUpdateData(
     player1PartnerId?: string | null;
     player2PartnerId?: string | null;
     scoreState: unknown;
+    startedAt?: Date | string | null;
     doublesSetup?: unknown;
   } | null,
   doublesSetupInput?: unknown,
@@ -25,7 +26,9 @@ export function buildTransitionUpdateData(
     version: { increment: 1 },
   };
   if (newState === 'IN_PROGRESS') {
-    updateData.startedAt = new Date();
+    if (!existingMatch?.startedAt) {
+      updateData.startedAt = new Date();
+    }
     updateData.finishedAt = null;
     updateData.winnerId = null;
 

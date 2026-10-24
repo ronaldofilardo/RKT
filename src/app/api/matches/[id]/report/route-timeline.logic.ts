@@ -14,9 +14,20 @@ export function addScoreEditBreaks(
 
   const editsByPoint = new Map<number, ScoreEdit[]>();
   for (const edit of scoreEdits) {
-    const editTime = edit.editedAt.getTime();
-    const pointIndex = pointLogs.findIndex(log => log.timestamp.getTime() > editTime);
-    if (pointIndex !== -1 && timelinePoints[pointIndex]) {
+    const newScoreState = edit.newScoreState as { pointLogSequenceAtEdit?: number; state?: { pointLogSequenceAtEdit?: number } } | null;
+    const seqAtEdit = newScoreState?.pointLogSequenceAtEdit ?? newScoreState?.state?.pointLogSequenceAtEdit;
+    let pointIndex = -1;
+    if (typeof seqAtEdit === 'number') {
+      pointIndex = pointLogs.findIndex(log => (log.sequenceNumber ?? 0) > seqAtEdit);
+    } else {
+      const editTime = edit.editedAt.getTime();
+      pointIndex = pointLogs.findIndex(log => log.timestamp.getTime() > editTime);
+    }
+    if (pointIndex === -1) {
+      // edição após o último ponto: marcador no fim
+      pointIndex = timelinePoints.length - 1;
+    }
+    if (pointIndex >= 0 && timelinePoints[pointIndex]) {
       const list = editsByPoint.get(pointIndex) ?? [];
       list.push(edit);
       editsByPoint.set(pointIndex, list);

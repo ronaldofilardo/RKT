@@ -37,6 +37,7 @@ export function EditScoreModal(props: EditScoreModalProps) {
         currentServer={currentServer}
         completedSets={completedSets as CompletedSet[]}
         floorCurrentSets={floorCurrentSets}
+        currentGamePoints={props.currentGamePoints}
         effectiveFloorTiebreak={effectiveFloorTiebreak}
         confirmError={confirmError}
         floorValidationError={floorValidationError}

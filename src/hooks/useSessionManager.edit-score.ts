@@ -6,31 +6,21 @@ import { buildNewScoringState } from "./useSessionManager.state-builder";
 import type { ExecuteEditScoreOptions } from "./useSessionManager.edit-score.types";
 import { mergeSuspendedSessionRules } from "./edit-score-suspended.logic";
 import { persistFinishedMatch, persistOngoingMatch } from "./edit-score-persist.logic";
+import { checkEditScorePreconditions } from "./edit-score-preconditions.logic";
+import { applyEditScoreStateAndCleanup } from "./edit-score-apply.logic";
 
 export type { ExecuteEditScoreOptions } from "./useSessionManager.edit-score.types";
 export { mergeSuspendedSessionRules } from "./edit-score-suspended.logic";
 export { persistFinishedMatch, persistOngoingMatch } from "./edit-score-persist.logic";
 
+export type EditScoreResult = { ok: true } | { ok: false; reason: string };
 
-export async function executeScoreEdit(options: ExecuteEditScoreOptions): Promise<void> {
-  const {
-    setResults,
-    server,
-    onMatchFinished,
-    ctx,
-    match,
-    matchId,
-    engineRef,
-    suspendedSession,
-    setScoreState,
-    setSessionActive,
-    setSuspendedSession,
-    abandonCurrentSession,
-    toast,
-  } = options;
+export async function executeScoreEdit(options: ExecuteEditScoreOptions): Promise<EditScoreResult> {
+  const { setResults, server, ctx, match, matchId, suspendedSession, toast } = options;
 
-  if (ctx.isProcessingRef?.current) {
-    return;
+  const preCheck = await checkEditScorePreconditions(options);
+  if (!preCheck.proceed) {
+    return { ok: false, reason: preCheck.reason };
   }
 
   if (ctx.isProcessingRef) {
@@ -39,20 +29,21 @@ export async function executeScoreEdit(options: ExecuteEditScoreOptions): Promis
 
   try {
     const partialSet = setResults.find((set) => set.isPartial);
-
     const tbValidation = validateMatchTiebreakComplete(setResults, match?.format || '');
     if (!tbValidation.valid) {
       toast({ type: 'error', message: tbValidation.error ?? 'Validação de tiebreak falhou' });
-      return;
+      return { ok: false, reason: tbValidation.error ?? 'VALIDATION_ERROR' };
     }
 
     const existingDoubles = ctx.engineRef?.current?.getState().doubles;
+    const existingStartedAt = ctx.engineRef?.current?.getState().startedAt ?? null;
     const newState = buildNewScoringState({
       setResults,
       server,
       format: (match?.format as TennisFormat) || "BEST_OF_3",
       partialSet,
       doubles: existingDoubles,
+      startedAt: existingStartedAt,
     });
 
     if (suspendedSession) {
@@ -65,32 +56,19 @@ export async function executeScoreEdit(options: ExecuteEditScoreOptions): Promis
       ? (winner === "player1" ? match?.player1.id : match?.player2.id)
       : undefined;
 
-    let persistSuccess = false;
+    let persistRes: { success: boolean; reason?: string } = { success: false, reason: 'PERSIST_FAILED' };
     if (isFinished && winner && winnerPlayerId && matchId) {
-      persistSuccess = await persistFinishedMatch(newState, options, winnerPlayerId);
+      persistRes = await persistFinishedMatch(newState, options, winnerPlayerId);
     } else {
-      persistSuccess = await persistOngoingMatch(newState, options);
+      persistRes = await persistOngoingMatch(newState, options);
     }
 
-    if (!persistSuccess) return;
+    if (!persistRes.success) return { ok: false, reason: persistRes.reason ?? 'PERSIST_FAILED' };
 
-    if (engineRef.current) {
-      engineRef.current.loadState(newState);
-      setScoreState({ type: "EDIT_CONFIRMED", payload: newState });
-    }
+    await ctx.fetchMatch?.(true);
+    await applyEditScoreStateAndCleanup(newState, options);
 
-    ctx.clearPendingEdit?.();
-    setSuspendedSession(null);
-    ctx.clearQueueForMatch?.(matchId);
-
-    if (isFinished) {
-      if (winner && onMatchFinished) {
-        onMatchFinished(winner);
-      }
-      await abandonCurrentSession();
-      setSessionActive(false);
-    }
-    (ctx.closeAll ?? ctx.close)();
+    return { ok: true };
   } finally {
     if (ctx.isProcessingRef) {
       ctx.isProcessingRef.current = false;

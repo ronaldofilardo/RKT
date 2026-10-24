@@ -4,6 +4,7 @@ import { ScoringEngine } from '@/core/scoring/engine';
 import { unwrapStateEnvelope } from '@/core/scoring/state-envelope';
 import { pointLogToFlow } from './timeline-rebuild.logic';
 import { buildPointDetailsFromLog } from './point-log-merge';
+import { doesEditPrecedePointLog } from './timeline-rebuild-edit-match.logic';
 
 export interface TimelineScoreEdit {
   editedAt: Date;
@@ -38,7 +39,7 @@ export function simulateScoreFromPointLogs(
     // Apply any score edits that happened before this point
     while (
       nextEditIndex < scoreEdits.length &&
-      scoreEdits[nextEditIndex].editedAt.getTime() < log.timestamp.getTime()
+      doesEditPrecedePointLog(scoreEdits[nextEditIndex], log)
     ) {
       try {
         const raw = scoreEdits[nextEditIndex].newScoreState;

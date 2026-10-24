@@ -9,6 +9,7 @@ export interface EditScoreModalContentProps {
   currentServer: Player;
   completedSets: CompletedSet[];
   floorCurrentSets: { player1: number; player2: number } | null;
+  currentGamePoints?: { player1: number | string; player2: number | string };
   effectiveFloorTiebreak: { player1: number; player2: number } | null;
   confirmError: string | null;
   floorValidationError: string | null;

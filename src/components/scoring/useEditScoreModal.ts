@@ -18,7 +18,7 @@ export type * from "./useEditScoreModal.types";
 
 export function useEditScoreModal(
   options: UseEditScoreModalOptions,
-  onConfirm: (setResults: SetEditData[], server: "player1" | "player2", note?: string) => void | Promise<void>,
+  onConfirm: (setResults: SetEditData[], server: "player1" | "player2", note?: string) => void | import('../../hooks/useSessionManager.edit-score').EditScoreResult | Promise<void | import('../../hooks/useSessionManager.edit-score').EditScoreResult>,
   onCancel: () => void,
   onMatchFinished?: (winner: "player1" | "player2") => void,
 ): UseEditScoreModalReturn {

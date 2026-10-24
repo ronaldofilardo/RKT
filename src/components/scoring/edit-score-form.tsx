@@ -17,6 +17,7 @@ export interface SetInputFormProps {
   floorCurrentSets: { player1: number; player2: number } | null;
   floorTiebreak?: { player1: number; player2: number } | null;
   floorValidationError: string | null;
+  currentGamePoints?: { player1: number | string; player2: number | string };
   isMatchTiebreakSet: boolean;
   isPotentialMTSet: boolean;
   hasTiebreak: boolean;

@@ -22,6 +22,6 @@ export interface ScoringPageHandlers {
   refreshEditScoreFloor: () => Promise<{ player1: number; player2: number } | null>;
   isProcessing: boolean;
   abandonCurrentSession: ReturnType<typeof useSessionManager>["abandonCurrentSession"];
-  openEditScoreModal: (setResults: SetEditData[], server: "player1" | "player2", note?: string) => Promise<void>;
+  openEditScoreModal: (setResults: SetEditData[], server: "player1" | "player2", note?: string) => Promise<import("@/hooks/useSessionManager.edit-score").EditScoreResult>;
   createMatchComment: (content: string, audio?: { blob: Blob; durationMs: number }, category?: string) => Promise<void>;
 }

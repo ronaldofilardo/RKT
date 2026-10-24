@@ -9,6 +9,7 @@ type SetInputSectionProps = Pick<
   | 'playerNames'
   | 'currentServer'
   | 'floorCurrentSets'
+  | 'currentGamePoints'
   | 'effectiveFloorTiebreak'
   | 'floorValidationError'
   | 'state'
@@ -24,6 +25,7 @@ export function EditScoreSetInputSection({
   playerNames,
   currentServer,
   floorCurrentSets,
+  currentGamePoints,
   effectiveFloorTiebreak,
   floorValidationError,
   state,
@@ -49,6 +51,7 @@ export function EditScoreSetInputSection({
       tiebreakP1={state.tiebreakP1}
       tiebreakP2={state.tiebreakP2}
       floorCurrentSets={floorCurrentSets}
+      currentGamePoints={currentGamePoints}
       floorTiebreak={effectiveFloorTiebreak}
       floorValidationError={floorValidationError}
       isMatchTiebreakSet={isMatchTiebreakSet}

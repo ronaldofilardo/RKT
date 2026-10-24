@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { withRLSHandler } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 import { finishMatch } from '@/services/matchService';
 import { FinishMatchInputSchema } from '@/schemas/contracts';
 import { emitMatchEvent } from '@/lib/match-events';
+import { checkCanModifyMatchState } from '../state/state-route-guards.logic';
 
 export async function POST(
   request: NextRequest,
@@ -19,6 +21,31 @@ export async function POST(
         return NextResponse.json(
           { error: 'VALIDATION_ERROR', details: parsed.error.flatten() },
           { status: 400 }
+        );
+      }
+
+      const match = await prisma.match.findFirst({
+        where: { id },
+        select: {
+          id: true,
+          player1Id: true,
+          player2Id: true,
+          player1PartnerId: true,
+          player2PartnerId: true,
+          createdByUserId: true,
+          openForAnnotation: true,
+        },
+      });
+
+      if (!match) {
+        return NextResponse.json({ error: 'MATCH_NOT_FOUND', message: 'Partida não encontrada' }, { status: 404 });
+      }
+
+      const canModify = await checkCanModifyMatchState(match, id, user);
+      if (!canModify) {
+        return NextResponse.json(
+          { error: 'FORBIDDEN', message: 'Sem permissão para alterar o estado desta partida' },
+          { status: 403 }
         );
       }
 

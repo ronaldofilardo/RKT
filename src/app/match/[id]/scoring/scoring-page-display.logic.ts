@@ -2,6 +2,7 @@ import type { ScoringState, TennisFormat } from "@/core/scoring/types";
 import type { ScoringPageState } from "./useScoringPageState";
 import { resolveDisplayScore } from "./resolveDisplayScore";
 import { getInitialGames } from "@/core/scoring/format-rules";
+import { resolveInitialServerSide, resolveServerSideFromId } from "@/lib/resolveInitialServerSide";
 
 interface ResolveDisplayStateOptions {
   activeModal: string | null;
@@ -43,12 +44,11 @@ export function resolveDisplayState({
   if (effectiveScoreState && match) {
     // O `server` pode chegar como id de jogador (persistido) ou como lado.
     let resolvedServer: string = effectiveScoreState.server;
-    if (resolvedServer === match.player2.id) {
-      resolvedServer = "player2";
-    } else if (resolvedServer === match.player1.id) {
-      resolvedServer = "player1";
+    const sideFromId = resolveServerSideFromId(resolvedServer, match);
+    if (sideFromId) {
+      resolvedServer = sideFromId;
     } else if (resolvedServer !== "player1" && resolvedServer !== "player2") {
-      resolvedServer = match.initialServerId === match.player2.id ? "player2" : "player1";
+      resolvedServer = resolveInitialServerSide(match);
     }
 
     const totalGames = (effectiveScoreState.sets ?? []).reduce(

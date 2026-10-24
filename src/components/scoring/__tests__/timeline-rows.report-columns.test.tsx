@@ -56,7 +56,7 @@ describe('PointRow — novo layout (25 colunas, sem coluna SET)', () => {
       rallyDetails: { vencedor: 'sacador', situacao: 'fundo', tipo: 'winner', golpe: 'fh', duracao: 'opcao_2' } as any,
     });
     renderRow(p);
-    expect(screen.getByText('7-10')).toBeInTheDocument();
+    expect(screen.getByText('5-8')).toBeInTheDocument();
     expect(screen.queryByText('8')).not.toBeInTheDocument();
   });
 

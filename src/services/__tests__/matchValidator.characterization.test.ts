@@ -390,11 +390,18 @@ describe('matchValidator (characterization)', () => {
       expect(isCurrentGameRegressing(oldCG, newCG)).toBe(false);
     });
 
-    it('deve retornar false se apenas um player regredir mas o outro progredir', () => {
+    it('deve retornar true se apenas um player regredir mesmo que o outro progrida', () => {
       const oldCG = { player1: 30, player2: 15, isDeuce: false };
       const newCG = { player1: 15, player2: 30, isDeuce: false };
 
-      expect(isCurrentGameRegressing(oldCG, newCG)).toBe(false);
+      expect(isCurrentGameRegressing(oldCG, newCG)).toBe(true);
+    });
+
+    it('deve retornar true quando partida interrompida em 0-15 recebe tentativa de 30-0', () => {
+      const oldCG = { player1: 0, player2: 15, isDeuce: false };
+      const newCG = { player1: 30, player2: 0, isDeuce: false };
+
+      expect(isCurrentGameRegressing(oldCG, newCG)).toBe(true);
     });
   });
 

@@ -4,7 +4,7 @@ import { PERSIST, calculateBackoffDelay } from "@/lib/constants";
 import type { PersistStateOptions, ErrorResponseBody, SuccessResponseBody } from "./persistence.types";
 import { readConflict, handleVersionConflict } from "./persistence-conflict.logic";
 
-export type PersistResult = { success: boolean; needsResync?: boolean; conflict?: boolean; version?: number };
+export type PersistResult = { success: boolean; needsResync?: boolean; conflict?: boolean; version?: number; status?: number; code?: string };
 
 export async function persistStateWithRetry(
   state: ScoringState,
@@ -55,6 +55,16 @@ export async function persistStateWithRetry(
           | ErrorResponseBody
           | null;
         logger.persist.httpError(label, response.status, errorBody);
+
+        const deterministic = [400, 403, 404, 422].includes(response.status);
+        if (deterministic) {
+          return { success: false, status: response.status, code: errorBody?.error };
+        }
+
+        if (![408, 429].includes(response.status) && response.status < 500) {
+          return { success: false, status: response.status, code: errorBody?.error };
+        }
+
         throw new Error(
           `HTTP ${response.status}${errorBody?.error ? `: ${errorBody.error}` : ""}`,
         );
@@ -67,7 +77,9 @@ export async function persistStateWithRetry(
 
       if (attempt === maxRetries) {
         logger.persist.maxRetriesExhausted(label);
-        setError(`Erro ao sincronizar placar (${label})`);
+        if (label !== "edit-score") {
+          setError(`Erro ao sincronizar placar (${label})`);
+        }
       } else {
         const delay = calculateBackoffDelay(attempt);
         logger.persist.retrying(label, delay);

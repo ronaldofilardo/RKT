@@ -1,0 +1,3 @@
+﻿# Agent OS Integration
+Sempre consulte os padroes em .agent-os/standards/index.yml e aplique as diretrizes correspondentes antes de implementar qualquer codigo.
+Para novas features, formule uma especificacao seguindo o modelo em .agent-os/specs/TEMPLATE-spec.md.

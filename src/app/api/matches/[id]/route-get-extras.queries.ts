@@ -21,49 +21,57 @@ function editSequenceOf(lastScoreEdit: { newScoreState: unknown } | null): numbe
  * recentes, última edição de score e logs ativos desde essa edição.
  */
 export async function fetchMatchPointExtras(matchId: string) {
-  const maxSequenceRow = await prisma.pointLog.aggregate({
-    where: { matchId, voidedAt: null, sequenceNumber: { not: null } },
-    _max: { sequenceNumber: true },
-  });
-  const lastPointSequence = maxSequenceRow._max.sequenceNumber ?? 0;
+  const maxSequenceRow = prisma.pointLog
+    ? await prisma.pointLog.aggregate({
+        where: { matchId, voidedAt: null, sequenceNumber: { not: null } },
+        _max: { sequenceNumber: true },
+      })
+    : null;
+  const lastPointSequence = maxSequenceRow?._max?.sequenceNumber ?? 0;
 
-  const recentLogs = await prisma.pointLog.findMany({
-    where: { matchId, voidedAt: null },
-    orderBy: { sequenceNumber: 'desc' },
-    take: 20,
-    select: { winnerId: true },
-  });
+  const recentLogs = prisma.pointLog
+    ? await prisma.pointLog.findMany({
+        where: { matchId, voidedAt: null },
+        orderBy: { sequenceNumber: 'desc' },
+        take: 20,
+        select: { winnerId: true },
+      })
+    : [];
   const recentWinnerIds = recentLogs.reverse().map((l) => l.winnerId);
 
-  const lastScoreEdit = await prisma.matchScoreEdit.findFirst({
-    where: { matchId },
-    orderBy: { editedAt: 'desc' },
-    select: {
-      id: true,
-      editedAt: true,
-      newScoreState: true,
-    },
-  });
+  const lastScoreEdit = prisma.matchScoreEdit
+    ? await prisma.matchScoreEdit.findFirst({
+        where: { matchId },
+        orderBy: { editedAt: 'desc' },
+        select: {
+          id: true,
+          editedAt: true,
+          newScoreState: true,
+        },
+      })
+    : null;
 
   const editSeq = editSequenceOf(lastScoreEdit);
 
-  const activeLogsSinceEdit = await prisma.pointLog.findMany({
-    where: {
-      matchId,
-      voidedAt: null,
-      ...(editSeq > 0 ? { sequenceNumber: { gt: editSeq } } : {}),
-    },
-    orderBy: { sequenceNumber: 'asc' },
-    select: {
-      id: true,
-      winnerId: true,
-      serverId: true,
-      type: true,
-      sequenceNumber: true,
-      annotations: true,
-      timestamp: true,
-    },
-  });
+  const activeLogsSinceEdit = prisma.pointLog
+    ? await prisma.pointLog.findMany({
+        where: {
+          matchId,
+          voidedAt: null,
+          ...(editSeq > 0 ? { sequenceNumber: { gt: editSeq } } : {}),
+        },
+        orderBy: { sequenceNumber: 'asc' },
+        select: {
+          id: true,
+          winnerId: true,
+          serverId: true,
+          type: true,
+          sequenceNumber: true,
+          annotations: true,
+          timestamp: true,
+        },
+      })
+    : [];
 
   return { lastPointSequence, recentWinnerIds, lastScoreEdit, activeLogsSinceEdit };
 }

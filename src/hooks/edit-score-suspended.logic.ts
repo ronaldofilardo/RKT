@@ -2,17 +2,8 @@ import type { ScoringState, TennisFormat } from "@/core/scoring/types";
 import { getMatchFormatRules } from "@/lib/matchConfig";
 import type { SuspendedSessionState } from "./useSessionManager";
 
-export function mergeSuspendedSessionRules(newState: ScoringState, suspendedSession: SuspendedSessionState, format?: string) {
-  const bankSetsWon = suspendedSession.bankScoreState?.setsWon ?? {
-    player1: 0,
-    player2: 0,
-  };
-
-  newState.setsWon = {
-    player1: Math.max(newState.setsWon.player1, bankSetsWon.player1),
-    player2: Math.max(newState.setsWon.player2, bankSetsWon.player2),
-  };
-
+export function mergeSuspendedSessionRules(newState: ScoringState, _suspendedSession: SuspendedSessionState, format?: string) {
+  // Placar digitado é a fonte canônica — sem sobrescrever setsWon com Math.max do banco
   const { setsToWin } = getMatchFormatRules((format as TennisFormat) || "BEST_OF_3");
   if (newState.setsWon.player1 >= setsToWin) {
     newState.isFinished = true;

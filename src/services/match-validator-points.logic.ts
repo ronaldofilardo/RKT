@@ -38,10 +38,7 @@ function isCoordinateRegressing(
   newP1: number,
   newP2: number,
 ): boolean {
-  return (
-    (newP1 < oldP1 && newP2 <= oldP2) ||
-    (newP2 < oldP2 && newP1 <= oldP1)
-  );
+  return newP1 < oldP1 || newP2 < oldP2;
 }
 
 function isSameWinnerCorrection(oldTb: TiebreakScore, newTb: TiebreakScore): boolean {

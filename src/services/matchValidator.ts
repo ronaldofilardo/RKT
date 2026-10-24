@@ -23,7 +23,7 @@ export function validateTransitionState(
   match: MatchData,
   newState: MatchState,
   scoreState?: unknown,
-  options?: { doublesSetup?: unknown; allowScoreEdit?: boolean; isUndo?: boolean },
+  options?: { doublesSetup?: unknown; allowScoreEdit?: boolean; isUndo?: boolean; isManualScoreEdit?: boolean },
 ): ValidationResult {
   const transitionError = validateAllowedTransition(match.state, newState, options?.isUndo);
   if (transitionError) return transitionError;
@@ -53,7 +53,12 @@ export function validateTransitionState(
   }
 
   if (scoreState && match.scoreState) {
-    const progressionError = validateScoreProgression(match.scoreState, scoreState, options?.allowScoreEdit);
+    const progressionError = validateScoreProgression(
+      match.scoreState,
+      scoreState,
+      options?.allowScoreEdit,
+      options?.isManualScoreEdit,
+    );
     if (progressionError) return progressionError;
   }
 

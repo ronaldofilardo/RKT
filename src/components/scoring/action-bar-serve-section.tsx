@@ -1,33 +1,4 @@
-import type { ReactNode } from 'react';
-
-function ActionButton({
-  onClick,
-  disabled,
-  variant = 'default',
-  children,
-}: {
-  onClick: () => void;
-  disabled?: boolean;
-  variant?: 'default' | 'ace' | 'fault';
-  children: ReactNode;
-}) {
-  const variantStyles =
-    variant === 'ace'
-      ? 'hover:border-telemetry-volt/60 active:shadow-telemetry-volt'
-      : variant === 'fault'
-      ? 'hover:border-telemetry-error/60'
-      : '';
-
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`flex items-center justify-center gap-1 px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-semibold rounded-xl transition-all select-none min-h-[48px] active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed bg-telemetry-elevated hover:bg-telemetry-active text-telemetry-text-primary border border-white/10 ${variantStyles}`}
-    >
-      {children}
-    </button>
-  );
-}
+import { ServeButton } from './action-bar-serve-button';
 
 export function ServeSection({
   aceDetailsEnabled, onAceDetailsToggle, dfDetailsEnabled, onDfDetailsToggle,
@@ -42,11 +13,13 @@ export function ServeSection({
   step: 'none' | 'second'; processing?: boolean;
 }) {
   const current = step === 'second' ? 'second' : 'first';
+  const faultVariant = current === 'second' ? 'double-fault' : 'fault';
+  const faultSubLabel = current === 'second' ? 'Dupla falta' : undefined;
   return (
     <>
-      <div className="flex items-center justify-center gap-2 sm:gap-4">
+      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:gap-x-4">
         <span
-          className={`flex-shrink-0 whitespace-nowrap text-[10px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-full ${
+          className={`flex-shrink-0 whitespace-nowrap text-xs sm:text-sm font-bold px-3 sm:px-4 py-1 rounded-full ${
             showSecondBadge
               ? 'bg-telemetry-alert text-telemetry-base shadow-sm'
               : 'bg-telemetry-blue text-white shadow-sm'
@@ -54,37 +27,43 @@ export function ServeSection({
         >
           {showSecondBadge ? '2º SAQUE' : '1º SAQUE'}
         </span>
-        <label className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-[11px] sm:text-xs text-telemetry-text-muted cursor-pointer select-none">
+        <label className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm text-telemetry-text-muted cursor-pointer select-none py-1">
           <input
             type="checkbox"
             checked={aceDetailsEnabled}
             onChange={onAceDetailsToggle}
             disabled={disabled}
-            className="accent-telemetry-volt bg-telemetry-card cursor-pointer"
+            className="h-4 w-4 accent-telemetry-volt bg-telemetry-card cursor-pointer"
           />
           Detalhes do ACE
         </label>
-        <label className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-[11px] sm:text-xs text-telemetry-text-muted cursor-pointer select-none">
+        <label className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm text-telemetry-text-muted cursor-pointer select-none py-1">
           <input
             type="checkbox"
             checked={dfDetailsEnabled}
             onChange={onDfDetailsToggle}
             disabled={disabled}
-            className="accent-telemetry-volt bg-telemetry-card cursor-pointer"
+            className="h-4 w-4 accent-telemetry-volt bg-telemetry-card cursor-pointer"
           />
           Detalhes da DF
         </label>
       </div>
-      <div className="grid grid-cols-3 gap-2">
-        <ActionButton onClick={onAce} disabled={disabled} variant="ace">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <ServeButton onClick={onAce} disabled={disabled} variant="ace" icon="⚡">
           {processing ? '⏳' : 'Ace'}
-        </ActionButton>
-        <ActionButton onClick={() => onOut(current)} disabled={disabled} variant="fault">
+        </ServeButton>
+        <ServeButton onClick={() => onOut(current)} disabled={disabled} variant={faultVariant} subLabel={faultSubLabel} icon="✕">
           {processing ? '⏳' : 'Out'}
-        </ActionButton>
-        <ActionButton onClick={() => onNet(current)} disabled={disabled} variant="fault">
+        </ServeButton>
+        <ServeButton
+          onClick={() => onNet(current)}
+          disabled={disabled}
+          variant={current === 'second' ? 'double-fault' : 'net'}
+          subLabel={faultSubLabel}
+          icon="⌗"
+        >
           {processing ? '⏳' : 'Net'}
-        </ActionButton>
+        </ServeButton>
       </div>
     </>
   );

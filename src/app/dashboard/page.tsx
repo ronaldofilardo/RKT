@@ -41,6 +41,9 @@ export default function DashboardPage() {
           model.confirmDeleteMatch("hard");
           model.setMatchToDelete(null);
         }}
+        matchToFinish={model.matchToFinish}
+        onCancelFinish={() => model.setMatchToFinish(null)}
+        onConfirmFinish={model.confirmFinishMatch}
         serverMatch={actions.selectedMatchForServer}
         startingMatch={actions.startingMatch}
         onSelectServer={actions.selectServingPlayer}

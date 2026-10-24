@@ -261,8 +261,13 @@ export const FinishMatchInputSchema = z.object({
   // "Editar Placar" (retomada de partida interrompida) — instrui o backend
   // a registrar o segmento anterior em MatchScoreEdit antes de sobrescrever
   // o scoreState, para que /report reconstrua a timeline corretamente.
-  isManualScoreEdit: z.boolean().optional(),
-});
+    isManualScoreEdit: z.boolean().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.isManualScoreEdit === true && data.version === undefined) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['version'], message: 'version é obrigatória quando isManualScoreEdit === true' });
+    }
+  });
 export type FinishMatchInput = z.infer<typeof FinishMatchInputSchema>;
 
 export const MatchStateInputSchema = z
@@ -296,5 +301,14 @@ export const MatchStateInputSchema = z
   })
   .refine((data) => data.state !== "SCHEDULED", {
     message: "Não é possível voltar para SCHEDULED via API",
+  })
+  .superRefine((data, ctx) => {
+    if (data.isManualScoreEdit === true && data.version === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["version"],
+        message: "version é obrigatória quando isManualScoreEdit === true",
+      });
+    }
   });
 export type MatchStateInput = z.infer<typeof MatchStateInputSchema>;

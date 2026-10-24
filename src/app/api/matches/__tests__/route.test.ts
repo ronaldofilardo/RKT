@@ -30,6 +30,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { findDuplicateMatch } from '@/services/matchSuggestionService';
 import { makeAuthHeaders } from '@/test-helpers/auth';
+import { BASE_MATCH_SELECT } from '@/services/match-repository-select.data';
 
 const mockPrisma = prisma as any;
 const txMock = (mockPrisma as any).__txMock;
@@ -90,34 +91,7 @@ describe('GET /api/matches', () => {
     expect(data.data.matches).toHaveLength(2);
     expect(mockPrisma.match.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        select: {
-          id: true,
-          state: true,
-          format: true,
-          sportType: true,
-          courtType: true,
-          scheduledAt: true,
-          startedAt: true,
-          finishedAt: true,
-          nickname: true,
-          visibility: true,
-          isResuming: true,
-          openForAnnotation: true,
-          tournamentName: true,
-          category: true,
-          round: true,
-          bracketType: true,
-          temperature: true,
-          humidity: true,
-          version: true,
-          scoreState: true,
-          initialServerId: true,
-          clubName: true,
-          details: true,
-          player1: { select: { id: true, name: true } },
-          player2: { select: { id: true, name: true } },
-          createdByUserId: true,
-        },
+        select: BASE_MATCH_SELECT,
         orderBy: { createdAt: 'desc' },
       })
     );

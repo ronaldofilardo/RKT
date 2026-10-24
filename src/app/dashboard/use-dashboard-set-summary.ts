@@ -1,69 +1,75 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { logger } from '@/lib/logger';
 import { matchesClient } from '@/services/matchesClient';
+import type { ReportTimelineResponse } from '@/services/matches-client-endpoints.logic';
 import type { DashboardMatchPayload } from '@/components/dashboard/MatchCard';
 import type { TimelinePoint } from '@/core/scoring/types';
+import { deriveMatchCompletedSets } from '@/core/scoring/completed-sets.logic';
 import { unwrapDashboardScoreState } from './dashboard.resume';
+import { useSetSummaryPolling } from './use-dashboard-set-summary-polling';
 
-/** Conta os sets concluídos (com fallback para o total de sets e mínimo 1). */
-function countCompletedSets(scoreState: unknown): number {
-  const sets = unwrapDashboardScoreState(scoreState)?.sets;
-  if (!sets) return 1;
-  const count = sets.filter((s) => {
-    return ((s.player1 >= 6 || s.player2 >= 6) && Math.abs(s.player1 - s.player2) >= 2) ||
-      Boolean(s.isTiebreak) ||
-      Boolean(s.tiebreakScore);
-  }).length;
-  return count || sets.length || 1;
+interface FreshReport {
+  scoreState: unknown;
+  format?: string;
 }
 
-function mapCompletedSets(scoreState: unknown) {
-  const sets = unwrapDashboardScoreState(scoreState)?.sets;
-  if (!sets) return [];
-  return sets.map((s) => ({
-    games: { player1: s.player1 ?? 0, player2: s.player2 ?? 0 },
-    winner: (s.player1 > s.player2 ? 'player1' : 'player2') as 'player1' | 'player2',
-    tiebreakScore: s.tiebreakScore ?? undefined,
-  }));
-}
-
-/** Abre o modal de análise de set buscando o histórico de pontos do relatório. */
+/**
+ * Abre o modal de análise de set. Placar (`scoreState`) e pontos
+ * (`timelinePoints`) vêm da MESMA resposta de `/report`, nunca do snapshot
+ * antigo da lista; em partida ao vivo o modal é revalidado periodicamente.
+ */
 export function useDashboardSetSummary() {
   const [setSummaryMatch, setSetSummaryMatch] = useState<DashboardMatchPayload | null>(null);
   const [setSummaryTimelinePoints, setSetSummaryTimelinePoints] = useState<TimelinePoint[]>([]);
+  const [freshReport, setFreshReport] = useState<FreshReport | null>(null);
+
+  // Descarta respostas atrasadas de outra partida ou do modal já fechado.
+  const currentMatchIdRef = useRef<string | null>(null);
+  currentMatchIdRef.current = setSummaryMatch?.id ?? null;
+
+  const applyReport = useCallback((matchId: string, data: ReportTimelineResponse) => {
+    if (currentMatchIdRef.current !== matchId) return;
+    if (Array.isArray(data.timelinePoints)) setSetSummaryTimelinePoints(data.timelinePoints);
+    if (data.scoreState) setFreshReport({ scoreState: data.scoreState, format: data.format });
+  }, []);
 
   const openMatchSetSummary = useCallback(async (match: DashboardMatchPayload) => {
     logger.info('[DashboardPage] open set summary', match.id);
+    currentMatchIdRef.current = match.id;
     setSetSummaryMatch(match);
     setSetSummaryTimelinePoints([]);
+    setFreshReport(null);
     try {
-      const data = await matchesClient.getReportTimeline(match.id);
-      if (Array.isArray(data.timelinePoints)) {
-        setSetSummaryTimelinePoints(data.timelinePoints);
-      }
+      applyReport(match.id, await matchesClient.getReportTimeline(match.id));
     } catch (err) {
       logger.error('[DashboardPage] Erro ao buscar pontos para análise do set', err);
     }
-  }, []);
+  }, [applyReport]);
 
-  const completedSetsCount = useMemo(
-    () => countCompletedSets(setSummaryMatch?.scoreState),
-    [setSummaryMatch]
+  const scoreSource = freshReport?.scoreState ?? setSummaryMatch?.scoreState;
+  const format = freshReport?.format ?? setSummaryMatch?.format;
+  const completed = useMemo(
+    () => deriveMatchCompletedSets(unwrapDashboardScoreState(scoreSource), format),
+    [scoreSource, format],
   );
 
-  const completedSetsData = useMemo(
-    () => mapCompletedSets(setSummaryMatch?.scoreState),
-    [setSummaryMatch]
-  );
+  const isFinished =
+    setSummaryMatch?.state === 'FINISHED' ||
+    unwrapDashboardScoreState(freshReport?.scoreState)?.isFinished === true;
+  useSetSummaryPolling({
+    matchId: setSummaryMatch?.id ?? null,
+    enabled: Boolean(setSummaryMatch) && !isFinished,
+    onReport: applyReport,
+  });
 
   return {
     setSummaryMatch,
     setSetSummaryMatch,
     setSummaryTimelinePoints,
     openMatchSetSummary,
-    completedSetsCount,
-    completedSetsData,
+    completedSetsCount: completed.availableSetsCount,
+    completedSetsData: completed.setsData,
   };
 }

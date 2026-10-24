@@ -3,11 +3,23 @@ import type { TimelinePoint } from "@/core/scoring/types";
 
 type MatchesClientConfig = { baseUrl: string };
 
+/**
+ * Resposta de GET /matches/[id]/report consumida pela UI. `scoreState` é o
+ * placar atual persistido (pode vir como `ScoringState` ou envelope
+ * `{ state, history }`; use `unwrapDashboardScoreState`) e vem na MESMA
+ * resposta que `timelinePoints`, garantindo placar e estatísticas coerentes.
+ */
+export interface ReportTimelineResponse {
+  timelinePoints?: TimelinePoint[];
+  scoreState?: unknown;
+  format?: string;
+}
+
 export function createMatchEndpoints({ baseUrl }: MatchesClientConfig) {
   return {
     getReportTimeline: (
       matchId: string,
-    ): Promise<{ timelinePoints?: TimelinePoint[] }> =>
+    ): Promise<ReportTimelineResponse> =>
       requestWithFallback(
         baseUrl,
         `/matches/${matchId}/report`,

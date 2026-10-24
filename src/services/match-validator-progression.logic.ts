@@ -20,13 +20,14 @@ export function validateScoreProgression(
   rawOldScoreState: unknown,
   rawNewScoreState: unknown,
   allowScoreEdit?: boolean,
+  isManualScoreEdit?: boolean,
 ): ValidationResult | null {
   const oldState = unwrapScoreState(rawOldScoreState);
   const newState_ = unwrapScoreState(rawNewScoreState);
   const oldWon = oldState?.setsWon ?? { player1: 0, player2: 0 };
   const newWon = newState_?.setsWon ?? { player1: 0, player2: 0 };
 
-  if (isSetsWonRegressing(oldWon, newWon)) {
+  if (!isManualScoreEdit && isSetsWonRegressing(oldWon, newWon)) {
     return { error: "SCORE_REGRESSION: Placar não pode ser inferior ao estado atual", valid: false };
   }
 

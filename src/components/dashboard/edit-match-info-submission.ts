@@ -1,4 +1,12 @@
 import type { DashboardMatchPayload } from './match-card-types';
+import {
+  toDateString,
+  toTimeString,
+  blankIfNull,
+  numberInput,
+  nullIfBlank,
+  parseFloatOrNull,
+} from './edit-match-info-format';
 
 /** Valores do formulário de edição de informações da partida (strings brutas de input). */
 export interface EditMatchInfoFormValues {
@@ -14,24 +22,6 @@ export interface EditMatchInfoFormValues {
   temperature: string;
   humidity: string;
   details: string;
-}
-
-function toDateString(iso: string | null | undefined): string {
-  return iso ? new Date(iso).toISOString().split('T')[0] : '';
-}
-
-function toTimeString(iso: string | null | undefined): string {
-  return iso
-    ? new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-    : '';
-}
-
-function blankIfNull(value: string | null | undefined): string {
-  return value || '';
-}
-
-function numberInput(value: number | null | undefined): string {
-  return value != null ? String(value) : '';
 }
 
 export function initialFormValues(match: DashboardMatchPayload): EditMatchInfoFormValues {
@@ -52,27 +42,26 @@ export function initialFormValues(match: DashboardMatchPayload): EditMatchInfoFo
 }
 
 /**
- * Combina data e hora em ISO. Sem data → null; sem hora válida → meio-dia
- * (mesmo comportamento legado do modal).
+ * Combina data e hora em ISO. Sem data → null; sem hora válida → meio-dia.
+ * Extrai os componentes de ano, mês e dia locais para evitar desvio de fuso horário.
  */
 export function buildScheduledAt(date: string, time: string): string | null {
   if (!date) return null;
-  const d = new Date(date);
+  const [yearStr, monthStr, dayStr] = date.split('-');
+  const year = parseInt(yearStr, 10);
+  const month = parseInt(monthStr, 10) - 1;
+  const day = parseInt(dayStr, 10);
+
+  let hours = 12;
+  let minutes = 0;
   if (time && time.includes(':')) {
-    const [hours, minutes] = time.split(':');
-    d.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
-  } else {
-    d.setHours(12, 0, 0, 0);
+    const [h, m] = time.split(':');
+    hours = parseInt(h, 10);
+    minutes = parseInt(m, 10);
   }
+
+  const d = new Date(year, month, day, hours, minutes, 0, 0);
   return d.toISOString();
-}
-
-function nullIfBlank(value: string): string | null {
-  return value.trim() || null;
-}
-
-function parseFloatOrNull(value: string): number | null {
-  return value !== '' ? parseFloat(value) : null;
 }
 
 export function buildUpdateInfoPayload(

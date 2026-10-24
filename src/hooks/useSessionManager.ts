@@ -47,8 +47,8 @@ export function useSessionManager(ctx: SessionManagerContext) {
       server: "player1" | "player2",
       onMatchFinished?: (winner: "player1" | "player2") => void,
       note?: string,
-    ) => {
-      await executeScoreEdit({
+    ): Promise<import("./useSessionManager.edit-score").EditScoreResult> => {
+      return await executeScoreEdit({
         setResults, server, note, onMatchFinished, ctx, match, matchId,
         tokenRef, engineRef, suspendedSession, persistState, fetchMatch,
         setScoreState, setSessionActive, setSuspendedSession,

@@ -7,7 +7,7 @@ export function validateGameBounds(
   tiebreakAt: number,
 ): SetValidation | null {
   if (p1Games < 0 || p2Games < 0) {
-    return { isValid: false, error: 'Games cannot be negative' };
+    return { isValid: false, error: 'Games não podem ser negativos' };
   }
 
   if (p1Games === 0 && p2Games === 0) {
@@ -17,7 +17,7 @@ export function validateGameBounds(
   if (hasTiebreak) {
     const maxValid = tiebreakAt + 1;
     if (p1Games > maxValid || p2Games > maxValid) {
-      return { isValid: false, error: `Maximum ${maxValid} games in a set` };
+      return { isValid: false, error: `Máximo de ${maxValid} games em um set` };
     }
     if (p1Games === maxValid && p2Games === maxValid) {
       return {

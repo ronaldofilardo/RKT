@@ -2,6 +2,7 @@
 
 import type { ScoringEngine } from "@/core/scoring/engine";
 import type { MatchData } from "./useScoringHandlers";
+import { resolveInitialServerSide } from "@/lib/resolveInitialServerSide";
 
 export interface ServerResolutionConfig {
   engineRef: React.MutableRefObject<ScoringEngine | null>;
@@ -12,7 +13,7 @@ export function createServerResolutionService(config: ServerResolutionConfig) {
   const { engineRef, match } = config;
 
   const getServerId = (): string => {
-    if (engineRef.current) {
+    if (typeof engineRef.current?.getServingMemberId === "function") {
       const doublesServer = engineRef.current.getServingMemberId();
       if (doublesServer) return doublesServer;
     }
@@ -25,7 +26,7 @@ export function createServerResolutionService(config: ServerResolutionConfig) {
 
   const getWinnerId = (isServer: boolean): string => {
     const state = engineRef.current?.getState();
-    const serverSide = state ? state.server : (match?.initialServerId === match?.player2.id ? "player2" : "player1");
+    const serverSide = state ? state.server : resolveInitialServerSide(match);
     if (!match) return "";
 
     const winningSide = isServer ? serverSide : (serverSide === "player1" ? "player2" : "player1");

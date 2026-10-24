@@ -6,7 +6,10 @@ import { computeSetSummary, type SetSummaryReport } from '@/core/scoring/set-sum
 
 export interface CompletedSetData {
   games: Record<'player1' | 'player2', number>;
-  winner: 'player1' | 'player2';
+  /** `null` quando o set ainda não tem vencedor (em andamento). */
+  winner: 'player1' | 'player2' | null;
+  /** Ausente = tratado como concluído pelo placar (compatibilidade). */
+  isCompleted?: boolean;
   tiebreakScore?: { player1: number; player2: number };
 }
 
@@ -47,6 +50,7 @@ export function useSetSummaryReport({
           player1: completedSetsData[selectedSet - 1].games.player1,
           player2: completedSetsData[selectedSet - 1].games.player2,
           tiebreakScore: completedSetsData[selectedSet - 1].tiebreakScore,
+          isCompleted: completedSetsData[selectedSet - 1].isCompleted,
         }
       : undefined;
 

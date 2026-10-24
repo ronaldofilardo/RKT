@@ -6,6 +6,7 @@ import { validateTransitionState } from "./matchValidator";
 import {
   recordScoreEditSegment,
   buildTransitionUpdateData,
+  buildManualEditScoreState,
 } from "./match-service-operations.logic";
 import { pruneDoublesSetupChanges } from "./match-service-doubles.logic";
 import { voidPointLogSegment } from "./match-service-voidpoint.logic";
@@ -61,10 +62,14 @@ export async function transitionMatchState(
 
       await voidPointLogSegment(tx, id, options ?? {});
 
+      const resolvedScoreState = options?.isManualScoreEdit && scoreState
+        ? (typeof scoreState === 'object' && scoreState !== null && 'state' in scoreState ? scoreState : buildManualEditScoreState(scoreState))
+        : scoreState;
+
       const updateData = buildTransitionUpdateData(
         newState,
         initialServerId,
-        scoreState,
+        resolvedScoreState,
         match,
         options?.doublesSetup,
       );

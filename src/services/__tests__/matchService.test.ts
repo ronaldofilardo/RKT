@@ -39,6 +39,7 @@ jest.mock('@/lib/prisma', () => {
 });
 
 import { prisma } from '@/lib/prisma';
+import { BASE_MATCH_SELECT, FULL_MATCH_SELECT } from '@/services/match-repository-select.data';
 
 const mockPrisma = prisma as any;
 
@@ -60,34 +61,7 @@ describe('matchService', () => {
       expect(mockPrisma.match.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           take: 20,
-          select: {
-            id: true,
-            state: true,
-            format: true,
-            sportType: true,
-            courtType: true,
-            scheduledAt: true,
-            startedAt: true,
-            finishedAt: true,
-            nickname: true,
-            visibility: true,
-            isResuming: true,
-            openForAnnotation: true,
-            tournamentName: true,
-            category: true,
-            round: true,
-            bracketType: true,
-            temperature: true,
-            humidity: true,
-            version: true,
-            scoreState: true,
-            initialServerId: true,
-            clubName: true,
-            details: true,
-            player1: { select: { id: true, name: true } },
-            player2: { select: { id: true, name: true } },
-            createdByUserId: true,
-          },
+          select: BASE_MATCH_SELECT,
           orderBy: { createdAt: 'desc' },
         }),
       );
@@ -334,37 +308,7 @@ describe('matchService', () => {
 
       expect(mockPrisma.match.findFirst).toHaveBeenCalledWith({
         where: { id: 'm1', deletedAt: null },
-        select: {
-          id: true,
-          state: true,
-          format: true,
-          sportType: true,
-          courtType: true,
-          scheduledAt: true,
-          startedAt: true,
-          finishedAt: true,
-          nickname: true,
-          visibility: true,
-          isResuming: true,
-          openForAnnotation: true,
-          tournamentName: true,
-          category: true,
-          round: true,
-          bracketType: true,
-          temperature: true,
-          humidity: true,
-          version: true,
-          scoreState: true,
-          initialServerId: true,
-          winnerId: true,
-          finishReason: true,
-          finishNote: true,
-          clubName: true,
-          details: true,
-          player1: { select: { id: true, name: true } },
-          player2: { select: { id: true, name: true } },
-          createdByUserId: true,
-        },
+        select: FULL_MATCH_SELECT,
       });
       expect(result?.player1.name).toBe('Player 1');
     });

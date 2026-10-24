@@ -19,8 +19,11 @@ export function useScoringEditScore({
 
   const openEditScoreModal = useCallback(
     async (setResults: SetEditData[], server: "player1" | "player2", note?: string) => {
-      await originalHandleEditScore(setResults, server, undefined, note);
-      await fetchTimelinePoints?.();
+      const result = await originalHandleEditScore(setResults, server, undefined, note);
+      if (result.ok) {
+        await fetchTimelinePoints?.();
+      }
+      return result;
     },
     [originalHandleEditScore, fetchTimelinePoints],
   );

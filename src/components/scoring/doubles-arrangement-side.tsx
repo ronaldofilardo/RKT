@@ -64,9 +64,9 @@ export function DoublesArrangementSide({
       </h3>
 
       <div>
-        <label className="text-[11px] text-telemetry-text-muted block mb-1.5 font-medium">
+        <h4 className="text-[11px] text-telemetry-text-muted block mb-1.5 font-medium">
           Primeiro a sacar no set:
-        </label>
+        </h4>
         <div className="grid grid-cols-2 gap-2">
           {option(player.id, `🎾 ${player.name}`, server, setServer)}
           {option(partner.id, `🎾 ${partner.name}`, server, setServer)}
@@ -74,9 +74,9 @@ export function DoublesArrangementSide({
       </div>
 
       <div>
-        <label className="text-[11px] text-telemetry-text-muted block mb-1.5 font-medium">
+        <h4 className="text-[11px] text-telemetry-text-muted block mb-1.5 font-medium">
           Recebe na quadra de iguais (lado direito):
-        </label>
+        </h4>
         <div className="grid grid-cols-2 gap-2">
           {option(player.id, player.name, receiver, setReceiver)}
           {option(partner.id, partner.name, receiver, setReceiver)}

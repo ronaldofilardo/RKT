@@ -17,6 +17,7 @@ export function EditScoreModalContent({
   currentServer,
   completedSets,
   floorCurrentSets,
+  currentGamePoints,
   effectiveFloorTiebreak,
   confirmError,
   floorValidationError,
@@ -80,6 +81,7 @@ export function EditScoreModalContent({
         playerNames={effectivePlayerNames}
         currentServer={currentServer}
         floorCurrentSets={floorCurrentSets}
+        currentGamePoints={currentGamePoints}
         effectiveFloorTiebreak={effectiveFloorTiebreak}
         floorValidationError={floorValidationError}
         state={state}

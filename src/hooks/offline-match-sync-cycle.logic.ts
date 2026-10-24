@@ -34,6 +34,13 @@ async function syncOnePendingMatch(sync: PendingMatchSync): Promise<'success' | 
       window.dispatchEvent(new CustomEvent("offline-sync-complete"));
       return 'success';
     }
+
+    if (response.status === 422 || response.status === 400 || response.status === 404) {
+      const errorData = await response.json().catch(() => ({}));
+      logger.error(`[useOfflineMatchSync] Falha definitiva (${response.status}) ao sincronizar finish de ${sync.matchId}:`, errorData);
+      return 'success'; // descarta da fila para evitar loop infinito
+    }
+
     throw new Error(`Server responded with ${response.status}`);
   } catch (err) {
     logger.sync.failed(sync.matchId, err);

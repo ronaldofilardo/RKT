@@ -1,3 +1,4 @@
+import type { EditScoreResult } from "@/hooks/useSessionManager.edit-score";
 import type { TennisFormat } from "@/core/scoring/types";
 import type { CompletedSet } from "@/core/scoring/edit-score-state";
 import type { EditScoreValidation } from "@/core/scoring/edit-score-state.types";
@@ -34,7 +35,7 @@ export type ConfirmFlowParams = {
   isPotentialMTSet: boolean;
   currentSets: { player1: number; player2: number };
   matchWouldEnd: boolean;
-  onConfirm: (sets: SetEditData[], server: "player1" | "player2", note?: string) => void | Promise<void>;
+  onConfirm: (sets: SetEditData[], server: "player1" | "player2", note?: string) => void | Promise<void | EditScoreResult> | EditScoreResult;
   onMatchFinished?: (winner: "player1" | "player2") => void;
   setState: React.Dispatch<React.SetStateAction<EditScoreModalState>>;
   setConfirmError: (err: string | null) => void;

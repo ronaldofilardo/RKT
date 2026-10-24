@@ -62,8 +62,9 @@ export function useDashboardPageModel() {
     toast,
   });
 
-  useFinishMatch({
+  const { confirmFinishMatch } = useFinishMatch({
     matchToFinish,
+    setMatchToFinish,
     fetchDashboardData,
     toast,
   });
@@ -83,6 +84,7 @@ export function useDashboardPageModel() {
     setMatchToFinish,
     resumeSuspendedMatch,
     confirmDeleteMatch,
+    confirmFinishMatch,
     view: resolveDashboardView(pathname),
     filters,
   };

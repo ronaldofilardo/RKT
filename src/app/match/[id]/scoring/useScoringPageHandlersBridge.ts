@@ -1,5 +1,6 @@
 import { useScoringHandlers } from "@/hooks/useScoringHandlers";
 import type { ScoringPageState } from "./useScoringPageState";
+import { useTimelineRefetchOnSync } from "./use-timeline-refetch-on-sync";
 
 /**
  * Liga o state da página ao useScoringHandlers: destrutura os campos
@@ -40,6 +41,8 @@ export function useScoringPageHandlersBridge(state: ScoringPageState) {
     setEngineTick,
   } = state;
 
+  useTimelineRefetchOnSync(fetchTimelinePoints);
+
   return useScoringHandlers({
     matchId,
     match,
@@ -66,7 +69,12 @@ export function useScoringPageHandlersBridge(state: ScoringPageState) {
     open,
     close,
     closeAll,
-    onUndoComplete: () => setEngineTick(Date.now()),
+    onUndoComplete: () => {
+      // Revalida a timeline do servidor: sem isso o merge local+servidor
+      // continuaria exibindo o ponto desfeito no resumo do set.
+      fetchTimelinePoints?.();
+      setEngineTick(Date.now());
+    },
     onPointProcessed: () => setEngineTick(Date.now()),
     onAudioUploaded: () => {
       fetchPointLogAudioMeta();

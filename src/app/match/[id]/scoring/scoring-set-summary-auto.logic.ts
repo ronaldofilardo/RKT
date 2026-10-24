@@ -57,5 +57,6 @@ export function useSetSummaryAutoOpen(
     state.isLoading,
     state.activeModal,
     isOpen,
+    setSetSummaryModalState,
   ]);
 }

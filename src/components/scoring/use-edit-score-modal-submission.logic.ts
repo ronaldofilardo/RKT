@@ -3,6 +3,7 @@ import { validateConfirmForm, buildExistingSetsPayload } from "./use-edit-score-
 import { prepareFullSetSubmission } from "./use-edit-score-modal-submission-prepare.logic";
 import { applyFullSetSubmission } from "./use-edit-score-modal-submission-apply.logic";
 import type { ConfirmFlowParams } from "./use-edit-score-modal-submission.types";
+import { getEditScoreErrorMessage } from "./edit-score-error-messages";
 
 export async function executeConfirmFlow(params: ConfirmFlowParams) {
   params.setConfirmError(null);
@@ -21,7 +22,11 @@ export async function executeConfirmFlow(params: ConfirmFlowParams) {
   if (existingPayload.shouldSave) {
     params.setIsConfirming(true);
     try {
-      await params.onConfirm(existingPayload.existingSets, existingPayload.recalculatedServer, params.state.note);
+      const res = await params.onConfirm(existingPayload.existingSets, existingPayload.recalculatedServer, params.state.note);
+      if (res && typeof res === 'object' && 'ok' in res && !res.ok) {
+        params.setConfirmError(getEditScoreErrorMessage(res.reason));
+        return;
+      }
     } finally {
       params.setIsConfirming(false);
     }
@@ -84,6 +89,7 @@ export async function executeConfirmFlow(params: ConfirmFlowParams) {
       onConfirm: params.onConfirm,
       onMatchFinished: params.onMatchFinished,
       setState: params.setState,
+      setConfirmError: params.setConfirmError,
       inputTouchedRef: params.inputTouchedRef,
       state: params.state,
     });
