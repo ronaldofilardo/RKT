@@ -1,23 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { getOfflineDb, COMMENT_STORE_NAME } from './use-offline-sync.db';
-
-interface QueuedCommentAction {
-  id: string;
-  matchId: string;
-  type: 'COMMENT';
-  payload: {
-    content: string;
-    category?: string | null;
-    pointId?: string | null;
-    audioBlob?: Blob;
-    audioDurationMs?: number;
-  };
-  timestamp: number;
-  retries: number;
-  status: 'PENDING' | 'SYNCING' | 'FAILED';
-}
+import { enqueueComment as enqueueToQueue, flushCommentsQueue, type QueuedCommentAction } from './comment-offline-sync.queue.logic';
 
 export function useCommentOfflineSync() {
   const [isSyncing, setIsSyncing] = useState(false);
@@ -25,17 +9,7 @@ export function useCommentOfflineSync() {
 
   const enqueueComment = useCallback(async (
     action: Omit<QueuedCommentAction, 'id' | 'status' | 'retries'>
-  ) => {
-    const db = await getOfflineDb();
-    const queued: QueuedCommentAction = {
-      ...action,
-      id: crypto.randomUUID(),
-      status: 'PENDING',
-      retries: 0,
-    };
-    await db.add(COMMENT_STORE_NAME, queued);
-    return queued;
-  }, []);
+  ) => enqueueToQueue(action), []);
 
   const flushComments = useCallback(async (accessToken: string) => {
     if (isFlushingRef.current) return;
@@ -43,70 +17,7 @@ export function useCommentOfflineSync() {
     setIsSyncing(true);
 
     try {
-      const db = await getOfflineDb();
-      const pending = await db.getAllFromIndex(COMMENT_STORE_NAME, 'status', 'PENDING');
-      pending.sort((a, b) => a.timestamp - b.timestamp);
-
-      for (const action of pending) {
-        try {
-          await db.put(COMMENT_STORE_NAME, { ...action, status: 'SYNCING' });
-
-          // 1. Create comment
-          const res = await fetch(`/api/matches/${action.matchId}/comments`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              authorization: `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify({
-              content: action.payload.content,
-              category: action.payload.category,
-              pointId: action.payload.pointId,
-            }),
-          });
-
-          if (!res.ok) {
-            action.retries += 1;
-            await db.put(COMMENT_STORE_NAME, {
-              ...action,
-              status: action.retries >= 3 ? 'FAILED' : 'PENDING',
-            });
-            continue;
-          }
-
-          const comment = await res.json();
-
-          // 2. Upload audio if present
-          if (action.payload.audioBlob && action.payload.audioDurationMs && comment.id) {
-            const formData = new FormData();
-            formData.append('file', action.payload.audioBlob);
-            formData.append('durationMs', String(action.payload.audioDurationMs));
-            const audioRes = await fetch(`/api/matches/${action.matchId}/comments/${comment.id}/audio`, {
-              method: 'POST',
-              headers: { authorization: `Bearer ${accessToken}` },
-              body: formData,
-            });
-            if (!audioRes.ok) {
-              action.retries += 1;
-              await db.put(COMMENT_STORE_NAME, {
-                ...action,
-                status: action.retries >= 3 ? 'FAILED' : 'PENDING',
-              });
-              continue;
-            }
-          }
-
-          // 3. Remove from queue
-          await db.delete(COMMENT_STORE_NAME, action.id);
-          window.dispatchEvent(new CustomEvent('offline-sync-complete', { detail: { type: 'comment' } }));
-        } catch {
-          action.retries += 1;
-          await db.put(COMMENT_STORE_NAME, {
-            ...action,
-            status: action.retries >= 3 ? 'FAILED' : 'PENDING',
-          });
-        }
-      }
+      await flushCommentsQueue(accessToken);
     } finally {
       isFlushingRef.current = false;
       setIsSyncing(false);
