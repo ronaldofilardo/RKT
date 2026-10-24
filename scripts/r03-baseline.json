@@ -11,7 +11,6 @@
   "src/components/scoring/use-point-details-scroll.logic.ts": 119,
   "src/components/scoring/usePointDetailsScroll.ts": 111,
   "src/core/report/types.ts": 119,
-  "src/core/scoring/edit-score-state.types.ts": 141,
   "src/core/scoring/game-errors.ts": 107,
   "src/core/scoring/match-tiebreak.ts": 138,
   "src/core/scoring/shadow-replay.ts": 102,

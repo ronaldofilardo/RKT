@@ -1,0 +1,84 @@
+import type { TennisFormat } from '@/core/scoring/types';
+import type { SetEditData } from '@/core/scoring/edit-score-domain';
+import type { Player, CompletedSet, EditScoreValidation, EditScoreMatchState } from './edit-score-state.types.core';
+
+interface TiebreakInput {
+  tiebreakP1?: string;
+  tiebreakP2?: string;
+}
+
+interface GameScoreInput {
+  p1Input: string;
+  p2Input: string;
+}
+
+interface ValidationContext {
+  matchFormat: TennisFormat;
+  totalEditedSets: number;
+  setResults?: SetEditData[];
+}
+
+export interface EditScoreValidationInput extends GameScoreInput, TiebreakInput, ValidationContext {}
+
+interface CompletedSetsInput {
+  completedSets: CompletedSet[];
+}
+
+interface NewSetsInput {
+  newSets: SetEditData[];
+}
+
+interface ValidationResultInput {
+  validation: EditScoreValidation;
+}
+
+export interface EditScoreMatchStateInput
+  extends ValidationContext,
+    CompletedSetsInput,
+    NewSetsInput,
+    ValidationResultInput {
+  currentSets?: { player1: number; player2: number };
+}
+
+interface SetResultInput {
+  p1Val: number;
+  p2Val: number;
+  isSetTrulyCompleted: boolean;
+  hasTiebreak: boolean;
+  tiebreakP1Num: number;
+  tiebreakP2Num: number;
+  isMatchTiebreakSet: boolean;
+  isPotentialMTSet: boolean;
+  p1Points: string;
+  p2Points: string;
+  currentSets: { player1: number; player2: number };
+  matchFormat?: TennisFormat;
+}
+
+export interface CreateSetEditDataInput extends SetResultInput {}
+
+interface AutoAddSetContext {
+  validation: EditScoreValidation;
+  matchState: EditScoreMatchState;
+  currentSets: { player1: number; player2: number };
+}
+
+export interface ShouldAutoAddSetInput extends AutoAddSetContext {
+  p1Val: number;
+  p2Val: number;
+}
+
+interface NextServerContext {
+  currentServer: Player;
+  // Sacador do Game 1 de TODA a partida (valor fixo — `match.initialServerId`
+  // convertido para 'player1'/'player2'). Ver comentário em getNextServerAfterSet
+  // (editScoreHelpers.ts) para o porquê disso ser necessário.
+  initialServer?: Player;
+  p1Games: number;
+  p2Games: number;
+  matchFormat: TennisFormat;
+  tiebreakScore: { player1: number; player2: number } | null;
+  completedSets: CompletedSet[];
+}
+
+export interface CalculateNextServerInput extends NextServerContext {}
