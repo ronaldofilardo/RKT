@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withRLSHandler } from '@/lib/auth';
-import { ArrangementInputSchema, type DoublesSetup } from '@/schemas/contracts';
+import { ArrangementInputSchema } from '@/schemas/contracts';
 import { validateDoublesArrangement } from '@/core/scoring/doubles';
 import type { DoublesConfig, DoublesArrangement } from '@/core/scoring/types';
-import { emitMatchEvent } from '@/lib/match-events';
 import { logger } from '@/lib/logger';
-import { getPrismaErrorCode } from '@/lib/errors';
+import { updateArrangementTransaction } from './arrangement-transaction.logic';
 
 export async function POST(
   request: NextRequest,
@@ -72,84 +71,7 @@ export async function POST(
         );
       }
 
-      try {
-        const updatedMatch = await prisma.$transaction(async (tx) => {
-          // Atualiza scoreState
-          const rawScoreState = typeof match.scoreState === 'string'
-            ? JSON.parse(match.scoreState)
-            : JSON.parse(JSON.stringify(match.scoreState ?? {}));
-          const target = rawScoreState.state ?? rawScoreState;
-          target.doubles = newArrangement;
-
-          // Atualiza doublesSetup.changes
-          const rawSetup = (
-            typeof match.doublesSetup === 'string'
-              ? JSON.parse(match.doublesSetup)
-              : JSON.parse(JSON.stringify(match.doublesSetup ?? {}))
-          ) as Partial<DoublesSetup>;
-
-          const existingChanges: NonNullable<DoublesSetup['changes']> = Array.isArray(
-            rawSetup.changes,
-          )
-            ? rawSetup.changes
-            : [];
-          // Sobrescreve entrada existente do mesmo set (afterSet), se houver
-          const filteredChanges = existingChanges.filter(
-            (c) => c.afterSet !== parsed.data.afterSet,
-          );
-          filteredChanges.push({
-            afterSet: parsed.data.afterSet,
-            serveOrder: parsed.data.serveOrder,
-            receiveDeuce: parsed.data.receiveDeuce,
-            at: Date.now(),
-          });
-
-          const updatedSetup = {
-            ...rawSetup,
-            changes: filteredChanges,
-          };
-
-          return tx.match.update({
-            where: { id, version: parsed.data.version },
-            data: {
-              scoreState: rawScoreState,
-              doublesSetup: updatedSetup,
-              version: { increment: 1 },
-            },
-            include: { player1: true, player2: true, player1Partner: true, player2Partner: true },
-          });
-        });
-
-        emitMatchEvent(id, 'arrangement_updated', {
-          arrangement: newArrangement,
-          afterSet: parsed.data.afterSet,
-          version: updatedMatch.version,
-        });
-
-        emitMatchEvent(id, 'state_changed', {
-          scoreState: updatedMatch.scoreState,
-          version: updatedMatch.version,
-        });
-
-        return NextResponse.json(updatedMatch);
-      } catch (err) {
-        if (getPrismaErrorCode(err) === 'P2025') {
-          const current = await prisma.match.findUnique({
-            where: { id },
-            select: { version: true },
-          });
-          return NextResponse.json(
-            {
-              error: 'VERSION_CONFLICT',
-              message: 'Estado desatualizado. Outra alteração ocorreu simultaneamente.',
-              currentVersion: current?.version,
-              expectedVersion: parsed.data.version,
-            },
-            { status: 409 }
-          );
-        }
-        throw err;
-      }
+      return await updateArrangementTransaction(id, match, parsed.data, newArrangement);
     } catch (error) {
       logger.error('[POST /api/matches/[id]/arrangement]', error);
       return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });
