@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import type { ScoringPageState } from "./useScoringPageState";
 import type { ScoringPageHandlers } from "./useScoringPageEffects";
+import { useInitialScoringFetch, useViewModeFetch } from "./scoring-lifecycle-fetch.logic";
+import { useSyncStatusEffects, useElapsedTimer } from "./scoring-lifecycle-sync.logic";
 
 interface ScoringLifecycleEffectsParams {
   state: ScoringPageState;
@@ -33,15 +35,7 @@ export function useScoringLifecycleEffects({
   useEffect(() => {
   });
 
-  const initialFetchDoneRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (initialFetchDoneRef.current !== matchId) {
-      initialFetchDoneRef.current = matchId;
-      fetchMatch();
-      fetchTimelinePoints?.();
-    }
-  }, [matchId, fetchMatch, fetchTimelinePoints]);
+  useInitialScoringFetch({ matchId, viewMode, fetchTimelinePoints, fetchPointLogAudioMeta, fetchComments }, fetchMatch);
 
   // Uma partida JÁ finalizada não deve abrir o /scoring: redirecionamos para o
   // relatório na primeira vez em que o estado é conhecido (carga inicial),
@@ -64,60 +58,11 @@ export function useScoringLifecycleEffects({
     }
   }, [state.match, state.router]);
 
-  const prevViewModeRef = useRef(viewMode);
-  useEffect(() => {
-    if (viewMode === "timeline" && prevViewModeRef.current !== "timeline") {
-      fetchTimelinePoints?.();
-      fetchPointLogAudioMeta();
-      fetchComments();
-    }
-    prevViewModeRef.current = viewMode;
-  }, [viewMode, fetchTimelinePoints, fetchPointLogAudioMeta, fetchComments]);
+  useViewModeFetch({ matchId, viewMode, fetchTimelinePoints, fetchPointLogAudioMeta, fetchComments });
 
-  useEffect(() => {
-    if (isOnline) {
-      setSyncStatus("syncing");
-      syncPendingMatches();
-      const timer = setTimeout(() => {
-        setSyncStatus((current) =>
-          current === "syncing" ? "synced" : current,
-        );
-      }, 500);
-      return () => clearTimeout(timer);
-    } else {
-      setSyncStatus("offline");
-    }
-  }, [isOnline, syncPendingMatches, setSyncStatus]);
+  useSyncStatusEffects(isOnline, setSyncStatus, syncPendingMatches, toast);
 
-  useEffect(() => {
-    const completeSyncCycle = () => {
-      setSyncStatus("synced");
-      toast({
-        type: "success",
-        message: "Pontos offline sincronizados com sucesso",
-      });
-    };
-    window.addEventListener("offline-sync-complete", completeSyncCycle);
-    return () =>
-      window.removeEventListener("offline-sync-complete", completeSyncCycle);
-  }, [toast, setSyncStatus]);
-
-  useEffect(() => {
-    if (scoreState?.startedAt) {
-      const startedAtMs =
-        typeof scoreState.startedAt === "number"
-          ? scoreState.startedAt
-          : new Date(scoreState.startedAt).getTime();
-      const update = () => {
-        setElapsed(Math.max(0, Math.floor((Date.now() - startedAtMs) / 1000)));
-      };
-      update();
-      const interval = setInterval(update, 1000);
-      return () => clearInterval(interval);
-    } else {
-      setElapsed(0);
-    }
-  }, [scoreState?.startedAt, setElapsed]);
+  useElapsedTimer(scoreState?.startedAt, setElapsed);
 
   useEffect(() => {
     const isModalParam =
