@@ -3,10 +3,9 @@
 import { useEffect, useRef } from 'react';
 import type { PointDetailsForm } from './point-details-logic';
 import {
-  computeScrollTop,
   getNextStep,
-  type StepKey,
 } from './use-point-details-scroll.logic';
+import { scrollStepIntoView, type ScrollRefs } from './point-details-scroll-effect.logic';
 
 type Vencedor = 'sacador' | 'devolvedor';
 type DivRef = React.RefObject<HTMLDivElement>;
@@ -56,37 +55,14 @@ export function usePointDetailsScroll({
     const nextStep = getNextStep(previous, form, vencedor);
     if (!nextStep) return;
 
-    const refByStep: Partial<Record<StepKey, DivRef>> = {
-      tipo: tipoRef,
-      golpe: golpeRef,
-      subtipo1: subtipo1Ref,
-      efeito: efeitoRef,
-      direcao: direcaoRef,
-      golpeEsp: golpeEspRef,
-      duracao: duracaoRef,
-    };
+    const refs: ScrollRefs = { containerRef, tipoRef, golpeRef, subtipo1Ref, efeitoRef, direcaoRef, golpeEspRef, duracaoRef };
 
     if (frameRef.current != null) cancelAnimationFrame(frameRef.current);
 
     // rAF: espera o commit/layout da seção recém-renderizada antes de medir.
     frameRef.current = requestAnimationFrame(() => {
       frameRef.current = null;
-      const container = containerRef.current;
-      const target = refByStep[nextStep]?.current;
-      if (!container || !target) return;
-
-      const top = computeScrollTop(
-        container.getBoundingClientRect(),
-        container.scrollTop,
-        target.getBoundingClientRect(),
-      );
-      if (top == null) return;
-
-      if (typeof container.scrollTo === 'function') {
-        container.scrollTo({ top, behavior: 'smooth' });
-      } else {
-        container.scrollTop = top;
-      }
+      scrollStepIntoView(refs, nextStep);
     });
   }, [
     form,
