@@ -1,0 +1,35 @@
+import type { CreateMatchInput } from '@/schemas/contracts';
+import { ValidationError } from '@/lib/errors';
+import { logger } from '@/lib/logger';
+
+export function validateCreateMatchPlayers(data: CreateMatchInput): void {
+  if (data.matchType === 'DOUBLES') {
+    if (!data.player1PartnerId || !data.player2PartnerId) {
+      throw new ValidationError({
+        player2PartnerId: ['Partida de duplas exige 4 jogadores distintos'],
+      });
+    }
+    const ids = new Set([
+      data.player1Id,
+      data.player1PartnerId,
+      data.player2Id,
+      data.player2PartnerId,
+    ]);
+    if (ids.size !== 4) {
+      throw new ValidationError({
+        player2PartnerId: ['Todos os 4 jogadores da partida de duplas devem ser distintos'],
+      });
+    }
+    return;
+  }
+
+  if (data.player1Id === data.player2Id) {
+    throw new ValidationError({ player2Id: ['Jogador 2 deve ser diferente do Jogador 1'] });
+  }
+}
+
+export function warnMissingCreator(createdByUserId?: string): void {
+  if (!createdByUserId) {
+    logger.warn('[createMatch] createdByUserId ausente — partida será criada sem auditoria de autor (TD-045)');
+  }
+}
