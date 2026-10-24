@@ -12,7 +12,6 @@
   "src/core/scoring/shadow-replay.ts": 102,
   "src/hooks/use-offline-sync.logic.ts": 105,
   "src/hooks/useCommentOfflineSync.ts": 126,
-  "src/hooks/useScoreboardUIState.ts": 128,
   "src/hooks/useScoringHandlers.types.ts": 119,
   "src/hooks/useSessionManager.abandon.ts": 126,
   "src/lib/api.logic.ts": 105,
