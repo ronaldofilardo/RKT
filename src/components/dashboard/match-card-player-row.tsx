@@ -9,14 +9,12 @@ export function MatchCardPlayerRow({
   serverTestId,
   barBg,
   children,
-  setsWon,
 }: {
   name: string;
   isServer: boolean;
   serverTestId: string;
   barBg: string;
   children?: ReactNode;
-  setsWon?: number;
 }) {
   return (
     <div style={{ display: 'table-row' }}>
@@ -40,14 +38,6 @@ export function MatchCardPlayerRow({
         </span>
       </div>
       {children}
-      {setsWon !== undefined && (
-        <div
-          className="flex items-center justify-center px-3 py-1.5 font-space-grotesk tabular-nums text-lg font-bold text-white min-w-[2rem]"
-          style={{ backgroundColor: barBg, display: 'table-cell' }}
-        >
-          {setsWon}
-        </div>
-      )}
     </div>
   );
 }

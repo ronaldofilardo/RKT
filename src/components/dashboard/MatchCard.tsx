@@ -69,8 +69,6 @@ export function MatchCard({
         isServerP2={d.isServerP2}
         barBg={d.barBg}
         scoreBg={d.scoreBg}
-        setsWonP1={d.setsWonP1}
-        setsWonP2={d.setsWonP2}
         hasScore={d.hasScore}
         isFinished={d.isFinished}
         format={match.format}

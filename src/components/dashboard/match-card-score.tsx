@@ -16,8 +16,6 @@ interface MatchCardScoreProps {
   isServerP2: boolean;
   barBg: string;
   scoreBg: string;
-  setsWonP1: number;
-  setsWonP2: number;
   hasScore: boolean;
   format: string;
 }
@@ -29,8 +27,6 @@ export function MatchCardScore({
   isServerP2,
   barBg,
   scoreBg,
-  setsWonP1,
-  setsWonP2,
   hasScore,
   format,
   displayedSets,
@@ -48,8 +44,8 @@ export function MatchCardScore({
     return (
       <MatchCardScoreTable
         barBg={barBg}
-        p1={{ ...rows.p1, setsWon: setsWonP1 }}
-        p2={{ ...rows.p2, setsWon: setsWonP2 }}
+        p1={rows.p1}
+        p2={rows.p2}
         renderCells={(playerKey) => (
           <MatchCardSetsCells
             playerKey={playerKey}
@@ -70,8 +66,8 @@ export function MatchCardScore({
     return (
       <MatchCardScoreTable
         barBg={barBg}
-        p1={{ ...rows.p1, setsWon: setsWonP1 }}
-        p2={{ ...rows.p2, setsWon: setsWonP2 }}
+        p1={rows.p1}
+        p2={rows.p2}
         renderCells={(playerKey) => (
           <MatchCardScoreCell bg={scoreBg} borderLeft={BORDER_LEFT}>
             {getSinglePointDisplay(currentGame ?? undefined, playerKey)}

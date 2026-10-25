@@ -19,7 +19,6 @@ export interface MatchCardScoreDerived {
 interface PlayerRowSpec {
   name: string;
   isServer: boolean;
-  setsWon?: number;
 }
 
 /** Tabela de 2 linhas (P1 / separador / P2); `renderCells` devolve as células de placar. */
@@ -40,7 +39,6 @@ export function MatchCardScoreTable({
       isServer={spec.isServer}
       serverTestId={testId}
       barBg={barBg}
-      setsWon={spec.setsWon}
     >
       {renderCells(playerKey)}
     </MatchCardPlayerRow>
