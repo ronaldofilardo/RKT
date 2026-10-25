@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { computeLiveCounters, detectTacticalTrends } from '@/core/scoring/live-tactical-insights';
+import type { TennisFormat } from '@/core/scoring/types';
 import { useScoringPageState } from './useScoringPageState';
 import { useScoringPageEffects } from './useScoringPageEffects';
 import { useScoringPageDerived } from './useScoringPageDerived';
@@ -26,8 +27,8 @@ export function useScoringPageChrome(
   const [isTimelineLoading, setIsTimelineLoading] = useState(false);
 
   const liveCounters = useMemo(
-    () => computeLiveCounters(derived.timelinePoints),
-    [derived.timelinePoints]
+    () => computeLiveCounters(derived.timelinePoints, state.match?.format as TennisFormat | undefined),
+    [derived.timelinePoints, state.match?.format]
   );
 
   const currentSetNumber = derived.effectiveScoreState?.sets?.length || 1;

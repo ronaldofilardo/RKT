@@ -1,5 +1,15 @@
 import { NextRequest } from 'next/server';
 
+const mockFindFirst = jest.fn();
+
+jest.mock('@/lib/prisma', () => ({
+  prisma: {
+    match: {
+      findFirst: (...args: any[]) => mockFindFirst(...args),
+    },
+  },
+}));
+
 jest.mock('@/services/matchService', () => ({
   finishMatch: jest.fn(),
 }));
@@ -22,6 +32,15 @@ function finishReq(body: unknown, headers: Record<string, string> = {}) {
 describe('POST /api/matches/[id]/finish', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFindFirst.mockResolvedValue({
+      id: 'match-1',
+      player1Id: 'p1',
+      player2Id: 'p2',
+      player1PartnerId: null,
+      player2PartnerId: null,
+      createdByUserId: 'user-1',
+      openForAnnotation: true,
+    });
   });
 
   it('deve retornar 200 ao finalizar partida com sucesso', async () => {

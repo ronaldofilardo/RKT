@@ -20,7 +20,7 @@ export function computeSectionRenderer(
   vencedor: Vencedor
 ): SectionRendererComputed {
   const needsSubtipo1 = !!(form.situacao && form.tipo && shouldShowSubtipo1(vencedor, form.situacao, form.tipo));
-  const needsEfeito = form.golpe != null && shouldShowEfeito(vencedor, form.situacao!, form.tipo!, !!form.subtipo1, !!form.subtipo2);
+  const needsEfeito = form.golpe != null && shouldShowEfeito(vencedor, form.situacao!, form.tipo!, !!form.subtipo1, !!form.subtipo2, form.golpe);
   const isDirecaoBlocked = form.efeito == null && needsEfeito;
 
   const direcaoOptions = form.efeito || form.situacao

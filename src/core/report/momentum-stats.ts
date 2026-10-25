@@ -90,6 +90,8 @@ export function computeMomentum(points: TimelinePoint[]): MomentumStats {
   return {
     longestWinningStreak: longestWinning,
     longestLosingStreak: longestLosing,
+    longestStreakP1: longestWinning,
+    longestStreakP2: longestLosing,
     currentStreak: current,
     scoringRuns,
   };

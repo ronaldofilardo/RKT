@@ -128,8 +128,18 @@ describe('point-details-logic', () => {
       expect(getGolpeOptions('sacador', 'passada', 'winner')).toEqual(['fh', 'bh']);
     });
 
-    it('sacador em passada erro retorna voleios e smash', () => {
-      expect(getGolpeOptions('sacador', 'passada', 'erro_forcado')).toEqual(['vfh', 'vbh', 'smash']);
+    it('passada erro_forcado retorna voleios, smash e aproachs', () => {
+      expect(getGolpeOptions('sacador', 'passada', 'erro_forcado')).toEqual(['vfh', 'vbh', 'smash', 'approach_fh', 'approach_bh']);
+      expect(getGolpeOptions('devolvedor', 'passada', 'erro_forcado')).toEqual(['vfh', 'vbh', 'smash', 'approach_fh', 'approach_bh']);
+    });
+
+    it('passada erro_nao_forcado retorna voleios e smash sem aproachs', () => {
+      expect(getGolpeOptions('sacador', 'passada', 'erro_nao_forcado')).toEqual(['vfh', 'vbh', 'smash']);
+    });
+
+    it('rede winner retorna voleios, smash e aproachs', () => {
+      expect(getGolpeOptions('sacador', 'rede', 'winner')).toEqual(['vfh', 'vbh', 'smash', 'approach_fh', 'approach_bh']);
+      expect(getGolpeOptions('devolvedor', 'rede', 'winner')).toEqual(['vfh', 'vbh', 'smash', 'approach_fh', 'approach_bh']);
     });
 
     it('devolvedor em fundo/devolucao retorna FH/BH', () => {
@@ -152,10 +162,16 @@ describe('point-details-logic', () => {
   });
 
   describe('shouldShowEfeito', () => {
-    it('esconde efeito em passada erro e rede winner', () => {
+    it('esconde efeito em passada erro e rede winner sem aproach', () => {
       expect(shouldShowEfeito('sacador', 'passada', 'erro_forcado', false, false)).toBe(false);
       expect(shouldShowEfeito('devolvedor', 'rede', 'winner', false, false)).toBe(false);
+      expect(shouldShowEfeito('devolvedor', 'rede', 'winner', false, false, 'vfh')).toBe(false);
       expect(shouldShowEfeito('sacador', 'fundo', 'winner', false, false)).toBe(true);
+    });
+
+    it('exibe efeito em rede winner quando o golpe selecionado for aproach', () => {
+      expect(shouldShowEfeito('sacador', 'rede', 'winner', false, false, 'approach_fh')).toBe(true);
+      expect(shouldShowEfeito('devolvedor', 'rede', 'winner', false, false, 'approach_bh')).toBe(true);
     });
   });
 
@@ -194,15 +210,14 @@ describe('point-details-logic', () => {
   });
 
   describe('DURACAO_OPTIONS', () => {
-    it('deve ter 3 opcoes de duracao', () => {
-      expect(DURACAO_OPTIONS).toHaveLength(3);
-      expect(DURACAO_OPTIONS.map(o => o.value)).toEqual(['opcao_1', 'opcao_2', 'opcao_3']);
+    it('deve ter 2 opcoes de duracao (5-8 bolas e +9 bolas)', () => {
+      expect(DURACAO_OPTIONS).toHaveLength(2);
+      expect(DURACAO_OPTIONS.map(o => o.value)).toEqual(['opcao_2', 'opcao_3']);
     });
 
     it('deve ter labels corretos', () => {
-      expect(DURACAO_OPTIONS[0].label).toBe('1-4 bolas');
-      expect(DURACAO_OPTIONS[1].label).toBe('5-8 bolas');
-      expect(DURACAO_OPTIONS[2].label).toBe('+9 bolas');
+      expect(DURACAO_OPTIONS[0].label).toBe('5-8 bolas');
+      expect(DURACAO_OPTIONS[1].label).toBe('+9 bolas');
     });
   });
 
@@ -313,6 +328,8 @@ describe('point-details-logic', () => {
       expect(GOLPE_LABELS.vfh).toBe('Voleio FH');
       expect(GOLPE_LABELS.vbh).toBe('Voleio BH');
       expect(GOLPE_LABELS.smash).toBe('Smash');
+      expect(GOLPE_LABELS.approach_fh).toBe('Aproach FH');
+      expect(GOLPE_LABELS.approach_bh).toBe('Aproach BH');
     });
 
     it('SUBTIPO1_OPTIONS deve ter 2 opcoes', () => {

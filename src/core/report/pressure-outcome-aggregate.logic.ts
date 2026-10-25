@@ -25,9 +25,15 @@ function applyLegacyFallback(
   player: 'PLAYER_1' | 'PLAYER_2',
   current: OutcomeStats,
 ): OutcomeStats {
-  const legacyWinners = points.filter(p => p.winner === player && p.rallyDetails?.tipo === 'winner').length;
-  const legacyForced = points.filter(p => p.winner !== player && p.rallyDetails?.tipo === 'erro_forcado').length;
-  const legacyUnforced = points.filter(p => p.winner !== player && p.rallyDetails?.tipo === 'erro_nao_forcado').length;
+  const isExcluded = (p: TimelinePoint) =>
+    p.type === 'ACE' ||
+    p.type === 'SERVICE_ACE' ||
+    p.type === 'DOUBLE_FAULT' ||
+    p.rallyDetails?.tipo === 'dupla_falta';
+
+  const legacyWinners = points.filter(p => !isExcluded(p) && p.winner === player && p.rallyDetails?.tipo === 'winner').length;
+  const legacyForced = points.filter(p => !isExcluded(p) && p.winner !== player && p.rallyDetails?.tipo === 'erro_forcado').length;
+  const legacyUnforced = points.filter(p => !isExcluded(p) && p.winner !== player && p.rallyDetails?.tipo === 'erro_nao_forcado').length;
 
   return {
     ...current,

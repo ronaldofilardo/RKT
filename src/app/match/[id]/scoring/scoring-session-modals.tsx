@@ -60,11 +60,11 @@ export function ScoringSessionModals({
         isOpen={setSummaryModalState.isOpen}
         onClose={onCloseSetSummary}
         timelinePoints={derived.timelinePoints}
-        player1Name={match.player1.name}
-        player2Name={match.player2.name}
+        player1Name={match.player1.name} player2Name={match.player2.name}
         initialSetNumber={setSummaryModalState.setNumber}
         completedSetsCount={derived.editScoreCompletedSets?.length ?? 0}
         completedSetsData={derived.editScoreCompletedSets}
+        format={match.format as any}
         isMatchFinished={derived.isFinished}
         onViewReport={onNavigateReport}
         onOpenDoublesArrangement={

@@ -76,21 +76,21 @@ describe('validateSetResult - Bug 6x5 fix', () => {
     const result = validateSetResult({ p1Games: 8, p2Games: 6 }, 'BEST_OF_3');
     
     expect(result.isValid).toBe(false);
-    expect(result.error).toContain('Maximum');
+    expect(result.error).toMatch(/Máximo|Maximum/);
   });
 
   it('deve rejeitar placar 6x8 como inválido (máximo é 7x6)', () => {
     const result = validateSetResult({ p1Games: 6, p2Games: 8 }, 'BEST_OF_3');
     
     expect(result.isValid).toBe(false);
-    expect(result.error).toContain('Maximum');
+    expect(result.error).toMatch(/Máximo|Maximum/);
   });
 
   it('deve rejeitar placar 9x6 como inválido (máximo é 7x6)', () => {
     const result = validateSetResult({ p1Games: 9, p2Games: 6 }, 'BEST_OF_3');
     
     expect(result.isValid).toBe(false);
-    expect(result.error).toContain('Maximum');
+    expect(result.error).toMatch(/Máximo|Maximum/);
   });
 });
 

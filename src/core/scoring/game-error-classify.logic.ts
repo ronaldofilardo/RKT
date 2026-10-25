@@ -18,6 +18,28 @@ export interface GameErrorEntry {
   };
 }
 
+export function isAcePoint(p: TimelinePoint): boolean {
+  return p.type === 'ACE' || p.type === 'SERVICE_ACE';
+}
+
+export function isDoubleFaultPoint(p: TimelinePoint): boolean {
+  return p.type === 'DOUBLE_FAULT' || p.rallyDetails?.tipo === 'dupla_falta';
+}
+
+export function isRallyWinnerPoint(p: TimelinePoint): boolean {
+  if (isAcePoint(p)) return false;
+  return p.rallyDetails?.tipo === 'winner' || p.type === 'WINNER';
+}
+
+export function isForcedErrorPoint(p: TimelinePoint): boolean {
+  return p.rallyDetails?.tipo === 'erro_forcado' || p.type === 'FORCED_ERROR';
+}
+
+export function isUnforcedErrorPoint(p: TimelinePoint): boolean {
+  if (isDoubleFaultPoint(p)) return false;
+  return p.rallyDetails?.tipo === 'erro_nao_forcado' || p.type === 'UNFORCED_ERROR';
+}
+
 /**
  * Classifica o erro cometido num ponto. `offenderServer` é o lado do jogador
  * que PERDEU o ponto (ou seja, cometeu o erro). Dupla falta conta como erro
@@ -27,15 +49,13 @@ export function classifyPointError(
   p: TimelinePoint,
   offenderServer: 'player1' | 'player2',
 ): 'unforced' | 'forced' | null {
-  const tipo = p.rallyDetails?.tipo;
-  if (
-    tipo === 'erro_nao_forcado' ||
-    p.type === 'UNFORCED_ERROR' ||
-    (p.type === 'DOUBLE_FAULT' && p.server === offenderServer)
-  ) {
+  if (isUnforcedErrorPoint(p)) {
     return 'unforced';
   }
-  if (tipo === 'erro_forcado' || p.type === 'FORCED_ERROR') {
+  if (isDoubleFaultPoint(p) && p.server === offenderServer) {
+    return 'unforced';
+  }
+  if (isForcedErrorPoint(p)) {
     return 'forced';
   }
   return null;

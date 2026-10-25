@@ -27,7 +27,7 @@ export function useDashboardServerStart(router: ReturnType<typeof useRouter>) {
       await matchesClient.startMatch(selectedMatchForServer.id, {
         state: 'IN_PROGRESS',
         initialServerId: serverId,
-        doublesSetup: effectiveDoublesSetup,
+        ...(effectiveDoublesSetup ? { doublesSetup: effectiveDoublesSetup } : {}),
       });
       router.push(`/match/${selectedMatchForServer.id}/scoring` as AppRouteInput);
     } catch (err) {

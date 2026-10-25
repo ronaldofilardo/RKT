@@ -8,22 +8,60 @@ export { getPointShotDetails } from './pressure-shot-details.logic';
 export type { PointShotDetails } from './pressure-shot-details.logic';
 
 function computeNetApproaches(points: TimelinePoint[], player: 'PLAYER_1' | 'PLAYER_2') {
-  const netApproaches = points.filter(p => p.rallyDetails?.situacao === 'rede').length;
+  // Item 1.5: Subidas = Rede ganhas + Passada perdidas pelo jogador
   const netApproachesWon = points.filter(p => p.rallyDetails?.situacao === 'rede' && p.winner === player).length;
+  const netApproachesLost = points.filter(p => p.rallyDetails?.situacao === 'passada' && p.winner !== player).length;
+  const netApproaches = netApproachesWon + netApproachesLost;
   const netApproachPct = calcPercentage(netApproachesWon, netApproaches);
 
   return { netApproaches, netApproachesWon, netApproachPct };
 }
 
-function computeRallyMetrics(points: TimelinePoint[]) {
-  const rallyLengths = points.map(p => p.rallyLength).filter(l => l > 0);
-  const rallyAvgLength = rallyLengths.length > 0
-    ? rallyLengths.reduce((a, b) => a + b, 0) / rallyLengths.length
-    : 0;
+export function resolvePointRallyCategory(p: TimelinePoint): 'short' | 'medium' | 'long' | null {
+  // Item 1.1: Converter duracao em faixa ao ler
+  const duracao = p.rallyDetails?.duracao;
+  if (duracao === 'opcao_1') return 'short';
+  if (duracao === 'opcao_2') return 'medium';
+  if (duracao === 'opcao_3') return 'long';
 
-  const short = rallyLengths.filter(l => l <= 4).length;
-  const medium = rallyLengths.filter(l => l >= 5 && l <= 8).length;
-  const longRallies = rallyLengths.filter(l => l >= 9).length;
+  const len = p.rallyLength;
+  if (len > 0) {
+    if (len <= 4) return 'short';
+    if (len <= 8) return 'medium';
+    return 'long';
+  }
+  return null;
+}
+
+export function resolvePointEffectiveRallyLength(p: TimelinePoint): number | null {
+  const duracao = p.rallyDetails?.duracao;
+  if (duracao === 'opcao_1' && p.rallyLength <= 2) return 3;
+  if (duracao === 'opcao_2' && p.rallyLength <= 2) return 6;
+  if (duracao === 'opcao_3' && p.rallyLength <= 2) return 10;
+  return p.rallyLength > 0 ? p.rallyLength : null;
+}
+
+export function computeRallyMetrics(points: TimelinePoint[]) {
+  let short = 0;
+  let medium = 0;
+  let longRallies = 0;
+  let totalBalls = 0;
+  let pointsCount = 0;
+
+  for (const p of points) {
+    const cat = resolvePointRallyCategory(p);
+    if (cat === 'short') short++;
+    else if (cat === 'medium') medium++;
+    else if (cat === 'long') longRallies++;
+
+    const len = resolvePointEffectiveRallyLength(p);
+    if (len !== null) {
+      totalBalls += len;
+      pointsCount++;
+    }
+  }
+
+  const rallyAvgLength = pointsCount > 0 ? totalBalls / pointsCount : 0;
 
   return {
     rallyLengthDistribution: { short, medium, long: longRallies },

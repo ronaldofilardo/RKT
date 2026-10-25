@@ -1,12 +1,6 @@
 import type {
-  RallySituacao,
-  RallyTipo,
-  RallyGolpe,
-  RallySubtipo1,
-  RallySubtipo2,
-  RallyEfeito,
-  RallyDirecao,
-  RallyGolpeEsp,
+  RallySituacao, RallyTipo, RallyGolpe, RallySubtipo1,
+  RallySubtipo2, RallyEfeito, RallyDirecao, RallyGolpeEsp,
 } from '@/core/scoring/types';
 import type { Vencedor } from './point-details.types';
 
@@ -16,17 +10,17 @@ export function getTipoOptions(vencedor: Vencedor, situacao: RallySituacao): Ral
   return ['erro_nao_forcado', 'erro_forcado', 'winner'];
 }
 
-export function getGolpeOptions(vencedor: Vencedor, situacao: RallySituacao, tipo: RallyTipo): RallyGolpe[] {
-  if (vencedor === 'sacador' && (situacao === 'fundo' || situacao === 'devolucao')) return ['fh', 'bh'];
-  if (vencedor === 'sacador' && situacao === 'passada' && tipo !== 'winner') return ['vfh', 'vbh', 'smash'];
-  if (vencedor === 'sacador' && situacao === 'passada' && tipo === 'winner') return ['fh', 'bh'];
-  if (vencedor === 'sacador' && situacao === 'rede' && tipo !== 'winner') return ['fh', 'bh'];
-  if (vencedor === 'sacador' && situacao === 'rede' && tipo === 'winner') return ['vfh', 'vbh', 'smash'];
-  if (vencedor === 'devolvedor' && (situacao === 'fundo' || situacao === 'devolucao')) return ['fh', 'bh'];
-  if (vencedor === 'devolvedor' && situacao === 'passada' && tipo === 'winner') return ['fh', 'bh'];
-  if (vencedor === 'devolvedor' && situacao === 'passada' && tipo !== 'winner') return ['vfh', 'vbh', 'smash'];
-  if (vencedor === 'devolvedor' && situacao === 'rede' && tipo !== 'winner') return ['fh', 'bh'];
-  if (vencedor === 'devolvedor' && situacao === 'rede' && tipo === 'winner') return ['vfh', 'vbh', 'smash'];
+export function getGolpeOptions(_vencedor: Vencedor, situacao: RallySituacao, tipo: RallyTipo): RallyGolpe[] {
+  if (situacao === 'fundo' || situacao === 'devolucao') return ['fh', 'bh'];
+  if (situacao === 'passada') {
+    if (tipo === 'winner') return ['fh', 'bh'];
+    if (tipo === 'erro_forcado') return ['vfh', 'vbh', 'smash', 'approach_fh', 'approach_bh'];
+    return ['vfh', 'vbh', 'smash'];
+  }
+  if (situacao === 'rede') {
+    if (tipo === 'winner') return ['vfh', 'vbh', 'smash', 'approach_fh', 'approach_bh'];
+    return ['fh', 'bh'];
+  }
   return ['fh', 'bh'];
 }
 
@@ -52,9 +46,12 @@ export function shouldShowEfeito(
   tipo: RallyTipo,
   _subtipo1Filled: boolean,
   _subtipo2Filled: boolean,
+  golpe?: RallyGolpe | null,
 ): boolean {
   if (situacao === 'passada' && tipo !== 'winner') return false;
-  if (situacao === 'rede' && tipo === 'winner') return false;
+  if (situacao === 'rede' && tipo === 'winner') {
+    return golpe === 'approach_fh' || golpe === 'approach_bh';
+  }
   return true;
 }
 

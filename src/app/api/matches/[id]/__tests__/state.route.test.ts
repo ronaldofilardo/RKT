@@ -121,6 +121,34 @@ describe('PATCH /api/matches/[id]/state', () => {
     );
   });
 
+  it('deve aceitar payload de início com doublesSetup null (partida de simples ou agendada)', async () => {
+    mockPrisma.match.findFirst.mockResolvedValue({
+      id: 'match-1',
+      state: 'SCHEDULED',
+      format: 'BEST_OF_3',
+      player1Id: 'p1',
+      player2Id: 'p2',
+    } as any);
+
+    mockPrisma.match.update.mockResolvedValue({
+      id: 'match-1',
+      state: 'IN_PROGRESS',
+      initialServerId: 'p1',
+      startedAt: new Date(),
+    } as any);
+
+    const req = makeStateReq(
+      { state: 'IN_PROGRESS', initialServerId: 'p1', doublesSetup: null },
+      ANNOTATOR_HEADERS
+    );
+
+    const mod = await import('@/app/api/matches/[id]/state/route');
+    const PATCH = mod.PATCH;
+
+    const res = await PATCH(req, { params: Promise.resolve({ id: 'match-1' }) });
+    expect(res.status).toBe(200);
+  });
+
   it('deve finalizar partida quando motor indica finished', async () => {
     const scoreState = {
       isFinished: true,

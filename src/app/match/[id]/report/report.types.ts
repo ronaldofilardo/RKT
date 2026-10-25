@@ -14,6 +14,7 @@ export interface ReportData {
   doublesSetup?: unknown;
   sportType?: string;
   courtType?: string | null;
+  clubName?: string | null;
   tournamentName?: string | null;
   category?: string | null;
   round?: string | null;

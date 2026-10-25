@@ -50,7 +50,7 @@ export async function GET(
 
       const summary = buildReportSummary(timelinePoints);
       const integrity = buildReportIntegrity(pointLogs, timelinePoints);
-      const advancedStats = computeAdvancedStats(timelinePoints);
+      const advancedStats = computeAdvancedStats(timelinePoints, match.format as any);
 
       const comments = await prisma.matchComment.findMany({
         where: { matchId: id, deletedAt: null },

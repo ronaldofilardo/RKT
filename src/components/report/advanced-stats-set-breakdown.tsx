@@ -28,9 +28,19 @@ export function SetBreakdownSection({ stats, player1Name, player2Name }: Advance
                 </td>
                 <td className="text-center py-2 px-2 text-telemetry-blue font-mono font-bold text-sm">
                   {set.p1Games}x{set.p2Games}
+                  {set.isTiebreak && set.tiebreakP1 != null && set.tiebreakP2 != null && (
+                    <span className="text-[10px] text-telemetry-text-muted ml-1 font-normal">
+                      ({set.tiebreakP1}-{set.tiebreakP2})
+                    </span>
+                  )}
                 </td>
                 <td className="text-center py-2 px-2 text-telemetry-error font-mono font-bold text-sm">
-                  {set.p1Games}x{set.p2Games}
+                  {set.p2Games}x{set.p1Games}
+                  {set.isTiebreak && set.tiebreakP1 != null && set.tiebreakP2 != null && (
+                    <span className="text-[10px] text-telemetry-text-muted ml-1 font-normal">
+                      ({set.tiebreakP2}-{set.tiebreakP1})
+                    </span>
+                  )}
                 </td>
                 <td className="text-center py-2 px-2">
                   <span className="text-telemetry-blue font-bold">{set.p1Points}</span>

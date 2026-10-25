@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import type { ScoringEngine } from "@/core/scoring/engine";
-import type { ScoringState, TimelinePoint } from "@/core/scoring/types";
+import type { ScoringState, TimelinePoint, TennisFormat } from "@/core/scoring/types";
 import type { MatchData } from "@/hooks/useScoringHandlers";
 import {
   enrichPointsFromHistory,
@@ -63,11 +63,7 @@ export function useScoringTimelineSync({
 
     const localHistory = engineRef.current ? engineRef.current.getPointHistory() : [];
     const localEnriched = enrichTimelineWithAudio(
-      enrichPointsFromHistory(
-        localHistory,
-        match.player1.id,
-        match.player2.id,
-      ),
+      enrichPointsFromHistory(localHistory, match.player1.id, match.player2.id, match.format as TennisFormat),
       pointLogAudioMeta,
     );
 

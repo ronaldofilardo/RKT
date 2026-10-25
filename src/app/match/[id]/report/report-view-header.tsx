@@ -15,7 +15,7 @@ export function ReportHeader({ report, onContinue, onDashboard, onExport }: Repo
   const p2Name = isDoubles && report.player2Partner ? `${report.player2.name} / ${report.player2Partner.name}` : report.player2.name;
 
   const courtTypeMap: Record<string, string> = {
-    GRASS: 'Saibro',
+    GRASS: 'Grama',
     CLAY: 'Saibro',
     HARD: 'Piso duro',
     CARPET: 'Carpete',

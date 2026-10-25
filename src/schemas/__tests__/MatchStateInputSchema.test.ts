@@ -181,5 +181,14 @@ describe("MatchStateInputSchema — scoreState union (envelope vs plano)", () =>
       });
       expect(result.success).toBe(true);
     });
+
+    it("deve aceitar doublesSetup como null (partida de simples ou agendada)", () => {
+      const result = MatchStateInputSchema.safeParse({
+        state: "IN_PROGRESS",
+        initialServerId: "player-1",
+        doublesSetup: null,
+      });
+      expect(result.success).toBe(true);
+    });
   });
 });

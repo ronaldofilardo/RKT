@@ -84,7 +84,7 @@ export function PointDetailsCascadeSections({ form, dispatch, refs, computed }: 
           <Pills
             options={DURACAO_OPTIONS.map(o => o.value)}
             selected={form.duracao}
-            onChange={v => dispatch({ type: 'SET_DURACAO', value: v })}
+            onChange={v => dispatch({ type: 'SET_DURACAO', value: form.duracao === v ? null : v })}
             labelMap={toLabelMap(DURACAO_OPTIONS)}
           />
         </Section>

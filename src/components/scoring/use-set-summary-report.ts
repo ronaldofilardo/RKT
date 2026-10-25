@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { TimelinePoint } from '@/core/scoring/types';
+import type { TimelinePoint, TennisFormat } from '@/core/scoring/types';
 import { computeSetSummary, type SetSummaryReport } from '@/core/scoring/set-summary-stats';
 
 export interface CompletedSetData {
@@ -18,6 +18,7 @@ interface UseSetSummaryReportArgs {
   completedSetsCount: number;
   timelinePoints: TimelinePoint[];
   completedSetsData?: CompletedSetData[];
+  format?: TennisFormat;
 }
 
 /**
@@ -29,6 +30,7 @@ export function useSetSummaryReport({
   completedSetsCount,
   timelinePoints,
   completedSetsData,
+  format,
 }: UseSetSummaryReportArgs) {
   const availableSets = useMemo(() => {
     const count = Math.max(1, completedSetsCount);
@@ -54,8 +56,8 @@ export function useSetSummaryReport({
         }
       : undefined;
 
-    return computeSetSummary(timelinePoints, selectedSet, fallback);
-  }, [timelinePoints, selectedSet, completedSetsData]);
+    return computeSetSummary(timelinePoints, selectedSet, fallback, format);
+  }, [timelinePoints, selectedSet, completedSetsData, format]);
 
   return { availableSets, selectedSet, setSelectedSet, summary };
 }

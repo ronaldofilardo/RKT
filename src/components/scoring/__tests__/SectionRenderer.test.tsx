@@ -249,8 +249,17 @@ describe('SectionRenderer', () => {
         { situacao: 'fundo', tipo: 'winner', golpe: 'fh' },
         'sacador',
       );
-      fireEvent.click(screen.getByText('1-4 bolas'));
-      expect(dispatch).toHaveBeenCalledWith({ type: 'SET_DURACAO', value: 'opcao_1' });
+      fireEvent.click(screen.getByText('5-8 bolas'));
+      expect(dispatch).toHaveBeenCalledWith({ type: 'SET_DURACAO', value: 'opcao_2' });
+    });
+
+    it('dispatch SET_DURACAO com null ao clicar em duração já selecionada (toggle)', () => {
+      const { dispatch } = renderSectionRenderer(
+        { situacao: 'fundo', tipo: 'winner', golpe: 'fh', duracao: 'opcao_2' },
+        'sacador',
+      );
+      fireEvent.click(screen.getByText('5-8 bolas'));
+      expect(dispatch).toHaveBeenCalledWith({ type: 'SET_DURACAO', value: null });
     });
 
     it('não renderiza quando subtipo1 é devolucao_saque (rede + erro — ponto terminou na devolução)', () => {

@@ -48,7 +48,7 @@ export function isStepVisible(step: StepKey, form: PointDetailsForm, vencedor: V
         situacao != null &&
         tipo != null &&
         golpe != null &&
-        shouldShowEfeito(vencedor, situacao, tipo, Boolean(form.subtipo1), Boolean(form.subtipo2))
+        shouldShowEfeito(vencedor, situacao, tipo, Boolean(form.subtipo1), Boolean(form.subtipo2), golpe)
       );
     case 'direcao':
       return golpe != null;

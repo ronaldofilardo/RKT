@@ -17,6 +17,16 @@ export interface PointShotDetails {
  * - Vencedor > passada: winner pertence ao vencedor; EF/ENF pertencem ao adversário.
  */
 export function getPointShotDetails(p: TimelinePoint): PointShotDetails | null {
+  // Item 1.2: Excluir type ACE e DOUBLE_FAULT (e tipo dupla_falta) da classificação de lances
+  if (
+    p.type === 'ACE' ||
+    p.type === 'SERVICE_ACE' ||
+    p.type === 'DOUBLE_FAULT' ||
+    p.rallyDetails?.tipo === 'dupla_falta'
+  ) {
+    return null;
+  }
+
   const tipo = p.rallyDetails?.tipo ?? (
     p.type === 'WINNER' ? 'winner' :
     p.type === 'UNFORCED_ERROR' ? 'erro_nao_forcado' :
@@ -30,9 +40,9 @@ export function getPointShotDetails(p: TimelinePoint): PointShotDetails | null {
   const situacao = p.rallyDetails?.situacao || undefined;
 
   let strokeSide: 'forehand' | 'backhand' | undefined;
-  if (stroke === 'fh' || stroke === 'vfh') {
+  if (stroke === 'fh' || stroke === 'vfh' || stroke === 'approach_fh') {
     strokeSide = 'forehand';
-  } else if (stroke === 'bh' || stroke === 'vbh') {
+  } else if (stroke === 'bh' || stroke === 'vbh' || stroke === 'approach_bh') {
     strokeSide = 'backhand';
   }
 

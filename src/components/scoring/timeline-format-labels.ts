@@ -9,7 +9,15 @@ export function situacaoLabel(s?: string): string {
 
 export function golpeLabel(s?: string): string {
   if (!s) return '–';
-  const map: Record<string, string> = { fh: 'FH', bh: 'BH', vfh: 'VFH', vbh: 'VBH', smash: 'Sm' };
+  const map: Record<string, string> = {
+    fh: 'FH',
+    bh: 'BH',
+    vfh: 'VFH',
+    vbh: 'VBH',
+    smash: 'Sm',
+    approach_fh: 'Ap FH',
+    approach_bh: 'Ap BH',
+  };
   return map[s] ?? s;
 }
 

@@ -274,7 +274,7 @@ export const MatchStateInputSchema = z
   .object({
     state: MatchStateSchema,
     initialServerId: z.string().min(1).optional(),
-    doublesSetup: DoublesSetupSchema.optional(),
+    doublesSetup: DoublesSetupSchema.nullable().optional(),
     scoreState: z
       .union([MatchScoreStateEnvelopeSchema, MatchScoreStateSchema])
       .optional(),

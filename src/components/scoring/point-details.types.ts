@@ -31,7 +31,7 @@ export type Action =
   | { type: 'SET_SITUACAO'; value: RallySituacao }
   | { type: 'SET_TIPO'; value: RallyTipo }
   | { type: 'SET_GOLPE'; value: RallyGolpe }
-  | { type: 'SET_DURACAO'; value: RallyDuration }
+  | { type: 'SET_DURACAO'; value: RallyDuration | null }
   | { type: 'SET_SUBTIPO1'; value: RallySubtipo1 }
   | { type: 'SET_SUBTIPO2'; value: RallySubtipo2 }
   | { type: 'SET_EFEITO'; value: RallyEfeito }

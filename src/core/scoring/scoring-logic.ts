@@ -1,4 +1,4 @@
-import type { ScoringState, HistoryEntry, TimelinePoint } from './types';
+import type { ScoringState, HistoryEntry, TimelinePoint, TennisFormat } from './types';
 import { GAME_POINTS } from './point.logic';
 import { unwrapStateEnvelope } from './state-envelope';
 import { derivePointSnapshot, deriveServeOutcomes } from './point-context';
@@ -24,6 +24,7 @@ export function enrichPointsFromHistory(
   history: HistoryEntry[],
   player1Id: string,
   _player2Id: string,
+  format?: TennisFormat,
 ): TimelinePoint[] {
   const points: TimelinePoint[] = [];
 
@@ -32,7 +33,7 @@ export function enrichPointsFromHistory(
     const stateBefore: ScoringState = unwrapStateEnvelope(entry?.stateBefore);
     const pt = entry.point;
 
-    const snapshot = derivePointSnapshot(stateBefore);
+    const snapshot = derivePointSnapshot(stateBefore, format);
     const serve = deriveServeOutcomes(pt);
 
     points.push({

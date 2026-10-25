@@ -29,6 +29,11 @@ export interface ReturnStats {
   breakPointOpportunities: number;
   breakPointsConverted: number;
   breakPointsConvertedPct: number;
+  totalReturnPoints?: number;
+  returnPointsWon?: number;
+  returnPointsWonPct?: number;
+  firstServeReturnInPct?: number;
+  secondServeReturnInPct?: number;
 }
 
 export interface PressureStats {

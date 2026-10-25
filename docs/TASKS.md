@@ -30,6 +30,23 @@
 - **Status:** Concluída (2026-10-22)
 - **DoD:** Implementação pura de regras ITF de duplas (`src/core/scoring/doubles.ts`), persistência e migrations no Prisma (`matchType`, `player1PartnerId`, `player2PartnerId`, `doublesSetup`), endpoints de pontuação e arranjo de sacador/devolvedor (`/arrangement`), formulário de criação com seleção de 4 atletas e wizard de setup, tela `/scoring` com indicação de sacador ativo e devolvedor, `PointDetailsModal` com seleção de quem bateu e escolha de lado no deuce no-ad, ajuste de formação entre sets (`DoublesArrangementModal`), modal Editar Placar preservando duplas, timeline, relatório e dashboard. 100% retrocompatível com simples, sem testes ignorados e zero erros no `tsc --noEmit`.
 
+### A0.1. Estatísticas Avançadas & Alinhamento à Planilha ITF/ATP ✅
+- **Status:** Concluída (2026-10-25)
+- **Documento:** `docs/Plano – Estatísticas Avançadas.md`
+- **DoD:** 100% das 5 fases concluídas: (i) Fase 1 com 15 correções estruturais (ralis ATP/ITF, Ace/DF desvinculados de rali, Game/Set points por atleta e dinâmicos por formato, Ponto Decisivo No-Ad duplo e break point para devolvedor, subidas e passadas bilaterais, breakdown com tiebreak e p2Games, momentum estendido, jogos completos protegidos, CSV e unificação de set summary); (ii) Fase 2 com as 9 seções da planilha (1. Saque, 2. Devolução com retorno em quadra e sem DF, 3. Fundo de Quadra por ralis, 4. Rally, 5. Rede e Passada, 6. Pontos de Pressão, 7. Definição do Ponto sem Ace/DF, 8. Matriz de 12 Golpes, 9. Momentum); (iii) Fase 3 com tempos total e efetivo (`MAX_GAP_SECONDS = 90`, descartando pausas >90s e transições de set); (iv) Fase 4 com cabeçalho superior completo de metadados, clima e tempos; (v) Fase 5 com desdobramento individual por atleta em duplas (`serverId`, `hitterId`, `courtSide`). 100% STE-DEV R-03 (módulos ≤ 100 linhas). `typecheck` 0 erros, `lint` 0 issues, `test:design` 3/3 (26/26), `test:strict` 356/356 suites verdes (3.468 testes).
+
+### A0.2. Aproach FH / BH e Efeito em Detalhes do Ponto ✅
+- **Status:** Concluída (2026-10-25)
+- **DoD:** Inclusão de `approach_fh` ("Aproach FH") e `approach_bh` ("Aproach BH") em `RallyGolpeSchema` e `GOLPE_LABELS`. Disponibilizados na cascata de `PointDetailsModal` em: (a) `passada > erro_forcado`, e (b) `rede > winner`. Em `rede > winner`, `shouldShowEfeito` exibe dinamicamente o efeito (`topspin`, `slice`, `flat`) quando o golpe escolhido for um aproach (mantendo oculto para voleios diretos). Classificação e matriz de golpes atribuem aproachs à linha correspondente e lado de forehand/backhand. 100% STE-DEV R-03 (≤ 100 linhas). Testes unitários e integração 100% verdes (356/356 suites, 3.473 testes).
+
+### A0.3. Otimização de Duração do Rallye nos Detalhes do Ponto ✅
+- **Status:** Concluída (2026-10-25)
+- **DoD:** Remoção da opção redundante `1-4 bolas` (`opcao_1`) das pills de `Duração do Rallye` no modal `PointDetailsModal` (`DURACAO_OPTIONS`), disponibilizando apenas `5-8 bolas` e `+9 bolas`. Qualquer ponto sem indicação explícita segue o padrão canônico de rali curto (`1-4 bolas`). Habilitado toggle/desmarcação para voltar ao padrão com um segundo toque. Retrocompatibilidade total preservada para pontos históricos. 100% STE-DEV R-03 (≤ 100 linhas). 356/356 suites e 3.474 testes verdes.
+
+### A0.4. Registro e Resumo de Break Point e Game Point em 40/40 no modo No-Ad ✅
+- **Status:** Concluída (2026-10-25)
+- **DoD:** Correção do registro e cômputo estatístico no ponto decisivo (40/40) em formatos No-Ad (`BEST_OF_3_NO_AD` e `SHORT_SET_2V2_NO_AD`): `point-ball-context.logic.ts` com `isGameBall` e `isBreakPoint` retornando `true`; propagação de `format` em `derivePointSnapshot` e `enrichPointsFromHistory`, atribuindo `isBreakPoint: true` (para o devolvedor) e `isGameBall: true` (para ambos); propagação de `format` para `computeLiveCounters` e `computeAdvancedStats`, exibindo imediatamente no card de 'Estatísticas ao Vivo' e no 'Resumo do Set'; fallbacks em `return-stats.ts`, `serve-stats.ts`, `set-summary-service.logic.ts` e `timeline-rebuild.ts`. 100% STE-DEV R-03 (≤ 100 linhas). 357/357 suites e 3.482 testes verdes.
+
 ### A1. Página de Estatísticas do Jogador 🔴
 - **Status:** Não iniciada
 - **Rota:** `/players/[id]/stats`

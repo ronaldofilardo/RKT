@@ -63,7 +63,7 @@ export async function patchMatchState(
       parsed.data.initialServerId,
       parsed.data.scoreState,
       {
-        doublesSetup: parsed.data.doublesSetup,
+        doublesSetup: parsed.data.doublesSetup ?? undefined,
         allowScoreEdit: parsed.data.allowScoreEdit,
         expectedVersion: parsed.data.version,
         isManualScoreEdit: parsed.data.isManualScoreEdit,

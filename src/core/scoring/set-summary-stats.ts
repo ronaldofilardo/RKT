@@ -1,4 +1,4 @@
-import type { TimelinePoint } from './types';
+import type { TimelinePoint, TennisFormat } from './types';
 import type { GameErrorEntry } from './game-errors';
 import { computeGameErrors } from './game-errors';
 import { calculatePlayerStats } from './set-summary-errors.logic';
@@ -21,7 +21,8 @@ export type { SetSummaryReport };
 export function computeSetSummary(
   allPoints: TimelinePoint[],
   setNumber: number,
-  fallbackScore?: { player1: number; player2: number; isTiebreak?: boolean; isCompleted?: boolean; tiebreakScore?: { player1: number; player2: number } }
+  fallbackScore?: { player1: number; player2: number; isTiebreak?: boolean; isCompleted?: boolean; tiebreakScore?: { player1: number; player2: number } },
+  format?: TennisFormat,
 ): SetSummaryReport {
   const setPoints = allPoints.filter(p => p.setNumber === setNumber);
 
@@ -82,8 +83,8 @@ export function computeSetSummary(
     winner,
     totalPoints: setPoints.length,
     durationMinutes,
-    player1: calculatePlayerStats(setPoints, 'player1'),
-    player2: calculatePlayerStats(setPoints, 'player2'),
+    player1: calculatePlayerStats(setPoints, 'player1', format),
+    player2: calculatePlayerStats(setPoints, 'player2', format),
     gameErrors: computeGameErrors(setPoints),
   };
 }

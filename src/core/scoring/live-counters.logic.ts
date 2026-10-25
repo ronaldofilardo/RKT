@@ -1,4 +1,4 @@
-import type { TimelinePoint } from './types';
+import type { TimelinePoint, TennisFormat } from './types';
 import { computeAdvancedStats } from '@/core/report/compute-stats';
 import type { LiveMatchCounters } from './live-tactical-insights.types';
 
@@ -22,12 +22,12 @@ function pctOf(part: number, total: number): number {
   return total > 0 ? Math.round((part / total) * 100) : 0;
 }
 
-export function computeLiveCounters(points: TimelinePoint[]): LiveMatchCounters {
+export function computeLiveCounters(points: TimelinePoint[], format?: TennisFormat): LiveMatchCounters {
   if (!points || points.length === 0) {
     return EMPTY_COUNTERS;
   }
 
-  const stats = computeAdvancedStats(points);
+  const stats = computeAdvancedStats(points, format);
 
   const bpConvP1 = stats.returnStats.player1.breakPointsConverted;
   const bpOppP1 = stats.returnStats.player1.breakPointOpportunities;

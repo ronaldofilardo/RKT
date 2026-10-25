@@ -1,6 +1,7 @@
-import type { TimelinePoint, ScoringEngineConfig, DoublesConfig } from '@/core/scoring/types';
+import type { TimelinePoint, ScoringEngineConfig, DoublesConfig, TennisFormat } from '@/core/scoring/types';
 import type { PointLogRow } from './point-log-merge';
 import { enrichPointsFromHistory } from '@/core/scoring/scoring-logic';
+import { isPointDecisiveDeuce } from './point-context';
 import { mergeWithPointLog } from './point-log-merge';
 import { simulateScoreFromPointLogs, type TimelineScoreEdit } from './timeline-rebuild-simulate.logic';
 
@@ -56,7 +57,14 @@ export function rebuildTimelineFromPointLogs(
   // tiebreaks que seriam custosos de ressuscitar pela simulação), apenas
   // sobrescrevendo as anotações detalhadas com os dados frescos do PointLog.
   if (history.length >= pointLogs.length) {
-    return history.map((p, i) => mergeWithPointLog(p, pointLogs[i], i + 1));
+    return history.map((p, i) => {
+      const merged = mergeWithPointLog(p, pointLogs[i], i + 1);
+      if (isPointDecisiveDeuce(p.gameScore, format as TennisFormat)) {
+        merged.isBreakPoint = true;
+        merged.isGameBall = true;
+      }
+      return merged;
+    });
   }
 
   // Caminho de RECONSTRUÇÃO: history incompleto (ou vazio). Simula o placar
@@ -66,6 +74,6 @@ export function rebuildTimelineFromPointLogs(
   // carrega os metadados brutos — depois sobrescrevemos as anotações com os
   // dados frescos do PointLog correspondente.
   const simulatedHistory = simulateScoreFromPointLogs(pointLogs, config, scoreEdits);
-  const enriched = enrichPointsFromHistory(simulatedHistory, player1Id, player2Id);
+  const enriched = enrichPointsFromHistory(simulatedHistory, player1Id, player2Id, config.format);
   return enriched.map((p, i) => mergeWithPointLog(p, pointLogs[i], i + 1));
 }

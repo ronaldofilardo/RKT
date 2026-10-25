@@ -37,6 +37,8 @@ export const GOLPE_LABELS: Record<RallyGolpe, string> = {
   vbh: 'Voleio BH',
   smash: 'Smash',
   saque: 'Saque',
+  approach_fh: 'Aproach FH',
+  approach_bh: 'Aproach BH',
 };
 
 export const SUBTIPO1_OPTIONS: { value: RallySubtipo1; label: string }[] = [
@@ -50,7 +52,6 @@ export const SUBTIPO1_OPTIONS: { value: RallySubtipo1; label: string }[] = [
 // createDoubleFaultRallyDetails.
 
 export const DURACAO_OPTIONS: { value: RallyDuration; label: string }[] = [
-  { value: 'opcao_1', label: '1-4 bolas' },
   { value: 'opcao_2', label: '5-8 bolas' },
   { value: 'opcao_3', label: '+9 bolas' },
 ];

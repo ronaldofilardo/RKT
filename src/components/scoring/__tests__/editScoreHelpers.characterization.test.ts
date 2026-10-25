@@ -124,7 +124,7 @@ describe('editScoreHelpers (characterization)', () => {
     it('deve rejeitar valores negativos', () => {
       const result = validateSetResult({ p1Games: -1, p2Games: 5 }, 'MATCH_TB_10');
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain('negative');
+      expect(result.error).toMatch(/negativ/i);
     });
 
     it('deve aceitar 0-0 como parcial', () => {
@@ -225,7 +225,7 @@ describe('editScoreHelpers (characterization)', () => {
     it('deve rejeitar 8-6 (máximo 7 games)', () => {
       const result = validateSetResult({ p1Games: 8, p2Games: 6 }, 'SHORT_SET_2V2_NO_AD');
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain('Maximum');
+      expect(result.error).toMatch(/Máximo|Maximum/);
     });
   });
 
@@ -293,7 +293,7 @@ describe('editScoreHelpers (characterization)', () => {
     it('deve rejeitar 8x6 (máximo 7x6)', () => {
       const result = validateSetResult({ p1Games: 8, p2Games: 6 }, 'BEST_OF_3');
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain('Maximum');
+      expect(result.error).toMatch(/Máximo|Maximum/);
     });
 
     it('deve rejeitar 6x8', () => {

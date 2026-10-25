@@ -1,6 +1,7 @@
-import type { TimelinePoint } from '@/core/scoring/types';
+import type { TimelinePoint, TennisFormat } from '@/core/scoring/types';
 import { isServer, isWinner, type ServeStats } from './types';
 import { computeCompletedGames } from './serve-return-completed-games';
+import { isTimelineBreakPoint } from './pressure-point-eval.logic';
 
 export function isSecondServePoint(p: TimelinePoint): boolean {
   if (p.type === 'FAULT_FIRST') return false;
@@ -30,7 +31,7 @@ function computeServiceGames(points: TimelinePoint[], playerIndex: 1 | 2): Array
     }));
 }
 
-export function computeServeStats(points: TimelinePoint[], playerIndex: 1 | 2): ServeStats {
+export function computeServeStats(points: TimelinePoint[], playerIndex: 1 | 2, format?: TennisFormat): ServeStats {
   const servicePoints = points.filter(p => isServer(p, playerIndex) && p.type !== 'FAULT_FIRST');
   const totalPoints = servicePoints.length;
 
@@ -59,8 +60,12 @@ export function computeServeStats(points: TimelinePoint[], playerIndex: 1 | 2): 
     ? (serviceGamesWon / serviceGamesPlayed) * 100
     : 0;
 
-  const breakPointsFaced = servicePoints.filter(p => p.isBreakPoint).length;
-  const breakPointsSaved = servicePoints.filter(p => p.isBreakPoint && isWinner(p, playerIndex)).length;
+  const oppIndex: 1 | 2 = playerIndex === 1 ? 2 : 1;
+  const isBpAgainstServer = (p: TimelinePoint) =>
+    p.isBreakPoint || isTimelineBreakPoint(p, oppIndex, format);
+
+  const breakPointsFaced = servicePoints.filter(isBpAgainstServer).length;
+  const breakPointsSaved = servicePoints.filter(p => isBpAgainstServer(p) && isWinner(p, playerIndex)).length;
   const breakPointsSavedPct = breakPointsFaced > 0
     ? (breakPointsSaved / breakPointsFaced) * 100
     : 0;

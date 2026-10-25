@@ -25,9 +25,17 @@ export function createConfirmPointDetails({
     const rallyLengthFromModal = modalParamsRef.current.rallyLength;
     if (!match || !winnerSide || isProcessingRef.current) return;
 
-    const rallyLengthToUse = rallyLengthFromModal
+    let rallyLengthToUse = rallyLengthFromModal
       ? parseInt(rallyLengthFromModal, 10) || details.previewBalls
       : details.previewBalls;
+
+    if (details.duracao === "opcao_1" && (rallyLengthToUse <= 0 || rallyLengthToUse > 4)) {
+      rallyLengthToUse = 3;
+    } else if (details.duracao === "opcao_2" && (rallyLengthToUse < 5 || rallyLengthToUse > 8)) {
+      rallyLengthToUse = 6;
+    } else if (details.duracao === "opcao_3" && rallyLengthToUse < 9) {
+      rallyLengthToUse = 10;
+    }
 
     const id = winnerSide === "player1" ? match.player1.id : match.player2.id;
 

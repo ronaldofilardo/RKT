@@ -1,4 +1,4 @@
-import type { TimelinePoint } from './types';
+import type { TimelinePoint, TennisFormat } from './types';
 import { classifyPointError } from './game-errors';
 import { calculateServiceStats, calculateReturnBreakPoints } from './set-summary-service.logic';
 import type { PlayerSetStats } from './set-summary-stats.types';
@@ -30,14 +30,18 @@ function calculatePlayerErrors(
   };
 }
 
-export function calculatePlayerStats(points: TimelinePoint[], player: 'player1' | 'player2'): PlayerSetStats {
+export function calculatePlayerStats(
+  points: TimelinePoint[],
+  player: 'player1' | 'player2',
+  format?: TennisFormat,
+): PlayerSetStats {
   const isP1 = player === 'player1';
   const targetWinner = isP1 ? 'PLAYER_1' : 'PLAYER_2';
   const targetServer = isP1 ? 'player1' : 'player2';
 
   const totalPointsWon = points.filter(p => p.winner === targetWinner).length;
-  const serviceStats = calculateServiceStats(points, targetServer, targetWinner);
-  const returnStats = calculateReturnBreakPoints(points, targetServer, targetWinner);
+  const serviceStats = calculateServiceStats(points, targetServer, targetWinner, format);
+  const returnStats = calculateReturnBreakPoints(points, targetServer, targetWinner, format);
   const errorStats = calculatePlayerErrors(points, targetServer, targetWinner);
 
   return {

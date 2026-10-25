@@ -68,7 +68,7 @@ describe("Enum Schemas", () => {
   });
 
   describe("RallyGolpeSchema", () => {
-    const valid = ["fh", "bh", "vfh", "vbh", "smash", "saque"];
+    const valid = ["fh", "bh", "vfh", "vbh", "smash", "saque", "approach_fh", "approach_bh"];
     it.each(valid)("accepts '%s'", (v) => {
       expect(RallyGolpeSchema.safeParse(v).success).toBe(true);
     });
@@ -513,6 +513,7 @@ describe("FinishMatchInputSchema", () => {
         note: "player left",
         winnerId: "550e8400-e29b-41d4-a716-446655440000",
         isManualScoreEdit: true,
+        version: 1,
       }).success,
     ).toBe(true);
   });

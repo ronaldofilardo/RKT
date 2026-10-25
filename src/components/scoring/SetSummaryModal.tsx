@@ -1,6 +1,6 @@
 'use client';
 
-import type { TimelinePoint } from '@/core/scoring/types';
+import type { TimelinePoint, TennisFormat } from '@/core/scoring/types';
 import { GameErrorsHistogram } from './GameErrorsHistogram';
 import { SetSummaryStatsSections } from './set-summary-stats-sections';
 import { SetSummaryHeader } from './set-summary-header';
@@ -21,6 +21,7 @@ interface Props {
   onViewReport?: () => void;
   completedSetsData?: CompletedSetData[];
   onOpenDoublesArrangement?: () => void;
+  format?: TennisFormat;
 }
 
 export function SetSummaryModal({
@@ -36,12 +37,14 @@ export function SetSummaryModal({
   onViewReport,
   completedSetsData,
   onOpenDoublesArrangement,
+  format,
 }: Props) {
   const { availableSets, selectedSet, setSelectedSet, summary } = useSetSummaryReport({
     initialSetNumber,
     completedSetsCount,
     timelinePoints,
     completedSetsData,
+    format,
   });
 
   if (!isOpen) return null;

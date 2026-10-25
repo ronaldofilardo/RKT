@@ -28,37 +28,43 @@ function safeScore(score: unknown): string {
 }
 
 export function buildReportCsv(report: ReportData): string {
-  const rows = report.timelinePoints.map((point) => [
-    point.pointNumber,
-    point.server,
-    point.server,
-    safeScore(point.gamesScore),
-    safeScore(point.gameScore),
-    point.firstServeOutcome === 'ace' ? 'ACE' : '',
-    point.firstServeOutcome === 'out' ? 'OUT' : '',
-    point.firstServeOutcome === 'net' ? 'NET' : '',
-    point.firstFault?.serveEffect ?? point.serveEffect ?? '',
-    point.firstFault?.direction ?? point.serveDirection ?? '',
-    point.secondServeOutcome === 'ace' ? 'ACE' : '',
-    point.secondServeOutcome === 'out' ? 'OUT' : '',
-    point.secondServeOutcome === 'net' ? 'NET' : '',
-    point.rallyDetails?.efeito ?? '',
-    point.rallyDetails?.direcao ?? '',
-    point.type,
-    point.rallyDetails?.subtipo1 ?? '',
-    point.rallyDetails?.subtipo2 ?? '',
-    point.rallyDetails?.situacao,
-    point.rallyDetails?.golpe,
-    point.rallyDetails?.efeito,
-    point.rallyDetails?.direcao,
-    point.rallyDetails?.golpe_esp,
-    point.rallyDetails?.duracao ?? '',
-    point.note,
-    point.hasAudioNote ? 'sim' : 'não',
-    point.audioNoteDuration,
-    point.audioNoteMime,
-    point.rawAnnotations ? JSON.stringify(point.rawAnnotations) : '',
-  ]);
+  const rows = report.timelinePoints.map((point) => {
+    const winner = point.winner === 'PLAYER_1' ? 'player1' : point.winner === 'PLAYER_2' ? 'player2' : (point.winner ?? '');
+    const is2nd = point.isSecondServe || Boolean(point.secondServeOutcome);
+    const rallyVal = point.rallyLength > 0 ? point.rallyLength : (point.rallyDetails?.duracao ?? '');
+
+    return [
+      point.pointNumber,
+      winner,
+      point.server,
+      safeScore(point.gamesScore),
+      safeScore(point.gameScore),
+      point.firstServeOutcome === 'ace' ? 'ACE' : '',
+      point.firstServeOutcome === 'out' ? 'OUT' : '',
+      point.firstServeOutcome === 'net' ? 'NET' : '',
+      point.firstFault?.serveEffect ?? point.serveEffect ?? '',
+      point.firstFault?.direction ?? point.serveDirection ?? '',
+      point.secondServeOutcome === 'ace' ? 'ACE' : '',
+      point.secondServeOutcome === 'out' ? 'OUT' : '',
+      point.secondServeOutcome === 'net' ? 'NET' : '',
+      is2nd ? (point.serveEffect ?? '') : '',
+      is2nd ? (point.serveDirection ?? '') : '',
+      point.type,
+      point.rallyDetails?.subtipo1 ?? point.firstFault?.errorType ?? '',
+      point.rallyDetails?.subtipo2 ?? '',
+      point.rallyDetails?.situacao ?? '',
+      point.rallyDetails?.golpe ?? '',
+      point.rallyDetails?.efeito ?? '',
+      point.rallyDetails?.direcao ?? '',
+      point.rallyDetails?.golpe_esp ?? '',
+      rallyVal,
+      point.note ?? '',
+      point.hasAudioNote ? 'sim' : 'não',
+      point.audioNoteDuration ?? '',
+      point.audioNoteMime ?? '',
+      point.rawAnnotations ? JSON.stringify(point.rawAnnotations) : '',
+    ];
+  });
   return [columns, ...rows].map((row) => row.map(csvValue).join(';')).join('\n');
 }
 

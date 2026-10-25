@@ -33,6 +33,7 @@ export function ReportPageView({ report, matchId, p1Points, p2Points, totalPoint
             stats={report.advancedStats}
             player1Name={report.matchType === 'DOUBLES' && report.player1Partner ? `${report.player1.name} / ${report.player1Partner.name}` : report.player1.name}
             player2Name={report.matchType === 'DOUBLES' && report.player2Partner ? `${report.player2.name} / ${report.player2Partner.name}` : report.player2.name}
+            report={report}
           />
         )}
         <IntegrityNotice report={report} />

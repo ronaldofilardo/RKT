@@ -20,7 +20,16 @@ export const RallyTipoSchema = z.enum([
 ]);
 export type RallyTipo = z.infer<typeof RallyTipoSchema>;
 
-export const RallyGolpeSchema = z.enum(["fh", "bh", "vfh", "vbh", "smash", "saque"]);
+export const RallyGolpeSchema = z.enum([
+  "fh",
+  "bh",
+  "vfh",
+  "vbh",
+  "smash",
+  "saque",
+  "approach_fh",
+  "approach_bh",
+]);
 export type RallyGolpe = z.infer<typeof RallyGolpeSchema>;
 
 export const RallySubtipo1Schema = z.enum(["passing_shot", "devolucao_saque"]);

@@ -436,6 +436,8 @@ describe('timeline-utils', () => {
       expect(golpeLabel('vfh')).toBe('VFH');
       expect(golpeLabel('vbh')).toBe('VBH');
       expect(golpeLabel('smash')).toBe('Sm');
+      expect(golpeLabel('approach_fh')).toBe('Ap FH');
+      expect(golpeLabel('approach_bh')).toBe('Ap BH');
     });
 
     it('direcaoLabel deve mapear direções', () => {
@@ -557,6 +559,8 @@ describe('timeline-utils', () => {
         expect(validateGolpe('vfh').success).toBe(true);
         expect(validateGolpe('vbh').success).toBe(true);
         expect(validateGolpe('smash').success).toBe(true);
+        expect(validateGolpe('approach_fh').success).toBe(true);
+        expect(validateGolpe('approach_bh').success).toBe(true);
       });
 
       it('deve falhar com golpe invalido', () => {

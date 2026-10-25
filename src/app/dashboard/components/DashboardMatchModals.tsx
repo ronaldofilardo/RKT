@@ -76,12 +76,12 @@ export function DashboardMatchModals({
           onClose={onCloseSetSummary}
           onResumeMatch={onResumeSetSummary}
           timelinePoints={setSummaryTimelinePoints}
-          player1Name={setSummaryMatch.player1?.name ?? 'Jogador 1'}
-          player2Name={setSummaryMatch.player2?.name ?? 'Jogador 2'}
+          player1Name={setSummaryMatch.player1?.name ?? 'Jogador 1'} player2Name={setSummaryMatch.player2?.name ?? 'Jogador 2'}
           initialSetNumber={completedSetsCount || 1}
           completedSetsCount={completedSetsCount}
           isMatchFinished={setSummaryMatch.state === 'FINISHED'}
           completedSetsData={completedSetsData}
+          format={setSummaryMatch.format as any}
         />
       )}
 

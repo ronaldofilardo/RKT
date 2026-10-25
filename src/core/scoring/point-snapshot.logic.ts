@@ -1,4 +1,4 @@
-import type { ScoringState } from './types';
+import type { ScoringState, TennisFormat } from './types';
 import { isBreakPoint, isGameBall, isSetBall } from './point-ball-context.logic';
 
 export interface PointSnapshot {
@@ -19,7 +19,7 @@ export interface PointSnapshot {
  * naquele instante. Função pura extraída de `enrichPointsFromHistory` para
  * reduzir a complexidade ciclomática da reconstrução da timeline.
  */
-export function derivePointSnapshot(stateBefore: ScoringState | null): PointSnapshot {
+export function derivePointSnapshot(stateBefore: ScoringState | null, format?: TennisFormat): PointSnapshot {
   const sets = Array.isArray(stateBefore?.sets) ? stateBefore.sets : [];
   const setsWon = stateBefore?.setsWon
     ? (stateBefore.setsWon.player1 ?? 0) + (stateBefore.setsWon.player2 ?? 0)
@@ -64,8 +64,8 @@ export function derivePointSnapshot(stateBefore: ScoringState | null): PointSnap
     server: stateBefore?.server ?? 'player1',
     gamesScore,
     gameScore,
-    isBreakPoint: stateBefore ? isBreakPoint(stateBefore) : false,
-    isGameBall: stateBefore ? isGameBall(stateBefore) : false,
+    isBreakPoint: stateBefore ? isBreakPoint(stateBefore, format) : false,
+    isGameBall: stateBefore ? isGameBall(stateBefore, format) : false,
     isSetBall: stateBefore ? isSetBall(stateBefore, setNumber) : false,
     gameIsDeuce: currentGame.isDeuce ?? false,
     gameAdvantage: currentGame.advantage ?? null,

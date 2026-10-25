@@ -9,6 +9,30 @@ export interface CompletedGame {
   endIdx: number;
 }
 
+function isPointEndingGame(p: TimelinePoint): boolean {
+  if (p.isTiebreak) return true;
+
+  const pd = p.pointDetails as Record<string, any> | undefined;
+  const sb = pd?.scoreBefore?.gameScore;
+  const sa = pd?.scoreAfter?.gameScore;
+  if (sb && sa && (sa.player1 !== sb.player1 || sa.player2 !== sb.player2)) {
+    return true;
+  }
+
+  const winnerSide = p.winner === 'PLAYER_1' ? 'player1' : 'player2';
+  if (p.gameAdvantage === winnerSide) return true;
+
+  const winnerBefore = p.winner === 'PLAYER_1' ? (p.gameScore?.player1 ?? 0) : (p.gameScore?.player2 ?? 0);
+  const oppBefore = p.winner === 'PLAYER_1' ? (p.gameScore?.player2 ?? 0) : (p.gameScore?.player1 ?? 0);
+
+  if (winnerBefore >= 40 && oppBefore < 40) return true;
+  if (winnerBefore >= 3 && oppBefore <= 2 && winnerBefore < 15) return true;
+  if (p.gameIsDeuce && winnerBefore === 3 && oppBefore === 3) return true;
+  if (p.isGameBall || p.isSetBall) return true;
+
+  return false;
+}
+
 export function computeCompletedGames(points: TimelinePoint[]): CompletedGame[] {
   const games: CompletedGame[] = [];
   let gameStart = 0;
@@ -25,8 +49,8 @@ export function computeCompletedGames(points: TimelinePoint[]): CompletedGame[] 
       } else if (!p.isTiebreak && next.isTiebreak) {
         isGameEnd = true;
       } else if (!p.isTiebreak && !next.isTiebreak) {
-        const prevGames = p.gamesScore.player1 + p.gamesScore.player2;
-        const nextGames = next.gamesScore.player1 + next.gamesScore.player2;
+        const prevGames = (p.gamesScore?.player1 ?? 0) + (p.gamesScore?.player2 ?? 0);
+        const nextGames = (next.gamesScore?.player1 ?? 0) + (next.gamesScore?.player2 ?? 0);
         if (nextGames > prevGames) {
           isGameEnd = true;
         }
@@ -34,7 +58,7 @@ export function computeCompletedGames(points: TimelinePoint[]): CompletedGame[] 
         isGameEnd = true;
       }
     } else {
-      isGameEnd = true;
+      isGameEnd = isPointEndingGame(p);
     }
 
     if (isGameEnd) {

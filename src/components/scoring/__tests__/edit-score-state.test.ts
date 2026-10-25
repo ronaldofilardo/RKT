@@ -450,7 +450,7 @@ describe('edit-score-state - isMatchTiebreakSet', () => {
         const result = validateSetResult({ p1Games: 8, p2Games: 6 }, 'SHORT_SET_2V2_NO_AD');
         
         expect(result.isValid).toBe(false);
-        expect(result.error).toContain('Maximum');
+        expect(result.error).toMatch(/Máximo|Maximum/);
       });
     });
   });

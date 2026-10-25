@@ -2,18 +2,27 @@
 
 import { Section, type AdvancedStatsSectionProps } from './advanced-stats-primitives';
 
-export function MomentumSection({ stats }: { stats: AdvancedStatsSectionProps['stats'] }) {
+interface MomentumProps {
+  stats: AdvancedStatsSectionProps['stats'];
+  player1Name?: string;
+  player2Name?: string;
+}
+
+export function MomentumSection({ stats, player1Name = 'J1', player2Name = 'J2' }: MomentumProps) {
   const { momentum } = stats;
+  const p1Streak = momentum.longestStreakP1 ?? momentum.longestWinningStreak;
+  const p2Streak = momentum.longestStreakP2 ?? momentum.longestLosingStreak;
+
   return (
-    <Section title="Momentum">
+    <Section title="9. Momentum">
       <div className="grid grid-cols-2 gap-4 text-center">
         <div className="bg-telemetry-blue/10 rounded-lg p-3">
-          <div className="text-2xl font-black text-telemetry-blue">{momentum.longestWinningStreak}</div>
-          <div className="text-xs text-telemetry-blue">Sequência Máx. Pontos Ganhos (J1)</div>
+          <div className="text-2xl font-black text-telemetry-blue">{p1Streak}</div>
+          <div className="text-xs text-telemetry-blue">Sequência Máx. Pontos Ganhos ({player1Name})</div>
         </div>
         <div className="bg-telemetry-error/10 rounded-lg p-3">
-          <div className="text-2xl font-black text-telemetry-error">{momentum.longestLosingStreak}</div>
-          <div className="text-xs text-telemetry-error">Sequência Máx. Pontos Ganhos (J2)</div>
+          <div className="text-2xl font-black text-telemetry-error">{p2Streak}</div>
+          <div className="text-xs text-telemetry-error">Sequência Máx. Pontos Ganhos ({player2Name})</div>
         </div>
       </div>
       <div className="mt-3 text-center">
@@ -21,7 +30,7 @@ export function MomentumSection({ stats }: { stats: AdvancedStatsSectionProps['s
         <div className={`text-lg font-bold ${momentum.currentStreak > 0 ? 'text-telemetry-blue' : 'text-telemetry-error'}`}>
           {momentum.currentStreak > 0 ? `${momentum.currentStreak} pts` : `${Math.abs(momentum.currentStreak)} pts`}
           <span className="text-xs text-telemetry-text-muted ml-1">
-            {momentum.currentStreak > 0 ? '(J1)' : '(J2)'}
+            ({momentum.currentStreak > 0 ? player1Name : player2Name})
           </span>
         </div>
       </div>
@@ -29,7 +38,7 @@ export function MomentumSection({ stats }: { stats: AdvancedStatsSectionProps['s
         <div className="mt-3 pt-3 border-t border-white/10">
           <div className="text-xs font-semibold text-telemetry-text-primary mb-2">Sequências de 3+ Pontos</div>
           <div className="flex flex-wrap gap-1">
-            {momentum.scoringRuns.slice(0, 5).map((run, i) => (
+            {momentum.scoringRuns.map((run, i) => (
               <span
                 key={i}
                 className={`text-xs px-2 py-0.5 rounded-full ${
@@ -38,7 +47,7 @@ export function MomentumSection({ stats }: { stats: AdvancedStatsSectionProps['s
                     : 'bg-telemetry-error/20 text-telemetry-error-light'
                 }`}
               >
-                {run.length}x {run.player === 'PLAYER_1' ? 'J1' : 'J2'}
+                {run.length}x {run.player === 'PLAYER_1' ? player1Name : player2Name}
               </span>
             ))}
           </div>

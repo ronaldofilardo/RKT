@@ -10,6 +10,10 @@ export type {
   MomentumStats,
   SetBreakdown,
   AdvancedMatchStats,
+  BaselineStats,
+  NetPassStats,
+  PointDefinitionStats,
+  StrokeMatrixRow,
 } from './report-analysis.types';
 
 export function isServer(p: import('@/core/scoring/types').TimelinePoint, playerIndex: 1 | 2): boolean {

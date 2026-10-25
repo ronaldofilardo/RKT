@@ -1,5 +1,10 @@
-import type { TimelinePoint } from '@/core/scoring/types';
-import { isServer, type PressureStats } from './types';
+import type { TimelinePoint, TennisFormat } from '@/core/scoring/types';
+import type { PressureStats } from './types';
+import {
+  isTimelineBreakPoint,
+  isTimelineGamePoint,
+  isTimelineSetPoint,
+} from './pressure-point-eval.logic';
 
 function countTiebreaks(points: TimelinePoint[], winner: 'PLAYER_1' | 'PLAYER_2'): { played: number; won: number } {
   const tiebreaks = points.filter(p => p.isTiebreak);
@@ -20,17 +25,29 @@ export function calcPercentage(won: number, total: number): number {
   return total > 0 ? (won / total) * 100 : 0;
 }
 
-function computeBreakPointPressure(points: TimelinePoint[], playerIndex: 1 | 2, winner: 'PLAYER_1' | 'PLAYER_2') {
+function computeBreakPointPressure(
+  points: TimelinePoint[],
+  playerIndex: 1 | 2,
+  winner: 'PLAYER_1' | 'PLAYER_2',
+  format?: TennisFormat,
+) {
   let saved = 0;
   let faced = 0;
   let converted = 0;
   let opps = 0;
+  const oppIndex: 1 | 2 = playerIndex === 1 ? 2 : 1;
+
   for (const p of points) {
-    if (p.isBreakPoint) {
-      if (isServer(p, playerIndex)) {
+    const serverIndex = p.server === 'player1' ? 1 : 2;
+    if (serverIndex === playerIndex) {
+      const isOppBp = p.isBreakPoint || isTimelineBreakPoint(p, oppIndex, format);
+      if (isOppBp) {
         faced++;
         if (p.winner === winner) saved++;
-      } else {
+      }
+    } else {
+      const isMyBp = p.isBreakPoint || isTimelineBreakPoint(p, playerIndex, format);
+      if (isMyBp) {
         opps++;
         if (p.winner === winner) converted++;
       }
@@ -39,17 +56,21 @@ function computeBreakPointPressure(points: TimelinePoint[], playerIndex: 1 | 2, 
   return { saved, faced, converted, opps };
 }
 
-export function computePressureStats(points: TimelinePoint[], playerIndex: 1 | 2): PressureStats {
+export function computePressureStats(
+  points: TimelinePoint[],
+  playerIndex: 1 | 2,
+  format?: TennisFormat,
+): PressureStats {
   const winner = `PLAYER_${playerIndex}` as const;
 
-  const bp = computeBreakPointPressure(points, playerIndex, winner);
+  const bp = computeBreakPointPressure(points, playerIndex, winner, format);
 
-  const gamePointsWon = points.filter(p => (p.isGameBall || p.gameIsDeuce) && p.winner === winner).length;
-  const gamePointsTotal = points.filter(p => p.isGameBall || p.gameIsDeuce).length;
+  const gamePointsWon = points.filter(p => isTimelineGamePoint(p, playerIndex, format) && p.winner === winner).length;
+  const gamePointsTotal = points.filter(p => isTimelineGamePoint(p, playerIndex, format)).length;
   const gamePointsWonPct = calcPercentage(gamePointsWon, gamePointsTotal);
 
-  const setPointsWon = points.filter(p => p.isSetBall && p.winner === winner).length;
-  const setPointsTotal = points.filter(p => p.isSetBall).length;
+  const setPointsWon = points.filter(p => isTimelineSetPoint(p, playerIndex, format) && p.winner === winner).length;
+  const setPointsTotal = points.filter(p => isTimelineSetPoint(p, playerIndex, format)).length;
   const setPointsWonPct = calcPercentage(setPointsWon, setPointsTotal);
 
   const { played: tiebreaksPlayed, won: tiebreaksWon } = countTiebreaks(points, winner);
