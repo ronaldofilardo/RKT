@@ -77,5 +77,16 @@ describe('MatchCard — indicação visual de sacador', () => {
     expect(screen.queryByTestId('server-indicator-player1')).toBeNull();
     expect(screen.queryByTestId('server-indicator-player2')).toBeNull();
   });
+
+  it('NÃO exibe o ícone 🎾 quando a partida está AGENDADA (SCHEDULED)', () => {
+    const scheduledMatch = {
+      ...baseMatch,
+      state: 'SCHEDULED',
+    };
+    render(<MatchCard match={scheduledMatch} />);
+
+    expect(screen.queryByTestId('server-indicator-player1')).toBeNull();
+    expect(screen.queryByTestId('server-indicator-player2')).toBeNull();
+  });
 });
 

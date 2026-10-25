@@ -16,6 +16,7 @@ export function useMatchCardData(match: DashboardMatchPayload) {
   const isLiveOrSuspended =
     match.state === 'IN_PROGRESS' || isSuspendedAnnotation || Boolean(match.suspendedSessionId);
   const isFinished = match.state === 'FINISHED';
+  const isScheduled = match.state === 'SCHEDULED';
 
   const scoreState = useMemo<NormalizedScoreState | null>(() => {
     if (match.scoreSummary) return match.scoreSummary as NormalizedScoreState;
@@ -59,7 +60,7 @@ export function useMatchCardData(match: DashboardMatchPayload) {
     return null;
   }, [scoreState, suspendedAnnotationScore, match.initialServerId, match.player1, match.player2]);
 
-  const showServer = !isFinished && Boolean(currentServer);
+  const showServer = !isFinished && !isScheduled && Boolean(currentServer);
   const hasScore = scoreState != null || suspendedAnnotationScore != null;
   const isCurrentSetMT = isMatchTiebreakFormat(match.format) && displayedSets.length > 0
     ? isCurrentSetMatchTiebreak(displayedSets, match.format as TennisFormat)
