@@ -6,16 +6,13 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { ServeSection } from '@/components/scoring/action-bar-serve-section';
 
 function renderSection(overrides: Partial<React.ComponentProps<typeof ServeSection>> = {}) {
-  const handlers = { onAce: jest.fn(), onOut: jest.fn(), onNet: jest.fn() };
+  const handlers = { onAceDetailsToggle: jest.fn(), onDfDetailsToggle: jest.fn() };
   render(
     <ServeSection
       aceDetailsEnabled={false}
-      onAceDetailsToggle={() => undefined}
       dfDetailsEnabled={false}
-      onDfDetailsToggle={() => undefined}
       showSecondBadge={false}
       disabled={false}
-      step="none"
       {...handlers}
       {...overrides}
     />,
@@ -23,62 +20,34 @@ function renderSection(overrides: Partial<React.ComponentProps<typeof ServeSecti
   return handlers;
 }
 
-describe('ServeSection — botões Ace / Out / Net', () => {
-  it('possuem tamanho ergonômico touch e cantos rounded-xl nos três botões', () => {
+describe('ServeSection — opções de detalhe (rodapé)', () => {
+  it('não renderiza o selo de saque no rodapé (movido para o bloco inline sob o card do sacador)', () => {
     renderSection();
-
-    for (const name of ['Ace', 'Out', 'Net']) {
-      const btn = screen.getByRole('button', { name });
-      expect(btn).toHaveClass('min-h-[52px]');
-      expect(btn).toHaveClass('rounded-xl');
-    }
+    expect(screen.queryByText('1º SAQUE')).not.toBeInTheDocument();
+    expect(screen.queryByText('2º SAQUE')).not.toBeInTheDocument();
   });
 
-  it('têm acentos luminescentes no padrão Broadcast Telemetry', () => {
-    renderSection();
+  it('dispara cada toggle no checkbox correspondente', () => {
+    const { onAceDetailsToggle, onDfDetailsToggle } = renderSection();
 
-    expect(screen.getByRole('button', { name: 'Ace' })).toHaveClass('text-telemetry-volt');
-    expect(screen.getByRole('button', { name: 'Out' })).toHaveClass('text-red-400');
-    expect(screen.getByRole('button', { name: 'Net' })).toHaveClass('text-slate-200');
-    expect(screen.queryByText('Dupla falta')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Detalhes do ACE' }));
+    expect(onAceDetailsToggle).toHaveBeenCalledTimes(1);
+    expect(onDfDetailsToggle).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Detalhes da DF' }));
+    expect(onDfDetailsToggle).toHaveBeenCalledTimes(1);
   });
 
-  it('no 2º saque Out e Net viram "Dupla falta": destaque com subrótulo e nome acessível preservado', () => {
-    renderSection({ step: 'second', showSecondBadge: true });
-
-    const out = screen.getByRole('button', { name: 'Out' });
-    const net = screen.getByRole('button', { name: 'Net' });
-    expect(out).toHaveClass('bg-telemetry-error/20');
-    expect(net).toHaveClass('bg-telemetry-error/20');
-    expect(screen.getAllByText('Dupla falta')).toHaveLength(2);
-    expect(screen.getByRole('button', { name: 'Ace' })).toHaveClass('text-telemetry-volt');
-  });
-
-  it('continua enviando o passo correto ao clicar (first / second)', () => {
-    const first = renderSection();
-    fireEvent.click(screen.getByRole('button', { name: 'Out' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Net' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Ace' }));
-    expect(first.onOut).toHaveBeenCalledWith('first');
-    expect(first.onNet).toHaveBeenCalledWith('first');
-    expect(first.onAce).toHaveBeenCalledTimes(1);
-  });
-
-  it('envia "second" no 2º saque', () => {
-    const second = renderSection({ step: 'second' });
-
-    fireEvent.click(screen.getByRole('button', { name: 'Out' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Net' }));
-
-    expect(second.onOut).toHaveBeenCalledWith('second');
-    expect(second.onNet).toHaveBeenCalledWith('second');
-  });
-
-  it('desabilita os três botões quando disabled', () => {
+  it('desabilita os checkboxes quando disabled', () => {
     renderSection({ disabled: true });
+    expect(screen.getByRole('checkbox', { name: 'Detalhes do ACE' })).toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: 'Detalhes da DF' })).toBeDisabled();
+  });
 
+  it('não renderiza Ace/Out/Net (ficam sob o card do sacador)', () => {
+    renderSection();
     for (const name of ['Ace', 'Out', 'Net']) {
-      expect(screen.getByRole('button', { name })).toBeDisabled();
+      expect(screen.queryByRole('button', { name })).not.toBeInTheDocument();
     }
   });
 });

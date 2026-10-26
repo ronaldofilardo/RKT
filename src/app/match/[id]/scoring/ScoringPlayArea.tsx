@@ -19,13 +19,17 @@ export function ScoringPlayArea({
   completedSetsCount,
   p1IsServing, p2IsServing, activeServerId, activeReceiverId, isSetPoint, isBreakPoint, isMatchPoint,
   isTiebreak, isSuperTiebreak, winner, pointsHistory, scoreState, isFinished,
+  serverControls, isServePanelOpen = false,
   onOpenSetSummary, onPoint, onSwipeUndo, onNavigateReport, onRegisterAndExit,
 }: ScoringPlayAreaProps) {
   // flex-1 min-h-0: ocupa o espaço entre header e ActionBar; os cards dos jogadores
-  // absorvem a sobra/falta de altura. overflow-y-auto é só rede de segurança para
-  // telas muito baixas (o ActionBar fica sempre visível, fora desta área).
+  // absorvem a sobra/falta de altura. SEM scroll interno: com o painel de detalhes
+  // aberto, blocos secundários recolhem via [data-serve-collapse] (globals.css).
   return (
-    <div className="flex-1 min-h-0 flex flex-col gap-1 px-2 sm:px-3 py-1 sm:py-2 relative overflow-y-auto overflow-x-hidden">
+    <div
+      data-serve-panel={isServePanelOpen ? 'open' : 'closed'}
+      className="flex-1 min-h-0 flex flex-col gap-1 px-2 sm:px-3 py-1 sm:py-2 relative overflow-hidden"
+    >
       <div className="absolute inset-0 opacity-20 pointer-events-none">
         <CourtBackground courtType={match.courtType} />
       </div>
@@ -35,17 +39,15 @@ export function ScoringPlayArea({
       </div>
 
       {/* Boxes de Estatísticas ao Vivo e Insight Tático */}
-      <div className="flex flex-col gap-1 flex-shrink-0">
+      <div className="flex flex-col gap-1 flex-shrink-0" data-serve-collapse="stats">
         <LiveCountersBar
           counters={liveCounters}
           player1Name={match.player1.name}
           player2Name={match.player2.name}
           completedSetsCount={completedSetsCount}
           onOpenSetSummary={onOpenSetSummary}
-          p1IsServing={p1IsServing}
-          p2IsServing={p2IsServing}
         />
-        <TacticalInsightBanner insights={tacticalInsights} />
+        {!isServePanelOpen && <TacticalInsightBanner insights={tacticalInsights} />}
       </div>
 
       <PlayAreaPlayers
@@ -62,14 +64,17 @@ export function ScoringPlayArea({
         isBreakPoint={isBreakPoint}
         winner={winner}
         isFinished={isFinished}
+        serverControls={serverControls}
         onPoint={onPoint}
         onSwipeUndo={onSwipeUndo}
       />
 
-      <ContextBadges
-        isMatchPoint={isMatchPoint} isSetPoint={isSetPoint} isBreakPoint={isBreakPoint}
-        isTiebreak={isTiebreak} isSuperTiebreak={isSuperTiebreak} pointsHistory={pointsHistory}
-      />
+      <div data-serve-collapse="extras" className="contents">
+        <ContextBadges
+          isMatchPoint={isMatchPoint} isSetPoint={isSetPoint} isBreakPoint={isBreakPoint}
+          isTiebreak={isTiebreak} isSuperTiebreak={isSuperTiebreak} pointsHistory={pointsHistory}
+        />
+      </div>
 
       {isFinished && (
         <ScoringFinishedBanner

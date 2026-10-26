@@ -5,210 +5,73 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { ActionBar } from '@/components/scoring/ActionBar';
 
-function renderActionBar(onAceDirect: () => void, onAceWithDetails: () => void) {
-  return render(
-    <ActionBar
-      secondServe={false}
-      serveStep="none"
-      canUndo={false}
-      canEdit={false}
-      fontScale={1}
-      isFinished={false}
-      onAceDirect={onAceDirect}
-      onAceWithDetails={onAceWithDetails}
-      onOut={() => undefined}
-      onNet={() => undefined}
-      onOutDirect={() => undefined}
-      onNetDirect={() => undefined}
-      dfDetailsEnabled={false}
-      onDfDetailsToggle={() => undefined}
-      onVoltar={() => undefined}
-      onFontSmaller={() => undefined}
-      onFontBigger={() => undefined}
-      onEditScore={() => undefined}
-    />,
-  );
+type Props = React.ComponentProps<typeof ActionBar>;
+
+function renderBar(overrides: Partial<Props> = {}) {
+  const props: Props = {
+    secondServe: false,
+    serveStep: 'none',
+    canUndo: false,
+    canEdit: false,
+    fontScale: 1,
+    isFinished: false,
+    aceDetailsEnabled: false,
+    dfDetailsEnabled: false,
+    onAceDetailsToggle: () => undefined,
+    onDfDetailsToggle: () => undefined,
+    onVoltar: () => undefined,
+    onFontSmaller: () => undefined,
+    onFontBigger: () => undefined,
+    onEditScore: () => undefined,
+    ...overrides,
+  };
+  return render(<ActionBar {...props} />);
 }
 
-describe('ActionBar - Detalhes do ACE', () => {
-  it('envia false e não abre o fluxo de detalhes quando a opção está desmarcada', () => {
-    const onAce = jest.fn();
-    const onAceWithDetails = jest.fn();
-    renderActionBar(onAce, onAceWithDetails);
+describe('ActionBar - Ace/Out/Net saíram do rodapé (agora sob o card do sacador)', () => {
+  it('não renderiza os botões Ace, Out e Net', () => {
+    renderBar();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Ace' }));
-
-    expect(onAce).toHaveBeenCalledTimes(1);
-    expect(onAceWithDetails).not.toHaveBeenCalled();
-    expect(screen.queryByText('Efeito do Saque')).not.toBeInTheDocument();
+    for (const name of ['Ace', 'Out', 'Net']) {
+      expect(screen.queryByRole('button', { name })).not.toBeInTheDocument();
+    }
   });
 
-  it('envia true quando o anotador habilita os detalhes do ACE', () => {
-    const onAce = jest.fn();
-    const onAceWithDetails = jest.fn();
-    renderActionBar(onAce, onAceWithDetails);
+  it('mantém os dois checkboxes de detalhe no rodapé sem o selo de saque duplicado', () => {
+    renderBar();
 
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Detalhes do ACE' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Ace' }));
-
-    expect(onAce).not.toHaveBeenCalled();
-    expect(onAceWithDetails).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('1º SAQUE')).not.toBeInTheDocument();
+    expect(screen.queryByText('2º SAQUE')).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'Detalhes do ACE' })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'Detalhes da DF' })).toBeInTheDocument();
   });
 });
 
-describe('ActionBar - Detalhes da DF', () => {
-  it('quando desmarcado, Out chama onOutDirect e não abre modal', () => {
-    const onOut = jest.fn();
-    const onOutDirect = jest.fn();
-    render(
-      <ActionBar
-        secondServe={false}
-        serveStep="none"
-        canUndo={false}
-        canEdit={false}
-        fontScale={1}
-        isFinished={false}
-        onAceDirect={() => undefined}
-        onAceWithDetails={() => undefined}
-        onOut={onOut}
-        onNet={() => undefined}
-        onOutDirect={onOutDirect}
-        onNetDirect={() => undefined}
-        onVoltar={() => undefined}
-        onFontSmaller={() => undefined}
-        onFontBigger={() => undefined}
-        onEditScore={() => undefined}
-      />,
-    );
+describe('ActionBar - checkboxes de detalhe (estado controlado pelo hook)', () => {
+  it('refletem aceDetailsEnabled / dfDetailsEnabled', () => {
+    renderBar({ aceDetailsEnabled: true, dfDetailsEnabled: false });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Out' }));
-
-    expect(onOutDirect).toHaveBeenCalledTimes(1);
-    expect(onOut).not.toHaveBeenCalled();
+    expect(screen.getByRole('checkbox', { name: 'Detalhes do ACE' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Detalhes da DF' })).not.toBeChecked();
   });
 
-  it('quando desmarcado, Net chama onNetDirect e não abre modal', () => {
-    const onNet = jest.fn();
-    const onNetDirect = jest.fn();
-    render(
-      <ActionBar
-        secondServe={false}
-        serveStep="none"
-        canUndo={false}
-        canEdit={false}
-        fontScale={1}
-        isFinished={false}
-        onAceDirect={() => undefined}
-        onAceWithDetails={() => undefined}
-        onOut={() => undefined}
-        onNet={onNet}
-        onOutDirect={() => undefined}
-        onNetDirect={onNetDirect}
-        onVoltar={() => undefined}
-        onFontSmaller={() => undefined}
-        onFontBigger={() => undefined}
-        onEditScore={() => undefined}
-      />,
-    );
+  it('chamam os toggles ao clicar', () => {
+    const onAceDetailsToggle = jest.fn();
+    const onDfDetailsToggle = jest.fn();
+    renderBar({ onAceDetailsToggle, onDfDetailsToggle });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Net' }));
-
-    expect(onNetDirect).toHaveBeenCalledTimes(1);
-    expect(onNet).not.toHaveBeenCalled();
-  });
-
-  it('quando marcado, Out chama onOut (modal) e não onOutDirect', () => {
-    const onOut = jest.fn();
-    const onOutDirect = jest.fn();
-    render(
-      <ActionBar
-        secondServe={false}
-        serveStep="none"
-        canUndo={false}
-        canEdit={false}
-        fontScale={1}
-        isFinished={false}
-        onAceDirect={() => undefined}
-        onAceWithDetails={() => undefined}
-        onOut={onOut}
-        onNet={() => undefined}
-        onOutDirect={onOutDirect}
-        onNetDirect={() => undefined}
-        onVoltar={() => undefined}
-        onFontSmaller={() => undefined}
-        onFontBigger={() => undefined}
-        onEditScore={() => undefined}
-      />,
-    );
-
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Detalhes do ACE' }));
     fireEvent.click(screen.getByRole('checkbox', { name: 'Detalhes da DF' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Out' }));
 
-    expect(onOut).toHaveBeenCalledTimes(1);
-    expect(onOutDirect).not.toHaveBeenCalled();
+    expect(onAceDetailsToggle).toHaveBeenCalledTimes(1);
+    expect(onDfDetailsToggle).toHaveBeenCalledTimes(1);
   });
 
-  it('quando marcado, Net chama onNet (modal) e não onNetDirect', () => {
-    const onNet = jest.fn();
-    const onNetDirect = jest.fn();
-    render(
-      <ActionBar
-        secondServe={false}
-        serveStep="none"
-        canUndo={false}
-        canEdit={false}
-        fontScale={1}
-        isFinished={false}
-        onAceDirect={() => undefined}
-        onAceWithDetails={() => undefined}
-        onOut={() => undefined}
-        onNet={onNet}
-        onOutDirect={() => undefined}
-        onNetDirect={onNetDirect}
-        onVoltar={() => undefined}
-        onFontSmaller={() => undefined}
-        onFontBigger={() => undefined}
-        onEditScore={() => undefined}
-      />,
-    );
+  it('ficam desabilitados com a partida finalizada', () => {
+    renderBar({ isFinished: true });
 
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Detalhes da DF' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Net' }));
-
-    expect(onNet).toHaveBeenCalledTimes(1);
-    expect(onNetDirect).not.toHaveBeenCalled();
-  });
-
-  it('checkbox Detalhes da DF alterna o estado interno', () => {
-    render(
-      <ActionBar
-        secondServe={false}
-        serveStep="none"
-        canUndo={false}
-        canEdit={false}
-        fontScale={1}
-        isFinished={false}
-        onAceDirect={() => undefined}
-        onAceWithDetails={() => undefined}
-        onOut={() => undefined}
-        onNet={() => undefined}
-        onOutDirect={() => undefined}
-        onNetDirect={() => undefined}
-        onVoltar={() => undefined}
-        onFontSmaller={() => undefined}
-        onFontBigger={() => undefined}
-        onEditScore={() => undefined}
-      />,
-    );
-
-    const checkbox = screen.getByRole('checkbox', { name: 'Detalhes da DF' });
-    expect(checkbox).not.toBeChecked();
-
-    fireEvent.click(checkbox);
-    expect(checkbox).toBeChecked();
-
-    fireEvent.click(checkbox);
-    expect(checkbox).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Detalhes do ACE' })).toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: 'Detalhes da DF' })).toBeDisabled();
   });
 });
 
@@ -219,61 +82,19 @@ describe('ActionBar - Editar Placar bloqueado durante anotação de 2º saque', 
   // antes da edição ficava "grudado" e era enviado junto do próximo ponto
   // fechado após a edição, contaminando a anotação detalhada desse ponto
   // no /report. Agora o botão fica desabilitado nesse estado.
-  function renderWithServeStep(serveStep: 'none' | 'second') {
-    return render(
-      <ActionBar
-        secondServe={serveStep === 'second'}
-        serveStep={serveStep}
-        canUndo={false}
-        canEdit={true}
-        fontScale={1}
-        isFinished={false}
-        onAceDirect={() => undefined}
-        onAceWithDetails={() => undefined}
-        onOut={() => undefined}
-        onNet={() => undefined}
-        onOutDirect={() => undefined}
-        onNetDirect={() => undefined}
-        onVoltar={() => undefined}
-        onFontSmaller={() => undefined}
-        onFontBigger={() => undefined}
-        onEditScore={() => undefined}
-      />,
-    );
-  }
-
   it('desabilita o botão ✏️ quando serveStep é "second" (erro de 1º saque pendente)', () => {
-    renderWithServeStep('second');
+    renderBar({ secondServe: true, serveStep: 'second', canEdit: true });
     expect(screen.getByRole('button', { name: 'Corrigir placar' })).toBeDisabled();
   });
 
   it('mantém o botão ✏️ habilitado quando serveStep é "none"', () => {
-    renderWithServeStep('none');
+    renderBar({ canEdit: true });
     expect(screen.getByRole('button', { name: 'Corrigir placar' })).not.toBeDisabled();
   });
 
   it('onEditScore não é chamado ao clicar no botão desabilitado', () => {
     const onEditScore = jest.fn();
-    render(
-      <ActionBar
-        secondServe={true}
-        serveStep="second"
-        canUndo={false}
-        canEdit={true}
-        fontScale={1}
-        isFinished={false}
-        onAceDirect={() => undefined}
-        onAceWithDetails={() => undefined}
-        onOut={() => undefined}
-        onNet={() => undefined}
-        onOutDirect={() => undefined}
-        onNetDirect={() => undefined}
-        onVoltar={() => undefined}
-        onFontSmaller={() => undefined}
-        onFontBigger={() => undefined}
-        onEditScore={onEditScore}
-      />,
-    );
+    renderBar({ secondServe: true, serveStep: 'second', canEdit: true, onEditScore });
 
     fireEvent.click(screen.getByRole('button', { name: 'Corrigir placar' }));
     expect(onEditScore).not.toHaveBeenCalled();
@@ -282,30 +103,10 @@ describe('ActionBar - Editar Placar bloqueado durante anotação de 2º saque', 
 
 describe('ActionBar - Remoção dos botões de escala de fonte (A- / A+)', () => {
   it('não renderiza os botões A-, A+ nem a porcentagem de escala de fonte', () => {
-    render(
-      <ActionBar
-        secondServe={false}
-        serveStep="none"
-        canUndo={true}
-        canEdit={true}
-        fontScale={1}
-        isFinished={false}
-        onAceDirect={() => undefined}
-        onAceWithDetails={() => undefined}
-        onOut={() => undefined}
-        onNet={() => undefined}
-        onOutDirect={() => undefined}
-        onNetDirect={() => undefined}
-        onVoltar={() => undefined}
-        onFontSmaller={() => undefined}
-        onFontBigger={() => undefined}
-        onEditScore={() => undefined}
-      />,
-    );
+    renderBar({ canUndo: true, canEdit: true });
 
     expect(screen.queryByRole('button', { name: 'A-' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'A+' })).not.toBeInTheDocument();
     expect(screen.queryByText(/100%/)).not.toBeInTheDocument();
   });
 });
-

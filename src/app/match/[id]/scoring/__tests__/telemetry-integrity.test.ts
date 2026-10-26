@@ -39,8 +39,8 @@ describe('Telemetry Design System — Guardrail de Integridade Anti-Regressão',
     expect(content).toContain('<LiveCountersBar');
 
     // Proteção contra compressão em telas reduzidas
-    expect(content).toMatch(/<div className="[^"]*flex-shrink-0[^"]*">\s*<ScoreboardCard/);
-    expect(content).toMatch(/<div className="[^"]*flex-shrink-0[^"]*">\s*<LiveCountersBar/);
+    expect(content).toMatch(/<div\b[^>]*\bclassName="[^"]*flex-shrink-0[^"]*"[^>]*>\s*<ScoreboardCard/);
+    expect(content).toMatch(/<div\b[^>]*\bclassName="[^"]*flex-shrink-0[^"]*"[^>]*>\s*<LiveCountersBar/);
   });
 
   test('3. CourtBackground tem opacidade sutil e não domina a tela com azul sólido', () => {
