@@ -42,6 +42,8 @@ export function ScoringPlayArea({
           player2Name={match.player2.name}
           completedSetsCount={completedSetsCount}
           onOpenSetSummary={onOpenSetSummary}
+          p1IsServing={p1IsServing}
+          p2IsServing={p2IsServing}
         />
         <TacticalInsightBanner insights={tacticalInsights} />
       </div>

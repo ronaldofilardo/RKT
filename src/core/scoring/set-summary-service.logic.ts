@@ -14,17 +14,17 @@ export function calculateServiceStats(
   return {
     totalServicePoints: serve.totalPoints,
     firstServesIn: serve.firstServeIn,
-    firstServePct: serve.firstServePct,
+    firstServePct: Math.round(serve.firstServePct),
     firstServePointsWon: serve.firstServePointsWon,
-    firstServePointsWonPct: serve.firstServePointsWonPct,
+    firstServePointsWonPct: Math.round(serve.firstServePointsWonPct),
     secondServesIn: serve.totalPoints - serve.firstServeIn,
     secondServePointsWon: serve.secondServePointsWon,
-    secondServePointsWonPct: serve.secondServePointsWonPct,
+    secondServePointsWonPct: Math.round(serve.secondServePointsWonPct),
     aces: serve.aces,
     doubleFaults: serve.doubleFaults,
     breakPointsFaced: serve.breakPointsFaced,
     breakPointsSaved: serve.breakPointsSaved,
-    breakPointsSavedPct: serve.breakPointsSavedPct,
+    breakPointsSavedPct: Math.round(serve.breakPointsSavedPct),
   };
 }
 
@@ -49,7 +49,7 @@ export function calculateReturnBreakPoints(
   }
 
   const breakPointsConvertedPct =
-    breakPointsOpportunities > 0 ? (breakPointsConverted / breakPointsOpportunities) * 100 : 0;
+    breakPointsOpportunities > 0 ? Math.round((breakPointsConverted / breakPointsOpportunities) * 100) : 0;
 
   return {
     breakPointsOpportunities,

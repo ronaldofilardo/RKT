@@ -1,10 +1,8 @@
 /**
- * Regressão (2026-09-08): card de partida em /dashboard mostrava só os
- * pontos do tiebreak (ex.: "1") para o set atual em 6x6, perdendo o placar
- * de games do set. formatCompactSetScore ganhou o parâmetro
- * isDecisiveMatchTiebreak e isSetIndexMatchTiebreak generaliza
- * isCurrentSetMatchTiebreak para qualquer índice de set.
+ * @jest-environment jsdom
  */
+import React from "react";
+import { render } from "@testing-library/react";
 import {
   formatCompactSetScore,
   isSetIndexMatchTiebreak,
@@ -18,37 +16,44 @@ describe("formatCompactSetScore", () => {
     expect(formatCompactSetScore(set, "player2")).toBe("4");
   });
 
-  it("BUG (2026-09-08): tiebreak EM ANDAMENTO (games 6x6) deve mostrar games + pontos, não só os pontos", () => {
+  it("tiebreak EM ANDAMENTO (games 6x6) deve mostrar games + pontos em superscript", () => {
     const set = {
       player1: 6,
       player2: 6,
       isTiebreak: true,
       tiebreakScore: { player1: 1, player2: 1 },
     };
-    // Antes do fix, isso retornava apenas "1" (perdendo os games 6x6).
-    expect(formatCompactSetScore(set, "player1")).toBe("6 [1]");
-    expect(formatCompactSetScore(set, "player2")).toBe("6 [1]");
+    const r1 = render(React.createElement("div", null, formatCompactSetScore(set, "player1")));
+    expect(r1.container.textContent).toBe("61");
+    expect(r1.container.querySelector("sup")?.textContent).toBe("1");
   });
 
-  it("tiebreak JÁ RESOLVIDO (7x6) continua mostrando games + pontos do TB", () => {
+  it("tiebreak JÁ RESOLVIDO (7x6) mostra games + pontos do TB em sobrescrito para ambos", () => {
     const set = {
       player1: 7,
       player2: 6,
       isTiebreak: true,
       tiebreakScore: { player1: 10, player2: 8 },
     };
-    expect(formatCompactSetScore(set, "player1")).toBe("7 [10]");
-    expect(formatCompactSetScore(set, "player2")).toBe("6 [8]");
+    const r1 = render(React.createElement("div", null, formatCompactSetScore(set, "player1")));
+    expect(r1.container.textContent).toBe("710");
+    expect(r1.container.querySelector("sup")?.textContent).toBe("10");
+
+    const r2 = render(React.createElement("div", null, formatCompactSetScore(set, "player2")));
+    expect(r2.container.textContent).toBe("68");
+    expect(r2.container.querySelector("sup")?.textContent).toBe("8");
   });
 
-  it("Match Tiebreak decisivo (isDecisiveMatchTiebreak=true) mostra só os pontos", () => {
+  it("Match Tiebreak decisivo (isDecisiveMatchTiebreak=true) mostra vencedor com sup do oponente e perdedor direto", () => {
     const set = {
       player1: 0,
       player2: 0,
       isTiebreak: true,
       tiebreakScore: { player1: 10, player2: 7 },
     };
-    expect(formatCompactSetScore(set, "player1", true)).toBe("10 [7]");
+    const r1 = render(React.createElement("div", null, formatCompactSetScore(set, "player1", true)));
+    expect(r1.container.textContent).toBe("107");
+    expect(r1.container.querySelector("sup")?.textContent).toBe("7");
     expect(formatCompactSetScore(set, "player2", true)).toBe("7");
   });
 });

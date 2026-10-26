@@ -70,6 +70,44 @@ describe('LiveCountersBar e TacticalInsightBanner', () => {
       fireEvent.click(expandBtn);
       expect(screen.getByText('Aces')).toBeInTheDocument();
     });
+
+    it('aplica text-telemetry-volt para o sacador e text-telemetry-text-primary para o recebedor', () => {
+      // p2 está sacando (ex.: Jannik Sinner) e p1 está recebendo (ex.: Carlos Alcaraz)
+      render(
+        <LiveCountersBar
+          counters={mockCounters}
+          player1Name="Carlos Alcaraz"
+          player2Name="Jannik Sinner"
+          p1IsServing={false}
+          p2IsServing={true}
+        />,
+      );
+
+      // No card de Aces: p1 tem 3, p2 tem 1
+      const p1Ace = screen.getByTitle('Carlos: 3');
+      const p2Ace = screen.getByTitle('Jannik: 1');
+
+      expect(p1Ace).toHaveClass('text-telemetry-text-primary');
+      expect(p2Ace).toHaveClass('text-telemetry-volt');
+    });
+
+    it('inverte as cores quando p1 passa a sacar', () => {
+      render(
+        <LiveCountersBar
+          counters={mockCounters}
+          player1Name="Carlos Alcaraz"
+          player2Name="Jannik Sinner"
+          p1IsServing={true}
+          p2IsServing={false}
+        />,
+      );
+
+      const p1Ace = screen.getByTitle('Carlos: 3');
+      const p2Ace = screen.getByTitle('Jannik: 1');
+
+      expect(p1Ace).toHaveClass('text-telemetry-volt');
+      expect(p2Ace).toHaveClass('text-telemetry-text-primary');
+    });
   });
 
   describe('TacticalInsightBanner', () => {

@@ -14,8 +14,7 @@ export function getGolpeOptions(_vencedor: Vencedor, situacao: RallySituacao, ti
   if (situacao === 'fundo' || situacao === 'devolucao') return ['fh', 'bh'];
   if (situacao === 'passada') {
     if (tipo === 'winner') return ['fh', 'bh'];
-    if (tipo === 'erro_forcado') return ['vfh', 'vbh', 'smash', 'approach_fh', 'approach_bh'];
-    return ['vfh', 'vbh', 'smash'];
+    return ['vfh', 'vbh', 'smash', 'approach_fh', 'approach_bh'];
   }
   if (situacao === 'rede') {
     if (tipo === 'winner') return ['vfh', 'vbh', 'smash', 'approach_fh', 'approach_bh'];

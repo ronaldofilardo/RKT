@@ -1,3 +1,4 @@
+import React, { type ReactNode } from 'react';
 import { GAME_POINTS } from '@/core/scoring/point.logic';
 import type { SetCellScore } from './match-card.types';
 
@@ -47,41 +48,45 @@ export function getLastSetPointDisplay(
 }
 
 /**
- * Formata o placar de um set em notação compacta para exibição no card.
+ * Formata o placar de um set em notação compacta alinhada para exibição no card.
  *
  * - Set normal:          "6" / "3" (games)
- * - Tiebreak regular:    "7 [6]" / "6" (games com placar do TB)
- * - Match Tiebreak:      "10 [8]" / "8" (pontos do TB)
- *
- * A notação é compacta para caber nas colunas de 3.5rem do grid.
+ * - Vencedor do tiebreak: "7" (apenas games, sem sobrescrito)
+ * - Perdedor do tiebreak: 6³ (games com pontos do TB sobrescritos)
+ * - Match Tiebreak:      "10" / "8" (pontuação direta de cada jogador)
  */
 export function formatCompactSetScore(
   set: SetCellScore,
   player: 'player1' | 'player2',
   isDecisiveMatchTiebreak = false,
-): string {
-  // Bug fix (2026-09-08): a checagem original só reconhecia um tiebreak comum de
-  // set quando os games JÁ estavam resolvidos em 7-6/6-7. Enquanto o tiebreak
-  // ainda está em andamento (games empatados, ex.: 6x6, tiebreak 1x1), a
-  // condição era falsa e o código caía no ramo pensado para o Match Tiebreak
-  // decisivo, mostrando só os pontos do tiebreak (ex.: "1") e perdendo
-  // completamente o placar de games do set (6x6). Agora, sempre que NÃO for o
-  // Match Tiebreak decisivo, um set com tiebreakScore (em andamento ou já
-  // resolvido) mostra games + pontos diretos do tiebreak: "6[1]", "7[7]" etc.
-  if (!isDecisiveMatchTiebreak && set.tiebreakScore) {
-    const gameScore = set[player] ?? 0;
-    const tbScore = set.tiebreakScore[player] ?? 0;
-    return `${gameScore} [${tbScore}]`;
-  }
-
-  if (set.tiebreakScore) {
+): ReactNode {
+  const isMatchTb = isDecisiveMatchTiebreak || (set.player1 <= 1 && set.player2 <= 1 && !!set.tiebreakScore);
+  if (isMatchTb && set.tiebreakScore) {
     const score = set.tiebreakScore[player] ?? 0;
-    const opponent = player === 'player1' ? set.tiebreakScore.player2 : set.tiebreakScore.player1;
-    if (score > opponent) {
-      return `${score} [${opponent}]`;
+    const opponentKey = player === 'player1' ? 'player2' : 'player1';
+    const opponentScore = set.tiebreakScore[opponentKey] ?? 0;
+
+    if (score > opponentScore) {
+      return React.createElement(
+        'span',
+        null,
+        score,
+        React.createElement('sup', { className: 'text-[9px] leading-none opacity-80' }, opponentScore),
+      );
     }
     return String(score);
   }
 
-  return String(set[player] ?? 0);
+  const gameScore = set[player] ?? 0;
+  if (!set.tiebreakScore) {
+    return String(gameScore);
+  }
+
+  const tbScore = set.tiebreakScore[player] ?? 0;
+  return React.createElement(
+    'span',
+    null,
+    gameScore,
+    React.createElement('sup', { className: 'text-[9px] leading-none opacity-80' }, tbScore),
+  );
 }

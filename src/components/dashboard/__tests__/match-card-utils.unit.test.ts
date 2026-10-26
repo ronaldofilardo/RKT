@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   formatSetScore,
   formatGamePoints,
@@ -155,27 +156,42 @@ describe('formatCompactSetScore', () => {
     ).toBe('6');
   });
 
-  it('retorna games[points] quando não é decisive match tiebreak e há tiebreakScore', () => {
-    expect(
-      formatCompactSetScore(
-        { player1: 6, player2: 6, isTiebreak: true, tiebreakScore: { player1: 3, player2: 2 } },
-        'player1',
-        false,
-      ),
-    ).toBe('6 [3]');
+  it('retorna games com superscript quando tiebreak está em andamento (6x6)', () => {
+    const el = formatCompactSetScore(
+      { player1: 6, player2: 6, isTiebreak: true, tiebreakScore: { player1: 3, player2: 2 } },
+      'player1',
+      false,
+    );
+    expect(React.isValidElement(el)).toBe(true);
+    const element = el as React.ReactElement;
+    expect(element.props.children[0]).toBe(6);
+    expect(element.props.children[1].props.children).toBe(3);
   });
 
-  it('retorna apenas pontos do tiebreak quando é decisive match tiebreak e player vence', () => {
-    expect(
-      formatCompactSetScore(
-        { player1: 0, player2: 0, isTiebreak: true, tiebreakScore: { player1: 10, player2: 8 } },
-        'player1',
-        true,
-      ),
-    ).toBe('10 [8]');
+  it('retorna games com superscript para ambos quando o tiebreak foi resolvido', () => {
+    const el = formatCompactSetScore(
+      { player1: 7, player2: 6, isTiebreak: true, tiebreakScore: { player1: 7, player2: 3 } },
+      'player1',
+    );
+    expect(React.isValidElement(el)).toBe(true);
+    const element = el as React.ReactElement;
+    expect(element.props.children[0]).toBe(7);
+    expect(element.props.children[1].props.children).toBe(7);
   });
 
-  it('retorna apenas pontos quando é decisive match tiebreak e player perde', () => {
+  it('retorna pontos com oponente em superscript quando é decisive match tiebreak e vence', () => {
+    const el = formatCompactSetScore(
+      { player1: 0, player2: 0, isTiebreak: true, tiebreakScore: { player1: 10, player2: 8 } },
+      'player1',
+      true,
+    );
+    expect(React.isValidElement(el)).toBe(true);
+    const element = el as React.ReactElement;
+    expect(element.props.children[0]).toBe(10);
+    expect(element.props.children[1].props.children).toBe(8);
+  });
+
+  it('retorna apenas pontos do próprio jogador quando é decisive match tiebreak e perde', () => {
     expect(
       formatCompactSetScore(
         { player1: 0, player2: 0, isTiebreak: true, tiebreakScore: { player1: 8, player2: 10 } },
@@ -185,13 +201,15 @@ describe('formatCompactSetScore', () => {
     ).toBe('8');
   });
 
-  it('retorna games[points] com default false para isDecisiveMatchTiebreak', () => {
-    expect(
-      formatCompactSetScore(
-        { player1: 6, player2: 6, isTiebreak: true, tiebreakScore: { player1: 5, player2: 4 } },
-        'player1',
-      ),
-    ).toBe('6 [5]');
+  it('retorna games com superscript com default false para isDecisiveMatchTiebreak', () => {
+    const el = formatCompactSetScore(
+      { player1: 6, player2: 6, isTiebreak: true, tiebreakScore: { player1: 5, player2: 4 } },
+      'player1',
+    );
+    expect(React.isValidElement(el)).toBe(true);
+    const element = el as React.ReactElement;
+    expect(element.props.children[0]).toBe(6);
+    expect(element.props.children[1].props.children).toBe(5);
   });
 
   it('retorna "0" para set vazio sem tiebreak', () => {

@@ -133,8 +133,9 @@ describe('point-details-logic', () => {
       expect(getGolpeOptions('devolvedor', 'passada', 'erro_forcado')).toEqual(['vfh', 'vbh', 'smash', 'approach_fh', 'approach_bh']);
     });
 
-    it('passada erro_nao_forcado retorna voleios e smash sem aproachs', () => {
-      expect(getGolpeOptions('sacador', 'passada', 'erro_nao_forcado')).toEqual(['vfh', 'vbh', 'smash']);
+    it('passada erro_nao_forcado retorna voleios, smash e aproachs', () => {
+      expect(getGolpeOptions('sacador', 'passada', 'erro_nao_forcado')).toEqual(['vfh', 'vbh', 'smash', 'approach_fh', 'approach_bh']);
+      expect(getGolpeOptions('devolvedor', 'passada', 'erro_nao_forcado')).toEqual(['vfh', 'vbh', 'smash', 'approach_fh', 'approach_bh']);
     });
 
     it('rede winner retorna voleios, smash e aproachs', () => {

@@ -12,6 +12,8 @@ interface SetSummaryStatsSectionsProps {
 
 /** Seções de saque/eficiência (barras, aces, duplas faltas) e break points. */
 export function SetSummaryStatsSections({ p1, p2 }: SetSummaryStatsSectionsProps) {
+  const formatPct = (val: number) => `${Math.round(val || 0)}%`;
+
   return (
     <>
       <div className="bg-telemetry-elevated/40 border border-white/10 rounded-xl p-3.5 space-y-1">
@@ -22,15 +24,15 @@ export function SetSummaryStatsSections({ p1, p2 }: SetSummaryStatsSectionsProps
           label="1º Serviço em Quadra"
           p1Value={p1.firstServePct}
           p2Value={p2.firstServePct}
-          p1Label={`${p1.firstServePct}% (${p1.firstServesIn}/${p1.totalServicePoints})`}
-          p2Label={`${p2.firstServePct}% (${p2.firstServesIn}/${p2.totalServicePoints})`}
+          p1Label={`${formatPct(p1.firstServePct)} (${p1.firstServesIn}/${p1.totalServicePoints})`}
+          p2Label={`${formatPct(p2.firstServePct)} (${p2.firstServesIn}/${p2.totalServicePoints})`}
         />
         <StatBarBilateral
           label="Pontos com 1º Saque"
           p1Value={p1.firstServePointsWonPct}
           p2Value={p2.firstServePointsWonPct}
-          p1Label={`${p1.firstServePointsWonPct}%`}
-          p2Label={`${p2.firstServePointsWonPct}%`}
+          p1Label={formatPct(p1.firstServePointsWonPct)}
+          p2Label={formatPct(p2.firstServePointsWonPct)}
         />
 
         <div className="grid grid-cols-2 gap-2 pt-2 mt-2 border-t border-white/5">
@@ -62,10 +64,10 @@ export function SetSummaryStatsSections({ p1, p2 }: SetSummaryStatsSectionsProps
             <div className="text-[11px] text-telemetry-text-muted font-medium mb-1">Convertidos (Devolução)</div>
             <div className="flex justify-around items-center font-mono text-xs">
               <span className="font-bold text-telemetry-blue">
-                {p1.breakPointsConverted}/{p1.breakPointsOpportunities} ({p1.breakPointsConvertedPct}%)
+                {p1.breakPointsConverted}/{p1.breakPointsOpportunities} ({formatPct(p1.breakPointsConvertedPct)})
               </span>
               <span className="font-bold text-telemetry-error">
-                {p2.breakPointsConverted}/{p2.breakPointsOpportunities} ({p2.breakPointsConvertedPct}%)
+                {p2.breakPointsConverted}/{p2.breakPointsOpportunities} ({formatPct(p2.breakPointsConvertedPct)})
               </span>
             </div>
           </div>
@@ -73,10 +75,10 @@ export function SetSummaryStatsSections({ p1, p2 }: SetSummaryStatsSectionsProps
             <div className="text-[11px] text-telemetry-text-muted font-medium mb-1">Salvos (Saque)</div>
             <div className="flex justify-around items-center font-mono text-xs">
               <span className="font-bold text-telemetry-blue">
-                {p1.breakPointsSaved}/{p1.breakPointsFaced} ({p1.breakPointsSavedPct}%)
+                {p1.breakPointsSaved}/{p1.breakPointsFaced} ({formatPct(p1.breakPointsSavedPct)})
               </span>
               <span className="font-bold text-telemetry-error">
-                {p2.breakPointsSaved}/{p2.breakPointsFaced} ({p2.breakPointsSavedPct}%)
+                {p2.breakPointsSaved}/{p2.breakPointsFaced} ({formatPct(p2.breakPointsSavedPct)})
               </span>
             </div>
           </div>

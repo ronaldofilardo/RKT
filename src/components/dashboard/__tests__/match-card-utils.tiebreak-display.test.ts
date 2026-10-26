@@ -1,7 +1,12 @@
+/**
+ * @jest-environment jsdom
+ */
+import React from "react";
+import { render } from "@testing-library/react";
 import { formatCompactSetScore } from "@/components/dashboard/match-card.logic";
 
 describe("Regression: Tiebreak display on MatchCard", () => {
-  it("deve mostrar '7 [7]' para player1 vencedor do tiebreak (e '6 [2]' para player2)", () => {
+  it("deve mostrar '7⁷' para player1 e '6²' para player2 com pontos de tiebreak em sobrescrito", () => {
     const set = {
       player1: 7,
       player2: 6,
@@ -9,22 +14,29 @@ describe("Regression: Tiebreak display on MatchCard", () => {
       tiebreakScore: { player1: 7, player2: 2 },
     };
 
-    expect(formatCompactSetScore(set, "player1")).toBe("7 [7]");
-    expect(formatCompactSetScore(set, "player2")).toBe("6 [2]");
+    const c1 = render(React.createElement("div", null, formatCompactSetScore(set, "player1")));
+    expect(c1.container.textContent).toBe("77");
+    expect(c1.container.querySelector("sup")?.textContent).toBe("7");
+
+    const c2 = render(React.createElement("div", null, formatCompactSetScore(set, "player2")));
+    expect(c2.container.textContent).toBe("62");
+    expect(c2.container.querySelector("sup")?.textContent).toBe("2");
   });
 
-  it("documenta o sintoma visual: se o state do engine vazar games para o set concluído (ex: 8-6), o componente apenas o renderiza fielmente", () => {
-    // Sintoma observado anteriormente (causado por falha no isSetComplete):
-    // se o scoreState persistido tiver os games errados (8-6), a função 
-    // formata o que recebe e mostra "8 [7]".
-    // Este teste documenta que a responsabilidade da correção do estado é do ScoringEngine.
+  it("documenta o sintoma visual: se o state tiver 8-6, ambos mostram games com seus respectivos pontos de TB em sup", () => {
     const setBugado = {
       player1: 8,
       player2: 6,
       isTiebreak: true,
       tiebreakScore: { player1: 7, player2: 2 },
     };
-    expect(formatCompactSetScore(setBugado, "player1")).toBe("8 [7]");
-    expect(formatCompactSetScore(setBugado, "player2")).toBe("6 [2]");
+    const c1 = render(React.createElement("div", null, formatCompactSetScore(setBugado, "player1")));
+    expect(c1.container.textContent).toBe("87");
+    expect(c1.container.querySelector("sup")?.textContent).toBe("7");
+
+    const c2 = render(React.createElement("div", null, formatCompactSetScore(setBugado, "player2")));
+    expect(c2.container.textContent).toBe("62");
+    expect(c2.container.querySelector("sup")?.textContent).toBe("2");
   });
 });
+

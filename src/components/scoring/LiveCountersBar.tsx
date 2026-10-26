@@ -10,6 +10,8 @@ interface LiveCountersBarProps {
   player2Name: string;
   completedSetsCount?: number;
   onOpenSetSummary?: () => void;
+  p1IsServing?: boolean;
+  p2IsServing?: boolean;
 }
 
 export function LiveCountersBar({
@@ -18,6 +20,8 @@ export function LiveCountersBar({
   player2Name,
   completedSetsCount = 0,
   onOpenSetSummary,
+  p1IsServing,
+  p2IsServing,
 }: LiveCountersBarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -67,7 +71,13 @@ export function LiveCountersBar({
       </div>
 
       {!collapsed && (
-        <LiveCountersGrid counters={counters} p1Short={p1Short} p2Short={p2Short} />
+        <LiveCountersGrid
+          counters={counters}
+          p1Short={p1Short}
+          p2Short={p2Short}
+          p1IsServing={p1IsServing}
+          p2IsServing={p2IsServing}
+        />
       )}
     </div>
   );

@@ -39,8 +39,11 @@ describe("MatchCard — set atual em tiebreak comum", () => {
     const text = container.textContent ?? "";
 
     // O placar de games do set atual (6) precisa aparecer combinado com o
-    // ponto do tiebreak — antes do fix, "6 [1]" nunca aparecia no texto.
+    // ponto do tiebreak em superscript (ex.: 6¹).
     expect(text).toContain("6");
-    expect(text).toContain("6 [1]");
+    const sups = container.querySelectorAll("sup");
+    expect(sups.length).toBeGreaterThanOrEqual(2);
+    expect(sups[0].textContent).toBe("1");
+    expect(sups[1].textContent).toBe("1");
   });
 });

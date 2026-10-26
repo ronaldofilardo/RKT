@@ -1,5 +1,4 @@
 import type { ReportData } from './report.types';
-import { formatDate } from './report-view.logic';
 
 interface ReportStatsProps {
   report: ReportData;
@@ -18,9 +17,8 @@ export function ReportStats({ report, p1Points, p2Points, totalPoints }: ReportS
 
   return (
     <section aria-label="Resumo estatístico" className="space-y-4 mb-6">
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <StatCard value={p1Points} label={p1Name} detail={`${percent(p1Points)}% dos pontos`} color="text-telemetry-blue" />
-        <StatCard value={totalPoints} label="Total de Pontos" detail={report.state === 'FINISHED' ? 'Partida finalizada' : formatDate(report.startedAt)} color="text-telemetry-text-primary" />
         <StatCard value={p2Points} label={p2Name} detail={`${percent(p2Points)}% dos pontos`} color="text-telemetry-error" />
       </div>
       {p1 && p2 && <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2">

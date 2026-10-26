@@ -176,4 +176,29 @@ describe('SetSummaryModal', () => {
     fireEvent.click(screen.getByText('Set 2'));
     expect(screen.getByText('Resumo do 2º Set')).toBeInTheDocument();
   });
+
+  it('formata porcentagens com dízimas periódicas como números inteiros arredondados', () => {
+    // 3 pontos de saque para Carlos: 1 primeiro saque e 2 segundos saques (1/3 = 33.3333%)
+    const periodicPoints: TimelinePoint[] = [
+      createMockPoint({ pointNumber: 1, server: 'player1', isFirstServe: true, isSecondServe: false, winner: 'PLAYER_1' }),
+      createMockPoint({ pointNumber: 2, server: 'player1', isFirstServe: false, isSecondServe: true, winner: 'PLAYER_2' }),
+      createMockPoint({ pointNumber: 3, server: 'player1', isFirstServe: false, isSecondServe: true, winner: 'PLAYER_2' }),
+    ];
+
+    render(
+      <SetSummaryModal
+        isOpen={true}
+        onClose={jest.fn()}
+        timelinePoints={periodicPoints}
+        player1Name="Carlos"
+        player2Name="Rafael"
+        initialSetNumber={1}
+        completedSetsCount={1}
+      />
+    );
+
+    // Deve exibir 33% e não 33.333333333333%
+    expect(screen.getByText('33% (1/3)')).toBeInTheDocument();
+    expect(screen.queryByText(/33\.\d+/)).not.toBeInTheDocument();
+  });
 });
