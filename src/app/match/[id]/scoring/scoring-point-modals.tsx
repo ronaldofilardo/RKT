@@ -1,40 +1,11 @@
 "use client";
 
-import { ServerEffectModal } from "@/components/scoring/ServerEffectModal";
 import { PointDetailsModal } from "@/components/scoring/PointDetailsModal";
 import type { ScoringPageState } from "./useScoringPageState";
 import type { ScoringPageHandlers } from "./useScoringPageEffects";
 import type { ScoringPageDerived } from "./useScoringPageDerived";
 import { isNoAdDecidingPoint } from "@/core/scoring/doubles";
 import type { TennisFormat } from "@/core/scoring/types";
-
-interface ServeEffectModalBlockProps {
-  state: ScoringPageState;
-  handlers: ScoringPageHandlers;
-  derived: ScoringPageDerived;
-}
-
-export function ServeEffectModalBlock({ state, handlers, derived }: ServeEffectModalBlockProps) {
-  return (
-    <ServerEffectModal
-      context={state.modalParams.context === "winner" ? "winner" : "error"}
-      serveStep={
-        (state.modalParams.serveStep === "second" ? "second" : "first") as
-          | "first"
-          | "second"
-      }
-      errorType={state.modalParams.errorType as "out" | "net" | undefined}
-      winnerName={derived.serverEffectWinnerName}
-      fontScale={state.fontScale}
-      onConfirm={
-        state.modalParams.context === "winner"
-          ? handlers.confirmServerEffect
-          : handlers.confirmServeError
-      }
-      onCancel={handlers.cancelServeError}
-    />
-  );
-}
 
 interface PointDetailsModalBlockProps {
   state: ScoringPageState;

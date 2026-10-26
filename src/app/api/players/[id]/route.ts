@@ -1,30 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
-import { withRLSHandler } from '@/lib/auth';
-import { getPlayerById } from '@/services/playerService';
-import { putPlayerResponse } from './player-put.logic';
-import { deletePlayerResponse } from './player-delete.logic';
+import { reportApiError } from '@/lib/api.logic';
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  return withRLSHandler(request, 'ANNOTATOR', async () => {
-    try {
-      const { id } = await params;
-      const player = await getPlayerById(id);
-      if (!player) {
-        return NextResponse.json({ error: 'NOT_FOUND', message: 'Atleta não encontrado' }, { status: 404 });
-      }
-      return NextResponse.json(player);
-    } catch (error) {
-      logger.error('[PLAYERS GET]', error);
-      return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });
+const BodySchema = z.object({
+  name: z.string().min(1).max(120).optional(),
+  identityStatus: z.enum(['CONFIRMED', 'PROVISIONAL']).optional(),
+});
+
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  try {
+    const body = await request.json();
+    const parsed = BodySchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'VALIDATION_ERROR', details: parsed.error.flatten() }, { status: 400 });
     }
-  });
-}
-
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  return withRLSHandler(request, 'ANNOTATOR', () => putPlayerResponse(request, { params }));
-}
-
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  return withRLSHandler(request, 'ANNOTATOR', () => deletePlayerResponse({ params }));
+    const player = await prisma.player.update({ where: { id }, data: parsed.data });
+    return NextResponse.json(player, { status: 200 });
+  } catch (error) {
+    logger.error('[PLAYER PATCH]', error);
+    return reportApiError(error);
+  }
 }

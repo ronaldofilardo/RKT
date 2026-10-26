@@ -16,9 +16,20 @@ model User {
   role               Role                     @default(ANNOTATOR)
   isActive           Boolean                  @default(true)
   club               String?
+  /// Base operacional (o "anotador"): cadastrar/buscar atletas, criar e anotar partidas.
+  canOperate         Boolean                  @default(false)
+  /// Incrementa para encerrar todas as sessões (troca de senha/vínculo/suspensão).
+  sessionVersion     Int                      @default(0)
+  lastLoginAt        DateTime?
   createdAt          DateTime                 @default(now())
   updatedAt          DateTime                 @updatedAt
 
+  memberships        Membership[]             @relation("UserMemberships")
+  athleteProfile     Player?                  @relation("PlayerAccount")
+  guardianLinks      GuardianLink[]           @relation("GuardianUser")
+  consentRecords     ConsentRecord[]          @relation("GuardianConsent")
+  athleteClaims      AthleteClaim[]           @relation("ClaimUser")
+  passwordResets     PasswordResetRequest[]   @relation("ResetUser")
   createdMatches     Match[]                  @relation("CreatedMatches")
   annotationSessions MatchAnnotationSession[] @relation("AnnotationSessions")
   endorsements       AnnotationEndorsement[]  @relation("Endorsements")
@@ -57,6 +68,22 @@ model Player {
   updatedAt          DateTime                 @updatedAt
   createdByUserId    String?
   createdByUser      User?                    @relation("CreatedPlayers", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  /// Código curto público do atleta (pool global). Preenchido por script/serviço na Fase 1C.
+  athleteCode        String?                  @unique
+  /// Conta ligada ao atleta (vínculo ATLETA).
+  userId             String?                  @unique
+  user               User?                    @relation("PlayerAccount", fields: [userId], references: [id], onDelete: SetNull)
+  clubId             String?
+  clubRef            Club?                    @relation("PlayerClub", fields: [clubId], references: [id], onDelete: SetNull)
+  identityStatus     IdentityStatus           @default(CONFIRMED)
+  mergedIntoId       String?
+  mergedInto         Player?                  @relation("PlayerMerge", fields: [mergedIntoId], references: [id], onDelete: SetNull)
+  mergedFrom         Player[]                 @relation("PlayerMerge")
+  playerCts          PlayerCT[]
+  guardianLinks      GuardianLink[]
+  consentRecords     ConsentRecord[]
+  athleteClaims      AthleteClaim[]
 
   matchesAsPlayer1   Match[]                  @relation("Player1")
   matchesAsPlayer2   Match[]                  @relation("Player2")
@@ -104,6 +131,11 @@ model Match {
   player1PartnerId   String?
   player2PartnerId   String?
   doublesSetup       Json?
+  /// CT dono da partida (tenant). Nulo = partida avulsa/legada.
+  ctId               String?
+  venueClubId        String?
+  ct                 TrainingCenter?          @relation("CtMatches", fields: [ctId], references: [id], onDelete: SetNull)
+  venueClub          Club?                    @relation("VenueMatches", fields: [venueClubId], references: [id], onDelete: SetNull)
   createdByUser      User?                    @relation("CreatedMatches", fields: [createdByUserId], references: [id], onDelete: SetNull)
   player1            Player                   @relation("Player1", fields: [player1Id], references: [id])
   player2            Player                   @relation("Player2", fields: [player2Id], references: [id])
@@ -117,6 +149,7 @@ model Match {
   @@index([state])
   @@index([deletedAt])
   @@index([createdByUserId, createdAt(sort: Desc)])
+  @@index([ctId])
 }
 
 model PointLog {
@@ -276,4 +309,219 @@ enum AnnotationSessionStatus {
 enum MatchType {
   SINGLES
   DOUBLES
+}
+
+// ─── Fundação de acesso (PLANO_FUNDACAO_PERFIS_v2) ──────────────────────────
+
+/// CT (Centro de Treinamento) = dono dos dados (tenant).
+model TrainingCenter {
+  id              String         @id @default(cuid())
+  name            String
+  slug            String         @unique
+  status          String         @default("ACTIVE")
+  createdAt       DateTime       @default(now())
+  createdByUserId String?
+  memberships     Membership[]
+  playerCts       PlayerCT[]
+  linkInvites     LinkInvite[]
+  matches         Match[]        @relation("CtMatches")
+
+  @@map("training_centers")
+}
+
+/// Clube = apenas referência (adversário de fora, local da partida).
+model Club {
+  id           String   @id @default(cuid())
+  name         String
+  city         String?
+  createdAt    DateTime @default(now())
+  players      Player[] @relation("PlayerClub")
+  venueMatches Match[]  @relation("VenueMatches")
+
+  @@unique([name, city])
+  @@map("clubs")
+}
+
+/// Vínculo de uma conta com a plataforma ou com um CT. ATLETA não é linha
+/// daqui: é `Player.userId`. `ctId` nulo = avulso (treinador) ou plataforma.
+model Membership {
+  id              String           @id @default(cuid())
+  userId          String
+  kind            MembershipKind
+  preset          PlatformPreset?
+  ctId            String?
+  status          MembershipStatus @default(ACTIVE)
+  createdByUserId String?
+  createdAt       DateTime         @default(now())
+  endedAt         DateTime?
+  user            User             @relation("UserMemberships", fields: [userId], references: [id], onDelete: Cascade)
+  ct              TrainingCenter?  @relation(fields: [ctId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kind, ctId])
+  @@index([userId, status])
+  @@index([ctId])
+  @@map("memberships")
+}
+
+/// Atleta ↔ CT (um atleta pode estar em vários CTs).
+model PlayerCT {
+  id        String         @id @default(cuid())
+  playerId  String
+  ctId      String
+  status    String         @default("ACTIVE")
+  since     DateTime       @default(now())
+  endedAt   DateTime?
+  player    Player         @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  ct        TrainingCenter @relation(fields: [ctId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, ctId])
+  @@index([ctId])
+  @@map("player_cts")
+}
+
+model GuardianLink {
+  id             String    @id @default(cuid())
+  guardianUserId String
+  playerId       String
+  relation       String?
+  confirmedAt    DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  guardian       User      @relation("GuardianUser", fields: [guardianUserId], references: [id], onDelete: Cascade)
+  player         Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([guardianUserId])
+  @@index([playerId])
+  @@map("guardian_links")
+}
+
+model ConsentRecord {
+  id             String         @id @default(cuid())
+  guardianUserId String
+  playerId       String
+  purpose        ConsentPurpose
+  termsVersion   String
+  grantedAt      DateTime       @default(now())
+  revokedAt      DateTime?
+  ipHash         String?
+  guardian       User           @relation("GuardianConsent", fields: [guardianUserId], references: [id], onDelete: Cascade)
+  player         Player         @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([playerId])
+  @@map("consent_records")
+}
+
+model AthleteClaim {
+  id              String      @id @default(cuid())
+  userId          String
+  playerId        String
+  status          ClaimStatus @default(PENDING)
+  decidedByUserId String?
+  createdAt       DateTime    @default(now())
+  user            User        @relation("ClaimUser", fields: [userId], references: [id], onDelete: Cascade)
+  player          Player      @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([playerId])
+  @@map("athlete_claims")
+}
+
+/// Convite de vínculo (link + código entregues manualmente; só hashes são guardados).
+model LinkInvite {
+  id              String         @id @default(cuid())
+  ctId            String
+  kind            InviteKind
+  tokenHash       String         @unique
+  codeHash        String
+  createdByUserId String
+  expiresAt       DateTime
+  usedAt          DateTime?
+  maxUses         Int            @default(1)
+  createdAt       DateTime       @default(now())
+  ct              TrainingCenter @relation(fields: [ctId], references: [id], onDelete: Cascade)
+
+  @@index([ctId])
+  @@map("link_invites")
+}
+
+model PasswordResetRequest {
+  id              String      @id @default(cuid())
+  userId          String
+  status          ResetStatus @default(PENDING)
+  contactHint     String?
+  requestedAt     DateTime    @default(now())
+  requestIpHash   String?
+  issuedByUserId  String?
+  tokenHash       String?     @unique
+  tokenExpiresAt  DateTime?
+  doneAt          DateTime?
+  user            User        @relation("ResetUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, requestedAt])
+  @@index([userId])
+  @@map("password_reset_requests")
+}
+
+/// Somente eventos sensíveis (nunca leituras). Sem FK: sobrevive à exclusão de contas.
+model AuditLog {
+  id           String   @id @default(cuid())
+  actorUserId  String?
+  action       String
+  resourceType String
+  resourceId   String?
+  ctId         String?
+  meta         Json?
+  ipHash       String?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([ctId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@map("audit_logs")
+}
+
+enum PlatformPreset {
+  ADMIN
+  SUPORTE
+}
+
+enum MembershipKind {
+  PLATAFORMA
+  GESTOR
+  TREINADOR
+}
+
+enum MembershipStatus {
+  ACTIVE
+  SUSPENDED
+  ENDED
+}
+
+enum IdentityStatus {
+  CONFIRMED
+  PROVISIONAL
+}
+
+enum ClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ResetStatus {
+  PENDING
+  LINK_ISSUED
+  DONE
+  REJECTED
+}
+
+/// BROADCAST entra junto com a transmissão ao vivo.
+enum ConsentPurpose {
+  DATA
+}
+
+enum InviteKind {
+  TREINADOR
+  ATLETA
+  GESTOR
 }

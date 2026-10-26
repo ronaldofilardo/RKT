@@ -134,10 +134,6 @@ jest.mock("@/components/scoring/PointDetailsModal", () => ({
   PointDetailsModal: () => <div data-testid="point-details-modal" />,
 }));
 
-jest.mock("@/components/scoring/ServerEffectModal", () => ({
-  ServerEffectModal: () => <div data-testid="server-effect-modal" />,
-}));
-
 jest.mock("@/components/scoring/EditScoreModal", () => ({
   EditScoreModal: () => <div data-testid="edit-score-modal" />,
 }));
@@ -498,23 +494,6 @@ describe("ScoringPage - Characterization Tests", () => {
 
       await waitFor(() => {
         expect(screen.getByTestId("point-details-modal")).toBeInTheDocument();
-      });
-    });
-
-    it("deve exibir ServerEffectModal quando activeModal='serve-effect'", async () => {
-      mockModalStack = {
-        activeModal: "serve-effect",
-        modalParams: {},
-        open: jest.fn(),
-        close: jest.fn(),
-        closeAll: jest.fn(),
-        replace: jest.fn(),
-      };
-
-      render(<ScoringPage />);
-
-      await waitFor(() => {
-        expect(screen.getByTestId("server-effect-modal")).toBeInTheDocument();
       });
     });
   });

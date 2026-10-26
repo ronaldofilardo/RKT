@@ -1,6 +1,8 @@
 'use client';
 
 import { ScoringPlayArea } from './ScoringPlayArea';
+import { ServeInlineControls } from '@/components/scoring/ServeInlineControls';
+import type { ServeInlineControlsProps } from '@/components/scoring/serve-inline.types';
 import {
   useScoringPageChrome,
   type ScoringPageDerived,
@@ -16,6 +18,7 @@ interface ScoringPagePlayAreaProps {
   /** `state.match` já estreitado para não-nulo pela página. */
   match: NonNullable<ScoringPageState['match']>;
   matchId: string;
+  serveControls: ServeInlineControlsProps;
   onNavigateReport: () => void;
   onNavigateDashboard: () => void;
 }
@@ -27,6 +30,7 @@ export function ScoringPagePlayArea({
   chrome,
   match,
   matchId,
+  serveControls,
   onNavigateReport,
   onNavigateDashboard,
 }: ScoringPagePlayAreaProps) {
@@ -69,6 +73,8 @@ export function ScoringPagePlayArea({
       scoreState={scoreState}
       isFinished={isFinished}
       matchId={matchId}
+      serverControls={<ServeInlineControls {...serveControls} />}
+      isServePanelOpen={serveControls.openAction !== null}
       onOpenSetSummary={() =>
         chrome.setSetSummaryModalState({
           isOpen: true,

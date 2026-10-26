@@ -25,6 +25,7 @@ export async function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.delete('x-user-id');
   requestHeaders.delete('x-user-role');
+  requestHeaders.delete('x-user-sv');
 
   const csrfViolation = enforceOriginCheck(request);
   if (csrfViolation) return csrfViolation;

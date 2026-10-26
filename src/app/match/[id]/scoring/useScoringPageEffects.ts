@@ -12,7 +12,7 @@ import { useScoringEditScore } from "./useScoringEditScore";
 export type { ScoringPageHandlers } from "./useScoringPageHandlers.types";
 
 export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandlers {
-  const { open, openServeErrorModal } = state;
+  const { open, openServeErrorModal, closeServeErrorModal } = state;
 
   const {
     persistState,
@@ -20,7 +20,6 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     confirmMatchSetup,
     undoLastPoint,
     returnToPreviousScreen,
-    openAceModal,
     recordAceDirectly,
     confirmServerEffect,
     confirmServeError,
@@ -54,17 +53,19 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     [open],
   );
 
-  const recordServeErrorWithModal = useCallback(
+  /** Painel inline: apenas registra o erro pendente; o clique em Confirmar decide o ponto. */
+  const startServeErrorDetails = useCallback(
     (errorType: "out" | "net", step: "first" | "second") => {
       if (isProcessing) return;
       openServeErrorModal(errorType, step);
-      open("serve-effect", {
-        context: "error",
-        serveStep: step,
-        errorType,
-      });
     },
-    [isProcessing, openServeErrorModal, open],
+    [isProcessing, openServeErrorModal],
+  );
+
+  /** Fecha o painel sem tocar no estado do 1º saque (≠ cancelServeError, que zera tudo). */
+  const dismissServeErrorDetails = useCallback(
+    () => closeServeErrorModal(),
+    [closeServeErrorModal],
   );
 
   return {
@@ -73,7 +74,6 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     confirmMatchSetup,
     undoLastPoint,
     returnToPreviousScreen,
-    openAceModal,
     recordAceDirectly,
     confirmServerEffect,
     confirmServeError,
@@ -82,7 +82,8 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     confirmPointDetails,
     updateDoublesArrangement,
     onPointSelectFromCard,
-    recordServeErrorWithModal,
+    startServeErrorDetails,
+    dismissServeErrorDetails,
     cancelEditScore,
     refreshEditScoreFloor,
     isProcessing,

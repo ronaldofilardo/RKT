@@ -1,11 +1,11 @@
 import { ServeSection, ActionFooter } from './ActionBar.sections';
-type Props={aceDetailsEnabled:boolean;onAceDetailsToggle:()=>void;dfDetailsEnabled:boolean;onDfDetailsToggle:()=>void;secondServe:boolean;serveStep:'none'|'second';canUndo:boolean;canEdit:boolean;fontScale:number;isFinished:boolean;isProcessing?:boolean;onAce:()=>void;onOut:(step:'first'|'second')=>void;onNet:(step:'first'|'second')=>void;onVoltar:(serveStep:'none'|'second')=>void;onFontSmaller:()=>void;onFontBigger:()=>void;onEditScore:()=>void;onComment?:()=>void;onStats?:()=>void;};
+type Props={aceDetailsEnabled:boolean;onAceDetailsToggle:()=>void;dfDetailsEnabled:boolean;onDfDetailsToggle:()=>void;secondServe:boolean;serveStep:'none'|'second';canUndo:boolean;canEdit:boolean;fontScale:number;isFinished:boolean;isProcessing?:boolean;onVoltar:(serveStep:'none'|'second')=>void;onFontSmaller:()=>void;onFontBigger:()=>void;onEditScore:()=>void;onComment?:()=>void;onStats?:()=>void;};
 export function ActionBarView(p:Props){
   const disabled=Boolean(p.isFinished||p.isProcessing);
   return (
     <div className="bg-telemetry-card border-t border-white/10 px-3 sm:px-4 py-2 sm:py-3 safe-bottom flex-shrink-0">
       <div className="max-w-lg mx-auto space-y-2">
-        <ServeSection aceDetailsEnabled={p.aceDetailsEnabled} onAceDetailsToggle={p.onAceDetailsToggle} dfDetailsEnabled={p.dfDetailsEnabled} onDfDetailsToggle={p.onDfDetailsToggle} showSecondBadge={p.serveStep==='second'||p.secondServe} disabled={disabled} onAce={p.onAce} onOut={p.onOut} onNet={p.onNet} step={p.serveStep} processing={p.isProcessing}/>
+        <ServeSection aceDetailsEnabled={p.aceDetailsEnabled} onAceDetailsToggle={p.onAceDetailsToggle} dfDetailsEnabled={p.dfDetailsEnabled} onDfDetailsToggle={p.onDfDetailsToggle} showSecondBadge={p.serveStep==='second'||p.secondServe} disabled={disabled}/>
         <ActionFooter canUndo={p.canUndo} canEdit={p.canEdit} onVoltar={p.onVoltar} serveStep={p.serveStep} onFontSmaller={p.onFontSmaller} onFontBigger={p.onFontBigger} onEditScore={p.onEditScore} onComment={p.onComment} onStats={p.onStats} fontScale={p.fontScale} disabled={disabled} processing={p.isProcessing}/>
       </div>
     </div>

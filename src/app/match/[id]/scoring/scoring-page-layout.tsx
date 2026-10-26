@@ -4,6 +4,7 @@ import type { useRouter } from 'next/navigation';
 import { MatchHeader } from '@/components/scoring/MatchHeader';
 import { ScoringModals } from './ScoringModals';
 import { ScoringPageControls } from './scoring-page-controls';
+import { useServeInlineControls } from './use-serve-inline-controls';
 import { ScoringPagePlayArea } from './scoring-page-play-area';
 import { SyncStatusBanner, TimelineLoadingOverlay } from './scoring-page-screens';
 import {
@@ -41,6 +42,7 @@ export function ScoringPageLayout({
   const { abandonCurrentSession } = handlers;
   const { isFinished } = derived;
 
+  const serve = useServeInlineControls(state, handlers, derived);
   const navigateReport = () => router.push(`/match/${matchId}/report`);
   const navigateDashboard = () => router.push('/dashboard');
 
@@ -69,11 +71,12 @@ export function ScoringPageLayout({
         chrome={chrome}
         match={match}
         matchId={matchId}
+        serveControls={serve.controls}
         onNavigateReport={navigateReport}
         onNavigateDashboard={navigateDashboard}
       />
 
-      <ScoringPageControls state={state} handlers={handlers} derived={derived} matchId={matchId} />
+      <ScoringPageControls state={state} handlers={handlers} derived={derived} matchId={matchId} serveOptions={serve.options} />
 
       <ScoringModals
         state={state}

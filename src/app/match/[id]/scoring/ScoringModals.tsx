@@ -5,7 +5,7 @@ import type { ScoringPageHandlers } from "./useScoringPageEffects";
 import type { ScoringPageDerived } from "./useScoringPageDerived";
 import { ScoringEditScoreModal } from "./scoring-edit-score-modal";
 import { ScoringSessionModals } from "./scoring-session-modals";
-import { ServeEffectModalBlock, PointDetailsModalBlock } from "./scoring-point-modals";
+import { PointDetailsModalBlock } from "./scoring-point-modals";
 
 interface ScoringModalsProps {
   state: ScoringPageState;
@@ -51,10 +51,6 @@ export function ScoringModals({
         cameFromDashboard={cameFromDashboard}
         onNavigateDashboard={onNavigateDashboard}
       />
-
-      {state.activeModal === "serve-effect" && (
-        <ServeEffectModalBlock state={state} handlers={handlers} derived={derived} />
-      )}
 
       {state.activeModal === "point-details" && (
         <PointDetailsModalBlock state={state} handlers={handlers} derived={derived} match={match} />

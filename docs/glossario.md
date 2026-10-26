@@ -149,3 +149,21 @@ Anotação tática detalhada de como o ponto terminou.
 | **PONTOS** | Placar de pontos do game (15-0, Deuce, Adv. P1). |
 | **1º / 2º Saque** | Primeiro e segundo saque; apenas um é preenchido por ponto. |
 | **RALLY** | Faixa de bolas trocadas (3-6, 7-10, 11+). |
+
+---
+
+## 8. Acesso, vínculos e pool de atletas (PLANO_FUNDACAO_PERFIS_v2)
+
+| Termo | Definição |
+|---|---|
+| **Conta** | Login único. Uma pessoa, uma conta, vários vínculos. |
+| **Vínculo (`Membership`)** | Tipo + escopo: `PLATAFORMA` (predefinição `ADMIN` ou `SUPORTE`), `GESTOR` (de um CT), `TREINADOR` (de um CT ou avulso). ATLETA é `Player.userId`, não uma linha de `Membership`. |
+| **Base operacional (`User.canOperate`)** | Capacidade de cadastrar/buscar atletas, criar e anotar partidas. É o "anotador" de hoje. |
+| **Perfil** | Nome exibido (`ADMIN`, `SUPORTE`, `GESTOR`, `TREINADOR`, `ATLETA`, `OPERACIONAL`), calculado pelos vínculos ativos (`src/core/access/profiles.ts`). Não é armazenado. |
+| **Papel avulso** | Atleta, treinador ou espectador que se cadastra sem vínculo com CT/clube. O espectador avulso também opera (cria e anota partidas). |
+| **CT (`TrainingCenter`)** | Centro de Treinamento, dono dos dados (tenant). |
+| **Clube (`Club`)** | Apenas referência (adversário de fora, local da partida). |
+| **Pool de atletas** | Cadastro global de `Player`, com `athleteCode` (código curto público que não dá acesso a dados). |
+| **Responsável (`GuardianLink`)** | Ligado a um atleta menor; o vínculo fica dormente aos 18 anos. |
+| **`sessionVersion` / claim `sv`** | Contador por conta; incrementar encerra todas as sessões. O guarda confere o `sv` do token com cache de 60 s. |
+| **Claim legado derivado** | `ADMIN`, `ANNOTATOR` ou `NONE` calculado dos vínculos para as rotas antigas (`deriveLegacyRole`). |

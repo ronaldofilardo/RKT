@@ -116,6 +116,20 @@
 
 ---
 
+### TD-057. Fundação de acesso — pendências da Fase 1A (PLANO_FUNDACAO_PERFIS_v2)
+- [ ] **VERIFICAR** `match.player1Id === currentUserId` nas rotas de partida (id de Player × id de User): provável nunca verdadeiro; caracterizar antes de mexer.
+- [ ] RLS das tabelas novas (`memberships`, `training_centers`, `player_cts`, `guardian_links`, `consent_records`, `athlete_claims`, `link_invites`, `password_reset_requests`, `audit_logs`) ainda **não** habilitado — adicionar no padrão `20261022000000_add_rls_policies` na Fase 1B.
+- [ ] `User.cpf` continua obrigatório; torná-lo opcional (UNIQUE com vários NULL) na Fase 1B junto com o auto-cadastro, ajustando `schemas/user.ts`, `adminService` e telas.
+- [ ] Token legado sem `sv` (emitido antes do deploy) continua válido e o `refresh` não o promove; passa a ter `sv` no próximo login. Avaliar forçar novo login após o deploy.
+- [ ] Onda 0 parcial: `login`/`refresh` já emitem/propagam `sv` e `me` herda o guarda com `sv`; o claim derivado (`deriveLegacyRole`) só entra no `login` na Fase 1B, quando existirem contas sem claim legado.
+- [ ] Rotas de leitura (admin/users, players, matches) ainda **não** migradas para `withAccessHandler` — ondas seguintes.
+- [ ] `athleteCode` (geração + backfill), mesclagem, reivindicação e `PlayerCT` na Fase 1C.
+- [ ] Quando recibos/cobrança (Fase 4) entrarem, e-mail transacional provavelmente será exigido.
+- [ ] Transmissão ao vivo adiada: ao implementá-la voltam F10/F11/§11, consentimento `BROADCAST` (`ALTER TYPE "ConsentPurpose" ADD VALUE`), limite de espectadores e o cache/egress do feed.
+- [ ] Áudios como `Bytes` no Postgres são o maior risco do 1 GB do Neon (independe da fundação).
+
+---
+
 ## 4. Refatoração e Limpeza
 
 ### R1. Remover comentários de código morto ✅
@@ -400,6 +414,10 @@
 ---
 
 ## 6. Melhorias e Otimizações
+
+### M0. Limpar resíduos do antigo modal de saque ⏳
+- **Contexto:** o painel inline substituiu o `ServerEffectModal`; `openAceModal` segue em `useScoringHandlers.modals.service.ts` / `scoring-handlers.return.types.ts` sem uso na UI, e `serverEffectWinnerName` (`useScoringPageDerived`) ficou sem consumidor
+- **Solução:** remover com seus testes (`useScoringHandlers.modals.service.test.ts`) e apagar os `*.archive` do modal após validação em produção
 
 ### M1. Melhorar UX do cronômetro de partida ⏳
 - **Contexto:** Feedback de usuários sobre dificuldade de pausar/retomar

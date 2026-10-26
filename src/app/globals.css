@@ -441,3 +441,12 @@ body {
     opacity: 1 !important;
   }
 }
+
+/* /scoring — sem scroll interno: com o painel de detalhes do saque aberto,
+   blocos secundários recolhem em telas baixas para liberar altura. */
+@media (max-height: 900px) {
+  [data-serve-panel='open'] [data-serve-collapse='extras'] { display: none; }
+}
+@media (max-height: 740px) {
+  [data-serve-panel='open'] [data-serve-collapse='stats'] { display: none; }
+}

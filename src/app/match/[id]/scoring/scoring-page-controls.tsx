@@ -3,24 +3,19 @@
 import { ActionBar } from '@/components/scoring/ActionBar';
 import { AnnotationSessionPanel } from '@/components/scoring/AnnotationSessionPanel';
 import type { ScoringPageDerived, ScoringPageEffects, ScoringPageState } from './use-scoring-page-chrome';
+import type { ServeInlineControlsState } from './use-serve-inline-controls';
 
 interface ScoringPageControlsProps {
   state: ScoringPageState;
   handlers: ScoringPageEffects;
   derived: ScoringPageDerived;
   matchId: string;
+  serveOptions: ServeInlineControlsState['options'];
 }
 
-export function ScoringPageControls({ state, handlers, derived, matchId }: ScoringPageControlsProps) {
+export function ScoringPageControls({ state, handlers, derived, matchId, serveOptions }: ScoringPageControlsProps) {
   const { fontScale, serveErrorState, sessionIdRef, sessionActive, setFontScale } = state;
-  const {
-    returnToPreviousScreen,
-    openAceModal,
-    recordAceDirectly,
-    recordDirectServeError,
-    recordServeErrorWithModal,
-    abandonCurrentSession,
-  } = handlers;
+  const { returnToPreviousScreen, abandonCurrentSession } = handlers;
   const { canUndo, isFinished, isProcessingPoint } = derived;
 
   return (
@@ -33,12 +28,7 @@ export function ScoringPageControls({ state, handlers, derived, matchId }: Scori
         fontScale={fontScale}
         isFinished={isFinished}
         isProcessing={isProcessingPoint}
-        onAceDirect={recordAceDirectly}
-        onAceWithDetails={openAceModal}
-        onOut={(step) => recordServeErrorWithModal('out', step)}
-        onNet={(step) => recordServeErrorWithModal('net', step)}
-        onOutDirect={(step) => recordDirectServeError('out', step)}
-        onNetDirect={(step) => recordDirectServeError('net', step)}
+        {...serveOptions}
         onVoltar={returnToPreviousScreen}
         onFontSmaller={() => setFontScale((f) => Math.max(0.6, f - 0.1))}
         onFontBigger={() => setFontScale((f) => Math.min(2, f + 0.1))}

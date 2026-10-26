@@ -22,6 +22,7 @@ export function ServeButton({
   variant,
   subLabel,
   icon,
+  active,
   children,
 }: {
   onClick: () => void;
@@ -29,13 +30,16 @@ export function ServeButton({
   variant: ServeButtonVariant;
   subLabel?: string;
   icon?: ReactNode;
+  active?: boolean;
   children: ReactNode;
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex flex-col items-center justify-center gap-0.5 rounded-xl border px-2 py-2.5 text-sm sm:text-base font-bold tracking-wide select-none transition-all min-h-[52px] sm:min-h-[56px] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100 ${VARIANT_STYLES[variant]}`}
+      aria-pressed={active}
+      className={`flex flex-col items-center justify-center gap-0.5 rounded-xl border px-1 py-1 text-sm sm:text-base font-bold tracking-wide select-none transition-all min-h-[clamp(40px,6dvh,56px)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100 ${VARIANT_STYLES[variant]} ${active ? 'ring-2 ring-white/60' : ''}`}
     >
       <div className="flex items-center justify-center gap-1.5 leading-none">
         {icon && (
@@ -48,7 +52,7 @@ export function ServeButton({
       {subLabel && (
         <span
           aria-hidden="true"
-          className="text-[10px] font-bold uppercase tracking-wider leading-none opacity-90"
+          className="text-[10px] font-bold uppercase tracking-wider leading-none opacity-90 text-center"
         >
           {subLabel}
         </span>

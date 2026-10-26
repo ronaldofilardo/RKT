@@ -4,6 +4,11 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
+  // Trava: o seed usa senha e CPFs fixos e nunca deve rodar em produção.
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_PROD_SEED !== 'true') {
+    throw new Error('Seed bloqueado em produção (defina ALLOW_PROD_SEED=true só se tiver certeza).');
+  }
+
   const passwordHash = await bcrypt.hash('123456', 10);
 
   // 1. Criar ou atualizar Usuário Admin

@@ -14,7 +14,7 @@ function getSecretKey(): Uint8Array | null {
 
 export async function decodeJwtPayload(
   token: string,
-): Promise<{ sub: string; role: string } | null> {
+): Promise<{ sub: string; role: string; sv?: number } | null> {
   if (!token || typeof token !== 'string') return null;
   const key = getSecretKey();
   if (!key) return null;
@@ -23,7 +23,8 @@ export async function decodeJwtPayload(
     const sub = payload.sub;
     const role = payload.role as string | undefined;
     if (!sub || !role) return null;
-    return { sub, role };
+    const sv = typeof payload.sv === 'number' ? payload.sv : undefined;
+    return sv === undefined ? { sub, role } : { sub, role, sv };
   } catch {
     return null;
   }

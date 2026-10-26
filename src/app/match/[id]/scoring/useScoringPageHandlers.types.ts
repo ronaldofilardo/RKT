@@ -8,7 +8,6 @@ export interface ScoringPageHandlers {
   confirmMatchSetup: ReturnType<typeof useScoringHandlers>["confirmMatchSetup"];
   undoLastPoint: ReturnType<typeof useScoringHandlers>["undoLastPoint"];
   returnToPreviousScreen: ReturnType<typeof useScoringHandlers>["returnToPreviousScreen"];
-  openAceModal: ReturnType<typeof useScoringHandlers>["openAceModal"];
   recordAceDirectly: ReturnType<typeof useScoringHandlers>["recordAceDirectly"];
   confirmServerEffect: ReturnType<typeof useScoringHandlers>["confirmServerEffect"];
   confirmServeError: ReturnType<typeof useScoringHandlers>["confirmServeError"];
@@ -17,7 +16,8 @@ export interface ScoringPageHandlers {
   confirmPointDetails: ReturnType<typeof useScoringHandlers>["confirmPointDetails"];
   updateDoublesArrangement?: ReturnType<typeof useScoringHandlers>["updateDoublesArrangement"];
   onPointSelectFromCard: (winnerSide: "player1" | "player2") => void;
-  recordServeErrorWithModal: (errorType: "out" | "net", step: "first" | "second") => void;
+  startServeErrorDetails: (errorType: "out" | "net", step: "first" | "second") => void;
+  dismissServeErrorDetails: () => void;
   cancelEditScore: () => void;
   refreshEditScoreFloor: () => Promise<{ player1: number; player2: number } | null>;
   isProcessing: boolean;

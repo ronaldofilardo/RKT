@@ -84,7 +84,6 @@ jest.mock("@/components/scoring/ActionBar", () => ({
 jest.mock("@/components/scoring/SetupModal", () => ({ SetupModal: () => React.createElement("div") }));
 jest.mock("@/components/scoring/UndoConfirmModal", () => ({ UndoConfirmModal: () => React.createElement("div") }));
 jest.mock("@/components/scoring/PointDetailsModal", () => ({ PointDetailsModal: () => React.createElement("div") }));
-jest.mock("@/components/scoring/ServerEffectModal", () => ({ ServerEffectModal: () => React.createElement("div") }));
 jest.mock("@/components/scoring/EditScoreModal", () => ({ EditScoreModal: () => React.createElement("div") }));
 jest.mock("@/components/scoring/MatchTimelineView", () => ({ MatchTimelineView: () => React.createElement("div") }));
 jest.mock("@/components/scoring/CourtBackground", () => ({ __esModule: true, default: () => React.createElement("div") }));

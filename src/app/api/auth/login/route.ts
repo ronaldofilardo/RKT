@@ -12,11 +12,12 @@ const secretKey = JWT_SECRET ? new TextEncoder().encode(JWT_SECRET) : null;
 async function generateToken(
   userId: string,
   role: string,
+  sv?: number,
 ): Promise<string> {
   if (!secretKey) {
     throw new Error('JWT_SECRET is not defined in environment');
   }
-  return new SignJWT({ sub: userId, role })
+  return new SignJWT(sv === undefined ? { sub: userId, role } : { sub: userId, role, sv })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('2h')
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const accessToken = await generateToken(user.id, user.role);
+    const accessToken = await generateToken(user.id, user.role, user.sessionVersion);
 
     const response = NextResponse.json({
       accessToken,

@@ -1,59 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
-import { ListPlayersInputSchema, CreatePlayerInputSchema } from '@/schemas/contracts';
-import { withRLSHandler, getRLSUser } from '@/lib/auth';
-import { listPlayers, createPlayer } from '@/services/playerService';
-import { jsonResponse, validatedRequest, reportApiError, extractPagination } from '@/lib/api.logic';
+import { reportApiError } from '@/lib/api.logic';
 
 export async function GET(request: NextRequest) {
-  return withRLSHandler(request, 'ANNOTATOR', async () => {
-    try {
-      const { searchParams } = request.nextUrl;
-      const userId = searchParams.get('userId') || undefined;
-
-      // Validar input com Zod
-      const parsed = ListPlayersInputSchema.safeParse({
-        userId,
-        cursor: searchParams.get('cursor') ?? undefined,
-        limit: searchParams.get('limit') ?? '20',
-      });
-
-      if (!parsed.success) {
-        return NextResponse.json(
-          { error: 'VALIDATION_ERROR', details: parsed.error.flatten() },
-          { status: 400 }
-        );
-      }
-
-      const { cursor, limit } = extractPagination(searchParams);
-      const players = await listPlayers(cursor, limit, parsed.data.userId);
-      const nextCursor = players.length === limit ? players[players.length - 1].id : null;
-
-      return jsonResponse({ players, nextCursor });
-    } catch (error) {
-      logger.error('[PLAYERS GET]', error);
-      return reportApiError(error);
-    }
-  });
-}
-
-export async function POST(request: NextRequest) {
-  return withRLSHandler(request, 'ANNOTATOR', async () => {
-    try {
-      // Validar body com Zod
-      const body = await validatedRequest(request, CreatePlayerInputSchema);
-
-      const user = getRLSUser();
-
-      const player = await createPlayer({
-        ...body,
-        createdByUserId: user?.id || undefined,
-      });
-
-      return jsonResponse(player, { status: 201 });
-    } catch (error) {
-      logger.error('[PLAYERS POST]', error);
-      return reportApiError(error);
-    }
-  });
+  try {
+    const search = request.nextUrl.searchParams.get('search')?.trim() ?? '';
+    const where = search.length >= 3 ? { name: { contains: search, mode: 'insensitive' as const } } : {};
+    const items = await prisma.player.findMany({ where, take: 50, orderBy: { name: 'asc' } });
+    return NextResponse.json({ items }, { status: 200 });
+  } catch (error) {
+    logger.error('[PLAYERS GET]', error);
+    return reportApiError(error);
+  }
 }

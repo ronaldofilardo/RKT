@@ -33,6 +33,7 @@ export async function handleAuthenticated(
 
   requestHeaders.set('x-user-id', decoded.sub);
   requestHeaders.set('x-user-role', decoded.role);
+  if (decoded.sv !== undefined) requestHeaders.set('x-user-sv', String(decoded.sv));
 
   if (pathname.startsWith('/admin') && decoded.role !== 'ADMIN') {
     return NextResponse.redirect(new URL('/dashboard', request.url));

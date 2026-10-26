@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT, jwtVerify } from 'jose';
 import { getAuthToken } from '@/middleware';
 import { logger } from '@/lib/logger';
+import { isSessionCurrent } from '@/lib/session-version.logic';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -10,25 +11,29 @@ const secretKey = JWT_SECRET ? new TextEncoder().encode(JWT_SECRET) : null;
 async function generateToken(
   userId: string,
   role: string,
+  sv?: number,
 ): Promise<string> {
   if (!secretKey) {
     throw new Error('JWT_SECRET is not defined in environment');
   }
-  return new SignJWT({ sub: userId, role })
+  return new SignJWT(sv === undefined ? { sub: userId, role } : { sub: userId, role, sv })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('2h')
     .sign(secretKey);
 }
 
-async function verifyToken(token: string): Promise<{ sub: string; role: string } | null> {
+async function verifyToken(
+  token: string,
+): Promise<{ sub: string; role: string; sv?: number } | null> {
   if (!secretKey) return null;
   try {
     const { payload } = await jwtVerify(token, secretKey);
     const sub = payload.sub;
     const role = payload.role as string | undefined;
     if (!sub || !role) return null;
-    return { sub, role };
+    const sv = typeof payload.sv === 'number' ? payload.sv : undefined;
+    return sv === undefined ? { sub, role } : { sub, role, sv };
   } catch {
     return null;
   }
@@ -54,7 +59,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const accessToken = await generateToken(decoded.sub, decoded.role);
+    if (!(await isSessionCurrent(decoded.sub, decoded.sv))) {
+      return NextResponse.json(
+        { error: 'UNAUTHORIZED', message: 'Sessão encerrada' },
+        { status: 401 },
+      );
+    }
+
+    const accessToken = await generateToken(decoded.sub, decoded.role, decoded.sv);
 
     const response = NextResponse.json({ accessToken });
 

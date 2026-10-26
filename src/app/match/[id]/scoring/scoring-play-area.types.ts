@@ -23,6 +23,10 @@ export interface ScoringPlayAreaProps {
   scoreState: ScoringPageState["scoreState"];
   isFinished: boolean;
   matchId: string;
+  /** Ace/Out/Net (+ painel inline), renderizados sob o card do sacador. */
+  serverControls?: React.ReactNode;
+  /** Painel de detalhes aberto: libera altura recolhendo blocos secundários. */
+  isServePanelOpen?: boolean;
   onOpenSetSummary: () => void;
   onPoint: (side: "player1" | "player2") => void;
   onSwipeUndo: () => void;
