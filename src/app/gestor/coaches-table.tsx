@@ -13,12 +13,13 @@ interface CoachesTableProps {
   selectedIds: string[];
   onSelectChange: (id: string, checked: boolean) => void;
   onSelectAll: (checked: boolean) => void;
-  onCreate: () => void;
+  onCreateCoach: () => void;
+  onCreateAthlete: () => void;
   onRefresh?: () => void;
 }
 
 export function CoachesTable({
-  coaches, selectedIds, onSelectChange, onSelectAll, onCreate, onRefresh,
+  coaches, selectedIds, onSelectChange, onSelectAll, onCreateCoach, onCreateAthlete, onRefresh,
 }: CoachesTableProps) {
   const [editing, setEditing] = useState<CoachItem | null>(null);
   const [linkData, setLinkData] = useState<{ open: boolean; name: string; token: string; expiresAt?: string }>({
@@ -52,13 +53,35 @@ export function CoachesTable({
     onRefresh?.();
   };
 
+  const handleToggleCanInsertAthletes = async (c: CoachItem, checked: boolean) => {
+    try {
+      const res = await fetch(`/api/gestor/coaches/${c.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ canInsertAthletes: checked }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Falha ao atualizar permissão');
+      }
+      onRefresh?.();
+    } catch (err) {
+      toast({ type: 'error', message: err instanceof Error ? err.message : 'Erro ao atualizar permissão de atletas' });
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-end mb-4">
         <h2 className="text-lg font-semibold text-telemetry-text-primary">Treinadores do Clube</h2>
-        <button onClick={onCreate} className="bg-telemetry-blue text-white font-semibold py-2 px-4 rounded-lg hover:bg-telemetry-blue/90 text-sm">
-          Cadastrar Treinador / Atleta
-        </button>
+        <div className="flex gap-2">
+          <button onClick={onCreateCoach} className="bg-telemetry-blue text-white font-semibold py-2 px-4 rounded-lg hover:bg-telemetry-blue/90 text-sm">
+            Novo Treinador
+          </button>
+          <button onClick={onCreateAthlete} className="bg-telemetry-volt text-white font-semibold py-2 px-4 rounded-lg hover:bg-telemetry-volt/90 text-sm">
+            Novo Atleta
+          </button>
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
@@ -68,15 +91,17 @@ export function CoachesTable({
                 <input id="treinadores-select-all" type="checkbox" aria-label="Selecionar todos" checked={allSelected} onChange={(e) => onSelectAll(e.target.checked)} className="w-4 h-4 text-telemetry-blue rounded" />
               </th>
               <th className="pb-3">Nome</th><th className="pb-3">CPF</th><th className="pb-3">E-mail</th>
-              <th className="pb-3">Ingresso</th><th className="pb-3">Status</th><th className="pb-3 text-right">Ações</th>
+              <th className="pb-3">Ingresso</th><th className="pb-3">Status</th>
+              <th className="pb-3 text-center">Inserir Atletas</th>
+              <th className="pb-3 text-right">Ações</th>
             </tr>
           </thead>
           <tbody>
             {coaches.map((c) => (
-              <CoachRow key={c.user.id} coach={c} selected={selectedIds.includes(c.user.id)} onSelect={(chk) => onSelectChange(c.user.id, chk)} onEdit={() => setEditing(c)} onGenerateLink={() => handleGenerateLink(c)} />
+              <CoachRow key={c.user.id} coach={c} selected={selectedIds.includes(c.user.id)} onSelect={(chk) => onSelectChange(c.user.id, chk)} onEdit={() => setEditing(c)} onGenerateLink={() => handleGenerateLink(c)} onToggleCanInsertAthletes={(chk) => handleToggleCanInsertAthletes(c, chk)} />
             ))}
             {coaches.length === 0 && (
-              <tr><td colSpan={7} className="py-6 text-center text-telemetry-text-muted text-sm">Nenhum treinador cadastrado no clube.</td></tr>
+              <tr><td colSpan={8} className="py-6 text-center text-telemetry-text-muted text-sm">Nenhum treinador cadastrado no clube.</td></tr>
             )}
           </tbody>
         </table>

@@ -16,6 +16,7 @@ export interface MeResponse {
 }
 
 export interface CoachItem {
+  id: string;
   user: {
     id: string;
     name: string;
@@ -24,6 +25,7 @@ export interface CoachItem {
     createdAt: string;
     mustChangePassword: boolean;
   };
+  canInsertAthletes: boolean;
 }
 
 export interface AthleteItem {
@@ -60,3 +62,4 @@ export interface ClubMatchItem {
 }
 
 export type GestorTab = 'coaches' | 'athletes' | 'matches' | 'club' | 'managers';
+export type MemberType = 'TREINADOR' | 'ATLETA';

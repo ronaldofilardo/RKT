@@ -8,9 +8,10 @@ interface CoachRowProps {
   onSelect: (checked: boolean) => void;
   onEdit: () => void;
   onGenerateLink: () => void;
+  onToggleCanInsertAthletes: (checked: boolean) => void;
 }
 
-export function CoachRow({ coach: c, selected, onSelect, onEdit, onGenerateLink }: CoachRowProps) {
+export function CoachRow({ coach: c, selected, onSelect, onEdit, onGenerateLink, onToggleCanInsertAthletes }: CoachRowProps) {
   const formattedCpf = c.user.cpf
     ? c.user.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
     : '-';
@@ -37,6 +38,16 @@ export function CoachRow({ coach: c, selected, onSelect, onEdit, onGenerateLink 
         </span>
       </td>
       <td className="py-3 text-sm whitespace-nowrap text-right">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={c.canInsertAthletes}
+            onChange={(e) => onToggleCanInsertAthletes(e.target.checked)}
+            className="w-4 h-4 text-telemetry-blue border-telemetry-border rounded"
+            aria-label={`Permitir cadastro de atletas para ${c.user.name}`}
+          />
+          <span className="text-xs text-telemetry-text-muted">Inserir atletas</span>
+        </label>
         <button
           onClick={onGenerateLink}
           className="text-xs text-telemetry-alert hover:underline mr-3 font-medium"
@@ -54,4 +65,3 @@ export function CoachRow({ coach: c, selected, onSelect, onEdit, onGenerateLink 
     </tr>
   );
 }
-

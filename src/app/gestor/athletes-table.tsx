@@ -13,12 +13,13 @@ interface AthletesTableProps {
   selectedIds: string[];
   onSelectChange: (id: string, checked: boolean) => void;
   onSelectAll: (checked: boolean) => void;
-  onCreate: () => void;
+  onCreateCoach: () => void;
+  onCreateAthlete: () => void;
   onRefresh?: () => void;
 }
 
 export function AthletesTable({
-  athletes, selectedIds, onSelectChange, onSelectAll, onCreate, onRefresh,
+  athletes, selectedIds, onSelectChange, onSelectAll, onCreateCoach, onCreateAthlete, onRefresh,
 }: AthletesTableProps) {
   const [editing, setEditing] = useState<AthleteItem | null>(null);
   const [linkData, setLinkData] = useState<{ open: boolean; name: string; token: string; expiresAt?: string }>({
@@ -56,9 +57,14 @@ export function AthletesTable({
     <div className="p-6">
       <div className="flex justify-between items-end mb-4">
         <h2 className="text-lg font-semibold text-telemetry-text-primary">Atletas do Clube</h2>
-        <button onClick={onCreate} className="bg-telemetry-blue text-white font-semibold py-2 px-4 rounded-lg hover:bg-telemetry-blue/90 text-sm">
-          Cadastrar Treinador / Atleta
-        </button>
+        <div className="flex gap-2">
+          <button onClick={onCreateCoach} className="bg-telemetry-blue text-white font-semibold py-2 px-4 rounded-lg hover:bg-telemetry-blue/90 text-sm">
+            Novo Treinador
+          </button>
+          <button onClick={onCreateAthlete} className="bg-telemetry-volt text-white font-semibold py-2 px-4 rounded-lg hover:bg-telemetry-volt/90 text-sm">
+            Novo Atleta
+          </button>
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
