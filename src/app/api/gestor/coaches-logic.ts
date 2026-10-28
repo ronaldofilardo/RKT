@@ -8,9 +8,10 @@ export interface CoachInput {
   email: string;
 }
 
-export async function listCoaches(ctId: string) {
+export async function listCoaches(ctIds: string[] | string) {
+  const ids = Array.isArray(ctIds) ? ctIds : [ctIds];
   const rows = await prisma.membership.findMany({
-    where: { ctId, kind: 'TREINADOR', status: 'ACTIVE' },
+    where: { ctId: { in: ids }, kind: 'TREINADOR', status: 'ACTIVE' },
     include: { user: { select: { id: true, name: true, cpf: true, email: true, createdAt: true, mustChangePassword: true } } },
     orderBy: { createdAt: 'desc' },
   });
