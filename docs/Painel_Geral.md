@@ -239,6 +239,13 @@ Auto-cadastro com escolha de papel avulso (atleta/treinador/espectador) · pedid
 
 **Ordem entre planos:** `PLANO_DUPLAS` **Fase A** (endurecer gravação) → **1A** → **1B** → **1C**; as Fases C–H de duplas podem correr em paralelo a 1B/1C desde que **não toquem os mesmos arquivos** (alinhar por onda).
 
+### Recorte aprovado para execução
+- **Agenda adiada:** não criar calendário, eventos, horários ou inscrições nesta entrega.
+- **Torneios:** pertencem a um CT; gestores do CT podem criar, renomear e arquivar torneios e associar partidas do próprio CT. `Match.tournamentName` permanece compatível com partidas legadas.
+- **Acompanhamento treinador↔atleta:** o treinador solicita o vínculo; somente a conta do atleta ou um responsável ativo pode aceitar. Encerrar o vínculo remove o acesso subsequente. O vínculo permite consultar partidas/relatórios do atleta, nunca comentários ou áudio do anotador.
+- **Acesso justificado do suporte:** requer justificativa, aprovação de ADMIN, validade máxima de 30 minutos e uso único; limitado a dados básicos da conta, sem partidas, relatórios, comentários ou áudio. Contas ADMIN/SUPORTE não são alvos.
+- **Financeiro:** SUPORTE é o operador da cobrança da plataforma. Nesta fase, somente preparação técnica e requisitos; não integrar gateway, não processar pagamentos nem criar cobranças reais. Ativação depende das verificações de infraestrutura, gateway, e-mail, termos e tributação do §15.
+
 ---
 
 ## 15. Infra e custo
@@ -247,7 +254,7 @@ Auto-cadastro com escolha de papel avulso (atleta/treinador/espectador) · pedid
 - **Armazenamento:** áudios guardados como `Bytes` no Postgres são o maior risco do 1 GB do Neon (independe deste plano) → `[TD-XXX]`.
 
 ## 16. Padrões adotados nos pontos em aberto (ajustáveis)
-- **P1 Quem cobra quem:** plataforma → CTs e atletas/treinadores avulsos; CT → seus atletas. Quem opera a cobrança da plataforma (admin é só operacional) **[DECIDIR]** na Fase 4.
+- **P1 Quem cobra quem:** plataforma → CTs e atletas/treinadores avulsos; CT → seus atletas. **SUPORTE opera a cobrança da plataforma**, com trilha de auditoria; ADMIN não opera cobranças.
 - **P2 Data de nascimento obrigatória** no cadastro de atleta novo (para proteger menores).
 - **P3 Pedido "quero operar"** aprovado por suporte ou admin.
 - **P4 Admin atual que também anota:** recebe `canOperate` (listado no dry-run).

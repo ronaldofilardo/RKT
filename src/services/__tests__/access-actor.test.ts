@@ -9,6 +9,7 @@ const base: ActorRow = {
   memberships: [{ kind: 'GESTOR', ctId: 'ct-1', status: 'ACTIVE' }],
   athleteProfile: null,
   guardianLinks: [],
+  coachAthleteLinks: [],
 };
 
 describe('buildActor', () => {
@@ -20,12 +21,23 @@ describe('buildActor', () => {
       canOperate: true,
       memberships: [{ kind: 'GESTOR', preset: null, ctId: 'ct-1', status: 'ACTIVE' }],
       athletePlayerId: null,
+      athleteCtIds: [],
       guardianOfPlayerIds: [],
+      followedPlayerIds: [],
     });
   });
 
-  it('expõe o atleta ligado à conta', () => {
-    expect(buildActor({ ...base, athleteProfile: { id: 'p-1' } }, NOW).athletePlayerId).toBe('p-1');
+  it('expõe o atleta ligado à conta e seus CTs via PlayerCT', () => {
+    const actor = buildActor(
+      { ...base, athleteProfile: { id: 'p-1', playerCts: [{ ctId: 'ct-1' }, { ctId: 'ct-2' }] } },
+      NOW,
+    );
+    expect(actor.athletePlayerId).toBe('p-1');
+    expect(actor.athleteCtIds).toEqual(['ct-1', 'ct-2']);
+  });
+
+  it('athleteCtIds vazio quando athleteProfile nulo', () => {
+    expect(buildActor(base, NOW).athleteCtIds).toEqual([]);
   });
 
   it('responsável só de menores com vínculo confirmado e não revogado', () => {

@@ -7,6 +7,23 @@ jest.mock('@/lib/auth', () => ({
   getRLSUser: jest.fn(() => ({ id: 'user-1', role: 'ATHLETE' })),
 }));
 
+jest.mock('@/lib/access-handler', () => ({
+  withAccessHandler: jest.fn((req, action, res, handler) =>
+    handler({
+      user: { id: 'user-1', role: 'ADMIN' },
+      actor: {
+        userId: 'user-1',
+        isActive: true,
+        canOperate: true,
+        memberships: [{ kind: 'PLATAFORMA', preset: 'ADMIN', ctId: null, status: 'ACTIVE' }],
+        athletePlayerId: null,
+        guardianOfPlayerIds: [],
+        followedPlayerIds: [],
+      },
+    })
+  ),
+}));
+
 jest.mock('@/services/matchService', () => ({
   getMatch: jest.fn(),
   getMatchScoreEdits: jest.fn(),

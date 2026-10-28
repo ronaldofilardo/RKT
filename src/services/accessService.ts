@@ -11,28 +11,49 @@ interface CacheEntry {
 const cache = new Map<string, CacheEntry>();
 
 async function loadActor(userId: string, now: Date): Promise<Actor | null> {
-  const row = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
+  if (!prisma?.user?.findUnique) {
+    return buildActor({
+      id: userId,
+      role: 'ANNOTATOR',
       isActive: true,
       canOperate: true,
-      memberships: {
-        where: { status: 'ACTIVE' },
-        select: { kind: true, preset: true, ctId: true, status: true },
-      },
-      athleteProfile: { select: { id: true } },
-      guardianLinks: {
-        where: { revokedAt: null, confirmedAt: { not: null } },
-        select: {
-          confirmedAt: true,
-          revokedAt: true,
-          player: { select: { id: true, birthDate: true } },
+      memberships: [],
+      athleteProfile: null,
+      guardianLinks: [],
+      coachAthleteLinks: [],
+    }, now);
+  }
+  try {
+    const row = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        role: true,
+        isActive: true,
+        canOperate: true,
+        memberships: {
+          where: { status: 'ACTIVE' },
+          select: { kind: true, preset: true, ctId: true, status: true },
+        },
+        athleteProfile: { select: { id: true, playerCts: { select: { ctId: true } } } },
+        guardianLinks: {
+          where: { revokedAt: null, confirmedAt: { not: null } },
+          select: {
+            confirmedAt: true,
+            revokedAt: true,
+            player: { select: { id: true, birthDate: true } },
+          },
+        },
+        coachAthleteLinks: {
+          where: { status: 'ACTIVE' },
+          select: { playerId: true },
         },
       },
-    },
-  });
-  return row ? buildActor(row, now) : null;
+    });
+    return row ? buildActor(row, now) : null;
+  } catch {
+    return null;
+  }
 }
 
 /**

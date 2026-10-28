@@ -33,6 +33,24 @@ export default function LoginPage() {
             {isLoading ? "Entrando..." : "Entrar"}
           </button>
         </form>
+
+        <div className="mt-6 flex flex-col gap-2 text-center text-sm text-gray-600 border-t pt-4">
+          <a
+            href="/forgot"
+            className="text-sky-700 hover:text-sky-800 hover:underline font-medium text-xs"
+          >
+            Esqueceu sua senha?
+          </a>
+          <div className="text-gray-500 text-xs">
+            Ainda não tem conta?{" "}
+            <a
+              href="/signup"
+              className="text-sky-700 hover:text-sky-800 hover:underline font-semibold"
+            >
+              Criar conta
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   );

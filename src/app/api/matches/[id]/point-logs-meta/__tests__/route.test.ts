@@ -15,6 +15,10 @@ jest.mock('@/lib/auth', () => ({
   }),
 }));
 
+jest.mock('@/lib/match-comment-access', () => ({
+  withMatchCommentAccess: jest.fn((_request: any, _matchId: string, _action: string, handler: Function) => handler()),
+}));
+
 jest.mock('@/lib/logger', () => ({
   logger: { log: jest.fn(), error: jest.fn(), warn: jest.fn() },
 }));

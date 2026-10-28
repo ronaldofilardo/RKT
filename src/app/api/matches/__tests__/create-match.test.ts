@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { POST } from '@/app/api/matches/route';
 import { prisma } from '@/lib/prisma';
 import { createToken } from '@tests/helpers/auth';
+import { getActor } from '@/services/accessService';
 
 jest.mock('@/lib/prisma', () => {
   const txMock = {
@@ -24,12 +25,16 @@ jest.mock('@/services/matchSuggestionService', () => ({
   findDuplicateMatch: jest.fn().mockResolvedValue(null),
 }));
 
+jest.mock('@/services/accessService', () => ({ getActor: jest.fn() }));
+
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 const txMock = (mockPrisma as any).__txMock;
+const getActorMock = getActor as jest.Mock;
 
 describe('POST /api/matches', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    getActorMock.mockReset();
   });
 
   it('deve retornar 401 sem token', async () => {
@@ -87,6 +92,67 @@ describe('POST /api/matches', () => {
 
     const data = await response.json();
     expect(data.data.createdByUserId).toBe(userId);
+  });
+
+  it('permite associar a partida somente a um CT ativo do usuário', async () => {
+    const userId = 'user-ct';
+    const token = await createToken(userId, 'ANNOTATOR');
+    getActorMock.mockResolvedValue({
+      userId,
+      isActive: true,
+      canOperate: true,
+      memberships: [{ kind: 'GESTOR', ctId: 'ct-1', status: 'ACTIVE' }],
+      athletePlayerId: null,
+      guardianOfPlayerIds: [],
+      followedPlayerIds: [],
+    });
+    txMock.match.create.mockResolvedValue({ id: 'match-ct', ctId: 'ct-1' });
+    const req = new NextRequest('http://localhost:3000/api/matches', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        player1Id: 'p1',
+        player2Id: 'p2',
+        format: 'BEST_OF_3',
+        ctId: 'ct-1',
+      }),
+    });
+
+    const response = await POST(req);
+
+    expect(response.status).toBe(201);
+    expect(txMock.match.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ ctId: 'ct-1' }) }),
+    );
+  });
+
+  it('rejeita associação da partida a um CT sem vínculo ativo', async () => {
+    const userId = 'user-ct';
+    const token = await createToken(userId, 'ANNOTATOR');
+    getActorMock.mockResolvedValue({
+      userId,
+      isActive: true,
+      canOperate: true,
+      memberships: [],
+      athletePlayerId: null,
+      guardianOfPlayerIds: [],
+      followedPlayerIds: [],
+    });
+    const req = new NextRequest('http://localhost:3000/api/matches', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        player1Id: 'p1',
+        player2Id: 'p2',
+        format: 'BEST_OF_3',
+        ctId: 'ct-1',
+      }),
+    });
+
+    const response = await POST(req);
+
+    expect(response.status).toBe(403);
+    expect(txMock.match.create).not.toHaveBeenCalled();
   });
 
   it('deve retornar 401 se token tiver sub vazio (RLS validation)', async () => {

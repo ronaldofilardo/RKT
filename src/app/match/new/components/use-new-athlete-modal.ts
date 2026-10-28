@@ -26,9 +26,13 @@ interface UseNewAthleteModalOptions {
   isOpen: boolean;
   onClose: () => void;
   onCreated: (athlete: Athlete) => void;
+  myClub?: boolean;
+  ctId?: string | null;
 }
 
-export function useNewAthleteModal({ isOpen, onClose, onCreated }: UseNewAthleteModalOptions) {
+export function useNewAthleteModal({
+  isOpen, onClose, onCreated, myClub = false, ctId = null,
+}: UseNewAthleteModalOptions) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -60,6 +64,10 @@ export function useNewAthleteModal({ isOpen, onClose, onCreated }: UseNewAthlete
     try {
       const token = sessionStorage.getItem('access_token');
       const payload = buildAthletePayload(form, rankings);
+      if (myClub && ctId) {
+        (payload as Record<string, unknown>).myClub = true;
+        (payload as Record<string, unknown>).ctId = ctId;
+      }
 
       const json = await playersClient.create(payload, token);
       const player = json?.data || json;

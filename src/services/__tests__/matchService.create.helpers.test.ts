@@ -158,6 +158,12 @@ describe('matchService.create.helpers', () => {
       expect(result.details).toBe('Observação da partida');
     });
 
+    it('deve preservar o CT selecionado ao criar a partida', () => {
+      const result = buildCreateMatchData({ ...baseData, ctId: 'ct-1' } as any);
+
+      expect(result.ctId).toBe('ct-1');
+    });
+
     it('deve incluir initialServerId quando fornecido e mapear scoreState.server para player1 ou player2', () => {
       const resultP1 = buildCreateMatchData({
         ...baseData,

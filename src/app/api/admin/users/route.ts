@@ -5,6 +5,8 @@ import { withRLSHandler } from '@/lib/auth';
 import { listAllUsers, createUser } from '@/services/adminService';
 import { validatedRequest, reportApiError } from '@/lib/api.logic';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   return withRLSHandler(request, 'ADMIN', async () => {
     try {

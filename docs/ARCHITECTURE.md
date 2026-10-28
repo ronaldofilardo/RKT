@@ -218,6 +218,49 @@ As decisões arquiteturais estruturantes do projeto foram consolidadas diretamen
   - **Fase Vigente:** Garantia de compatibilidade mantendo `model Player` com `createdByUserId`. O atleta só edita a si mesmo (`user.id === player.id`), enquanto treinadores e gestores administram os atletas por eles criados (`user.id === player.createdByUserId`).
   - **Fase Alvo:** Separação definitiva no banco entre tabela `User` (autenticação e tenancy) e `PlayerProfile` (dados desportivos e histórico em quadra).
 
+### ADR-0008 — Pool de Ecossistema: identidade global, clube como vínculo (2026-10-26)
+- **Problema:** O RKT vai evoluir para um ecossistema de tênis (clubes, treinadores, atletas, torneios, federações). Se atletas, treinadores ou partidas "pertencerem" a um clube, trocar de clube, atuar de forma avulsa ou participar de torneios entre clubes exigirá migração de dados.
+- **Decisão:**
+  - **Identidade é global:** atleta = `Player` + `User` com CPF único (e código curto público); treinador = `User` com `Membership TREINADOR`; partida = `Match`. Nenhum deles pertence a um clube.
+  - **Clube/CT é vínculo:** `PlayerCT` e `Membership(ctId)` carregam `status`, `since` e `endedAt`. Desvincular **encerra o vínculo e nunca apaga** atleta, treinador ou partida.
+  - **`Match.ctId` é contexto, não propriedade:** registra em nome de qual clube a partida ocorreu. A partida não muda de dono quando o atleta troca de clube; o histórico individual do atleta é sempre completo.
+  - **Visibilidade por vínculo ativo**, calculada em `src/core/access/visibility.ts` e `scope.ts`, nunca por coluna de "dono" nas tabelas.
+  - **Avulso → clube sem perda:** vincular atleta avulso a treinador e/ou clube só **adiciona** vínculo.
+  - **Saída de clube:** atleta de clube só é desvinculado pelo gestor (ou Suporte). Não existe "sair do clube" feito pelo atleta.
+  - **Sem coluna nova de tenant.** Liga, federação ou torneio multi-CT entram no futuro como novo tipo de vínculo, no molde de `Membership`.
+- **Critério transversal:** nenhuma mudança pode introduzir `onDelete: Cascade` de dado esportivo a partir de CT, nem filtro de leitura que dependa de "o CT é dono". CT nunca é apagado, apenas `SUSPENDED`.
+- **Plano:** `docs/PLANO_MENUS_POR_PERFIL_2026-10-26.md`.
+
+### ADR-0009 — Menu por Vínculo (soma de seções) (2026-10-26)
+- **Problema:** O menu lateral é único e fixo (`DashboardChrome.tsx`), com variação apenas para ADMIN. Uma conta pode acumular papéis (gestor + treinador + atleta), então o menu não pode ser por "tipo de usuário".
+- **Decisão:**
+  - O menu é calculado por uma **função pura** `buildMenu(ctx)` em `src/core/access/menu.ts`, que recebe o contexto de vínculos e devolve **seções** na ordem fixa: Operação → Atleta → Treinador → Gestão do Clube → Suporte → Admin, mais rodapé (Dados Pessoais, Tema, Sair).
+  - Cada conta recebe a **soma** das seções dos seus vínculos; item repetido aparece uma única vez.
+  - Gestor com CT `PENDING`/`SUSPENDED` perde apenas a seção Gestão do Clube.
+  - Itens ainda não desenvolvidos (Financeiro, Torneios) aparecem **desabilitados** com selo "Em breve".
+  - `mustChangePassword` oculta o menu (só `/trocar-senha`). O item "Aguardando" sai do menu.
+  - **O menu orienta, a API protege:** esconder um item nunca substitui `can()`/`withAccessHandler` na rota.
+- **Consequência:** `/api/auth/me` passa a devolver, de forma aditiva, o contexto de atleta e treinador necessário para montar o menu.
+- **Plano:** `docs/PLANO_MENUS_POR_PERFIL_2026-10-26.md`.
+
+### ADR-0010 — Identidade, CPF por Hash e Níveis de Atleta (2026-10-27)
+- **Problema:** Atletas cadastrados de forma rápida por anotadores e treinadores não possuem conta de usuário (`User`), mas precisam ser identificados univocamente no pool global sem expor CPF em texto claro e em conformidade estrita com a LGPD.
+- **Decisão:**
+  - **Níveis de Atleta:** N0 (Provisório Básico: Nome + metadado esportivo), N1 (Identificado: Nome + nascimento + CPF), N2 (Confirmado: Conta ativa vinculada).
+  - **CPF em Hash no Player:** `Player` guarda `cpfHash` gerado via HMAC-SHA256(`cleanCpf(cpf)`, `CPF_HASH_PEPPER`) e `cpfLast2` (últimos 2 dígitos para exibição mascarada `***.***.**9-12`). O CPF em texto pleno reside exclusivamente em `User.cpf`.
+  - **Índice Único Parcial:** `@unique` parcial em `Player.cpfHash` (`WHERE cpfHash IS NOT NULL`), garantindo unicidade de atletas identificados no pool.
+  - **Giro de Pepper:** A rotação de `CPF_HASH_PEPPER` invalida os hashes existentes; o segredo deve ser tratado como chave mestra criptográfica irreversível.
+- **Plano:** `docs/PLANO_POOL_BUSCA_CADASTRO_ATLETAS_E_CLAIM_2026-10-27.md`.
+
+### ADR-0011 — Claim Imediato por CPF + Data de Nascimento (Riscos Aceitos) (2026-10-27)
+- **Problema:** Atletas criados provisoriamente por terceiros precisam assumir o controle do seu histórico esportivo ao criar conta sem fricção burocrática e sem sobrecarregar a equipe de suporte.
+- **Decisão:**
+  - **Claim Automático:** Se um usuário se cadastra com `role = ATLETA` e o par `(CPF, data de nascimento)` coincidir perfeitamente com um `Player` no estado `PROVISIONAL`, a vinculação é realizada imediatamente na transação de cadastro, promovendo o atleta a `CONFIRMED`.
+  - **Proteção a Menores:** Menores de 18 anos nunca são reivindicados automaticamente; exigem vínculo de responsabilidade (`GuardianLink`) e registro de consentimento (`ConsentRecord`).
+  - **Riscos Aceitos e Mitigações:**
+    - *Apropriação por conhecimento de dados alheios:* Mitigado por validação estrita de dígitos mod 11, rate limit no signup, mensagens genéricas sem confirmação prévia de existência, registro em `AuditLog` e reversão administrativa via Suporte da Plataforma.
+- **Plano:** `docs/PLANO_POOL_BUSCA_CADASTRO_ATLETAS_E_CLAIM_2026-10-27.md`.
+
 ---
 
 ## 7. Padrões de Infraestrutura Transversal

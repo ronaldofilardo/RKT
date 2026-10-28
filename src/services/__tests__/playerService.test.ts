@@ -36,7 +36,7 @@ describe('playerService', () => {
 
       expect(mockPrisma.player.findMany).toHaveBeenCalledWith({
         take: 20,
-        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true },
+        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, clubId: true, playerCts: { select: { ctId: true } } },
         orderBy: { name: 'asc' },
         where: {},
       });
@@ -133,7 +133,12 @@ describe('playerService', () => {
           ranking: 10,
           rankings: { ESTADUAL: { category: '15-16', class: '4ªMA', position: 5 } },
         }),
-        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true },
+        select: expect.objectContaining({
+          id: true, name: true, gender: true, age: true, birthDate: true,
+          dominance: true, backhand: true, ranking: true, rankings: true, club: true,
+          cpfHash: true, cpfLast2: true, identityStatus: true, athleteCode: true,
+          userId: true, createdByUserId: true,
+        }),
       });
       expect(result.birthDate).toEqual(mockBirthDate);
     });
@@ -209,20 +214,18 @@ describe('playerService', () => {
       const result = await createPlayer({ name: 'Novo', email: 'novo@test.com' });
 
       expect(mockPrisma.player.create).toHaveBeenCalledWith({
-        data: {
+        data: expect.objectContaining({
           name: 'Novo',
           email: 'novo@test.com',
           club: null,
-          gender: undefined,
-          age: undefined,
-          birthDate: undefined,
-          dominance: undefined,
-          backhand: undefined,
-          ranking: undefined,
-          rankings: undefined,
           createdByUserId: undefined,
-        },
-        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true },
+        }),
+        select: expect.objectContaining({
+          id: true, name: true, gender: true, age: true, birthDate: true,
+          dominance: true, backhand: true, ranking: true, rankings: true, club: true,
+          cpfHash: true, cpfLast2: true, identityStatus: true, athleteCode: true,
+          userId: true, createdByUserId: true,
+        }),
       });
     });
 

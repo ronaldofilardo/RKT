@@ -44,6 +44,7 @@ function buildCreateDefaults(data: CreateMatchInput) {
   return {
     ...buildCreateFormatFields(data),
     ...buildCreateMetadataFields(data),
+    ...(data.ctId ? { ctId: data.ctId } : {}),
     state: 'SCHEDULED' as const,
     player1Id: data.player1Id,
     player2Id: data.player2Id,

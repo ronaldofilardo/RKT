@@ -6,6 +6,10 @@ import { handleAuthenticated } from './middleware-auth.logic';
 const PUBLIC_ROUTES = [
   '/api/auth/login',
   '/api/auth/logout',
+  '/api/auth/signup',
+  '/api/auth/signup-gestor',
+  '/api/auth/forgot',
+  '/api/auth/reset-password',
   '/login',
   '/matches/locate',
 ];
@@ -26,6 +30,7 @@ export async function middleware(request: NextRequest) {
   requestHeaders.delete('x-user-id');
   requestHeaders.delete('x-user-role');
   requestHeaders.delete('x-user-sv');
+  requestHeaders.delete('x-user-mcp');
 
   const csrfViolation = enforceOriginCheck(request);
   if (csrfViolation) return csrfViolation;
@@ -53,5 +58,8 @@ export const config = {
     '/partidasaovivo/:path*',
     '/aguardandoanotador/:path*',
     '/atletas/:path*',
+    '/trocar-senha/:path*',
+    '/gestor/:path*',
+    '/suporte/:path*',
   ],
 };

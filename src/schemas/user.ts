@@ -33,7 +33,8 @@ export const UpdateUserInputSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres').optional(),
   email: z.string().email('Email inválido').optional(),
   cpf: z.string().min(11, 'CPF deve ter pelo menos 11 dígitos').optional(),
-  role: RoleSchema.optional(),
+  role: z.enum(['ADMIN', 'ANNOTATOR', 'SUPORTE', 'GESTOR', 'TREINADOR', 'ATLETA_CLUBE', 'ATLETA_AVULSO']).optional(),
+  profile: z.string().optional(),
   club: z.string().nullish(),
   isActive: z.boolean().optional(),
 });

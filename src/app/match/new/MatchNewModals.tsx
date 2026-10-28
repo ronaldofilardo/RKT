@@ -30,9 +30,10 @@ interface MatchNewModalsProps {
   setShowDuplicateModal: (v: boolean) => void;
   duplicateInfo: { id: string; playerP1?: string; playerP2?: string } | null;
   createMatchIgnoringWarning: () => void;
+  myClub?: boolean;
+  ctId?: string | null;
 }
 
-/** Modais da página: novo atleta, seleção de sacador e partida duplicada. */
 export function MatchNewModals({
   router,
   showNewAthleteModal,
@@ -52,17 +53,19 @@ export function MatchNewModals({
   setShowDuplicateModal,
   duplicateInfo,
   createMatchIgnoringWarning,
+  myClub = false,
+  ctId = null,
 }: MatchNewModalsProps) {
   const isDoubles = matchType === 'DOUBLES';
-
   return (
     <>
       <NewAthleteModal
         isOpen={showNewAthleteModal}
         onClose={() => setShowNewAthleteModal(false)}
         onCreated={onAthleteCreationComplete}
+        myClub={myClub}
+        ctId={ctId}
       />
-
       {!isDoubles ? (
         <ServerSelectionModal
           isOpen={showServerModal}
@@ -84,7 +87,6 @@ export function MatchNewModals({
           onClose={() => setShowServerModal(false)}
         />
       )}
-
       <DuplicateMatchModal
         isOpen={showDuplicateModal}
         existingMatch={duplicateInfo}

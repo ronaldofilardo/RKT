@@ -118,16 +118,15 @@ describe('DashboardPage - view "Partidas Anotadas" (TD-046)', () => {
     const finished = buildFinishedMatch('cmryy1d8d', 'Figs Old Man', 'dfdsf dsfdfs');
     (usePathname as jest.Mock).mockReturnValue('/partidasanotadas');
 
-    let first = true;
     global.fetch = jest.fn((url: any) => {
-      const body = first
-        ? { data: { matches: [finished], nextCursor: null } }
-        : { matches: [] };
-      first = false;
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve(body),
-      } as any) as any;
+      const s = String(url);
+      if (s.includes('auth/me')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ user: { role: 'ANNOTATOR' }, memberships: [] }) } as any);
+      }
+      if (s.includes('suspended-sessions')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ matches: [] }) } as any);
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ data: { matches: [finished], nextCursor: null } }) } as any);
     }) as any;
 
     render(<DashboardPage />);
@@ -232,16 +231,15 @@ describe('DashboardPage - view "Partidas Anotadas" (TD-046)', () => {
     const finished = buildFinishedMatch('match-xyz', 'Alice', 'Bob');
     (usePathname as jest.Mock).mockReturnValue('/partidasanotadas');
 
-    let first = true;
     global.fetch = jest.fn((url: any) => {
-      const body = first
-        ? { data: { matches: [finished], nextCursor: null } }
-        : { matches: [] };
-      first = false;
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve(body),
-      } as any) as any;
+      const s = String(url);
+      if (s.includes('auth/me')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ user: { role: 'ANNOTATOR' }, memberships: [] }) } as any);
+      }
+      if (s.includes('suspended-sessions')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ matches: [] }) } as any);
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ data: { matches: [finished], nextCursor: null } }) } as any);
     }) as any;
 
     render(<DashboardPage />);

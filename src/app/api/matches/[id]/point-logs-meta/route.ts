@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { withRLSHandler } from '@/lib/auth';
 import { reportApiError } from '@/lib/api.logic';
 import { logger } from '@/lib/logger';
+import { withMatchCommentAccess } from '@/lib/match-comment-access';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'ANNOTATOR', async () => {
+  const { id } = await params;
+  return withMatchCommentAccess(request, id, 'report:view', async () => {
     try {
-      const { id } = await params;
-
       const pointLogs = await prisma.pointLog.findMany({
         where: { matchId: id, voidedAt: null },
         select: {

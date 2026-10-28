@@ -3,8 +3,87 @@
 > Diário de bordo técnico · Metodologia RE-DOC (Fase 4 — Auditoria de Qualidade e Histórico)
 > **Este é um dos 6 arquivos-canônicos do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
 
-**Última Atualização:** 2026-10-20
+**Última Atualização:** 2026-10-27
 **Analisado por:** engenharia reversa e implementação sobre `main`
+
+---
+
+## 2.4 Correção de Roteamento por Perfil, Autorização de Partidas e Inconsistências — 2026-10-27
+- **Diagnóstico e Planejamento:** Salvo o plano [`docs/PLANO_CORRECAO_ROTEAMENTO_AUTORIZACAO_E_PERFIS_2026-10-27.md`](file:///C:/apps/RKT/docs/PLANO_CORRECAO_ROTEAMENTO_AUTORIZACAO_E_PERFIS_2026-10-27.md) e registrado em `docs/TASKS.md` (A0.6).
+- **Escopo Mapeado:**
+  1. Comparação incorreta de `Player.id` com `User.id` em endpoints de partida (`/matches/[id]`, `point`, `state`, `finish`);
+  2. Autorização "falha aberta" caso o modelo de sessão esteja indisponível;
+  3. Redirecionamento indevido no middleware e código inalcançável (`SUPORTE -> /suporte`);
+  4. Falta de sidebar compartilhada em `/gestor`, `/suporte` e `/admin`;
+  5. Links apontando para 404 em `club-matches-table.tsx` (`/match/${id}`);
+  6. Migração de classes visuais arbitrárias para o design system (`telemetry-*`).
+- **Estado:** Plano documentado e aprovado, pronto para execução em 4 etapas conforme priorização.
+
+---
+
+## 2.3 Pool de Busca, Cadastro de Atletas e Reivindicação de Identidade — 2026-10-27
+- **Início dos Trabalhos:** Plano aprovado em `docs/PLANO_POOL_BUSCA_CADASTRO_ATLETAS_E_CLAIM_2026-10-27.md` e registrado em `docs/TASKS.md` (A0.5).
+- **Fase 0 (Characterization-First):** Criação de testes de caracterização para travar o comportamento prévio de `/api/auth/signup`, `/api/players` e `/api/athlete-claims`. ✅
+- **Fase 1 (Segurança Imediata e Sanitização de Dados):** ✅
+  - Correção de vulnerabilidade crítica P1 em `POST /api/athlete-claims` (exigência de autenticação e atribuição mandatória de `userId` a partir da sessão ativa).
+  - Correção de bug P6 em `src/app/api/auth/signup/route.ts` (impedir gravação de e-mail na coluna `User.cpf`, validação estrita de dígitos de CPF).
+  - `User.cpf` tornado opcional (`String? @unique`) via migration `20261027040000_make_user_cpf_optional`.
+- **Fase 2 (Núcleo Puro e Actor):** ✅
+  - `src/core/athlete/dedup.ts` — regras puras de desduplicação (`sameCpfHash`, `sameLast2AndDob`, `sameNameAndDob`, `isProbableDuplicate`, `findDuplicates`).
+  - `src/core/access/pool.ts` — `resolvePoolScope` (CT vs ANY), `actorCtIds`, `maskNameForMinor`, `toPoolPlayerView`.
+  - `src/core/athlete/athlete-code.ts` — `crypto.randomInt` (CSPRNG) substitui `Math.random`; `generateUniqueAthleteCode` com retry.
+  - `src/core/access/types.ts` — `Actor.athleteCtIds`.
+  - `src/services/access-actor.logic.ts` + `accessService.ts` — `buildActor` mapeia `athleteProfile.playerCts` → `athleteCtIds`.
+  - Migration `20261027020000_pool_cpf_athletecode` — `Player.cpfHash`, `Player.cpfLast2`, `Club.ctId` + índice único + FK.
+- **Fase 3 (Busca no Pool e Escopo):** ✅
+  - `src/core/access/pool.ts` — `maskNameForMinor`, `toPoolPlayerView`, `PoolPlayerRow`/`PoolPlayerView`.
+  - `src/services/player-service-pool.logic.ts` — `listPoolPlayers` com busca por nome + filtro por CT + paginação por cursor.
+  - `src/app/api/players/pool/route.ts` — `GET /api/players/pool` com auth, escopo, mascaramento de menores, DTO mínimo.
+  - Migration `20261027030000_pool_search_index` — índice em `Player.name`.
+- **Fase 4 (Cadastro de Atleta):** ✅
+  - `src/schemas/player.ts` — `CreatePlayerInputSchema` com `cpf`, `myClub`, `ctId`.
+  - `src/services/player-create.logic.ts` — `createPlayer` com hash de CPF, geração de `athleteCode` seguro, `identityStatus` (PROVISIONAL/CONFIRMED), `PlayerCT` (ACTIVE/PENDING).
+  - `src/app/api/players/route.ts` — `POST` com `getActor`, `resolvePoolScope`, `actorCtIds`, `actorCreatingProfile`.
+- **Fase 5 (Claim Automático e Cadastro de Conta):** ✅
+  - `src/app/api/auth/signup/signup-post.logic.ts` + `signup-claim.logic.ts` — claim automático por CPF+birthDate, validação de maioridade, `blocked-minor` para menores.
+  - `src/app/api/auth/signup/me/route.ts` — `GET /api/athlete-claims/me` para o atleta consultar seus claims.
+- **Fase 6 (Unificação de Clubes e Venues):** ✅
+  - `src/app/api/clubs/route.ts` — `POST` aceita `ctId` (validação CUID via Zod).
+- **Fase 7 (Frontend Nova Partida e Modais):** ✅
+  - `src/app/match/new/useNewMatchState.ts` — estados `myClub`, `ctId`, `availableCts`; carrega CTs via `GET /api/auth/me`.
+  - `src/app/match/new/components/my-club-toggle.tsx` — checkbox "Meu clube" + select de CT.
+  - `src/app/match/new/components/PlayerSelection.tsx` — filtro de atletas por CT quando `myClub=true`.
+  - `src/app/match/new/build-match-payload.logic.ts` — inclui `ctId` e `clubId`.
+  - `src/app/match/new/components/NewAthleteModal.tsx` + `use-new-athlete-modal.ts` — envia `myClub`/`ctId` ao criar atleta.
+  - `src/app/api/matches/match-ct-access.logic.ts` — `assertCtMembership` aceita ATLETA vinculado ao CT.
+- **Fase 8 (Suporte e Resolução de Conflitos):** ✅
+  - `src/services/player-merge.logic.ts` — `mergePlayers` com transferência de partidas, PlayerCTs, `mergedIntoId` e auditLog.
+  - `src/app/api/players/merge/route.ts` — `POST /api/players/merge` com permissão `platform:player:merge`.
+  - `src/app/api/athlete-claims/me/route.ts` — `GET /api/athlete-claims/me`.
+- **Fase 9 (Testes Rigorosos):** ✅ — `typecheck` 0 erros · `check:r03` 0 regressões · `lint` 0 erros (apenas warnings jsx-a11y pré-existentes).
+- **Fase 10 (Documentação):** ✅ — ADR-0010/ADR-0011 em `docs/ARCHITECTURE.md`; contratos em `src/app/api/CONTRACTS.md`; PRD, glossario, TASKS e MEMORY atualizados.
+
+---
+
+## 2.2 Enriquecimento de Perfis — 2026-10-27
+- **Fase 1 (Gestor de Clube):**
+  - Implementada redefinição de senhas com modal de cópia de link (`LinkCopyModal`) integrado na UI (`AthletesTable` e `CoachesTable`). Corrigido endpoint `regenerate-link` para persistir `tokenHash` em `password_reset_requests` e aceitar IDs cruzados (`playerCT.id` / `player.id` / `user.id`).
+  - Edição de treinadores e atletas na UI conectada com pré-preenchimento real e chamadas `PATCH /api/gestor/athletes/[id]` e `PATCH /api/gestor/coaches/[id]`.
+  - Visualização de partidas do clube via novo endpoint `GET /api/gestor/matches`, componente `ClubMatchesTable` e nova aba no `TabNav` e contadores no dashboard.
+  - Tela `/trocar-senha` adaptada para fluxo com token direto.
+- **Fase 2 (Suporte RKT):**
+  - Gestão de clubes com ciclo de vida completo: Aprovação (`PENDING` -> `ACTIVE`), Bloqueio (`ACTIVE` -> `SUSPENDED`) com revogação imediata de sessões ativas dos gestores (`bumpSessionVersion`), e Desbloqueio/Reativação (`SUSPENDED` -> `ACTIVE`). Edição de dados do clube habilitada em `ClubesSection` e `EditarClubeModal`.
+  - Gestão de gestores em `GestoresSection` com emissão direta de link seguro de redefinição de senha (`POST /api/support/password-resets`) e modal de cópia (`LinkCopyModal`), revogação de sessões ativas com confirmação (`POST /api/users/[id]/revoke-sessions`) e edição cadastral via `EditarGestorModal`.
+  - Proteção de contas privilegiadas: Suporte não pode emitir reset para ADMIN ou outros usuários SUPORTE (`isProtectedTarget`).
+  - Auditoria completa em todas as ações de suporte (`CLUBE_APROVADO`, `CLUBE_SUSPENSO`, `CLUBE_REATIVADO`, `PASSWORD_RESET_TOKEN_ISSUED`).
+- **Fase 3 (Menus Dinâmicos por Perfil, Controle de Rotas e Contraste do Admin):**
+  - Resolvido contraste e legibilidade no painel `/admin` (`admin-users-table.tsx` e `admin-dashboard-chrome.tsx`), eliminando herança de texto branco sobre fundo branco.
+  - Sincronização de perfis aprimorada no backend (`admin-service-role-sync.logic.ts`) para `GESTOR`, `TREINADOR`, `SUPORTE`, `ATLETA_CLUBE` e `ATLETA_AVULSO` com desativação de memberships conflitantes.
+  - Helper `getInitialRole` no frontend garantindo que a edição no admin pré-selecione o perfil real do usuário.
+  - Menus laterais dinâmicos via `buildMenu(ctx)` e `mapMenuSectionsToSidebar`, mapeando rotas diretamente para abas ativas (`/gestor?tab=coaches`, etc.) e sub-módulos (`/suporte?module=gestores`, etc.).
+  - Route guards por perfil no middleware para `/admin`, `/suporte` e `/gestor`.
+  - 100% dos testes de menus e dashboard passando (`HamburgerMenu.test.tsx` 14/14, `DashboardAnnotatedView.test.tsx` 6/6, `training-centers` 3/3).
+  - 0 violações de R-03 e 0 erros de TypeScript.
 
 ---
 
@@ -13,9 +92,34 @@
 | Dimensão | Situação |
 |---|---|
 | Branch | `main` |
-| Working tree | Limpo (após docs commit) |
-| Foco atual | **Refatoração STE-DEV — `docs/PLANO_REFATORACAO_STEDEV.md`**: FASE 3 100% CONCLUÍDA — R-01 (glossário) ✓ · R-03 (backlog 53→0 `.tsx` >100L) ✓ · R-02 (nomenclatura proibida: 0 violações) ✓ · R-23 (P1/P3 save/create/submit e hooks) ✓ · R-12 (tokens e cores semânticas: 0 hexadecimais soltos) ✓ · R-13 (acessibilidade ARIA em modais/tabs/alerts) ✓ |
+| Working tree | Alterações do backend da Fase 3 validadas; migration aplicada localmente e em produção |
+| Foco atual | **Pool de Busca, Cadastro de Atletas e Reivindicação de Identidade (A0.5) concluído:** Fases 0–10 implementadas e validadas (typecheck 0 erros, testes verdes, R-03 respeitado). Próximo foco: A1 (Estatísticas do Jogador) ou A0.7 (Edição de Clubes/Gestores/CTs). |
 | Docs de processo | `AGENTS.md` (índice) + estritamente os 6 arquivos-canônicos em `docs/` |
+
+---
+
+## 2.1 Implementação em andamento — 2026-10-26
+
+- Implementados schema/migration aditiva, rotas para torneios, vínculos treinador-atleta e pedidos de acesso do suporte; partidas novas aceitam `ctId` somente para membro ativo do CT.
+- Relatórios passam por `report:view` e visibilidade por criador, anotador, equipe do CT, atleta/responsável ou treinador com vínculo ativo. Comentários, metadados de áudio, áudio e eventos privados ficam restritos a criador/anotador/equipe do CT.
+- Validados: Prisma, TypeScript, lint focado, `check:r03` e testes focados (223 testes verdes).
+- Migration `20261026020000_phase3_relationships_and_tournaments` aplicada localmente e em produção.
+- Produção não tinha `_prisma_migrations`; o schema físico foi comparado com o Prisma antes da reconciliação. Foram registradas como aplicadas somente as migrations já refletidas fisicamente, incluindo `20261026013018_papers_25102026`; o SQL destrutivo dessa migration **não foi executado**. Aplicadas por `migrate deploy` as migrations pendentes de RLS, fundação de acesso e Fase 3, sem reset.
+- Pós-aplicação: 18/18 migrations aplicadas, diff Prisma sem alterações pendentes e contagens preservadas (9 usuários, 41 atletas, 25 partidas e 600 pontos). As tabelas novas da Fase 3 estão vazias; o backfill criou a associação de plataforma do ADMIN e marcou 8 usuários como operacionais.
+- **Alinhamento de RLS & Infraestrutura:** As políticas de RLS estão aplicadas no banco como camada de defesa em profundidade, mas a segurança primária e o isolamento multi-tenant residem no código (`withRLSHandler`, `withPermissionHandler` e filtros de ownership nos services). Para atender ao Free Tier (Vercel + Neon Pooler) sem risco de timeouts ou esgotamento de conexões, a aplicação conecta via role padrão (`neondb_owner`) e o middleware redundante de `set_config` foi removido de `src/lib/prisma.ts` (economizando 50% das queries). TD-003 encerrado.
+- **Remediação de Acesso, Segurança e Consistência Funcional (Fases 0 a 5 Concluídas):** Salvo plano canônico em `docs/PLANO_REMEDIACAO_ACESSO_E_SEGURANCA.md`.
+  - **Fase 0 (Estancamento Crítico):** Liberação de `PUBLIC_ROUTES` no middleware (`signup`, `forgot`, `reset-password`), blindagem com `withAccessHandler` e auditoria em `password-resets`, `memberships`, `athlete-claims/decide`, sanitização de `users/[id]/export` (sem vazamento de `passwordHash`), e proteção com anonimização real e revogação de sessões em `users/[id]/anonymize`, `revoke-sessions` e `operate`.
+  - **Fase 1 (Restauração da API de Atletas):** Restauração integral de `GET` e `POST` em `/api/players` e `GET`, `PUT`, `DELETE` em `/api/players/[id]` conectando os módulos `player-put.logic.ts` e `player-delete.logic.ts`. 100% dos testes de `/api/players` recuperados (55/55 testes verdes).
+  - **Fase 2 (Unificação de Papéis e Contexto de Operação):** ADMIN legado conciliado em `accessService.ts` e `access-actor.logic.ts` com papel `PLATAFORMA/ADMIN`. Geração de token com `deriveLegacyRole` sincronizada com memberships. Fallbacks de Actor e resiliência em `accessService.ts` e `match-access-service.ts`. 100% dos testes de `/api/matches` verdes (36/36 suítes, 214 testes).
+  - **Fase 3 (Blindagem das 31 Rotas Scaffold com withAccessHandler):** Lote A (`/api/training-centers`, `/api/clubs`, `/api/link-invites`, `/api/invites/accept`), Lote B (`/api/players/merge` com `auditLog`, `/api/players/provisional`), Lote C (`/api/guardians/link`, confirmação de vínculo em `/api/guardians/link/[id]/confirm`, revogação em `/api/guardians/link/[id]`, consentimento em `/api/consents` e `/api/consents/[id]`).
+  - **Fase 4 (Integridade de Dados e Menores):** Migration `20261026030000_unique_coach_avulso` criando índice parcial de unicidade para treinadores avulsos (`WHERE ctId IS NULL AND status = 'ACTIVE' AND kind = 'TREINADOR'`). Proteção de dados sensíveis de menores em conformidade com ECA/LGPD.
+  - **Fase 5 (UI/UX e Telas):** Tela de login atualizada com links de cadastro e recuperação de senha. Novas telas `/signup` e `/forgot` criadas com feedback interativo e modularizadas (<100 linhas). Hook client-side `useAccess` implementado e coberto com testes unitários em jsdom.
+  - **Garantias de Engenharia:** `check:r03` com 0 violações e 0 regressões em 877 arquivos de produção. `tsc --noEmit` com 0 erros. Suíte de testes verdes.
+
+- **Menus por Perfil e Pool de Ecossistema (Fase 0 concluída em 2026-10-26, somente documentação):** plano canônico em `docs/PLANO_MENUS_POR_PERFIL_2026-10-26.md`; ADR-0008 (pool global, clube como vínculo) e ADR-0009 (menu como soma de seções por vínculo) em `docs/ARCHITECTURE.md`. Decisões fechadas: atleta de clube só sai quando o gestor desvincula; treinador avulso anota partidas e vê relatórios dos atletas que acompanha; gestor vê e anota partidas do clube; Financeiro e Torneios aparecem desabilitados ("Em breve"); menu do Admin inalterado. Próxima etapa: Fase 1 (`/api/auth/me` aditivo + `buildMenu`).
+- **Edição de Clubes, Gestores, Dados do CT e Gestão de Treinadores e Atletas (Planejada em 2026-10-27):** plano canônico salvo em `docs/PLANO_EDICAO_SUPORTE_E_GESTOR_2026-10-27.md`. Estruturado em 4 frentes: (1) `/suporte` > Clubes e CTs com botão "Editar" funcional em ativos, modal de edição e projeção de dados cadastrais da PJ; (2) `/suporte` > Gestão de Gestores com botão de edição de usuário, correção do RBAC para permissão `platform:users:manage` pelo perfil `SUPORTE` e renderização condicional/reativa de `EditarGestorModal`; (3) `/gestor` > Dados do Clube com rota dedicada `GET` e `PATCH /api/gestor/club`, exibição dos dados reais da PJ do cadastro e trava estrita de CNPJ imutável; (4) `/gestor` > Treinadores e Atletas com modal unificado de cadastro (Nome, CPF, Data de Nascimento e seletor Treinador/Atleta), botões de edição de linha e suporte à seleção por linha nas tabelas.
+
+
 
 ---
 
@@ -156,4 +260,3 @@ Leitura completa: `docs/TASKS.md` — **Anexo A** (dívida técnica, 50 entradas
 ---
 
 *Documento atualizado em 2026-10-17.*
-

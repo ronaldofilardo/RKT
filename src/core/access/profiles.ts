@@ -12,6 +12,7 @@ export function getProfiles(actor: Actor): Profile[] {
     if (m.kind === 'TREINADOR') profiles.add('TREINADOR');
   }
   if (actor.athletePlayerId) profiles.add('ATLETA');
+  if (actor.guardianOfPlayerIds.length) profiles.add('RESPONSAVEL');
   if (actor.canOperate) profiles.add('OPERACIONAL');
   return [...profiles];
 }

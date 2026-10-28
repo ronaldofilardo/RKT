@@ -23,6 +23,7 @@ export function useNewMatchSubmissionActions(
     doublesSetup: state.doublesSetup,
     nickname: state.nickname, visibility: state.visibility, openForAnnotation: state.openForAnnotation,
     anotadorEmail: state.anotadorEmail, date: state.date, time: state.time, venueId: state.venueId,
+    ctId: state.ctId, clubNameMatch: state.clubNameMatch,
     publicMatchCode: state.publicMatchCode, tournamentName: state.tournamentName, clubName: state.clubName,
     category: state.category, roundName: state.roundName, bracketType: state.bracketType,
     temperature: state.temperature, humidity: state.humidity, tags: state.tags, details: state.details,

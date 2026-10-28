@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { logger } from '@/lib/logger';
 import { clearAuthState } from '@/lib/auth-client';
+import { buildMenu } from '@/core/access/menu';
+import { menuContextFromMe } from '@/core/access/menu-context';
 import { ConfirmAlertDialog } from '@/components/ConfirmAlertDialog';
 import { DashboardTopBar } from './DashboardTopBar';
 import { DashboardSidebar } from './DashboardSidebar';
+import { getDefaultMenuContext, mapMenuSectionsToSidebar } from './dashboard-menu.logic';
 import type { DashboardView } from '../dashboard.types';
 
 interface DashboardChromeProps {
@@ -14,19 +17,20 @@ interface DashboardChromeProps {
   navigateToTarget: (view: DashboardView) => void;
 }
 
-/**
- * Cabeçalho fixo, menu lateral e fluxo de logout do dashboard.
- * Encapsula o estado do menu (hamburguer) e do alerta de confirmação de saída.
- */
 export function DashboardChrome({ user, navigateToTarget }: DashboardChromeProps) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [meData, setMeData] = useState<any>(null);
 
-  const startNewMatch = useCallback(() => {
-    logger.info('[DashboardPage] new match click');
-    router.push('/match/new');
-  }, [router]);
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/auth/me')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (!cancelled && data) setMeData(data); })
+      .catch(() => { });
+    return () => { cancelled = true; };
+  }, []);
 
   const endSession = useCallback(() => {
     logger.info('[DashboardPage] logout click');
@@ -35,28 +39,19 @@ export function DashboardChrome({ user, navigateToTarget }: DashboardChromeProps
 
   const confirmLogout = useCallback(() => {
     setLogoutConfirmOpen(false);
-    try {
-      clearAuthState();
-    } catch (err) {
-      logger.error('[logout] Erro ao limpar auth state', err);
-    }
+    try { clearAuthState(); } catch (err) { logger.error('[logout] Erro', err); }
     router.replace('/login');
   }, [router]);
 
-  const menuItems = [
-    { emoji: '🏠', label: 'Início', action: () => navigateToTarget('dashboard') },
-    { emoji: '📜', label: 'Histórico', action: () => navigateToTarget('history') },
-    { emoji: '📝', label: 'Partidas Anotadas', action: () => navigateToTarget('annotated') },
-    { emoji: '🔴', label: 'Ao Vivo', action: () => navigateToTarget('live') },
-    { emoji: '⏳', label: 'Aguardando', action: () => navigateToTarget('pending') },
-    { emoji: '📋', label: 'Atletas', action: () => navigateToTarget('atletas') },
-    { emoji: '👤', label: 'Dados Pessoais', action: () => navigateToTarget('profile') },
-    ...(user?.role === 'ADMIN'
-      ? [{ emoji: '⚙️', label: 'Admin', action: () => navigateToTarget('admin') }]
-      : []),
-    { emoji: '📝', label: 'Nova Partida', action: () => navigateToTarget('newMatch') },
-    { emoji: '🚪', label: 'Sair', action: endSession },
-  ];
+  const sections = useMemo(() => {
+    const ctx = (meData && meData.user) ? menuContextFromMe(meData) : getDefaultMenuContext(user?.role);
+    const rawSections = buildMenu(ctx);
+    return mapMenuSectionsToSidebar(rawSections, {
+      navigateToTarget,
+      routerPush: (href) => router.push(href as any),
+      endSession,
+    });
+  }, [meData, user?.role, navigateToTarget, router, endSession]);
 
   return (
     <>
@@ -64,12 +59,10 @@ export function DashboardChrome({ user, navigateToTarget }: DashboardChromeProps
         menuOpen={menuOpen}
         setMenuOpen={setMenuOpen}
         user={user}
-        onNewMatch={startNewMatch}
+        onNewMatch={() => router.push('/match/new')}
         onLogout={endSession}
       />
-
-      <DashboardSidebar menuOpen={menuOpen} setMenuOpen={setMenuOpen} menuItems={menuItems} />
-
+      <DashboardSidebar menuOpen={menuOpen} setMenuOpen={setMenuOpen} sections={sections} />
       <ConfirmAlertDialog
         open={logoutConfirmOpen}
         title="Sair?"
@@ -81,3 +74,4 @@ export function DashboardChrome({ user, navigateToTarget }: DashboardChromeProps
     </>
   );
 }
+

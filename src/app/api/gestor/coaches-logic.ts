@@ -8,11 +8,38 @@ export interface CoachInput {
   email: string;
 }
 
+let migrationAttempted = false;
+
+async function ensureCanInsertAthletesColumn() {
+  if (migrationAttempted) return;
+  migrationAttempted = true;
+  try {
+    await (prisma as any).$executeRawUnsafe?.(
+      'ALTER TABLE "memberships" ADD COLUMN IF NOT EXISTS "canInsertAthletes" BOOLEAN NOT NULL DEFAULT true;'
+    );
+  } catch {
+    // ignora silenciosamente se o banco não permitir DDL na conexão ou se já existir
+  }
+}
+
 export async function listCoaches(ctIds: string[] | string) {
   const ids = Array.isArray(ctIds) ? ctIds : [ctIds];
+  await ensureCanInsertAthletesColumn();
   const rows = await prisma.membership.findMany({
     where: { ctId: { in: ids }, kind: 'TREINADOR', status: 'ACTIVE' },
-    include: { user: { select: { id: true, name: true, cpf: true, email: true, createdAt: true, mustChangePassword: true } } },
+    select: {
+      id: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          cpf: true,
+          email: true,
+          createdAt: true,
+          mustChangePassword: true,
+        },
+      },
+    },
     orderBy: { createdAt: 'desc' },
   });
   return rows.map((r) => ({
@@ -23,12 +50,16 @@ export async function listCoaches(ctIds: string[] | string) {
 }
 
 export async function updateCoachPermissions(membershipId: string, data: { canInsertAthletes: boolean }) {
+  await ensureCanInsertAthletesColumn();
   try {
     await prisma.$executeRaw`UPDATE "memberships" SET "canInsertAthletes" = ${data.canInsertAthletes} WHERE "id" = ${membershipId}`;
   } catch {
     // Coluna ainda não existe no banco (migration pendente); ignora silenciosamente.
   }
-  return prisma.membership.findUnique({ where: { id: membershipId } });
+  return prisma.membership.findUnique({
+    where: { id: membershipId },
+    select: { id: true },
+  });
 }
 
 export async function createCoach(ctId: string, issuedByUserId: string, input: CoachInput) {
@@ -46,36 +77,49 @@ export async function createCoach(ctId: string, issuedByUserId: string, input: C
   const passwordHash = await bcrypt.hash(tempPassword, 10);
   const tempExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-  const createdUser = await prisma.user.create({
-    data: {
-      name,
-      email: email.toLowerCase(),
-      cpf: normalizedCpf,
-      passwordHash,
-      role: 'ANNOTATOR',
-      canOperate: true,
-      mustChangePassword: true,
-      tempPasswordExpiresAt: tempExpiresAt,
-    },
-  });
+  const createdUserId = await prisma.$transaction(async (tx) => {
+    const createdUser = await tx.user.create({
+      data: {
+        name,
+        email: email.toLowerCase(),
+        cpf: normalizedCpf,
+        passwordHash,
+        role: 'ANNOTATOR',
+        canOperate: true,
+        mustChangePassword: true,
+        tempPasswordExpiresAt: tempExpiresAt,
+      },
+      select: { id: true },
+    });
 
-  await prisma.membership.create({
-    data: { userId: createdUser.id, kind: 'TREINADOR', ctId, status: 'ACTIVE' },
-  });
+    await tx.membership.create({
+      data: {
+        userId: createdUser.id,
+        kind: 'TREINADOR',
+        ctId,
+        status: 'ACTIVE',
+        createdByUserId: issuedByUserId,
+      },
+      select: { id: true },
+    });
 
-  await prisma.passwordResetRequest.create({
-    data: {
-      userId: createdUser.id,
-      status: 'LINK_ISSUED',
-      contactHint: email,
-      tokenExpiresAt: tempExpiresAt,
-      issuedByUserId,
-    },
+    await tx.passwordResetRequest.create({
+      data: {
+        userId: createdUser.id,
+        status: 'LINK_ISSUED',
+        contactHint: email,
+        tokenExpiresAt: tempExpiresAt,
+        issuedByUserId,
+      },
+      select: { id: true },
+    });
+
+    return createdUser.id;
   });
 
   return {
     ok: true as const,
-    userId: createdUser.id,
+    userId: createdUserId,
     tempPassword,
     linkExpiresAt: tempExpiresAt,
   } as const;

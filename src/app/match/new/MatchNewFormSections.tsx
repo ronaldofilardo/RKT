@@ -8,6 +8,7 @@ import {
 } from './components';
 import { TournamentSection } from './TournamentSection';
 import { MatchNewFormFooter } from './match-new-form-footer';
+import { MyClubToggle } from './components/my-club-toggle';
 import type { useNewMatchController } from './useNewMatchController';
 
 type NewMatchController = ReturnType<typeof useNewMatchController>;
@@ -23,7 +24,6 @@ export function MatchNewFormSections({ c }: { c: NewMatchController }) {
         onFormatChange={c.setFormat}
         onCourtChange={c.setCourtType}
       />
-
       <PlayerSelection
         matchType={c.matchType}
         onMatchTypeChange={c.setMatchType}
@@ -48,10 +48,17 @@ export function MatchNewFormSections({ c }: { c: NewMatchController }) {
         onCreateNewP2={() => c.openNewAthleteModal('p2')}
         onCreateNewP1Partner={() => c.openNewAthleteModal('p1Partner')}
         onCreateNewP2Partner={() => c.openNewAthleteModal('p2Partner')}
+        myClub={c.myClub}
+        ctId={c.ctId || null}
       />
-
+      <MyClubToggle
+        myClub={c.myClub}
+        setMyClub={c.setMyClub}
+        ctId={c.ctId}
+        setCtId={c.setCtId}
+        availableCts={c.availableCts}
+      />
       <DateTimeSection date={c.date} time={c.time} onDateChange={c.setDate} onTimeChange={c.setTime} />
-
       <TournamentSection
         tournamentName={c.tournamentName}
         setTournamentName={c.setTournamentName}
@@ -65,7 +72,6 @@ export function MatchNewFormSections({ c }: { c: NewMatchController }) {
         setCategory={c.setCategory}
         setRoundName={c.setRoundName}
       />
-
       <MatchDetailsSection
         visibility={c.visibility}
         anotadorEmail={c.anotadorEmail}
@@ -84,7 +90,6 @@ export function MatchNewFormSections({ c }: { c: NewMatchController }) {
         onTagsChange={c.setTags}
         onDetailsChange={c.setDetails}
       />
-
       <MatchNewFormFooter loading={c.loading} />
     </form>
   );

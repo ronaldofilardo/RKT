@@ -14,7 +14,7 @@ function getSecretKey(): Uint8Array | null {
 
 export async function decodeJwtPayload(
   token: string,
-): Promise<{ sub: string; role: string; sv?: number } | null> {
+): Promise<{ sub: string; role: string; sv?: number; mcp?: boolean; pp?: string | null; mk?: string | null } | null> {
   if (!token || typeof token !== 'string') return null;
   const key = getSecretKey();
   if (!key) return null;
@@ -24,7 +24,10 @@ export async function decodeJwtPayload(
     const role = payload.role as string | undefined;
     if (!sub || !role) return null;
     const sv = typeof payload.sv === 'number' ? payload.sv : undefined;
-    return sv === undefined ? { sub, role } : { sub, role, sv };
+    const mcp = typeof payload.mcp === 'boolean' ? payload.mcp : undefined;
+    const pp = typeof payload.pp === 'string' ? payload.pp : null;
+    const mk = typeof payload.mk === 'string' ? payload.mk : null;
+    return sv === undefined && mcp === undefined && pp === null && mk === null ? { sub, role } : sv === undefined && mcp === undefined && pp === null ? { sub, role, mk } : sv === undefined && mcp === undefined && mk === null ? { sub, role, pp } : sv === undefined && mcp === undefined ? { sub, role, pp, mk } : sv === undefined && pp === null && mk === null ? { sub, role, mcp } : sv === undefined && pp === null ? { sub, role, mcp, mk } : sv === undefined && mk === null ? { sub, role, mcp, pp } : mcp === undefined && pp === null && mk === null ? { sub, role, sv } : mcp === undefined && pp === null ? { sub, role, sv, mk } : mcp === undefined && mk === null ? { sub, role, sv, pp } : pp === null && mk === null ? { sub, role, sv, mcp } : { sub, role, sv, mcp, pp, mk };
   } catch {
     return null;
   }

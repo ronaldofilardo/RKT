@@ -13,4 +13,7 @@ export interface Athlete {
   backhand?: string;
   ranking?: number;
   rankings?: Record<string, RankingEntry>;
+  club?: string | null;
+  clubId?: string | null;
+  playerCts?: { ctId: string }[];
 }

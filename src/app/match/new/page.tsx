@@ -38,6 +38,8 @@ export default function NewMatchPage() {
         setShowDuplicateModal={c.setShowDuplicateModal}
         duplicateInfo={c.duplicateInfo}
         createMatchIgnoringWarning={c.createMatchIgnoringWarning}
+        myClub={c.myClub}
+        ctId={c.ctId || null}
       />
     </div>
   );

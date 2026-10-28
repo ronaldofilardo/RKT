@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-import { withRLSHandler, getRLSUser } from '@/lib/auth';
+import { withAccessHandler } from '@/lib/access-handler';
 
 import { getMatch, findAbandonedSessionSnapshot } from '@/services/matchService';
+import { canReadMatchComments } from '@/core/access';
+import { getMatchAccess } from '@/services/match-access-service';
 import { prisma } from '@/lib/prisma';
 import { buildReportIntegrity } from './report.integrity';
 import { computeAdvancedStats } from '@/core/report/compute-stats';
@@ -16,18 +18,20 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'ANNOTATOR', async () => {
+  return withAccessHandler(request, 'report:view', null, async ({ actor }) => {
     try {
       const { id } = await params;
-
-      const user = getRLSUser();
       const match = await getMatch(id);
+      const matchAccess = match ? await getMatchAccess(id, match) : null;
 
-      const accessError = checkReportAccess(user, match);
+      const accessError = checkReportAccess(actor, match, matchAccess);
       if (accessError) {
         return accessError;
       }
       if (!match) {
+        return NextResponse.json({ error: 'MATCH_NOT_FOUND' }, { status: 404 });
+      }
+      if (!matchAccess) {
         return NextResponse.json({ error: 'MATCH_NOT_FOUND' }, { status: 404 });
       }
 
@@ -52,24 +56,31 @@ export async function GET(
       const integrity = buildReportIntegrity(pointLogs, timelinePoints);
       const advancedStats = computeAdvancedStats(timelinePoints, match.format as any);
 
-      const comments = await prisma.matchComment.findMany({
-        where: { matchId: id, deletedAt: null },
-        select: {
-          id: true,
-          content: true,
-          category: true,
-          author: { select: { name: true } },
-          createdAt: true,
-          audioNoteDuration: true,
-        },
-        orderBy: { createdAt: 'asc' },
-      });
+      const canViewComments = canReadMatchComments(actor, matchAccess);
+      const comments = canViewComments
+        ? await prisma.matchComment.findMany({
+            where: { matchId: id, deletedAt: null },
+            select: {
+              id: true,
+              content: true,
+              category: true,
+              author: { select: { name: true } },
+              createdAt: true,
+              audioNoteDuration: true,
+            },
+            orderBy: { createdAt: 'asc' },
+          })
+        : [];
+      const visibleTimeline = canViewComments
+        ? timelinePoints
+        : timelinePoints.map(({ note: _note, hasAudioNote: _hasAudioNote, audioNoteMime: _audioNoteMime, audioNoteDuration: _audioNoteDuration, ...point }) => point);
+      if (!canViewComments) responseScoreState = null;
 
       return NextResponse.json(buildReportResponse({
         match,
         id,
         responseScoreState,
-        timelinePoints,
+        timelinePoints: visibleTimeline,
         comments,
         summary,
         integrity,

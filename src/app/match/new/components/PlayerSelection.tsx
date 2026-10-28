@@ -1,12 +1,9 @@
 'use client';
-
 import { AthleteDropdown } from './AthleteDropdown';
 import { DoublesPlayerPair } from './doubles-player-pair';
 import { MatchTypeToggle } from './match-type-toggle';
 import type { PlayerSelectionProps } from './player-selection.types';
-
 export type { PlayerSelectionProps } from './player-selection.types';
-
 export function PlayerSelection({
   matchType = 'SINGLES',
   onMatchTypeChange,
@@ -22,9 +19,13 @@ export function PlayerSelection({
   onToggleP1, onToggleP2, onToggleP1Partner, onToggleP2Partner,
   onSelectP1, onSelectP2, onSelectP1Partner, onSelectP2Partner,
   onCreateNewP1, onCreateNewP2, onCreateNewP1Partner, onCreateNewP2Partner,
+  myClub = false,
+  ctId = null,
 }: PlayerSelectionProps) {
   const isDoubles = matchType === 'DOUBLES';
-
+  const filteredAthletes = myClub && ctId
+    ? athletes.filter((a) => a.playerCts?.some((pc) => pc.ctId === ctId) || a.clubId === ctId)
+    : athletes;
   return (
     <section className="bg-telemetry-card rounded-xl border border-white/10 p-4">
       <div className="flex flex-col gap-4">
@@ -34,12 +35,11 @@ export function PlayerSelection({
           </h2>
           <MatchTypeToggle isDoubles={isDoubles} onMatchTypeChange={onMatchTypeChange} />
         </div>
-
         {!isDoubles ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <AthleteDropdown
               label="Jogador 1"
-              athletes={athletes}
+              athletes={filteredAthletes}
               selectedAthlete={selectedP1}
               excludedAthlete={selectedP2}
               isOpen={player1DropdownOpen}
@@ -50,7 +50,7 @@ export function PlayerSelection({
             />
             <AthleteDropdown
               label="Jogador 2"
-              athletes={athletes}
+              athletes={filteredAthletes}
               selectedAthlete={selectedP2}
               excludedAthlete={selectedP1}
               isOpen={player2DropdownOpen}
@@ -65,7 +65,7 @@ export function PlayerSelection({
             <DoublesPlayerPair
               accent="sky"
               title="Dupla 1 (Lado A)"
-              athletes={athletes}
+              athletes={filteredAthletes}
               primary={{
                 label: 'Jogador 1', selected: selectedP1, isOpen: player1DropdownOpen,
                 excluded: [selectedP2, selectedP1Partner, selectedP2Partner],
@@ -80,7 +80,7 @@ export function PlayerSelection({
             <DoublesPlayerPair
               accent="emerald"
               title="Dupla 2 (Lado B)"
-              athletes={athletes}
+              athletes={filteredAthletes}
               primary={{
                 label: 'Jogador 2', selected: selectedP2, isOpen: player2DropdownOpen,
                 excluded: [selectedP1, selectedP1Partner, selectedP2Partner],

@@ -21,7 +21,10 @@ export async function GET(request: NextRequest) {
   return withAccessHandler(request, 'platform:memberships:manage', () => ({ ctId: ctIds[0] }), async () => {
     try {
       const memberships = await listCoaches(ctIds);
-      return NextResponse.json({ items: memberships }, { status: 200 });
+      return NextResponse.json(
+        { items: memberships },
+        { status: 200, headers: { 'Cache-Control': 'no-store' } },
+      );
     } catch (error) {
       logger.error('[GESTOR COACHES GET]', error);
       return reportApiError(error);

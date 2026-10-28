@@ -2,6 +2,15 @@ jest.mock('@/lib/match-events', () => ({
   subscribeMatch: jest.fn(),
 }));
 
+jest.mock('@/lib/match-comment-access', () => ({
+  withMatchCommentAccess: jest.fn(async (req, matchId, action, handler) => {
+    if (!req.headers.get('authorization')) {
+      return new Response(JSON.stringify({ error: 'UNAUTHORIZED' }), { status: 401 });
+    }
+    return handler();
+  }),
+}));
+
 import { NextRequest } from 'next/server';
 import { subscribeMatch } from '@/lib/match-events';
 import { makeAuthHeaders } from '@/test-helpers/auth';

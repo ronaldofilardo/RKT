@@ -1,13 +1,13 @@
 import { NextRequest } from 'next/server';
-import { withRLSHandler } from '@/lib/auth';
 import { subscribeMatch, getMissedEvents } from '@/lib/match-events';
+import { withMatchCommentAccess } from '@/lib/match-comment-access';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'ANNOTATOR', async () => {
-    const { id } = await params;
+  const { id } = await params;
+  return withMatchCommentAccess(request, id, 'report:view', async () => {
     const lastEventId =
       request.headers.get('last-event-id') ??
       request.nextUrl.searchParams.get('since') ??

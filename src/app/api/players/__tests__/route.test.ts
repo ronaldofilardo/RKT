@@ -12,12 +12,18 @@ jest.mock('@/services/playerService', () => ({
   createPlayer: jest.fn(),
 }));
 
+jest.mock('@/services/accessService', () => ({
+  getActor: jest.fn(),
+}));
+
 import { NextRequest } from 'next/server';
 import { listPlayers, createPlayer } from '@/services/playerService';
+import { getActor } from '@/services/accessService';
 import { makeAuthHeaders } from '@/test-helpers/auth';
 
 const mockListPlayers = listPlayers as jest.MockedFunction<typeof listPlayers>;
 const mockCreatePlayer = createPlayer as jest.MockedFunction<typeof createPlayer>;
+const mockGetActor = getActor as jest.MockedFunction<typeof getActor>;
 
 let ANNOTATOR_HEADERS: Record<string, string> = {};
 let ADMIN_HEADERS: Record<string, string> = {};
@@ -94,6 +100,16 @@ describe('GET /api/players', () => {
 describe('POST /api/players', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetActor.mockResolvedValue({
+      userId: 'user-123',
+      isActive: true,
+      canOperate: true,
+      memberships: [],
+      athletePlayerId: null,
+      athleteCtIds: [],
+      guardianOfPlayerIds: [],
+      followedPlayerIds: [],
+    });
   });
 
   it('deve retornar 400 se nome tem menos de 2 chars', async () => {
@@ -342,6 +358,174 @@ describe('POST /api/players', () => {
     expect(res.status).toBe(500);
   });
 
+  describe('POST /api/players - Fase 4 (cpf, myClub, ctId, athleteCode)', () => {
+    const defaultActor = {
+      userId: 'user-123',
+      isActive: true,
+      canOperate: true,
+      memberships: [],
+      athletePlayerId: null,
+      athleteCtIds: [],
+      guardianOfPlayerIds: [],
+      followedPlayerIds: [],
+    };
+
+    beforeEach(() => {
+      mockGetActor.mockResolvedValue(defaultActor);
+    });
+
+    const gestorActor = {
+      ...defaultActor,
+      memberships: [{ kind: 'GESTOR', preset: null, ctId: 'ct-1', status: 'ACTIVE' }],
+    };
+
+    const atletaActor = {
+      ...defaultActor,
+      athletePlayerId: 'p-existente',
+      athleteCtIds: ['ct-1'],
+    };
+
+    it('deve passar cpf, myClub false e ctId null para createPlayer', async () => {
+      mockCreatePlayer.mockResolvedValue({ id: 'p1', name: 'Test', cpfHash: 'hash', cpfLast2: '25', identityStatus: 'PROVISIONAL', athleteCode: 'ABC12345' });
+
+      const req = new NextRequest('http://localhost:3000/api/players', {
+        method: 'POST',
+        body: JSON.stringify({ name: 'Test', cpf: '529.982.247-25', myClub: false }),
+        headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
+      });
+      const mod = await import('@/app/api/players/route');
+      const POST = mod.POST;
+
+      const res = await POST(req);
+      expect(res.status).toBe(201);
+      expect(mockCreatePlayer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Test',
+          cpf: '529.982.247-25',
+          myClub: false,
+          ctId: null,
+          actorProfile: null,
+        }),
+      );
+    });
+
+    it('deve gerar athleteCode e identityStatus PROVISIONAL quando sem createdByUserId', async () => {
+      mockCreatePlayer.mockResolvedValue({ id: 'p1', name: 'Test', cpfHash: null, cpfLast2: null, identityStatus: 'PROVISIONAL', athleteCode: 'ABC12345' });
+
+      const req = new NextRequest('http://localhost:3000/api/players', {
+        method: 'POST',
+        body: JSON.stringify({ name: 'Test' }),
+        headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
+      });
+      const mod = await import('@/app/api/players/route');
+      const POST = mod.POST;
+
+      const res = await POST(req);
+      expect(res.status).toBe(201);
+      const callArgs = mockCreatePlayer.mock.calls[0][0];
+      expect(callArgs.identityStatus).toBeUndefined(); // route passes undefined, mutation defaults
+      expect(callArgs.createdByUserId).toBe('user-athlete');
+    });
+
+    it('com myClub=true e ator sem CTs deve retornar 403', async () => {
+      mockGetActor.mockResolvedValue(defaultActor);
+
+      const req = new NextRequest('http://localhost:3000/api/players', {
+        method: 'POST',
+        body: JSON.stringify({ name: 'Test', myClub: true }),
+        headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
+      });
+      const mod = await import('@/app/api/players/route');
+      const POST = mod.POST;
+
+      const res = await POST(req);
+      expect(res.status).toBe(403);
+      expect(mockCreatePlayer).not.toHaveBeenCalled();
+    });
+
+    it('com myClub=true e ator com 2+ CTs sem ctId deve retornar 400', async () => {
+      mockGetActor.mockResolvedValue({
+        ...defaultActor,
+        memberships: [
+          { kind: 'GESTOR', preset: null, ctId: 'ct-1', status: 'ACTIVE' },
+          { kind: 'TREINADOR', preset: null, ctId: 'ct-2', status: 'ACTIVE' },
+        ],
+      });
+
+      const req = new NextRequest('http://localhost:3000/api/players', {
+        method: 'POST',
+        body: JSON.stringify({ name: 'Test', myClub: true }),
+        headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
+      });
+      const mod = await import('@/app/api/players/route');
+      const POST = mod.POST;
+
+      const res = await POST(req);
+      expect(res.status).toBe(400);
+      expect(mockCreatePlayer).not.toHaveBeenCalled();
+    });
+
+    it('com myClub=true e GESTOR passa ctId e actorProfile GESTOR', async () => {
+      mockCreatePlayer.mockResolvedValue({ id: 'p1', name: 'Test', cpfHash: null, cpfLast2: null, identityStatus: 'PROVISIONAL', athleteCode: 'ABC12345' });
+      mockGetActor.mockResolvedValue(gestorActor);
+
+      const req = new NextRequest('http://localhost:3000/api/players', {
+        method: 'POST',
+        body: JSON.stringify({ name: 'Test', myClub: true, ctId: 'ct-1' }),
+        headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
+      });
+      const mod = await import('@/app/api/players/route');
+      const POST = mod.POST;
+
+      const res = await POST(req);
+      expect(res.status).toBe(201);
+      expect(mockCreatePlayer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          myClub: true,
+          ctId: 'ct-1',
+          actorProfile: 'GESTOR',
+        }),
+      );
+    });
+
+    it('com myClub=true e ATLETA passa actorProfile ATLETA', async () => {
+      mockCreatePlayer.mockResolvedValue({ id: 'p1', name: 'Test', cpfHash: null, cpfLast2: null, identityStatus: 'PROVISIONAL', athleteCode: 'ABC12345' });
+      mockGetActor.mockResolvedValue(atletaActor);
+
+      const req = new NextRequest('http://localhost:3000/api/players', {
+        method: 'POST',
+        body: JSON.stringify({ name: 'Test', myClub: true, ctId: 'ct-1' }),
+        headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
+      });
+      const mod = await import('@/app/api/players/route');
+      const POST = mod.POST;
+
+      const res = await POST(req);
+      expect(res.status).toBe(201);
+      expect(mockCreatePlayer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actorProfile: 'ATLETA',
+        }),
+      );
+    });
+
+    it('conta inativa deve retornar 403', async () => {
+      mockGetActor.mockResolvedValue(null);
+
+      const req = new NextRequest('http://localhost:3000/api/players', {
+        method: 'POST',
+        body: JSON.stringify({ name: 'Test' }),
+        headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
+      });
+      const mod = await import('@/app/api/players/route');
+      const POST = mod.POST;
+
+      const res = await POST(req);
+      expect(res.status).toBe(403);
+      expect(mockCreatePlayer).not.toHaveBeenCalled();
+    });
+  });
+
   it('deve retornar 500 se ocorrer erro interno no GET', async () => {
     mockListPlayers.mockRejectedValue(new Error('DB Error'));
 
@@ -359,6 +543,16 @@ describe('POST /api/players', () => {
 describe('POST /api/players - birthDate validation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetActor.mockResolvedValue({
+      userId: 'user-123',
+      isActive: true,
+      canOperate: true,
+      memberships: [],
+      athletePlayerId: null,
+      athleteCtIds: [],
+      guardianOfPlayerIds: [],
+      followedPlayerIds: [],
+    });
     mockCreatePlayer.mockResolvedValue({
       id: 'p1',
       name: 'Test',

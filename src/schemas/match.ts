@@ -208,6 +208,7 @@ export const CreateMatchInputSchema = z
     nickname: z.string().nullish(),
     visibility: z.string().nullish(),
     openForAnnotation: z.boolean().nullish(),
+    ctId: z.string().min(1).nullish(),
     scheduledAt: z.coerce.date().nullish(),
     initialServerId: z.string().min(1).nullish(),
     tournamentName: z.string().nullish(),

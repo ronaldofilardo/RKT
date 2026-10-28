@@ -33,6 +33,26 @@ O sistema tem **exatamente 2 papéis** (`enum Role` em `prisma/schema.prisma:205
 | **ANNOTATOR** (padrão) | `User.role @default(ANNOTATOR)` | Criar/gerenciar partidas, anotar pontos, comentários, áudio, sessões de anotação, editar placar, ver relatórios |
 | **ADMIN** | `middleware.ts` bloqueia `/admin` para não-ADMIN | CRUD de usuários em `/admin` (`/api/admin/users`), além de tudo do ANNOTATOR |
 
+### 3.1 Perfis por vínculo e regras de negócio (2026-10-26)
+
+O `enum Role` acima é apenas o **claim legado** de sessão. O perfil real de uma conta é **derivado dos vínculos** (`Membership`, `Player.userId`, `GuardianLink`, `canOperate`) e pode se acumular: um gestor pode ser também treinador e atleta; um treinador pode ser também atleta. Detalhes em `docs/PLANO_MENUS_POR_PERFIL_2026-10-26.md`.
+
+| Perfil | Como nasce | Regras de negócio |
+|---|---|---|
+| **Suporte** | `Membership PLATAFORMA/SUPORTE` | Aprova/suspende clubes (CTs), gerencia gestores e contas avulsas, atende solicitações. Sem permissões de partida |
+| **Gestor** | Auto cadastro de clube (CT `PENDING` até o Suporte aprovar) | Cadastra treinadores e atletas do clube (com login), gerencia logins, **vê e anota** as partidas do clube, desvincula atletas. Financeiro e Torneios: em breve |
+| **Treinador de clube** | Criado pelo gestor | Acompanha atletas do clube e os seus; vê relatórios |
+| **Treinador avulso** | Auto cadastro | Pode criar atletas com login, acompanhar atletas e **anotar partidas e ver relatórios** dos atletas que acompanha |
+| **Atleta criando atleta** | Cadastro rápido em nova partida | Cria atleta provisório no pool (`PROVISIONAL`, sem conta). Se marcado "Meu clube", vínculo nasce `PENDING` para confirmação do gestor |
+| **Claim Automático** | `/signup` com papel ATLETA | Vinculação imediata com atleta provisório existente quando CPF (mod 11) e data de nascimento conferem (maiores de 18 anos) |
+| **Atleta de clube** | Login criado pelo gestor (CPF + senha provisória `DDMMAAAA`) | Só o gestor (ou Suporte) o desvincula do clube |
+| **Atleta avulso** | Auto cadastro | Cria partidas e cadastra adversários; pode se vincular a treinadores e clubes (mais de um de cada) |
+
+Regras transversais:
+- Atleta, treinador e partida pertencem a um **pool global**; clube é vínculo/contexto (ADR-0008).
+- O menu lateral é a soma das seções dos vínculos da conta (ADR-0009).
+- O menu ADMIN permanece como está (item "Admin").
+
 ---
 
 ## 4. Objetivos do Produto

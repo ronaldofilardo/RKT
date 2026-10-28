@@ -11,6 +11,7 @@ export function actor(over: Partial<Actor> = {}): Actor {
     memberships: [],
     athletePlayerId: null,
     guardianOfPlayerIds: [],
+    followedPlayerIds: [],
     ...over,
   };
 }
@@ -27,7 +28,8 @@ export const SINGLE = {
   ADMIN: actor({ memberships: [member('PLATAFORMA', { preset: 'ADMIN' })] }),
   SUPORTE: actor({ memberships: [member('PLATAFORMA', { preset: 'SUPORTE' })] }),
   GESTOR: actor({ memberships: [member('GESTOR', { ctId: CT })] }),
-  TREINADOR: actor({ memberships: [member('TREINADOR', { ctId: CT })] }),
+  TREINADOR: actor({ memberships: [member('TREINADOR', { ctId: CT })], followedPlayerIds: ['p-1'] }),
   ATLETA: actor({ athletePlayerId: 'p-self' }),
+  RESPONSAVEL: actor({ guardianOfPlayerIds: ['p-1'] }),
   OPERACIONAL: actor({ canOperate: true }),
 } as const;

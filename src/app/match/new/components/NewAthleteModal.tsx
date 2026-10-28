@@ -9,12 +9,16 @@ interface NewAthleteModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreated: (athlete: Athlete) => void;
+  myClub?: boolean;
+  ctId?: string | null;
 }
 
-export function NewAthleteModal({ isOpen, onClose, onCreated }: NewAthleteModalProps) {
+export function NewAthleteModal({
+  isOpen, onClose, onCreated, myClub = false, ctId = null,
+}: NewAthleteModalProps) {
   const {
     submitting, error, nameInputRef, form, setForm, rankings, setRankings, age, submitNewAthleteForm,
-  } = useNewAthleteModal({ isOpen, onClose, onCreated });
+  } = useNewAthleteModal({ isOpen, onClose, onCreated, myClub, ctId });
 
   if (!isOpen) return null;
 

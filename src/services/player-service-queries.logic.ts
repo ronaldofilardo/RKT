@@ -5,7 +5,11 @@ export async function listPlayers(cursor?: string | null, limit = 20, userId?: s
     take: limit,
     ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     where: userId ? { createdByUserId: userId } : {},
-    select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true },
+    select: {
+      id: true, name: true, gender: true, age: true, birthDate: true, dominance: true,
+      backhand: true, ranking: true, rankings: true, club: true, clubId: true,
+      playerCts: { select: { ctId: true } },
+    },
     orderBy: { name: 'asc' },
   });
 }

@@ -30,6 +30,11 @@ describe('canReadMatch (§6.3)', () => {
     expect(canReadMatch(actor({ guardianOfPlayerIds: ['p-1'] }), match)).toBe(true);
   });
 
+  it('treinador com vínculo ativo só ganha leitura das partidas do atleta vinculado', () => {
+    expect(canReadMatch(actor({ followedPlayerIds: ['p-1'] }), match)).toBe(true);
+    expect(canReadMatch(actor({ followedPlayerIds: ['p-9'] }), match)).toBe(false);
+  });
+
   it('nega para outros: treinador avulso, atleta alheio, admin, suporte, inativo', () => {
     expect(canReadMatch(actor({ memberships: [member('TREINADOR')] }), match)).toBe(false);
     expect(canReadMatch(actor({ athletePlayerId: 'p-9' }), match)).toBe(false);
@@ -60,6 +65,7 @@ describe('canReadMatchComments', () => {
   it('nunca atleta, responsável nem CT de participante', () => {
     expect(canReadMatchComments(actor({ athletePlayerId: 'p-1' }), match)).toBe(false);
     expect(canReadMatchComments(actor({ guardianOfPlayerIds: ['p-1'] }), match)).toBe(false);
+    expect(canReadMatchComments(actor({ followedPlayerIds: ['p-1'] }), match)).toBe(false);
     expect(canReadMatchComments(actor({ memberships: [member('GESTOR', { ctId: OTHER_CT })] }), match)).toBe(false);
   });
 });

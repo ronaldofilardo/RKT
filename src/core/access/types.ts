@@ -9,10 +9,19 @@ export type Profile =
   | 'GESTOR'
   | 'TREINADOR'
   | 'ATLETA'
+  | 'RESPONSAVEL'
   | 'OPERACIONAL';
 
 /** Escopos: ver matriz §5. SELF = o próprio atleta. */
-export type Scope = 'ANY' | 'P' | 'CT' | 'PROP' | 'SELF' | 'NON_PLATFORM_TARGET';
+export type Scope =
+  | 'ANY'
+  | 'P'
+  | 'CT'
+  | 'PROP'
+  | 'SELF'
+  | 'RESP'
+  | 'FOLLOW'
+  | 'NON_PLATFORM_TARGET';
 
 export interface ActorMembership {
   kind: MembershipKind;
@@ -29,8 +38,12 @@ export interface Actor {
   memberships: readonly ActorMembership[];
   /** Player ligado à conta (vínculo ATLETA), se houver. */
   athletePlayerId?: string | null;
+  /** CTs do(s) atleta(s) ligado(s) à conta via PlayerCT (escopo "Meu clube"). */
+  athleteCtIds: readonly string[];
   /** Players menores sob responsabilidade desta conta (vínculo ativo). */
   guardianOfPlayerIds: readonly string[];
+  /** Atletas com vínculo de acompanhamento ativo deste treinador. */
+  followedPlayerIds: readonly string[];
 }
 
 /** Recurso sobre o qual a ação é pedida. Campos ausentes = sem informação. */

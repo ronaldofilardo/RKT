@@ -2,6 +2,8 @@ import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { Rankings } from '@/schemas/contracts';
 
+export { createPlayer } from './player-create.logic';
+
 export async function updatePlayer(id: string, data: {
   name?: string;
   email?: string;
@@ -27,38 +29,6 @@ export async function updatePlayer(id: string, data: {
       ...(data.backhand !== undefined && { backhand: data.backhand }),
       ...(data.ranking !== undefined && { ranking: data.ranking }),
       ...(data.rankings !== undefined && { rankings: data.rankings as unknown as Prisma.InputJsonValue }),
-    },
-    select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true },
-  });
-}
-
-export async function createPlayer(data: {
-  name: string;
-  email?: string;
-  club?: string;
-  gender?: string;
-  age?: number;
-  birthDate?: Date;
-  dominance?: string;
-  backhand?: string;
-  ranking?: number;
-  rankings?: Rankings;
-  createdByUserId?: string;
-}) {
-  const age = data.age ?? (data.birthDate ? new Date().getFullYear() - data.birthDate.getFullYear() : undefined);
-  return prisma.player.create({
-    data: {
-      name: data.name,
-      email: data.email || null,
-      club: data.club || null,
-      gender: data.gender,
-      age,
-      birthDate: data.birthDate,
-      dominance: data.dominance,
-      backhand: data.backhand,
-      ranking: data.ranking,
-      rankings: data.rankings as unknown as Prisma.InputJsonValue,
-      createdByUserId: data.createdByUserId,
     },
     select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true },
   });

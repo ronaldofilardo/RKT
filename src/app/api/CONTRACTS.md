@@ -348,6 +348,39 @@ describe('GET /api/[resource]', () => {
 - ❌ Não implementado
 - N/A: Não se aplica
 
+### 7.1 Contratos planejados — Menus por Perfil (Fases 1 e 4) — 🔴 não implementados
+
+> Definidos antes da implementação (`docs/PLANO_MENUS_POR_PERFIL_2026-10-26.md`). Todos usam `withAccessHandler`, validação Zod em arquivo de schema separado e `handleApiError`. **VERIFICAR** a permissão exata de cada rota na revisão da fase.
+
+| Endpoint | Permissão | Fase | Contrato |
+|----------|-----------|------|----------|
+| GET `/api/auth/me` (extensão **aditiva**) — ✅ código entregue, aguardando validação local | sessão | F1 | Mantém `user`, `memberships`, `ctStatus`. Adiciona `canOperate`, `isSuporte`, `isAdmin`, `athlete: { playerId, ctIds[], isMinor } \| null`, `coach: { ctIds[] } \| null` (`ctIds` vazio = treinador avulso) |
+| POST `/api/coach/athletes` | `athlete:create` (treinador) | F4 | Body: `name`, `cpf`, `birthDate` (DD/MM/AAAA), `email?`, `gender`, `dominance?`. Cria `User` + `Player` + `CoachAthleteLink ACTIVE` (sem `PlayerCT`), senha provisória `DDMMAAAA`, `mustChangePassword`, `PasswordResetRequest` de 7 dias. 201 com `firstAccess: { link, expiresAt }`. 409 se CPF já existe (orientar convite de vínculo) |
+| POST `/api/coach/athletes/:id/access-link` | `athlete:update` (escopo PROP/vínculo) | F4 | Revoga token anterior e emite novo de 7 dias |
+| POST `/api/invites/accept` (atleta avulso) | autenticado | F4 | Convite `ATLETA` cria `PlayerCT ACTIVE` para o atleta logado; histórico de partidas preservado |
+| POST `/api/gestor/athletes/:id/unlink` | `ct:members:manage` (escopo CT) ou Suporte | F4 | Define `PlayerCT.status = ENDED` e `endedAt`; grava `AuditLog`. **Não existe** endpoint equivalente para o próprio atleta |
+
+**Regras de contrato:**
+- Desvincular nunca apaga `Player`, `User` ou `Match` (ADR-0008).
+- Treinador só anota/lê partidas de atleta com `CoachAthleteLink ACTIVE`; vínculo `PENDING`/`ENDED` não concede acesso.
+- Respostas de negação não revelam o motivo (apenas log).
+
+---
+
+### 7.2 Contratos planejados — Pool de Busca, Cadastro de Atletas e Claim (2026-10-27)
+
+> Definidos em docs/PLANO_POOL_BUSCA_CADASTRO_ATLETAS_E_CLAIM_2026-10-27.md.
+
+| Endpoint | Permissão | Fase | Contrato |
+|---|---|---|---|
+| GET /api/players | sessão ativa | F4 | Query: scope=club/pool, ctId, q, cursor, limit (máx 50). DTO mínimo com mascaramento de menores. |
+| POST /api/players | athlete:create | F5 | mode: QUICK/WITH_LOGIN, myClub, ctId, cpf, birthDate, confirmNew. Duplicidade N1 (409) / N2. |
+| GET /api/pool/venues | sessão ativa | F4 | Items: { clubId, ctId, name, city, isMine }. |
+| POST /api/matches | match:create | F6 | Aceita venueClubId do pool sem exigir vínculo com CT. |
+| PUT /api/gestor/athletes/links/:id | ct:members:manage | F5 | Body: { decision: CONFIRM/REJECT } sobre PlayerCT PENDING. |
+| POST /api/athlete-claims | sessão ativa | F1 | Reivindicação segura: userId vem do token, checa player, 1 PENDING por par. |
+| POST /api/auth/signup | público | F8 | E-mail nunca em User.cpf, validação mod 11 de CPF, claim automático de provisório N1/N0. |
+
 ---
 
 ## 8. Próximos Passos (Onda 1)

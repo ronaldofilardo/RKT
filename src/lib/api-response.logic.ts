@@ -19,8 +19,19 @@ export function jsonResponse<T>(
 }
 
 /**
+ * Extrai a primeira mensagem relevante de um ZodError para o atributo `message`
+ * da resposta de erro de validação, traduzindo o erro técnico em texto acionável.
+ */
+export function formatZodMessage(error: ZodError): string {
+  const first = error.errors[0];
+  if (!first) return 'Dados inválidos.';
+  const campo = first.path.length > 0 ? String(first.path[0]) : '';
+  return campo ? `${campo}: ${first.message}` : first.message;
+}
+
+/**
  * Valida request body com Zod e retorna erro padronizado
- * 
+ *
  * @example
  * const body = await validatedRequest(request, CreateMatchSchema);
  */
@@ -36,7 +47,8 @@ export async function validatedRequest<T>(
       throw new ApiError(
         'VALIDATION_ERROR',
         error.flatten(),
-        400
+        400,
+        formatZodMessage(error)
       );
     }
     throw new ApiError('INVALID_JSON', 'Corpo da requisição inválido', 400);

@@ -24,4 +24,7 @@ export interface PlayerSelectionProps {
   onCreateNewP2: () => void;
   onCreateNewP1Partner?: () => void;
   onCreateNewP2Partner?: () => void;
+  /** Quando verdadeiro, filtra atletas pelo CT selecionado. */
+  myClub?: boolean;
+  ctId?: string | null;
 }

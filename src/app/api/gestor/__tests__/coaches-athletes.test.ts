@@ -74,9 +74,11 @@ describe('createCoach', () => {
           kind: 'TREINADOR',
           ctId: 'ct-1',
           status: 'ACTIVE',
+          createdByUserId: 'u-gestor-1',
         }),
       }),
     );
+    expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
     expect(mockPrisma.passwordResetRequest.create).toHaveBeenCalled();
   });
 

@@ -8,6 +8,7 @@ import { ConflictError, ApiError } from '@/lib/errors';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
+import { assertCtMembership } from './match-ct-access.logic';
 
 type RLSUser = { id: string; role: string } | null | undefined;
 
@@ -60,6 +61,7 @@ export async function postMatchResponse(
     const { force, ...input } = await validatedRequest(request, CreateMatchInputSchema);
 
     const currentUserId = user?.id;
+    await assertCtMembership(input.ctId, currentUserId);
     logger.match.created(currentUserId ?? "anonymous");
 
     if (!force) {

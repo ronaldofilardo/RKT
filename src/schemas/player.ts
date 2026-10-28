@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { flexibleIdValidator } from "./common";
+import { isValidCpf } from "@/core/athlete/cpf";
 
 export const RankingEntrySchema = z.object({
   category: z.string().optional(),
@@ -40,6 +41,12 @@ export const CreatePlayerInputSchema = z.object({
     })
   ).optional(),
   club: z.string().optional(),
+  cpf: z.string().optional().refine(
+    (cpf) => !cpf || isValidCpf(cpf),
+    { message: 'CPF inválido' },
+  ),
+  myClub: z.boolean().optional().default(false),
+  ctId: z.string().optional(),
   createdByUserId: z.string().optional(),
 });
 export type CreatePlayerInput = z.infer<typeof CreatePlayerInputSchema>;

@@ -11,6 +11,7 @@ export interface AdminUser {
   email: string;
   cpf?: string;
   role: string;
+  profile?: string;
   club: string | null;
   createdAt: string;
 }
@@ -25,7 +26,10 @@ async function requestJson<T>(
   options: RequestInit,
   errorMessage: string,
 ): Promise<T> {
-  const response = await fetch(`${baseUrl}${endpoint}`, options);
+  const response = await fetch(`${baseUrl}${endpoint}`, {
+    cache: "no-store",
+    ...options,
+  });
   if (!response.ok) throw new Error(errorMessage);
   return response.json();
 }

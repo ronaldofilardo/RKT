@@ -35,6 +35,10 @@ export function inScope(
       return !!resource?.ownerUserId && resource.ownerUserId === actor.userId;
     case 'SELF':
       return !!resource?.playerId && resource.playerId === actor.athletePlayerId;
+    case 'RESP':
+      return !!resource?.playerId && actor.guardianOfPlayerIds.includes(resource.playerId);
+    case 'FOLLOW':
+      return !!resource?.playerId && actor.followedPlayerIds.includes(resource.playerId);
     default:
       return false;
   }

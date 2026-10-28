@@ -7,6 +7,10 @@ jest.mock('@/lib/auth', () => ({
   getRLSUser: jest.fn(() => ({ id: 'user-1', role: 'ATHLETE' })),
 }));
 
+jest.mock('@/lib/match-comment-access', () => ({
+  withMatchCommentAccess: jest.fn((_request, _matchId, _action, handler) => handler()),
+}));
+
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     pointLog: {

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Athlete } from './types';
 import { ensureAuthCookie } from '@/lib/auth-client';
 import { useTournamentSuggestions } from './hooks/useTournamentSuggestions';
-
+import { loadAvailableCts, type CtOption } from './match-new-ct-logic';
 export function useNewMatchState() {
   const [loading, setLoading] = useState(false);
   const submittingRef = useRef(false);
@@ -43,18 +43,18 @@ export function useNewMatchState() {
   const [openForAnnotation, setOpenForAnnotation] = useState(false);
   const [showTournamentDropdown, setShowTournamentDropdown] = useState(false);
   const tournamentSuggestions = useTournamentSuggestions(tournamentName);
-  const [showServerModal, setShowServerModal] = useState(false);
-  const [createdMatchId, setCreatedMatchId] = useState<string | null>(null);
+  const [showServerModal, setShowServerModal] = useState(false); const [createdMatchId, setCreatedMatchId] = useState<string | null>(null);
   const [startingMatch, setStartingMatch] = useState(false);
   const [pendingPayload, setPendingPayload] = useState<Record<string, unknown> | null>(null);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [duplicateInfo, setDuplicateInfo] = useState<{ id: string; playerP1?: string; playerP2?: string } | null>(null);
-
+  const [myClub, setMyClub] = useState(false);
+  const [ctId, setCtId] = useState(''); const [clubNameMatch, setClubNameMatch] = useState('');
+  const [availableCts, setAvailableCts] = useState<CtOption[]>([]);
   useEffect(() => {
     const today = new Date().toLocaleDateString('en-CA');
     setDate((previous) => previous || today);
   }, []);
-
   useEffect(() => {
     const role = sessionStorage.getItem('user_role');
     if (role === 'ADMIN') {
@@ -63,10 +63,12 @@ export function useNewMatchState() {
     }
     ensureAuthCookie();
   }, []);
-
+  useEffect(() => {
+    loadAvailableCts().then(setAvailableCts).catch(() => undefined);
+  }, []);
   useEffect(() => {
     if (typeof fetch !== 'function') return;
-        const headers: Record<string, string> = {};
+    const headers: Record<string, string> = {};
     fetch('/api/players?limit=100', { headers })
       .then((response) => response.json())
       .then((json: { data?: { players?: Athlete[] }; players?: Athlete[] }) => {
@@ -75,7 +77,6 @@ export function useNewMatchState() {
       })
       .catch(() => undefined);
   }, []);
-
   return {
     loading, setLoading, submittingRef, error, setError, missingFields, setMissingFields, athletes, setAthletes,
     matchType, setMatchType,
@@ -93,7 +94,7 @@ export function useNewMatchState() {
     tournamentSuggestions, showServerModal, setShowServerModal, createdMatchId, setCreatedMatchId,
     startingMatch, setStartingMatch, pendingPayload, setPendingPayload, showDuplicateModal,
     setShowDuplicateModal, duplicateInfo, setDuplicateInfo,
+    myClub, setMyClub, ctId, setCtId, clubNameMatch, setClubNameMatch, availableCts, setAvailableCts,
   };
 }
-
 export type NewMatchState = ReturnType<typeof useNewMatchState>;

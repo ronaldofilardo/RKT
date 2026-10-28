@@ -4,6 +4,7 @@ type MatchPayloadFields = {
   nickname: string; visibility: string; openForAnnotation: boolean; anotadorEmail: string; date: string; time: string;
   venueId: string; publicMatchCode: string; tournamentName: string; clubName: string; category: string; roundName: string;
   bracketType: string; temperature: string; humidity: string; tags: string; details: string;
+  ctId: string; clubNameMatch: string;
 };
 
 const optionalText = (value: string) => value || null;
@@ -31,6 +32,8 @@ export function buildMatchPayload(fields: MatchPayloadFields, overrides?: Record
     anotadorEmail: optionalText(fields.anotadorEmail),
     scheduledAt: scheduledAt(fields.date, fields.time),
     venueId: optionalText(fields.venueId),
+    ctId: optionalText(fields.ctId),
+    clubId: optionalText(fields.clubNameMatch),
     publicMatchCode: optionalText(fields.publicMatchCode),
     tournamentName: optionalText(fields.tournamentName),
     clubName: optionalText(fields.clubName),

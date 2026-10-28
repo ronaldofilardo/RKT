@@ -50,7 +50,9 @@ export function CadastrarMembroModal({ open, onOpenChange, onSave, initialType =
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Falha ao cadastrar membro');
-      setConfirmResult({ userId: data.userId, tempPassword: data.tempPassword, linkExpiresAt: data.linkExpiresAt, type });
+      const result = { userId: data.userId, tempPassword: data.tempPassword, linkExpiresAt: data.linkExpiresAt, type };
+      setConfirmResult(result);
+      onSave(result);
       setFormData(initialForm);
       onOpenChange(false);
     } catch (err) {
@@ -80,7 +82,7 @@ export function CadastrarMembroModal({ open, onOpenChange, onSave, initialType =
           </div>
         </div>
       )}
-      <CadastrarMembroConfirmModal open={Boolean(confirmResult)} result={confirmResult} onClose={() => { if (confirmResult) onSave(confirmResult); setConfirmResult(null); }} />
+      <CadastrarMembroConfirmModal open={Boolean(confirmResult)} result={confirmResult} onClose={() => setConfirmResult(null)} />
     </>
   );
 }

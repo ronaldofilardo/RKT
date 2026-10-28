@@ -3,6 +3,7 @@ export interface LoginResponse {
   user: {
     id: string;
     role: string;
+    profile?: string;
     name?: string;
     email?: string;
     cpf?: string;

@@ -31,7 +31,7 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
 
   const fetchCoachesData = useCallback(async () => {
     try {
-      const res = await fetch('/api/gestor/coaches');
+      const res = await fetch('/api/gestor/coaches', { cache: 'no-store' });
       if (res.ok) { const d = await res.json(); setCoaches(d.items || []); }
     } catch {}
   }, []);

@@ -12,7 +12,7 @@ export async function getMatchesResponse(
   user: RLSUser,
 ): Promise<NextResponse> {
   try {
-    if (!user || user.role !== 'ANNOTATOR') {
+    if (!user) {
       return NextResponse.json({ data: { matches: [], nextCursor: null } });
     }
 
