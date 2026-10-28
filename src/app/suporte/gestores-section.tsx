@@ -64,7 +64,7 @@ export function GestoresSection({ memberships, users, clubs, onEdit, onRefresh }
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-telemetry-border/20 text-sm font-medium text-telemetry-text-muted">
+            <tr className="border-b border-telemetry-border opacity-20 text-sm font-medium text-telemetry-text-muted">
               <th className="pb-3">Gestor</th><th className="pb-3">CPF</th><th className="pb-3">E-mail</th>
               <th className="pb-3">Clube Vinculado</th><th className="pb-3">Status</th><th className="pb-3 text-right">Ações</th>
             </tr>

@@ -38,7 +38,7 @@ export function ClubesSection({
             key={s.key}
             onClick={() => onFilterChange(s.key)}
             className={`px-3 py-1.5 text-xs font-medium rounded-full border ${
-              filter === s.key ? 'border-telemetry-blue text-telemetry-blue bg-telemetry-blue/10 font-semibold' : 'border-telemetry-border/20 text-telemetry-text-muted hover:bg-telemetry-elevated/30'
+              filter === s.key ? 'border-telemetry-blue text-telemetry-blue bg-telemetry-blue opacity-10 font-semibold' : 'border-telemetry-border opacity-20 text-telemetry-text-muted hover:bg-telemetry-elevated opacity-30'
             }`}
           >
             {s.label}
@@ -48,7 +48,7 @@ export function ClubesSection({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-telemetry-border/20 text-sm font-medium text-telemetry-text-muted">
+            <tr className="border-b border-telemetry-border opacity-20 text-sm font-medium text-telemetry-text-muted">
               <th className="pb-3">Clube / CT</th>
               <th className="pb-3">CNPJ</th>
               <th className="pb-3">Razão Social</th>
@@ -58,15 +58,15 @@ export function ClubesSection({
           </thead>
           <tbody>
             {filtered.map((ct) => (
-              <tr key={ct.id} className="border-b border-telemetry-border/10 hover:bg-telemetry-elevated/30">
+              <tr key={ct.id} className="border-b border-telemetry-border opacity-10 hover:bg-telemetry-elevated opacity-30">
                 <td className="py-3 text-sm text-telemetry-text-primary font-medium">{ct.name}</td>
                 <td className="py-3 text-sm text-telemetry-text-muted font-mono text-xs">{ct.cnpj || '-'}</td>
                 <td className="py-3 text-sm text-telemetry-text-muted">{ct.legalName || '-'}</td>
                 <td className="py-3 text-sm">
                   <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                    ct.status === 'ACTIVE' ? 'bg-telemetry-volt/20 text-telemetry-volt' :
-                    ct.status === 'PENDING' ? 'bg-telemetry-alert/20 text-telemetry-alert' :
-                    'bg-telemetry-error/20 text-telemetry-error'
+                    ct.status === 'ACTIVE' ? 'bg-telemetry-volt text-telemetry-volt opacity-20' :
+                    ct.status === 'PENDING' ? 'bg-telemetry-alert text-telemetry-alert opacity-20' :
+                    'bg-telemetry-error text-telemetry-error opacity-20'
                   }`}>
                     {ct.status === 'ACTIVE' ? 'Ativo' : ct.status === 'PENDING' ? 'Pendente' : 'Bloqueado'}
                   </span>

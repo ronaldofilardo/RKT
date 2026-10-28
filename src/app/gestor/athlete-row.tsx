@@ -17,7 +17,7 @@ export function AthleteRow({ athlete: a, selected, onSelect, onEdit, onGenerateL
     : '-';
 
   return (
-    <tr className="border-b border-telemetry-border/10 hover:bg-telemetry-elevated/30">
+    <tr className="border-b border-telemetry-border opacity-10 hover:bg-telemetry-elevated opacity-30">
       <td className="py-3 text-sm">
         <input
           id={`atleta-select-${a.player.id}`}
@@ -34,7 +34,7 @@ export function AthleteRow({ athlete: a, selected, onSelect, onEdit, onGenerateL
       <td className="py-3 text-sm text-telemetry-text-muted">{a.player.dominance || '-'}</td>
       <td className="py-3 text-sm">
         <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-          a.player.user?.mustChangePassword ? 'bg-telemetry-alert/20 text-telemetry-alert' : 'bg-telemetry-volt/20 text-telemetry-volt'
+          a.player.user?.mustChangePassword ? 'bg-telemetry-alert text-telemetry-alert opacity-20' : 'bg-telemetry-volt text-telemetry-volt opacity-20'
         }`}>
           {a.player.user?.mustChangePassword ? 'Senha pendente' : 'Ativo'}
         </span>

@@ -63,7 +63,7 @@ export function CoachesTable({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-telemetry-border/20 text-sm font-medium text-telemetry-text-muted">
+            <tr className="border-b border-telemetry-border opacity-20 text-sm font-medium text-telemetry-text-muted">
               <th className="pb-3 w-10">
                 <input id="treinadores-select-all" type="checkbox" aria-label="Selecionar todos" checked={allSelected} onChange={(e) => onSelectAll(e.target.checked)} className="w-4 h-4 text-telemetry-blue rounded" />
               </th>

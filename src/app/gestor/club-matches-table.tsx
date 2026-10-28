@@ -9,9 +9,9 @@ interface ClubMatchesTableProps {
 }
 
 function getStateBadge(state: string) {
-  if (state === 'FINISHED') return 'bg-telemetry-volt/20 text-telemetry-volt';
-  if (state === 'IN_PROGRESS') return 'bg-telemetry-alert/20 text-telemetry-alert animate-pulse';
-  return 'bg-telemetry-elevated/40 text-telemetry-text-muted';
+  if (state === 'FINISHED') return 'bg-telemetry-volt text-telemetry-volt opacity-20';
+  if (state === 'IN_PROGRESS') return 'bg-telemetry-alert text-telemetry-alert opacity-20 animate-pulse';
+  return 'bg-telemetry-elevated text-telemetry-text-muted opacity-40';
 }
 
 function getStateLabel(state: string) {
@@ -38,7 +38,7 @@ export function ClubMatchesTable({ matches, loading }: ClubMatchesTableProps) {
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-telemetry-border/20 text-sm font-medium text-telemetry-text-muted">
+            <tr className="border-b border-telemetry-border opacity-20 text-sm font-medium text-telemetry-text-muted">
               <th className="pb-3">Data</th>
               <th className="pb-3">Confronto</th>
               <th className="pb-3">Formato</th>
@@ -47,9 +47,9 @@ export function ClubMatchesTable({ matches, loading }: ClubMatchesTableProps) {
               <th className="pb-3 text-right">Ação</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-telemetry-border/10">
+          <tbody className="divide-y divide-telemetry-border opacity-10">
             {matches.map((m) => (
-              <tr key={m.id} className="hover:bg-telemetry-elevated/30">
+              <tr key={m.id} className="hover:bg-telemetry-elevated opacity-30">
                 <td className="py-3 text-xs text-telemetry-text-muted whitespace-nowrap">
                   {new Date(m.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })}
                 </td>

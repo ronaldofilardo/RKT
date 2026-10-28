@@ -38,7 +38,7 @@ function SuportePageContent({ data, loading, error, setError, onRetry }: Suporte
   }, []);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-telemetry-blue"></div></div>;
-  if (error) return <div className="min-h-screen flex items-center justify-center p-4"><div className="bg-telemetry-error/10 border border-telemetry-error/20 text-telemetry-error p-6 rounded-xl max-w-md"><h2 className="font-bold mb-2">Erro</h2><p>{error}</p></div></div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center p-4"><div className="bg-telemetry-error opacity-10 border border-telemetry-error opacity-20 text-telemetry-error p-6 rounded-xl max-w-md"><h2 className="font-bold mb-2">Erro</h2><p>{error}</p></div></div>;
 
   const { clubs, users, memberships } = data!;
 

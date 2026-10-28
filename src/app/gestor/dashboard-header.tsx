@@ -26,7 +26,7 @@ export function DashboardHeader({
           <p className="text-sm text-telemetry-text-muted">Clube / CT: {me.user.name} · CPF: {me.user.cpf}</p>
         </div>
         <div className="flex gap-2">
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${isCtActive ? 'bg-telemetry-volt/20 text-telemetry-volt' : 'bg-telemetry-alert/20 text-telemetry-alert'}`}>
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${isCtActive ? 'bg-telemetry-volt text-telemetry-volt opacity-20' : 'bg-telemetry-alert text-telemetry-alert opacity-20'}`}>
             {isCtActive ? 'Clube Ativo' : 'Clube Pendente'}
           </span>
         </div>
