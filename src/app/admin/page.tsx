@@ -5,6 +5,7 @@ import type { AdminUser } from '@/services/adminClient';
 import { useAdminPage } from './use-admin-page';
 import { AdminUsersTable } from './admin-users-table';
 import { AdminLoadingScreen, AdminHeader, AdminCards, AdminBackLink } from './admin-dashboard-chrome';
+import { homeForProfileString } from '@/core/access/home';
 
 export type User = AdminUser;
 
@@ -20,7 +21,7 @@ export default function AdminPage() {
   if (loading) return <AdminLoadingScreen />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-telemetry-base text-telemetry-text-primary">
       <AdminHeader onLogout={endSession} />
 
       <main className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
@@ -45,7 +46,7 @@ export default function AdminPage() {
           />
         )}
 
-        <AdminBackLink onBack={() => router.push('/dashboard')} />
+        <AdminBackLink onBack={() => router.push(homeForProfileString(sessionStorage.getItem('user_role')) as any)} />
       </main>
 
       <ConfirmAlertDialog

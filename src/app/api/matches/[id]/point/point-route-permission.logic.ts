@@ -14,20 +14,21 @@ export async function validateMatchAnnotatorPermission(
   currentUserId?: string,
   currentUserRole?: string,
   tx?: Prisma.TransactionClient,
+  athletePlayerId?: string | null,
 ): Promise<void> {
   const isPrivilegedStaff = currentUserRole === 'ADMIN';
   const isPlayer =
-    match.player1Id === currentUserId ||
-    match.player2Id === currentUserId ||
-    match.player1PartnerId === currentUserId ||
-    match.player2PartnerId === currentUserId ||
+    match.player1Id === athletePlayerId ||
+    match.player2Id === athletePlayerId ||
+    match.player1PartnerId === athletePlayerId ||
+    match.player2PartnerId === athletePlayerId ||
     match.createdByUserId === currentUserId;
 
-  if (isPrivilegedStaff || isPlayer || match.openForAnnotation === true) {
+  if (isPrivilegedStaff || isPlayer) {
     return;
   }
 
-  // Detecção em runtime: o modelo pode ausentar em clientes Prisma desatualizados.
+  // Falha fechada: se o modelo de sessão não estiver disponível, nega o acesso.
   const txWithSessions = tx as unknown as {
     matchAnnotationSession?: {
       findFirst: (args: {
@@ -37,13 +38,19 @@ export async function validateMatchAnnotatorPermission(
   };
   const sessionModel = txWithSessions.matchAnnotationSession;
   const hasSessionModel = typeof sessionModel?.findFirst === 'function';
-  const activeSession = hasSessionModel
-    ? await sessionModel.findFirst({
-        where: { matchId: id, isActive: true, annotatorUserId: currentUserId },
-      })
-    : null;
+  if (!hasSessionModel) {
+    throw new TransactionError(
+      'Apenas os jogadores, equipe técnica ou o anotador da sessão ativa podem registrar pontos',
+      403,
+      'FORBIDDEN',
+    );
+  }
 
-  if (hasSessionModel && !activeSession) {
+  const activeSession = await sessionModel.findFirst({
+    where: { matchId: id, isActive: true, annotatorUserId: currentUserId },
+  });
+
+  if (!activeSession) {
     throw new TransactionError(
       'Apenas os jogadores, equipe técnica ou o anotador da sessão ativa podem registrar pontos',
       403,

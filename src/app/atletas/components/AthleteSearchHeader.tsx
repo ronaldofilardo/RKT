@@ -1,4 +1,5 @@
 import { useRouter } from 'next/navigation';
+import { homeForProfileString } from '@/core/access/home';
 
 interface AthleteSearchHeaderProps {
   athleteCount: number;
@@ -14,7 +15,7 @@ export function AthleteSearchHeader({ athleteCount, onNewAthlete }: AthleteSearc
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push(homeForProfileString(sessionStorage.getItem('user_role')) as any)}
             aria-label="Voltar para o dashboard"
             className="text-telemetry-text-muted hover:text-telemetry-text-primary transition-colors"
           >

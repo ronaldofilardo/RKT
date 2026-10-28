@@ -13,6 +13,7 @@ import {
   type ScoringPageEffects,
   type ScoringPageState,
 } from './use-scoring-page-chrome';
+import { homeForProfileString } from '@/core/access/home';
 
 type AppRouter = ReturnType<typeof useRouter>;
 
@@ -44,7 +45,7 @@ export function ScoringPageLayout({
 
   const serve = useServeInlineControls(state, handlers, derived);
   const navigateReport = () => router.push(`/match/${matchId}/report`);
-  const navigateDashboard = () => router.push('/dashboard');
+  const navigateDashboard = () => router.push(homeForProfileString(sessionStorage.getItem('user_role')) as any);
 
   return (
     <div

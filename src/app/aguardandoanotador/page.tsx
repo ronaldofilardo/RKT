@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { AppRouteInput } from '@/lib/app-router';
 import { matchesClient } from '@/services/matchesClient';
 import { logger } from '@/lib/logger';
+import { homeForProfileString } from '@/core/access/home';
 
 export default function AguardandoAnotadorPage() {
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function AguardandoAnotadorPage() {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('matchId');
     setMatchId(id);
-    if (!id) router.replace('/dashboard');
+    if (!id) router.replace(homeForProfileString(sessionStorage.getItem('user_role')) as any);
   }, [router]);
 
   useEffect(() => {
@@ -70,7 +71,7 @@ export default function AguardandoAnotadorPage() {
           <p className="text-red-500 text-sm mt-3 bg-red-50 rounded-lg px-3 py-2">{error}</p>
         )}
         <button
-          onClick={() => router.push('/dashboard')}
+          onClick={() => router.push(homeForProfileString(sessionStorage.getItem('user_role')) as any)}
           className="mt-6 text-sky-600 hover:text-sky-700 underline text-sm"
         >
           Voltar ao dashboard

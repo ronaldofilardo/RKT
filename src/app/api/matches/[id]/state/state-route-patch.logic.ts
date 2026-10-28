@@ -4,6 +4,7 @@ import { MatchStateInputSchema } from '@/schemas/contracts';
 import { getRLSUser } from '@/lib/auth';
 import { transitionMatchState } from '@/services/matchService';
 import { prisma } from '@/lib/prisma';
+import { getActor } from '@/services/accessService';
 import { checkCanModifyMatchState, reportTransitionFailure, emitStateEvents } from './state-route-guards.logic';
 
 export async function patchMatchState(
@@ -23,6 +24,7 @@ export async function patchMatchState(
     }
 
     const user = getRLSUser();
+    const actor = user ? await getActor(user.id) : null;
     const match = await prisma.match.findFirst({
       where: { id },
       select: {
@@ -41,7 +43,7 @@ export async function patchMatchState(
       return NextResponse.json({ error: 'MATCH_NOT_FOUND', message: 'Partida não encontrada' }, { status: 404 });
     }
 
-    const canModify = await checkCanModifyMatchState(match, id, user);
+    const canModify = await checkCanModifyMatchState(match, id, user, actor?.athletePlayerId ?? null);
     if (!canModify) {
       return NextResponse.json(
         { error: 'FORBIDDEN', message: 'Sem permissão para alterar o estado desta partida' },

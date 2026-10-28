@@ -19,6 +19,21 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 
+jest.mock('@/services/accessService', () => ({
+  getActor: jest.fn().mockResolvedValue({
+    userId: 'user-ath',
+    isActive: true,
+    canOperate: true,
+    memberships: [],
+    athletePlayerId: 'p1',
+    athleteCtIds: [],
+    guardianOfPlayerIds: [],
+    followedPlayerIds: [],
+  }),
+  invalidateActor: jest.fn(),
+  bumpSessionVersion: jest.fn(),
+}));
+
 jest.mock('@/core/scoring/engine', () => ({
   ScoringEngine: jest.fn().mockImplementation(function(this: any) {
     this.applyPoint = jest.fn().mockReturnValue({

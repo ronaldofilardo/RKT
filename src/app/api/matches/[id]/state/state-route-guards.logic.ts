@@ -13,21 +13,22 @@ export async function checkCanModifyMatchState(
   },
   matchId: string,
   user?: { id?: string; role?: string } | null,
+  athletePlayerId?: string | null,
 ): Promise<boolean> {
   const currentUserId = user?.id;
   const isStaff = user?.role === 'ADMIN';
   const isParticipant =
-    match.player1Id === currentUserId ||
-    match.player2Id === currentUserId ||
-    match.player1PartnerId === currentUserId ||
-    match.player2PartnerId === currentUserId ||
+    match.player1Id === athletePlayerId ||
+    match.player2Id === athletePlayerId ||
+    match.player1PartnerId === athletePlayerId ||
+    match.player2PartnerId === athletePlayerId ||
     match.createdByUserId === currentUserId;
 
-  if (isStaff || isParticipant || match.openForAnnotation === true) {
+  if (isStaff || isParticipant) {
     return true;
   }
 
-  // Detecção em runtime: o modelo pode ausentar em clientes Prisma desatualizados.
+  // Falha fechada: se o modelo de sessão não estiver disponível, nega o acesso.
   const prismaWithSessions = prisma as unknown as {
     matchAnnotationSession?: {
       findFirst: (args: {
@@ -36,7 +37,7 @@ export async function checkCanModifyMatchState(
     };
   };
   const sessionModel = prismaWithSessions.matchAnnotationSession;
-  if (typeof sessionModel?.findFirst !== 'function') return true;
+  if (typeof sessionModel?.findFirst !== 'function') return false;
 
   const activeSession = await sessionModel.findFirst({
     where: { matchId, isActive: true, annotatorUserId: currentUserId },

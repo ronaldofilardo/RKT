@@ -170,7 +170,7 @@ describe('middleware', () => {
       expect(res).toBeInstanceOf(NextResponse);
     });
 
-    it('deve redirecionar /admin para /dashboard quando role não é ADMIN', async () => {
+    it('deve permitir acesso a /admin quando role não é ADMIN mas perfil é desconhecido (página faz auth)', async () => {
       mockDecodeJwtPayload.mockResolvedValue({ sub: 'user-1', role: 'ATHLETE' });
       const { middleware } = await import('@/middleware');
       const req = makeRequest({
@@ -178,7 +178,8 @@ describe('middleware', () => {
         authorization: 'Bearer valid-token',
       });
       const res = await middleware(req);
-      expect(res.headers.get('location')).toContain('/dashboard');
+      expect(res).toBeInstanceOf(NextResponse);
+      expect(res.headers.get('location')).toBeNull();
     });
 
     it('deve permitir acesso a /admin quando role é ADMIN', async () => {

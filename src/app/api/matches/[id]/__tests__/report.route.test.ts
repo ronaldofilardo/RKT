@@ -15,6 +15,27 @@ jest.mock('@/services/matchService', () => ({
   getMatchScoreEdits: jest.fn().mockResolvedValue([]),
 }));
 
+jest.mock('@/services/accessService', () => ({
+  getActor: jest.fn().mockImplementation((userId: string) => {
+    // current-user é atleta participante (player1/player2 override), p1 também.
+    // other-user e random-user não devem bater em nenhum participantPlayerId.
+    const athletePlayerId =
+      userId === 'current-user' ? 'current-user' : userId === 'p1' ? 'p1' : 'zzz-non-participant';
+    return Promise.resolve({
+      userId,
+      isActive: true,
+      canOperate: true,
+      memberships: [],
+      athletePlayerId,
+      athleteCtIds: [],
+      guardianOfPlayerIds: [],
+      followedPlayerIds: [],
+    });
+  }),
+  invalidateActor: jest.fn(),
+  bumpSessionVersion: jest.fn(),
+}));
+
 jest.mock('jose', () => ({
   jwtVerify: jest.fn(),
 }));
@@ -166,7 +187,7 @@ describe('GET /api/matches/[id]/report — autorização (regressão: anotador �
     }) as any);
 
     const res = await GET(makeReq('other-user', 'ADMIN'), { params: Promise.resolve({ id: 'match-1' }) });
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(403);
   });
 
   it('bloqueia (403) quando usuário não é player, nem criador, nem staff', async () => {

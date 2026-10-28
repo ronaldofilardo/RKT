@@ -38,6 +38,21 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 
+jest.mock('@/services/accessService', () => ({
+  getActor: jest.fn().mockResolvedValue({
+    userId: 'user-annotator-1',
+    isActive: true,
+    canOperate: true,
+    memberships: [],
+    athletePlayerId: 'cjs5nqpr7000001l29u6qr9f1',
+    athleteCtIds: [],
+    guardianOfPlayerIds: [],
+    followedPlayerIds: [],
+  }),
+  invalidateActor: jest.fn(),
+  bumpSessionVersion: jest.fn(),
+}));
+
 let ANNOTATOR_HEADERS: Record<string, string> = {};
 
 beforeAll(async () => {

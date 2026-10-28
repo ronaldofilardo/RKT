@@ -20,6 +20,21 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 
+jest.mock('@/services/accessService', () => ({
+  getActor: jest.fn().mockResolvedValue({
+    userId: 'user-ath',
+    isActive: true,
+    canOperate: true,
+    memberships: [],
+    athletePlayerId: 'cjs5nqpr7000001l29u6qr9f1',
+    athleteCtIds: [],
+    guardianOfPlayerIds: [],
+    followedPlayerIds: [],
+  }),
+  invalidateActor: jest.fn(),
+  bumpSessionVersion: jest.fn(),
+}));
+
 const P1_ID = 'cjs5nqpr7000001l29u6qr9f1';
 const P2_ID = 'cjs5nqpr7000001l29u6qr9f2';
 

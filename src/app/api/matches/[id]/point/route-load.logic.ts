@@ -2,6 +2,7 @@ import type { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import type { ScoringState } from '@/core/scoring/types';
 import { TransactionError, validateMatchAnnotatorPermission } from './route.logic';
+import { getActor } from '@/services/accessService';
 
 export interface PointTransactionResult {
   scoreState: ScoringState;
@@ -43,7 +44,8 @@ export async function loadMatchForPoint(
     throw new TransactionError('Partida não encontrada', 404, 'MATCH_NOT_FOUND');
   }
 
-  await validateMatchAnnotatorPermission(match, id, userId, userRole, tx);
+  const actor = userId ? await getActor(userId) : null;
+  await validateMatchAnnotatorPermission(match, id, userId, userRole, tx, actor?.athletePlayerId ?? null);
 
   if (clientEventId) {
     const existingPoint = await tx.pointLog.findFirst({

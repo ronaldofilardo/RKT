@@ -9,6 +9,7 @@ import { useScoringPageChrome } from "./use-scoring-page-chrome";
 import { ScoringTimelineView } from "./ScoringTimelineView";
 import { ScoringPageLayout } from "./scoring-page-layout";
 import { ErrorScreen, LoadingScreen } from "./scoring-page-screens";
+import { homeForProfileString } from "@/core/access/home";
 
 function ScoringPageInner() {
   const params = useParams();
@@ -40,7 +41,7 @@ function ScoringPageInner() {
     return (
       <ErrorScreen
         message={state.error || "Partida não encontrada"}
-        onBack={() => router.push("/dashboard")}
+        onBack={() => router.push(homeForProfileString(sessionStorage.getItem('user_role')) as any)}
       />
     );
   }
@@ -62,7 +63,7 @@ function ScoringPageInner() {
         player2Name={match.player2.name}
         comments={state.comments}
         onNavigateReport={() => router.push(`/match/${matchId}/report`)}
-        onNavigateDashboard={() => router.push("/dashboard")}
+        onNavigateDashboard={() => router.push(homeForProfileString(sessionStorage.getItem('user_role')) as any)}
       />
     );
   }

@@ -3,6 +3,7 @@ import { logger } from '@/lib/logger';
 import { withRLSHandler } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { finishMatch } from '@/services/matchService';
+import { getActor } from '@/services/accessService';
 import { FinishMatchInputSchema } from '@/schemas/contracts';
 import { emitMatchEvent } from '@/lib/match-events';
 import { checkCanModifyMatchState } from '../state/state-route-guards.logic';
@@ -41,7 +42,8 @@ export async function POST(
         return NextResponse.json({ error: 'MATCH_NOT_FOUND', message: 'Partida não encontrada' }, { status: 404 });
       }
 
-      const canModify = await checkCanModifyMatchState(match, id, user);
+      const actor = user ? await getActor(user.id) : null;
+      const canModify = await checkCanModifyMatchState(match, id, user, actor?.athletePlayerId ?? null);
       if (!canModify) {
         return NextResponse.json(
           { error: 'FORBIDDEN', message: 'Sem permissão para alterar o estado desta partida' },

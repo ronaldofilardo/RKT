@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoginPayloadSchema } from '@/schemas/contracts';
 import { writeToSessionOnly, loginRequest } from '@/lib/auth-client';
+import { decodeJwtPayload } from '@/lib/jwt-client';
+import { homeForProfileString } from '@/core/access/home';
 
 export function useLoginForm() {
   const router = useRouter();
@@ -30,19 +32,30 @@ export function useLoginForm() {
 
     try {
       const data = await loginRequest(parsed.data);
+      const effectiveProfile = (data.user as any).profile ?? data.user.role;
+
+      // Decodificar JWT para obter pp (platformPreset) como fonte da verdade para
+      // roteamento por perfil de plataforma (SUPORTE, ADMIN, etc.).
+      let jwtPlatformPreset: string | null = null;
+      if (data.accessToken) {
+        const decoded = await decodeJwtPayload(data.accessToken);
+        jwtPlatformPreset = decoded?.pp ?? null;
+      }
+      const finalProfile = jwtPlatformPreset ?? effectiveProfile;
+
       writeToSessionOnly({
         userId: data.user.id,
-        userRole: data.user.role,
+        userRole: finalProfile,
         userName: data.user.name,
       });
 
       const isSecure = window.location.protocol === 'https:';
-      document.cookie = `user_role=${data.user.role}; path=/; max-age=${2 * 60 * 60}; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+      document.cookie = `user_role=${finalProfile}; path=/; max-age=${2 * 60 * 60}; SameSite=Lax${isSecure ? '; Secure' : ''}`;
 
-      if (data.user.role === 'ADMIN') {
-        router.push('/admin');
+      if ((data.user as any)?.mustChangePassword) {
+        router.push('/trocar-senha');
       } else {
-        router.push('/dashboard');
+        router.push(homeForProfileString(finalProfile) as any);
       }
     } catch (err) {
       // Resposta do servidor rejeitada mostra a mensagem retornada;

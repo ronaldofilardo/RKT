@@ -35,6 +35,21 @@ jest.mock('@/core/scoring/engine', () => ({
   },
 }));
 
+jest.mock('@/services/accessService', () => ({
+  getActor: jest.fn().mockResolvedValue({
+    userId: 'user-ath',
+    isActive: true,
+    canOperate: true,
+    memberships: [],
+    athletePlayerId: 'p1',
+    athleteCtIds: [],
+    guardianOfPlayerIds: [],
+    followedPlayerIds: [],
+  }),
+  invalidateActor: jest.fn(),
+  bumpSessionVersion: jest.fn(),
+}));
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { makeAuthHeaders } from '@/test-helpers/auth';

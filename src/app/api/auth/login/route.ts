@@ -1,28 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { SignJWT } from 'jose';
 import { LoginPayloadSchema } from '@/schemas/contracts';
 import { validatedRequest, reportApiError } from '@/lib/api.logic';
 import { authenticateUser } from './authenticate';
 import { logger } from '@/lib/logger';
-
-const JWT_SECRET = process.env.JWT_SECRET;
-
-const secretKey = JWT_SECRET ? new TextEncoder().encode(JWT_SECRET) : null;
-
-async function generateToken(
-  userId: string,
-  role: string,
-  sv?: number,
-): Promise<string> {
-  if (!secretKey) {
-    throw new Error('JWT_SECRET is not defined in environment');
-  }
-  return new SignJWT(sv === undefined ? { sub: userId, role } : { sub: userId, role, sv })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('2h')
-    .sign(secretKey);
-}
+import { getActor } from '@/services/accessService';
+import { generateLoginToken } from './login-token-logic';
+import { computeLoginProfile } from './login-profile-logic';
+import type { ActorMembership } from '@/core/access';
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,7 +28,6 @@ export async function POST(request: NextRequest) {
         await new Promise(resolve => setTimeout(resolve, delayMs));
       }
     }
-
     const user = await authenticateUser(identifier, payload.password);
 
     if (process.env.ENABLE_LOGIN_RATELIMIT === 'true') {
@@ -54,7 +37,6 @@ export async function POST(request: NextRequest) {
         logger.warn('[LOGIN POST] Falha ao registrar tentativa de login:', error);
       });
     }
-
     if (!user) {
       logger.warn('[LOGIN POST] credenciais inválidas');
       return NextResponse.json(
@@ -63,7 +45,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const accessToken = await generateToken(user.id, user.role, user.sessionVersion);
+    const actor = await getActor(user.id).catch(() => null);
+    const { effectiveRole, effectiveProfile, platformPreset, membershipKind } =
+      computeLoginProfile(actor?.memberships as readonly ActorMembership[] | null | undefined, user.role);
+
+    const accessToken = await generateLoginToken(user.id, effectiveRole, user.sessionVersion, user.mustChangePassword, platformPreset, membershipKind);
 
     const response = NextResponse.json({
       accessToken,
@@ -72,7 +58,9 @@ export async function POST(request: NextRequest) {
         name: user.name,
         email: user.email,
         cpf: user.cpf,
-        role: user.role,
+        role: effectiveRole,
+        profile: effectiveProfile,
+        mustChangePassword: user.mustChangePassword,
       },
     });
 
@@ -83,7 +71,6 @@ export async function POST(request: NextRequest) {
       maxAge: 60 * 60 * 2,
       path: '/',
     });
-    
     return response;
   } catch (error) {
     logger.error('[LOGIN POST]', error);

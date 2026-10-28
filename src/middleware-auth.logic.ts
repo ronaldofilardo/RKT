@@ -2,6 +2,14 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { decodeJwtPayload } from '@/lib/jwt-client';
 
+function homeForJwtClaims(decoded: { role?: string | null; pp?: string | null; mk?: string | null }): string {
+  if (decoded.pp === 'ADMIN' || decoded.role === 'ADMIN') return '/admin';
+  if (decoded.pp === 'SUPORTE') return '/suporte';
+  if (decoded.mk === 'GESTOR') return '/gestor';
+  if (decoded.mk === 'TREINADOR') return '/dashboard';
+  return '/login';
+}
+
 export async function handleAuthenticated(
   request: NextRequest,
   requestHeaders: Headers,
@@ -34,9 +42,34 @@ export async function handleAuthenticated(
   requestHeaders.set('x-user-id', decoded.sub);
   requestHeaders.set('x-user-role', decoded.role);
   if (decoded.sv !== undefined) requestHeaders.set('x-user-sv', String(decoded.sv));
+  if (decoded.mcp !== undefined) requestHeaders.set('x-user-mcp', String(decoded.mcp));
 
-  if (pathname.startsWith('/admin') && decoded.role !== 'ADMIN') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+  // Se deve trocar senha provisória, só permite /trocar-senha
+  if (decoded.mcp === true && pathname !== '/trocar-senha' && !pathname.startsWith('/api/')) {
+    return NextResponse.redirect(new URL('/trocar-senha', request.url));
+  }
+
+  // Roteamento por perfil quando já autenticado e acessa /login
+  if (pathname === '/login') {
+    return NextResponse.redirect(new URL(homeForJwtClaims(decoded), request.url));
+  }
+
+  if (pathname.startsWith('/admin') && decoded.role !== 'ADMIN' && decoded.pp !== 'ADMIN') {
+    const target = homeForJwtClaims(decoded);
+    if (target === '/login') return NextResponse.next({ request: { headers: requestHeaders } });
+    return NextResponse.redirect(new URL(target, request.url));
+  }
+
+  if (pathname.startsWith('/suporte') && decoded.pp !== 'SUPORTE' && decoded.pp !== 'ADMIN') {
+    const target = homeForJwtClaims(decoded);
+    if (target === '/login') return NextResponse.next({ request: { headers: requestHeaders } });
+    return NextResponse.redirect(new URL(target, request.url));
+  }
+
+  if (pathname.startsWith('/gestor') && decoded.mk !== 'GESTOR' && decoded.pp !== 'SUPORTE' && decoded.pp !== 'ADMIN') {
+    const target = homeForJwtClaims(decoded);
+    if (target === '/login') return NextResponse.next({ request: { headers: requestHeaders } });
+    return NextResponse.redirect(new URL(target, request.url));
   }
 
   return NextResponse.next({ request: { headers: requestHeaders } });
