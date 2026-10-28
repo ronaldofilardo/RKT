@@ -2,8 +2,9 @@
 import type { ScoreboardCardProps } from './scoreboard-card.types';
 import { useScoreboardCardData } from './use-scoreboard-card-data';
 import { ScoreboardPlayerRow } from './scoreboard-player-row';
+import { abbreviateDoublesName } from './doubles-name-abbreviation.logic';
 
-export function ScoreboardCard({ player1, player2, scoreState, isSuspended, format }: ScoreboardCardProps) {
+export function ScoreboardCard({ player1, player2, player1Partner, player2Partner, scoreState, isSuspended, format }: ScoreboardCardProps) {
   const {
     tennisFormat,
     setsWon,
@@ -22,6 +23,9 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
   });
 
   const rowBase = { displayedSets, currentSetIndex, numSets, tennisFormat, setsWon, isSuspended };
+
+  const p1DisplayName = abbreviateDoublesName(player1.name, player1Partner?.name ?? undefined);
+  const p2DisplayName = abbreviateDoublesName(player2.name, player2Partner?.name ?? undefined);
 
   return (
     <div className={`rounded-xl border overflow-hidden mx-4 sm:mx-auto max-w-md ${isSuspended ? 'border-telemetry-alert' : 'border-white/10 shadow-md bg-telemetry-card'}`}>
@@ -53,6 +57,8 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
           <ScoreboardPlayerRow
             {...rowBase}
             player={player1}
+            partner={player1Partner ?? undefined}
+            displayName={p1DisplayName}
             side="player1"
             isWinner={winner === 'player1'}
             isServing={isServingP1}
@@ -60,6 +66,8 @@ export function ScoreboardCard({ player1, player2, scoreState, isSuspended, form
           <ScoreboardPlayerRow
             {...rowBase}
             player={player2}
+            partner={player2Partner ?? undefined}
+            displayName={p2DisplayName}
             side="player2"
             isWinner={winner === 'player2'}
             isServing={isServingP2}

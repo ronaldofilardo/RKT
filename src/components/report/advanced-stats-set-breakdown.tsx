@@ -3,8 +3,9 @@
 import { Section, type AdvancedStatsSectionProps } from './advanced-stats-primitives';
 
 export function SetBreakdownSection({ stats, player1Name, player2Name }: AdvancedStatsSectionProps) {
+  const totalDuration = stats.durations?.totalDurationMinutes;
   return (
-    <Section title="Breakdown por Set">
+    <Section title="10. Breakdown por Set">
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
@@ -67,6 +68,15 @@ export function SetBreakdownSection({ stats, player1Name, player2Name }: Advance
                 </td>
               </tr>
             ))}
+            {totalDuration != null && totalDuration > 0 && (
+              <tr className="bg-telemetry-elevated font-bold border-t border-white/10">
+                <td className="py-2 px-2 text-telemetry-text-primary">Total</td>
+                <td className="text-center py-2 px-2" colSpan={6} />
+                <td className="text-center py-2 px-2 text-telemetry-text-primary font-mono">
+                  {totalDuration} min
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

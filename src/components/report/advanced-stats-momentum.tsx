@@ -34,9 +34,38 @@ export function MomentumSection({ stats, player1Name = 'J1', player2Name = 'J2' 
           </span>
         </div>
       </div>
+      <div className="mt-4">
+        <div className="text-xs font-semibold text-telemetry-text-primary mb-2">Sequências exatas por jogador</div>
+        <table className="w-full text-xs border-collapse border border-white/10 rounded-lg">
+          <thead>
+            <tr className="bg-telemetry-elevated border-b border-white/10">
+              <th className="text-left py-2 px-2 font-bold text-telemetry-text-primary">Sequência</th>
+              <th className="text-center py-2 px-2 font-bold text-telemetry-blue">{player1Name}</th>
+              <th className="text-center py-2 px-2 font-bold text-telemetry-error">{player2Name}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-white/5">
+              <td className="py-2 px-2 text-telemetry-text-muted">Exatamente 2 pontos</td>
+              <td className="text-center py-2 px-2 font-mono font-bold">{momentum.streakCountP1.len2}</td>
+              <td className="text-center py-2 px-2 font-mono font-bold">{momentum.streakCountP2.len2}</td>
+            </tr>
+            <tr className="border-b border-white/5">
+              <td className="py-2 px-2 text-telemetry-text-muted">Exatamente 3 pontos</td>
+              <td className="text-center py-2 px-2 font-mono font-bold">{momentum.streakCountP1.len3}</td>
+              <td className="text-center py-2 px-2 font-mono font-bold">{momentum.streakCountP2.len3}</td>
+            </tr>
+            <tr>
+              <td className="py-2 px-2 text-telemetry-text-muted">4+ pontos</td>
+              <td className="text-center py-2 px-2 font-mono font-bold">{momentum.streakCountP1.len4Plus}</td>
+              <td className="text-center py-2 px-2 font-mono font-bold">{momentum.streakCountP2.len4Plus}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       {momentum.scoringRuns.length > 0 && (
         <div className="mt-3 pt-3 border-t border-white/10">
-          <div className="text-xs font-semibold text-telemetry-text-primary mb-2">Sequências de 3+ Pontos</div>
+          <div className="text-xs font-semibold text-telemetry-text-primary mb-2">Sequências de 2+ Pontos</div>
           <div className="flex flex-wrap gap-1">
             {momentum.scoringRuns.map((run, i) => (
               <span

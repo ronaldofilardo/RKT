@@ -11,7 +11,7 @@ function extractScoringRuns(points: TimelinePoint[]): MomentumStats['scoringRuns
     if (points[i].winner === currentWinner) {
       currentRun++;
     } else {
-      if (currentRun >= 3) {
+      if (currentRun >= 2) {
         runs.push({
           player: currentWinner,
           length: currentRun,
@@ -25,7 +25,7 @@ function extractScoringRuns(points: TimelinePoint[]): MomentumStats['scoringRuns
     }
   }
 
-  if (currentRun >= 3) {
+  if (currentRun >= 2) {
     runs.push({
       player: currentWinner,
       length: currentRun,
@@ -81,11 +81,23 @@ export function computeMomentum(points: TimelinePoint[]): MomentumStats {
       longestLosingStreak: 0,
       currentStreak: 0,
       scoringRuns: [],
+      streakCountP1: { len2: 0, len3: 0, len4Plus: 0 },
+      streakCountP2: { len2: 0, len3: 0, len4Plus: 0 },
     };
   }
 
   const scoringRuns = extractScoringRuns(points);
   const { longestWinning, longestLosing, current } = calculateStreaks(points);
+
+  const streakCountP1 = { len2: 0, len3: 0, len4Plus: 0 };
+  const streakCountP2 = { len2: 0, len3: 0, len4Plus: 0 };
+
+  for (const run of scoringRuns) {
+    const target = run.player === 'PLAYER_1' ? streakCountP1 : streakCountP2;
+    if (run.length === 2) target.len2++;
+    else if (run.length === 3) target.len3++;
+    else target.len4Plus++;
+  }
 
   return {
     longestWinningStreak: longestWinning,
@@ -94,5 +106,7 @@ export function computeMomentum(points: TimelinePoint[]): MomentumStats {
     longestStreakP2: longestLosing,
     currentStreak: current,
     scoringRuns,
+    streakCountP1,
+    streakCountP2,
   };
 }

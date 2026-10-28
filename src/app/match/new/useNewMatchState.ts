@@ -47,14 +47,10 @@ export function useNewMatchState() {
   const [startingMatch, setStartingMatch] = useState(false);
   const [pendingPayload, setPendingPayload] = useState<Record<string, unknown> | null>(null);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
-  const [duplicateInfo, setDuplicateInfo] = useState<{ id: string; playerP1?: string; playerP2?: string } | null>(null);
+  const [duplicateInfo, setDuplicateInfo] = useState<{ id: string; playerP1?: string; playerP2?: string; matchType?: 'SINGLES' | 'DOUBLES'; scheduledAt?: Date | string | null } | null>(null);
   const [myClub, setMyClub] = useState(false);
   const [ctId, setCtId] = useState(''); const [clubNameMatch, setClubNameMatch] = useState('');
   const [availableCts, setAvailableCts] = useState<CtOption[]>([]);
-  useEffect(() => {
-    const today = new Date().toLocaleDateString('en-CA');
-    setDate((previous) => previous || today);
-  }, []);
   useEffect(() => {
     const role = sessionStorage.getItem('user_role');
     if (role === 'ADMIN') {

@@ -17,6 +17,7 @@ export function buildTransitionUpdateData(
     player2PartnerId?: string | null;
     scoreState: unknown;
     startedAt?: Date | string | null;
+    scheduledAt?: Date | string | null;
     doublesSetup?: unknown;
   } | null,
   doublesSetupInput?: unknown,
@@ -28,6 +29,9 @@ export function buildTransitionUpdateData(
   if (newState === 'IN_PROGRESS') {
     if (!existingMatch?.startedAt) {
       updateData.startedAt = new Date();
+    }
+    if (!existingMatch?.scheduledAt) {
+      updateData.scheduledAt = new Date();
     }
     updateData.finishedAt = null;
     updateData.winnerId = null;

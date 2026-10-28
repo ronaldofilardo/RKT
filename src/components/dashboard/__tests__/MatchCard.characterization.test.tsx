@@ -16,8 +16,8 @@ describe('MatchCard Characterization', () => {
     render(<MatchCard match={matchMock} />);
 
     expect(screen.getByTestId('match-card-match-101')).toBeInTheDocument();
-    expect(screen.getByText('Carlos Alcaraz')).toBeInTheDocument();
-    expect(screen.getByText('Jannik Sinner')).toBeInTheDocument();
+    expect(screen.getByText('C. Alcaraz')).toBeInTheDocument();
+    expect(screen.getByText('J. Sinner')).toBeInTheDocument();
   });
 
   it('triggers onClick callback when clicked', () => {

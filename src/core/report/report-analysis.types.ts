@@ -33,6 +33,8 @@ export interface MomentumStats {
   longestStreakP2?: number;
   currentStreak: number;
   scoringRuns: Array<{ player: 'PLAYER_1' | 'PLAYER_2'; length: number; start: number; end: number }>;
+  streakCountP1: { len2: number; len3: number; len4Plus: number };
+  streakCountP2: { len2: number; len3: number; len4Plus: number };
 }
 
 export interface SetBreakdown {

@@ -4,9 +4,12 @@ export interface BaselineStats {
   forcedErrors: number;
   total: number;
   successPct: number;
-  shortRallySuccessPct: number;
-  mediumRallySuccessPct: number;
-  longRallySuccessPct: number;
+  shortRallyWon: number;
+  shortRallyTotal: number;
+  mediumRallyWon: number;
+  mediumRallyTotal: number;
+  longRallyWon: number;
+  longRallyTotal: number;
 }
 
 export interface NetPassStats {

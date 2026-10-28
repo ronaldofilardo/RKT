@@ -19,8 +19,8 @@ describe('MatchCard (Doubles)', () => {
   it('renderiza os nomes compostos das duplas no placar', () => {
     render(<MatchCard match={baseDoublesMatch} />);
 
-    expect(screen.getByText('Rafael Nadal / Carlos Alcaraz')).toBeInTheDocument();
-    expect(screen.getByText('Roger Federer / Novak Djokovic')).toBeInTheDocument();
+    expect(screen.getByText('R. Nadal/C. Alcaraz')).toBeInTheDocument();
+    expect(screen.getByText('R. Federer/N. Djokovic')).toBeInTheDocument();
   });
 
   it('exibe indicador de Duplas no formato da partida', () => {
@@ -39,7 +39,7 @@ describe('MatchCard (Doubles)', () => {
 
     render(<MatchCard match={singlesMatch} />);
 
-    expect(screen.getByText('Rafael Nadal')).toBeInTheDocument();
-    expect(screen.getByText('Roger Federer')).toBeInTheDocument();
+    expect(screen.getByText('R. Nadal')).toBeInTheDocument();
+    expect(screen.getByText('R. Federer')).toBeInTheDocument();
   });
 });

@@ -5,7 +5,6 @@ export function getMissingFields(state: NewMatchState): string[] {
   if (!state.sportType) missing.push('Esporte');
   if (!state.format) missing.push('Modo de Jogo');
   if (state.sportType === 'TENNIS' && !state.courtType) missing.push('Tipo de Quadra');
-  if (!state.date) missing.push('Data');
 
   if (state.matchType === 'DOUBLES') {
     if (!state.selectedP1) missing.push('Jogador 1 (Dupla 1)');

@@ -67,7 +67,7 @@ export function getColumnTitles(
     return ['Set 1', 'Set 2', 'TB'];
   }
   if (tennisFormat === 'BEST_OF_5') {
-    return ['Set 1', 'Set 2', 'Set 3', 'Set 4', 'Set 5'];
+    return ['Set 1', 'Set 2', 'Set 3', 'Set 4', 'TB'];
   }
   if (tennisFormat === 'PRO_SET_8') {
     return ['Set 1'];

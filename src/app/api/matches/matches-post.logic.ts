@@ -22,7 +22,8 @@ async function createMatchWithDuplicateCheck(
 ): Promise<MatchResult> {
   return prisma.$transaction(async (tx) => {
     const [firstPlayer, secondPlayer] = [input.player1Id, input.player2Id].sort();
-    const lockKey = `match_create_${firstPlayer}_${secondPlayer}`;
+    const partnerIds = [input.player1PartnerId, input.player2PartnerId].filter(Boolean).sort();
+    const lockKey = `match_create_${input.matchType}_${firstPlayer}_${secondPlayer}_${partnerIds.join('_')}`;
     const txWithRawSql = tx as Prisma.TransactionClient & {
       $executeRaw?: (strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown>;
     };
@@ -38,6 +39,9 @@ async function createMatchWithDuplicateCheck(
       input.player1Id,
       input.player2Id,
       input.scheduledAt ?? null,
+      input.matchType ?? 'SINGLES',
+      input.player1PartnerId ?? undefined,
+      input.player2PartnerId ?? undefined,
       tx,
     );
 
@@ -46,6 +50,8 @@ async function createMatchWithDuplicateCheck(
         id: duplicate.id,
         playerP1: duplicate.player1?.name,
         playerP2: duplicate.player2?.name,
+        matchType: duplicate.matchType,
+        scheduledAt: duplicate.scheduledAt,
       });
     }
 

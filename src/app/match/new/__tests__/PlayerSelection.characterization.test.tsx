@@ -72,18 +72,18 @@ describe('PlayerSelection characterization', () => {
       <PlayerSelection {...baseProps()} matchType="SINGLES" onMatchTypeChange={onMatchTypeChange} />
     );
 
-    fireEvent.click(screen.getByText('Duplas (2 vs 2)'));
+    fireEvent.click(screen.getByText('Duplas'));
     expect(onMatchTypeChange).toHaveBeenCalledWith('DOUBLES');
 
-    fireEvent.click(screen.getByText('Simples (1 vs 1)'));
+    fireEvent.click(screen.getByText('Simples'));
     expect(onMatchTypeChange).toHaveBeenCalledWith('SINGLES');
   });
 
   it('oculta o seletor de modalidade quando onMatchTypeChange nao e fornecido', () => {
     render(<PlayerSelection {...baseProps()} matchType="SINGLES" />);
 
-    expect(screen.queryByText('Simples (1 vs 1)')).not.toBeInTheDocument();
-    expect(screen.queryByText('Duplas (2 vs 2)')).not.toBeInTheDocument();
+    expect(screen.queryByText('Simples')).not.toBeInTheDocument();
+    expect(screen.queryByText('Duplas')).not.toBeInTheDocument();
     expect(screen.getByText('MODALIDADE & JOGADORES *')).toBeInTheDocument();
   });
 

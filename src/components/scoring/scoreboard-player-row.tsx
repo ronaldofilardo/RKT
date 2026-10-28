@@ -3,9 +3,12 @@
 import type { TennisFormat } from '@/lib/matchConfig';
 import type { Player, ScoreboardSet } from './scoreboard-card.types';
 import { getSetCellStyle, renderSetScore } from './scoreboard-card-cells';
+import { abbreviateDoublesName } from './doubles-name-abbreviation.logic';
 
 interface ScoreboardPlayerRowProps {
   player: Player;
+  partner?: Player | null;
+  displayName?: string;
   side: 'player1' | 'player2';
   isWinner: boolean;
   isServing: boolean;
@@ -21,6 +24,8 @@ interface ScoreboardPlayerRowProps {
 /** Linha de um jogador: nome, indicador de vencedor/sacador e cells de set. */
 export function ScoreboardPlayerRow({
   player,
+  partner,
+  displayName,
   side,
   isWinner,
   isServing,
@@ -37,11 +42,15 @@ export function ScoreboardPlayerRow({
     : 'bg-telemetry-card text-telemetry-text-primary';
   const nameBorder = isLastRow ? '' : ' border-b border-white/10';
   const statusBorder = isLastRow ? 'border-l border-white/10' : 'border-l border-b border-white/10';
+  const displayNameValue = displayName ?? abbreviateDoublesName(player.name, partner?.name ?? undefined);
 
   return (
     <tr className="text-xs">
-      <td title={player.name} className={`text-left py-1 px-2 font-bold tracking-wide whitespace-nowrap truncate${nameBorder} ${nameBg}`}>
-        {player.name}
+      <td
+        title={displayNameValue}
+        className={`text-left py-1 px-2 font-bold tracking-wide truncate max-w-full${nameBorder} ${nameBg}`}
+      >
+        {displayNameValue}
       </td>
       <td className={`text-center py-1 bg-telemetry-card ${statusBorder} text-xs`}>
         {isWinner ? (

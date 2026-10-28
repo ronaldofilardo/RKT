@@ -29,18 +29,17 @@ describe('PlayerCard Characterization', () => {
     jest.clearAllMocks();
   });
 
-  it('renderiza o nome do jogador e os pontos do game', () => {
+  it('renderiza o nome do jogador abreviado', () => {
     render(<PlayerCard {...defaultProps} />);
 
-    expect(screen.getByText('Roger Federer')).toBeInTheDocument();
-    expect(screen.getByText('15')).toBeInTheDocument();
+    expect(screen.getByText('R. Federer')).toBeInTheDocument();
     expect(screen.getByText('Toque para marcar ponto')).toBeInTheDocument();
   });
 
   it('chama onPoint ao clicar no card', () => {
     render(<PlayerCard {...defaultProps} />);
 
-    const card = screen.getByRole('button', { name: /\+ Ponto Roger Federer/i });
+    const card = screen.getByRole('button', { name: /\+ Ponto R\. Federer/i });
     fireEvent.click(card);
 
     expect(defaultProps.onPoint).toHaveBeenCalledTimes(1);

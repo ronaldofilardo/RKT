@@ -20,7 +20,8 @@ export function classifyStrokeCategory(p: TimelinePoint): string | null {
     return lado === 'backhand' || golpe === 'vbh' ? 'vbh' : 'vfh';
   }
 
-  if (r.situacao === 'rede' || esp === 'approach' || golpe === 'approach_fh' || golpe === 'approach_bh') return 'aproachs';
+  if (esp === 'approach' || golpe === 'approach_fh') return 'approach_fh';
+  if (esp === 'approach' || golpe === 'approach_bh') return 'approach_bh';
 
   if (lado === 'backhand' || golpe === 'backhand' || golpe === 'bh') return 'bh';
   if (lado === 'forehand' || golpe === 'forehand' || golpe === 'fh') return 'fh';

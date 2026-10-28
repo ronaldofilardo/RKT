@@ -289,7 +289,7 @@ describe('PlayerCard — setsWon', () => {
 describe('PlayerCard — aria-label', () => {
   it('tem aria-label correto com nome do jogador', () => {
     renderPlayerCard();
-    expect(screen.getByRole('button')).toHaveAttribute('aria-label', '+ Ponto Jogador A');
+    expect(screen.getByRole('button')).toHaveAttribute('aria-label', '+ Ponto J. A');
   });
 });
 

@@ -23,8 +23,8 @@ describe('ScoreboardCard Characterization', () => {
   it('renderiza os nomes dos jogadores e os sets do placar', () => {
     render(<ScoreboardCard {...defaultProps} />);
 
-    expect(screen.getByText('Carlos Alcaraz')).toBeInTheDocument();
-    expect(screen.getByText('Jannik Sinner')).toBeInTheDocument();
+    expect(screen.getByText('C. Alcaraz')).toBeInTheDocument();
+    expect(screen.getByText('J. Sinner')).toBeInTheDocument();
     expect(screen.getByText('6')).toBeInTheDocument();
     expect(screen.getByText('4')).toBeInTheDocument();
   });

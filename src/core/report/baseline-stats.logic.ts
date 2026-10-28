@@ -59,8 +59,11 @@ export function computeBaselineStats(points: TimelinePoint[], player: 'PLAYER_1'
     forcedErrors,
     total,
     successPct,
-    shortRallySuccessPct: calcPct(shortWon, shortTotal),
-    mediumRallySuccessPct: calcPct(medWon, medTotal),
-    longRallySuccessPct: calcPct(longWon, longTotal),
+    shortRallyWon: shortWon,
+    shortRallyTotal: shortTotal,
+    mediumRallyWon: medWon,
+    mediumRallyTotal: medTotal,
+    longRallyWon: longWon,
+    longRallyTotal: longTotal,
   };
 }

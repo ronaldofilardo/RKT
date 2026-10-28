@@ -60,21 +60,14 @@ export function formatCompactSetScore(
   player: 'player1' | 'player2',
   isDecisiveMatchTiebreak = false,
 ): ReactNode {
-  const isMatchTb = isDecisiveMatchTiebreak || (set.player1 <= 1 && set.player2 <= 1 && !!set.tiebreakScore);
-  if (isMatchTb && set.tiebreakScore) {
-    const score = set.tiebreakScore[player] ?? 0;
-    const opponentKey = player === 'player1' ? 'player2' : 'player1';
-    const opponentScore = set.tiebreakScore[opponentKey] ?? 0;
+  const opponentKey = player === 'player1' ? 'player2' : 'player1';
+  const opponentScore = set[opponentKey] ?? 0;
 
-    if (score > opponentScore) {
-      return React.createElement(
-        'span',
-        null,
-        score,
-        React.createElement('sup', { className: 'text-[9px] leading-none opacity-80' }, opponentScore),
-      );
-    }
-    return String(score);
+  const isMatchTb = isDecisiveMatchTiebreak || (set.player1 <= 1 && set.player2 <= 1 && !!set.tiebreakScore);
+
+  // Match Tiebreak: ambos mostram só o placar do TB, sem sobrescrito.
+  if (isMatchTb && set.tiebreakScore) {
+    return String(set.tiebreakScore[player] ?? 0);
   }
 
   const gameScore = set[player] ?? 0;
@@ -82,7 +75,12 @@ export function formatCompactSetScore(
     return String(gameScore);
   }
 
+  // Set com tiebreak: vencedor mostra só os games; perdedor mostra games + pontos do TB em sobrescrito.
   const tbScore = set.tiebreakScore[player] ?? 0;
+  const playerWon = gameScore > opponentScore;
+  if (playerWon) {
+    return String(gameScore);
+  }
   return React.createElement(
     'span',
     null,

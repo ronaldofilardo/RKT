@@ -38,10 +38,19 @@ export function getSetCellStyle(
 export function renderSetScore(set: ScoreboardSet | undefined, player: 'player1' | 'player2') {
   if (!set) return '-';
   const score = set[player];
+  const opponent = player === 'player1' ? 'player2' : 'player1';
+  const opponentScore = set[opponent];
+
   if (set.tiebreakScore) {
     const tbScore = set.tiebreakScore[player];
+    // Match Tiebreak: ambos os jogadores mostram só o placar do TB, sem sobrescrito.
     if (set.player1 <= 1 && set.player2 <= 1) {
       return tbScore;
+    }
+    // Set com tiebreak: vencedor mostra só os games; perdedor mostra games + pontos do TB em sobrescrito.
+    const playerWon = score > opponentScore;
+    if (playerWon) {
+      return score;
     }
     return <span>{score}<sup className="text-[9px] leading-none opacity-80">{tbScore}</sup></span>;
   }

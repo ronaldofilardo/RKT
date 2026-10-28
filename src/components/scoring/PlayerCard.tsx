@@ -4,6 +4,7 @@ import type { PlayerCardProps } from './player-card.types';
 import { formatScore, getGameProgressRatio } from './player-card.logic';
 import { usePlayerCardTouch } from './use-player-card-touch';
 import { PlayerCardRow } from './player-card-row';
+import { abbreviateDoublesName, abbreviatePlayerName } from './doubles-name-abbreviation.logic';
 
 export function PlayerCard({
   player,
@@ -28,6 +29,8 @@ export function PlayerCard({
   const isReceiverPlayer1 = activeReceiverId === player.id;
   const isReceiverPlayer2 = partner && activeReceiverId === partner.id;
 
+  const partnerName = partner ? abbreviatePlayerName(partner.name) : undefined;
+
   return (
     <button
       className={`relative flex flex-col items-center justify-center p-2 sm:p-4 rounded-2xl border transition-all select-none h-full w-full
@@ -39,19 +42,19 @@ export function PlayerCard({
       onTouchStart={onTouchStartGesture}
       onTouchEnd={onTouchEndGesture}
       disabled={disabled}
-      aria-label={`+ Ponto ${player.name}${partner ? ` / ${partner.name}` : ''}`}
+      aria-label={`+ Ponto ${abbreviateDoublesName(player.name, partner?.name ?? undefined)}`}
     >
       <div className="flex flex-col items-center gap-0.5 mb-1 min-w-0 w-full justify-center">
         <PlayerCardRow
-          name={player.name}
-          isServer={isServerPlayer1}
-          isReceiver={isReceiverPlayer1}
+          name={abbreviatePlayerName(player.name)}
+          isServer={Boolean(isServerPlayer1 || isServerPlayer2)}
+          isReceiver={Boolean(isReceiverPlayer1 || isReceiverPlayer2)}
           isPartner={Boolean(partner)}
         />
         {partner && (
           <PlayerCardRow
-            name={partner.name}
-            isServer={isServerPlayer2}
+            name={partnerName!}
+            isServer={Boolean(isServerPlayer2)}
             isReceiver={Boolean(isReceiverPlayer2)}
             isPartner
           />

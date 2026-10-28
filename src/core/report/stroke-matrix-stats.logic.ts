@@ -14,7 +14,8 @@ const STROKE_DEFINITIONS: Array<{ code: string; name: string }> = [
   { code: 'drop', name: 'Drop (Deixadinha)' },
   { code: 'lob', name: 'Lob' },
   { code: 'bate_pronto', name: 'Bate Pronto' },
-  { code: 'aproachs', name: 'Aproachs (Rede)' },
+  { code: 'approach_fh', name: 'Aproach FH' },
+  { code: 'approach_bh', name: 'Aproach BH' },
 ];
 
 export function computeStrokeMatrixStats(

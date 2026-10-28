@@ -6,6 +6,8 @@ interface DuplicateMatchModalProps {
     id: string;
     playerP1?: string;
     playerP2?: string;
+    matchType?: 'SINGLES' | 'DOUBLES';
+    scheduledAt?: Date | string | null;
   } | null;
   onGoToMatch: (id: string) => void;
   onForceCreate: () => void;
@@ -20,6 +22,11 @@ export function DuplicateMatchModal({
   onCancel,
 }: DuplicateMatchModalProps) {
   if (!isOpen || !existingMatch) return null;
+
+  const matchTypeLabel = existingMatch.matchType === 'DOUBLES' ? 'duplas' : 'simples';
+  const scheduledAt = existingMatch.scheduledAt
+    ? new Date(existingMatch.scheduledAt).toLocaleDateString('pt-BR')
+    : 'data não informada';
 
   return (
     <div
@@ -39,10 +46,10 @@ export function DuplicateMatchModal({
         <div className="text-5xl mb-4">🤝</div>
         <h2 className="text-xl font-bold text-telemetry-text-primary mb-2">Partida já existe</h2>
         <p className="text-sm text-telemetry-text-muted mb-1">
-          Já existe uma partida entre{' '}
+          Já existe uma partida de <strong>{matchTypeLabel}</strong> entre{' '}
           <strong>{existingMatch.playerP1 ?? 'Jogador 1'}</strong> e{' '}
           <strong>{existingMatch.playerP2 ?? 'Jogador 2'}</strong>{' '}
-          no horário informado.
+          no mesmo dia ({scheduledAt}).
         </p>
         <p className="text-xs text-telemetry-text-muted mb-6">
           ID: {existingMatch.id}

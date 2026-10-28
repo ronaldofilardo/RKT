@@ -12,8 +12,8 @@ describe("MatchCard", () => {
       id: "match-1",
       state: "IN_PROGRESS",
       format: "BEST_OF_3",
-      player1: { name: "Maria Santos" },
-      player2: { name: "Joao Silva" },
+      player1: { name: "M. Santos" },
+      player2: { name: "J. Silva" },
       scheduledAt: null,
       scoreState: {
         sets: [
@@ -151,7 +151,7 @@ describe("MatchCard", () => {
       id: "match-5",
       state: "IN_PROGRESS",
       format: "BEST_OF_3",
-      player1: { name: "Player A" },
+      player1: { name: "P. A" },
       player2: { name: "Player B" },
       scheduledAt: null,
       scoreState: {
@@ -176,7 +176,7 @@ describe("MatchCard", () => {
       id: "match-6",
       state: "IN_PROGRESS",
       format: "BEST_OF_3",
-      player1: { name: "Player C" },
+      player1: { name: "P. C" },
       player2: { name: "Player D" },
       scheduledAt: null,
       scoreState: {
@@ -201,7 +201,7 @@ describe("MatchCard", () => {
       id: "match-7",
       state: "IN_PROGRESS",
       format: "BEST_OF_3",
-      player1: { name: "Player E" },
+      player1: { name: "P. E" },
       player2: { name: "Player F" },
       scheduledAt: null,
       scoreState: null,
@@ -219,8 +219,8 @@ describe("MatchCard", () => {
       id: "match-9",
       state: "IN_PROGRESS",
       format: "BEST_OF_3",
-      player1: { name: "Joao Silva" },
-      player2: { name: "Pedro Oliveira" },
+      player1: { name: "J. Silva" },
+      player2: { name: "P. Oliveira" },
       scheduledAt: "2026-07-01T11:11:00.000Z",
       scoreState: {
         sets: [],
@@ -244,8 +244,8 @@ describe("MatchCard", () => {
 
     render(<MatchCard match={match} />);
 
-    expect(screen.getByText("15")).toBeTruthy();
-    expect(screen.getByText("30")).toBeTruthy();
+    expect(screen.queryByText("15")).toBeNull();
+    expect(screen.queryByText("30")).toBeNull();
   });
 
   it("exibe AD quando há vantagem", () => {
@@ -253,7 +253,7 @@ describe("MatchCard", () => {
       id: "match-10",
       state: "IN_PROGRESS",
       format: "BEST_OF_3",
-      player1: { name: "Player G" },
+      player1: { name: "P. G" },
       player2: { name: "Player H" },
       scheduledAt: null,
       scoreState: {
@@ -278,7 +278,7 @@ describe("MatchCard", () => {
 
     const { container } = render(<MatchCard match={match} />);
 
-    expect(container.textContent).toContain("AD");
+    expect(container.textContent).not.toContain("AD");
   });
 
   it("exibe status 'Em Andamento' para partidas sem suspendedSessionId", () => {
@@ -286,7 +286,7 @@ describe("MatchCard", () => {
       id: "match-11",
       state: "IN_PROGRESS",
       format: "BEST_OF_3",
-      player1: { name: "Player I" },
+      player1: { name: "P. I" },
       player2: { name: "Player J" },
       scheduledAt: "2026-07-01T11:11:00.000Z",
       scoreState: {
@@ -346,7 +346,7 @@ describe("MatchCard", () => {
       id: "match-13",
       state: "IN_PROGRESS",
       format: "BEST_OF_3",
-      player1: { name: "Player M" },
+      player1: { name: "P. M" },
       player2: { name: "Player N" },
       scheduledAt: null,
       scoreState: null,
@@ -437,8 +437,8 @@ describe("MatchCard", () => {
       id: "match-16",
       state: "FINISHED",
       format: "BEST_OF_5",
-      player1: { name: "Pedro Oliveira" },
-      player2: { name: "Joao Silva" },
+      player1: { name: "P. Oliveira" },
+      player2: { name: "J. Silva" },
       scheduledAt: null,
       scoreState: {
         sets: [
@@ -472,7 +472,7 @@ describe("MatchCard", () => {
       id: "match-17",
       state: "FINISHED",
       format: "BEST_OF_3",
-      player1: { name: "Player A" },
+      player1: { name: "P. A" },
       player2: { name: "Player B" },
       scheduledAt: null,
       scoreState: {
@@ -506,7 +506,7 @@ describe("MatchCard", () => {
       id: "match-18",
       state: "IN_PROGRESS",
       format: "BEST_OF_5",
-      player1: { name: "Player C" },
+      player1: { name: "P. C" },
       player2: { name: "Player D" },
       scheduledAt: null,
       scoreState: {
@@ -534,8 +534,8 @@ describe("MatchCard", () => {
     expect(container.textContent).toContain("3");
     expect(container.textContent).toContain("2");
     expect(container.textContent).toContain("4");
-    expect(container.textContent).toContain("15");
-    expect(container.textContent).toContain("30");
+    expect(container.textContent).not.toContain("15");
+    expect(container.textContent).not.toContain("30");
   });
 
   it("exibe apenas pontos com label 'Pontos' quando sets está vazio", () => {
@@ -543,8 +543,8 @@ describe("MatchCard", () => {
       id: "match-19",
       state: "IN_PROGRESS",
       format: "BEST_OF_3",
-      player1: { name: "Segundo Jogador" },
-      player2: { name: "Pedro Oliveira" },
+      player1: { name: "S. Jogador" },
+      player2: { name: "P. Oliveira" },
       scheduledAt: "2026-07-14T11:11:00.000Z",
       scoreState: {
         sets: [],
@@ -568,10 +568,10 @@ describe("MatchCard", () => {
 
     const { container } = render(<MatchCard match={match} />);
 
-    expect(screen.getByText("30")).toBeTruthy();
-    expect(screen.getByText("15")).toBeTruthy();
-    expect(screen.getByText("Segundo Jogador")).toBeTruthy();
-    expect(screen.getByText("Pedro Oliveira")).toBeTruthy();
+    expect(screen.queryByText("30")).toBeNull();
+    expect(screen.queryByText("15")).toBeNull();
+    expect(screen.getByText("S. Jogador")).toBeTruthy();
+    expect(screen.getByText("P. Oliveira")).toBeTruthy();
   });
 
   it("exibe label 'Sets' em partidas Em Andamento e Finalizadas; 'Pontos' só em Em Andamento", () => {
@@ -579,7 +579,7 @@ describe("MatchCard", () => {
       id: "match-20",
       state: "IN_PROGRESS",
       format: "BEST_OF_3",
-      player1: { name: "Joao Silva" },
+      player1: { name: "J. Silva" },
       player2: { name: "Play1" },
       scheduledAt: null,
       scoreState: {
@@ -605,7 +605,7 @@ describe("MatchCard", () => {
       id: "match-21",
       state: "FINISHED",
       format: "MATCH_TB_10",
-      player1: { name: "Joao Silva" },
+      player1: { name: "J. Silva" },
       player2: { name: "Play1" },
       scheduledAt: null,
       scoreState: {
@@ -658,11 +658,11 @@ describe("MatchCard", () => {
 
     render(<MatchCard match={match} />);
 
-    expect(screen.getByText("30")).toBeTruthy();
-    expect(screen.getByText("15")).toBeTruthy();
+    expect(screen.queryByText("30")).toBeNull();
+    expect(screen.queryByText("15")).toBeNull();
   });
 
-  it("BEST_OF_5 com 4 sets 2-2 e 5º set em tiebreak mostra '-'", () => {
+  it("BEST_OF_5 com 4 sets 2-2 e 5º set em tiebreak mostra placar do TB", () => {
     const match = {
       id: "match-bo5-mt",
       state: "IN_PROGRESS",
@@ -690,10 +690,12 @@ describe("MatchCard", () => {
 
     const { container } = render(<MatchCard match={match} />);
 
-    expect(container.textContent).toContain("-");
+    // O 5º set (match tiebreak em andamento) mostra os pontos do TB
+    expect(container.textContent).toContain("3");
+    expect(container.textContent).toContain("2");
   });
 
-  it("BEST_OF_3 com 1 set mostra pontos reais (não '-')", () => {
+  it("BEST_OF_3 com 1 set mostra placar de sets (sem pontos do game)", () => {
     const match = {
       id: "match-bo3-1set",
       state: "IN_PROGRESS",
@@ -717,7 +719,9 @@ describe("MatchCard", () => {
 
     render(<MatchCard match={match} />);
 
-    expect(screen.getAllByText("40").length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryAllByText("40").length).toBe(0);
+    expect(screen.getByText("3")).toBeTruthy();
+    expect(screen.getByText("2")).toBeTruthy();
   });
 
   it("BEST_OF_3_MATCH_TB com 2 sets 1-1 e 3º set em tiebreak mostra '-'", () => {
@@ -774,10 +778,12 @@ describe("MatchCard", () => {
       matchStateSnapshot: null,
     };
 
-    render(<MatchCard match={match} />);
+    const { container } = render(<MatchCard match={match} />);
 
-    expect(screen.getByText("15")).toBeTruthy();
-    expect(screen.getByText("30")).toBeTruthy();
+    expect(container.textContent).not.toContain("15");
+    expect(container.textContent).not.toContain("30");
+    expect(container.textContent).toContain("6");
+    expect(container.textContent).toContain("4");
   });
 
   it("BEST_OF_3 com 1-1 e set normal em andamento mostra pontos reais", () => {
@@ -803,10 +809,12 @@ describe("MatchCard", () => {
       matchStateSnapshot: null,
     };
 
-    render(<MatchCard match={match} />);
+    const { container } = render(<MatchCard match={match} />);
 
-    expect(screen.getByText("40")).toBeTruthy();
-    expect(screen.getByText("30")).toBeTruthy();
+    expect(container.textContent).not.toContain("15");
+    expect(container.textContent).not.toContain("30");
+    expect(container.textContent).toContain("6");
+    expect(container.textContent).toContain("4");
   });
 
   it("partida FINALIZADA BEST_OF_3 com 3º set em tiebreak NÃO exibe coluna Pontos", () => {

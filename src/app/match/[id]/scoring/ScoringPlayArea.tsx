@@ -35,7 +35,7 @@ export function ScoringPlayArea({
       </div>
 
       <div className="my-0.5 sm:my-2 flex-shrink-0">
-        <ScoreboardCard player1={match.player1} player2={match.player2} scoreState={effectiveScoreState} isSuspended={!!suspendedSession} format={match.format as string} />
+        <ScoreboardCard player1={match.player1} player2={match.player2} player1Partner={match.player1Partner ?? undefined} player2Partner={match.player2Partner ?? undefined} scoreState={effectiveScoreState} isSuspended={!!suspendedSession} format={match.format as string} />
       </div>
 
       {/* Boxes de Estatísticas ao Vivo e Insight Tático */}

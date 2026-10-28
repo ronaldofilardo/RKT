@@ -19,14 +19,14 @@ export function MatchTypeToggle({ isDoubles, onMatchTypeChange }: MatchTypeToggl
         onClick={() => onMatchTypeChange('SINGLES')}
         className={`${baseClass} ${!isDoubles ? activeClass : inactiveClass}`}
       >
-        Simples (1 vs 1)
+        Simples
       </button>
       <button
         type="button"
         onClick={() => onMatchTypeChange('DOUBLES')}
         className={`${baseClass} ${isDoubles ? activeClass : inactiveClass}`}
       >
-        Duplas (2 vs 2)
+        Duplas
       </button>
     </div>
   );

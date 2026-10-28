@@ -5,8 +5,8 @@ import { render, screen } from '@testing-library/react';
 import { ScoreboardCard } from '../ScoreboardCard';
 
 describe('ScoreboardCard', () => {
-  const mockPlayer1 = { id: '1', name: 'Player One' };
-  const mockPlayer2 = { id: '2', name: 'Player Two' };
+  const mockPlayer1 = { id: '1', name: 'P. One' };
+  const mockPlayer2 = { id: '2', name: 'P. Two' };
 
   const mockScoreState = {
     sets: [
@@ -27,8 +27,8 @@ describe('ScoreboardCard', () => {
         scoreState={mockScoreState}
       />
     );
-    expect(screen.getByText('Player One')).toBeInTheDocument();
-    expect(screen.getByText('Player Two')).toBeInTheDocument();
+    expect(screen.getByText('P. One')).toBeInTheDocument();
+    expect(screen.getByText('P. Two')).toBeInTheDocument();
   });
 
   it('renders completed set scores correctly', () => {
@@ -93,7 +93,7 @@ describe('ScoreboardCard', () => {
         isSuspended
       />
     );
-    const card = screen.getByText('Player One').closest('div');
+    const card = screen.getByText('P. One').closest('div');
     expect(card).toHaveClass('border-telemetry-alert');
   });
 
@@ -106,7 +106,7 @@ describe('ScoreboardCard', () => {
         isSuspended={false}
       />
     );
-    const card = screen.getByText('Player One').closest('div');
+    const card = screen.getByText('P. One').closest('div');
     expect(card).toHaveClass('border-white/10', 'bg-telemetry-card');
   });
 
@@ -118,8 +118,8 @@ describe('ScoreboardCard', () => {
         scoreState={{ sets: [], setsWon: { player1: 0, player2: 0 } }}
       />
     );
-    expect(screen.getByText('Player One')).toBeInTheDocument();
-    expect(screen.getByText('Player Two')).toBeInTheDocument();
+    expect(screen.getByText('P. One')).toBeInTheDocument();
+    expect(screen.getByText('P. Two')).toBeInTheDocument();
   });
 
   it('renders with null score state', () => {
@@ -130,8 +130,8 @@ describe('ScoreboardCard', () => {
         scoreState={null as any}
       />
     );
-    expect(screen.getByText('Player One')).toBeInTheDocument();
-    expect(screen.getByText('Player Two')).toBeInTheDocument();
+    expect(screen.getByText('P. One')).toBeInTheDocument();
+    expect(screen.getByText('P. Two')).toBeInTheDocument();
   });
 
   it('renders tiebreak points in superscript format for in-progress regular tiebreak set (fix 2026-09-09)', () => {
@@ -338,7 +338,7 @@ describe('ScoreboardCard', () => {
       expect(screen.getByText('Set 2')).toBeInTheDocument();
       expect(screen.getByText('Set 3')).toBeInTheDocument();
       expect(screen.getByText('Set 4')).toBeInTheDocument();
-      expect(screen.getByText('Set 5')).toBeInTheDocument();
+      expect(screen.getByText('TB')).toBeInTheDocument();
     });
 
     it('formato SHORT_SET_2V2_NO_AD projeta 2 a 2 para ambos os atletas nos dois sets desde a criação', () => {

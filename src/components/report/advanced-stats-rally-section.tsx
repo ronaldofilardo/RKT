@@ -13,15 +13,15 @@ export function RallySection({ stats, player1Name, player2Name }: AdvancedStatsS
       <div className="grid grid-cols-3 gap-2 text-center text-xs">
         <div className="bg-telemetry-blue/10 rounded-lg p-2.5">
           <div className="font-bold text-lg text-telemetry-blue">{dist.short}</div>
-          <div className="text-telemetry-text-muted mt-0.5">Curtos (1-3)</div>
+          <div className="text-telemetry-text-muted mt-0.5">Curtos (1-4)</div>
         </div>
         <div className="bg-telemetry-alert/10 rounded-lg p-2.5">
           <div className="font-bold text-lg text-telemetry-alert">{dist.medium}</div>
-          <div className="text-telemetry-text-muted mt-0.5">Médios (4-6)</div>
+          <div className="text-telemetry-text-muted mt-0.5">Médios (5-8)</div>
         </div>
         <div className="bg-telemetry-error/10 rounded-lg p-2.5">
           <div className="font-bold text-lg text-telemetry-error">{dist.long}</div>
-          <div className="text-telemetry-text-muted mt-0.5">Longos (7+)</div>
+          <div className="text-telemetry-text-muted mt-0.5">Longos (9+)</div>
         </div>
       </div>
       <div className="text-center text-xs text-telemetry-text-muted mt-3 pt-2 border-t border-white/10">

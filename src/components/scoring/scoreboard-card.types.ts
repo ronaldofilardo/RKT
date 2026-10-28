@@ -23,6 +23,8 @@ export interface ScoreboardScoreState {
 export interface ScoreboardCardProps {
   player1: Player;
   player2: Player;
+  player1Partner?: Player | null;
+  player2Partner?: Player | null;
   scoreState?: ScoreboardScoreState | null;
   isSuspended?: boolean;
   format?: string;

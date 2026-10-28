@@ -16,7 +16,7 @@ describe("formatCompactSetScore", () => {
     expect(formatCompactSetScore(set, "player2")).toBe("4");
   });
 
-  it("tiebreak EM ANDAMENTO (games 6x6) deve mostrar games + pontos em superscript", () => {
+  it("tiebreak EM ANDAMENTO (games 6x6): ambos mostram games + pontos em superscript (ninguem venceu ainda)", () => {
     const set = {
       player1: 6,
       player2: 6,
@@ -28,32 +28,32 @@ describe("formatCompactSetScore", () => {
     expect(r1.container.querySelector("sup")?.textContent).toBe("1");
   });
 
-  it("tiebreak JÁ RESOLVIDO (7x6) mostra games + pontos do TB em sobrescrito para ambos", () => {
+  it("tiebreak JÁ RESOLVIDO (7x6): vencedor mostra so games; perdedor mostra games + pontos do TB em sobrescrito", () => {
     const set = {
       player1: 7,
       player2: 6,
       isTiebreak: true,
       tiebreakScore: { player1: 10, player2: 8 },
     };
+    // Vencedor (player1): so games
     const r1 = render(React.createElement("div", null, formatCompactSetScore(set, "player1")));
-    expect(r1.container.textContent).toBe("710");
-    expect(r1.container.querySelector("sup")?.textContent).toBe("10");
+    expect(r1.container.textContent).toBe("7");
+    expect(r1.container.querySelector("sup")).toBeNull();
 
+    // Pdedor (player2): games + pontos do TB em sobrescrito
     const r2 = render(React.createElement("div", null, formatCompactSetScore(set, "player2")));
     expect(r2.container.textContent).toBe("68");
     expect(r2.container.querySelector("sup")?.textContent).toBe("8");
   });
 
-  it("Match Tiebreak decisivo (isDecisiveMatchTiebreak=true) mostra vencedor com sup do oponente e perdedor direto", () => {
+  it("Match Tiebreak decisivo (isDecisiveMatchTiebreak=true): ambos mostram so o placar do TB, sem sobrescrito", () => {
     const set = {
       player1: 0,
       player2: 0,
       isTiebreak: true,
       tiebreakScore: { player1: 10, player2: 7 },
     };
-    const r1 = render(React.createElement("div", null, formatCompactSetScore(set, "player1", true)));
-    expect(r1.container.textContent).toBe("107");
-    expect(r1.container.querySelector("sup")?.textContent).toBe("7");
+    expect(formatCompactSetScore(set, "player1", true)).toBe("10");
     expect(formatCompactSetScore(set, "player2", true)).toBe("7");
   });
 });
@@ -75,9 +75,7 @@ describe("isSetIndexMatchTiebreak", () => {
     expect(isSetIndexMatchTiebreak(sets, 4, "BEST_OF_5")).toBe(true);
   });
 
-  it("NÃO identifica um set intermediário comum como decisivo, mesmo em tiebreak", () => {
-    // 3º set de um BEST_OF_5 (índice 2), em tiebreak comum de set (6x6) —
-    // não é o set decisivo, mesmo que esteja em tiebreak.
+  it("NÃO identifica um set intermediario comum como decisivo, mesmo em tiebreak", () => {
     const sets = [
       { player1: 6, player2: 4, isTiebreak: false, tiebreakScore: null },
       { player1: 4, player2: 6, isTiebreak: false, tiebreakScore: null },
@@ -86,7 +84,7 @@ describe("isSetIndexMatchTiebreak", () => {
     expect(isSetIndexMatchTiebreak(sets, 2, "BEST_OF_5")).toBe(false);
   });
 
-  it("continua consistente com isCurrentSetMatchTiebreak para o último índice", () => {
+  it("continua consistente com isCurrentSetMatchTiebreak para o ultimo indice", () => {
     const sets = [
       { player1: 6, player2: 4, isTiebreak: false, tiebreakScore: null },
       { player1: 4, player2: 6, isTiebreak: false, tiebreakScore: null },

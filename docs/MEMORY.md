@@ -259,4 +259,14 @@ Leitura completa: `docs/TASKS.md` — **Anexo A** (dívida técnica, 50 entradas
 
 ---
 
-*Documento atualizado em 2026-10-17.*
+*Documento atualizado em 2026-10-28.*
+
+---
+
+## 2.5 Executado: PLANO_ALTERACOES_RKT_2026-10-27.md — 2026-10-28
+- **Fase 1 – Nova partida (B1, B3):** rótulos "Simples"/"Duplas" (sem "1 vs 1"/"2 vs 2"); DateTimeSection sem bloco "Atenção" e sem asterisco em "Data"; remoção do preenchimento automático com hoje na criação; Data removida dos campos obrigatórios; `scheduledAt` fica indefinido sem data; preenchimento com hoje ao entrar em `IN_PROGRESS` (ponto único em `buildTransitionUpdateData`); verificação de efeito de `scheduledAt` nulo em dashboard (badge, ordenação) e duplicidade.
+- **Fase 2 – Duplicidade (B2):** `findDuplicateMatch` recebe `matchType`, `player1PartnerId`, `player2PartnerId`; duplas comparadas como conjuntos de dois lados (qualquer ordem); simples nunca colide com dupla; chave do advisory lock inclui `matchType` e parceiros; `DuplicateMatchModal` exibe tipo (simples/duplas), data e texto "no mesmo dia".
+- **Fase 3 – Nomes de dupla (C):** utilitário `abbreviateDoublesName` em `src/components/scoring/doubles-name-abbreviation.logic.ts`; `PlayerCard` exibe nome da dupla abreviado em uma linha (aria-label atualizado); `ScoreboardCard`/`ScoreboardPlayerRow` recebem `player1Partner`/`player2Partner` e usam o utilitário; `ScoringPlayArea` passa os parceiros.
+- **Fase 4 – Card do dashboard (A):** regra do sobrescrito de tiebreak unificada e corrigida em `renderSetScore` (scoring) e `formatCompactSetScore` (dashboard): vencedor mostra só games, perdedor mostra games + pontos do TB em sobrescrito; Match Tiebreak mostra só o placar do TB sem sobrescrito; `getColumnTitles` para `BEST_OF_5` retorna Set 1 a 4 e TB; `MatchCard` reescrito usando a estrutura de tabela do `ScoreboardCard` com cores de quadra, suspenso, nomes de dupla abreviados e sem pontos do game; arquivos específicos do MatchCard (`MatchCardScore`, `MatchCardScoreTable`, etc.) deixados em desuso.
+- **Fase 5 – Estatísticas avançadas (D3, D4, D8, D9, D10):** `BaselineStats` expõe `shortRallyWon/Total`, `mediumRallyWon/Total`, `longRallyWon/Total` (ganhos e total por faixa); `BaselineSection` mostra "Aproveitamento/Total (x/y)" e rótulos Curtos (1-4), Médios (5-8), Longos (9+); `advanced-stats-rally-section.tsx` e `advanced-stats-shot-section.tsx` com rótulos corrigidos; `stroke-matrix-classify.logic.ts` separa `approach_fh`/`approach_bh` (antes `aproachs`); `stroke-matrix-stats.logic.ts` com ordem Sq, FH, BH, VFH, VBH, SVFH, SVBH, Sm, Drop, Lob, Bate Pronto, Aproach FH, Aproach BH; `MomentumStats` com `streakCountP1/P2` (len2, len3, len4Plus); `advanced-stats-momentum.tsx` tabela de sequências exatas por jogador; `SetBreakdownSection` com linha de tempo total do jogo (`totalDurationMinutes`).
+- **Validação:** `pnpm typecheck` 0 erros · `pnpm spec:validate` sem drift · `pnpm test:design` 3/3 (26/26) · `pnpm test` 397/397 suítes e 3904/3904 testes verdes.

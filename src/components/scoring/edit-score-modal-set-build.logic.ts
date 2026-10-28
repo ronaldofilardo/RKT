@@ -20,6 +20,9 @@ export function validateCompletedSetEdit(params: {
     if (editedWinner !== originalSet.winner) {
       return "Não é possível inverter o vencedor de um set concluído";
     }
+    if (p1Games < originalSet.games.player1 || p2Games < originalSet.games.player2) {
+      return "Placar não pode ser inferior ao placar registrado no set concluído";
+    }
   }
   return null;
 }
