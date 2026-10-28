@@ -86,9 +86,9 @@ export function CoachesTable({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-telemetry-border opacity-20 text-sm font-medium text-telemetry-text-muted">
+            <tr className="border-b border-telemetry-border opacity-40 text-sm font-semibold text-telemetry-text-primary">
               <th className="pb-3 w-10">
-                <input id="treinadores-select-all" type="checkbox" aria-label="Selecionar todos" checked={allSelected} onChange={(e) => onSelectAll(e.target.checked)} className="w-4 h-4 text-telemetry-blue rounded" />
+                <input id="treinadores-select-all" type="checkbox" aria-label="Selecionar todos" checked={allSelected} onChange={(e) => onSelectAll(e.target.checked)} className="w-4 h-4 text-telemetry-blue border-telemetry-border rounded" />
               </th>
               <th className="pb-3">Nome</th><th className="pb-3">CPF</th><th className="pb-3">E-mail</th>
               <th className="pb-3">Ingresso</th><th className="pb-3">Status</th>
@@ -96,7 +96,7 @@ export function CoachesTable({
               <th className="pb-3 text-right">Ações</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-telemetry-border opacity-20">
             {coaches.map((c) => (
               <CoachRow key={c.user.id} coach={c} selected={selectedIds.includes(c.user.id)} onSelect={(chk) => onSelectChange(c.user.id, chk)} onEdit={() => setEditing(c)} onGenerateLink={() => handleGenerateLink(c)} onToggleCanInsertAthletes={(chk) => handleToggleCanInsertAthletes(c, chk)} />
             ))}
