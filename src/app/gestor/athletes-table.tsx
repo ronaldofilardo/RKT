@@ -54,8 +54,8 @@ export function AthletesTable({
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-end mb-4">
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold text-telemetry-text-primary">Atletas do Clube</h2>
         <div className="flex gap-2">
           <button onClick={onCreateCoach} className="bg-telemetry-blue text-white font-semibold py-2 px-4 rounded-lg hover:bg-telemetry-blue/90 text-sm">
@@ -66,27 +66,35 @@ export function AthletesTable({
           </button>
         </div>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-telemetry-border opacity-20 text-sm font-medium text-telemetry-text-muted">
-              <th className="pb-3 w-10">
-                <input id="atletas-select-all" type="checkbox" aria-label="Selecionar todos" checked={allSelected} onChange={(e) => onSelectAll(e.target.checked)} className="w-4 h-4 text-telemetry-blue rounded" />
-              </th>
-              <th className="pb-3">Nome</th><th className="pb-3">CPF</th><th className="pb-3">Gênero</th>
-              <th className="pb-3">Lateralidade</th><th className="pb-3">Status</th><th className="pb-3 text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {athletes.map((a) => (
-              <AthleteRow key={a.player.id} athlete={a} selected={selectedIds.includes(a.player.id)} onSelect={(chk) => onSelectChange(a.player.id, chk)} onEdit={() => setEditing(a)} onGenerateLink={() => handleGenerateLink(a)} />
-            ))}
-            {athletes.length === 0 && (
-              <tr><td colSpan={7} className="py-6 text-center text-telemetry-text-muted text-sm">Nenhum atleta cadastrado no clube.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+
+      {athletes.length === 0 ? (
+        <div className="bg-telemetry-card rounded-xl shadow border border-telemetry-border opacity-20 p-8 text-center">
+          <p className="text-telemetry-text-muted text-sm">Nenhum atleta cadastrado no clube.</p>
+        </div>
+      ) : (
+        <div className="bg-telemetry-card rounded-xl shadow border border-telemetry-border opacity-20 overflow-hidden">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-telemetry-border opacity-40 text-sm font-semibold text-telemetry-text-primary">
+                <th className="pb-4 pt-4 w-10">
+                  <input id="atletas-select-all" type="checkbox" aria-label="Selecionar todos" checked={allSelected} onChange={(e) => onSelectAll(e.target.checked)} className="w-4 h-4 text-telemetry-blue border-telemetry-border rounded" />
+                </th>
+                <th className="pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Nome</th>
+                <th className="pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">CPF</th>
+                <th className="pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Gênero</th>
+                <th className="pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Lateralidade</th>
+                <th className="pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Status</th>
+                <th className="pb-4 pt-4 text-right text-sm font-medium text-telemetry-text-primary">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-telemetry-border opacity-20">
+              {athletes.map((a) => (
+                <AthleteRow key={a.player.id} athlete={a} selected={selectedIds.includes(a.player.id)} onSelect={(chk) => onSelectChange(a.player.id, chk)} onEdit={() => setEditing(a)} onGenerateLink={() => handleGenerateLink(a)} />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       {editing && (
         <EditarAtletaModal
           open={Boolean(editing)}
