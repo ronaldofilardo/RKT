@@ -410,8 +410,6 @@ model Membership {
   createdByUserId String?
   createdAt       DateTime       @default(now())
   endedAt         DateTime?
-  // Quando true, permite que o treinador insira atletas no clube.
-  canInsertAthletes Boolean      @default(true)
   user            User           @relation("UserMemberships", fields: [userId], references: [id], onDelete: Cascade)
   ct              TrainingCenter?  @relation(fields: [ctId], references: [id], onDelete: Cascade)
 

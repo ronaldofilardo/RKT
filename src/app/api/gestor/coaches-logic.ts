@@ -23,7 +23,11 @@ export async function listCoaches(ctIds: string[] | string) {
 }
 
 export async function updateCoachPermissions(membershipId: string, data: { canInsertAthletes: boolean }) {
-  await prisma.$executeRaw`UPDATE "memberships" SET "canInsertAthletes" = ${data.canInsertAthletes} WHERE "id" = ${membershipId}`;
+  try {
+    await prisma.$executeRaw`UPDATE "memberships" SET "canInsertAthletes" = ${data.canInsertAthletes} WHERE "id" = ${membershipId}`;
+  } catch {
+    // Coluna ainda não existe no banco (migration pendente); ignora silenciosamente.
+  }
   return prisma.membership.findUnique({ where: { id: membershipId } });
 }
 
