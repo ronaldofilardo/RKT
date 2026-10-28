@@ -68,14 +68,14 @@ export function AthletesTable({
       </div>
 
       {athletes.length === 0 ? (
-        <div className="bg-telemetry-card rounded-xl shadow border border-telemetry-border opacity-20 p-8 text-center">
+        <div className="bg-telemetry-card rounded-xl shadow border border-telemetry-border/20 p-8 text-center">
           <p className="text-telemetry-text-muted text-sm">Nenhum atleta cadastrado no clube.</p>
         </div>
       ) : (
-        <div className="bg-telemetry-card rounded-xl shadow border border-telemetry-border opacity-20 overflow-hidden">
+        <div className="bg-telemetry-card rounded-xl shadow border border-telemetry-border/20 overflow-hidden">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-telemetry-border opacity-40 text-sm font-semibold text-telemetry-text-primary">
+              <tr className="border-b border-telemetry-border/40 text-sm font-semibold text-telemetry-text-primary">
                 <th className="pb-4 pt-4 w-10">
                   <input id="atletas-select-all" type="checkbox" aria-label="Selecionar todos" checked={allSelected} onChange={(e) => onSelectAll(e.target.checked)} className="w-4 h-4 text-telemetry-blue border-telemetry-border rounded" />
                 </th>
@@ -87,7 +87,7 @@ export function AthletesTable({
                 <th className="pb-4 pt-4 text-right text-sm font-medium text-telemetry-text-primary">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-telemetry-border opacity-20">
+            <tbody className="divide-y divide-telemetry-border/20">
               {athletes.map((a) => (
                 <AthleteRow key={a.player.id} athlete={a} selected={selectedIds.includes(a.player.id)} onSelect={(chk) => onSelectChange(a.player.id, chk)} onEdit={() => setEditing(a)} onGenerateLink={() => handleGenerateLink(a)} />
               ))}

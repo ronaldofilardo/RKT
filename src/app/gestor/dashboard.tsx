@@ -64,7 +64,7 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <DashboardHeader me={me} coachesCount={coaches.length} athletesCount={athletes.length} matchesCount={matches.length} />
         <TabNav tab={tab} onTabChange={setTab} matchesCount={matches.length} />
-        <div className="bg-telemetry-card rounded-xl shadow border overflow-hidden">
+        <div className="space-y-6">
           {tab === 'coaches' && (
             <CoachesTable coaches={coaches} selectedIds={coachSelected} onSelectChange={(id, chk) => setCoachSelected((p) => chk ? [...p, id] : p.filter((x) => x !== id))} onSelectAll={(chk) => setCoachSelected(chk ? coaches.map((c) => c.user.id) : [])} onCreateCoach={() => openCadastro('TREINADOR')} onCreateAthlete={() => openCadastro('ATLETA')} onRefresh={fetchCoachesData} />
           )}

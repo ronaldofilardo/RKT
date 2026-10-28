@@ -17,7 +17,7 @@ export function CoachRow({ coach: c, selected, onSelect, onEdit, onGenerateLink,
     : '-';
 
   return (
-    <tr className="border-b border-telemetry-border opacity-10 hover:bg-telemetry-elevated opacity-30">
+    <tr className="border-b border-telemetry-border/10 hover:bg-telemetry-elevated/30 transition-colors">
       <td className="py-3 text-sm">
         <input
           id={`treinador-select-${c.user.id}`}
@@ -33,7 +33,7 @@ export function CoachRow({ coach: c, selected, onSelect, onEdit, onGenerateLink,
       <td className="py-3 text-sm text-telemetry-text-primary">{c.user.email}</td>
       <td className="py-3 text-sm text-telemetry-text-primary">{new Date(c.user.createdAt).toLocaleDateString('pt-BR')}</td>
       <td className="py-3 text-sm">
-        <span className={`px-2 py-0.5 rounded text-xs font-semibold ${c.user.mustChangePassword ? 'bg-telemetry-alert text-telemetry-alert opacity-20' : 'bg-telemetry-volt text-telemetry-volt opacity-20'}`}>
+        <span className={`px-2 py-0.5 rounded text-xs font-semibold ${c.user.mustChangePassword ? 'bg-telemetry-alert/20 text-telemetry-alert' : 'bg-telemetry-volt/20 text-telemetry-volt'}`}>
           {c.user.mustChangePassword ? 'Senha pendente' : 'Ativo'}
         </span>
       </td>
