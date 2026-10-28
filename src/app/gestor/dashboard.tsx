@@ -10,6 +10,7 @@ import { ClubInfo } from './club-info';
 import { ManagersSection } from './managers-section';
 import { CadastrarMembroModal } from './cadastrar-membro-modal';
 import { DashboardHeader } from './dashboard-header';
+import { NewAthleteModal } from '@/app/match/new/components/NewAthleteModal';
 
 interface GestorDashboardProps {
   me: MeResponse;
@@ -26,11 +27,7 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [cadastroOpen, setCadastroOpen] = useState(false);
   const [cadastroType, setCadastroType] = useState<MemberType>('TREINADOR');
-
-  const openCadastro = (type: MemberType) => {
-    setCadastroType(type);
-    setCadastroOpen(true);
-  };
+  const [newAthleteOpen, setNewAthleteOpen] = useState(false);
 
   const fetchCoachesData = useCallback(async () => {
     try {
@@ -66,16 +63,17 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
         <TabNav tab={tab} onTabChange={setTab} matchesCount={matches.length} />
         <div className="space-y-6">
           {tab === 'coaches' && (
-            <CoachesTable coaches={coaches} selectedIds={coachSelected} onSelectChange={(id, chk) => setCoachSelected((p) => chk ? [...p, id] : p.filter((x) => x !== id))} onSelectAll={(chk) => setCoachSelected(chk ? coaches.map((c) => c.user.id) : [])} onCreateCoach={() => openCadastro('TREINADOR')} onCreateAthlete={() => openCadastro('ATLETA')} onRefresh={fetchCoachesData} />
+            <CoachesTable coaches={coaches} selectedIds={coachSelected} onSelectChange={(id, chk) => setCoachSelected((p) => chk ? [...p, id] : p.filter((x) => x !== id))} onSelectAll={(chk) => setCoachSelected(chk ? coaches.map((c) => c.user.id) : [])} onCreateCoach={() => { setCadastroType('TREINADOR'); setCadastroOpen(true); }} onCreateAthlete={() => setNewAthleteOpen(true)} onRefresh={fetchCoachesData} />
           )}
           {tab === 'athletes' && (
-            <AthletesTable athletes={athletes} selectedIds={athleteSelected} onSelectChange={(id, chk) => setAthleteSelected((p) => chk ? [...p, id] : p.filter((x) => x !== id))} onSelectAll={(chk) => setAthleteSelected(chk ? athletes.map((a) => a.player.id) : [])} onCreateCoach={() => openCadastro('TREINADOR')} onCreateAthlete={() => openCadastro('ATLETA')} onRefresh={fetchAthletesData} />
+            <AthletesTable athletes={athletes} selectedIds={athleteSelected} onSelectChange={(id, chk) => setAthleteSelected((p) => chk ? [...p, id] : p.filter((x) => x !== id))} onSelectAll={(chk) => setAthleteSelected(chk ? athletes.map((a) => a.player.id) : [])} onCreateCoach={() => { setCadastroType('TREINADOR'); setCadastroOpen(true); }} onCreateAthlete={() => setNewAthleteOpen(true)} onRefresh={fetchAthletesData} />
           )}
           {tab === 'matches' && <ClubMatchesTable matches={matches} />}
           {tab === 'club' && <ClubInfo />}
           {tab === 'managers' && <ManagersSection />}
         </div>
-        <CadastrarMembroModal open={cadastroOpen} onOpenChange={setCadastroOpen} initialType={cadastroType} onSave={() => { fetchCoachesData(); fetchAthletesData(); }} />
+        <CadastrarMembroModal open={cadastroOpen} onOpenChange={setCadastroOpen} initialType={cadastroType} fixedType={cadastroType} onSave={() => { fetchCoachesData(); fetchAthletesData(); }} />
+        <NewAthleteModal isOpen={newAthleteOpen} onClose={() => setNewAthleteOpen(false)} onCreated={() => { setNewAthleteOpen(false); fetchAthletesData(); }} myClub />
       </div>
     </div>
   );

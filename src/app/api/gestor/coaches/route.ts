@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   const ctIds = await getGestorCtIds(request);
   if (ctIds.length === 0) return denyGestor('Gestor não encontrado');
 
-  return withAccessHandler(request, 'platform:memberships:manage', null, async () => {
+  return withAccessHandler(request, 'platform:memberships:manage', () => ({ ctId: ctIds[0] }), async () => {
     try {
       const memberships = await listCoaches(ctIds);
       return NextResponse.json({ items: memberships }, { status: 200 });

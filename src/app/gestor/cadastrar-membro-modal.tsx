@@ -9,18 +9,19 @@ interface CadastrarMembroModalProps {
   onOpenChange: (open: boolean) => void;
   onSave: (result: CadastroResult) => void;
   initialType?: MemberType;
+  fixedType?: MemberType;
 }
 
 const initialForm: MembroFormData = {
   name: '', cpf: '', birthDate: '', email: '', gender: 'MASCULINO', dominance: 'DESTRO',
 };
 
-export function CadastrarMembroModal({ open, onOpenChange, onSave, initialType = 'TREINADOR' }: CadastrarMembroModalProps) {
+export function CadastrarMembroModal({ open, onOpenChange, onSave, initialType = 'TREINADOR', fixedType }: CadastrarMembroModalProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [confirmResult, setConfirmResult] = useState<CadastroResult | null>(null);
-  const [type, setType] = useState<MemberType>(initialType);
+  const [type, setType] = useState<MemberType>(fixedType ?? initialType);
   const [formData, setFormData] = useState<MembroFormData>(initialForm);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -75,7 +76,7 @@ export function CadastrarMembroModal({ open, onOpenChange, onSave, initialType =
               <button onClick={() => onOpenChange(false)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{error}</div>}
-            <CadastrarMembroForm type={type} setType={setType} formData={formData} setFormData={setFormData} submitting={submitting} fieldError={fieldError} onCancel={() => onOpenChange(false)} onSubmit={handleSubmit} />
+            <CadastrarMembroForm type={type} fixedType={fixedType} setType={setType} formData={formData} setFormData={setFormData} submitting={submitting} fieldError={fieldError} onCancel={() => onOpenChange(false)} onSubmit={handleSubmit} />
           </div>
         </div>
       )}
