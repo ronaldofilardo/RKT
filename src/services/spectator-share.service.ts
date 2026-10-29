@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { generateSpectateToken } from '@/lib/spectate-token';
+import { resolveShareOrigin } from './spectator-origin.logic';
 
 export const MAX_SPECTATORS_PER_MATCH = 5;
 
@@ -39,7 +40,8 @@ export async function createShareLink(params: {
     select: { id: true, label: true, createdAt: true },
   });
 
-  const url = `${origin.replace(/\/+$/, '')}/matches/convite/${token}`;
+  const baseOrigin = resolveShareOrigin(origin);
+  const url = `${baseOrigin}/matches/convite/${token}`;
   return { ok: true as const, linkId: shareLink.id, url, label: shareLink.label, createdAt: shareLink.createdAt.toISOString() };
 }
 
