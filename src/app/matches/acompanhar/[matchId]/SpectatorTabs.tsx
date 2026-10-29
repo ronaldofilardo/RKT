@@ -1,18 +1,24 @@
 'use client';
 
-import React, { useState } from 'react';
-import type { SpectatorView } from '@/core/spectate';
+import React, { useMemo, useState } from 'react';
+import { computeSpectatorStats, type SpectatorView } from '@/core/spectate';
 import { SpectatorTimeline } from './SpectatorTimeline';
+
+function StatRow({ left, label, right }: { left: React.ReactNode; label: string; right: React.ReactNode }) {
+  return (
+    <div className="flex justify-between font-mono">
+      <span>{left}</span>
+      <span className="font-sans text-telemetry-text-muted">{label}</span>
+      <span>{right}</span>
+    </div>
+  );
+}
 
 export function SpectatorTabs({ view }: { view: SpectatorView }) {
   const [activeTab, setActiveTab] = useState<'points' | 'summary' | 'stats'>('points');
   const side1 = view.match.sides[0];
   const side2 = view.match.sides[1];
-
-  const p1Points = view.points.filter((p) => p.winnerSide === 'side1').length;
-  const p2Points = view.points.filter((p) => p.winnerSide === 'side2').length;
-  const p1Aces = view.points.filter((p) => p.winnerSide === 'side1' && p.type === 'ACE').length;
-  const p2Aces = view.points.filter((p) => p.winnerSide === 'side2' && p.type === 'ACE').length;
+  const { side1: s1, side2: s2 } = useMemo(() => computeSpectatorStats(view.points), [view.points]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -38,7 +44,7 @@ export function SpectatorTabs({ view }: { view: SpectatorView }) {
       </div>
 
       {activeTab === 'points' && (
-        <SpectatorTimeline points={view.points} side1Label={side1.label} side2Label={side2.label} />
+        <SpectatorTimeline points={view.points} side1Label={side1.label} side2Label={side2.label} markers={view.markers ?? []} />
       )}
 
       {activeTab === 'summary' && (
@@ -48,11 +54,8 @@ export function SpectatorTabs({ view }: { view: SpectatorView }) {
             <span>Métrica</span>
             <span>{side2.label}</span>
           </div>
-          <div className="flex justify-between font-mono">
-            <span>{p1Points}</span>
-            <span className="font-sans text-telemetry-text-muted">Total de Pontos</span>
-            <span>{p2Points}</span>
-          </div>
+          <StatRow left={s1.points} label="Total de Pontos" right={s2.points} />
+          <StatRow left={s1.winners} label="Winners" right={s2.winners} />
         </div>
       )}
 
@@ -63,11 +66,15 @@ export function SpectatorTabs({ view }: { view: SpectatorView }) {
             <span>Golpe</span>
             <span>{side2.label}</span>
           </div>
-          <div className="flex justify-between font-mono">
-            <span>{p1Aces}</span>
-            <span className="font-sans text-telemetry-text-muted">Aces</span>
-            <span>{p2Aces}</span>
-          </div>
+          <StatRow left={s1.aces} label="Aces" right={s2.aces} />
+          <StatRow left={s1.doubleFaults} label="Duplas Faltas" right={s2.doubleFaults} />
+          <StatRow
+            left={`${s1.breakPointsWon}/${s1.breakPointsTotal}`}
+            label="Break Points"
+            right={`${s2.breakPointsWon}/${s2.breakPointsTotal}`}
+          />
+          <StatRow left={s1.forcedErrors} label="Erros Forçados" right={s2.forcedErrors} />
+          <StatRow left={s1.unforcedErrors} label="Erros Não Forçados" right={s2.unforcedErrors} />
         </div>
       )}
     </div>

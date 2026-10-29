@@ -40,6 +40,30 @@ describe('calculateSignalStatus (domínio puro)', () => {
     expect(res.status).toBe('PAUSED');
   });
 
+  it('não retorna PAUSED quando chegou ponto depois da última mudança de sessão', () => {
+    const res = calculateSignalStatus({
+      matchState: 'IN_PROGRESS',
+      hasActiveSession: false,
+      totalPoints: 10,
+      lastPointReceivedAt: new Date(baseNow - 10_000),
+      lastSessionChangeAt: new Date(baseNow - 600_000),
+      nowMs: baseNow,
+    });
+    expect(res.status).toBe('LIVE');
+  });
+
+  it('mantém PAUSED quando o último ponto é anterior à pausa da sessão', () => {
+    const res = calculateSignalStatus({
+      matchState: 'IN_PROGRESS',
+      hasActiveSession: false,
+      totalPoints: 10,
+      lastPointReceivedAt: new Date(baseNow - 60_000),
+      lastSessionChangeAt: new Date(baseNow - 30_000),
+      nowMs: baseNow,
+    });
+    expect(res.status).toBe('PAUSED');
+  });
+
   it('retorna LIVE quando o sinal recente é menor que 30 segundos', () => {
     const res = calculateSignalStatus({
       matchState: 'IN_PROGRESS',

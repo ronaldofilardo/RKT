@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { SpectatorView, SpectatorFeedStatus, SpectatorRhythmState, SpectatorCorrectionAlert } from '@/core/spectate';
-import { diffFeedViews } from '@/core/spectate';
+import type { SpectatorView, SpectatorFeedStatus, SpectatorRhythmState, SpectatorCorrectionAlert } from '@/core/spectate/types';
+import { diffFeedViews } from '@/core/spectate/correction-diff';
 
 const MAX_SESSION_DURATION_MS = 3 * 60 * 60 * 1000; // 3 horas
 
@@ -24,7 +24,12 @@ export function useSpectatorFeed(matchId: string) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchFeed = useCallback(async () => {
-    if (!navigator.onLine) return setIsClientOffline(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (!navigator.onLine) {
+      setIsClientOffline(true);
+      timerRef.current = setTimeout(fetchFeed, 10_000);
+      return;
+    }
     if (Date.now() - startTimeRef.current > MAX_SESSION_DURATION_MS) return setIsSessionExpired(true);
 
     try {
@@ -74,9 +79,12 @@ export function useSpectatorFeed(matchId: string) {
   useEffect(() => {
     fetchFeed();
     const onVis = () => { if (!document.hidden && !isSessionExpired) fetchFeed(); };
+    const onOnline = () => { if (!isSessionExpired) fetchFeed(); };
     document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('online', onOnline);
     return () => {
       document.removeEventListener('visibilitychange', onVis);
+      window.removeEventListener('online', onOnline);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [fetchFeed, isSessionExpired]);

@@ -2,6 +2,8 @@ import type { SpectatorFeedStatus } from './types';
 
 export const SPECTATE_HEARTBEAT_THRESHOLD_MS = 30_000; // 30s sem sinal = NO_SIGNAL
 export const SPECTATE_CATCH_UP_DELAY_THRESHOLD_MS = 30_000;
+// Ponto recebido depois da última mudança de sessão, dentro desta janela, prova que o anotador segue marcando.
+export const SPECTATE_SCORING_AFTER_PAUSE_WINDOW_MS = 120_000;
 
 export interface CalculateSignalParams {
   matchState: string;
@@ -9,6 +11,7 @@ export interface CalculateSignalParams {
   totalPoints?: number;
   lastHeartbeatAt?: Date | string | null;
   lastPointReceivedAt?: Date | string | null;
+  lastSessionChangeAt?: Date | string | null;
   nowMs: number;
   catchUpCount?: number;
 }
@@ -34,7 +37,7 @@ function resolveLastSignalMs(
  * Função pura, isolada de I/O e relógio de sistema.
  */
 export function calculateSignalStatus(params: CalculateSignalParams): SignalStatusResult {
-  const { matchState, hasActiveSession, totalPoints, lastHeartbeatAt, lastPointReceivedAt, nowMs, catchUpCount = 0 } = params;
+  const { matchState, hasActiveSession, totalPoints, lastHeartbeatAt, lastPointReceivedAt, lastSessionChangeAt, nowMs, catchUpCount = 0 } = params;
 
   if (matchState === 'FINISHED' || matchState === 'CANCELLED') {
     return { status: 'FINISHED', lastSignalAt: null, ageSeconds: null };
@@ -46,7 +49,14 @@ export function calculateSignalStatus(params: CalculateSignalParams): SignalStat
 
   // Mapeado quando MatchAnnotationSession estiver suspensa/inativa sem que a partida tenha sido finalizada
   if (!hasActiveSession) {
-    return { status: 'PAUSED', lastSignalAt: null, ageSeconds: null };
+    const pointMs = lastPointReceivedAt ? new Date(lastPointReceivedAt).getTime() : 0;
+    const changeMs = lastSessionChangeAt ? new Date(lastSessionChangeAt).getTime() : 0;
+    const scoringAfterPause =
+      pointMs > 0 && pointMs > changeMs && nowMs - pointMs <= SPECTATE_SCORING_AFTER_PAUSE_WINDOW_MS;
+    // Sessão inativa, mas chegou ponto depois dela: o anotador não está pausado de fato.
+    if (!scoringAfterPause) {
+      return { status: 'PAUSED', lastSignalAt: null, ageSeconds: null };
+    }
   }
 
   const lastSignalAt = resolveLastSignalMs(lastHeartbeatAt, lastPointReceivedAt);

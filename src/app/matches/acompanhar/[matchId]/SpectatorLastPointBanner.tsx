@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import type { SpectatorPoint, SpectatorRhythmState } from '@/core/spectate';
+import { describeSpectatorPoint } from '@/core/spectate/point-labels';
+import type { SpectatorPoint, SpectatorRhythmState } from '@/core/spectate/types';
 
 export function SpectatorLastPointBanner({
   lastPoint,
@@ -20,7 +21,7 @@ export function SpectatorLastPointBanner({
     );
   }
 
-  const desc = lastPoint.type.toLowerCase();
+  const desc = describeSpectatorPoint(lastPoint.type);
   const rhythmNotice = rhythm?.label ? ` · ${rhythm.label}` : '';
 
   return (

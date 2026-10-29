@@ -9,6 +9,7 @@ export interface FeedAggregation {
   lastHeartbeatAt: Date | null;
   annotatorName: string | null;
   hasActiveSession: boolean;
+  lastSessionChangeAt?: Date | null;
   scoreEditCount: number;
 }
 
@@ -23,7 +24,7 @@ export async function getFeedAggregation(matchId: string): Promise<FeedAggregati
   });
   if (!match) return null;
 
-  const [ptAgg, activeSession, scoreEditCount] = await Promise.all([
+  const [ptAgg, activeSession, latestSession, scoreEditCount] = await Promise.all([
     prisma.pointLog.aggregate({
       where: { matchId, voidedAt: null },
       _count: { id: true },
@@ -33,6 +34,11 @@ export async function getFeedAggregation(matchId: string): Promise<FeedAggregati
       where: { matchId, isActive: true },
       orderBy: { startedAt: 'desc' },
       select: { lastHeartbeatAt: true, annotator: { select: { name: true } } },
+    }),
+    prisma.matchAnnotationSession.findFirst({
+      where: { matchId },
+      orderBy: { updatedAt: 'desc' },
+      select: { updatedAt: true },
     }),
     prisma.matchScoreEdit.count({ where: { matchId } }),
   ]);
@@ -49,6 +55,7 @@ export async function getFeedAggregation(matchId: string): Promise<FeedAggregati
     lastHeartbeatAt,
     annotatorName: activeSession?.annotator?.name ?? null,
     hasActiveSession: Boolean(activeSession),
+    lastSessionChangeAt: latestSession?.updatedAt ?? null,
     scoreEditCount,
   };
 }

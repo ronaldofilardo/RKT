@@ -22,22 +22,22 @@ export function deriveMatchRhythm(params: DeriveMatchRhythmParams): SpectatorRhy
     return { kind: 'FINISHED', label: 'Partida encerrada', nextPollDelayMs: 0 };
   }
   if (feedStatus === 'PAUSED') {
-    return { kind: 'PAUSED', label: 'Anotação pausada temporariamente pelo anotador', nextPollDelayMs: 25_000 };
+    return { kind: 'PAUSED', label: 'Anotação pausada temporariamente pelo anotador', nextPollDelayMs: 15_000 };
   }
   if (feedStatus === 'NO_SIGNAL') {
-    return { kind: 'NO_SIGNAL', label: 'Sem sinal do anotador (placar mantido no último recebido)', nextPollDelayMs: 20_000 };
+    return { kind: 'NO_SIGNAL', label: 'Sem sinal do anotador (placar mantido no último recebido)', nextPollDelayMs: 15_000 };
   }
   if (feedStatus === 'NOT_STARTED') {
-    return { kind: 'WAITING_NEXT_POINT', label: 'Aguardando início da partida pelo anotador', nextPollDelayMs: 20_000 };
+    return { kind: 'WAITING_NEXT_POINT', label: 'Aguardando início da partida pelo anotador', nextPollDelayMs: 10_000 };
   }
 
   // Intervalos regulamentares do tênis
   if (isSetEndingPoint) {
-    return { kind: 'SET_BREAK', label: 'Intervalo entre sets', nextPollDelayMs: 60_000 };
+    return { kind: 'SET_BREAK', label: 'Intervalo entre sets', nextPollDelayMs: 30_000 };
   }
 
   if (isGameEndingPoint && gameSum % 2 !== 0) {
-    return { kind: 'CHANGEOVER_BREAK', label: 'Intervalo: Troca de lados (90s)', nextPollDelayMs: 45_000 };
+    return { kind: 'CHANGEOVER_BREAK', label: 'Intervalo: Troca de lados (90s)', nextPollDelayMs: 20_000 };
   }
 
   const elapsedSincePointMs = lastPointTimestampMs ? Math.max(0, nowMs - lastPointTimestampMs) : 999_999;
@@ -48,7 +48,7 @@ export function deriveMatchRhythm(params: DeriveMatchRhythmParams): SpectatorRhy
     return {
       kind: 'RALLY_IN_PROGRESS',
       label: `Ponto em disputa...${sacador}`,
-      nextPollDelayMs: 18_000,
+      nextPollDelayMs: 8_000,
     };
   }
 
@@ -57,14 +57,14 @@ export function deriveMatchRhythm(params: DeriveMatchRhythmParams): SpectatorRhy
     return {
       kind: 'WAITING_NEXT_POINT',
       label: 'Aguardando próximo saque ou marcação do anotador...',
-      nextPollDelayMs: 25_000,
+      nextPollDelayMs: 15_000,
     };
   }
 
   return {
     kind: 'WAITING_NEXT_POINT',
     label: 'Aguardando marcação do ponto...',
-    nextPollDelayMs: 15_000,
+    nextPollDelayMs: 8_000,
   };
 }
 

@@ -32,6 +32,24 @@ export interface SpectatorPlayerSide {
   members: Array<{ id: string; name: string }>;
 }
 
+/**
+ * Detalhes do ponto registrados pelo anotador (cascata do modal "Vencedor do Ponto").
+ * Lista-branca: observações/notas, áudio e ids de jogadores NÃO entram aqui.
+ */
+export interface SpectatorPointDetails {
+  situacao?: string;
+  tipo?: string;
+  golpe?: string;
+  efeito?: string;
+  direcao?: string;
+  golpeEsp?: string;
+  subtipo1?: string;
+  subtipo2?: string;
+  duracao?: string;
+  isSecondServe?: boolean;
+  firstFault?: { serveEffect?: string; direction?: string } | null;
+}
+
 export interface SpectatorPoint {
   id: string;
   seq: number;
@@ -45,6 +63,7 @@ export interface SpectatorPoint {
   courtSide?: 'deuce' | 'ad' | null;
   hitterId?: string | null;
   type: string;
+  details?: SpectatorPointDetails | null;
   isBreakPoint?: boolean;
   receivedLate?: boolean;
 }
@@ -53,6 +72,11 @@ export interface SpectatorMarker {
   kind: 'SCORE_EDIT' | 'ARRANGEMENT_CHANGE';
   at: string;
   description: string;
+  /** Marcador fica depois do ponto com esta sequência (0 = antes do primeiro ponto). */
+  afterSeq?: number | null;
+  /** Placar antes/depois da edição manual, já em texto legível (ex.: "6-4, 3-2 · game 30-30"). */
+  from?: string | null;
+  to?: string | null;
 }
 
 export interface SpectatorScore {
@@ -87,5 +111,7 @@ export interface SpectatorView {
 export interface SpectatorCorrectionAlert {
   kind: 'POINT_VOIDED' | 'SCORE_EDIT' | 'ARRANGEMENT_CHANGE';
   message: string;
+  from?: string;
+  to?: string;
 }
 

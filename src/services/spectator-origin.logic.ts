@@ -34,3 +34,4 @@ export function resolveShareOrigin(rawOrigin: string): string {
 
   return clean;
 }
+

@@ -1,7 +1,7 @@
 import { diffFeedViews } from '../correction-diff';
 import type { SpectatorView } from '../types';
 
-function makeMockView(pointIds: string[], markers: Array<{ kind: 'SCORE_EDIT' | 'ARRANGEMENT_CHANGE'; at: string; description: string }> = []): SpectatorView {
+function makeMockView(pointIds: string[], markers: SpectatorView['markers'] = []): SpectatorView {
   return {
     match: {
       id: 'm1',
@@ -70,6 +70,20 @@ describe('diffFeedViews (detecção de desfazimentos e correções)', () => {
     expect(diff.alert).toEqual({
       kind: 'SCORE_EDIT',
       message: 'Placar ajustado manualmente pelo anotador',
+    });
+  });
+
+  it('inclui placar antes/depois no alerta de edição quando disponível', () => {
+    const prev = makeMockView(['pt1']);
+    const next = makeMockView(['pt1'], [
+      { kind: 'SCORE_EDIT', at: '2026-10-29T12:00:00Z', description: 'Ajuste', from: '6-4, 3-2 · game 30-30', to: '6-4, 6-2 · game 0-0' },
+    ]);
+    const diff = diffFeedViews(prev, next);
+    expect(diff.alert).toEqual({
+      kind: 'SCORE_EDIT',
+      message: 'Placar ajustado manualmente pelo anotador',
+      from: '6-4, 3-2 · game 30-30',
+      to: '6-4, 6-2 · game 0-0',
     });
   });
 

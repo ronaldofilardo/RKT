@@ -23,6 +23,12 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: process.env.NODE_ENV === 'production',
+  allowedDevOrigins: [
+    'localhost',
+    '127.0.0.1',
+    '192.168.15.6',
+    '*.local',
+  ],
   typedRoutes: true,
   transpilePackages: ['jose'],
   images: {

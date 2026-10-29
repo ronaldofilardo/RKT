@@ -28,4 +28,10 @@ export interface ScoreboardCardProps {
   scoreState?: ScoreboardScoreState | null;
   isSuspended?: boolean;
   format?: string;
+  /** Nomes já abreviados (sobrepõem a abreviação automática). Usado no acompanhamento. */
+  displayNames?: { player1?: string; player2?: string };
+  /** Coluna extra com o placar do game em andamento (15, 30, 40, AD). */
+  gamePoints?: { player1: string; player2: string; title?: string } | null;
+  /** Substitui as margens/largura padrão do cartão (padrão: "mx-4 sm:mx-auto max-w-md"). */
+  className?: string;
 }

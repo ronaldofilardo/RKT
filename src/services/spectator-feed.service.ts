@@ -23,6 +23,7 @@ export async function getSpectatorFeed(params: GetSpectatorFeedParams) {
     totalPoints: agg.pointCount,
     lastHeartbeatAt: agg.lastHeartbeatAt,
     lastPointReceivedAt: agg.lastReceivedAt,
+    lastSessionChangeAt: agg.lastSessionChangeAt,
     nowMs,
   });
 

@@ -46,9 +46,11 @@ export function diffFeedViews(prev: SpectatorView | null, next: SpectatorView): 
         : `Correção do anotador: ${count} pontos foram desfeitos`,
     };
   } else if (hasScoreEdit) {
+    const edit = [...newMarkers].reverse().find((m) => m.kind === 'SCORE_EDIT');
     alert = {
       kind: 'SCORE_EDIT',
       message: 'Placar ajustado manualmente pelo anotador',
+      ...(edit?.from && edit?.to ? { from: edit.from, to: edit.to } : {}),
     };
   } else if (hasArrangementChange) {
     alert = {

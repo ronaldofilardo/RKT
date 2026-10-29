@@ -9,17 +9,17 @@ describe('deriveMatchRhythm (ritmo contextual e polling adaptativo)', () => {
     expect(res.nextPollDelayMs).toBe(0);
   });
 
-  it('retorna SET_BREAK e delay estendido de 60s quando ponto fechou set', () => {
+  it('retorna SET_BREAK e delay estendido de 30s quando ponto fechou set', () => {
     const res = deriveMatchRhythm({
       feedStatus: 'LIVE',
       isSetEndingPoint: true,
       nowMs: baseNow,
     });
     expect(res.kind).toBe('SET_BREAK');
-    expect(res.nextPollDelayMs).toBe(60_000);
+    expect(res.nextPollDelayMs).toBe(30_000);
   });
 
-  it('retorna CHANGEOVER_BREAK e delay de 45s quando fechou game com soma ímpar', () => {
+  it('retorna CHANGEOVER_BREAK e delay de 20s quando fechou game com soma ímpar', () => {
     const res = deriveMatchRhythm({
       feedStatus: 'LIVE',
       isGameEndingPoint: true,
@@ -27,7 +27,7 @@ describe('deriveMatchRhythm (ritmo contextual e polling adaptativo)', () => {
       nowMs: baseNow,
     });
     expect(res.kind).toBe('CHANGEOVER_BREAK');
-    expect(res.nextPollDelayMs).toBe(45_000);
+    expect(res.nextPollDelayMs).toBe(20_000);
   });
 
   it('retorna RALLY_IN_PROGRESS nos primeiros 30s após o ponto', () => {
@@ -39,7 +39,7 @@ describe('deriveMatchRhythm (ritmo contextual e polling adaptativo)', () => {
     });
     expect(res.kind).toBe('RALLY_IN_PROGRESS');
     expect(res.label).toContain('sacando Carlos');
-    expect(res.nextPollDelayMs).toBe(18_000);
+    expect(res.nextPollDelayMs).toBe(8_000);
   });
 
   it('retorna WAITING_NEXT_POINT com delay maior após 90s sem ponto', () => {
@@ -50,7 +50,7 @@ describe('deriveMatchRhythm (ritmo contextual e polling adaptativo)', () => {
     });
     expect(res.kind).toBe('WAITING_NEXT_POINT');
     expect(res.label).toContain('Aguardando próximo saque');
-    expect(res.nextPollDelayMs).toBe(25_000);
+    expect(res.nextPollDelayMs).toBe(15_000);
   });
 });
 

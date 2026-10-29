@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import type { TennisFormat } from '@/lib/matchConfig';
 import type { Player, ScoreboardSet } from './scoreboard-card.types';
 import { getSetCellStyle, renderSetScore } from './scoreboard-card-cells';
@@ -19,6 +20,8 @@ interface ScoreboardPlayerRowProps {
   numSets: number;
   tennisFormat?: TennisFormat;
   setsWon?: { player1: number; player2: number };
+  /** Célula extra após os sets (ex.: placar do game no acompanhamento). */
+  trailingCell?: ReactNode;
 }
 
 /** Linha de um jogador: nome, indicador de vencedor/sacador e cells de set. */
@@ -36,6 +39,7 @@ export function ScoreboardPlayerRow({
   numSets,
   tennisFormat,
   setsWon,
+  trailingCell,
 }: ScoreboardPlayerRowProps) {
   const nameBg = isSuspended
     ? 'bg-telemetry-alert text-telemetry-base'
@@ -73,6 +77,7 @@ export function ScoreboardPlayerRow({
           </td>
         );
       })}
+      {trailingCell}
     </tr>
   );
 }

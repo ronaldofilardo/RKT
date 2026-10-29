@@ -66,16 +66,19 @@ describe('Spectator Guest Screen Components', () => {
     expect(screen.getByLabelText('Voltar')).toBeInTheDocument();
   });
 
-  it('SpectatorScoreboard renders tabular columns S1, S2, Pts and scores', () => {
+  it('SpectatorScoreboard renders the /scoring table pattern (Set N, server, game column)', () => {
     render(
       <SpectatorScoreboard view={{ match: mockMatch, score: mockScore, points: mockPoints }} />
     );
 
-    expect(screen.getByText('S1')).toBeInTheDocument();
-    expect(screen.getByText('S2')).toBeInTheDocument();
+    // Mesmo padrão do /scoring: colunas "Set N", nomes abreviados e coluna do game.
+    expect(screen.getByText('Set 1')).toBeInTheDocument();
+    expect(screen.getByText('Set 2')).toBeInTheDocument();
+    expect(screen.getByText('Set 3')).toBeInTheDocument();
     expect(screen.getByText('Pts')).toBeInTheDocument();
-    expect(screen.getByText('Ana S.')).toBeInTheDocument();
-    expect(screen.getByText('Bia L.')).toBeInTheDocument();
+    expect(screen.getByText('A. S.')).toBeInTheDocument();
+    expect(screen.getByText('B. L.')).toBeInTheDocument();
+    expect(screen.getByLabelText('Sacador')).toBeInTheDocument();
     expect(screen.getByText('40')).toBeInTheDocument();
     expect(screen.getByText('30')).toBeInTheDocument();
   });

@@ -4,7 +4,7 @@ import { useScoreboardCardData } from './use-scoreboard-card-data';
 import { ScoreboardPlayerRow } from './scoreboard-player-row';
 import { abbreviateDoublesName } from './doubles-name-abbreviation.logic';
 
-export function ScoreboardCard({ player1, player2, player1Partner, player2Partner, scoreState, isSuspended, format }: ScoreboardCardProps) {
+export function ScoreboardCard({ player1, player2, player1Partner, player2Partner, scoreState, isSuspended, format, displayNames, gamePoints, className }: ScoreboardCardProps) {
   const {
     tennisFormat,
     setsWon,
@@ -24,11 +24,18 @@ export function ScoreboardCard({ player1, player2, player1Partner, player2Partne
 
   const rowBase = { displayedSets, currentSetIndex, numSets, tennisFormat, setsWon, isSuspended };
 
-  const p1DisplayName = abbreviateDoublesName(player1.name, player1Partner?.name ?? undefined);
-  const p2DisplayName = abbreviateDoublesName(player2.name, player2Partner?.name ?? undefined);
+  const p1DisplayName = displayNames?.player1 ?? abbreviateDoublesName(player1.name, player1Partner?.name ?? undefined);
+  const p2DisplayName = displayNames?.player2 ?? abbreviateDoublesName(player2.name, player2Partner?.name ?? undefined);
+
+  const gameCell = (value: string | undefined) =>
+    gamePoints ? (
+      <td className="text-center px-1 py-1 text-sm font-space-grotesk font-semibold border-l border-b border-white/10 text-telemetry-volt font-bold bg-telemetry-elevated">
+        {value}
+      </td>
+    ) : undefined;
 
   return (
-    <div className={`rounded-xl border overflow-hidden mx-4 sm:mx-auto max-w-md ${isSuspended ? 'border-telemetry-alert' : 'border-white/10 shadow-md bg-telemetry-card'}`}>
+    <div className={`rounded-xl border overflow-hidden ${className ?? 'mx-4 sm:mx-auto max-w-md'} ${isSuspended ? 'border-telemetry-alert' : 'border-white/10 shadow-md bg-telemetry-card'}`}>
       <table className="w-full table-fixed border-collapse">
         <thead>
           <tr className="text-[10px] font-space-grotesk">
@@ -51,6 +58,15 @@ export function ScoreboardCard({ player1, player2, player1Partner, player2Partne
                 </th>
               );
             })}
+            {gamePoints && (
+              <th
+                scope="col"
+                aria-label="Game em andamento"
+                className="text-center px-1 py-0.5 w-10 sm:w-12 bg-telemetry-elevated border-l border-b border-white/10 font-bold text-telemetry-volt"
+              >
+                {gamePoints.title ?? 'Pts'}
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -62,6 +78,7 @@ export function ScoreboardCard({ player1, player2, player1Partner, player2Partne
             side="player1"
             isWinner={winner === 'player1'}
             isServing={isServingP1}
+            trailingCell={gameCell(gamePoints?.player1)}
           />
           <ScoreboardPlayerRow
             {...rowBase}
@@ -72,6 +89,7 @@ export function ScoreboardCard({ player1, player2, player1Partner, player2Partne
             isWinner={winner === 'player2'}
             isServing={isServingP2}
             isLastRow
+            trailingCell={gameCell(gamePoints?.player2)}
           />
         </tbody>
       </table>
