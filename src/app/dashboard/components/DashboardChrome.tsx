@@ -13,11 +13,13 @@ import { getDefaultMenuContext, mapMenuSectionsToSidebar } from './dashboard-men
 import type { DashboardView } from '../dashboard.types';
 
 interface DashboardChromeProps {
-  user: { name: string; role: string } | null;
-  navigateToTarget: (view: DashboardView) => void;
+  user?: { name: string; role: string } | null;
+  navigateToTarget?: (view: DashboardView) => void;
+  title?: string;
+  onLogout?: () => void;
 }
 
-export function DashboardChrome({ user, navigateToTarget }: DashboardChromeProps) {
+export function DashboardChrome({ user, navigateToTarget, title, onLogout }: DashboardChromeProps) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
@@ -32,10 +34,12 @@ export function DashboardChrome({ user, navigateToTarget }: DashboardChromeProps
     return () => { cancelled = true; };
   }, []);
 
-  const endSession = useCallback(() => {
+  const internalEndSession = useCallback(() => {
     logger.info('[DashboardPage] logout click');
     setLogoutConfirmOpen(true);
   }, []);
+
+  const endSession = onLogout ?? internalEndSession;
 
   const confirmLogout = useCallback(() => {
     setLogoutConfirmOpen(false);
@@ -43,35 +47,39 @@ export function DashboardChrome({ user, navigateToTarget }: DashboardChromeProps
     router.replace('/login');
   }, [router]);
 
+  const currentUser = user || (meData?.user ? { name: meData.user.name, role: meData.user.role } : null);
+
   const sections = useMemo(() => {
-    const ctx = (meData && meData.user) ? menuContextFromMe(meData) : getDefaultMenuContext(user?.role);
+    const ctx = (meData && meData.user) ? menuContextFromMe(meData) : getDefaultMenuContext(currentUser?.role);
     const rawSections = buildMenu(ctx);
     return mapMenuSectionsToSidebar(rawSections, {
       navigateToTarget,
       routerPush: (href) => router.push(href as any),
       endSession,
     });
-  }, [meData, user?.role, navigateToTarget, router, endSession]);
+  }, [meData, currentUser?.role, navigateToTarget, router, endSession]);
 
   return (
     <>
       <DashboardTopBar
         menuOpen={menuOpen}
         setMenuOpen={setMenuOpen}
-        user={user}
+        user={currentUser}
+        title={title}
         onNewMatch={() => router.push('/match/new')}
         onLogout={endSession}
       />
       <DashboardSidebar menuOpen={menuOpen} setMenuOpen={setMenuOpen} sections={sections} />
-      <ConfirmAlertDialog
-        open={logoutConfirmOpen}
-        title="Sair?"
-        description="Deseja realmente sair?"
-        confirmLabel="Sair"
-        onConfirm={confirmLogout}
-        onCancel={() => setLogoutConfirmOpen(false)}
-      />
+      {!onLogout && (
+        <ConfirmAlertDialog
+          open={logoutConfirmOpen}
+          title="Sair?"
+          description="Deseja realmente sair?"
+          confirmLabel="Sair"
+          onConfirm={confirmLogout}
+          onCancel={() => setLogoutConfirmOpen(false)}
+        />
+      )}
     </>
   );
 }
-

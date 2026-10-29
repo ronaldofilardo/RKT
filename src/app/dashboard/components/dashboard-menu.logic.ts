@@ -3,7 +3,7 @@ import type { SidebarSection, SidebarItem } from "./DashboardSidebar";
 import type { DashboardView } from "../dashboard.types";
 
 interface NavigationHandlers {
-  navigateToTarget: (view: DashboardView) => void;
+  navigateToTarget?: (view: DashboardView) => void;
   routerPush: (href: string) => void;
   endSession: () => void;
 }
@@ -32,6 +32,7 @@ export function mapMenuSectionsToSidebar(
   handlers: NavigationHandlers,
 ): SidebarSection[] {
   const { navigateToTarget, routerPush, endSession } = handlers;
+  const isDashboardRoute = typeof window !== 'undefined' && window.location.pathname === '/dashboard';
 
   return sections.map((sec) => ({
     key: sec.key,
@@ -41,15 +42,18 @@ export function mapMenuSectionsToSidebar(
       if (item.action === 'logout') {
         action = endSession;
       } else if (item.href) {
-        if (item.href === '/dashboard') action = () => navigateToTarget('dashboard');
-        else if (item.href === '/historico') action = () => navigateToTarget('history');
-        else if (item.href === '/partidasanotadas') action = () => navigateToTarget('annotated');
-        else if (item.href === '/partidasaovivo') action = () => navigateToTarget('live');
-        else if (item.href === '/atletas') action = () => navigateToTarget('atletas');
-        else if (item.href === '/match/new') action = () => navigateToTarget('newMatch');
-        else if (item.href === '/admin') action = () => navigateToTarget('admin');
-        else if (item.href === '/dados-pessoais') action = () => navigateToTarget('profile');
-        else action = () => routerPush(item.href!);
+        if (navigateToTarget && isDashboardRoute) {
+          if (item.href === '/dashboard') action = () => navigateToTarget('dashboard');
+          else if (item.href === '/historico') action = () => navigateToTarget('history');
+          else if (item.href === '/partidasanotadas') action = () => navigateToTarget('annotated');
+          else if (item.href === '/partidasaovivo') action = () => navigateToTarget('live');
+          else if (item.href === '/atletas') action = () => navigateToTarget('atletas');
+          else if (item.href === '/match/new') action = () => navigateToTarget('newMatch');
+          else if (item.href === '/dados-pessoais') action = () => navigateToTarget('profile');
+          else action = () => routerPush(item.href!);
+        } else {
+          action = () => routerPush(item.href!);
+        }
       }
 
       return {
@@ -63,4 +67,3 @@ export function mapMenuSectionsToSidebar(
     }),
   }));
 }
-

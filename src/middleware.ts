@@ -36,7 +36,12 @@ export async function middleware(request: NextRequest) {
   if (csrfViolation) return csrfViolation;
 
   const isPublic = PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
-  if (isPublic) return NextResponse.next({ request: { headers: requestHeaders } });
+  if (isPublic) {
+    if (pathname === '/login') {
+      return handleAuthenticated(request, requestHeaders);
+    }
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
 
   const isBypass = BYPASS_ROUTES.some((route) => pathname.startsWith(route));
   if (isBypass) return NextResponse.next();

@@ -8,6 +8,33 @@
 
 ---
 
+## 2.6 Execução Unificada — Etapa 0 e Onda 1 Concluídas — 2026-10-29
+- **Origem:** Execução do master plan `docs/PLANO_EXECUCAO_UNIFICADA.md` (Etapa 0 e Onda 1).
+- **Etapa 0 (Endurecimento e Baseline Verde):**
+  - Gerado `docs/BASELINE-2026-10-29.md` com 397 suítes, 3904 testes (100% verde), 0 skipped, 0 typecheck errors, 0 lint warnings, 0 violações R-03.
+  - Backup Neon criado: branch `backup-pre-onda1` (`br-patient-queen-ac275d7i`) a partir de `production` (`br-weathered-bird-ac5auqof`).
+  - Golden snapshots em `docs/golden/` validados.
+- **Onda 1 (Contas, Perfis, Roteamento, Autorização e Chrome Compartilhado):**
+  - **1.1 Segurança Crítica de Partidas:** Validadas rotas de autorização (`GET /api/matches/[id]`, `/state`, `/point`, `/finish`) operando sob `canReadMatch`/`canAnnotateMatch` com checagem estrita de `athletePlayerId` e autorização falha fechada (*fail-closed*).
+  - **1.2 Roteamento Canônico e Middleware:**
+    - `src/middleware.ts` e `src/middleware-auth.logic.ts`: removido código morto; usuários autenticados em `/login` são interceptados e redirecionados para seu `homeForProfile` canônico (`ADMIN -> /admin`, `SUPORTE -> /suporte`, `GESTOR -> /gestor`, `TREINADOR/ATLETA -> /dashboard`, `mcp: true -> /trocar-senha`).
+    - Eliminada duplicação de `getAuthToken` em `middleware-auth.logic.ts`.
+    - `POST /api/auth/login` atualizado para retornar `mustChangePassword` na raiz do payload JSON além do objeto de usuário.
+  - **1.3 Layout Compartilhado e Navegação:**
+    - `DashboardChrome` promovido a layout compartilhado unificado com topbar responsiva, hamburger e sidebar integrados em `/dashboard`, `/gestor`, `/suporte` e `/admin`.
+    - Itens de rotas em desenvolvimento (`/atleta/*`, `/treinador/*`) mantidos com `badge: 'Em breve'` e `disabled: true`, respeitando estritamente a segregação de Treinador e Atleta.
+    - Botões "Voltar" migrados para navegação por perfil via `homeForProfileString` ou histórico seguro `router.back()`.
+  - **1.4 Design System Telemetry:**
+    - Eliminadas 100% das classes legadas arbitrárias (`bg-gray-*`, `text-gray-*`, `bg-sky-*`, `bg-white`) em `/gestor`, `/suporte` e `/admin` (`stats-card.tsx`, `status-pages.tsx`, `avulsos-section.tsx`, `module-nav.tsx`, `editar-clube-modal.tsx`, `editar-gestor-modal.tsx`).
+    - Módulos aderentes ao Level 3 do Design System Stitch (`telemetry-bg`, `telemetry-card`, `telemetry-blue`, `telemetry-text-primary`, `telemetry-border/20`).
+- **Métricas Finais da Entrega:**
+  - `pnpm test:strict`: **397 suítes passadas, 3910 testes passados (100% verde), 2 snapshots passados** (0 falhas, 0 skips).
+  - `check:r03`: **993 arquivos de produção, 0 violações**.
+  - `typecheck`: **0 erros de compilação**.
+  - `lint`: **0 erros/avisos**.
+
+---
+
 ## 2.5 Alinhamento ao Design System Stitch (Court Precision Tech) e Segregação Treinador vs Atleta — 2026-10-28
 - **Auditoria Stitch MCP:** Extraída a especificação canônica do Stitch (`Court Precision Tech`, asset `b1945ff952d84e4090726bd43b00300a`, projeto `1329349350691583873`).
 - **Segregação de Personas:** Reforçado o desacoplamento de domínio entre Treinador e Atleta (ADR-0007, ADR-0008, ADR-0009). Em vez de redirecionar Treinador para `/atletas` genérico, as rotas sem interface desenvolvida foram marcadas com `disabled: true, badge: 'Em breve'` via helper puro `soon(...)` em `menu-items.ts`, eliminando erros 404 e preservando a integridade arquitetural.

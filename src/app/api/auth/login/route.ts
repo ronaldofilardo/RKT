@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
 
     const response = NextResponse.json({
       accessToken,
+      mustChangePassword: user.mustChangePassword,
       user: {
         id: user.id,
         name: user.name,

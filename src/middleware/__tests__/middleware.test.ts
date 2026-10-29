@@ -228,5 +228,55 @@ describe('middleware', () => {
       const res = await middleware(req);
       expect(res).toBeInstanceOf(NextResponse);
     });
+
+    describe('redirecionamento de usuários autenticados em /login', () => {
+      it('deve redirecionar ADMIN para /admin ao acessar /login', async () => {
+        mockDecodeJwtPayload.mockResolvedValue({ sub: 'admin-1', role: 'ADMIN' });
+        const { middleware } = await import('@/middleware');
+        const req = makeRequest({ pathname: '/login', authorization: 'Bearer token' });
+        const res = await middleware(req);
+        expect(res.headers.get('location')).toContain('/admin');
+      });
+
+      it('deve redirecionar SUPORTE para /suporte ao acessar /login', async () => {
+        mockDecodeJwtPayload.mockResolvedValue({ sub: 'sup-1', role: 'ANNOTATOR', pp: 'SUPORTE' });
+        const { middleware } = await import('@/middleware');
+        const req = makeRequest({ pathname: '/login', authorization: 'Bearer token' });
+        const res = await middleware(req);
+        expect(res.headers.get('location')).toContain('/suporte');
+      });
+
+      it('deve redirecionar GESTOR para /gestor ao acessar /login', async () => {
+        mockDecodeJwtPayload.mockResolvedValue({ sub: 'gest-1', role: 'ANNOTATOR', mk: 'GESTOR' });
+        const { middleware } = await import('@/middleware');
+        const req = makeRequest({ pathname: '/login', authorization: 'Bearer token' });
+        const res = await middleware(req);
+        expect(res.headers.get('location')).toContain('/gestor');
+      });
+
+      it('deve redirecionar TREINADOR para /dashboard ao acessar /login', async () => {
+        mockDecodeJwtPayload.mockResolvedValue({ sub: 'coach-1', role: 'ANNOTATOR', mk: 'TREINADOR' });
+        const { middleware } = await import('@/middleware');
+        const req = makeRequest({ pathname: '/login', authorization: 'Bearer token' });
+        const res = await middleware(req);
+        expect(res.headers.get('location')).toContain('/dashboard');
+      });
+
+      it('deve redirecionar ATLETA para /dashboard ao acessar /login', async () => {
+        mockDecodeJwtPayload.mockResolvedValue({ sub: 'ath-1', role: 'ATHLETE' });
+        const { middleware } = await import('@/middleware');
+        const req = makeRequest({ pathname: '/login', authorization: 'Bearer token' });
+        const res = await middleware(req);
+        expect(res.headers.get('location')).toContain('/dashboard');
+      });
+
+      it('deve redirecionar para /trocar-senha se mustChangePassword estiver ativo', async () => {
+        mockDecodeJwtPayload.mockResolvedValue({ sub: 'user-1', role: 'ATHLETE', mcp: true });
+        const { middleware } = await import('@/middleware');
+        const req = makeRequest({ pathname: '/login', authorization: 'Bearer token' });
+        const res = await middleware(req);
+        expect(res.headers.get('location')).toContain('/trocar-senha');
+      });
+    });
   });
 });

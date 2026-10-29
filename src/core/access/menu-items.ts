@@ -79,7 +79,7 @@ export function atletaItems(athlete: AthleteContext): MenuItem[] {
     ),
   ];
   if (athlete.isMinor) {
-    items.push(link('atleta-responsaveis', 'Responsáveis', '/atleta/responsaveis', '👪'));
+    items.push(link('atleta-responsaveis', 'Responsáveis', '/atleta/responsaveis', '👪', true, 'Em breve'));
   }
   return items;
 }

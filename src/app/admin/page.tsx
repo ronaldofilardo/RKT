@@ -4,7 +4,8 @@ import { ConfirmAlertDialog } from '@/components/ConfirmAlertDialog';
 import type { AdminUser } from '@/services/adminClient';
 import { useAdminPage } from './use-admin-page';
 import { AdminUsersTable } from './admin-users-table';
-import { AdminLoadingScreen, AdminHeader, AdminCards, AdminBackLink } from './admin-dashboard-chrome';
+import { AdminLoadingScreen, AdminCards, AdminBackLink } from './admin-dashboard-chrome';
+import { DashboardChrome } from '@/app/dashboard/components/DashboardChrome';
 import { homeForProfileString } from '@/core/access/home';
 
 export type User = AdminUser;
@@ -22,7 +23,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-telemetry-base text-telemetry-text-primary">
-      <AdminHeader onLogout={endSession} />
+      <DashboardChrome title="Admin Dashboard" onLogout={endSession} />
 
       <main className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
         {error && (

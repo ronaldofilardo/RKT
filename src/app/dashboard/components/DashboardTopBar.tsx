@@ -5,11 +5,12 @@ interface DashboardTopBarProps {
   menuOpen: boolean;
   setMenuOpen: (open: boolean) => void;
   user: { name: string; role: string } | null;
+  title?: string;
   onNewMatch: () => void;
   onLogout: () => void;
 }
 
-export function DashboardTopBar({ menuOpen, setMenuOpen, user, onNewMatch, onLogout }: DashboardTopBarProps) {
+export function DashboardTopBar({ menuOpen, setMenuOpen, user, title, onNewMatch, onLogout }: DashboardTopBarProps) {
   const firstName = user?.name ? user.name.trim().split(/\s+/)[0] : '';
 
   return (
@@ -43,38 +44,36 @@ export function DashboardTopBar({ menuOpen, setMenuOpen, user, onNewMatch, onLog
               />
             </svg>
           </button>
-          <h1 className="text-lg font-bold text-telemetry-text-primary tracking-wide">Início</h1>
+          <h1 className="text-lg font-bold text-telemetry-text-primary tracking-wide">{title ?? 'Início'}</h1>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
           <ThemeToggle />
-          {user && (
-            <div className="flex items-center gap-2 sm:gap-3">
-              <button
-                type="button"
-                onClick={onNewMatch}
-                className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-telemetry-blue hover:bg-telemetry-blue-light text-white shadow-sm transition-colors"
-                aria-label="Nova partida"
-              >
-                + Nova Partida
-              </button>
-              {firstName && (
-                <span className="hidden md:inline text-sm text-telemetry-text-muted font-medium">{firstName}</span>
-              )}
-              {user.role === "ADMIN" && (
-                <span className="text-xs px-2 py-0.5 rounded bg-telemetry-alert text-telemetry-base font-bold">
-                  Admin
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={onLogout}
-                className="text-sm text-telemetry-error hover:opacity-80 font-semibold transition-opacity"
-                aria-label="Sair"
-              >
-                Sair
-              </button>
-            </div>
-          )}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={onNewMatch}
+              className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-telemetry-blue hover:bg-telemetry-blue-light text-white shadow-sm transition-colors"
+              aria-label="Nova partida"
+            >
+              + Nova Partida
+            </button>
+            {firstName && (
+              <span className="hidden md:inline text-sm text-telemetry-text-muted font-medium">{firstName}</span>
+            )}
+            {user?.role === "ADMIN" && (
+              <span className="text-xs px-2 py-0.5 rounded bg-telemetry-alert text-telemetry-base font-bold">
+                Admin
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={onLogout}
+              className="text-sm text-telemetry-error hover:opacity-80 font-semibold transition-opacity"
+              aria-label="Sair"
+            >
+              Sair
+            </button>
+          </div>
         </div>
       </div>
     </header>

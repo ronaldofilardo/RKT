@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { decodeJwtPayload } from '@/lib/jwt-client';
+import { getAuthToken } from './middleware-csrf.logic';
+import { homeForProfileString } from '@/core/access/home';
 
 function homeForJwtClaims(decoded: { role?: string | null; pp?: string | null; mk?: string | null }): string {
   if (decoded.pp === 'ADMIN' || decoded.role === 'ADMIN') return '/admin';
@@ -8,6 +10,11 @@ function homeForJwtClaims(decoded: { role?: string | null; pp?: string | null; m
   if (decoded.mk === 'GESTOR') return '/gestor';
   if (decoded.mk === 'TREINADOR') return '/dashboard';
   return '/login';
+}
+
+function resolveHomeForLogin(decoded: { role?: string | null; pp?: string | null; mk?: string | null }): string {
+  const profile = decoded.pp || decoded.mk || (decoded.role === 'ADMIN' ? 'ADMIN' : 'ATLETA');
+  return homeForProfileString(profile);
 }
 
 export async function handleAuthenticated(
@@ -18,6 +25,9 @@ export async function handleAuthenticated(
   const token = getAuthToken(request);
 
   if (!token) {
+    if (pathname === '/login') {
+      return NextResponse.next({ request: { headers: requestHeaders } });
+    }
     if (pathname.startsWith('/api/')) {
       return NextResponse.json(
         { error: 'UNAUTHORIZED', message: 'Token de acesso requerido' },
@@ -30,6 +40,9 @@ export async function handleAuthenticated(
   const decoded = await decodeJwtPayload(token);
 
   if (!decoded) {
+    if (pathname === '/login') {
+      return NextResponse.next({ request: { headers: requestHeaders } });
+    }
     if (pathname.startsWith('/api/')) {
       return NextResponse.json(
         { error: 'UNAUTHORIZED', message: 'Token inválido ou expirado' },
@@ -51,7 +64,7 @@ export async function handleAuthenticated(
 
   // Roteamento por perfil quando já autenticado e acessa /login
   if (pathname === '/login') {
-    return NextResponse.redirect(new URL(homeForJwtClaims(decoded), request.url));
+    return NextResponse.redirect(new URL(resolveHomeForLogin(decoded), request.url));
   }
 
   if (pathname.startsWith('/admin') && decoded.role !== 'ADMIN' && decoded.pp !== 'ADMIN') {
@@ -73,18 +86,4 @@ export async function handleAuthenticated(
   }
 
   return NextResponse.next({ request: { headers: requestHeaders } });
-}
-
-function getAuthToken(request: Pick<NextRequest, 'headers' | 'cookies'>) {
-  const authHeader = request.headers.get('authorization');
-  let bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
-  if (bearerToken === 'null' || bearerToken === 'undefined') {
-    bearerToken = null;
-  }
-  return (
-    bearerToken ??
-    request.cookies.get('rkt_access_token')?.value ??
-    request.cookies.get('access_token')?.value ??
-    null
-  );
 }

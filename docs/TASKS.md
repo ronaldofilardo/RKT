@@ -154,14 +154,14 @@
   - **Fase 8:** Suporte e Resolução de Conflitos: fila de claims e merge de atletas com trilha de auditoria. ✅
   - **Fase 9 & 10:** Bateria de Testes Strict/A11y/Coverage e Documentação Técnica (ADR-0010/ADR-0011). ✅
 
-### A0.6. Correção de Roteamento por Perfil, Autorização de Partidas e Inconsistências ⏳
-- **Status:** Planejada / Backlog (2026-10-27)
-- **Documento:** `docs/PLANO_CORRECAO_ROTEAMENTO_AUTORIZACAO_E_PERFIS_2026-10-27.md`
+### A0.6. Correção de Roteamento por Perfil, Autorização de Partidas e Inconsistências ✅
+- **Status:** Concluído (2026-10-29) — Onda 1 do `PLANO_EXECUCAO_UNIFICADA.md`
+- **Documento:** `docs/PLANO_CORRECAO_ROTEAMENTO_AUTORIZACAO_E_PERFIS_2026-10-27.md` / `docs/PLANO_EXECUCAO_UNIFICADA.md`
 - **DoD:**
-  - **Etapa 1:** Segurança Crítica e Autorização de Partidas (comparação correta de Player.id com `athletePlayerId`, autorização fail-closed, unificação em `canReadMatch`/`canAnnotateMatch`, correção do link para 404 em `club-matches-table`).
-  - **Etapa 2:** Roteamento Canônico, Home por Perfil e Middleware (função pura `homeForProfile`, correção do código morto no middleware, retorno de `mustChangePassword` no login).
-  - **Etapa 3:** Layout Compartilhado e Navegação por Perfil (sidebar em `/gestor`, `/suporte` e `/admin`, itens sem tela desabilitados com badge 'Em breve', botão voltar dinâmico).
-  - **Etapa 4:** Adequação ao Design System (`telemetry-*`) e remoção de código morto (`useAccess`).
+  - **Etapa 1:** Segurança Crítica e Autorização de Partidas (comparação correta de Player.id com `athletePlayerId`, autorização fail-closed, unificação em `canReadMatch`/`canAnnotateMatch`, links em `club-matches-table` apontando para `/match/[id]/report` ou `/scoring`). ✅
+  - **Etapa 2:** Roteamento Canônico, Home por Perfil e Middleware (funções puras `homeForProfile` e `homeForProfileString`, middleware redirecionando usuários autenticados em `/login` de acordo com seu perfil canônico sem dead code, devolução de `mustChangePassword` na raiz do payload de `POST /api/auth/login`). ✅
+  - **Etapa 3:** Layout Compartilhado e Navegação por Perfil (`DashboardChrome` unificado com sidebar e topbar responsivos em `/dashboard`, `/gestor`, `/suporte` e `/admin`, itens sem tela desabilitados com badge 'Em breve', botão voltar dinâmico). ✅
+  - **Etapa 4:** Adequação ao Design System (`telemetry-*`) em todas as páginas e modais de `/gestor` e `/suporte`, zero classes Tailwind legadas `bg-gray-*`/`bg-sky-*`/`bg-white`, `useAccess` descontinuado. ✅
 
 ### A1. Página de Estatísticas do Jogador 🔴
 - **Status:** Não iniciada
