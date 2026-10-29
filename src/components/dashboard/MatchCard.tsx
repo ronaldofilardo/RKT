@@ -21,6 +21,7 @@ export function MatchCard({
   onResumeMatch,
   onSetSummary,
   onEditInfo,
+  onShare,
 }: MatchCardProps) {
   const d = useMatchCardData(match);
 
@@ -62,6 +63,7 @@ export function MatchCard({
         onResumeMatch={onResumeMatch}
         onSetSummary={onSetSummary}
         onEditInfo={onEditInfo}
+        onShare={onShare}
       />
 
       <MatchCardScoreTable

@@ -1,5 +1,7 @@
 'use client';
 
+import { ShareIcon } from './share-spectate.icons';
+
 // Cabeçalho compacto de /scoring (~36px): seta de voltar + nome do app.
 // Cronômetro, ThemeToggle e botão de timeline foram removidos daqui:
 // o tema agora é um botão único no rodapé (ActionFooter) e a timeline
@@ -9,6 +11,7 @@ interface MatchHeaderProps {
   onClose: () => void;
   onEditMatch?: () => void;
   onStats?: () => void;
+  onShare?: () => void;
   /**
    * Mantido apenas por compatibilidade com o fluxo existente em page.tsx
    * (openTimelineView). O ícone da timeline NÃO é mais renderizado no header.
@@ -24,6 +27,7 @@ export function MatchHeader({
   onClose,
   onEditMatch,
   onStats,
+  onShare,
   canEdit,
   isFinished,
 }: MatchHeaderProps) {
@@ -45,6 +49,17 @@ export function MatchHeader({
         </span>
 
         <div className="min-w-8 flex items-center justify-end gap-1 sm:gap-2 flex-shrink-0">
+          {onShare && (
+            <button
+              type="button"
+              onClick={onShare}
+              className="p-1 text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/10 rounded-lg transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center"
+              aria-label="Compartilhar transmissão"
+              title="Compartilhar transmissão"
+            >
+              <ShareIcon className="w-4 h-4" />
+            </button>
+          )}
           {canEdit && onEditMatch && (
             <button onClick={onEditMatch} className="p-1 text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/10 rounded-lg transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center" aria-label="Editar partida">
               <svg className="w-3.5 sm:w-4 h-3.5 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

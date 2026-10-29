@@ -22,7 +22,6 @@ interface ScoringPageLayoutProps {
   handlers: ScoringPageEffects;
   derived: ScoringPageDerived;
   chrome: ReturnType<typeof useScoringPageChrome>;
-  /** `state.match` já estreitado para não-nulo pela página. */
   match: NonNullable<ScoringPageState['match']>;
   matchId: string;
   cameFromDashboard: boolean;
@@ -30,14 +29,7 @@ interface ScoringPageLayoutProps {
 }
 
 export function ScoringPageLayout({
-  state,
-  handlers,
-  derived,
-  chrome,
-  match,
-  matchId,
-  cameFromDashboard,
-  router,
+  state, handlers, derived, chrome, match, matchId, cameFromDashboard, router,
 }: ScoringPageLayoutProps) {
   const { fontScale } = state;
   const { abandonCurrentSession } = handlers;
@@ -59,6 +51,7 @@ export function ScoringPageLayout({
           await abandonCurrentSession();
           navigateDashboard();
         }}
+        onShare={() => chrome.setIsShareModalOpen(true)}
         onTimeline={chrome.openTimelineView}
         isFinished={isFinished}
       />
@@ -66,32 +59,20 @@ export function ScoringPageLayout({
       {chrome.isTimelineLoading && <TimelineLoadingOverlay />}
 
       <ScoringPagePlayArea
-        state={state}
-        handlers={handlers}
-        derived={derived}
-        chrome={chrome}
-        match={match}
-        matchId={matchId}
-        serveControls={serve.controls}
-        onNavigateReport={navigateReport}
-        onNavigateDashboard={navigateDashboard}
+        state={state} handlers={handlers} derived={derived} chrome={chrome}
+        match={match} matchId={matchId} serveControls={serve.controls}
+        onNavigateReport={navigateReport} onNavigateDashboard={navigateDashboard}
       />
 
       <ScoringPageControls state={state} handlers={handlers} derived={derived} matchId={matchId} serveOptions={serve.options} />
 
       <ScoringModals
-        state={state}
-        handlers={handlers}
-        derived={derived}
-        match={match}
-        matchId={matchId}
-        cameFromDashboard={cameFromDashboard}
-        setSummaryModalState={chrome.setSummaryModalState}
-        onCloseSetSummary={() =>
-          chrome.setSetSummaryModalState((prev) => ({ ...prev, isOpen: false }))
-        }
-        onNavigateDashboard={navigateDashboard}
-        onNavigateReport={navigateReport}
+        state={state} handlers={handlers} derived={derived} match={match} matchId={matchId}
+        cameFromDashboard={cameFromDashboard} setSummaryModalState={chrome.setSummaryModalState}
+        onCloseSetSummary={() => chrome.setSetSummaryModalState((prev) => ({ ...prev, isOpen: false }))}
+        isShareModalOpen={chrome.isShareModalOpen}
+        onCloseShareModal={() => chrome.setIsShareModalOpen(false)}
+        onNavigateDashboard={navigateDashboard} onNavigateReport={navigateReport}
       />
     </div>
   );

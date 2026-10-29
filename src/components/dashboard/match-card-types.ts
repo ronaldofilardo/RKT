@@ -39,4 +39,5 @@ export interface MatchCardProps {
   onResumeMatch?: (match: DashboardMatchPayload) => void;
   onSetSummary?: (match: DashboardMatchPayload) => void;
   onEditInfo?: (match: DashboardMatchPayload) => void;
+  onShare?: (match: DashboardMatchPayload) => void;
 }

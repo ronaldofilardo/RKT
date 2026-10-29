@@ -11,6 +11,7 @@ interface DashboardHomeSectionProps {
   resumeMatch?: (m: DashboardMatchPayload) => void;
   openMatchSetSummary?: (m: DashboardMatchPayload) => void;
   openMatchEditInfo?: (m: DashboardMatchPayload) => void;
+  onShareMatch?: (m: DashboardMatchPayload) => void;
 }
 
 /** View inicial do dashboard: anotações suspensas + lista de partidas visíveis. */
@@ -25,6 +26,7 @@ export function DashboardHomeSection({
   resumeMatch,
   openMatchSetSummary,
   openMatchEditInfo,
+  onShareMatch,
 }: DashboardHomeSectionProps) {
   return (
     <section aria-labelledby="dashboard-heading">
@@ -47,6 +49,7 @@ export function DashboardHomeSection({
                 onResumeMatch={resumeMatch}
                 onSetSummary={openMatchSetSummary}
                 onEditInfo={openMatchEditInfo}
+                onShare={onShareMatch}
               />
             ))}
           </div>
@@ -70,6 +73,7 @@ export function DashboardHomeSection({
               onResumeMatch={resumeMatch}
               onSetSummary={openMatchSetSummary}
               onEditInfo={openMatchEditInfo}
+              onShare={onShareMatch}
             />
           ))
         )}

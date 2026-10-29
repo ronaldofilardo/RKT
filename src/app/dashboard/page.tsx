@@ -3,14 +3,17 @@
 import { DashboardChrome } from "./components/DashboardChrome";
 import { DashboardViewRouter } from "./components/DashboardViewRouter";
 import { DashboardMatchModals } from "./components/DashboardMatchModals";
+import { ShareSpectateModal } from "@/components/scoring/ShareSpectateModal";
 import { useDashboardPageModel } from "./use-dashboard-page-model";
 import { useDashboardMatchActions } from "./use-dashboard-match-actions";
 import { useDashboardSetSummary } from "./use-dashboard-set-summary";
+import { useDashboardShare } from "./hooks/use-dashboard-share";
 
 export default function DashboardPage() {
   const model = useDashboardPageModel();
   const actions = useDashboardMatchActions(model);
   const summary = useDashboardSetSummary();
+  const share = useDashboardShare();
 
   return (
     <div className="min-h-screen bg-telemetry-base text-telemetry-text-primary">
@@ -31,6 +34,7 @@ export default function DashboardPage() {
           resumeMatch={actions.resumeMatch}
           openMatchSetSummary={summary.openMatchSetSummary}
           openMatchEditInfo={actions.openMatchEditInfo}
+          onShareMatch={share.openShareModal}
         />
       </main>
 
@@ -66,6 +70,14 @@ export default function DashboardPage() {
           actions.setMatchToEditInfo(null);
         }}
       />
+
+      {share.matchToShare && (
+        <ShareSpectateModal
+          matchId={share.matchToShare.id}
+          isOpen={Boolean(share.matchToShare)}
+          onClose={share.closeShareModal}
+        />
+      )}
     </div>
   );
 }

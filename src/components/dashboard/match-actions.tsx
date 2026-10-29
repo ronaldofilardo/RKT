@@ -1,3 +1,4 @@
+import { ShareIcon } from '@/components/scoring/share-spectate.icons';
 import type { DashboardMatchPayload } from './MatchCard';
 
 interface MatchActionsProps {
@@ -5,11 +6,25 @@ interface MatchActionsProps {
   onReport?: (match: DashboardMatchPayload) => void;
   onFinish?: (match: DashboardMatchPayload) => void;
   onDelete?: (match: DashboardMatchPayload) => void;
+  onShare?: (match: DashboardMatchPayload) => void;
 }
 
-export function MatchActions({ match, onReport, onFinish, onDelete }: MatchActionsProps) {
+export function MatchActions({ match, onReport, onFinish, onDelete, onShare }: MatchActionsProps) {
   return (
     <div className="flex items-center gap-1.5 sm:gap-2">
+      {onShare && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onShare(match);
+          }}
+          className="p-1 rounded text-xs text-telemetry-text-muted hover:text-telemetry-blue hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+          title="Compartilhar transmissão"
+          aria-label="Compartilhar transmissão"
+        >
+          <ShareIcon className="w-3.5 h-3.5" />
+        </button>
+      )}
       {onReport && (
         <button
           onClick={(e) => {

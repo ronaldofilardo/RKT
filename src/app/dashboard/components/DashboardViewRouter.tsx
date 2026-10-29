@@ -7,8 +7,8 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
   const {
     view, loading, finishedMatches, liveMatches, pendingMatches, historyMatches,
     visibleMatches, suspendedFromApi, navigateToTarget, openMatchDetails,
-    openMatchReport, finishMatch, deleteMatch,
-    openMatchEditScore, resumeMatch, openMatchSetSummary, openMatchEditInfo,
+    openMatchReport, finishMatch, deleteMatch, openMatchEditScore,
+    resumeMatch, openMatchSetSummary, openMatchEditInfo, onShareMatch,
   } = props;
 
   if (loading) {
@@ -28,7 +28,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
         matches={finishedMatches}
         onBack={() => navigateToTarget("dashboard")}
         renderCard={(m) => (
-          <MatchCard key={m.id} match={m} onClick={openMatchDetails} onReport={openMatchReport} />
+          <MatchCard key={m.id} match={m} onClick={openMatchDetails} onReport={openMatchReport} onShare={onShareMatch} />
         )}
       />
     ),
@@ -41,15 +41,9 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
         onBack={() => navigateToTarget("dashboard")}
         renderCard={(m) => (
           <MatchCard
-            key={m.id}
-            match={m}
-            onClick={openMatchDetails}
-            onReport={openMatchReport}
-            onFinish={finishMatch}
-            onEditScore={openMatchEditScore}
-            onResumeMatch={resumeMatch}
-            onSetSummary={openMatchSetSummary}
-            onEditInfo={openMatchEditInfo}
+            key={m.id} match={m} onClick={openMatchDetails} onReport={openMatchReport}
+            onFinish={finishMatch} onEditScore={openMatchEditScore} onResumeMatch={resumeMatch}
+            onSetSummary={openMatchSetSummary} onEditInfo={openMatchEditInfo} onShare={onShareMatch}
           />
         )}
       />
@@ -62,7 +56,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
         matches={pendingMatches}
         onBack={() => navigateToTarget("dashboard")}
         renderCard={(m) => (
-          <MatchCard key={m.id} match={m} onClick={openMatchDetails} onDelete={deleteMatch} onEditInfo={openMatchEditInfo} />
+          <MatchCard key={m.id} match={m} onClick={openMatchDetails} onDelete={deleteMatch} onEditInfo={openMatchEditInfo} onShare={onShareMatch} />
         )}
       />
     ),
@@ -74,22 +68,18 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
         matches={historyMatches}
         onBack={() => navigateToTarget("dashboard")}
         renderCard={(m) => (
-          <MatchCard key={m.id} match={m} onClick={openMatchDetails} onReport={openMatchReport} onDelete={deleteMatch} />
+          <MatchCard key={m.id} match={m} onClick={openMatchDetails} onReport={openMatchReport} onDelete={deleteMatch} onShare={onShareMatch} />
         )}
       />
     ),
     dashboard: () => (
       <DashboardHomeSection
-        visibleMatches={visibleMatches}
-        suspendedFromApi={suspendedFromApi}
-        openMatchDetails={openMatchDetails}
-        openMatchReport={openMatchReport}
-        finishMatch={finishMatch}
-        deleteMatch={deleteMatch}
-        openMatchEditScore={openMatchEditScore}
-        resumeMatch={resumeMatch}
-        openMatchSetSummary={openMatchSetSummary}
-        openMatchEditInfo={openMatchEditInfo}
+        visibleMatches={visibleMatches} suspendedFromApi={suspendedFromApi}
+        openMatchDetails={openMatchDetails} openMatchReport={openMatchReport}
+        finishMatch={finishMatch} deleteMatch={deleteMatch}
+        openMatchEditScore={openMatchEditScore} resumeMatch={resumeMatch}
+        openMatchSetSummary={openMatchSetSummary} openMatchEditInfo={openMatchEditInfo}
+        onShareMatch={onShareMatch}
       />
     ),
   };

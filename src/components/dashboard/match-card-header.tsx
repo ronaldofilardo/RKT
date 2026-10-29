@@ -1,45 +1,8 @@
 'use client';
 
 import { MatchStatusBadge, MatchActions, FormatLabel } from './match-card-components';
+import { HeaderButton } from './match-card-header-button';
 import type { DashboardMatchPayload } from './match-card-types';
-
-const BTN_BASE = 'px-2 py-0.5 sm:px-2.5 sm:py-1 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1';
-const VARIANT = {
-  elevated: 'bg-telemetry-elevated hover:bg-telemetry-active border border-telemetry-border/15 text-telemetry-text-primary shadow-sm',
-  blue: 'bg-telemetry-blue hover:bg-telemetry-blue-light text-white shadow-sm',
-} as const;
-
-interface HeaderButtonProps {
-  id: string;
-  match: DashboardMatchPayload;
-  onClick: (match: DashboardMatchPayload) => void;
-  title: string;
-  ariaLabel?: string;
-  emoji: string;
-  label: string;
-  mobileLabel?: string;
-  variant?: keyof typeof VARIANT;
-}
-
-function HeaderButton({ id, match, onClick, title, ariaLabel, emoji, label, mobileLabel, variant = 'elevated' }: HeaderButtonProps) {
-  return (
-    <button
-      type="button"
-      data-testid={`match-card-${id}-${match.id}`}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick(match);
-      }}
-      className={`${BTN_BASE} ${VARIANT[variant]}`}
-      title={title}
-      aria-label={ariaLabel ?? title}
-    >
-      <span aria-hidden="true">{emoji}</span>
-      <span className="hidden sm:inline">{label}</span>
-      {mobileLabel && <span className="sm:hidden">{mobileLabel}</span>}
-    </button>
-  );
-}
 
 interface MatchCardHeaderProps {
   match: DashboardMatchPayload;
@@ -53,6 +16,7 @@ interface MatchCardHeaderProps {
   onResumeMatch?: (match: DashboardMatchPayload) => void;
   onSetSummary?: (match: DashboardMatchPayload) => void;
   onEditInfo?: (match: DashboardMatchPayload) => void;
+  onShare?: (match: DashboardMatchPayload) => void;
 }
 
 export function MatchCardHeader({
@@ -67,6 +31,7 @@ export function MatchCardHeader({
   onResumeMatch,
   onSetSummary,
   onEditInfo,
+  onShare,
 }: MatchCardHeaderProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-3 pb-2">
@@ -90,7 +55,7 @@ export function MatchCardHeader({
         {!isFinished && onEditInfo && (
           <HeaderButton id="edit-info" match={match} onClick={onEditInfo} title="Editar Informações da Partida" ariaLabel="Editar Informações" emoji="⚙️" label="Info" />
         )}
-        <MatchActions match={match} onReport={onReport} onFinish={onFinish} onDelete={onDelete} />
+        <MatchActions match={match} onReport={onReport} onFinish={onFinish} onDelete={onDelete} onShare={onShare} />
         <FormatLabel format={match.format} matchType={match.matchType} />
       </div>
     </div>

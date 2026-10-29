@@ -20,4 +20,5 @@ export interface DashboardViewRouterProps {
   resumeMatch?: (m: DashboardMatchPayload) => void;
   openMatchSetSummary?: (m: DashboardMatchPayload) => void;
   openMatchEditInfo?: (m: DashboardMatchPayload) => void;
+  onShareMatch?: (m: DashboardMatchPayload) => void;
 }

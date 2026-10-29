@@ -53,6 +53,7 @@ export function useScoringPageChrome(
     isOpen: false,
     setNumber: 1,
   });
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   useSetSummaryAutoOpen(
     state,
@@ -79,6 +80,8 @@ export function useScoringPageChrome(
     tacticalInsights,
     setSummaryModalState,
     setSetSummaryModalState,
+    isShareModalOpen,
+    setIsShareModalOpen,
     openTimelineView,
   };
 }
