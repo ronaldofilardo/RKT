@@ -2,6 +2,8 @@
 
 import type { ClubMatchItem } from './types';
 import Link from 'next/link';
+import { useFloatingSpectatorOptional } from '@/contexts/FloatingSpectatorContext';
+import { getMatchFormatDisplayLabel, formatClubMatchScore } from './club-matches.logic';
 
 interface ClubMatchesTableProps {
   matches: ClubMatchItem[];
@@ -21,7 +23,14 @@ function getStateLabel(state: string) {
   return state;
 }
 
+/** Partidas em andamento ou agendadas abrem o acompanhamento em popup; finalizadas vão ao relatório. */
+function opensLiveView(state: string) {
+  return state === 'IN_PROGRESS' || state === 'SCHEDULED';
+}
+
 export function ClubMatchesTable({ matches, loading }: ClubMatchesTableProps) {
+  const floating = useFloatingSpectatorOptional();
+
   if (loading) {
     return <div className="bg-telemetry-card rounded-xl shadow border border-telemetry-border/20 p-8 text-center">
       <p className="text-telemetry-text-muted text-sm">Carregando partidas do clube...</p>
@@ -46,6 +55,7 @@ export function ClubMatchesTable({ matches, loading }: ClubMatchesTableProps) {
               <tr className="border-b border-telemetry-border/40 text-sm font-semibold text-telemetry-text-primary">
                 <th className="pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Data</th>
                 <th className="pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Confronto</th>
+                <th className="pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Placar</th>
                 <th className="pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Formato</th>
                 <th className="pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Anotador / Criador</th>
                 <th className="pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Status</th>
@@ -61,7 +71,12 @@ export function ClubMatchesTable({ matches, loading }: ClubMatchesTableProps) {
                   <td className="py-4 text-sm text-telemetry-text-primary font-medium">
                     {m.player1?.name || 'Jogador 1'} <span className="text-telemetry-text-muted font-normal">vs</span> {m.player2?.name || 'Jogador 2'}
                   </td>
-                  <td className="py-4 text-xs text-telemetry-text-muted uppercase">{m.format}</td>
+                  <td className="py-4 text-xs font-mono font-semibold text-telemetry-text-primary whitespace-nowrap">
+                    {formatClubMatchScore(m.scoreState, m.format, m.state)}
+                  </td>
+                  <td className="py-4 text-xs text-telemetry-text-muted">
+                    {getMatchFormatDisplayLabel(m.format)}
+                  </td>
                   <td className="py-4 text-xs text-telemetry-text-muted">
                     {m.createdByUser?.name || 'Anotador'}
                   </td>
@@ -71,12 +86,22 @@ export function ClubMatchesTable({ matches, loading }: ClubMatchesTableProps) {
                     </span>
                   </td>
                   <td className="py-4 text-sm text-right whitespace-nowrap">
-                    <Link
-                      href={m.state === 'IN_PROGRESS' ? `/match/${m.id}/scoring` : `/match/${m.id}/report`}
-                      className="text-xs text-telemetry-blue hover:underline font-medium"
-                    >
-                      Ver Partida
-                    </Link>
+                    {opensLiveView(m.state) && floating ? (
+                      <button
+                        type="button"
+                        onClick={() => floating.open(m.id, `${m.player1?.name || 'Jogador 1'} × ${m.player2?.name || 'Jogador 2'}`)}
+                        className="text-xs text-telemetry-blue hover:underline font-medium"
+                      >
+                        Ver Partida
+                      </button>
+                    ) : (
+                      <Link
+                        href={opensLiveView(m.state) ? `/matches/acompanhar/${m.id}` : `/match/${m.id}/report`}
+                        className="text-xs text-telemetry-blue hover:underline font-medium"
+                      >
+                        Ver Partida
+                      </Link>
+                    )}
                   </td>
                 </tr>
               ))}
