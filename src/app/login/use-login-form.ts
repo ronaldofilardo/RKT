@@ -7,14 +7,18 @@ import { writeToSessionOnly, loginRequest } from '@/lib/auth-client';
 import { decodeJwtPayload } from '@/lib/jwt-client';
 import { homeForProfileString } from '@/core/access/home';
 
+export type LoginErrorField = 'identifier' | 'password' | 'both' | null;
+
 export function useLoginForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [errorField, setErrorField] = useState<LoginErrorField>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   async function submitLoginForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    setErrorField(null);
     setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
@@ -25,7 +29,11 @@ export function useLoginForm() {
 
     const parsed = LoginPayloadSchema.safeParse(raw);
     if (!parsed.success) {
-      setError('Dados inválidos. Informe seu e-mail ou CPF e a senha.');
+      const firstIssue = parsed.error.issues[0];
+      const errorMsg = firstIssue?.message || 'Dados inválidos. Informe seu e-mail ou CPF e a senha.';
+      setError(errorMsg);
+      const fieldPath = String(firstIssue?.path?.[0] || '');
+      setErrorField(fieldPath === 'password' ? 'password' : 'identifier');
       setIsLoading(false);
       return;
     }
@@ -34,8 +42,6 @@ export function useLoginForm() {
       const data = await loginRequest(parsed.data);
       const effectiveProfile = (data.user as any).profile ?? data.user.role;
 
-      // Decodificar JWT para obter pp (platformPreset) como fonte da verdade para
-      // roteamento por perfil de plataforma (SUPORTE, ADMIN, etc.).
       let jwtPlatformPreset: string | null = null;
       if (data.accessToken) {
         const decoded = await decodeJwtPayload(data.accessToken);
@@ -58,18 +64,26 @@ export function useLoginForm() {
         router.push(homeForProfileString(finalProfile) as any);
       }
     } catch (err) {
-      // Resposta do servidor rejeitada mostra a mensagem retornada;
-      // falha de rede mostra mensagem generica.
-      if (err instanceof Error && err.message !== 'Erro ao fazer login') {
+      const code = (err as any)?.code;
+      if (err instanceof Error) {
         setError(err.message);
+        if (code === 'USER_NOT_FOUND') {
+          setErrorField('identifier');
+        } else if (code === 'INVALID_PASSWORD') {
+          setErrorField('password');
+        } else {
+          setErrorField('both');
+        }
       } else if (err instanceof TypeError) {
-        setError('Erro de conexao com o servidor');
+        setError('Erro de conexão com o servidor');
+        setErrorField(null);
       } else {
         setError('Erro ao fazer login');
+        setErrorField('both');
       }
       setIsLoading(false);
     }
   }
 
-  return { error, isLoading, submitLoginForm };
+  return { error, errorField, isLoading, submitLoginForm };
 }

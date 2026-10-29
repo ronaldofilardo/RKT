@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LoginPayloadSchema } from '@/schemas/contracts';
 import { validatedRequest, reportApiError } from '@/lib/api.logic';
-import { authenticateUser } from './authenticate';
+import * as authModule from './authenticate';
 import { logger } from '@/lib/logger';
 import { getActor } from '@/services/accessService';
 import { generateLoginToken } from './login-token-logic';
@@ -28,7 +28,13 @@ export async function POST(request: NextRequest) {
         await new Promise(resolve => setTimeout(resolve, delayMs));
       }
     }
-    const user = await authenticateUser(identifier, payload.password);
+
+    const authRes = typeof (authModule as any).authenticateUserDetailed === 'function'
+      ? await (authModule as any).authenticateUserDetailed(identifier, payload.password)
+      : await authModule.authenticateUser(identifier, payload.password);
+
+    const isFailure = !authRes || ('success' in authRes && !authRes.success);
+    const user = authRes && 'user' in authRes ? authRes.user : (!isFailure ? authRes : null);
 
     if (process.env.ENABLE_LOGIN_RATELIMIT === 'true') {
       await import('@/lib/prisma').then((m) => m.prisma.loginAttempt.create({
@@ -37,10 +43,13 @@ export async function POST(request: NextRequest) {
         logger.warn('[LOGIN POST] Falha ao registrar tentativa de login:', error);
       });
     }
+
     if (!user) {
-      logger.warn('[LOGIN POST] credenciais inválidas');
+      const reason = authRes && 'reason' in authRes ? authRes.reason : 'UNAUTHORIZED';
+      const message = authRes && 'message' in authRes ? authRes.message : 'E-mail, CPF ou senha inválidos';
+      logger.warn('[LOGIN POST] credenciais inválidas:', reason);
       return NextResponse.json(
-        { error: 'UNAUTHORIZED', message: 'E-mail, CPF ou senha inválidos' },
+        { error: 'UNAUTHORIZED', code: reason, message },
         { status: 401 },
       );
     }

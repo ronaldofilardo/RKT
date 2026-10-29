@@ -30,8 +30,17 @@ export async function loginRequest(payload: {
     const data = (await res.json().catch(() => ({}))) as {
       message?: string;
       error?: string;
+      code?: string;
+      data?: { message?: string; error?: string; code?: string };
     };
-    throw new Error(data.message || data.error || 'Erro ao fazer login');
+    const errorMsg =
+      data.message ||
+      data.data?.message ||
+      data.error ||
+      'Erro ao fazer login';
+    const err = new Error(errorMsg);
+    (err as any).code = data.code || data.data?.code || data.error;
+    throw err;
   }
 
   return res.json();
