@@ -7,14 +7,20 @@ jest.mock('@/services/playerService', () => ({
   countPlayerActiveMatches: jest.fn(),
 }));
 
+jest.mock('@/services/accessService', () => ({
+  getActor: jest.fn(),
+}));
+
 import { GET, PUT, DELETE } from '@/app/api/players/[id]/route';
 import { getPlayerById, updatePlayer, deletePlayer, countPlayerActiveMatches } from '@/services/playerService';
+import { getActor } from '@/services/accessService';
 import { makeAuthHeadersSync } from '@/test-helpers/auth';
 
 const mockGetPlayer = getPlayerById as jest.MockedFunction<typeof getPlayerById>;
 const mockUpdatePlayer = updatePlayer as jest.MockedFunction<typeof updatePlayer>;
 const mockDeletePlayer = deletePlayer as jest.MockedFunction<typeof deletePlayer>;
 const mockCountPlayerActiveMatches = countPlayerActiveMatches as jest.MockedFunction<typeof countPlayerActiveMatches>;
+const mockGetActor = getActor as jest.MockedFunction<typeof getActor>;
 
 const PLAYER_ID = 'player-123';
 
@@ -48,6 +54,16 @@ function deleteReq(headers: Record<string, string> = {}) {
 describe('GET /api/players/[id]', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetActor.mockResolvedValue({
+      userId: PLAYER_ID,
+      isActive: true,
+      canOperate: true,
+      memberships: [],
+      athletePlayerId: null,
+      athleteCtIds: [],
+      guardianOfPlayerIds: [],
+      followedPlayerIds: [],
+    });
   });
 
   it('deve retornar 200 com dados do atleta', async () => {

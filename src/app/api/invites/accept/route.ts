@@ -4,7 +4,7 @@ import { createHash } from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { reportApiError } from '@/lib/api.logic';
-import { withRLSHandler } from '@/lib/auth';
+import { withAccessHandler } from '@/lib/access-handler';
 
 const AcceptSchema = z.object({
   token: z.string().min(10),
@@ -13,7 +13,7 @@ const AcceptSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  return withRLSHandler(request, 'ANNOTATOR', async (user) => {
+  return withAccessHandler(request, 'athlete:create', null, async ({ user }) => {
     try {
       const body = await request.json();
       const parsed = AcceptSchema.safeParse(body);

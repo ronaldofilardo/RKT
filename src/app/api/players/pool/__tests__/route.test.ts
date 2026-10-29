@@ -191,7 +191,7 @@ describe('GET /api/players/pool', () => {
   });
 
   it('deve retornar 403 quando a conta nao esta ativa', async () => {
-    mockGetActor.mockResolvedValue(null);
+    mockGetActor.mockResolvedValue({ ...actor(), isActive: false });
     mockListPoolPlayers.mockResolvedValue([]);
 
     const req = new NextRequest(

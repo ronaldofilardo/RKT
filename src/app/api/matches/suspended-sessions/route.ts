@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withRLSHandler, getRLSUser } from "@/lib/auth";
+import { withAccessHandler } from "@/lib/access-handler";
 import { listSuspendedSessions } from "@/services/sessionService";
 import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
-  return withRLSHandler(request, "ANNOTATOR", async () => {
+  return withAccessHandler(request, null, null, async ({ user }) => {
     try {
-      const user = getRLSUser();
       if (!user || user.role !== "ANNOTATOR") {
         return NextResponse.json({ matches: [] });
       }

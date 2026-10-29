@@ -22,7 +22,7 @@ function deny(status: 401 | 403, message: string): NextResponse {
  */
 export async function withAccessHandler<T extends Response = NextResponse>(
   request: NextRequest,
-  action: Permission,
+  action: Permission | null,
   resolveResource: ResolveResource | null,
   handler: (ctx: AccessContext) => Promise<T>,
 ): Promise<Response | T> {
@@ -33,10 +33,12 @@ export async function withAccessHandler<T extends Response = NextResponse>(
   if (!actor) return deny(401, 'Token de acesso requerido');
 
   const resource = resolveResource ? await resolveResource(user) : undefined;
-  const decision = can(actor, action, resource);
-  if (!decision.allow) {
-    logger.warn(`[ACCESS] negado ${action} user=${user.id} motivo=${decision.reason}`);
-    return deny(403, 'Ação não permitida');
+  if (action) {
+    const decision = can(actor, action, resource);
+    if (!decision.allow) {
+      logger.warn(`[ACCESS] negado ${action} user=${user.id} motivo=${decision.reason}`);
+      return deny(403, 'Ação não permitida');
+    }
   }
 
   return runWithRLS(legacyRlsUser(user), () => handler({ user, actor }));

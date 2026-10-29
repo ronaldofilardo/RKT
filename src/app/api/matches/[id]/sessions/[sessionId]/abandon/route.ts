@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-import { withRLSHandler, getRLSUser } from '@/lib/auth';
+import { withAccessHandler } from '@/lib/access-handler';
 import { MarkSessionAbandonedInputSchema } from '@/schemas/contracts';
 import { getSessionWithMatch, getMatchScoreState, updateSession } from '@/services/sessionService';
 
@@ -8,10 +8,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; sessionId: string }> }
 ) {
-  return withRLSHandler(request, 'ANNOTATOR', async () => {
+  return withAccessHandler(request, null, null, async ({ user }) => {
     try {
       const { id: matchId, sessionId } = await params;
-      const user = getRLSUser();
       if (!user) {
         return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
       }

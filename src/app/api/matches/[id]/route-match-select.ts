@@ -38,5 +38,6 @@ export const MATCH_SELECT = {
   player2Partner: { select: { id: true, name: true } },
   doublesSetup: true,
   createdByUserId: true,
+  ctId: true,
   _count: { select: { pointLog: { where: { voidedAt: null } } } },
 } as const;

@@ -33,9 +33,32 @@ beforeAll(async () => {
   ADMIN_HEADERS = await makeAuthHeaders('user-admin', 'ADMIN');
 });
 
+beforeEach(() => {
+  mockGetActor.mockResolvedValue({
+    userId: 'user-athlete',
+    isActive: true,
+    canOperate: true,
+    memberships: [],
+    athletePlayerId: null,
+    athleteCtIds: [],
+    guardianOfPlayerIds: [],
+    followedPlayerIds: [],
+  });
+});
+
 describe('GET /api/players', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetActor.mockResolvedValue({
+      userId: 'user-athlete',
+      isActive: true,
+      canOperate: true,
+      memberships: [],
+      athletePlayerId: null,
+      athleteCtIds: [],
+      guardianOfPlayerIds: [],
+      followedPlayerIds: [],
+    });
   });
 
   it('deve retornar 403 se usuário não tem role SPECTATOR', async () => {
@@ -510,7 +533,16 @@ describe('POST /api/players', () => {
     });
 
     it('conta inativa deve retornar 403', async () => {
-      mockGetActor.mockResolvedValue(null);
+      mockGetActor.mockResolvedValue({
+        userId: 'user-123',
+        isActive: false,
+        canOperate: true,
+        memberships: [],
+        athletePlayerId: null,
+        athleteCtIds: [],
+        guardianOfPlayerIds: [],
+        followedPlayerIds: [],
+      });
 
       const req = new NextRequest('http://localhost:3000/api/players', {
         method: 'POST',

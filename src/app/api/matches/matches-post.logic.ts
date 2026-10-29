@@ -1,63 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { CreateMatchInputSchema } from '@/schemas/contracts';
 import { createMatch } from '@/services/matchService';
-import { findDuplicateMatch } from '@/services/matchSuggestionService';
 import { validatedRequest } from '@/lib/api.logic';
-import { ConflictError, ApiError } from '@/lib/errors';
-import { prisma } from '@/lib/prisma';
-import type { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { assertCtMembership } from './match-ct-access.logic';
+import { createMatchWithDuplicateCheck } from './match-create-with-duplicate-check.logic';
 
 type RLSUser = { id: string; role: string } | null | undefined;
-
-type MatchInput = z.infer<typeof CreateMatchInputSchema>;
-
-type MatchResult = Awaited<ReturnType<typeof createMatch>>;
-
-async function createMatchWithDuplicateCheck(
-  input: MatchInput,
-  currentUserId: string | undefined,
-): Promise<MatchResult> {
-  return prisma.$transaction(async (tx) => {
-    const [firstPlayer, secondPlayer] = [input.player1Id, input.player2Id].sort();
-    const partnerIds = [input.player1PartnerId, input.player2PartnerId].filter(Boolean).sort();
-    const lockKey = `match_create_${input.matchType}_${firstPlayer}_${secondPlayer}_${partnerIds.join('_')}`;
-    const txWithRawSql = tx as Prisma.TransactionClient & {
-      $executeRaw?: (strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown>;
-    };
-    if (typeof txWithRawSql.$executeRaw === 'function') {
-      try {
-        await txWithRawSql.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
-      } catch (error) {
-        logger.warn('[MATCH CREATE] Dialeto sem pg_advisory_xact_lock; lock de criação ignorado:', error);
-      }
-    }
-
-    const duplicate = await findDuplicateMatch(
-      input.player1Id,
-      input.player2Id,
-      input.scheduledAt ?? null,
-      input.matchType ?? 'SINGLES',
-      input.player1PartnerId ?? undefined,
-      input.player2PartnerId ?? undefined,
-      tx,
-    );
-
-    if (duplicate) {
-      throw new ConflictError('Partida duplicada', {
-        id: duplicate.id,
-        playerP1: duplicate.player1?.name,
-        playerP2: duplicate.player2?.name,
-        matchType: duplicate.matchType,
-        scheduledAt: duplicate.scheduledAt,
-      });
-    }
-
-    return createMatch(input, currentUserId, tx);
-  });
-}
 
 export async function postMatchResponse(
   request: NextRequest,
@@ -80,17 +29,18 @@ export async function postMatchResponse(
   } catch (error) {
     logger.error('[MATCHES POST]', error);
 
-    if (error instanceof ConflictError) {
+    const err = error as { code?: string; name?: string; message?: string; details?: unknown; status?: number };
+    if (err.code === 'CONFLICT' || err.name === 'ConflictError') {
       return NextResponse.json(
-        { error: error.code, message: error.message, details: error.details },
-        { status: error.status }
+        { error: 'CONFLICT', message: err.message ?? 'Conflito', details: err.details },
+        { status: 409 }
       );
     }
 
-    if (error instanceof ApiError) {
+    if (err.name === 'ApiError' || err.code) {
       return NextResponse.json(
-        { error: error.code, message: error.message, details: error.details },
-        { status: error.status }
+        { error: err.code ?? 'API_ERROR', message: err.message ?? 'Erro na API', details: err.details },
+        { status: err.status ?? 500 }
       );
     }
 

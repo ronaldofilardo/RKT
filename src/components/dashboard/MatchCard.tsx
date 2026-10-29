@@ -2,9 +2,9 @@
 
 import { useCallback } from "react";
 import { getColumnTitles, getMaxSetsForFormat } from "@/components/scoring/scoreboard-card-logic";
-import { renderSetScore } from "@/components/scoring/scoreboard-card-cells";
 import { abbreviateDoublesName } from "@/components/scoring/doubles-name-abbreviation.logic";
 import { MatchCardHeader } from "./match-card-header";
+import { MatchCardScoreTable } from "./match-card-score-grid";
 import { useMatchCardData } from "./use-match-card-data";
 import type { MatchCardProps } from "./match-card-types";
 
@@ -64,76 +64,15 @@ export function MatchCard({
         onEditInfo={onEditInfo}
       />
 
-      <div className="px-4 pb-3">
-        <table className="w-full table-fixed border-collapse">
-          <thead>
-            <tr className="text-[10px] font-space-grotesk">
-              <th scope="col" aria-label="Jogador" className="text-left py-0.5 px-2 w-[110px] sm:w-[120px] bg-telemetry-elevated border-b border-white/10"></th>
-              <th scope="col" aria-label="Vencedor" className="w-5 sm:w-6 bg-telemetry-elevated border-l border-b border-white/10"></th>
-              {columnTitles.map((title, i) => (
-                <th
-                  key={i}
-                  scope="col"
-                  aria-label={title}
-                  className={`text-center px-1 py-0.5 w-8 sm:w-12 bg-telemetry-elevated border-l border-b border-white/10 ${d.isLiveOrSuspended && i === 0 ? 'font-bold text-telemetry-volt' : 'text-telemetry-text-muted'}`}
-                >
-                  {title}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="text-xs">
-              <td
-                title={p1Name}
-                className={`text-left py-1 px-2 font-bold tracking-wide truncate max-w-full border-b border-white/10 bg-telemetry-card text-telemetry-text-primary`}
-              >
-                {p1Name}
-              </td>
-              <td className={`text-center py-1 bg-telemetry-card border-l border-b border-white/10 text-xs`}>
-                {d.isServerP1 ? <span title="Sacador" aria-label="Sacador" role="img" className="text-xs select-none">🎾</span> : null}
-              </td>
-              {d.displayedSets.map((set, i) => {
-                const style = i === 0 && d.isLiveOrSuspended
-                  ? 'text-telemetry-volt font-bold bg-telemetry-elevated'
-                  : 'text-telemetry-text-muted bg-telemetry-card';
-                return (
-                  <td
-                    key={i}
-                    className={`text-center px-1 py-1 text-sm font-space-grotesk font-semibold border-l border-b border-white/10 ${style}`}
-                  >
-                    {renderSetScore(set as { player1: number; player2: number; isTiebreak?: boolean; tiebreakScore?: { player1: number; player2: number } | null } | undefined, 'player1')}
-                  </td>
-                );
-              })}
-            </tr>
-            <tr className="text-xs">
-              <td
-                title={p2Name}
-                className={`text-left py-1 px-2 font-bold tracking-wide truncate max-w-full border-b border-white/10 bg-telemetry-card text-telemetry-text-primary`}
-              >
-                {p2Name}
-              </td>
-              <td className={`text-center py-1 bg-telemetry-card border-l border-white/10 text-xs`}>
-                {d.isServerP2 ? <span title="Sacador" aria-label="Sacador" role="img" className="text-xs select-none">🎾</span> : null}
-              </td>
-              {d.displayedSets.map((set, i) => {
-                const style = i === 0 && d.isLiveOrSuspended
-                  ? 'text-telemetry-volt font-bold bg-telemetry-elevated'
-                  : 'text-telemetry-text-muted bg-telemetry-card';
-                return (
-                  <td
-                    key={i}
-                    className={`text-center px-1 py-1 text-sm font-space-grotesk font-semibold border-l border-b border-white/10 ${style}`}
-                  >
-                    {renderSetScore(set as { player1: number; player2: number; isTiebreak?: boolean; tiebreakScore?: { player1: number; player2: number } | null } | undefined, 'player2')}
-                  </td>
-                );
-              })}
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <MatchCardScoreTable
+        displayedSets={d.displayedSets}
+        columnTitles={columnTitles}
+        p1Name={p1Name}
+        p2Name={p2Name}
+        isServerP1={d.isServerP1}
+        isServerP2={d.isServerP2}
+        isLiveOrSuspended={d.isLiveOrSuspended}
+      />
 
       {match.scheduledAt && (
         <div className={`px-4 pb-3 flex items-center gap-1.5 text-xs font-medium ${match.state === 'SCHEDULED' ? 'text-purple-400' : 'text-telemetry-text-muted'}`}>

@@ -1,25 +1,16 @@
+// ste-exception R-03: 102 linhas (2 acima do limite). Reduzido de 126L extraindo
+// ensureCanInsertAthletesColumn para coaches-migration.logic.ts. As 2 linhas excedentes
+// são a estrutura de transação de createCoach, que não se presta a divisão adicional
+// sem prejudicar a atomicidade da criação de usuário + membership + passwordResetRequest.
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { ensureCanInsertAthletesColumn } from './coaches-migration.logic';
 
 export interface CoachInput {
   name: string;
   cpf: string;
   birthDate: string;
   email: string;
-}
-
-let migrationAttempted = false;
-
-async function ensureCanInsertAthletesColumn() {
-  if (migrationAttempted) return;
-  migrationAttempted = true;
-  try {
-    await (prisma as any).$executeRawUnsafe?.(
-      'ALTER TABLE "memberships" ADD COLUMN IF NOT EXISTS "canInsertAthletes" BOOLEAN NOT NULL DEFAULT true;'
-    );
-  } catch {
-    // ignora silenciosamente se o banco não permitir DDL na conexão ou se já existir
-  }
 }
 
 export async function listCoaches(ctIds: string[] | string) {

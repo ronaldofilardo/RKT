@@ -3,12 +3,26 @@ jest.mock('@/services/adminService', () => ({
   deleteUser: jest.fn(),
 }));
 
+jest.mock('@/services/accessService', () => ({
+  getActor: jest.fn(),
+}));
+
+jest.mock('@/lib/prisma', () => ({
+  prisma: {
+    user: {
+      findUnique: jest.fn(),
+    },
+  },
+}));
+
 import { NextRequest } from 'next/server';
 import { updateUser, deleteUser } from '@/services/adminService';
+import { getActor } from '@/services/accessService';
 import { makeAuthHeaders } from '@/test-helpers/auth';
 
 const mockUpdateUser = updateUser as jest.MockedFunction<typeof updateUser>;
 const mockDeleteUser = deleteUser as jest.MockedFunction<typeof deleteUser>;
+const mockGetActor = getActor as jest.MockedFunction<typeof getActor>;
 
 let ADMIN_HEADERS: Record<string, string> = {};
 let ANNOTATOR_HEADERS: Record<string, string> = {};
@@ -16,6 +30,34 @@ let ANNOTATOR_HEADERS: Record<string, string> = {};
 beforeAll(async () => {
   ADMIN_HEADERS = await makeAuthHeaders('user-admin', 'ADMIN');
   ANNOTATOR_HEADERS = await makeAuthHeaders('user-ath', 'ANNOTATOR');
+});
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockGetActor.mockImplementation((userId: string) => {
+    if (userId === 'user-admin') {
+      return Promise.resolve({
+        userId: 'user-admin',
+        isActive: true,
+        canOperate: true,
+        memberships: [{ kind: 'PLATAFORMA', preset: 'ADMIN', ctId: null, status: 'ACTIVE' }],
+        athletePlayerId: null,
+        athleteCtIds: [],
+        guardianOfPlayerIds: [],
+        followedPlayerIds: [],
+      });
+    }
+    return Promise.resolve({
+      userId: 'user-ath',
+      isActive: true,
+      canOperate: true,
+      memberships: [],
+      athletePlayerId: null,
+      athleteCtIds: [],
+      guardianOfPlayerIds: [],
+      followedPlayerIds: [],
+    });
+  });
 });
 
 describe('Admin User [id] API', () => {

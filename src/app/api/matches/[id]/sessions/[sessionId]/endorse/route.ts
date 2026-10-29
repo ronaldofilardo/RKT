@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-import { withRLSHandler, getRLSUser } from '@/lib/auth';
+import { withAccessHandler } from '@/lib/access-handler';
 import { getSessionWithMatch, createEndorsement } from '@/services/sessionService';
 import { SessionPathParamsSchema } from '@/schemas/comment';
 import { ZodError } from 'zod';
@@ -9,10 +9,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; sessionId: string }> }
 ) {
-  return withRLSHandler(request, 'ANNOTATOR', async () => {
+  return withAccessHandler(request, null, null, async ({ user }) => {
     try {
       const { id: matchId, sessionId } = SessionPathParamsSchema.parse(await params);
-      const user = getRLSUser();
       if (!user) {
         return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
       }

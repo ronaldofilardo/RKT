@@ -12,7 +12,7 @@
 import { NextRequest } from 'next/server';
 import { POST } from '@/app/api/matches/route';
 import { prisma } from '@/lib/prisma';
-import { findDuplicateMatch } from '@/services/matchSuggestionService';
+import { findDuplicateMatch } from '@/services/match-duplicate.service';
 import { createToken } from '@tests/helpers/auth';
 
 jest.mock('@/lib/prisma', () => {
@@ -54,6 +54,10 @@ jest.mock('@/lib/prisma', () => {
 });
 
 jest.mock('@/services/matchSuggestionService', () => ({
+  findDuplicateMatch: jest.fn(),
+}));
+
+jest.mock('@/services/match-duplicate.service', () => ({
   findDuplicateMatch: jest.fn(),
 }));
 

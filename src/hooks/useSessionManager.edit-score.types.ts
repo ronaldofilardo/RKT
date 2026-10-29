@@ -28,4 +28,5 @@ export interface ExecuteEditScoreOptions {
   setSuspendedSession: Dispatch<SetStateAction<SuspendedSessionState | null>>;
   abandonCurrentSession: () => Promise<boolean>;
   toast: (options: { type: 'success' | 'error' | 'info'; message: string }) => void;
+  onConfirm?: (message: string) => Promise<boolean>;
 }

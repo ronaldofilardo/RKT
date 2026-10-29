@@ -13,6 +13,7 @@ import { NextRequest } from 'next/server';
 import { GET } from '@/app/api/matches/[id]/route';
 import { prisma } from '@/lib/prisma';
 import { createToken } from '@tests/helpers/auth';
+import { getActor } from '@/services/accessService';
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {
@@ -23,14 +24,49 @@ jest.mock('@/lib/prisma', () => ({
       aggregate: jest.fn().mockResolvedValue({ _max: { sequenceNumber: null } }),
       findMany: jest.fn().mockResolvedValue([]),
     },
+    user: {
+      findUnique: jest.fn(),
+    },
+    playerCT: {
+      findMany: jest.fn().mockResolvedValue([]),
+    },
   },
 }));
 
+jest.mock('@/services/accessService', () => ({
+  getActor: jest.fn(),
+}));
+
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
+const mockGetActor = getActor as jest.MockedFunction<typeof getActor>;
 
 describe('Match Authorization Specification Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetActor.mockImplementation((userId: string) => {
+      if (userId === 'admin-global') {
+        return Promise.resolve({
+          userId: 'admin-global',
+          isActive: true,
+          canOperate: true,
+          memberships: [],
+          athletePlayerId: null,
+          athleteCtIds: [],
+          guardianOfPlayerIds: [],
+          followedPlayerIds: [],
+        });
+      }
+      return Promise.resolve({
+        userId,
+        isActive: true,
+        canOperate: true,
+        memberships: [],
+        athletePlayerId: userId === 'athlete-1' ? 'athlete-1' : null,
+        athleteCtIds: [],
+        guardianOfPlayerIds: [],
+        followedPlayerIds: [],
+      });
+    });
   });
 
   describe('GET /api/matches/[id] - Regras de Visualização', () => {
@@ -139,6 +175,16 @@ describe('Match Authorization Specification Tests', () => {
 
     it('ANNOTATOR player1 (participante) recebe 200 em partida PRIVATE', async () => {
       const p1Token = await createToken('athlete-1', 'ANNOTATOR');
+      mockGetActor.mockResolvedValue({
+        userId: 'athlete-1',
+        isActive: true,
+        canOperate: true,
+        memberships: [],
+        athletePlayerId: 'athlete-1',
+        athleteCtIds: [],
+        guardianOfPlayerIds: [],
+        followedPlayerIds: [],
+      });
       (mockPrisma.match.findFirst as any).mockResolvedValue(privateMatchData);
 
       const req = new NextRequest('http://localhost:3000/api/matches/match-private', {

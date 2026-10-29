@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-import { withRLSHandler } from '@/lib/auth';
+import { withAccessHandler } from '@/lib/access-handler';
 import { UpdateUserInputSchema } from '@/schemas/user';
 import { updateUser, deleteUser } from '@/services/adminService';
 
@@ -8,7 +8,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'ADMIN', async () => {
+  return withAccessHandler(request, 'platform:users:manage', null, async () => {
     try {
       const { id } = await params;
       const parsedBody = UpdateUserInputSchema.safeParse(await request.json().catch(() => null));
@@ -40,7 +40,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'ADMIN', async () => {
+  return withAccessHandler(request, 'platform:users:manage', null, async () => {
     try {
       const { id } = await params;
       const result = await deleteUser(id);

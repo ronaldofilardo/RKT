@@ -11,3 +11,9 @@ export function devDebug(...args: unknown[]) {
     console.debug(...args);
   }
 }
+
+export function devError(...args: unknown[]) {
+  if (isDevelopment) {
+    console.error(...args);
+  }
+}

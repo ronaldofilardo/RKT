@@ -5,10 +5,28 @@ import { createToken } from '@tests/helpers/auth';
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {
+    user: {
+      findUnique: jest.fn().mockImplementation(({ where }: { where: { id: string } }) => {
+        const userId = where.id;
+        return Promise.resolve({
+          id: userId,
+          role: 'ANNOTATOR',
+          isActive: true,
+          canOperate: true,
+          memberships: [],
+          athleteProfile: { id: userId, playerCts: [] },
+          guardianLinks: [],
+          coachAthleteLinks: [],
+        });
+      }),
+    },
     match: {
       findFirst: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+    },
+    playerCT: {
+      findMany: jest.fn().mockResolvedValue([]),
     },
     pointLog: {
       aggregate: jest.fn().mockResolvedValue({ _max: { sequenceNumber: null } }),

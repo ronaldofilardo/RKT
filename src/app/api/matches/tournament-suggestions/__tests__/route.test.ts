@@ -4,6 +4,12 @@ jest.mock('@/services/matchSuggestionService', () => ({
   getTournamentSuggestions: jest.fn(),
 }));
 
+jest.mock('@/lib/access-handler', () => ({
+  withAccessHandler: jest.fn((_req: NextRequest, _action: any, _resolve: any, handler: any) =>
+    handler({ user: { id: 'user-1', role: 'ANNOTATOR' }, actor: { userId: 'user-1', isActive: true, canOperate: true, memberships: [], athletePlayerId: null, athleteCtIds: [], guardianOfPlayerIds: [], followedPlayerIds: [] } }),
+  ),
+}));
+
 import { GET } from '@/app/api/matches/tournament-suggestions/route';
 import { getTournamentSuggestions } from '@/services/matchSuggestionService';
 

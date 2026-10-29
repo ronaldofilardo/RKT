@@ -3,13 +3,14 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { reportApiError } from '@/lib/api.logic';
+import { withAccessHandler } from '@/lib/access-handler';
 import { withRLSHandler } from '@/lib/auth';
 import { getPlayerById } from '@/services/playerService';
 import { putPlayerResponse } from './player-put.logic';
 import { deletePlayerResponse } from './player-delete.logic';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  return withRLSHandler(request, 'ANNOTATOR', async () => {
+  return withAccessHandler(request, 'athlete:search', null, async () => {
     try {
       const { id } = await params;
       const player = await getPlayerById(id);

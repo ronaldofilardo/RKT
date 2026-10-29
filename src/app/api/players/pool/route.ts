@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withRLSHandler } from '@/lib/auth';
+import { withAccessHandler } from '@/lib/access-handler';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { getActor } from '@/services/accessService';
@@ -27,7 +27,7 @@ export type PoolPlayerListResponse = {
 };
 
 export async function GET(request: NextRequest) {
-  return withRLSHandler(request, 'ANNOTATOR', async (user) => {
+  return withAccessHandler(request, 'athlete:search', null, async ({ user }) => {
     try {
       const searchParams = request.nextUrl.searchParams;
       const parsed = PoolListQuerySchema.safeParse({

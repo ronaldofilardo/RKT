@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { withRLSHandler } from '@/lib/auth';
+import { withAccessHandler } from '@/lib/access-handler';
 import { emitMatchEvent } from '@/lib/match-events';
 import { reportPointRouteFailure } from './route.logic';
 import { parsePointRequestBody } from './route-parse.logic';
@@ -10,7 +10,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'ANNOTATOR', async (user) => {
+  return withAccessHandler(request, null, null, async ({ user }) => {
     let requestId = '';
     let requestClientEventId: string | undefined;
     try {

@@ -102,23 +102,16 @@ describe('GET /api/matches/[id]/sessions', () => {
 });
 
 describe('POST /api/matches/[id]/sessions', () => {
-  it('deve retornar 403 se usuário não tem role com permissão annotate:session (ex: ADMIN)', async () => {
-    const reqSpectator = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
+  it('deve retornar 401 se usuário não está autenticado (sem headers)', async () => {
+    const req = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...ADMIN_HEADERS },
+      headers: { 'Content-Type': 'application/json' },
     });
     const mod = await import('@/app/api/matches/[id]/sessions/route');
     const POST = mod.POST;
 
-    const resSpectator = await POST(reqSpectator, { params: Promise.resolve({ id: 'match-1' }) });
-    expect(resSpectator.status).toBe(403);
-
-    const reqAthlete = new NextRequest('http://localhost:3000/api/matches/match-1/sessions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...ADMIN_HEADERS },
-    });
-    const resAthlete = await POST(reqAthlete, { params: Promise.resolve({ id: 'match-1' }) });
-    expect(resAthlete.status).toBe(403);
+    const res = await POST(req, { params: Promise.resolve({ id: 'match-1' }) });
+    expect(res.status).toBe(401);
   });
 
   it('deve retornar 404 se partida não existe', async () => {

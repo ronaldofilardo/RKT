@@ -25,6 +25,10 @@ jest.mock('@/services/matchSuggestionService', () => ({
   findDuplicateMatch: jest.fn().mockResolvedValue(null),
 }));
 
+jest.mock('@/services/match-duplicate.service', () => ({
+  findDuplicateMatch: jest.fn().mockResolvedValue(null),
+}));
+
 jest.mock('@/services/accessService', () => ({ getActor: jest.fn() }));
 
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
@@ -199,7 +203,7 @@ describe('POST /api/matches', () => {
   it('deve retornar 409 se partida duplicada', async () => {
     const token = await createToken('user-123', 'ANNOTATOR');
     
-    const { findDuplicateMatch } = await import('@/services/matchSuggestionService');
+    const { findDuplicateMatch } = await import('@/services/match-duplicate.service');
     (findDuplicateMatch as jest.Mock).mockResolvedValue({
       id: 'existing-match',
       player1: { name: 'Player 1' },

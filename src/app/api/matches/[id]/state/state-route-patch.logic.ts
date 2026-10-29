@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { MatchStateInputSchema } from '@/schemas/contracts';
-import { getRLSUser } from '@/lib/auth';
+import { getActor } from '@/services/accessService';
 import { transitionMatchState } from '@/services/matchService';
 import { prisma } from '@/lib/prisma';
-import { getActor } from '@/services/accessService';
 import { checkCanModifyMatchState, reportTransitionFailure, emitStateEvents } from './state-route-guards.logic';
+
+type RLSUser = { id: string; role: string } | null | undefined;
 
 export async function patchMatchState(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params, user }: { params: Promise<{ id: string }>; user?: RLSUser }
 ) {
   try {
     const { id } = await params;
@@ -23,7 +24,6 @@ export async function patchMatchState(
       );
     }
 
-    const user = getRLSUser();
     const actor = user ? await getActor(user.id) : null;
     const match = await prisma.match.findFirst({
       where: { id },

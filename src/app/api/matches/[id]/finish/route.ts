@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-import { withRLSHandler } from '@/lib/auth';
+import { withAccessHandler } from '@/lib/access-handler';
 import { prisma } from '@/lib/prisma';
 import { finishMatch } from '@/services/matchService';
 import { getActor } from '@/services/accessService';
@@ -12,7 +12,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'ANNOTATOR', async (user) => {
+  return withAccessHandler(request, null, null, async ({ user }) => {
     try {
       const { id } = await params;
       const body = await request.json();
@@ -51,11 +51,6 @@ export async function POST(
         );
       }
 
-      // Bug (2026-09-06): winnerId e isManualScoreEdit eram validados pelo
-      // schema (agora) mas nunca chegavam a matchService.finishMatch — toda
-      // partida encerrada via "Editar Placar" ficava com state: FINISHED
-      // porém sem winnerId gravado, e sem o segmento de auditoria em
-      // MatchScoreEdit que /report usa para reconstruir a timeline.
       const result = await finishMatch(
         id,
         parsed.data.scoreState,

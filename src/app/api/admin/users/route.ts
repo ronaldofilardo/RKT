@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { CreateUserInputSchema, ListUsersInputSchema } from '@/schemas/contracts';
-import { withRLSHandler } from '@/lib/auth';
+import { withAccessHandler } from '@/lib/access-handler';
 import { listAllUsers, createUser } from '@/services/adminService';
 import { validatedRequest, reportApiError } from '@/lib/api.logic';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
-  return withRLSHandler(request, 'ADMIN', async () => {
+  return withAccessHandler(request, 'platform:users:manage', null, async () => {
     try {
       const { searchParams } = request.nextUrl;
 
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  return withRLSHandler(request, 'ADMIN', async () => {
+  return withAccessHandler(request, 'platform:users:manage', null, async () => {
     try {
       // Validar body com Zod
       const body = await validatedRequest(request, CreateUserInputSchema);

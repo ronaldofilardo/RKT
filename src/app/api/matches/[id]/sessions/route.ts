@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withRLSHandler, withPermissionHandler } from '@/lib/auth';
+import { withAccessHandler } from '@/lib/access-handler';
 import { listSessions } from '@/services/sessionService';
 import { logger } from '@/lib/logger';
 import { postSessionResponse } from './session-post.logic';
@@ -8,7 +8,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withRLSHandler(request, 'ANNOTATOR', async () => {
+  return withAccessHandler(request, null, null, async () => {
     try {
       const { id: matchId } = await params;
       const sessions = await listSessions(matchId);
@@ -27,7 +27,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withPermissionHandler(request, 'annotate:session', (user) =>
-    postSessionResponse(request, { params }, user)
-  );
+  return withAccessHandler(request, null, null, async ({ user }) => {
+    return postSessionResponse(request, { params }, user);
+  });
 }

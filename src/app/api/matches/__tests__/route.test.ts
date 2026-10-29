@@ -26,9 +26,13 @@ jest.mock('@/services/matchSuggestionService', () => ({
   findDuplicateMatch: jest.fn(),
 }));
 
+jest.mock('@/services/match-duplicate.service', () => ({
+  findDuplicateMatch: jest.fn(),
+}));
+
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { findDuplicateMatch } from '@/services/matchSuggestionService';
+import { findDuplicateMatch } from '@/services/match-duplicate.service';
 import { makeAuthHeaders } from '@/test-helpers/auth';
 import { BASE_MATCH_SELECT } from '@/services/match-repository-select.data';
 
