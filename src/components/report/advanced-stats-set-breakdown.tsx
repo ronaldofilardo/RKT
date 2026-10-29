@@ -71,7 +71,7 @@ export function SetBreakdownSection({ stats, player1Name, player2Name }: Advance
             {totalDuration != null && totalDuration > 0 && (
               <tr className="bg-telemetry-elevated font-bold border-t border-white/10">
                 <td className="py-2 px-2 text-telemetry-text-primary">Total</td>
-                <td className="text-center py-2 px-2" colSpan={6} />
+                <td className="text-center py-2 px-2" colSpan={6} aria-hidden="true" />
                 <td className="text-center py-2 px-2 text-telemetry-text-primary font-mono">
                   {totalDuration} min
                 </td>
