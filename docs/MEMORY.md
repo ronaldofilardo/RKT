@@ -8,8 +8,8 @@
 
 ---
 
-## 2.6 Execução Unificada — Etapa 0 e Onda 1 Concluídas — 2026-10-29
-- **Origem:** Execução do master plan `docs/PLANO_EXECUCAO_UNIFICADA.md` (Etapa 0 e Onda 1).
+## 2.6 Execução Unificada — Conclusão Integral (Etapa 0, Onda 1, Onda 2, Onda 3 e Onda 4) — 2026-10-29
+- **Origem:** Execução e auditoria do plano mestre unificado `docs/PLANO_EXECUCAO_UNIFICADA.md`.
 - **Etapa 0 (Endurecimento e Baseline Verde):**
   - Gerado `docs/BASELINE-2026-10-29.md` com 397 suítes, 3904 testes (100% verde), 0 skipped, 0 typecheck errors, 0 lint warnings, 0 violações R-03.
   - Backup Neon criado: branch `backup-pre-onda1` (`br-patient-queen-ac275d7i`) a partir de `production` (`br-weathered-bird-ac5auqof`).
@@ -27,11 +27,29 @@
   - **1.4 Design System Telemetry:**
     - Eliminadas 100% das classes legadas arbitrárias (`bg-gray-*`, `text-gray-*`, `bg-sky-*`, `bg-white`) em `/gestor`, `/suporte` e `/admin` (`stats-card.tsx`, `status-pages.tsx`, `avulsos-section.tsx`, `module-nav.tsx`, `editar-clube-modal.tsx`, `editar-gestor-modal.tsx`).
     - Módulos aderentes ao Level 3 do Design System Stitch (`telemetry-bg`, `telemetry-card`, `telemetry-blue`, `telemetry-text-primary`, `telemetry-border/20`).
-- **Métricas Finais da Entrega:**
+- **Onda 2 (Painéis Gestor `/gestor` e Suporte `/suporte`):**
+  - Isolamento rigoroso de tenant com `withAccessHandler` nas APIs (`/api/users`, `/api/cts/[id]/athletes`, `/api/invites/accept`, `/api/training-centers`).
+  - Modelos e validações completas de PJ/CPF (`cnpj.validator.ts`, `cpf.validator.ts`, `TrainingCenter.status` com `PENDING`/`ACTIVE`/`SUSPENDED`).
+  - Onboarding multi-etapas no `/signup` com transação atômica em `POST /api/auth/signup-gestor`.
+  - Painéis operacionais do Gestor (cadastro de membros com senhas provisórias de 7 dias, links de primeiro acesso, partidas do clube) e Suporte (aprovação/suspensão de CTs, revogação de sessões ativas).
+- **Onda 3 (Funcionalidade Core — Nova Partida, Duplicidade, Dashboard e Estatísticas):**
+  - Nova partida com labels "Simples"/"Duplas", campo Data opcional sem aviso redundante e auto-preenchimento ao iniciar anotação.
+  - Algoritmo de duplicidade imune a colisões de duplas vs simples.
+  - Formatação e abreviação compacta de nomes de duplas (`abbreviateDoublesName`).
+  - Scoreboard e MatchCard com renderização de sobrescrito padronizada de tiebreak.
+  - Estatísticas Avançadas (D3 Fundo de Quadra, D4 Rally, D6 Golpes, D7 Momentum, D8 Breakdown por Set) 100% implementadas e cobertas por testes.
+- **Onda 4 (UX, Qualidade e Limpeza Geral):**
+  - Backend padronizado com mensagens legíveis de erro via `formatZodMessage`.
+  - Frontend resiliente com `extractErrorMessage` e substituição de 100% dos `window.alert()` por toasts.
+  - Saneamento completo de `console.*` de produção para o wrapper de telemetria `logger.*`.
+  - Pausa inteligente no polling de 5s do painel de anotação com `document.visibilityState === 'hidden'`.
+- **Métricas Finais Consolidadas:**
   - `pnpm test:strict`: **397 suítes passadas, 3910 testes passados (100% verde), 2 snapshots passados** (0 falhas, 0 skips).
-  - `check:r03`: **993 arquivos de produção, 0 violações**.
+  - `pnpm test:design`: **3/3 suítes passadas, 26/26 testes verdes**.
+  - `pnpm spec:validate`: **82 rotas, 10 schemas, sem drift, consistência total**.
+  - `check:r03`: **993 arquivos de produção, 0 violações, 0 regressões**.
   - `typecheck`: **0 erros de compilação**.
-  - `lint`: **0 erros/avisos**.
+  - `lint`: **0 erros, 0 avisos**.
 
 ---
 

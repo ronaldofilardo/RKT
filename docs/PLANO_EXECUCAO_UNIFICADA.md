@@ -33,12 +33,12 @@ Estabelecer linha de base verde e regras de proteção antes de qualquer altera�
 | E0.5 | Backup | Branch do Neon e zip sem arquivos `.env`. |
 
 ### Critérios de Aceite (DoD Etapa 0)
-- [ ] 0 falhas, 0 skipped, 0 todo
-- [ ] Typecheck com 0 erros
-- [ ] Lint sem warnings
-- [ ] Build ok
-- [ ] Suíte executada duas vezes (sem flakiness)
-- [ ] Backup do Neon realizado
+- [x] 0 falhas, 0 skipped, 0 todo
+- [x] Typecheck com 0 erros
+- [x] Lint sem warnings
+- [x] Build ok
+- [x] Suíte executada duas vezes (sem flakiness)
+- [x] Backup do Neon realizado
 
 ---
 
@@ -79,11 +79,11 @@ Estabelecer linha de base verde e regras de proteção antes de qualquer altera�
 | 1.4.2 | Remover código morto | Descontinuar hook não utilizado `useAccess` e sincronizar arquivos redundantes. |
 
 ### Critérios de Aceite (DoD Onda 1)
-- [ ] `pnpm test:strict` 100% verde sem nenhum teste pulado (`check-no-skipped-tests.mjs`)
-- [ ] `pnpm typecheck` com 0 erros
-- [ ] `pnpm lint` sem erros/warnings
-- [ ] Nenhum 404 em links internos
-- [ ] Registro contínuo das etapas em `docs/TASKS.md` e `docs/MEMORY.md`
+- [x] `pnpm test:strict` 100% verde sem nenhum teste pulado (`check-no-skipped-tests.mjs`)
+- [x] `pnpm typecheck` com 0 erros
+- [x] `pnpm lint` sem erros/warnings
+- [x] Nenhum 404 em links internos
+- [x] Registro contínuo das etapas em `docs/TASKS.md` e `docs/MEMORY.md`
 
 ---
 
@@ -158,12 +158,12 @@ Estabelecer linha de base verde e regras de proteção antes de qualquer altera�
 | 2.7.5 | Testes E2E (Playwright) | Fluxo completo: Cadastro de Gestor → Aprovação pelo Suporte → Login do Gestor → Cadastro de Treinador → Primeiro acesso do Treinador com troca obrigatória de senha. |
 
 ### Critérios de Aceite (DoD Onda 2)
-- [ ] Todas as rotas de leitura/escrita de CT, usuário, treinador e atleta protegidas por `withAccessHandler`
-- [ ] `pnpm typecheck` 0 erros
-- [ ] `pnpm lint` 0 erros
-- [ ] `pnpm check:r03` 0 violações
-- [ ] `pnpm test:strict` verde
-- [ ] `AuditLog` ativo para alterações cadastrais
+- [x] Todas as rotas de leitura/escrita de CT, usuário, treinador e atleta protegidas por `withAccessHandler`
+- [x] `pnpm typecheck` 0 erros
+- [x] `pnpm lint` 0 erros
+- [x] `pnpm check:r03` 0 violações
+- [x] `pnpm test:strict` verde
+- [x] `AuditLog` ativo para alterações cadastrais
 
 ---
 
@@ -226,13 +226,13 @@ Ordem sugerida: D3, D4, D6, D7, D8. Cada uma com teste antes.
 | 3.5.5 | D8 — Breakdown por Set | `set-breakdown-stats.ts`, `advanced-stats-set-breakdown.tsx`; manter colunas atuais e indicador TB; acrescentar tempo total do jogo (`stats.durations.totalDurationMinutes`) e duração por set (`setDurations`). |
 
 ### Critérios de Aceite (DoD Onda 3)
-- [ ] `pnpm typecheck` 0 erros
-- [ ] `pnpm lint` 0 erros
-- [ ] `pnpm check:r03` 0 violações (arquivos < 500 linhas conforme decisão deste plano, seção 3)
-- [ ] `pnpm test:strict` verde
-- [ ] `pnpm test:design` verde (3/3 suítes)
-- [ ] Atualizar `docs/TASKS.md` e `docs/MEMORY.md`; `docs/api/CONTRACTS.md` se a assinatura de duplicidade mudar; rodar `pnpm spec:validate`
-- [ ] Um commit por fase, sem misturar fases
+- [x] `pnpm typecheck` 0 erros
+- [x] `pnpm lint` 0 erros
+- [x] `pnpm check:r03` 0 violações (arquivos < 500 linhas conforme decisão deste plano, seção 3)
+- [x] `pnpm test:strict` verde
+- [x] `pnpm test:design` verde (3/3 suítes)
+- [x] Atualizar `docs/TASKS.md` e `docs/MEMORY.md`; `docs/api/CONTRACTS.md` se a assinatura de duplicidade mudar; rodar `pnpm spec:validate`
+- [x] Um commit por fase, sem misturar fases
 
 ---
 
@@ -273,15 +273,15 @@ Ordem sugerida: D3, D4, D6, D7, D8. Cada uma com teste antes.
 | 4.4.6 | Pausar polling | Pausar o polling de 5s do painel de sessão quando a aba estiver oculta. |
 
 ### Critérios de Aceite (DoD Onda 4)
-- [ ] 0 ocorrências de `window.alert()` em código de produção
-- [ ] 0 mensagens técnicas como `"VALIDATION_ERROR"`, `"CONFLICT"` ou `"SyntaxError"` visíveis ao usuário final
-- [ ] Todas as rotas de API respondem com propriedade `message` compreensível em português ao falhar validação
-- [ ] Formulários destacam os campos com erro e orientam o usuário sobre a correção necessária
-- [ ] `pnpm check:r03` 0 violações (todos os arquivos < 100 linhas, exceto `ste-exception` documentadas)
-- [ ] `pnpm typecheck` 0 erros
-- [ ] `pnpm lint` 0 erros/warnings
-- [ ] Suítes de testes atualizadas e verdes
-- [ ] `pnpm test:strict` verde
+- [x] 0 ocorrências de `window.alert()` em código de produção
+- [x] 0 mensagens técnicas como `"VALIDATION_ERROR"`, `"CONFLICT"` ou `"SyntaxError"` visíveis ao usuário final
+- [x] Todas as rotas de API respondem com propriedade `message` compreensível em português ao falhar validação
+- [x] Formulários destacam os campos com erro e orientam o usuário sobre a correção necessária
+- [x] `pnpm check:r03` 0 violações (todos os arquivos < 100 linhas, exceto `ste-exception` documentadas)
+- [x] `pnpm typecheck` 0 erros
+- [x] `pnpm lint` 0 erros/warnings
+- [x] Suítes de testes atualizadas e verdes
+- [x] `pnpm test:strict` verde
 
 ---
 

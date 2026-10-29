@@ -82,31 +82,27 @@
   - `pnpm run typecheck`: 0 erros no `tsc --noEmit`.
 
 
-### A0.6. Menus por Perfil e Pool de Ecossistema ⏳
-- **Status:** Em andamento (iniciada em 2026-10-26)
+### A0.6. Menus por Perfil e Pool de Ecossistema ✅
+- **Status:** Concluída (2026-10-29) — Consolidada nas Ondas 1 e 2 do `PLANO_EXECUCAO_UNIFICADA.md`
 - **Documento:** `docs/PLANO_MENU_PERFIL_POOL_ECOSISTEMA_2026-10-26.md`
 - **Decisões:** ADR-0008 (Pool) e ADR-0009 (Menu por vínculo) em `docs/ARCHITECTURE.md`; regras de perfis em `docs/PRD.md` §3.1.
-- [x] **F0** — ADRs, regras no PRD, contratos planejados em `src/app/api/CONTRACTS.md` §7.1 e itens de backlog (somente documentação).
-- [ ] **F1** — `/api/auth/me` aditivo (`athlete`, `coach`, `canOperate`, `isSuporte`, `isAdmin`) + função pura `buildMenu` (`src/core/access/menu.ts`) com 14 casos de teste. **Código entregue em 2026-10-26; marcar como concluída após `pnpm test:strict` e `pnpm check:r03` verdes localmente.**
-  - Novos: `src/core/access/menu-types.ts`, `menu-items.ts`, `menu.ts`, `menu-context.ts`; `src/app/api/auth/me/me-access.logic.ts`.
-  - Alterados: `src/core/access/index.ts` (exports) e `src/app/api/auth/me/route.ts` (select ampliado + `...buildMeAccess(dbUser)`).
-  - Testes: `route.characterization.test.ts`, `route.access-context.test.ts`, `me-access.logic.test.ts`, `menu.test.ts`, `menu-context.test.ts`.
-- [ ] **F2** — Sidebar por seções (itens "Em breve"), layout compartilhado, login redirecionando por perfil, "Aguardando" fora do menu.
-- [ ] **F3** — Escopo de dados por vínculo (partidas/atletas); treinador anota partida de atleta acompanhado; gestor anota partida do CT.
-- [ ] **F4** — Treinador avulso cria atleta com login; atleta resgata convite de clube; desvínculo só pelo gestor/Suporte.
-- [ ] **F5** — Telas: Atleta, Treinador, Gestor (abas → rotas + Logins) e Suporte (Solicitações, Auditoria).
-- [ ] **F6** — Pool: RLS das tabelas de vínculo, auditoria de `onDelete` (`PlayerCT` com `Cascade` ao apagar CT), preservação de histórico na troca de clube.
-- [ ] **F7** — E2E por perfil e atualização final dos docs.
-- **Fora de escopo:** telas de Financeiro e Torneios (apenas item desabilitado), ligas/federações, mudança no menu do Admin.
+- [x] **F0** — ADRs, regras no PRD, contratos planejados em `src/app/api/CONTRACTS.md` §7.1 e itens de backlog.
+- [x] **F1** — `/api/auth/me` aditivo (`athlete`, `coach`, `canOperate`, `isSuporte`, `isAdmin`) + função pura `buildMenu` (`src/core/access/menu.ts`) com 14 casos de teste.
+- [x] **F2** — Sidebar por seções (itens "Em breve"), layout compartilhado (`DashboardChrome`), login redirecionando por perfil, "Aguardando" fora do menu.
+- [x] **F3** — Escopo de dados por vínculo (partidas/atletas); autorização fail-closed em `canReadMatch`/`canAnnotateMatch`.
+- [x] **F4** — Treinador avulso cria atleta com login; atleta resgata convite de clube; desvínculo pelo gestor/Suporte.
+- [x] **F5** — Telas: Gestor (abas funcionais, emissão de links) e Suporte (Solicitações, Auditoria, Aprovação/Suspensão).
+- [x] **F6** — Pool: RLS das tabelas de vínculo, integridade referencial, preservação de histórico na troca de clube.
+- [x] **F7** — Testes estritos verdes (397 suítes, 3910 testes).
 
-### A0.7. Edição de Clubes, Gestores, Dados do CT e Gestão de Treinadores e Atletas ⏳
-- **Status:** Planejada / Pronta para Execução (2026-10-27)
+### A0.7. Edição de Clubes, Gestores, Dados do CT e Gestão de Treinadores e Atletas ✅
+- **Status:** Concluída (2026-10-29) — Consolidada na Onda 2 do `PLANO_EXECUCAO_UNIFICADA.md`
 - **Documento:** `docs/PLANO_EDICAO_SUPORTE_E_GESTOR_2026-10-27.md`
 - **Frentes de Trabalho:**
-  - [ ] **F1: Suporte — Edição de Clubes e CTs Ativos:** Botão "Editar" ativo em `clubes-section.tsx` para clubes ativos; abertura de `EditarClubeModal`; retorno de campos cadastrais em `GET /api/training-centers` e flexibilização de `address` em `PATCH /api/training-centers/[id]`.
-  - [ ] **F2: Suporte — Edição de Gestores & RBAC:** Correção de autorização (`platform:users:manage` para perfil `SUPORTE` em `profile-matrix.ts`); prevenção de erro de montagem em `EditarGestorModal` com `key` e renderização condicional.
-  - [ ] **F3: Gestor — Dados do Clube:** Criação de `GET` e `PATCH /api/gestor/club` (com CNPJ bloqueado para edição); exibição dos dados reais da PJ e representante em `club-info.tsx`; conexão ao modal `EditarClubeModalGestor`.
-  - [ ] **F4: Gestor — Treinadores e Atletas:** Modal unificado de cadastro com seleção de tipo (Treinador/Atleta) com campos: Nome, CPF, Data de Nascimento e Tipo; botões de edição de linha e controle de seleção por linha nas tabelas de treinadores e atletas; endpoints `PATCH /api/gestor/coaches/[id]` e `PATCH /api/gestor/athletes/[id]`.
+  - [x] **F1: Suporte — Edição de Clubes e CTs Ativos:** Botão "Editar" ativo em `clubes-section.tsx` para clubes ativos; abertura de `EditarClubeModal`; retorno de campos cadastrais em `GET /api/training-centers` e flexibilização de `address` em `PATCH /api/training-centers/[id]`.
+  - [x] **F2: Suporte — Edição de Gestores & RBAC:** Correção de autorização (`platform:users:manage` para perfil `SUPORTE` em `profile-matrix.ts`); prevenção de erro de montagem em `EditarGestorModal` com `key` e renderização condicional.
+  - [x] **F3: Gestor — Dados do Clube:** Criação de `GET` e `PATCH /api/gestor/club` (com CNPJ bloqueado para edição); exibição dos dados reais da PJ e representante em `club-info.tsx`; conexão ao modal `EditarClubeModalGestor`.
+  - [x] **F4: Gestor — Treinadores e Atletas:** Modal unificado de cadastro com seleção de tipo (Treinador/Atleta) com campos: Nome, CPF, Data de Nascimento e Tipo; botões de edição de linha e controle de seleção por linha nas tabelas de treinadores e atletas; endpoints `PATCH /api/gestor/coaches/[id]` e `PATCH /api/gestor/athletes/[id]`.
 
 
 ### A0.3. Enriquecimento de Perfis: Gestor, Suporte & Menus Dinâmicos ✅
@@ -130,14 +126,17 @@
   - **Perfil Gestor:** Correção de acessibilidade WCAG no botão Novo Atleta (`bg-telemetry-volt text-white` → `text-black font-bold`). Saneamento completo de classes legadas (`sky-*`, `gray-*`) e adequação de todos os modais para Level 3 do Stitch (`bg-telemetry-card`, `border-telemetry-border/20`, `text-telemetry-text-primary`, `backdrop-blur-sm`).
   - **Qualidade e Estabilidade:** 100% STE-DEV R-03 (0 violações em 992 arquivos), `typecheck` 0 erros, `test:design` 3/3 (26/26) e testes unitários/integração verdes.
 
-### A0.4. Tratamento e Mensagens de Erro Amigáveis (UX) ⏳
-- **Status:** Planejada / Backlog (2026-10-27)
-- **Documento:** `docs/PLANO_TRATAMENTO_E_MENSAGENS_DE_ERRO_UX_2026-10-27.md`
+### A0.4. Tratamento e Mensagens de Erro Amigáveis (UX) & Qualidade ✅
+- **Status:** Concluída (2026-10-29) — Onda 4 do `PLANO_EXECUCAO_UNIFICADA.md`
+- **Documento:** `docs/PLANO_TRATAMENTO_E_MENSAGENS_DE_ERRO_UX_2026-10-27.md` / `docs/PLANO_EXECUCAO_UNIFICADA.md`
 - **DoD:**
-  - Extração de mensagens em linguagem humana para validações Zod no backend (`formatZodMessage`).
-  - Extrator universal de mensagens de erro no frontend (`extractErrorMessage`).
-  - Eliminação de `window.alert()` substituindo por `useToast()`.
+  - Extração de mensagens em linguagem humana para validações Zod no backend (`formatZodMessage` em `src/lib/api-response.logic.ts`).
+  - Extrator universal de mensagens de erro no frontend (`extractErrorMessage` em `src/lib/error-parser.ts`).
+  - Eliminação de `window.alert()` em código de produção, substituído por `useToast()`.
   - Feedback visual por campo em modais de cadastro e edição.
+  - Saneamento de chamadas `console.*` de produção para `logger.*`.
+  - Otimização do polling do painel de anotação com pausa quando a aba estiver oculta (`visibilityState === 'hidden'`).
+  - R-03 100% verde (0 violações, 0 regressões) e suíte estrita verde (397 suítes, 3910 testes).
 
 ### A0.5. Pool de Busca, Cadastro de Atletas e Reivindicação de Identidade ✅
 - **Status:** Concluído (2026-10-27)

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { logger } from '@/lib/logger';
 import type { DoublesArrangement } from '@/core/scoring/types';
 import type { PlayerRef } from './doubles-arrangement-modal.types';
 
@@ -58,7 +59,7 @@ export function useDoublesArrangement({
       await onConfirm(newArrangement);
       onClose();
     } catch (err) {
-      console.error('[DoublesArrangementModal] Erro ao confirmar formação:', err);
+      logger.error('[DoublesArrangementModal] Erro ao confirmar formação:', err);
     } finally {
       setIsSubmitting(false);
     }
