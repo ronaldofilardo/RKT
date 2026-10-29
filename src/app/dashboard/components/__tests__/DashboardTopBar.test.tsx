@@ -36,4 +36,20 @@ describe('DashboardTopBar', () => {
     expect(screen.getByText('Administrador')).toBeInTheDocument();
     expect(screen.getByText('Admin')).toBeInTheDocument();
   });
+
+  const base = { menuOpen: false, setMenuOpen: jest.fn(), user: { name: 'Eduardo', role: 'ANNOTATOR' }, onNewMatch: jest.fn(), onLogout: jest.fn() };
+
+  it('mostra o menu hambúrguer por padrão', () => {
+    render(<DashboardTopBar {...base} />);
+    expect(screen.getByTestId('hamburger-menu-button')).toBeInTheDocument();
+  });
+
+  it('esconde o hambúrguer com showMenuButton=false e mantém título, Nova Partida e Sair', () => {
+    render(<DashboardTopBar {...base} title="Painel do Gestor" showMenuButton={false} />);
+    expect(screen.queryByTestId('hamburger-menu-button')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Abrir menu')).not.toBeInTheDocument();
+    expect(screen.getByText('Painel do Gestor')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Nova partida' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
+  });
 });

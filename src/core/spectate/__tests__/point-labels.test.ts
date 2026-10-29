@@ -14,3 +14,4 @@ describe('describeSpectatorPoint', () => {
     expect(describeSpectatorPoint('CUSTOM')).toBe('custom');
   });
 });
+

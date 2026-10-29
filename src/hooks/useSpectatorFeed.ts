@@ -6,7 +6,15 @@ import { diffFeedViews } from '@/core/spectate/correction-diff';
 
 const MAX_SESSION_DURATION_MS = 3 * 60 * 60 * 1000; // 3 horas
 
-export function useSpectatorFeed(matchId: string) {
+export interface SpectatorFeedOptions {
+  /** true (padrão): polling automático. false: só busca ao montar e quando `refresh()` é chamado. */
+  autoPoll?: boolean;
+  /** Piso (ms) para o intervalo de polling automático. Padrão 0 = respeita o ritmo do servidor. */
+  minPollMs?: number;
+}
+
+export function useSpectatorFeed(matchId: string, options: SpectatorFeedOptions = {}) {
+  const { autoPoll = true, minPollMs = 0 } = options;
   const [view, setView] = useState<SpectatorView | null>(null);
   const [status, setStatus] = useState<SpectatorFeedStatus>('LIVE');
   const [ageSeconds, setAgeSeconds] = useState<number | null>(null);
@@ -17,6 +25,7 @@ export function useSpectatorFeed(matchId: string) {
   const [isNotFound, setIsNotFound] = useState(false);
   const [isSessionExpired, setIsSessionExpired] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const revRef = useRef<string>('');
   const viewRef = useRef<SpectatorView | null>(null);
@@ -27,10 +36,10 @@ export function useSpectatorFeed(matchId: string) {
     if (timerRef.current) clearTimeout(timerRef.current);
     if (!navigator.onLine) {
       setIsClientOffline(true);
-      timerRef.current = setTimeout(fetchFeed, 10_000);
+      if (autoPoll) timerRef.current = setTimeout(fetchFeed, 10_000);
       return;
     }
-    if (Date.now() - startTimeRef.current > MAX_SESSION_DURATION_MS) return setIsSessionExpired(true);
+    if (autoPoll && Date.now() - startTimeRef.current > MAX_SESSION_DURATION_MS) return setIsSessionExpired(true);
 
     try {
       const sp = new URLSearchParams();
@@ -61,14 +70,24 @@ export function useSpectatorFeed(matchId: string) {
       }
       revRef.current = data.rev;
 
-      if (data.status !== 'FINISHED') {
-        timerRef.current = setTimeout(fetchFeed, data.nextPollInMs || 15_000);
+      if (autoPoll && data.status !== 'FINISHED') {
+        timerRef.current = setTimeout(fetchFeed, Math.max(data.nextPollInMs || 15_000, minPollMs));
       }
     } catch {
       setIsClientOffline(true);
-      timerRef.current = setTimeout(fetchFeed, 20_000);
+      if (autoPoll) timerRef.current = setTimeout(fetchFeed, 20_000);
     }
-  }, [matchId]);
+  }, [matchId, autoPoll, minPollMs]);
+
+  /** Atualização manual (botão "Atualizar"). Usa `rev`, então se nada mudou o servidor não reenvia os pontos. */
+  const refresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await fetchFeed();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [fetchFeed]);
 
   const resumeSession = useCallback(() => {
     startTimeRef.current = Date.now();
@@ -78,8 +97,8 @@ export function useSpectatorFeed(matchId: string) {
 
   useEffect(() => {
     fetchFeed();
-    const onVis = () => { if (!document.hidden && !isSessionExpired) fetchFeed(); };
-    const onOnline = () => { if (!isSessionExpired) fetchFeed(); };
+    const onVis = () => { if (autoPoll && !document.hidden && !isSessionExpired) fetchFeed(); };
+    const onOnline = () => { if (autoPoll && !isSessionExpired) fetchFeed(); };
     document.addEventListener('visibilitychange', onVis);
     window.addEventListener('online', onOnline);
     return () => {
@@ -87,12 +106,15 @@ export function useSpectatorFeed(matchId: string) {
       window.removeEventListener('online', onOnline);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [fetchFeed, isSessionExpired]);
+  }, [fetchFeed, isSessionExpired, autoPoll]);
 
   return {
     view, status, ageSeconds, rhythm, correctionAlert, isRevoked, isNotFound,
     clearCorrectionAlert: () => setCorrectionAlert(null),
     isClientOffline, isSessionExpired, resumeSession, lastUpdated,
+    refresh, isRefreshing,
   };
 }
+
+export type SpectatorFeedState = ReturnType<typeof useSpectatorFeed>;
 

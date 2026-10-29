@@ -17,9 +17,11 @@ interface DashboardChromeProps {
   navigateToTarget?: (view: DashboardView) => void;
   title?: string;
   onLogout?: () => void;
+  /** false remove o menu hambúrguer e a barra lateral (ex.: painel do gestor). Padrão: true. */
+  showMenu?: boolean;
 }
 
-export function DashboardChrome({ user, navigateToTarget, title, onLogout }: DashboardChromeProps) {
+export function DashboardChrome({ user, navigateToTarget, title, onLogout, showMenu = true }: DashboardChromeProps) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
@@ -68,8 +70,9 @@ export function DashboardChrome({ user, navigateToTarget, title, onLogout }: Das
         title={title}
         onNewMatch={() => router.push('/match/new')}
         onLogout={endSession}
+        showMenuButton={showMenu}
       />
-      <DashboardSidebar menuOpen={menuOpen} setMenuOpen={setMenuOpen} sections={sections} />
+      {showMenu && <DashboardSidebar menuOpen={menuOpen} setMenuOpen={setMenuOpen} sections={sections} />}
       {!onLogout && (
         <ConfirmAlertDialog
           open={logoutConfirmOpen}

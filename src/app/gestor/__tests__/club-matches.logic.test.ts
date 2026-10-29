@@ -89,3 +89,4 @@ describe('formatClubMatchScore', () => {
     expect(formatClubMatchScore(raw, 'SHORT_SET_2V2_NO_AD')).toBe('4/2 4/1');
   });
 });
+

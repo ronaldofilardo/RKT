@@ -8,42 +8,46 @@ interface DashboardTopBarProps {
   title?: string;
   onNewMatch: () => void;
   onLogout: () => void;
+  /** false esconde o botão hambúrguer (ex.: painel do gestor). Padrão: true. */
+  showMenuButton?: boolean;
 }
 
-export function DashboardTopBar({ menuOpen, setMenuOpen, user, title, onNewMatch, onLogout }: DashboardTopBarProps) {
+export function DashboardTopBar({ menuOpen, setMenuOpen, user, title, onNewMatch, onLogout, showMenuButton = true }: DashboardTopBarProps) {
   const firstName = user?.name ? user.name.trim().split(/\s+/)[0] : '';
 
   return (
     <header className="bg-telemetry-card border-b border-telemetry-border/10 sticky top-0 z-40">
       <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            data-testid="hamburger-menu-button"
-            onClick={() => {
-              const next = !menuOpen;
-              logger.info("[DashboardPage] hamburger click menuOpen=", next);
-              setMenuOpen(next);
-            }}
-            aria-label="Abrir menu"
-            aria-expanded={menuOpen}
-            className="p-2 rounded-lg text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/10 transition-colors"
-          >
-            <svg
-              className="w-6 h-6 text-telemetry-text-primary"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
+          {showMenuButton && (
+            <button
+              type="button"
+              data-testid="hamburger-menu-button"
+              onClick={() => {
+                const next = !menuOpen;
+                logger.info("[DashboardPage] hamburger click menuOpen=", next);
+                setMenuOpen(next);
+              }}
+              aria-label="Abrir menu"
+              aria-expanded={menuOpen}
+              className="p-2 rounded-lg text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/10 transition-colors"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </button>
+              <svg
+                className="w-6 h-6 text-telemetry-text-primary"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+          )}
           <h1 className="text-lg font-bold text-telemetry-text-primary tracking-wide">{title ?? 'Início'}</h1>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">

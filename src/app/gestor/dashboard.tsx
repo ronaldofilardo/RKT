@@ -59,7 +59,7 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
 
   return (
     <div className="min-h-screen bg-telemetry-base">
-      <DashboardChrome title="Painel do Gestor" />
+      <DashboardChrome title="Painel do Gestor" showMenu={false} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <DashboardHeader me={me} coachesCount={coaches.length} athletesCount={athletes.length} matchesCount={matches.length} />
         <TabNav tab={tab} onTabChange={setTab} matchesCount={matches.length} />

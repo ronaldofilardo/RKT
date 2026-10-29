@@ -17,6 +17,12 @@ async function resolveMatchAccess(matchId: string): Promise<MatchAccess | null> 
       player1PartnerId: true,
       player2PartnerId: true,
       annotationSessions: { where: { isActive: true }, select: { annotatorUserId: true } },
+      // CTs ativos dos participantes: permite ao gestor/treinador do clube acompanhar
+      // partidas disputadas por atletas do clube mesmo sem `match.ctId` preenchido.
+      player1: { select: { playerCts: { where: { status: 'ACTIVE' }, select: { ctId: true } } } },
+      player2: { select: { playerCts: { where: { status: 'ACTIVE' }, select: { ctId: true } } } },
+      player1Partner: { select: { playerCts: { where: { status: 'ACTIVE' }, select: { ctId: true } } } },
+      player2Partner: { select: { playerCts: { where: { status: 'ACTIVE' }, select: { ctId: true } } } },
     },
   });
   if (!match) return null;
@@ -30,7 +36,12 @@ async function resolveMatchAccess(matchId: string): Promise<MatchAccess | null> 
     ctId: match.ctId,
     annotatorUserIds: match.annotationSessions.map((s) => s.annotatorUserId),
     participantPlayerIds,
-    participantCtIds: [],
+    participantCtIds: [
+      match.player1,
+      match.player2,
+      match.player1Partner,
+      match.player2Partner,
+    ].flatMap((p) => p?.playerCts?.map(({ ctId }) => ctId) ?? []),
   };
 }
 

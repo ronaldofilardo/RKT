@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { computeSpectatorStats, type SpectatorView } from '@/core/spectate';
+import { computeSpectatorStats } from '@/core/spectate/spectator-stats';
+import type { SpectatorView } from '@/core/spectate/types';
 import { SpectatorTimeline } from './SpectatorTimeline';
 
 function StatRow({ left, label, right }: { left: React.ReactNode; label: string; right: React.ReactNode }) {
