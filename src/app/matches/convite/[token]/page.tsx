@@ -41,7 +41,7 @@ export default function SpectatorInviteRedeemPage({
         body: JSON.stringify({ token }),
       });
       const data = await res.json();
-      if (res.ok && data.matchId) router.replace(`/matches/acompanhar/${data.matchId}` as any);
+      if (res.ok && data.matchId) router.replace(`/matches/acompanhar/${data.matchId}?token=${encodeURIComponent(token)}` as any);
       else if (res.status === 403 && data.error === 'SPECTATOR_LIMIT') setErrorCode('SPECTATOR_LIMIT');
       else setErrorCode('INVITE_INVALID');
     } catch {

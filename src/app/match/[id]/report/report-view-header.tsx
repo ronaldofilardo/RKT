@@ -8,7 +8,7 @@ interface ReportHeaderProps {
   onExport: () => void;
 }
 
-export function ReportHeader({ report, onContinue, onDashboard, onExport }: ReportHeaderProps) {
+export function ReportHeader({ report, onContinue, onDashboard, onExport: _onExport }: ReportHeaderProps) {
   const stateLabel = report.state === 'FINISHED' ? 'Finalizada' : report.state === 'IN_PROGRESS' ? 'Em andamento' : 'Aguardando';
   const isDoubles = report.matchType === 'DOUBLES';
   const p1Name = isDoubles && report.player1Partner ? `${report.player1.name} / ${report.player1Partner.name}` : report.player1.name;
@@ -47,7 +47,15 @@ export function ReportHeader({ report, onContinue, onDashboard, onExport }: Repo
         </div>
         <div className="flex gap-3">
           {report.state !== 'FINISHED' && <button onClick={onContinue} className="px-4 py-2 bg-telemetry-blue hover:opacity-90 text-white font-semibold rounded-xl text-sm transition-opacity shadow-sm">Continuar Anotação</button>}
-          <button onClick={onExport} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm transition-opacity shadow-sm">Exportar CSV</button>
+          <button
+            type="button"
+            disabled
+            className="px-4 py-2 bg-emerald-600/40 text-white/50 font-semibold rounded-xl text-sm cursor-not-allowed shadow-sm transition-opacity"
+            title="Exportação de CSV desabilitada"
+            aria-disabled="true"
+          >
+            Exportar CSV
+          </button>
           <button onClick={onDashboard} className="px-4 py-2 bg-transparent border border-white/10 hover:bg-white/5 text-telemetry-text-primary font-semibold rounded-xl text-sm transition-colors">← Dashboard</button>
         </div>
       </div>

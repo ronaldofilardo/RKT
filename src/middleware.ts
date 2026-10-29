@@ -10,8 +10,11 @@ const PUBLIC_ROUTES = [
   '/api/auth/signup-gestor',
   '/api/auth/forgot',
   '/api/auth/reset-password',
+  '/api/spectate',
   '/login',
   '/matches/locate',
+  '/matches/convite',
+  '/matches/acompanhar',
 ];
 
 const BYPASS_ROUTES = ['/_next/', '/favicon'];

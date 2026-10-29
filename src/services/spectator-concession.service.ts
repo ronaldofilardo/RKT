@@ -17,7 +17,17 @@ export async function hasActiveSpectatorConcession(matchId: string, userId: stri
   return true;
 }
 
-export async function redeemShareLink(params: { token: string; userId: string }) {
+export async function isGuestSpectatorAuthorized(matchId: string, token: string): Promise<boolean> {
+  if (!token) return false;
+  const tokenHash = hashSpectateToken(token);
+  const link = await prisma.matchShareLink.findUnique({
+    where: { tokenHash },
+    select: { matchId: true, revokedAt: true },
+  });
+  return Boolean(link && link.matchId === matchId && !link.revokedAt);
+}
+
+export async function redeemShareLink(params: { token: string; userId?: string }) {
   const { token, userId } = params;
   const tokenHash = hashSpectateToken(token);
 
@@ -32,36 +42,35 @@ export async function redeemShareLink(params: { token: string; userId: string })
 
   if (link.match.state === 'FINISHED' && link.match.finishedAt) {
     const expiresAt = new Date(link.match.finishedAt).getTime() + ACCESS_WINDOW_DAYS * 86_400_000;
-    if (Date.now() > expiresAt) {
-      return { ok: false as const, error: 'ACCESS_EXPIRED', status: 410 };
-    }
+    if (Date.now() > expiresAt) return { ok: false as const, error: 'ACCESS_EXPIRED', status: 410 };
   }
 
-  const existing = await prisma.matchSpectator.findUnique({
-    where: { matchId_userId: { matchId: link.matchId, userId } },
+  const activeCount = await prisma.matchSpectator.count({
+    where: { matchId: link.matchId, revokedAt: null },
   });
-
-  if (!existing || existing.revokedAt) {
-    const activeCount = await prisma.matchSpectator.count({
-      where: { matchId: link.matchId, revokedAt: null },
-    });
-    if (activeCount >= MAX_SPECTATORS_PER_MATCH) {
-      return { ok: false as const, error: 'SPECTATOR_LIMIT', status: 403 };
-    }
+  if (activeCount >= MAX_SPECTATORS_PER_MATCH) {
+    return { ok: false as const, error: 'SPECTATOR_LIMIT', status: 403 };
   }
 
   const now = new Date();
-  await prisma.$transaction([
-    prisma.matchSpectator.upsert({
-      where: { matchId_userId: { matchId: link.matchId, userId } },
-      create: { matchId: link.matchId, userId, linkId: link.id, joinedAt: now, lastSeenAt: now },
-      update: { linkId: link.id, revokedAt: null, lastSeenAt: now },
-    }),
-    prisma.matchShareLink.update({
+  if (userId) {
+    await prisma.$transaction([
+      prisma.matchSpectator.upsert({
+        where: { matchId_userId: { matchId: link.matchId, userId } },
+        create: { matchId: link.matchId, userId, linkId: link.id, joinedAt: now, lastSeenAt: now },
+        update: { linkId: link.id, revokedAt: null, lastSeenAt: now },
+      }),
+      prisma.matchShareLink.update({
+        where: { id: link.id },
+        data: { lastUsedAt: now },
+      }),
+    ]);
+  } else {
+    await prisma.matchShareLink.update({
       where: { id: link.id },
       data: { lastUsedAt: now },
-    }),
-  ]);
+    });
+  }
 
   return { ok: true as const, matchId: link.matchId };
 }
@@ -76,23 +85,4 @@ export async function removeSpectator(params: { matchId: string; spectatorUserId
     data: { revokedAt: new Date() },
   });
   return { ok: true as const };
-}
-
-export async function listMySpectatingMatches(userId: string) {
-  const matchSelect = {
-    id: true,
-    state: true,
-    format: true,
-    tournamentName: true,
-    player1: { select: { id: true, name: true } },
-    player2: { select: { id: true, name: true } },
-    scoreState: true,
-    updatedAt: true,
-  };
-  const spectators = await prisma.matchSpectator.findMany({
-    where: { userId, revokedAt: null },
-    include: { match: { select: matchSelect } },
-    orderBy: { match: { updatedAt: 'desc' } },
-  });
-  return spectators.map((s) => s.match);
 }

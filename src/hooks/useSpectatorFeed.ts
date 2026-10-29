@@ -28,7 +28,14 @@ export function useSpectatorFeed(matchId: string) {
     if (Date.now() - startTimeRef.current > MAX_SESSION_DURATION_MS) return setIsSessionExpired(true);
 
     try {
-      const url = `/api/spectate/${matchId}/feed${revRef.current ? `?rev=${encodeURIComponent(revRef.current)}` : ''}`;
+      const sp = new URLSearchParams();
+      if (revRef.current) sp.set('rev', revRef.current);
+      if (typeof window !== 'undefined') {
+        const t = new URLSearchParams(window.location.search).get('token');
+        if (t) sp.set('token', t);
+      }
+      const qs = sp.toString();
+      const url = `/api/spectate/${matchId}/feed${qs ? `?${qs}` : ''}`;
       const res = await fetch(url, { headers: { 'Cache-Control': 'no-cache' } });
       if (res.status === 403) return setIsRevoked(true);
       if (res.status === 404) return setIsNotFound(true);
