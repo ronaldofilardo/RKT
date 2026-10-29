@@ -11,7 +11,7 @@ export type LoginErrorField = 'identifier' | 'password' | 'both' | null;
 
 export function useLoginForm() {
   const router = useRouter();
-  const searchParams = typeof useSearchParams === 'function' ? useSearchParams() : new URLSearchParams();
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [errorField, setErrorField] = useState<LoginErrorField>(null);
   const [isLoading, setIsLoading] = useState(false);
