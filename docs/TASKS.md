@@ -32,7 +32,7 @@
 
 ### A0.1. Estatísticas Avançadas & Alinhamento à Planilha ITF/ATP ✅
 - **Status:** Concluída (2026-10-25)
-- **Documento:** `docs/Plano – Estatísticas Avançadas.md`
+- **Documento:** `docs/archive/Plano – Estatísticas Avançadas.md`
 - **DoD:** 100% das 5 fases concluídas: (i) Fase 1 com 15 correções estruturais (ralis ATP/ITF, Ace/DF desvinculados de rali, Game/Set points por atleta e dinâmicos por formato, Ponto Decisivo No-Ad duplo e break point para devolvedor, subidas e passadas bilaterais, breakdown com tiebreak e p2Games, momentum estendido, jogos completos protegidos, CSV e unificação de set summary); (ii) Fase 2 com as 9 seções da planilha (1. Saque, 2. Devolução com retorno em quadra e sem DF, 3. Fundo de Quadra por ralis, 4. Rally, 5. Rede e Passada, 6. Pontos de Pressão, 7. Definição do Ponto sem Ace/DF, 8. Matriz de 12 Golpes, 9. Momentum); (iii) Fase 3 com tempos total e efetivo (`MAX_GAP_SECONDS = 90`, descartando pausas >90s e transições de set); (iv) Fase 4 com cabeçalho superior completo de metadados, clima e tempos; (v) Fase 5 com desdobramento individual por atleta em duplas (`serverId`, `hitterId`, `courtSide`). 100% STE-DEV R-03 (módulos ≤ 100 linhas). `typecheck` 0 erros, `lint` 0 issues, `test:design` 3/3 (26/26), `test:strict` 356/356 suites verdes (3.468 testes).
 
 ### A0.2. Aproach FH / BH e Efeito em Detalhes do Ponto ✅
@@ -49,7 +49,7 @@
 
 ### A0.5. Remediação de Acesso, Segurança e Consistência Funcional ✅
 - **Status:** Concluída (2026-10-26)
-- **Documento:** `docs/PLANO_REMEDIACAO_ACESSO_E_SEGURANCA.md`
+- **Documento:** `docs/archive/PLANO_REMEDIACAO_ACESSO_E_SEGURANCA.md`
 - **Fase 0 (Estancamento Crítico & Desbloqueio P0/P1):**
   - `src/middleware.ts`: liberação pública de `/api/auth/signup`, `/api/auth/forgot` e `/api/auth/reset-password`.
   - `POST /api/support/password-resets/[id]/issue` e `GET /api/support/password-resets`: blindadas com `withAccessHandler('support:account:assist')`, proteção contra alvos ADMIN/SUPORTE e gravação em `auditLog`.
@@ -84,7 +84,7 @@
 
 ### A0.6. Menus por Perfil e Pool de Ecossistema ⏳
 - **Status:** Em andamento (iniciada em 2026-10-26)
-- **Documento:** `docs/PLANO_MENUS_POR_PERFIL_2026-10-26.md`
+- **Documento:** `docs/PLANO_MENU_PERFIL_POOL_ECOSISTEMA_2026-10-26.md`
 - **Decisões:** ADR-0008 (Pool) e ADR-0009 (Menu por vínculo) em `docs/ARCHITECTURE.md`; regras de perfis em `docs/PRD.md` §3.1.
 - [x] **F0** — ADRs, regras no PRD, contratos planejados em `src/app/api/CONTRACTS.md` §7.1 e itens de backlog (somente documentação).
 - [ ] **F1** — `/api/auth/me` aditivo (`athlete`, `coach`, `canOperate`, `isSuporte`, `isAdmin`) + função pura `buildMenu` (`src/core/access/menu.ts`) com 14 casos de teste. **Código entregue em 2026-10-26; marcar como concluída após `pnpm test:strict` e `pnpm check:r03` verdes localmente.**
@@ -120,6 +120,15 @@
 - **Status:** Concluída (2026-10-28)
 - **Documento:** `docs/PLANO_ALTERACOES_RKT_2026-10-27.md`
 - **DoD:** 5 fases executadas integralmente: (1) Nova partida — rótulos simples/duplas sem "1 vs 1"/"2 vs 2", DateTimeSection sem aviso nem asterisco, Data opcional, `scheduledAt` indefinido sem data, preenchimento com hoje ao entrar em `IN_PROGRESS`; (2) Duplicidade — `findDuplicateMatch` com `matchType` e parceiros, duplas como conjuntos de lados (qualquer ordem), simples nunca colide com dupla, chave de advisory lock atualizada, `DuplicateMatchModal` com tipo/data/"no mesmo dia"; (3) Nomes de dupla — utilitário `abbreviateDoublesName`, `PlayerCard` em uma linha, `ScoreboardCard`/`ScoreboardPlayerRow` com parceiros e truncate+title; (4) Card do dashboard — regra do sobrescrito de tiebreak unificada (vencedor só games, perdedor com sobrescrito dos pontos do TB; Match TB só o placar), `BEST_OF_5` → Set 1-4 e TB, `MatchCard` reescrito sobre estrutura do `ScoreboardCard` com cores de quadra, suspenso, nomes de dupla abreviados, sem pontos do game; (5) Estatísticas avançadas — `BaselineStats` com won/total por faixa de rali (Curtos 1-4, Médios 5-8, Longos 9+), seção de fundo com "Aproveitamento/Total (x/y)", rótulos de rali corrigidos em rally e shot sections, `approach_fh`/`approach_bh` separados na matriz de golpes, Momentum com sequências exatas de 2/3/4+ por jogador, Breakdown por Set com tempo total do jogo. `typecheck` 0 erros · `spec:validate` sem drift · `test:design` 3/3 (26/26) · `test` 397/397 suítes e 3904/3904 testes verdes.
+
+### A0.3c. Alinhamento ao Design System Stitch (Court Precision Tech): Admin, Gestor e Treinador ✅
+- **Status:** Concluída (2026-10-28)
+- **Origem:** Auditoria com MCP Stitch (`projects/1329349350691583873` — *Court Precision Tech*) e diretrizes de segregação de personas (Treinador vs Atleta).
+- **DoD:**
+  - **Perfil Treinador:** Segregação estrita em relação ao perfil Atleta e ao perfil Anotador. Itens de menu ainda sem tela dedicada no Next.js (`treinador-atletas`, `treinador-solicitacoes`, `treinador-relatorios`) configurados via `soon(...)` com `disabled: true` e `badge: 'Em breve'`, eliminando links para rota 404 sem desviar para `/atletas` genérico.
+  - **Perfil Admin:** Correção do bug de opacidade em containers (`opacity-20` no elemento header e cards migrados para opacidade de borda Tailwind `border-telemetry-border/20`), saneamento do alerta de erro para `telemetry-error` e migração dos badges de perfil de classes arbitrárias (`purple-100`, etc.) para tokens de telemetria semânticos (`bg-telemetry-alert/20`, `bg-telemetry-blue/20`, etc.).
+  - **Perfil Gestor:** Correção de acessibilidade WCAG no botão Novo Atleta (`bg-telemetry-volt text-white` → `text-black font-bold`). Saneamento completo de classes legadas (`sky-*`, `gray-*`) e adequação de todos os modais para Level 3 do Stitch (`bg-telemetry-card`, `border-telemetry-border/20`, `text-telemetry-text-primary`, `backdrop-blur-sm`).
+  - **Qualidade e Estabilidade:** 100% STE-DEV R-03 (0 violações em 992 arquivos), `typecheck` 0 erros, `test:design` 3/3 (26/26) e testes unitários/integração verdes.
 
 ### A0.4. Tratamento e Mensagens de Erro Amigáveis (UX) ⏳
 - **Status:** Planejada / Backlog (2026-10-27)
@@ -224,7 +233,7 @@
 ---
 
 ### TD-057. Fundação de acesso — pendências da Fase 1A (PLANO_FUNDACAO_PERFIS_v2)
-- [ ] **VERIFICAR** `match.player1Id === currentUserId` nas rotas de partida (id de Player × id de User): provável nunca verdadeiro; caracterizar antes de mexer.
+- [x] **RESOLVIDO** `match.player1Id === currentUserId` nas rotas de partida: substituído por `actor.athletePlayerId` (resolvido via `Player.userId === currentUserId`).
 - [ ] RLS das tabelas novas (`memberships`, `training_centers`, `player_cts`, `guardian_links`, `consent_records`, `athlete_claims`, `link_invites`, `password_reset_requests`, `audit_logs`) ainda **não** habilitado — adicionar no padrão `20261022000000_add_rls_policies` na Fase 1B.
 - [ ] `User.cpf` continua obrigatório; torná-lo opcional (UNIQUE com vários NULL) na Fase 1B junto com o auto-cadastro, ajustando `schemas/user.ts`, `adminService` e telas.
 - [ ] Token legado sem `sv` (emitido antes do deploy) continua válido e o `refresh` não o promove; passa a ter `sv` no próximo login. Avaliar forçar novo login após o deploy.

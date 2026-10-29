@@ -48,21 +48,21 @@ export function LinkCopyModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 m-4">
+      <div className="bg-telemetry-card border border-telemetry-border/20 text-telemetry-text-primary rounded-2xl shadow-2xl w-full max-w-md p-6 m-4">
         <div className="flex justify-between items-start mb-4">
-          <h2 className="text-xl font-bold text-gray-900">{title}</h2>
-          <button onClick={() => onOpenChange(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+          <h2 className="text-xl font-bold text-telemetry-text-primary">{title}</h2>
+          <button onClick={() => onOpenChange(false)} className="text-telemetry-text-muted hover:text-telemetry-text-primary">✕</button>
         </div>
 
-        <p className="text-sm text-gray-600 mb-4">
-          Link gerado para <span className="font-semibold text-gray-900">{recipientName}</span>. Envie este link para o membro cadastrar ou redefinir sua senha:
+        <p className="text-sm text-telemetry-text-muted mb-4">
+          Link gerado para <span className="font-semibold text-telemetry-text-primary">{recipientName}</span>. Envie este link para o membro cadastrar ou redefinir sua senha:
         </p>
 
-        <div className="bg-gray-50 border rounded-lg p-3 mb-4">
-          <p className="text-xs font-mono text-gray-700 break-all select-all">{resetLink}</p>
+        <div className="bg-telemetry-base border border-telemetry-border/30 rounded-lg p-3 mb-4">
+          <p className="text-xs font-mono text-telemetry-text-primary break-all select-all">{resetLink}</p>
         </div>
 
-        <div className="flex items-center justify-between text-xs text-amber-700 bg-amber-50 p-2.5 rounded-lg mb-6 border border-amber-200">
+        <div className="flex items-center justify-between text-xs text-telemetry-alert bg-telemetry-alert/10 p-2.5 rounded-lg mb-6 border border-telemetry-alert/30">
           <span>Expira em: <strong>{formattedExpires}</strong></span>
           <span>Uso único</span>
         </div>
@@ -71,14 +71,14 @@ export function LinkCopyModal({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+            className="px-4 py-2 text-sm text-telemetry-text-muted hover:text-telemetry-text-primary"
           >
             Fechar
           </button>
           <button
             type="button"
             onClick={handleCopy}
-            className="bg-sky-700 text-white font-semibold py-2 px-5 rounded-lg hover:bg-sky-800 text-sm flex items-center gap-1.5"
+            className="bg-telemetry-blue text-white font-semibold py-2 px-5 rounded-lg hover:bg-telemetry-blue/90 text-sm flex items-center gap-1.5"
           >
             {copied ? '✓ Copiado!' : 'Copiar Link'}
           </button>

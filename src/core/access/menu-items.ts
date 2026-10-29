@@ -33,9 +33,9 @@ export const FINANCEIRO = soon('financeiro', 'Financeiro', '💰');
 export const TORNEIOS = soon('torneios', 'Torneios', '🏆');
 
 export const TREINADOR: readonly MenuItem[] = [
-  link('treinador-atletas', 'Meus Atletas', '/treinador/atletas', '🎾'),
-  link('treinador-solicitacoes', 'Solicitações', '/treinador/solicitacoes', '📨', true, 'Em breve'),
-  link('treinador-relatorios', 'Relatórios', '/treinador/relatorios', '📊', true, 'Em breve'),
+  soon('treinador-atletas', 'Meus Atletas', '🎾'),
+  soon('treinador-solicitacoes', 'Solicitações', '📨'),
+  soon('treinador-relatorios', 'Relatórios', '📊'),
   link('nova-partida', 'Nova Partida', '/match/new', '➕'),
 ];
 

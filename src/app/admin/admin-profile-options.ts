@@ -9,13 +9,13 @@ export const PROFILE_OPTIONS = [
 ];
 
 export function getProfileBadgeClass(profile?: string, role?: string): string {
-  const p = profile || role || '';
-  if (p === 'ADMIN') return 'bg-purple-100 text-purple-800';
-  if (p === 'Suporte' || p === 'SUPORTE') return 'bg-indigo-100 text-indigo-800';
-  if (p.includes('gestor') || p === 'GESTOR') return 'bg-amber-100 text-amber-800';
-  if (p.includes('Treinador') || p === 'TREINADOR') return 'bg-teal-100 text-teal-800';
-  if (p.includes('Atleta') || p === 'ATLETA') return 'bg-emerald-100 text-emerald-800';
-  return 'bg-sky-100 text-sky-800';
+  const p = (profile || role || '').toUpperCase();
+  if (p === 'ADMIN') return 'bg-telemetry-alert/20 text-telemetry-alert border border-telemetry-alert/40';
+  if (p.includes('SUPORTE')) return 'bg-telemetry-blue/20 text-telemetry-blue border border-telemetry-blue/40';
+  if (p.includes('GESTOR')) return 'bg-telemetry-orange/20 text-telemetry-orange border border-telemetry-orange/40';
+  if (p.includes('TREINADOR')) return 'bg-telemetry-volt/20 text-telemetry-volt border border-telemetry-volt/40';
+  if (p.includes('ATLETA')) return 'bg-telemetry-elevated text-telemetry-text-primary border border-telemetry-border/40';
+  return 'bg-telemetry-card text-telemetry-text-muted border border-telemetry-border/20';
 }
 
 export function getInitialRole(profile?: string, role?: string): string {

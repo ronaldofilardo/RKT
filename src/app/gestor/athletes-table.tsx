@@ -38,7 +38,7 @@ export function AthletesTable({
           <button onClick={onCreateCoach} className="bg-telemetry-blue text-white font-semibold py-2 px-4 rounded-lg hover:bg-telemetry-blue/90 text-sm">
             Novo Treinador
           </button>
-          <button onClick={onCreateAthlete} className="bg-telemetry-volt text-white font-semibold py-2 px-4 rounded-lg hover:bg-telemetry-volt/90 text-sm">
+          <button onClick={onCreateAthlete} className="bg-telemetry-volt text-black font-bold py-2 px-4 rounded-lg hover:bg-telemetry-volt/90 active:scale-95 transition-all text-sm">
             Novo Atleta
           </button>
         </div>

@@ -18,13 +18,13 @@ export function AdminUsersTable({
   users, editingUser, newRole, setNewRole, setEditingUser, updateUserRole, removeUserAccount,
 }: AdminUsersTableProps) {
   return (
-    <div className="mt-6 sm:mt-8 bg-telemetry-card rounded-lg shadow-sm border border-telemetry-border opacity-20 overflow-hidden text-telemetry-text-primary">
-      <div className="px-4 sm:px-6 py-4 border-b border-telemetry-border opacity-20 bg-telemetry-elevated opacity-50">
+    <div className="mt-6 sm:mt-8 bg-telemetry-card rounded-lg shadow-sm border border-telemetry-border/20 overflow-hidden text-telemetry-text-primary">
+      <div className="px-4 sm:px-6 py-4 border-b border-telemetry-border/20 bg-telemetry-elevated/50">
         <h3 className="text-lg font-bold text-telemetry-text-primary">Usuários Cadastrados</h3>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-telemetry-text-primary">
-          <thead className="bg-telemetry-elevated opacity-30 text-telemetry-text-muted border-b border-telemetry-border opacity-20">
+          <thead className="bg-telemetry-elevated/30 text-telemetry-text-muted border-b border-telemetry-border/20">
             <tr>
               <th className="text-left px-4 sm:px-6 py-3 font-semibold text-telemetry-text-primary">Nome</th>
               <th className="text-left px-4 sm:px-6 py-3 font-semibold text-telemetry-text-primary">Email</th>
@@ -34,9 +34,9 @@ export function AdminUsersTable({
               <th className="text-right px-4 sm:px-6 py-3 font-semibold text-telemetry-text-primary">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-telemetry-border opacity-10">
+          <tbody className="divide-y divide-telemetry-border/10">
             {users.map((u) => (
-              <tr key={u.id} className="hover:bg-telemetry-elevated opacity-30 text-telemetry-text-primary">
+              <tr key={u.id} className="hover:bg-telemetry-elevated/30 text-telemetry-text-primary">
                 <td className="px-4 sm:px-6 py-3 font-medium text-telemetry-text-primary">{u.name}</td>
                 <td className="px-4 sm:px-6 py-3 text-telemetry-text-muted">{u.email}</td>
                 <td className="px-4 sm:px-6 py-3 text-telemetry-text-muted">{u.cpf || '-'}</td>

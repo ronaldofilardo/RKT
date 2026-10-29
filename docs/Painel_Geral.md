@@ -2,7 +2,7 @@
 
 > Versão filtrada de `PLANO_FUNDACAO_PERFIS_v2_2026-10-23.md`: **tudo o que trata de transmissão ao vivo, convite de transmissão e espectador foi removido.** A numeração original (F#, §, P#) foi mantida; as lacunas (F10, F11, §11, P5, Fase 2) são intencionais. Os pontos que ficaram dependentes dessa remoção estão no **Apêndice**.
 > Documento para um agente de IA implementar. Data do original: 2026-10-23. **Nenhuma alteração de código foi feita ao gerar este documento.**
-> Leia antes: `AGENTS.md` → `docs/RULES.md`, `ARCHITECTURE.md`, `DESIGN.md`, `TASKS.md`, `MEMORY.md`, `PLANO_DUPLAS_2026-10-21.md`.
+> Leia antes: `AGENTS.md` → `docs/RULES.md`, `ARCHITECTURE.md`, `DESIGN.md`, `TASKS.md`, `MEMORY.md`, `docs/archive/PLANO_DUPLAS_2026-10-21.md`.
 > `graft/` é só uma skill: não ler como fonte nem editar. Itens **VERIFICAR** não foram confirmados no código. Itens **[DECIDIR]** têm padrão adotado em §16.
 > Não é aconselhamento jurídico: LGPD, termos e cobrança exigem revisão profissional.
 

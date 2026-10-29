@@ -72,12 +72,12 @@ export function CadastrarMembroModal({ open, onOpenChange, onSave, initialType =
     <>
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 m-4">
+          <div className="bg-telemetry-card border border-telemetry-border/20 text-telemetry-text-primary rounded-2xl shadow-2xl w-full max-w-md p-6 m-4">
             <div className="flex justify-between items-start mb-4">
-              <h2 className="text-xl font-bold text-gray-900">{type === 'TREINADOR' ? 'Novo Treinador' : 'Novo Atleta'}</h2>
-              <button onClick={() => onOpenChange(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+              <h2 className="text-xl font-bold text-telemetry-text-primary">{type === 'TREINADOR' ? 'Novo Treinador' : 'Novo Atleta'}</h2>
+              <button onClick={() => onOpenChange(false)} className="text-telemetry-text-muted hover:text-telemetry-text-primary">✕</button>
             </div>
-            {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{error}</div>}
+            {error && <div className="mb-4 p-3 bg-telemetry-error/10 border border-telemetry-error/30 text-telemetry-error text-sm rounded-lg">{error}</div>}
             <CadastrarMembroForm type={type} fixedType={fixedType} setType={setType} formData={formData} setFormData={setFormData} submitting={submitting} fieldError={fieldError} onCancel={() => onOpenChange(false)} onSubmit={handleSubmit} />
           </div>
         </div>

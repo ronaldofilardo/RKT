@@ -229,7 +229,7 @@ As decisões arquiteturais estruturantes do projeto foram consolidadas diretamen
   - **Saída de clube:** atleta de clube só é desvinculado pelo gestor (ou Suporte). Não existe "sair do clube" feito pelo atleta.
   - **Sem coluna nova de tenant.** Liga, federação ou torneio multi-CT entram no futuro como novo tipo de vínculo, no molde de `Membership`.
 - **Critério transversal:** nenhuma mudança pode introduzir `onDelete: Cascade` de dado esportivo a partir de CT, nem filtro de leitura que dependa de "o CT é dono". CT nunca é apagado, apenas `SUSPENDED`.
-- **Plano:** `docs/PLANO_MENUS_POR_PERFIL_2026-10-26.md`.
+- **Plano:** `docs/PLANO_MENU_PERFIL_POOL_ECOSISTEMA_2026-10-26.md`.
 
 ### ADR-0009 — Menu por Vínculo (soma de seções) (2026-10-26)
 - **Problema:** O menu lateral é único e fixo (`DashboardChrome.tsx`), com variação apenas para ADMIN. Uma conta pode acumular papéis (gestor + treinador + atleta), então o menu não pode ser por "tipo de usuário".
@@ -241,7 +241,7 @@ As decisões arquiteturais estruturantes do projeto foram consolidadas diretamen
   - `mustChangePassword` oculta o menu (só `/trocar-senha`). O item "Aguardando" sai do menu.
   - **O menu orienta, a API protege:** esconder um item nunca substitui `can()`/`withAccessHandler` na rota.
 - **Consequência:** `/api/auth/me` passa a devolver, de forma aditiva, o contexto de atleta e treinador necessário para montar o menu.
-- **Plano:** `docs/PLANO_MENUS_POR_PERFIL_2026-10-26.md`.
+- **Plano:** `docs/PLANO_MENU_PERFIL_POOL_ECOSISTEMA_2026-10-26.md`.
 
 ### ADR-0010 — Identidade, CPF por Hash e Níveis de Atleta (2026-10-27)
 - **Problema:** Atletas cadastrados de forma rápida por anotadores e treinadores não possuem conta de usuário (`User`), mas precisam ser identificados univocamente no pool global sem expor CPF em texto claro e em conformidade estrita com a LGPD.

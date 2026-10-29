@@ -16,7 +16,7 @@ interface AdminHeaderProps {
 /** Cabeçalho da área de administração com saída. */
 export function AdminHeader({ onLogout }: AdminHeaderProps) {
   return (
-    <header className="bg-telemetry-card shadow-sm border-b border-telemetry-border opacity-20 safe-top">
+    <header className="bg-telemetry-card shadow-sm border-b border-telemetry-border/20 safe-top">
       <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
         <h1 className="text-lg sm:text-2xl font-bold text-telemetry-text-primary truncate">Admin Dashboard</h1>
         <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
@@ -37,7 +37,7 @@ interface AdminCardsProps {
 export function AdminCards({ showUsers, onToggleUsers }: AdminCardsProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 text-telemetry-text-primary">
-      <div className="bg-telemetry-card p-4 sm:p-6 rounded-lg shadow-sm border border-telemetry-border opacity-20">
+      <div className="bg-telemetry-card p-4 sm:p-6 rounded-lg shadow-sm border border-telemetry-border/20">
         <h3 className="text-lg font-bold text-telemetry-text-primary mb-2">Gerenciar Usuários</h3>
         <p className="text-telemetry-text-muted mb-4 text-sm sm:text-base">Administrar anotadores e administradores</p>
         <button
@@ -48,7 +48,7 @@ export function AdminCards({ showUsers, onToggleUsers }: AdminCardsProps) {
         </button>
       </div>
 
-      <div className="bg-telemetry-card p-4 sm:p-6 rounded-lg shadow-sm border border-telemetry-border opacity-20">
+      <div className="bg-telemetry-card p-4 sm:p-6 rounded-lg shadow-sm border border-telemetry-border/20">
         <h3 className="text-lg font-bold text-telemetry-text-primary mb-2">Configurações Operacionais</h3>
         <p className="text-telemetry-text-muted mb-4 text-sm sm:text-base">Configurações globais do sistema</p>
         <button className="w-full bg-telemetry-elevated text-telemetry-text-muted font-medium py-3 rounded-lg cursor-not-allowed">

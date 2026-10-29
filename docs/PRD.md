@@ -35,7 +35,7 @@ O sistema tem **exatamente 2 papéis** (`enum Role` em `prisma/schema.prisma:205
 
 ### 3.1 Perfis por vínculo e regras de negócio (2026-10-26)
 
-O `enum Role` acima é apenas o **claim legado** de sessão. O perfil real de uma conta é **derivado dos vínculos** (`Membership`, `Player.userId`, `GuardianLink`, `canOperate`) e pode se acumular: um gestor pode ser também treinador e atleta; um treinador pode ser também atleta. Detalhes em `docs/PLANO_MENUS_POR_PERFIL_2026-10-26.md`.
+O `enum Role` acima é apenas o **claim legado** de sessão. O perfil real de uma conta é **derivado dos vínculos** (`Membership`, `Player.userId`, `GuardianLink`, `canOperate`) e pode se acumular: um gestor pode ser também treinador e atleta; um treinador pode ser também atleta. Detalhes em `docs/PLANO_MENU_PERFIL_POOL_ECOSISTEMA_2026-10-26.md`.
 
 | Perfil | Como nasce | Regras de negócio |
 |---|---|---|

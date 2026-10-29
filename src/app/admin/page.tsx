@@ -26,7 +26,7 @@ export default function AdminPage() {
 
       <main className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
         {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>
+          <div className="mb-4 p-3 bg-telemetry-error/10 border border-telemetry-error/30 text-telemetry-error rounded-lg text-sm">{error}</div>
         )}
 
         <AdminCards
