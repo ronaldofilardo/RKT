@@ -380,6 +380,13 @@ describe('GET /api/[resource]', () => {
 | PUT /api/gestor/athletes/links/:id | ct:members:manage | F5 | Body: { decision: CONFIRM/REJECT } sobre PlayerCT PENDING. |
 | POST /api/athlete-claims | sessão ativa | F1 | Reivindicação segura: userId vem do token, checa player, 1 PENDING por par. |
 | POST /api/auth/signup | público | F8 | E-mail nunca em User.cpf, validação mod 11 de CPF, claim automático de provisório N1/N0. |
+| POST /api/matches/:id/share-links | criador/anotador ativo | F3 | Cria link de convite com token criptográfico de 32 bytes (SHA-256 no banco). |
+| GET /api/matches/:id/share-links | criador/anotador ativo | F3 | Lista links e acompanhantes da partida (tokens mascarados). |
+| DELETE /api/matches/:id/share-links/:linkId | criador/dono do link | F3 | Revoga convite e todas as concessões MatchSpectator originadas dele. |
+| GET /api/spectate/invite/:token | sessão ativa | F3 | Pré-visualização do convite (quem convidou, atletas, quadra e status) antes de resgatar. |
+| POST /api/spectate/redeem | sessão ativa | F3 | Resgata token de convite e cria concessão MatchSpectator (teto de 5 acompanhantes). |
+| GET /api/spectate/:matchId/feed | acompanhante / canReadMatch | F3 | Feed somente-leitura com pré-checagem barata Passo 0 (<150 bytes) e projeção de lista-branca. |
+| POST /api/matches/:id/sessions/:sessionId/heartbeat | dono da sessão | F4 | Heartbeat do anotador a cada 20s com throttle de 15s no servidor. |
 
 ---
 

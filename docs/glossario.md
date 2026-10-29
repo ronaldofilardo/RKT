@@ -17,6 +17,7 @@
 | **RKT** | Aplicação web (Next.js App Router) de anotação tática ao vivo de partidas de tênis. |
 | **ANNOTATOR** | Papel padrão do usuário (`enum Role`). Anota partidas, registra pontos, comentários e áudio, corrige placares e vê relatórios. |
 | **ADMIN** | Papel de gestão (`enum Role`). Além de tudo do ANNOTATOR, faz CRUD de usuários em `/admin`. |
+| **Acompanhante da Partida** | Usuário autenticado com concessão temporária (`MatchSpectator`) ou vínculo direto (`canReadMatch`) para assistir ao feed em modo somente-leitura. Distingue-se do perfil cadastral `ESPECTADOR`. |
 | **Scoring Engine** | Motor puro de pontuação (`src/core/scoring/engine.ts`), agnóstico de UI e backend. Processa cada ponto e calcula o estado de game/set/match segundo os formatos oficiais. |
 
 ---
@@ -34,6 +35,8 @@
 | **MatchComment** | `match_comments` | Comentário do anotador sobre um trecho da partida, com anexo de áudio opcional. |
 | **MatchAnnotationSession** | `match_annotation_sessions` | Segmento de anotação: quem anotou qual trecho e por quanto tempo. |
 | **AnnotationEndorsement** | `annotation_endorsements` | Endosso de um anotador sobre o trabalho de outro em uma sessão. |
+| **MatchShareLink** | `match_share_links` | Convite revogável de acompanhamento com token aleatório de 32 bytes armazenado exclusivamente em formato hash SHA-256. |
+| **MatchSpectator** | `match_spectators` | Concessão temporária por partida permitindo leitura em tempo real do placar e timeline. |
 
 ### Estados e formatos de partida
 

@@ -34,7 +34,8 @@ export async function handleAuthenticated(
         { status: 401 },
       );
     }
-    return NextResponse.redirect(new URL('/login', request.url));
+    const target = `${pathname}${request.nextUrl.search}`;
+    return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(target)}`, request.url));
   }
 
   const decoded = await decodeJwtPayload(token);
@@ -49,7 +50,8 @@ export async function handleAuthenticated(
         { status: 401 },
       );
     }
-    return NextResponse.redirect(new URL('/login', request.url));
+    const target = `${pathname}${request.nextUrl.search}`;
+    return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(target)}`, request.url));
   }
 
   requestHeaders.set('x-user-id', decoded.sub);

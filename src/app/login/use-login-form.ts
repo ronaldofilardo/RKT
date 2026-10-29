@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { LoginPayloadSchema } from '@/schemas/contracts';
 import { writeToSessionOnly, loginRequest } from '@/lib/auth-client';
 import { decodeJwtPayload } from '@/lib/jwt-client';
@@ -11,6 +11,7 @@ export type LoginErrorField = 'identifier' | 'password' | 'both' | null;
 
 export function useLoginForm() {
   const router = useRouter();
+  const searchParams = typeof useSearchParams === 'function' ? useSearchParams() : new URLSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [errorField, setErrorField] = useState<LoginErrorField>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -61,7 +62,10 @@ export function useLoginForm() {
       if ((data.user as any)?.mustChangePassword) {
         router.push('/trocar-senha');
       } else {
-        router.push(homeForProfileString(finalProfile) as any);
+        const rawNext = searchParams.get('next');
+        const isSafeNext = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//');
+        const target = isSafeNext ? rawNext : homeForProfileString(finalProfile);
+        router.push(target as any);
       }
     } catch (err) {
       const code = (err as any)?.code;

@@ -8,6 +8,54 @@
 
 ---
 
+## 2.7 Acompanhamento de Partidas ao Vivo (Transmissão Espectador) — 2026-10-29
+- **Origem:** Plano `docs/PLANO_ACOMPANHAMENTO_PARTIDAS_AO_VIVO_2026-10-29.md`.
+- **Fase 1 (Núcleo Puro):**
+  - Módulos em `src/core/spectate/`: `signal-status.ts`, `rhythm-status.ts` (Opção B adaptativa por ritmo do jogo), `correction-diff.ts`, `spectator-projection.ts`.
+- **Fase 2 (Banco de Dados e Prisma):**
+  - Modelos `MatchShareLink` e `MatchSpectator` criados, migration `20261029090000_add_match_spectating`.
+- **Fase 3 (Serviços e APIs):**
+  - `/api/matches/[id]/share-links`, `/api/spectate/redeem`, `/api/spectate/[matchId]/feed`.
+- **Fase 4 (Heartbeat do Anotador):**
+  - `useAnnotatorHeartbeat.ts` com intervalo de 20s e silêncio em background.
+- **Fase 5 (UI e Modais Conforme Anexos de Design):**
+  - Modal de compartilhamento decomposta em conformidade estrita com a regra R-03:
+    - `ShareSpectateModal.tsx` (orquestrador principal com hook `useShareSpectateModal.ts`).
+    - `ShareSpectateCreateSection.tsx` (contexto da partida, label "Rótulo do convite", card de 3 regras com ícones e botão "Criar convite").
+    - `ShareSpectateCreatedSection.tsx` (URL mono encurtada, botões Copiar link e WhatsApp, aviso de cópia única).
+    - `ShareSpectateWatchersList.tsx` (cabeçalho "Acompanhando · X de 5", avatares circulares com iniciais, badge "Online", remoção individual e botão "Revogar convite").
+    - `share-spectate.icons.tsx` (ícones SVG acessíveis e compatíveis com design system Telemetry).
+  - Submódulos do lado do convidado alinhados rigorosamente ao wireframe do anexo:
+    - `/matches/convite/[token]/page.tsx` e `InviteCard.tsx`: Tela de pré-visualização e resgate com botão explícito "Acompanhar partida", ação "Agora não", avatar com ícone de olho, subtítulo "X convidou você" e card com nomes abreviados de menores (`Ana S. × Bia L.`), quadra, set atual e badge "Ao vivo".
+    - `GET /api/spectate/invite/[token]` e `spectator-preview.service.ts`: Endpoint de leitura segura de convite sem consumir a concessão antes do clique.
+    - `/matches/acompanhar/[matchId]/`:
+      - `SpectatorHeader.tsx`: Seta de voltar, título compacto, badge verde "Ao vivo" (ou "Aguardando início", "Pausada", "Encerrada", "Sem sinal") e subtítulo dinâmico "Atualizado há X s".
+      - `SpectatorScoreboard.tsx`: Tabela em grid com cabeçalho de colunas `S1 S2 Pts`, pontuação dos sets e game atual.
+      - `SpectatorLastPointBanner.tsx`: Faixa azul accent de linha única com último ponto.
+      - `SpectatorTabs.tsx`: 3 abas (`Pontos`, `Resumo`, `Estatísticas`).
+      - `SpectatorTimeline.tsx`: Linhas compactas `G4 · 40–30  Ana S. · ace`.
+      - `SpectatorScoreAnnouncer.tsx`: Acessibilidade auditiva com `aria-live="polite"` que **só anuncia mudanças de game ou set**, preservando leitores de tela durante polling.
+  - **Fase 6 (Implementação Integral dos 10 Estados de Erro, Feed, Conexão e Acesso):**
+    - Alinhamento rigoroso aos 10 estados do wireframe:
+      1. *NO_SIGNAL:* Banner de advertência `Sem atualização há X s. O placar pode estar atrasado.` (limite de 30s de heartbeat).
+      2. *PAUSED:* Mapeado quando `MatchAnnotationSession` estiver suspensa/inativa sem que a partida tenha sido finalizada. Banner neutro `Pausada pelo anotador. Volta quando retomar.`.
+      3. *NOT_STARTED:* Mapeado quando a partida foi criada mas tem 0 pontos (`totalPoints === 0`). Empty state com ampulheta `A partida ainda não começou. Os pontos aparecem aqui assim que o anotador registrar o primeiro.`.
+      4. *FINISHED:* Scoreboard com placar final, aviso `Encerrada. Você acompanha até 7 dias após o término.` e acesso às estatísticas.
+      5. *OFFLINE:* Detectado pelo cliente quando sem rede/internet. Banner `Você está sem internet. Mostrando dados de HH:MM.` e placar preservado com opacidade atenuada (`opacity: 0.6`).
+      6. *403 ACCESS_REVOKED:* Erro imediato quando a concessão é removida pelo dono. Card com ícone de cadeado `Seu acesso foi encerrado. O dono da partida removeu seu acesso. Peça um novo convite.` e botão `Voltar ao início`.
+      7. *404 INVITE_INVALID:* Card com link quebrado `Convite inválido ou expirado. Confira o link ou peça um novo ao dono da partida.` e botão `Voltar ao início`.
+      8. *409 SPECTATOR_LIMIT:* Card com ícone de grupo `Esta partida está lotada. Já são 5 pessoas acompanhando. Peça ao dono para liberar uma vaga.` e botão `Tentar de novo`.
+      9. *EMPTY (Dono):* Modal com 0 acompanhantes exibe `Acompanhando · 0 de 5`, card com ícone de adicionar pessoa `Ninguém acompanha ainda. Envie o link para quem quiser ver a partida.` e botão `Copiar link`.
+      10. *500 / rede (Dono):* Falha ao gerar convite exibe banner de erro `Não foi possível criar o convite. Tente de novo.`, retém o rótulo digitado e botão de retry `Tentar de novo`.
+    - Componentes criados e testados:
+      - `src/components/spectate/SpectatorEmptyState.tsx` (≤ 100L)
+      - `src/components/spectate/SpectatorStatusBanner.tsx` (≤ 100L)
+      - `src/components/scoring/ShareSpectateWatcherRow.tsx` (≤ 100L)
+      - Suíte de testes: `src/components/spectate/__tests__/spectator-states.test.tsx` (100% verde).
+  - Testes: 13 suítes, 51 testes do ecossistema de spectate 100% verdes. R-03: 1039 arquivos de produção, 0 violações, 0 regressões. Typecheck: 0 erros. Design tests: 100% verdes.
+
+---
+
 ## 2.6 Execução Unificada — Conclusão Integral (Etapa 0, Onda 1, Onda 2, Onda 3 e Onda 4) — 2026-10-29
 - **Origem:** Execução e auditoria do plano mestre unificado `docs/PLANO_EXECUCAO_UNIFICADA.md`.
 - **Etapa 0 (Endurecimento e Baseline Verde):**
@@ -212,6 +260,7 @@
 | 2026-10-15 | `c102365` | **UI-7** `SetSummaryModal.tsx` 327 → 91 linhas: `StatBarBilateral`, seções de estatísticas, cabeçalho/abas, card de placar, rodapé de ações e hook `useSetSummaryReport` (7 arquivos ≤100L). |
 | 2026-10-15 | `93a6cda` | **UI-6** `dashboard/page.tsx` 337 → 69 linhas: `useDashboardPageModel` (auth/dados/modais/filtros + `resolveDashboardView`), `useDashboardMatchActions`, `useDashboardSetSummary`, `useDashboardServerStart`, `DashboardChrome` (topo/menu/logout), `DashboardMatchModals` + `ConfirmDeleteMatchDialog` (8 arquivos ≤100L). |
 | 2026-10-15 | `a66caf2` | **UI-5** `scoring/page.tsx` 339 → 94 linhas: `scoring-page-screens`, `useScoringPageChrome` (tipos `ScoringPageState/Effects/Derived`), `scoring-page-play-area`, `scoring-page-controls` e `scoring-page-layout` (6 arquivos ≤100L). |
+| 2026-10-29 | `main` | **Acompanhamento de Partidas ao Vivo (Transmissão de Partidas)**: implementação completa com núcleo puro em `src/core/spectate/` (`types`, `signal-status`, `rhythm-status`, `correction-diff`, `spectator-projection`), migração Prisma aditiva `20261029090000_add_match_spectating` (`MatchShareLink`, `MatchSpectator`, `PointLog.receivedAt`, `PointLog.updatedAt`, `MatchAnnotationSession.lastHeartbeatAt`, `ConsentPurpose.BROADCAST`), serviços de convite e pré-checagem barata Passo 0 no Postgres (<150 bytes, proteção contra estouro de egress do Neon), APIs REST em `/api/spectate/*`, hook de presença `useAnnotatorHeartbeat` (20s com pausa em background e throttle de 15s), suporte seguro a `next` no login e middleware, tela de acompanhamento `/matches/acompanhar/[matchId]` com Scoreboard adaptado, faixa de último ponto com ritmo de jogo simplificado (Opção B), abas Pontos/Resumo e modal `ShareSpectateModal`. 100% STE-DEV R-03 (0 violações em 1026 arquivos), 32 testes de domínio/serviço novos e 100% da suíte de design e componentes passando. |
 | 2026-10-14/15 | `a30b850` `172ac42` `12dfae9` `9f5b9fe` | **UI-1..UI-4 + R-01**: `MatchTimelineView.tsx` 535→96, `MatchCard.tsx` 409→86, `EditMatchInfoModal.tsx` 370→97, `timeline-rows.tsx` 342→81; `docs/glossario.md` recriado em UTF-8 limpo (147 linhas). |
 | 2026-10-14 | `d05bc60` | **Fase 4** remoção de scratch files órfãos da raiz. |
 | 2026-10-13 | *WIP* | Atletas (`RankingForm`, `NewAthleteModal`, `EditAthleteModal`): refatoração da disposição visual dos campos em 'Novo Atleta' e 'Editar Atleta', com layout fixo (flex-nowrap, shrink-0) onde o checkbox do ranking fica no topo à esquerda com o botão 'Remover' logo abaixo, e as colunas de Categoria, Classe, Posição e 'Posição Ranking Juvenil' têm seus rótulos alinhados horizontalmente com o checkbox na linha 1 e seus selects/inputs alinhados com o botão 'Remover' na linha 2, garantindo que todos os campos fiquem na mesma linha horizontal sem quebras. |

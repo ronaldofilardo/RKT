@@ -26,6 +26,18 @@
 
 ## 2. Funcionalidades Ausentes (MVP Incompleto)
 
+### A0.7. Acompanhamento de Partidas ao Vivo (Transmissão Espectador) ✅
+- **Status:** Concluída (2026-10-29)
+- **Documento:** `docs/PLANO_ACOMPANHAMENTO_PARTIDAS_AO_VIVO_2026-10-29.md`
+- **DoD:** Implementação completa da transmissão de partidas ao vivo para convidados e espectadores em 6 fases:
+  1. *Domínio Puro:* `signal-status.ts` com cálculo de status do feed (`NOT_STARTED`, `LIVE`, `NO_SIGNAL`, `PAUSED`, `FINISHED`), threshold de 30s de heartbeat, e `rhythm-status.ts` (Opção B adaptativa por ritmo de rali/game/set/pausa).
+  2. *Banco de Dados e Prisma:* Modelos `MatchShareLink` e `MatchSpectator` com migration `20261029090000_add_match_spectating`.
+  3. *Serviços e APIs:* `/api/matches/[id]/share-links`, `/api/spectate/redeem`, `/api/spectate/[matchId]/feed`, `GET /api/spectate/invite/[token]` (pré-visualização segura de convite sem consumo prematuro).
+  4. *Heartbeat do Anotador:* `useAnnotatorHeartbeat.ts` com polling silencioso a cada 20s.
+  5. *UI do Dono e do Convidado:* Modal de compartilhamento (`ShareSpectateModal`, `ShareSpectateCreateSection`, `ShareSpectateCreatedSection`, `ShareSpectateWatchersList`, `ShareSpectateWatcherRow`) e tela de acompanhar (`SpectatorHeader`, `SpectatorScoreboard`, `SpectatorLastPointBanner`, `SpectatorTabs`, `SpectatorTimeline`, `SpectatorScoreAnnouncer` com `aria-live` em game/set).
+  6. *10 Estados de Erro, Conexão e Acesso:* Cobertura completa dos 10 estados do wireframe: `NO_SIGNAL`, `PAUSED`, `NOT_STARTED`, `FINISHED`, `OFFLINE`, `403 ACCESS_REVOKED`, `404 INVITE_INVALID`, `409 SPECTATOR_LIMIT`, `EMPTY` (dono), `500 / rede` (dono) com `SpectatorStatusBanner` e `SpectatorEmptyState`.
+  - 100% STE-DEV R-03 (1039 arquivos ≤ 100 linhas, 0 violações). 13 suítes e 51 testes do ecossistema de spectate 100% verdes. `typecheck` e `test:design` 100% verdes.
+
 ### A0. Suporte Completo a Partidas de Duplas (Doubles) ✅
 - **Status:** Concluída (2026-10-22)
 - **DoD:** Implementação pura de regras ITF de duplas (`src/core/scoring/doubles.ts`), persistência e migrations no Prisma (`matchType`, `player1PartnerId`, `player2PartnerId`, `doublesSetup`), endpoints de pontuação e arranjo de sacador/devolvedor (`/arrangement`), formulário de criação com seleção de 4 atletas e wizard de setup, tela `/scoring` com indicação de sacador ativo e devolvedor, `PointDetailsModal` com seleção de quem bateu e escolha de lado no deuce no-ad, ajuste de formação entre sets (`DoublesArrangementModal`), modal Editar Placar preservando duplas, timeline, relatório e dashboard. 100% retrocompatível com simples, sem testes ignorados e zero erros no `tsc --noEmit`.
@@ -161,6 +173,17 @@
   - **Etapa 2:** Roteamento Canônico, Home por Perfil e Middleware (funções puras `homeForProfile` e `homeForProfileString`, middleware redirecionando usuários autenticados em `/login` de acordo com seu perfil canônico sem dead code, devolução de `mustChangePassword` na raiz do payload de `POST /api/auth/login`). ✅
   - **Etapa 3:** Layout Compartilhado e Navegação por Perfil (`DashboardChrome` unificado com sidebar e topbar responsivos em `/dashboard`, `/gestor`, `/suporte` e `/admin`, itens sem tela desabilitados com badge 'Em breve', botão voltar dinâmico). ✅
   - **Etapa 4:** Adequação ao Design System (`telemetry-*`) em todas as páginas e modais de `/gestor` e `/suporte`, zero classes Tailwind legadas `bg-gray-*`/`bg-sky-*`/`bg-white`, `useAccess` descontinuado. ✅
+
+### A0.7. Acompanhamento de Partidas ao Vivo (Transmissão de Partidas) ✅
+- **Status:** Concluído (2026-10-29)
+- **Documento:** `docs/PLANO_ACOMPANHAMENTO_PARTIDAS_AO_VIVO_2026-10-29.md`
+- **DoD:**
+  - **Domínio Puro (`src/core/spectate/`):** Cálculo determinístico de status de sinal (`signal-status.ts`), ritmo de jogo e polling adaptativo (`rhythm-status.ts`), detecção transparente de desfazimentos de pontos e ajustes manuais (`correction-diff.ts`), e projeção de lista-branca com mascaramento de menores de idade (`spectator-projection.ts`). ✅
+  - **Banco de Dados (Prisma):** Migração aditiva `20261029090000_add_match_spectating` criando `MatchShareLink` (token hash SHA-256), `MatchSpectator` (concessão de acompanhante por partida), `PointLog.receivedAt`, `PointLog.updatedAt`, `MatchAnnotationSession.lastHeartbeatAt` e enum `ConsentPurpose.BROADCAST`. ✅
+  - **Serviços & Infraestrutura Econômica:** Criptografia de tokens (`src/lib/spectate-token.ts`), pré-checagem barata Passo 0 no Postgres (<150 bytes, evitando estouro de egress do Neon), APIs REST de compartilhamento, resgate (`/api/spectate/redeem`), feed sincronizado (`/api/spectate/[matchId]/feed`) e heartbeat (`/api/matches/[id]/sessions/[sessionId]/heartbeat`). ✅
+  - **Presença do Anotador:** Hook `useAnnotatorHeartbeat` disparando a cada 20s, pausado com aba oculta/offline e throttle de 15s no servidor. ✅
+  - **Interface Mobile-First (360px):** Resgate de convite seguro `/matches/convite/[token]`, redirecionamento com suporte a `next` seguro no login e middleware, tela de acompanhamento `/matches/acompanhar/[matchId]` com Scoreboard adaptado, faixa de último ponto com ritmo de jogo simplificado, abas de Pontos e Resumo, e modal `ShareSpectateModal` no menu. ✅
+  - **Qualidade e Estabilidade:** 100% STE-DEV R-03 (0 violações em 1026 arquivos), `typecheck` 0 erros, `test:design` 3/3 (26/26), `test:components` 98/98 (1.087/1.087) e bateria completa de testes de domínio e serviços verdes. ✅
 
 ### A1. Página de Estatísticas do Jogador 🔴
 - **Status:** Não iniciada

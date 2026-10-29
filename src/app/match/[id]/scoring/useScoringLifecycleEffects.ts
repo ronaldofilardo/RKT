@@ -5,6 +5,7 @@ import type { ScoringPageState } from "./useScoringPageState";
 import type { ScoringPageHandlers } from "./useScoringPageEffects";
 import { useInitialScoringFetch, useViewModeFetch } from "./scoring-lifecycle-fetch.logic";
 import { useSyncStatusEffects, useElapsedTimer } from "./scoring-lifecycle-sync.logic";
+import { useAnnotatorHeartbeat } from "@/hooks/useAnnotatorHeartbeat";
 
 interface ScoringLifecycleEffectsParams {
   state: ScoringPageState;
@@ -63,6 +64,12 @@ export function useScoringLifecycleEffects({
   useSyncStatusEffects(isOnline, setSyncStatus, syncPendingMatches, toast);
 
   useElapsedTimer(scoreState?.startedAt, setElapsed);
+
+  useAnnotatorHeartbeat({
+    matchId: state.match?.id ?? "",
+    sessionId: state.sessionIdRef.current,
+    isActive: Boolean(state.sessionIdRef.current && state.match?.state === "IN_PROGRESS"),
+  });
 
   useEffect(() => {
     const isModalParam =

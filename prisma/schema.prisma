@@ -44,6 +44,8 @@ model User {
   scoreEdits             MatchScoreEdit[]         @relation("ScoreEdits")
   createdPlayers         Player[]                 @relation("CreatedPlayers")
   authoredComments       MatchComment[]           @relation("AuthoredComments")
+  createdShareLinks      MatchShareLink[]         @relation("CreatedShareLinks")
+  spectatingMatches      MatchSpectator[]         @relation("UserSpectators")
 
   @@map("users")
 }
@@ -161,6 +163,8 @@ model Match {
   annotationSessions MatchAnnotationSession[]
   scoreEdits         MatchScoreEdit[]
   comments           MatchComment[]
+  shareLinks         MatchShareLink[]
+  spectators         MatchSpectator[]
 
   @@index([state])
   @@index([deletedAt])
@@ -183,6 +187,8 @@ model PointLog {
   sequenceNumber    Int?
   clientEventId     String?
   voidedAt          DateTime?
+  receivedAt        DateTime       @default(now())
+  updatedAt         DateTime       @default(now()) @updatedAt
   match             Match          @relation(fields: [matchId], references: [id])
   comments          MatchComment[]
 
@@ -252,6 +258,7 @@ model MatchAnnotationSession {
   finalStateSnapshot String?
   isActive           Boolean                 @default(true)
   status             AnnotationSessionStatus @default(IN_PROGRESS)
+  lastHeartbeatAt    DateTime?
   createdAt          DateTime                @default(now())
   updatedAt          DateTime                @default(now()) @updatedAt
   endorsements       AnnotationEndorsement[]
@@ -275,6 +282,42 @@ model AnnotationEndorsement {
 
   @@unique([sessionId, endorsedByUserId])
   @@map("annotation_endorsements")
+}
+
+model MatchShareLink {
+  id              String           @id @default(cuid())
+  matchId         String
+  createdByUserId String?
+  tokenHash       String           @unique
+  label           String?
+  createdAt       DateTime         @default(now())
+  revokedAt       DateTime?
+  lastUsedAt      DateTime?
+
+  match           Match            @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  createdByUser   User?            @relation("CreatedShareLinks", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  spectators      MatchSpectator[]
+
+  @@index([matchId, revokedAt])
+  @@map("match_share_links")
+}
+
+model MatchSpectator {
+  id        String          @id @default(cuid())
+  matchId   String
+  userId    String
+  linkId    String?
+  joinedAt  DateTime        @default(now())
+  lastSeenAt DateTime?
+  revokedAt DateTime?
+
+  match     Match           @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user      User            @relation("UserSpectators", fields: [userId], references: [id], onDelete: Cascade)
+  link      MatchShareLink? @relation(fields: [linkId], references: [id], onDelete: SetNull)
+
+  @@unique([matchId, userId])
+  @@index([userId, revokedAt])
+  @@map("match_spectators")
 }
 
 enum Role {
@@ -610,6 +653,7 @@ enum ResetStatus {
 /// BROADCAST entra junto com a transmissão ao vivo.
 enum ConsentPurpose {
   DATA
+  BROADCAST
 }
 
 enum InviteKind {

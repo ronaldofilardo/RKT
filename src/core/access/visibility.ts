@@ -56,3 +56,14 @@ export function canReadMatchComments(actor: Actor | null | undefined, m: MatchAc
   if (!actor || !actor.isActive) return false;
   return isCreatorOrAnnotator(actor, m) || isOwnerCtStaff(actor, m);
 }
+
+/** Quem pode acompanhar a transmissão ao vivo (vínculo prévio ou concessão temporária). */
+export function canWatchMatch(
+  actor: Actor | null | undefined,
+  m: MatchAccess,
+  isSpectatorGranted = false
+): boolean {
+  if (!actor || !actor.isActive) return false;
+  if (isSpectatorGranted) return true;
+  return canReadMatch(actor, m);
+}

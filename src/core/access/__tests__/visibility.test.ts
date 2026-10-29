@@ -1,4 +1,4 @@
-import { canReadMatch, canReadMatchComments, type MatchAccess } from '../visibility';
+import { canReadMatch, canReadMatchComments, canWatchMatch, type MatchAccess } from '../visibility';
 import { CT, OTHER_CT, actor, member } from './fixtures';
 
 const match: MatchAccess = {
@@ -67,5 +67,23 @@ describe('canReadMatchComments', () => {
     expect(canReadMatchComments(actor({ guardianOfPlayerIds: ['p-1'] }), match)).toBe(false);
     expect(canReadMatchComments(actor({ followedPlayerIds: ['p-1'] }), match)).toBe(false);
     expect(canReadMatchComments(actor({ memberships: [member('GESTOR', { ctId: OTHER_CT })] }), match)).toBe(false);
+  });
+});
+
+describe('canWatchMatch', () => {
+  it('concede a quem já tem canReadMatch', () => {
+    expect(canWatchMatch(actor({ userId: 'creator' }), match)).toBe(true);
+    expect(canWatchMatch(actor({ athletePlayerId: 'p-1' }), match)).toBe(true);
+  });
+
+  it('concede a terceiro se isSpectatorGranted for true', () => {
+    const outsider = actor({ userId: 'outsider-father' });
+    expect(canWatchMatch(outsider, match, false)).toBe(false);
+    expect(canWatchMatch(outsider, match, true)).toBe(true);
+  });
+
+  it('nega para usuário inativo mesmo com concessão', () => {
+    const inactive = actor({ userId: 'outsider-father', isActive: false });
+    expect(canWatchMatch(inactive, match, true)).toBe(false);
   });
 });
