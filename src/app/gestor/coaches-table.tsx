@@ -13,12 +13,11 @@ interface CoachesTableProps {
   onSelectChange: (id: string, checked: boolean) => void;
   onSelectAll: (checked: boolean) => void;
   onCreateCoach: () => void;
-  onCreateAthlete: () => void;
   onRefresh?: () => void;
 }
 
 export function CoachesTable({
-  coaches, selectedIds, onSelectChange, onSelectAll, onCreateCoach, onCreateAthlete, onRefresh,
+  coaches, selectedIds, onSelectChange, onSelectAll, onCreateCoach, onRefresh,
 }: CoachesTableProps) {
   const {
     editing, setEditing, linkData, setLinkData,
@@ -37,9 +36,6 @@ export function CoachesTable({
         <div className="flex gap-2">
           <button onClick={onCreateCoach} className="bg-telemetry-blue text-white font-semibold py-2 px-4 rounded-lg hover:bg-telemetry-blue/90 text-sm">
             Novo Treinador
-          </button>
-          <button onClick={onCreateAthlete} className="bg-telemetry-volt text-black font-bold py-2 px-4 rounded-lg hover:bg-telemetry-volt/90 active:scale-95 transition-all text-sm">
-            Novo Atleta
           </button>
         </div>
       </div>

@@ -65,10 +65,10 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
         <TabNav tab={tab} onTabChange={setTab} matchesCount={matches.length} />
         <div className="space-y-6">
           {tab === 'coaches' && (
-            <CoachesTable coaches={coaches} selectedIds={coachSelected} onSelectChange={(id, chk) => setCoachSelected((p) => chk ? [...p, id] : p.filter((x) => x !== id))} onSelectAll={(chk) => setCoachSelected(chk ? coaches.map((c) => c.user.id) : [])} onCreateCoach={() => { setCadastroType('TREINADOR'); setCadastroOpen(true); }} onCreateAthlete={() => setNewAthleteOpen(true)} onRefresh={fetchCoachesData} />
+            <CoachesTable coaches={coaches} selectedIds={coachSelected} onSelectChange={(id, chk) => setCoachSelected((p) => chk ? [...p, id] : p.filter((x) => x !== id))} onSelectAll={(chk) => setCoachSelected(chk ? coaches.map((c) => c.user.id) : [])} onCreateCoach={() => { setCadastroType('TREINADOR'); setCadastroOpen(true); }} onRefresh={fetchCoachesData} />
           )}
           {tab === 'athletes' && (
-            <AthletesTable athletes={athletes} selectedIds={athleteSelected} onSelectChange={(id, chk) => setAthleteSelected((p) => chk ? [...p, id] : p.filter((x) => x !== id))} onSelectAll={(chk) => setAthleteSelected(chk ? athletes.map((a) => a.player.id) : [])} onCreateCoach={() => { setCadastroType('TREINADOR'); setCadastroOpen(true); }} onCreateAthlete={() => setNewAthleteOpen(true)} onRefresh={fetchAthletesData} />
+            <AthletesTable athletes={athletes} selectedIds={athleteSelected} onSelectChange={(id, chk) => setAthleteSelected((p) => chk ? [...p, id] : p.filter((x) => x !== id))} onSelectAll={(chk) => setAthleteSelected(chk ? athletes.map((a) => a.player.id) : [])} onCreateAthlete={() => setNewAthleteOpen(true)} onRefresh={fetchAthletesData} />
           )}
           {tab === 'matches' && <ClubMatchesTable matches={matches} />}
           {tab === 'club' && <ClubInfo />}

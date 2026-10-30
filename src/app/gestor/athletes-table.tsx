@@ -12,13 +12,12 @@ interface AthletesTableProps {
   selectedIds: string[];
   onSelectChange: (id: string, checked: boolean) => void;
   onSelectAll: (checked: boolean) => void;
-  onCreateCoach: () => void;
   onCreateAthlete: () => void;
   onRefresh?: () => void;
 }
 
 export function AthletesTable({
-  athletes, selectedIds, onSelectChange, onSelectAll, onCreateCoach, onCreateAthlete, onRefresh,
+  athletes, selectedIds, onSelectChange, onSelectAll, onCreateAthlete, onRefresh,
 }: AthletesTableProps) {
   const {
     editing, setEditing, linkData, setLinkData,
@@ -35,9 +34,6 @@ export function AthletesTable({
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold text-telemetry-text-primary">Atletas do Clube</h2>
         <div className="flex gap-2">
-          <button onClick={onCreateCoach} className="bg-telemetry-blue text-white font-semibold py-2 px-4 rounded-lg hover:bg-telemetry-blue/90 text-sm">
-            Novo Treinador
-          </button>
           <button onClick={onCreateAthlete} className="bg-telemetry-volt text-black font-bold py-2 px-4 rounded-lg hover:bg-telemetry-volt/90 active:scale-95 transition-all text-sm">
             Novo Atleta
           </button>
