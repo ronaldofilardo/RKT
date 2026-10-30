@@ -34,7 +34,6 @@ export function MatchCard({
     ...Array.from({ length: setCount }, (_, i) => `Set ${i + 1}`),
     ...(d.isLiveOrSuspended ? ['Pontos'] : []),
   ];
-
   const p1Name = abbreviateDoublesName(match.player1.name, match.player1Partner?.name ?? undefined);
   const p2Name = abbreviateDoublesName(match.player2.name, match.player2Partner?.name ?? undefined);
 
