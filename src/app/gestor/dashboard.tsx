@@ -7,6 +7,7 @@ import { CoachesTable } from './coaches-table';
 import { AthletesTable } from './athletes-table';
 import { ClubMatchesTable } from './club-matches-table';
 import { ClubInfo } from './club-info';
+import { ClubsSection } from './clubs-section';
 import { ManagersSection } from './managers-section';
 import { CadastrarMembroModal } from './cadastrar-membro-modal';
 import { DashboardHeader } from './dashboard-header';
@@ -76,6 +77,7 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
             <AthletesTable athletes={athletes} selectedIds={athleteSelected} onSelectChange={(id, chk) => setAthleteSelected((p) => chk ? [...p, id] : p.filter((x) => x !== id))} onSelectAll={(chk) => setAthleteSelected(chk ? athletes.map((a) => a.player.id) : [])} onCreateAthlete={() => setNewAthleteOpen(true)} onRefresh={fetchAthletesData} />
           )}
           {tab === 'matches' && <ClubMatchesTable matches={matches} />}
+          {tab === 'clubs' && <ClubsSection />}
           {tab === 'club' && <ClubInfo />}
           {tab === 'managers' && <ManagersSection />}
         </div>

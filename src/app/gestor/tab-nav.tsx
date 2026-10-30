@@ -13,6 +13,7 @@ export function TabNav({ tab, onTabChange, matchesCount }: TabNavProps) {
     { key: 'coaches', label: 'Treinadores' },
     { key: 'athletes', label: 'Atletas' },
     { key: 'matches', label: 'Partidas do Clube', badge: matchesCount },
+    { key: 'clubs', label: 'Clubes & CTs' },
     { key: 'club', label: 'Dados do Clube' },
     { key: 'managers', label: 'Gestores' },
   ];

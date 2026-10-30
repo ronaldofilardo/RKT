@@ -1,5 +1,5 @@
 import {
-  ADMIN, DADOS_PESSOAIS, FINANCEIRO, GESTAO, OPERACAO, SAIR, SUPORTE, TORNEIOS, TREINADOR,
+  ADMIN, DADOS_PESSOAIS, FINANCEIRO, GESTAO, OPERACAO, SAIR, TORNEIOS, TREINADOR,
   atletaItems,
 } from './menu-items';
 import type { MenuContext, MenuItem, MenuSection, MenuSectionKey } from './menu-types';
@@ -33,7 +33,7 @@ function dedupeKeepLast(sections: MenuSection[]): MenuSection[] {
 
 /**
  * Menu = soma das seções dos vínculos da conta (ADR-0009), na ordem:
- * Operação → Atleta → Treinador → Gestão do Clube → Suporte → Admin → rodapé.
+ * Operação → Atleta → Treinador → Gestão do Clube → Admin → rodapé.
  * Função pura; o menu orienta, a API protege (`can()`).
  */
 export function buildMenu(ctx: MenuContext): MenuSection[] {
@@ -48,7 +48,6 @@ export function buildMenu(ctx: MenuContext): MenuSection[] {
   if (ctx.gestor?.ctStatus === 'ACTIVE') {
     sections.push(section('gestao', 'Gestão do Clube', [...GESTAO, TORNEIOS, FINANCEIRO]));
   }
-  if (ctx.isSuporte) sections.push(section('suporte', 'Suporte', [...SUPORTE, FINANCEIRO]));
   if (ctx.isAdmin) sections.push(section('admin', 'Admin', [ADMIN]));
   sections.push(section('rodape', 'Conta', [DADOS_PESSOAIS, SAIR]));
 

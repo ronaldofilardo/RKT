@@ -26,7 +26,7 @@ export async function createGestorClub(input: GestorSignupInput) {
       data: {
         name: nomeFantasia,
         slug,
-        status: 'PENDING',
+        status: 'ACTIVE',
         cnpj: normalizedCnpj,
         legalName: razaoSocial,
         phone: telefone,

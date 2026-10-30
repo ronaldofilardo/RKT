@@ -47,12 +47,6 @@ export const GESTAO: readonly MenuItem[] = [
   link('gestao-clube', 'Dados do Clube', '/gestor?tab=club', '🏢'),
 ];
 
-export const SUPORTE: readonly MenuItem[] = [
-  link('suporte-clubes', 'Clubes / CTs', '/suporte', '🏢'),
-  link('suporte-gestores', 'Gestores', '/suporte?module=gestores', '🤝'),
-  link('suporte-avulsos', 'Contas Avulsas', '/suporte?module=avulsos', '👥'),
-];
-
 export const ADMIN: MenuItem = link('admin', 'Admin', '/admin', '⚙️');
 
 export const DADOS_PESSOAIS: MenuItem = link(

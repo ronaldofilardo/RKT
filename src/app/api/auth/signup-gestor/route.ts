@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      message: 'Clube cadastrado com sucesso. Aguarde a aprovação do Suporte.',
+      message: 'Clube cadastrado com sucesso. Você pode gerenciar membros e confirmar informações no painel de gestor.',
       clubId: result.clubId,
       slug: result.slug,
       status: result.status,

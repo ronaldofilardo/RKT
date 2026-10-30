@@ -20,9 +20,9 @@ export function Step2Checkbox({ step2, onToggleSame }: Step2CheckboxProps) {
         type="checkbox"
         checked={step2.sameAsLegalRep}
         onChange={handleToggle}
-        className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500 mt-0.5"
+        className="w-4 h-4 text-sky-400 bg-white border-2 border-sky-400 rounded focus:ring-sky-500 accent-sky-400 mt-0.5 cursor-pointer"
       />
-      <label htmlFor="gestor-same-as-legal-rep" className="text-sm font-medium text-gray-700">
+      <label htmlFor="gestor-same-as-legal-rep" className="text-sm font-medium text-gray-700 cursor-pointer">
         O responsável pelo sistema é o mesmo representante legal da PJ
       </label>
     </div>

@@ -35,6 +35,8 @@ export interface AthleteItem {
     cpf: string;
     email: string | null;
     birthDate: string | null;
+    age?: number | null;
+    cpfLast2?: string | null;
     gender: string;
     dominance: string | null;
     user: {
@@ -61,5 +63,5 @@ export interface ClubMatchItem {
   scoreState?: unknown;
 }
 
-export type GestorTab = 'coaches' | 'athletes' | 'matches' | 'club' | 'managers';
+export type GestorTab = 'coaches' | 'athletes' | 'matches' | 'club' | 'managers' | 'clubs';
 export type MemberType = 'TREINADOR' | 'ATLETA';
