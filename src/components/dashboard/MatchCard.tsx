@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { getColumnTitles, getMaxSetsForFormat } from "@/components/scoring/scoreboard-card-logic";
+import { findCurrentSetIndex, getMaxSetsForFormat } from "@/components/scoring/scoreboard-card-logic";
 import { abbreviateDoublesName } from "@/components/scoring/doubles-name-abbreviation.logic";
 import { MatchCardHeader } from "./match-card-header";
 import { MatchCardScoreTable } from "./match-card-score-grid";
@@ -26,7 +26,14 @@ export function MatchCard({
   const d = useMatchCardData(match);
 
   const format = match.format as string;
-  const columnTitles = getColumnTitles(format as any, d.displayedSets.length, getMaxSetsForFormat(format as any));
+  const maxSets = getMaxSetsForFormat(format as any);
+  const setCount = d.isLiveOrSuspended
+    ? Math.max(d.paddedSets.length, maxSets)
+    : Math.max(d.displayedSets.length, 1);
+  const columnTitles = [
+    ...Array.from({ length: setCount }, (_, i) => `Set ${i + 1}`),
+    ...(d.isLiveOrSuspended ? ['Pontos'] : []),
+  ];
 
   const p1Name = abbreviateDoublesName(match.player1.name, match.player1Partner?.name ?? undefined);
   const p2Name = abbreviateDoublesName(match.player2.name, match.player2Partner?.name ?? undefined);
@@ -67,13 +74,17 @@ export function MatchCard({
       />
 
       <MatchCardScoreTable
-        displayedSets={d.displayedSets}
+        displayedSets={d.isLiveOrSuspended ? d.paddedSets : d.displayedSets}
         columnTitles={columnTitles}
         p1Name={p1Name}
         p2Name={p2Name}
         isServerP1={d.isServerP1}
         isServerP2={d.isServerP2}
         isLiveOrSuspended={d.isLiveOrSuspended}
+        currentGame={d.currentGame}
+        isCurrentSetMT={d.isCurrentSetMT}
+        lastSetTiebreakScore={d.lastSetTiebreakScore}
+        currentSetIndex={findCurrentSetIndex(d.displayedSets, format as any, { player1: d.setsWonP1, player2: d.setsWonP2 }, d.isFinished)}
       />
 
       {match.scheduledAt && (

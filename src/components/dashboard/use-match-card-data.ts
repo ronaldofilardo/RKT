@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { getMaxSetsForFormat } from '@/components/scoring/scoreboard-card-logic';
 import { normalizeScoreState, isMatchTiebreakFormat, isCurrentSetMatchTiebreak, type TennisFormat, type NormalizedScoreState, type SetCellScore } from './match-card.logic';
 import type { DashboardMatchPayload } from './match-card-types';
 
@@ -48,6 +49,15 @@ export function useMatchCardData(match: DashboardMatchPayload) {
     return rawSets;
   }, [scoreState?.sets, match.format, isFinished]);
 
+  const maxSetsForFormat = getMaxSetsForFormat(match.format as TennisFormat);
+
+  const paddedSets = useMemo<SetCellScore[]>(() => {
+    if (!isLiveOrSuspended || isFinished) return displayedSets;
+    const fill = Array.from({ length: Math.max(0, maxSetsForFormat - displayedSets.length) },
+      () => ({ player1: 0, player2: 0, isTiebreak: false, tiebreakScore: null }));
+    return [...displayedSets, ...fill];
+  }, [displayedSets, isLiveOrSuspended, isFinished, maxSetsForFormat]);
+
   const currentServer = useMemo(() => {
     const s = scoreState?.server || suspendedAnnotationScore?.server;
     if (s === 'player1' || s === 'player2') return s;
@@ -87,5 +97,7 @@ export function useMatchCardData(match: DashboardMatchPayload) {
     scoreBg: isSuspendedAnnotation ? 'rgb(var(--telemetry-alert, 217 119 6) / 0.7)' : courtColors.score,
     setsWonP1: scoreState?.setsWon?.player1 ?? 0,
     setsWonP2: scoreState?.setsWon?.player2 ?? 0,
+    currentGame: scoreState?.currentGame ?? null,
+    paddedSets,
   };
 }

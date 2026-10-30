@@ -244,8 +244,8 @@ describe("MatchCard", () => {
 
     render(<MatchCard match={match} />);
 
-    expect(screen.queryByText("15")).toBeNull();
-    expect(screen.queryByText("30")).toBeNull();
+    expect(screen.getByText("15")).toBeTruthy();
+    expect(screen.getByText("30")).toBeTruthy();
   });
 
   it("exibe AD quando há vantagem", () => {
@@ -278,7 +278,7 @@ describe("MatchCard", () => {
 
     const { container } = render(<MatchCard match={match} />);
 
-    expect(container.textContent).not.toContain("AD");
+    expect(container.textContent).toContain("AD");
   });
 
   it("exibe status 'Em Andamento' para partidas sem suspendedSessionId", () => {
@@ -534,8 +534,8 @@ describe("MatchCard", () => {
     expect(container.textContent).toContain("3");
     expect(container.textContent).toContain("2");
     expect(container.textContent).toContain("4");
-    expect(container.textContent).not.toContain("15");
-    expect(container.textContent).not.toContain("30");
+    expect(container.textContent).toContain("15");
+    expect(container.textContent).toContain("30");
   });
 
   it("exibe apenas pontos com label 'Pontos' quando sets está vazio", () => {
@@ -568,8 +568,8 @@ describe("MatchCard", () => {
 
     const { container } = render(<MatchCard match={match} />);
 
-    expect(screen.queryByText("30")).toBeNull();
-    expect(screen.queryByText("15")).toBeNull();
+    expect(screen.getByText("30")).toBeTruthy();
+    expect(screen.getByText("15")).toBeTruthy();
     expect(screen.getByText("S. Jogador")).toBeTruthy();
     expect(screen.getByText("P. Oliveira")).toBeTruthy();
   });
@@ -630,7 +630,7 @@ describe("MatchCard", () => {
     const { container: container1 } = render(<MatchCard match={matchInProgress} />);
     const { container: container2 } = render(<MatchCard match={matchFinished} />);
 
-    expect(container1.textContent).not.toContain("Pontos");
+    expect(container1.textContent).toContain("Pontos");
     expect(container2.textContent).not.toContain("Pontos");
   });
 
@@ -658,8 +658,8 @@ describe("MatchCard", () => {
 
     render(<MatchCard match={match} />);
 
-    expect(screen.queryByText("30")).toBeNull();
-    expect(screen.queryByText("15")).toBeNull();
+    expect(screen.getByText("30")).toBeTruthy();
+    expect(screen.getByText("15")).toBeTruthy();
   });
 
   it("BEST_OF_5 com 4 sets 2-2 e 5º set em tiebreak mostra placar do TB", () => {
@@ -719,7 +719,7 @@ describe("MatchCard", () => {
 
     render(<MatchCard match={match} />);
 
-    expect(screen.queryAllByText("40").length).toBe(0);
+    expect(screen.queryAllByText("40").length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText("3")).toBeTruthy();
     expect(screen.getByText("2")).toBeTruthy();
   });
@@ -780,8 +780,8 @@ describe("MatchCard", () => {
 
     const { container } = render(<MatchCard match={match} />);
 
-    expect(container.textContent).not.toContain("15");
-    expect(container.textContent).not.toContain("30");
+    expect(container.textContent).toContain("15");
+    expect(container.textContent).toContain("30");
     expect(container.textContent).toContain("6");
     expect(container.textContent).toContain("4");
   });
@@ -812,7 +812,7 @@ describe("MatchCard", () => {
     const { container } = render(<MatchCard match={match} />);
 
     expect(container.textContent).not.toContain("15");
-    expect(container.textContent).not.toContain("30");
+    expect(container.textContent).toContain("30");
     expect(container.textContent).toContain("6");
     expect(container.textContent).toContain("4");
   });
