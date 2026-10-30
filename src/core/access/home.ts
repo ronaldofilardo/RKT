@@ -10,6 +10,7 @@ export function homeForProfile(actor: Actor | null | undefined): string {
 
   const profiles = getProfiles(actor);
   if (profiles.includes('ADMIN')) return '/admin';
+  if (profiles.includes('SUPORTE')) return '/suporte';
   if (profiles.includes('GESTOR')) return '/gestor';
   if (profiles.includes('TREINADOR')) return '/dashboard';
   if (profiles.includes('ATLETA')) return '/dashboard';
@@ -21,6 +22,8 @@ export function homeForProfileString(profile?: string | null): string {
   switch (profile) {
     case 'ADMIN':
       return '/admin';
+    case 'SUPORTE':
+      return '/suporte';
     case 'GESTOR':
       return '/gestor';
     case 'TREINADOR':
