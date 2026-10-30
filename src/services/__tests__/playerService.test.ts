@@ -165,6 +165,101 @@ describe('playerService', () => {
     });
   });
 
+  describe('createPlayer - birthYear', () => {
+    const currentYear = new Date().getFullYear();
+
+    it('deve calcular idade a partir de birthYear quando age e birthDate não são fornecidos', async () => {
+      const { createPlayer } = await import('@/services/playerService');
+
+      mockPrisma.player.create.mockResolvedValue({
+        id: 'p1',
+        name: 'Novo',
+        age: 25,
+        birthDate: null,
+        birthYear: currentYear - 25,
+      });
+
+      await createPlayer({ name: 'Novo', birthYear: currentYear - 25 });
+
+      const callArgs = mockPrisma.player.create.mock.calls[0][0];
+      expect(callArgs.data.age).toBe(25);
+      expect(callArgs.data.birthDate).toBeUndefined();
+    });
+
+    it('deve definir categoria ESTADUAL automática a partir do birthYear', async () => {
+      const { createPlayer } = await import('@/services/playerService');
+
+      mockPrisma.player.create.mockResolvedValue({
+        id: 'p1',
+        name: 'Novo',
+        age: 14,
+        birthDate: null,
+        rankings: { ESTADUAL: { category: '13-14' } },
+      });
+
+      await createPlayer({ name: 'Novo', birthYear: currentYear - 14 });
+
+      const callArgs = mockPrisma.player.create.mock.calls[0][0];
+      expect(callArgs.data.age).toBe(14);
+      expect(callArgs.data.rankings).toEqual({ ESTADUAL: { category: '13-14' } });
+    });
+
+    it('não sobrescreve categoria ESTADUAL já informada', async () => {
+      const { createPlayer } = await import('@/services/playerService');
+
+      mockPrisma.player.create.mockResolvedValue({
+        id: 'p1',
+        name: 'Novo',
+        age: 14,
+        birthDate: null,
+        rankings: { ESTADUAL: { category: '15-16' } },
+      });
+
+      await createPlayer({
+        name: 'Novo',
+        birthYear: currentYear - 14,
+        rankings: { ESTADUAL: { category: '15-16' } },
+      });
+
+      const callArgs = mockPrisma.player.create.mock.calls[0][0];
+      expect(callArgs.data.rankings).toEqual({ ESTADUAL: { category: '15-16' } });
+    });
+
+    it('não define categoria quando idade é menor que 11', async () => {
+      const { createPlayer } = await import('@/services/playerService');
+
+      mockPrisma.player.create.mockResolvedValue({
+        id: 'p1',
+        name: 'Crianca',
+        age: 9,
+        birthDate: null,
+        rankings: {},
+      });
+
+      await createPlayer({ name: 'Crianca', birthYear: currentYear - 9 });
+
+      const callArgs = mockPrisma.player.create.mock.calls[0][0];
+      expect(callArgs.data.age).toBe(9);
+      expect(callArgs.data.rankings).toEqual({});
+    });
+
+    it('age fornecido prevalece sobre birthYear', async () => {
+      const { createPlayer } = await import('@/services/playerService');
+
+      mockPrisma.player.create.mockResolvedValue({
+        id: 'p1',
+        name: 'Novo',
+        age: 30,
+        birthDate: null,
+      });
+
+      await createPlayer({ name: 'Novo', age: 30, birthYear: currentYear - 20 });
+
+      const callArgs = mockPrisma.player.create.mock.calls[0][0];
+      expect(callArgs.data.age).toBe(30);
+    });
+  });
+
   describe('findPlayerByEmail', () => {
     it('deve buscar jogador por email', async () => {
       const { findPlayerByEmail } = await import('@/services/playerService');

@@ -29,6 +29,7 @@ export const CreatePlayerInputSchema = z.object({
   gender: z.enum(['MALE', 'FEMALE']).optional(),
   age: z.number().min(1).max(120).optional(),
   birthDate: z.coerce.date().optional(),
+  birthYear: z.number().min(1900).max(2100).optional(),
   dominance: z.enum(['LEFT', 'RIGHT']).optional(),
   backhand: z.enum(['ONE_HANDED', 'TWO_HANDED']).optional(),
   rankings: z.record(

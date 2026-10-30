@@ -737,4 +737,36 @@ describe('POST /api/players - birthDate validation', () => {
     const callArgs = mockCreatePlayer.mock.calls[0][0];
     expect(callArgs.birthDate).toEqual(new Date('1999-03-15'));
   });
+
+  it('deve passar birthYear para createPlayer e aceitar somente ano de nascimento', async () => {
+    mockCreatePlayer.mockResolvedValue({
+      id: 'p1',
+      name: 'Test',
+      gender: null,
+      age: null,
+      birthDate: null,
+      birthYear: 2010,
+      dominance: null,
+      backhand: null,
+      ranking: null,
+      rankings: {},
+    });
+
+    const req = new NextRequest('http://localhost:3000/api/players', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Test', birthYear: 2010 }),
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
+    });
+    const mod = await import('@/app/api/players/route');
+    const POST = mod.POST;
+
+    const res = await POST(req);
+    expect(res.status).toBe(201);
+    expect(mockCreatePlayer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Test',
+        birthYear: 2010,
+      })
+    );
+  });
 });

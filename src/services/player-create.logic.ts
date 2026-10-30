@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { Rankings } from '@/schemas/contracts';
+import { getAutoCategoryForAge } from '@/lib/ranking/rankingConstants';
 import { hashCpf } from '@/core/athlete/cpf';
 import { generateUniqueAthleteCode } from '@/core/athlete/athlete-code';
 
@@ -13,6 +14,7 @@ export async function createPlayer(data: {
   gender?: string;
   age?: number;
   birthDate?: Date;
+  birthYear?: number;
   dominance?: string;
   backhand?: string;
   ranking?: number;
@@ -27,12 +29,27 @@ export async function createPlayer(data: {
   const cpfHash = data.cpf ? hashCpf(data.cpf, pepper) : null;
   const cpfLast2 = data.cpf ? data.cpf.replace(/\D/g, '').slice(-2) : null;
 
-  const age = data.age ?? (data.birthDate ? new Date().getFullYear() - data.birthDate.getFullYear() : undefined);
+  const currentYear = new Date().getFullYear();
+  const age = data.age
+    ?? (data.birthDate
+      ? currentYear - data.birthDate.getFullYear()
+      : data.birthYear
+        ? currentYear - data.birthYear
+        : undefined);
 
   const athleteCode = await generateUniqueAthleteCode(async (code) => {
     const existing = await prisma.player.findFirst({ where: { athleteCode: code }, select: { id: true } });
     return Boolean(existing);
   });
+
+  // Categoria automática (ESTADUAL) a partir da idade calculada
+  let rankingsPayload: Record<string, unknown> = data.rankings ? { ...data.rankings } : {};
+  if (age !== undefined && age >= 11 && !rankingsPayload.ESTADUAL) {
+    const autoCats = getAutoCategoryForAge('ESTADUAL', age);
+    if (autoCats.length > 0) {
+      rankingsPayload.ESTADUAL = { category: autoCats[0] };
+    }
+  }
 
   const player = await prisma.player.create({
     data: {
@@ -45,7 +62,7 @@ export async function createPlayer(data: {
       dominance: data.dominance,
       backhand: data.backhand,
       ranking: data.ranking,
-      rankings: data.rankings as unknown as Prisma.InputJsonValue,
+      rankings: rankingsPayload as unknown as Prisma.InputJsonValue,
       createdByUserId: data.createdByUserId,
       cpfHash,
       cpfLast2,
