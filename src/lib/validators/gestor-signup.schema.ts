@@ -12,14 +12,14 @@ export const GestorSignupSchema = z.object({
   telefone: z.string().min(8, 'Telefone inválido'),
   email: z.string().email('E-mail institucional inválido'),
   endereco: z.object({
-    rua: z.string().min(1),
-    numero: z.string().min(1),
+    rua: z.string().optional(),
+    numero: z.string().optional(),
     complemento: z.string().optional(),
-    bairro: z.string().min(1),
-    cidade: z.string().min(1),
-    estado: z.string().length(2),
-    cep: z.string().min(1),
-  }),
+    bairro: z.string().optional(),
+    cidade: z.string().optional(),
+    estado: z.string().length(2).optional(),
+    cep: z.string().optional(),
+  }).optional(),
   // Dados do Representante Legal
   legalRepName: z.string().min(2, 'Nome do representante legal é obrigatório').max(120),
   legalRepCpf: z.string()

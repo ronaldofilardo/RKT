@@ -6,7 +6,7 @@ import { resolveUniqueSlug } from './signup-gestor-logic';
 
 export async function createGestorClub(input: GestorSignupInput) {
   const {
-    cnpj, razaoSocial, nomeFantasia, telefone, email, endereco,
+    cnpj, razaoSocial, nomeFantasia, telefone, email, endereco = {},
     legalRepName, legalRepCpf, legalRepEmail, legalRepPhone,
     sameAsLegalRep = false, responsibleName, responsibleCpf, responsibleEmail, password,
   } = input;
