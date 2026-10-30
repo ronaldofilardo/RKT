@@ -30,6 +30,9 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
   const [cadastroType, setCadastroType] = useState<MemberType>('TREINADOR');
   const [newAthleteOpen, setNewAthleteOpen] = useState(false);
 
+  const gestorCtId =
+    me.memberships.find((m) => m.kind === 'GESTOR' && m.status === 'ACTIVE')?.ctId ?? null;
+
   const fetchCoachesData = useCallback(async () => {
     try {
       const res = await fetch('/api/gestor/coaches', { cache: 'no-store' });
@@ -75,7 +78,7 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
           {tab === 'managers' && <ManagersSection />}
         </div>
         <CadastrarMembroModal open={cadastroOpen} onOpenChange={setCadastroOpen} initialType={cadastroType} fixedType={cadastroType} onSave={() => { fetchCoachesData(); fetchAthletesData(); }} />
-        <NewAthleteModal isOpen={newAthleteOpen} onClose={() => setNewAthleteOpen(false)} onCreated={() => { setNewAthleteOpen(false); fetchAthletesData(); }} myClub />
+        <NewAthleteModal isOpen={newAthleteOpen} onClose={() => setNewAthleteOpen(false)} onCreated={() => { setNewAthleteOpen(false); fetchAthletesData(); }} myClub ctId={gestorCtId} />
       </div>
     </div>
   );
