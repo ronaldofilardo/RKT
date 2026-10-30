@@ -511,6 +511,29 @@ describe('POST /api/players', () => {
       );
     });
 
+    it('quando GESTOR cria atleta sem myClub, vincula automaticamente ao CT do ator', async () => {
+      mockCreatePlayer.mockResolvedValue({ id: 'p1', name: 'Test', cpfHash: null, cpfLast2: null, identityStatus: 'PROVISIONAL', athleteCode: 'ABC12345' });
+      mockGetActor.mockResolvedValue(gestorActor);
+
+      const req = new NextRequest('http://localhost:3000/api/players', {
+        method: 'POST',
+        body: JSON.stringify({ name: 'Atleta do Clube' }),
+        headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
+      });
+      const mod = await import('@/app/api/players/route');
+      const POST = mod.POST;
+
+      const res = await POST(req);
+      expect(res.status).toBe(201);
+      expect(mockCreatePlayer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          myClub: true,
+          ctId: 'ct-1',
+          actorProfile: 'GESTOR',
+        }),
+      );
+    });
+
     it('com myClub=true e ATLETA passa actorProfile ATLETA', async () => {
       mockCreatePlayer.mockResolvedValue({ id: 'p1', name: 'Test', cpfHash: null, cpfLast2: null, identityStatus: 'PROVISIONAL', athleteCode: 'ABC12345' });
       mockGetActor.mockResolvedValue(atletaActor);

@@ -13,6 +13,8 @@ function actorCreatingProfile(actor: Actor): CreatingProfile | null {
   if (isGestor) return 'GESTOR';
   const isTreinador = actor.memberships.some((m) => m.kind === 'TREINADOR' && m.status === 'ACTIVE');
   if (isTreinador) return 'TREINADOR';
+  const isPlatformAdmin = actor.memberships.some((m) => m.kind === 'PLATAFORMA' && m.preset === 'ADMIN');
+  if (isPlatformAdmin) return 'GESTOR';
   if (actor.athletePlayerId) return 'ATLETA';
   return null;
 }
@@ -46,10 +48,14 @@ export async function handlePlayersPost(
       );
     }
 
+    const creatingProfile = actorCreatingProfile(actor);
+    const cts = actorCtIds(actor);
+    const isClubStaff = creatingProfile === 'GESTOR' || creatingProfile === 'TREINADOR';
+    const shouldLink = Boolean(myClub || (isClubStaff && cts.length > 0));
+
     let resolvedCtId: string | null = null;
-    if (myClub) {
-      const cts = actorCtIds(actor);
-      if (cts.length === 0) {
+    if (shouldLink) {
+      if (myClub && cts.length === 0) {
         return NextResponse.json(
           { error: 'FORBIDDEN', message: 'Ator sem CT vinculado para modo "Meu clube"' },
           { status: 403 },
@@ -64,11 +70,10 @@ export async function handlePlayersPost(
       resolvedCtId = ctId ?? cts[0] ?? null;
     }
 
-    const creatingProfile = actorCreatingProfile(actor);
     const player = await createPlayer({
       ...playerData,
       cpf: cpf ?? null,
-      myClub: !!myClub,
+      myClub: shouldLink && !!resolvedCtId,
       ctId: resolvedCtId,
       createdByUserId: playerData.createdByUserId ?? userId,
       actorProfile: creatingProfile,

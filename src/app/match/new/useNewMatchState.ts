@@ -10,22 +10,17 @@ export function useNewMatchState() {
   const [missingFields, setMissingFields] = useState<string[]>([]);
   const [athletes, setAthletes] = useState<Athlete[]>([]);
   const [matchType, setMatchType] = useState<'SINGLES' | 'DOUBLES'>('SINGLES');
-  const [player1DropdownOpen, setPlayer1DropdownOpen] = useState(false);
-  const [player2DropdownOpen, setPlayer2DropdownOpen] = useState(false);
-  const [player1PartnerDropdownOpen, setPlayer1PartnerDropdownOpen] = useState(false);
-  const [player2PartnerDropdownOpen, setPlayer2PartnerDropdownOpen] = useState(false);
+  const [player1DropdownOpen, setPlayer1DropdownOpen] = useState(false); const [player2DropdownOpen, setPlayer2DropdownOpen] = useState(false);
+  const [player1PartnerDropdownOpen, setPlayer1PartnerDropdownOpen] = useState(false); const [player2PartnerDropdownOpen, setPlayer2PartnerDropdownOpen] = useState(false);
   const [showNewAthleteModal, setShowNewAthleteModal] = useState(false);
   const [newAthleteFor, setNewAthleteFor] = useState<'p1' | 'p2' | 'p1Partner' | 'p2Partner' | null>(null);
-  const [selectedP1, setSelectedP1] = useState<Athlete | null>(null);
-  const [selectedP2, setSelectedP2] = useState<Athlete | null>(null);
-  const [selectedP1Partner, setSelectedP1Partner] = useState<Athlete | null>(null);
-  const [selectedP2Partner, setSelectedP2Partner] = useState<Athlete | null>(null);
+  const [selectedP1, setSelectedP1] = useState<Athlete | null>(null); const [selectedP2, setSelectedP2] = useState<Athlete | null>(null);
+  const [selectedP1Partner, setSelectedP1Partner] = useState<Athlete | null>(null); const [selectedP2Partner, setSelectedP2Partner] = useState<Athlete | null>(null);
   const [doublesSetup, setDoublesSetup] = useState<any | null>(null);
   const [format, setFormat] = useState('BEST_OF_3');
   const [courtType, setCourtType] = useState('CLAY');
   const [sportType, setSportType] = useState('TENNIS');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [date, setDate] = useState(''); const [time, setTime] = useState('');
   const [nickname] = useState('');
   const [visibility, setVisibility] = useState('PLAYERS_ONLY');
   const [anotadorEmail, setAnotadorEmail] = useState('');
@@ -36,8 +31,7 @@ export function useNewMatchState() {
   const bracketType = '' as const;
   const [venueId, setVenueId] = useState('');
   const [publicMatchCode, setPublicMatchCode] = useState('');
-  const [temperature, setTemperature] = useState('');
-  const [humidity, setHumidity] = useState('');
+  const [temperature, setTemperature] = useState(''); const [humidity, setHumidity] = useState('');
   const [tags, setTags] = useState('');
   const [details, setDetails] = useState('');
   const [openForAnnotation, setOpenForAnnotation] = useState(false);
@@ -60,7 +54,14 @@ export function useNewMatchState() {
     ensureAuthCookie();
   }, []);
   useEffect(() => {
-    loadAvailableCts().then(setAvailableCts).catch(() => undefined);
+    loadAvailableCts().then((cts) => {
+      setAvailableCts(cts);
+      const role = typeof window !== 'undefined' ? sessionStorage.getItem('user_role') : null;
+      if (cts.length === 1 && (role === 'GESTOR' || role === 'TREINADOR' || !role)) {
+        setMyClub(true);
+        setCtId(cts[0].id);
+      }
+    }).catch(() => undefined);
   }, []);
   useEffect(() => {
     if (typeof fetch !== 'function') return;

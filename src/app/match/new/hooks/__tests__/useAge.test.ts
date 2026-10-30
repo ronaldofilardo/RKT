@@ -43,4 +43,14 @@ describe('useAge', () => {
     const { result } = renderHook(() => useAge('', '', ''));
     expect(result.current).toBeNull();
   });
+
+  it('calculates age correctly when only birthYear is provided', () => {
+    const { result } = renderHook(() => useAge('2010'));
+    expect(result.current).toBe(16);
+  });
+
+  it('calculates age correctly when only birthYear is provided with empty month and day', () => {
+    const { result } = renderHook(() => useAge('2006', '', ''));
+    expect(result.current).toBe(20);
+  });
 });

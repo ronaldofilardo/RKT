@@ -31,7 +31,9 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
   const [newAthleteOpen, setNewAthleteOpen] = useState(false);
 
   const gestorCtId =
-    me.memberships.find((m) => m.kind === 'GESTOR' && m.status === 'ACTIVE')?.ctId ?? null;
+    me.memberships.find((m) => m.kind === 'GESTOR' && m.status === 'ACTIVE')?.ctId
+    ?? me.memberships.find((m) => m.kind === 'GESTOR')?.ctId
+    ?? null;
 
   const fetchCoachesData = useCallback(async () => {
     try {
