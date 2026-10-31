@@ -35,14 +35,15 @@ export function Section({ title, children }: { title: string; children: ReactNod
 }
 
 /** Cabeçalho das colunas de valores (J1, rótulo central, J2). */
-export function PlayerColumnHeader({ player1Name, player2Name }: {
+export function PlayerColumnHeader({ player1Name, player2Name, centerLabel }: {
   player1Name: string;
   player2Name: string;
+  centerLabel?: string;
 }) {
   return (
     <div className="grid grid-cols-[1fr_140px_1fr] gap-2 text-xs text-telemetry-text-muted mb-2 px-1 items-center">
       <span className="text-right truncate">{player1Name}</span>
-      <span className="text-center w-[140px]"></span>
+      <span className="text-center w-[140px] truncate">{centerLabel}</span>
       <span className="truncate">{player2Name}</span>
     </div>
   );

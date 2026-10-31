@@ -6,6 +6,7 @@ import { formatZodMessage } from '@/lib/api-response.logic';
 import { withAccessHandler } from '@/lib/access-handler';
 import { getGestorCtId, denyGestor } from '../../_logic';
 import { PatchSchema } from './patch-logic';
+import { getCpfLast2, hashCpf } from '@/core/athlete/cpf';
 
 export async function PATCH(
   request: NextRequest,
@@ -34,28 +35,44 @@ export async function PATCH(
           where: { OR: [{ id }, { playerId: id }, { player: { userId: id } }], ctId },
           include: { player: { include: { user: true } } },
         });
-        if (!playerCT || !playerCT.player.user) {
+        if (!playerCT) {
           return NextResponse.json(
             { error: 'NOT_FOUND', message: 'Atleta não encontrado' },
             { status: 404 },
           );
         }
 
-        const userId = playerCT.player.userId;
-        if (!userId) {
+        // Atleta pode existir sem conta de acesso (ex.: cadastrado só com ano de nascimento).
+        // Nesse caso edita-se apenas o Player; nome/CPF do User só quando houver conta.
+        const userId = playerCT.player.user ? playerCT.player.userId : null;
+        const cpfDigits = parsed.data.cpf.replace(/\D/g, '');
+        if (userId && cpfDigits.length !== 11) {
           return NextResponse.json(
-            { error: 'NOT_FOUND', message: 'Usuário do atleta não encontrado' },
-            { status: 404 },
+            { error: 'VALIDATION_ERROR', message: 'cpf: CPF inválido', details: { formErrors: [], fieldErrors: { cpf: ['CPF inválido'] } } },
+            { status: 400 },
           );
         }
 
-        await prisma.user.update({
-          where: { id: userId },
-          data: {
-            name: parsed.data.name,
-            cpf: parsed.data.cpf.replace(/\D/g, ''),
-          },
-        });
+        // Atleta sem conta: o CPF só existe como hash + 2 últimos dígitos no Player.
+        // CPF vazio mantém o valor atual; informado, substitui. Mesma regra do atleta com conta
+        // (11 dígitos, sem checagem de dígitos verificadores).
+        let cpfData: { cpf: string; cpfHash: string; cpfLast2: string } | Record<string, never> = {};
+        if (!userId && cpfDigits) {
+          cpfData = { cpf: cpfDigits, cpfHash: hashCpf(cpfDigits, process.env.CPF_HASH_PEPPER ?? ''), cpfLast2: getCpfLast2(cpfDigits) };
+        }
+
+        // Ano lido da string (evita deslocamento de fuso de new Date('YYYY-MM-DD')).
+        const birthYear = Number(/^(\d{4})/.exec(parsed.data.birthDate)?.[1]) || null;
+
+        if (userId) {
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              name: parsed.data.name,
+              cpf: parsed.data.cpf.replace(/\D/g, ''),
+            },
+          });
+        }
 
         await prisma.player.update({
           where: { id: playerCT.player.id },
@@ -64,6 +81,8 @@ export async function PATCH(
             gender: parsed.data.gender,
             dominance: parsed.data.dominance,
             birthDate: parsed.data.birthDate ? new Date(parsed.data.birthDate) : null,
+            ...(birthYear ? { age: new Date().getFullYear() - birthYear } : {}),
+            ...cpfData,
           },
         });
 

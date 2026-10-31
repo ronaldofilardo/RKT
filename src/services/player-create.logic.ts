@@ -64,6 +64,7 @@ export async function createPlayer(data: {
       ranking: data.ranking,
       rankings: rankingsPayload as unknown as Prisma.InputJsonValue,
       createdByUserId: data.createdByUserId,
+      cpf: data.cpf ? data.cpf.replace(/\D/g, '') : null,
       cpfHash,
       cpfLast2,
       identityStatus: data.createdByUserId ? 'CONFIRMED' : 'PROVISIONAL',

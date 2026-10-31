@@ -1,4 +1,4 @@
-import { getMatchFormatDisplayLabel, formatClubMatchScore } from '../club-matches.logic';
+import { getMatchFormatDisplayLabel, getMatchFormatShortLabel, formatClubMatchScore } from '../club-matches.logic';
 
 describe('getMatchFormatDisplayLabel', () => {
   it('retorna os rótulos do droplist de nova partida', () => {
@@ -18,6 +18,22 @@ describe('getMatchFormatDisplayLabel', () => {
 
   it('retorna o formato original caso não seja encontrado', () => {
     expect(getMatchFormatDisplayLabel('CUSTOM_FORMAT')).toBe('CUSTOM_FORMAT');
+  });
+});
+
+describe('getMatchFormatShortLabel (coluna Formato da listagem)', () => {
+  it('abrevia todos os formatos conhecidos', () => {
+    expect(getMatchFormatShortLabel('BEST_OF_3')).toBe('M3');
+    expect(getMatchFormatShortLabel('BEST_OF_3_MATCH_TB')).toBe('M3 + MT');
+    expect(getMatchFormatShortLabel('BEST_OF_5')).toBe('M5');
+    expect(getMatchFormatShortLabel('BEST_OF_3_NO_AD')).toBe('M3 No-Ad');
+    expect(getMatchFormatShortLabel('SHORT_SET_2V2_NO_AD')).toBe('M3 2/2 No-Ad + MT');
+    expect(getMatchFormatShortLabel('PRO_SET_8')).toBe('Pro 8');
+    expect(getMatchFormatShortLabel('MATCH_TB_10')).toBe('MT 10');
+  });
+
+  it('cai no rótulo amigável para formatos desconhecidos', () => {
+    expect(getMatchFormatShortLabel('CUSTOM_FORMAT')).toBe('CUSTOM_FORMAT');
   });
 });
 

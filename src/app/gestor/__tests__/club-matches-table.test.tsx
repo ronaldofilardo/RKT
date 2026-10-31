@@ -22,7 +22,7 @@ const match = (id: string, state: string, format = 'BEST_OF_3', scoreState?: unk
 });
 
 describe('ClubMatchesTable — Ver Partida', () => {
-  it('exibe coluna Placar e Formato amigável do droplist de nova partida', () => {
+  it('exibe coluna Placar e Formato abreviado (com rótulo completo no tooltip)', () => {
     mockedHook.mockReturnValue(null);
     const score = {
       sets: [
@@ -32,7 +32,7 @@ describe('ClubMatchesTable — Ver Partida', () => {
     };
     render(<ClubMatchesTable matches={[match('m0', 'FINISHED', 'BEST_OF_3_NO_AD', score)]} />);
     expect(screen.getByText('Placar')).toBeInTheDocument();
-    expect(screen.getByText('Melhor de 3 sets "no ad"')).toBeInTheDocument();
+    expect(screen.getByText('M3 No-Ad')).toHaveAttribute('title', 'Melhor de 3 sets "no ad"');
     expect(screen.getByText('6/4 7/6(3)')).toBeInTheDocument();
   });
 
@@ -63,5 +63,21 @@ describe('ClubMatchesTable — Ver Partida', () => {
     mockedHook.mockReturnValue(null);
     render(<ClubMatchesTable matches={[match('m4', 'IN_PROGRESS')]} />);
     expect(screen.getByRole('link', { name: 'Ver Partida' })).toHaveAttribute('href', '/matches/acompanhar/m4');
+  });
+
+  it('exibe o ícone de timeline apontando para o relatório em partidas finalizadas', () => {
+    mockedHook.mockReturnValue({ open: jest.fn() });
+    render(<ClubMatchesTable matches={[match('m5', 'FINISHED')]} />);
+    expect(screen.getByRole('link', { name: 'Ver timeline' })).toHaveAttribute('href', '/match/m5/report');
+  });
+
+  it('mantém o ícone de timeline mesmo com o popup de acompanhamento ativo', () => {
+    const open = jest.fn();
+    mockedHook.mockReturnValue({ open });
+    render(<ClubMatchesTable matches={[match('m6', 'IN_PROGRESS')]} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ver Partida' }));
+    expect(open).toHaveBeenCalledWith('m6', 'Ana × Bia');
+    expect(screen.getByRole('link', { name: 'Ver timeline' })).toHaveAttribute('href', '/match/m6/report');
   });
 });

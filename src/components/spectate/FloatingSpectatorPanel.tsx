@@ -32,7 +32,17 @@ export function FloatingSpectatorPanel(p: Props) {
       role="dialog"
       aria-label={`Acompanhamento: ${p.title}`}
       onPointerDown={p.onFocus}
-      style={p.isDesktop ? { left: p.pos.x, top: p.pos.y, width: PANEL_WIDTH, zIndex: p.zIndex } : { zIndex: p.zIndex }}
+      style={p.isDesktop
+        ? {
+            left: p.pos.x,
+            top: p.pos.y,
+            width: PANEL_WIDTH,
+            // Nunca maior que a tela, mesmo com zoom alto.
+            maxWidth: 'calc(100vw - 16px)',
+            maxHeight: `calc(100vh - ${p.pos.y}px - 16px)`,
+            zIndex: p.zIndex,
+          }
+        : { zIndex: p.zIndex }}
       className={`fixed flex flex-col max-h-[85vh] md:max-h-[calc(100vh-96px)] bg-telemetry-card text-telemetry-text-primary border border-telemetry-border/30 shadow-2xl ${layout}`}
     >
       <header
@@ -64,7 +74,7 @@ export function FloatingSpectatorPanel(p: Props) {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeWidth={2} d="M6 6l12 12M18 6L6 18" /></svg>
         </button>
       </header>
-      <div className="flex flex-col gap-3 p-3 overflow-y-auto">{p.children}</div>
+      <div className="flex flex-col gap-3 p-3 min-h-0 overflow-y-auto overflow-x-auto">{p.children}</div>
     </section>
   );
 }

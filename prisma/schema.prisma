@@ -86,7 +86,9 @@ model Player {
   user              User?              @relation("PlayerAccount", fields: [userId], references: [id], onDelete: SetNull)
   clubId            String?
   clubRef           Club?              @relation("PlayerClub", fields: [clubId], references: [id], onDelete: SetNull)
-  /// Hash HMAC-SHA256 do CPF (apenas atletas provisórios/sem conta). O CPF completo nunca fica aqui.
+  /// CPF completo (11 dígitos) de atleta SEM conta, visível apenas ao gestor do clube. Atleta com conta usa User.cpf.
+  cpf               String?
+  /// Hash HMAC-SHA256 do CPF (busca/deduplicação de atletas provisórios/sem conta).
   cpfHash           String?
   /// Dois últimos dígitos do CPF (índice leve de busca por proximidade).
   cpfLast2          String?

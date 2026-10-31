@@ -7,7 +7,6 @@ import { SpectatorCorrectionBanner } from './SpectatorCorrectionBanner';
 import { SpectatorScoreboard } from './SpectatorScoreboard';
 import { SpectatorLastPointBanner } from './SpectatorLastPointBanner';
 import { SpectatorTabs } from './SpectatorTabs';
-import { SpectatorScoreEditNotice } from './SpectatorScoreEditNotice';
 import { SpectatorScoreAnnouncer } from './SpectatorScoreAnnouncer';
 import { SpectatorEmptyState } from '@/components/spectate/SpectatorEmptyState';
 import { SpectatorStatusBanner } from '@/components/spectate/SpectatorStatusBanner';
@@ -50,7 +49,6 @@ export function SpectatorLiveContent({ view, feed, updateText, hideHeader = fals
       ) : (
         <>
           <SpectatorScoreboard view={view} isDimmed={isClientOffline || status === 'NO_SIGNAL'} />
-          <SpectatorScoreEditNotice markers={view.markers ?? []} />
           <SpectatorLastPointBanner lastPoint={lastPoint} winnerName={lastWinnerName} rhythm={rhythm} />
           {status === 'FINISHED' && (
             <p className="text-xs text-telemetry-text-muted m-0 text-center">

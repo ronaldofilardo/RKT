@@ -24,19 +24,19 @@ export function GestorRow({
     : '-';
 
   return (
-    <tr className="border-b border-telemetry-border opacity-10 hover:bg-telemetry-elevated opacity-30">
-      <td className="py-3 text-sm text-telemetry-text-primary font-medium">{user?.name || '-'}</td>
-      <td className="py-3 text-sm text-telemetry-text-muted font-mono text-xs">{formattedCpf}</td>
-      <td className="py-3 text-sm text-telemetry-text-muted">{user?.email || '-'}</td>
-      <td className="py-3 text-sm text-telemetry-text-primary">{club?.name || 'Clube não vinculado'}</td>
-      <td className="py-3 text-sm">
+    <tr className="border-b border-telemetry-border/10 hover:bg-telemetry-elevated/30 transition-colors">
+      <td className="px-3 py-3 text-sm text-telemetry-text-primary font-medium">{user?.name || '-'}</td>
+      <td className="px-3 py-3 text-sm text-telemetry-text-muted font-mono text-xs">{formattedCpf}</td>
+      <td className="px-3 py-3 text-sm text-telemetry-text-muted">{user?.email || '-'}</td>
+      <td className="px-3 py-3 text-sm text-telemetry-text-primary">{club?.name || 'Clube não vinculado'}</td>
+      <td className="px-3 py-3 text-sm">
         <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-          m.status === 'ACTIVE' ? 'bg-telemetry-volt text-telemetry-volt opacity-20' : 'bg-telemetry-error text-telemetry-error opacity-20'
+          m.status === 'ACTIVE' ? 'bg-telemetry-volt/20 text-telemetry-volt' : 'bg-telemetry-error/20 text-telemetry-error'
         }`}>
           {m.status === 'ACTIVE' ? 'Ativo' : 'Suspenso'}
         </span>
       </td>
-      <td className="py-3 text-sm whitespace-nowrap text-right">
+      <td className="px-3 py-3 text-sm whitespace-nowrap text-right">
         <button
           onClick={onGenerateLink}
           className="text-xs text-telemetry-alert hover:underline mr-3 font-medium"

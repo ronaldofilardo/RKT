@@ -19,8 +19,8 @@ export async function handleSignupPost(input: SignupInput): Promise<NextResponse
   const isEmail = trimmed.includes('@');
   const email = isEmail ? trimmed.toLowerCase() : null;
 
-  // User.cpf só deve conter CPF real (ou null). Nunca grava e-mail nessa coluna (P6).
-  const cpfValue = cpfRaw ?? null;
+  // User.cpf: CPF real se fornecido, caso contrário gera placeholder único
+  const cpfValue = cpfRaw ?? `PLACEHOLDER_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 
   const existing = await prisma.user.findFirst({
     where: isEmail ? { email: email ?? undefined } : { cpf: cpfValue ?? undefined },

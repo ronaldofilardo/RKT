@@ -32,8 +32,8 @@ export function ClubInfo() {
   const addrText = [addr.rua, addr.numero, addr.bairro, addr.cidade, addr.estado, addr.cep].filter(Boolean).join(', ');
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-0 sm:p-6 space-y-6">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-lg font-semibold text-telemetry-text-primary">Dados do Clube</h2>
         <button onClick={() => setEditOpen(true)} className="text-sm text-telemetry-blue hover:underline font-medium">Editar dados do clube</button>
       </div>

@@ -54,19 +54,23 @@ export function GestoresSection({ memberships, users, clubs, onEdit, onRefresh }
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
+    <div className="p-0 sm:p-6 space-y-6">
+      <div className="flex justify-between items-center">
         <div>
           <h2 className="text-lg font-semibold text-telemetry-text-primary">Gestão de Gestores</h2>
           <p className="text-xs text-telemetry-text-muted">Controle de gestores, links de senha e revogação de acessos</p>
         </div>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+      <div className="bg-telemetry-card rounded-xl shadow border border-telemetry-border/20 overflow-x-auto">
+        <table className="w-full min-w-[768px] text-left border-collapse">
           <thead>
-            <tr className="border-b border-telemetry-border opacity-20 text-sm font-medium text-telemetry-text-muted">
-              <th className="pb-3">Gestor</th><th className="pb-3">CPF</th><th className="pb-3">E-mail</th>
-              <th className="pb-3">Clube Vinculado</th><th className="pb-3">Status</th><th className="pb-3 text-right">Ações</th>
+            <tr className="border-b border-telemetry-border/40">
+              <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Gestor</th>
+              <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">CPF</th>
+              <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">E-mail</th>
+              <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Clube Vinculado</th>
+              <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Status</th>
+              <th className="px-3 pb-4 pt-4 text-right text-sm font-medium text-telemetry-text-primary">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -78,7 +82,7 @@ export function GestoresSection({ memberships, users, clubs, onEdit, onRefresh }
               );
             })}
             {gestores.length === 0 && (
-              <tr><td colSpan={6} className="py-6 text-center text-telemetry-text-muted text-sm">Nenhum gestor cadastrado na plataforma.</td></tr>
+              <tr><td colSpan={6} className="px-3 py-8 text-center text-telemetry-text-muted text-sm">Nenhum gestor cadastrado na plataforma.</td></tr>
             )}
           </tbody>
         </table>

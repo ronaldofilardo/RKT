@@ -20,8 +20,16 @@ export function useIsDesktop(): boolean {
   return isDesktop;
 }
 
+const VIEWPORT_MARGIN = 8;
+
+/** Largura efetiva: PANEL_WIDTH, limitada à tela (zoom alto reduz a largura útil em px CSS). */
+export function getPanelWidth(): number {
+  if (typeof window === 'undefined') return PANEL_WIDTH;
+  return Math.min(PANEL_WIDTH, Math.max(0, window.innerWidth - VIEWPORT_MARGIN * 2));
+}
+
 function clampToViewport(x: number, y: number) {
-  const maxX = Math.max(0, window.innerWidth - PANEL_WIDTH);
+  const maxX = Math.max(0, window.innerWidth - getPanelWidth() - VIEWPORT_MARGIN);
   const maxY = Math.max(0, window.innerHeight - 48);
   return { x: Math.min(Math.max(0, x), maxX), y: Math.min(Math.max(0, y), maxY) };
 }
@@ -29,13 +37,23 @@ function clampToViewport(x: number, y: number) {
 /** Posição inicial escalonada (canto superior direito, cada janela um pouco deslocada). */
 function initialPosition(index: number) {
   if (typeof window === 'undefined') return { x: 16, y: 72 };
-  return clampToViewport(window.innerWidth - PANEL_WIDTH - 24 - index * 32, 72 + index * 32);
+  return clampToViewport(window.innerWidth - getPanelWidth() - 24 - index * 32, 72 + index * 32);
 }
 
 /** Arrastar pela barra de título (ignora cliques em botões). */
 export function useDraggablePosition(index: number) {
   const [pos, setPos] = useState(() => initialPosition(index));
   const drag = useRef<{ dx: number; dy: number } | null>(null);
+
+  // Zoom/redimensionamento altera a largura útil: reposiciona para a janela nunca sair da tela.
+  useEffect(() => {
+    const onResize = () => setPos((p) => {
+      const c = clampToViewport(p.x, p.y);
+      return c.x === p.x && c.y === p.y ? p : c;
+    });
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const onPointerDown = (e: PointerEvent<HTMLElement>) => {
     if ((e.target as HTMLElement).closest('button')) return;

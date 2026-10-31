@@ -8,24 +8,26 @@ interface EditarAtletaModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   atleta?: { id: string } & AtletaFormData;
+  /** false para atleta sem conta de acesso (CPF opcional). Padrão: true. */
+  cpfRequired?: boolean;
   onSave: (data: AtletaFormData) => Promise<void> | void;
 }
 
-export function EditarAtletaModal({ open, onOpenChange, atleta, onSave }: EditarAtletaModalProps) {
+export function EditarAtletaModal({ open, onOpenChange, atleta, onSave, cpfRequired = true }: EditarAtletaModalProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [formData, setFormData] = useState<AtletaFormData>({
     name: atleta?.name || '', cpf: atleta?.cpf || '',
-    birthDate: atleta?.birthDate || '', gender: atleta?.gender || 'MASCULINO',
-    dominance: atleta?.dominance || 'DESTRO',
+    birthDate: atleta?.birthDate || '', gender: atleta?.gender || 'MALE',
+    dominance: atleta?.dominance || 'RIGHT',
   });
   useEffect(() => {
     if (atleta) {
       setFormData({
         name: atleta.name || '', cpf: atleta.cpf || '',
         birthDate: atleta.birthDate ? atleta.birthDate.slice(0, 10) : '',
-        gender: atleta.gender || 'MASCULINO', dominance: atleta.dominance || 'DESTRO',
+        gender: atleta.gender || 'MALE', dominance: atleta.dominance || 'RIGHT',
       });
     }
   }, [atleta]);
@@ -63,8 +65,8 @@ export function EditarAtletaModal({ open, onOpenChange, atleta, onSave }: Editar
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="editar-atleta-cpf" className="text-xs font-medium text-telemetry-text-muted block mb-1">CPF</label>
-              <input id="editar-atleta-cpf" type="text" required value={formData.cpf} onChange={(e) => setFormData((p) => ({ ...p, cpf: e.target.value }))} className={`w-full bg-telemetry-base border border-telemetry-border/30 text-telemetry-text-primary rounded-lg p-2.5 text-sm focus:border-telemetry-blue focus:outline-none ${fieldError === 'cpf' ? 'border-telemetry-error' : ''}`} />
+              <label htmlFor="editar-atleta-cpf" className="text-xs font-medium text-telemetry-text-muted block mb-1">CPF{cpfRequired ? '' : ' (opcional)'}</label>
+              <input id="editar-atleta-cpf" type="text" required={cpfRequired} value={formData.cpf} onChange={(e) => setFormData((p) => ({ ...p, cpf: e.target.value }))} className={`w-full bg-telemetry-base border border-telemetry-border/30 text-telemetry-text-primary rounded-lg p-2.5 text-sm focus:border-telemetry-blue focus:outline-none ${fieldError === 'cpf' ? 'border-telemetry-error' : ''}`} />
             </div>
             <div>
               <label htmlFor="editar-atleta-nascimento" className="text-xs font-medium text-telemetry-text-muted block mb-1">Data de nascimento</label>
@@ -75,13 +77,13 @@ export function EditarAtletaModal({ open, onOpenChange, atleta, onSave }: Editar
             <div>
               <label htmlFor="editar-atleta-genero" className="text-xs font-medium text-telemetry-text-muted block mb-1">Gênero</label>
               <select id="editar-atleta-genero" value={formData.gender} onChange={(e) => setFormData((p) => ({ ...p, gender: e.target.value }))} className={`w-full bg-telemetry-base border border-telemetry-border/30 text-telemetry-text-primary rounded-lg p-2.5 text-sm focus:border-telemetry-blue focus:outline-none ${fieldError === 'gender' ? 'border-telemetry-error' : ''}`}>
-                <option value="MASCULINO">Masculino</option><option value="FEMININO">Feminino</option><option value="OUTRO">Outro</option>
+                <option value="MALE">Masculino</option><option value="FEMALE">Feminino</option>
               </select>
             </div>
             <div>
               <label htmlFor="editar-atleta-lateralidade" className="text-xs font-medium text-telemetry-text-muted block mb-1">Lateralidade</label>
               <select id="editar-atleta-lateralidade" value={formData.dominance} onChange={(e) => setFormData((p) => ({ ...p, dominance: e.target.value }))} className={`w-full bg-telemetry-base border border-telemetry-border/30 text-telemetry-text-primary rounded-lg p-2.5 text-sm focus:border-telemetry-blue focus:outline-none ${fieldError === 'dominance' ? 'border-telemetry-error' : ''}`}>
-                <option value="DESTRO">Destro</option><option value="CANHOTO">Canhoto</option><option value="AMBIDEXTRO">Ambidestro</option>
+                <option value="RIGHT">Destro</option><option value="LEFT">Canhoto</option>
               </select>
             </div>
           </div>

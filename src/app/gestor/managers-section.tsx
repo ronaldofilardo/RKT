@@ -2,7 +2,7 @@
 
 export function ManagersSection() {
   return (
-    <div className="p-6">
+    <div className="p-0 sm:p-6">
       <h2 className="text-lg font-semibold text-telemetry-text-primary mb-4">Gestores Adicionais</h2>
       <p className="text-sm text-telemetry-text-muted mb-4">
         Convide co-gestores para gerenciar este clube junto com você.

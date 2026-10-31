@@ -13,6 +13,24 @@ export function getMatchFormatDisplayLabel(format: string): string {
 }
 
 /**
+ * Abreviação compacta do formato para a coluna "Formato" da listagem.
+ * O rótulo completo permanece disponível via `title` (tooltip).
+ */
+const FORMAT_SHORT_LABELS: Record<string, string> = {
+  BEST_OF_3: 'M3',
+  BEST_OF_3_MATCH_TB: 'M3 + MT',
+  BEST_OF_5: 'M5',
+  BEST_OF_3_NO_AD: 'M3 No-Ad',
+  SHORT_SET_2V2_NO_AD: 'M3 2/2 No-Ad + MT',
+  PRO_SET_8: 'Pro 8',
+  MATCH_TB_10: 'MT 10',
+};
+
+export function getMatchFormatShortLabel(format: string): string {
+  return FORMAT_SHORT_LABELS[format] ?? getMatchFormatDisplayLabel(format);
+}
+
+/**
  * Formata o placar resumido de uma partida para exibição na listagem.
  * Exemplo: "6/4 3/6 6/2", "7/6(4) 6/3", "6/4 4/6 10/8" ou "—".
  */

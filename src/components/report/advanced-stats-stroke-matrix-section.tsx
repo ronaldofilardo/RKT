@@ -13,18 +13,16 @@ export function StrokeMatrixSection({ stats, player1Name, player2Name }: Advance
 
   return (
     <Section title="8. Estatísticas dos Golpes">
-      <PlayerColumnHeader player1Name={player1Name} player2Name={player2Name} />
+      <PlayerColumnHeader player1Name={player1Name} player2Name={player2Name} centerLabel="Golpes" />
       <div className="text-[11px] text-telemetry-text-muted text-center mb-3">
-        Formato: <span className="text-telemetry-blue font-bold">W</span> (Winners) /{' '}
-        <span className="text-telemetry-alert font-bold">EF</span> (Erros Forçados) /{' '}
-        <span className="text-telemetry-error font-bold">ENF</span> (Não Forçados) &bull;{' '}
+        Formato: <span className="text-telemetry-blue font-bold">W</span> |{' '}
+        <span className="text-telemetry-alert font-bold">EF</span> |{' '}
+        <span className="text-telemetry-error font-bold">ENF</span> &bull;{' '}
         <span className="text-white font-bold">Tot</span>
       </div>
       <div className="space-y-1">
         {p1Matrix.map((p1Row, idx) => {
           const p2Row = p2Matrix[idx] ?? { winners: 0, forcedErrors: 0, unforcedErrors: 0, total: 0 };
-          const hasActivity = p1Row.total > 0 || p2Row.total > 0;
-          if (!hasActivity) return null;
 
           return (
             <div
@@ -33,9 +31,9 @@ export function StrokeMatrixSection({ stats, player1Name, player2Name }: Advance
             >
               <div className="text-right font-mono">
                 <span className="text-telemetry-blue font-semibold">{p1Row.winners}</span>
-                <span className="text-white/30 mx-0.5">/</span>
+                <span className="text-white/30 mx-0.5">|</span>
                 <span className="text-telemetry-alert font-semibold">{p1Row.forcedErrors}</span>
-                <span className="text-white/30 mx-0.5">/</span>
+                <span className="text-white/30 mx-0.5">|</span>
                 <span className="text-telemetry-error font-semibold">{p1Row.unforcedErrors}</span>
                 <span className="text-white/60 ml-1.5 font-bold">({p1Row.total})</span>
               </div>
@@ -44,9 +42,9 @@ export function StrokeMatrixSection({ stats, player1Name, player2Name }: Advance
               </div>
               <div className="text-left font-mono">
                 <span className="text-telemetry-blue font-semibold">{p2Row.winners}</span>
-                <span className="text-white/30 mx-0.5">/</span>
+                <span className="text-white/30 mx-0.5">|</span>
                 <span className="text-telemetry-alert font-semibold">{p2Row.forcedErrors}</span>
-                <span className="text-white/30 mx-0.5">/</span>
+                <span className="text-white/30 mx-0.5">|</span>
                 <span className="text-telemetry-error font-semibold">{p2Row.unforcedErrors}</span>
                 <span className="text-white/60 ml-1.5 font-bold">({p2Row.total})</span>
               </div>

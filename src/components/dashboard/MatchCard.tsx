@@ -30,10 +30,8 @@ export function MatchCard({
   const setCount = d.isLiveOrSuspended
     ? Math.max(d.paddedSets.length, maxSets)
     : Math.max(d.displayedSets.length, 1);
-  const columnTitles = [
-    ...Array.from({ length: setCount }, (_, i) => `Set ${i + 1}`),
-    ...(d.isLiveOrSuspended ? ['Pontos'] : []),
-  ];
+  // Apenas os títulos dos sets: a coluna "Pontos" (partida em andamento) é renderizada pela própria grade.
+  const columnTitles = Array.from({ length: setCount }, (_, i) => `Set ${i + 1}`);
   const p1Name = abbreviateDoublesName(match.player1.name, match.player1Partner?.name ?? undefined);
   const p2Name = abbreviateDoublesName(match.player2.name, match.player2Partner?.name ?? undefined);
 
