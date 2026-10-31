@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import type { SuporteModule, CtStatusFilter, SuporteData, TrainingCenter } from './types';
-import { ModuleNav } from './module-nav';
+import { SuporteTabNav } from './suporte-tab-nav';
+import { SuporteHeader } from './suporte-header';
 import { ClubesSection } from './clubes-section';
 import { GestoresSection } from './gestores-section';
 import { AvulsosSection } from './avulsos-section';
@@ -34,6 +35,9 @@ function SuportePageContent({ data, loading, error, setError, onRetry }: Suporte
   if (error) return <div className="min-h-screen flex items-center justify-center p-4"><div className="bg-telemetry-error/10 border border-telemetry-error/20 text-telemetry-error p-6 rounded-xl max-w-md"><h2 className="font-bold mb-2">Erro</h2><p>{error}</p></div></div>;
 
   const { clubs, users, memberships } = data!;
+  const gestoresCount = memberships.filter((m) => m.kind === 'GESTOR').length;
+  const userIdsWithMemberships = new Set(memberships.map((m) => m.userId));
+  const avulsosCount = users.filter((u) => !userIdsWithMemberships.has(u.id)).length;
 
   const handleApprove = async (ctId: string) => {
     try { await patchTrainingCenter(ctId, { status: 'ACTIVE' }); onRetry(); }
@@ -63,13 +67,13 @@ function SuportePageContent({ data, loading, error, setError, onRetry }: Suporte
     <div className="min-h-screen bg-telemetry-base">
       <DashboardChrome title="Painel do Suporte" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div><h1 className="text-2xl font-bold text-telemetry-text-primary">Painel do Suporte</h1><p className="text-sm text-telemetry-text-muted">Gestão de clubes, gestores e contas da plataforma</p></div>
+        <SuporteHeader clubsCount={clubs.length} gestoresCount={gestoresCount} avulsosCount={avulsosCount} />
+        <SuporteTabNav module={module} onModuleChange={setModule} />
+        <div className="space-y-6">
+          {module === 'clubes' && <ClubesSection clubs={clubs} filter={ctFilter} onFilterChange={setCtFilter} onApprove={handleApprove} onSuspend={handleSuspend} onReactivate={handleApprove} onEditClub={(ct) => { setSelectedClub(ct); setEditClubOpen(true); }} />}
+          {module === 'gestores' && <GestoresSection memberships={memberships} users={users} clubs={clubs} onEdit={handleEditUser} onRefresh={onRetry} />}
+          {module === 'avulsos' && <AvulsosSection />}
         </div>
-        <ModuleNav module={module} onModuleChange={setModule} />
-        {module === 'clubes' && <ClubesSection clubs={clubs} filter={ctFilter} onFilterChange={setCtFilter} onApprove={handleApprove} onSuspend={handleSuspend} onReactivate={handleApprove} onEditClub={(ct) => { setSelectedClub(ct); setEditClubOpen(true); }} />}
-        {module === 'gestores' && <GestoresSection memberships={memberships} users={users} clubs={clubs} onEdit={handleEditUser} onRefresh={onRetry} />}
-        {module === 'avulsos' && <AvulsosSection />}
         {editClubOpen && selectedClub && <EditarClubeModal open={editClubOpen} onOpenChange={setEditClubOpen} ct={selectedClub} onSave={(val) => handleEditClub(selectedClub!.id, val)} key={selectedClub.id} />}
       </div>
     </div>
