@@ -13,11 +13,21 @@ export interface MeAccessRow {
 }
 
 /**
- * Campos aditivos de GET /api/auth/me (Fase 1 do plano de menus).
- * Recebe apenas vínculos ATIVOS. Campos ausentes na linha caem em valores seguros.
+ * Campos aditivos de GET /api/auth/me.
+ * Filtra vínculos pelo contexto ativo da sessão, se fornecido.
  */
-export function buildMeAccess(row: MeAccessRow, now: Date = new Date()): MeAccess {
-  const memberships = row.memberships ?? [];
+export function buildMeAccess(
+  row: MeAccessRow,
+  now: Date = new Date(),
+  contextId?: string | null,
+): MeAccess {
+  let memberships = row.memberships ?? [];
+  if (contextId === 'PARTICULAR') {
+    memberships = memberships.filter((m) => m.kind === 'PLATAFORMA' || m.ctId === null);
+  } else if (contextId) {
+    memberships = memberships.filter((m) => m.kind === 'PLATAFORMA' || m.ctId === contextId);
+  }
+
   const isPlatform = (preset: string) =>
     memberships.some((m) => m.kind === 'PLATAFORMA' && m.preset === preset);
   const coachMemberships = memberships.filter((m) => m.kind === 'TREINADOR');

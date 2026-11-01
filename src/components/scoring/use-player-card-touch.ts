@@ -1,5 +1,15 @@
 'use client';
 
+function triggerHaptic(duration = 20) {
+  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+    try {
+      navigator.vibrate(duration);
+    } catch {
+      // Ignora silenciosamente se o dispositivo não suportar ou bloquear
+    }
+  }
+}
+
 export function usePlayerCardTouch(onPoint: () => void, onSwipeDown: () => void) {
   const touchStartY = { current: 0 };
   const touchHandledRef = { current: false };
@@ -12,9 +22,11 @@ export function usePlayerCardTouch(onPoint: () => void, onSwipeDown: () => void)
   const onTouchEndGesture = (e: React.TouchEvent) => {
     const dy = e.changedTouches[0].clientY - touchStartY.current;
     if (dy > 80) {
+      triggerHaptic(40);
       onSwipeDown();
       touchHandledRef.current = true;
     } else {
+      triggerHaptic(20);
       onPoint();
       touchHandledRef.current = true;
     }
@@ -25,6 +37,7 @@ export function usePlayerCardTouch(onPoint: () => void, onSwipeDown: () => void)
       touchHandledRef.current = false;
       return;
     }
+    triggerHaptic(20);
     onPoint();
   };
 

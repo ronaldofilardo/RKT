@@ -47,6 +47,7 @@ export function MatchCard({
       className={`rounded-xl border border-telemetry-border/10 shadow-sm transition-all bg-telemetry-card ${onClick ? "cursor-pointer hover:shadow-md hover:border-telemetry-border/20 hover:bg-telemetry-elevated" : ""}`}
       onClick={onPrimaryClick}
       role={onClick ? 'button' : undefined}
+      aria-label={onClick ? `Partida: ${p1Name} vs ${p2Name}` : undefined}
       tabIndex={onClick ? 0 : undefined}
       onKeyDown={(e) => {
         if (onClick && (e.key === 'Enter' || e.key === ' ')) {

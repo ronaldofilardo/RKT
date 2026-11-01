@@ -34,9 +34,9 @@ export function TimelineTable({
 }: TimelineTableProps) {
   return (
     <div className="overflow-hidden border border-white/10 rounded-lg">
-      <div className="overflow-x-auto">
+      <div className="overflow-auto max-h-[75vh]">
         <div className="min-w-[1000px]">
-          <table className="w-full text-[11px]" style={{ tableLayout: 'fixed', borderCollapse: 'collapse' }}>
+          <table className="w-full text-[11px]" style={{ tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0 }}>
             <TimelineTableHead />
             <tbody className="bg-transparent">
               {hasActiveFilters && filteredCount === 0 && (

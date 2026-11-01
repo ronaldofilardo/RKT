@@ -80,17 +80,17 @@ jest.mock('next/navigation', () => ({
   useRouterState: () => ({ isLoading: false }),
 }));
 
-jest.mock('next/image', () => ({
-  __esModule: true,
-  default: (props: any) => {
-    const { src, alt, ...rest } = props;
-    return {
-      $$typeof: Symbol.for('react.element'),
-      type: 'img',
-      props: { src, alt, ...rest },
-    };
-  },
-}));
+jest.mock('next/image', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: React.forwardRef((props: any, ref: any) => {
+      const { src, alt, priority, ...rest } = props;
+      // eslint-disable-next-line @next/next/no-img-element
+      return React.createElement('img', { ...rest, src, alt, ref });
+    }),
+  };
+});
 
 afterEach(() => {
   jest.clearAllMocks();

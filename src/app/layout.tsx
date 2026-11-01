@@ -45,7 +45,7 @@ export default function RootLayout({
                   if (p === 'light') {
                     document.documentElement.classList.add('light');
                     document.documentElement.setAttribute('data-theme', 'light');
-                  } else if (p === 'dark') {
+                  } else {
                     document.documentElement.classList.add('dark');
                     document.documentElement.setAttribute('data-theme', 'dark');
                   }

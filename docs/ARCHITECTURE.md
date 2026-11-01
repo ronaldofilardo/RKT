@@ -1,4 +1,4 @@
-# ARCHITECTURE — RKT (Racket App)
+# ARCHITECTURE — RKT (RKT App)
 
 > Gerado por engenharia reversa (RE-DOC) a partir do código-fonte.
 > **Este é um dos 6 arquivos-canônicos do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.

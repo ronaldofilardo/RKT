@@ -267,9 +267,9 @@ describe('DashboardPage - Menu Hamburguer (TD-046)', () => {
 
     await openMenu();
 
-    // Pega o segundo elemento "Sair" (o primeiro está no header, o segundo no menu)
+    // Pega o elemento "Sair" no menu
     const sairItems = screen.getAllByText(/sair/i);
-    const logoutItem = sairItems[1];
+    const logoutItem = sairItems[sairItems.length - 1];
     fireEvent.click(logoutItem);
 
     // Ainda não saiu: aguardando a confirmação no alertdialog
@@ -292,7 +292,8 @@ describe('DashboardPage - Menu Hamburguer (TD-046)', () => {
 
     await openMenu();
 
-    fireEvent.click(screen.getAllByText(/sair/i)[1]);
+    const sairList = screen.getAllByText(/sair/i);
+    fireEvent.click(sairList[sairList.length - 1]);
 
     const dialog = await screen.findByRole('alertdialog');
     fireEvent.click(within(dialog).getByRole('button', { name: 'Cancelar' }));

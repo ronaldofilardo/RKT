@@ -4,15 +4,13 @@ import { getUserFromRequestScoped } from '@/lib/auth';
 import { logger } from '@/lib/logger';
 import { reportApiError } from '@/lib/api.logic';
 import { buildMeAccess } from './me-access.logic';
+import { resolveAvailableContexts } from '../login/login-contexts.logic';
 
 export async function GET(request: NextRequest) {
   try {
     const user = await getUserFromRequestScoped(request);
     if (!user) {
-      return NextResponse.json(
-        { error: 'UNAUTHORIZED', message: 'Token de acesso requerido' },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: 'UNAUTHORIZED', message: 'Token de acesso requerido' }, { status: 401 });
     }
 
     const dbUser = await prisma.user.findUnique({
@@ -27,12 +25,7 @@ export async function GET(request: NextRequest) {
         canOperate: true,
         memberships: {
           where: { status: 'ACTIVE' },
-          select: {
-            kind: true,
-            preset: true,
-            ctId: true,
-            status: true,
-          },
+          select: { kind: true, preset: true, ctId: true, status: true },
         },
         athleteProfile: {
           select: {
@@ -45,10 +38,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!dbUser) {
-      return NextResponse.json(
-        { error: 'NOT_FOUND', message: 'Usuário não encontrado' },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: 'NOT_FOUND', message: 'Usuário não encontrado' }, { status: 404 });
     }
 
     const memberships = (dbUser.memberships ?? []).map((m) => ({
@@ -67,6 +57,8 @@ export async function GET(request: NextRequest) {
       ctStatus = (ct?.status as 'PENDING' | 'ACTIVE' | 'SUSPENDED') ?? null;
     }
 
+    const availableContexts = await resolveAvailableContexts(dbUser.id);
+
     return NextResponse.json({
       user: {
         id: dbUser.id,
@@ -78,7 +70,9 @@ export async function GET(request: NextRequest) {
       },
       memberships,
       ctStatus,
-      ...buildMeAccess(dbUser),
+      activeContextId: user.contextId ?? null,
+      availableContexts,
+      ...buildMeAccess(dbUser, new Date(), user.contextId),
     });
   } catch (error) {
     logger.error('[AUTH ME GET]', error);

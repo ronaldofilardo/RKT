@@ -10,6 +10,7 @@ export async function generateLoginToken(
   mustChangePassword?: boolean,
   platformPreset?: string | null,
   membershipKind?: string | null,
+  contextId?: string | null,
 ): Promise<string> {
   if (!secretKey) {
     throw new Error('JWT_SECRET is not defined in environment');
@@ -21,6 +22,7 @@ export async function generateLoginToken(
     ...(mustChangePassword !== undefined ? { mcp: !!mustChangePassword } : {}),
     ...(platformPreset !== undefined ? { pp: platformPreset } : {}),
     ...(membershipKind !== undefined ? { mk: membershipKind } : {}),
+    ...(contextId ? { cx: contextId } : {}),
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()

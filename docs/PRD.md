@@ -1,4 +1,4 @@
-# PRD — RKT (Racket App)
+# PRD — RKT (RKT App)
 
 > Documento gerado por engenharia reversa (metodologia RE-DOC) sobre o código-fonte do repositório.
 > **Este é um dos 6 arquivos-canônico do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.

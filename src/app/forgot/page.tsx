@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { BrandLogo } from '@/components/ui/brand-logo';
 
 export default function ForgotPasswordPage() {
   const [identifier, setIdentifier] = useState('');
@@ -34,16 +35,19 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="bg-white rounded-2xl shadow-lg border p-8 w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">Recuperar Senha</h1>
-        <p className="text-sm text-center text-gray-500 mb-6">Informe seu e-mail ou CPF cadastrado</p>
-        {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{error}</div>}
+    <div className="min-h-screen flex items-center justify-center bg-telemetry-base p-4">
+      <div className="bg-telemetry-card rounded-2xl shadow-xl border border-telemetry-border/10 p-8 w-full max-w-md">
+        <div className="flex justify-center mb-6">
+          <BrandLogo size="lg" priority />
+        </div>
+        <h1 className="text-2xl font-bold text-center text-telemetry-text-primary mb-2">Recuperar Senha</h1>
+        <p className="text-sm text-center text-telemetry-text-muted mb-6">Informe seu e-mail ou CPF cadastrado</p>
+        {error && <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-500 dark:text-red-400 text-sm rounded-lg">{error}</div>}
         {success ? (
-          <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-center">
+          <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-lg text-center">
             <p className="font-semibold mb-2">Solicitação enviada!</p>
-            <p className="text-xs mb-4 text-emerald-700">Se o usuário existir, a equipe de suporte emitirá o link de redefinição seguro.</p>
-            <Link href="/login" className="inline-block bg-sky-700 text-white font-semibold py-2 px-6 rounded-lg hover:bg-sky-800 text-sm">
+            <p className="text-xs mb-4 text-telemetry-text-muted">Se o usuário existir, a equipe de suporte emitirá o link de redefinição seguro.</p>
+            <Link href="/login" className="inline-block bg-telemetry-blue hover:bg-telemetry-blue-light text-white font-semibold py-2 px-6 rounded-lg text-sm transition-colors">
               Voltar ao Login
             </Link>
           </div>
@@ -55,24 +59,24 @@ export default function ForgotPasswordPage() {
               required
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              className="w-full border rounded-lg p-3 text-sm"
+              className="w-full border border-telemetry-border/20 bg-telemetry-elevated/40 text-telemetry-text-primary rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-telemetry-blue"
             />
             <input
               type="text"
               placeholder="WhatsApp ou telefone para contato (opcional)"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
-              className="w-full border rounded-lg p-3 text-sm"
+              className="w-full border border-telemetry-border/20 bg-telemetry-elevated/40 text-telemetry-text-primary rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-telemetry-blue"
             />
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-sky-700 text-white font-semibold py-3 rounded-lg hover:bg-sky-800 disabled:opacity-50 mt-2 text-sm"
+              className="w-full bg-telemetry-blue hover:bg-telemetry-blue-light text-white font-semibold py-3 rounded-lg disabled:opacity-50 mt-2 text-sm transition-colors cursor-pointer shadow-sm"
             >
               {loading ? 'Enviando...' : 'Solicitar Recuperação'}
             </button>
-            <div className="text-center text-xs text-gray-500 mt-3 border-t pt-3">
-              Lembrou a senha? <Link href="/login" className="text-sky-700 font-semibold hover:underline">Voltar ao login</Link>
+            <div className="text-center text-xs text-telemetry-text-muted mt-3 border-t border-telemetry-border/10 pt-3">
+              Lembrou a senha? <Link href="/login" className="text-telemetry-blue hover:text-telemetry-blue-light font-semibold hover:underline">Voltar ao login</Link>
             </div>
           </form>
         )}

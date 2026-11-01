@@ -3,6 +3,7 @@ import { AsyncLocalStorage } from 'async_hooks';
 export interface RLSUser {
   id: string;
   role: string;
+  contextId?: string | null;
 }
 
 let rlsStorage = new AsyncLocalStorage<RLSUser>();

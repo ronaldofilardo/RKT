@@ -2,16 +2,18 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { BrandLogo } from '@/components/ui/brand-logo';
 import { SignupFormFields } from './signup-form-fields';
 import { GestorOnboardingModal } from './gestor-onboarding-modal';
 
 export default function SignupPage() {
+  const router = useRouter();
   const [name, setName] = useState('');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'ATLETA' | 'TREINADOR' | 'ESPECTADOR' | 'GESTOR'>('ATLETA');
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showGestorModal, setShowGestorModal] = useState(false);
 
@@ -20,7 +22,6 @@ export default function SignupPage() {
     setError(null);
     setLoading(true);
 
-    // Gestor de Clube/CT usa o fluxo multi-etapas de onboarding PJ
     if (role === 'GESTOR') {
       setLoading(false);
       setShowGestorModal(true);
@@ -37,7 +38,7 @@ export default function SignupPage() {
       if (!res.ok) {
         setError(data.message || data.error || 'Erro ao criar conta');
       } else {
-        setSuccess(true);
+        router.push('/login');
       }
     } catch {
       setError('Falha de conexão com o servidor');
@@ -47,49 +48,40 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="bg-white rounded-2xl shadow-lg border p-8 w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">Criar Conta no RKT</h1>
-        <p className="text-sm text-center text-gray-500 mb-6">Preencha os dados para iniciar seu acesso</p>
-        {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{error}</div>}
-        {success ? (
-          <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-center">
-            <p className="font-semibold mb-2">Conta criada com sucesso!</p>
-            <p className="text-sm mb-4">Você já pode entrar na plataforma com suas credenciais.</p>
-            <Link href="/login" className="inline-block bg-sky-700 text-white font-semibold py-2 px-6 rounded-lg hover:bg-sky-800">
-              Ir para o Login
-            </Link>
+    <div className="min-h-screen flex items-center justify-center bg-telemetry-base p-4">
+      <div className="bg-telemetry-card rounded-2xl shadow-xl border border-telemetry-border/10 p-8 w-full max-w-md">
+        <div className="flex justify-center mb-6">
+          <BrandLogo size="lg" priority />
+        </div>
+        <h1 className="text-2xl font-bold text-center text-telemetry-text-primary mb-2">Criar Conta no RKT</h1>
+        <p className="text-sm text-center text-telemetry-text-muted mb-6">Preencha os dados para iniciar seu acesso</p>
+        {error && <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-500 dark:text-red-400 text-sm rounded-lg">{error}</div>}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <SignupFormFields
+            name={name}
+            setName={setName}
+            identifier={identifier}
+            setIdentifier={setIdentifier}
+            password={password}
+            setPassword={setPassword}
+            role={role}
+            setRole={setRole}
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-telemetry-blue hover:bg-telemetry-blue-light text-white font-semibold py-3 rounded-lg disabled:opacity-50 mt-2 transition-colors cursor-pointer shadow-sm"
+          >
+            {loading ? 'Processando...' : role === 'GESTOR' ? 'Avançar para Cadastro de Clube' : 'Cadastrar'}
+          </button>
+          <div className="text-center text-xs text-telemetry-text-muted mt-3 border-t border-telemetry-border/10 pt-3">
+            Já possui conta? <Link href="/login" className="text-telemetry-blue hover:text-telemetry-blue-light font-semibold hover:underline">Fazer login</Link>
           </div>
-        ) : (
-          <>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-              <SignupFormFields
-                name={name}
-                setName={setName}
-                identifier={identifier}
-                setIdentifier={setIdentifier}
-                password={password}
-                setPassword={setPassword}
-                role={role}
-                setRole={setRole}
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-sky-700 text-white font-semibold py-3 rounded-lg hover:bg-sky-800 disabled:opacity-50 mt-2"
-              >
-                {loading ? 'Criando conta...' : 'Cadastrar'}
-              </button>
-              <div className="text-center text-xs text-gray-500 mt-3 border-t pt-3">
-                Já possui conta? <Link href="/login" className="text-sky-700 font-semibold hover:underline">Fazer login</Link>
-              </div>
-            </form>
-            <GestorOnboardingModal
-              open={showGestorModal}
-              onOpenChange={setShowGestorModal}
-            />
-          </>
-        )}
+        </form>
+        <GestorOnboardingModal
+          open={showGestorModal}
+          onOpenChange={setShowGestorModal}
+        />
       </div>
     </div>
   );

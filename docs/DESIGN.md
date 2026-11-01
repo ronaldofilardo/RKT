@@ -1,4 +1,4 @@
-# DESIGN — RKT (Racket App)
+# DESIGN — RKT (RKT App)
 
 > Design System extraído de `src/app/globals.css`, `src/app/design-system.css` e `tailwind.config.ts` (RE-DOC).
 > **Este é um dos 6 arquivos-canônicos do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.

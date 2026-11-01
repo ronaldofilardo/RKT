@@ -1,18 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { reportApiError } from '@/lib/api.logic';
 import { formatZodMessage } from '@/lib/api-response.logic';
 import { withAccessHandler } from '@/lib/access-handler';
+import { CoachCreateSchema } from '@/lib/validators/coach-create.schema';
 import { getGestorCtIds, getGestorCtId, denyGestor } from '../_logic';
 import { listCoaches, createCoach } from '../coaches-logic';
-
-const CoachSchema = z.object({
-  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres').max(120),
-  cpf: z.string().min(1, 'CPF é obrigatório'),
-  birthDate: z.string().min(1, 'Data de nascimento é obrigatória'),
-  email: z.string().email('E-mail inválido'),
-});
 
 export async function GET(request: NextRequest) {
   const ctIds = await getGestorCtIds(request);
@@ -39,14 +32,27 @@ export async function POST(request: NextRequest) {
   return withAccessHandler(request, 'platform:memberships:manage', () => ({ ctId }), async ({ user }) => {
     try {
       const body = await request.json().catch(() => null);
-      const parsed = CoachSchema.safeParse(body);
+      const parsed = CoachCreateSchema.safeParse(body);
       if (!parsed.success) {
         return NextResponse.json({ error: 'VALIDATION_ERROR', message: formatZodMessage(parsed.error), details: parsed.error.flatten() }, { status: 400 });
       }
 
       const result = await createCoach(ctId, user.id, parsed.data);
       if ('error' in result) {
-        return NextResponse.json({ error: result.error, message: result.message }, { status: result.status });
+        return NextResponse.json({
+          error: result.error,
+          message: result.message,
+          canLinkExisting: (result as any).canLinkExisting,
+          existingUserName: (result as any).existingUserName,
+        }, { status: result.status });
+      }
+
+      if (result.isExistingUser) {
+        return NextResponse.json({
+          message: `Treinador vinculado com sucesso ao clube. Como ${result.name} já possui conta no RKT, o acesso permanece com sua senha atual.`,
+          userId: result.userId,
+          isExistingUser: true,
+        }, { status: 201 });
       }
 
       return NextResponse.json({
@@ -54,6 +60,7 @@ export async function POST(request: NextRequest) {
         userId: result.userId,
         tempPassword: result.tempPassword,
         linkExpiresAt: result.linkExpiresAt,
+        isExistingUser: false,
       }, { status: 201 });
     } catch (error) {
       logger.error('[GESTOR COACHES POST]', error);

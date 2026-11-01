@@ -1,4 +1,4 @@
-import { ShareIcon } from '@/components/scoring/share-spectate.icons';
+import Image from 'next/image';
 import type { DashboardMatchPayload } from './MatchCard';
 
 interface MatchActionsProps {
@@ -14,32 +14,49 @@ export function MatchActions({ match, onReport, onFinish, onDelete, onShare }: M
     <div className="flex items-center gap-1.5 sm:gap-2">
       {onShare && (
         <button
+          type="button"
+          data-testid={`match-card-share-${match.id}`}
           onClick={(e) => {
             e.stopPropagation();
             onShare(match);
           }}
-          className="p-1 rounded text-xs text-telemetry-text-muted hover:text-telemetry-blue hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+          className="inline-flex items-center justify-center transition-transform hover:scale-105 active:scale-95 focus:outline-none rounded cursor-pointer"
           title="Compartilhar transmissão"
           aria-label="Compartilhar transmissão"
         >
-          <ShareIcon className="w-3.5 h-3.5" />
+          <Image
+            src="/icons/compartilhar.webp"
+            alt="Compartilhar transmissão"
+            width={38}
+            height={28}
+            className="h-7 w-auto object-contain drop-shadow-sm"
+          />
         </button>
       )}
       {onReport && (
         <button
+          type="button"
+          data-testid={`match-card-report-${match.id}`}
           onClick={(e) => {
             e.stopPropagation();
             onReport(match);
           }}
-          className="p-1 rounded text-xs text-telemetry-text-muted hover:text-telemetry-blue hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+          className="inline-flex items-center justify-center transition-transform hover:scale-105 active:scale-95 focus:outline-none rounded cursor-pointer"
           title="Ver relatório"
           aria-label="Ver relatório"
         >
-          📊
+          <Image
+            src="/icons/relatorio.webp"
+            alt="Ver relatório"
+            width={38}
+            height={28}
+            className="h-7 w-auto object-contain drop-shadow-sm"
+          />
         </button>
       )}
       {match.state === 'IN_PROGRESS' && onFinish && (
         <button
+          type="button"
           onClick={(e) => {
             e.stopPropagation();
             onFinish(match);
@@ -53,6 +70,7 @@ export function MatchActions({ match, onReport, onFinish, onDelete, onShare }: M
       )}
       {(match.state === 'SCHEDULED' || match.state === 'IN_PROGRESS') && onDelete && (
         <button
+          type="button"
           onClick={(e) => {
             e.stopPropagation();
             onDelete(match);

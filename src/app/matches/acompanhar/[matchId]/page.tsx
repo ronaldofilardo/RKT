@@ -38,8 +38,8 @@ export default function MatchSpectatePage({ params }: { params: Promise<{ matchI
   }
 
   return (
-    <main className="min-h-screen bg-telemetry-bg text-telemetry-text-primary p-4 flex items-center justify-center">
-      <div className="max-w-sm w-full bg-telemetry-card border border-telemetry-border/20 rounded-2xl p-4 flex flex-col gap-3 shadow-xl">
+    <main className="min-h-screen bg-telemetry-bg text-telemetry-text-primary p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center touch-manipulation">
+      <div className="max-w-sm w-full bg-telemetry-card border border-telemetry-border/20 rounded-2xl p-3 sm:p-4 flex flex-col gap-3 shadow-xl">
         <SpectatorLiveContent view={view} feed={feed} updateText={updateText} />
       </div>
     </main>

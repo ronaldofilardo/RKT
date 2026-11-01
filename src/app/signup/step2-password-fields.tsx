@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react';
 import type { GestorFormStep2 } from './gestor-onboarding-logic';
+import { PasswordInput } from '@/components/ui/password-input';
 
 interface Step2PasswordFieldsProps {
   step2: GestorFormStep2;
@@ -13,29 +14,37 @@ export function Step2PasswordFields({ step2, onChange }: Step2PasswordFieldsProp
     onChange(key, value);
   }, [onChange]);
 
+  const passwordsMatch = !step2.confirmPassword || step2.password === step2.confirmPassword;
+
   return (
     <>
       <div>
-        <label htmlFor="gestor-senha" className="text-sm font-medium text-gray-700">Senha</label>
-        <input
+        <label htmlFor="gestor-senha" className="text-sm font-medium text-gray-700 block mb-1">Senha</label>
+        <PasswordInput
           id="gestor-senha"
-          type="password"
+          name="password"
+          placeholder="Mínimo 8 caracteres"
           value={step2.password}
           onChange={(e) => handleChange('password', e.target.value)}
           minLength={8}
-          className="w-full border rounded-lg p-2.5 text-sm"
+          required
         />
       </div>
       <div>
-        <label htmlFor="gestor-confirmar-senha" className="text-sm font-medium text-gray-700">Confirme a senha</label>
-        <input
+        <label htmlFor="gestor-confirmar-senha" className="text-sm font-medium text-gray-700 block mb-1">Confirme a senha</label>
+        <PasswordInput
           id="gestor-confirmar-senha"
-          type="password"
+          name="confirmPassword"
+          placeholder="Repita a senha"
           value={step2.confirmPassword}
           onChange={(e) => handleChange('confirmPassword', e.target.value)}
           minLength={8}
-          className="w-full border rounded-lg p-2.5 text-sm"
+          error={!passwordsMatch}
+          required
         />
+        {!passwordsMatch && (
+          <span className="text-xs text-red-500 mt-1 block font-medium">As senhas não conferem</span>
+        )}
       </div>
     </>
   );

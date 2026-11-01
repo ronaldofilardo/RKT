@@ -1,0 +1,73 @@
+/**
+ * @jest-environment jsdom
+ */
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import SignupPage from '../page';
+
+const mockPush = jest.fn();
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+  }),
+}));
+
+describe('SignupPage - Fluxo de redirecionamento pós-cadastro', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    global.fetch = jest.fn() as jest.Mock;
+  });
+
+  it('redireciona para /login após criação de conta bem-sucedida', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ message: 'Conta criada com sucesso' }),
+    });
+
+    render(<SignupPage />);
+
+    fireEvent.change(screen.getByPlaceholderText(/Nome completo/i), { target: { value: 'Atleta Teste' } });
+    fireEvent.change(screen.getByPlaceholderText(/E-mail ou CPF/i), { target: { value: 'atleta@teste.com' } });
+    fireEvent.change(screen.getByPlaceholderText(/Senha/i), { target: { value: 'senhaForte123' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /Cadastrar/i }));
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/login');
+    });
+  });
+
+  it('exibe erro caso a API de cadastro retorne falha', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ message: 'E-mail já cadastrado' }),
+    });
+
+    render(<SignupPage />);
+
+    fireEvent.change(screen.getByPlaceholderText(/Nome completo/i), { target: { value: 'Atleta Teste' } });
+    fireEvent.change(screen.getByPlaceholderText(/E-mail ou CPF/i), { target: { value: 'duplicado@teste.com' } });
+    fireEvent.change(screen.getByPlaceholderText(/Senha/i), { target: { value: 'senhaForte123' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /Cadastrar/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('E-mail já cadastrado')).toBeInTheDocument();
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+  });
+
+  it('abre o modal ao selecionar o perfil GESTOR', async () => {
+    render(<SignupPage />);
+
+    fireEvent.change(screen.getByLabelText(/Perfil principal/i), { target: { value: 'GESTOR' } });
+
+    const btn = screen.getByRole('button', { name: /Avançar para Cadastro de Clube/i });
+    expect(btn).toBeInTheDocument();
+    fireEvent.click(btn);
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+});
+

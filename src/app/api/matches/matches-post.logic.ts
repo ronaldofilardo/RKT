@@ -5,17 +5,19 @@ import { validatedRequest } from '@/lib/api.logic';
 import { logger } from '@/lib/logger';
 import { assertCtMembership } from './match-ct-access.logic';
 import { createMatchWithDuplicateCheck } from './match-create-with-duplicate-check.logic';
-
-type RLSUser = { id: string; role: string } | null | undefined;
+import type { RLSUser } from '@/lib/rls-context';
 
 export async function postMatchResponse(
   request: NextRequest,
-  user: RLSUser,
+  user: RLSUser | null | undefined,
 ): Promise<NextResponse> {
   try {
     const { force, ...input } = await validatedRequest(request, CreateMatchInputSchema);
 
     const currentUserId = user?.id;
+    if (user?.contextId) {
+      input.ctId = user.contextId === 'PARTICULAR' ? undefined : user.contextId;
+    }
     await assertCtMembership(input.ctId, currentUserId);
     logger.match.created(currentUserId ?? "anonymous");
 

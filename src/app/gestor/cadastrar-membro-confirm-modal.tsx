@@ -4,9 +4,10 @@ export type MemberType = 'TREINADOR' | 'ATLETA';
 
 export interface CadastroResult {
   userId: string;
-  tempPassword: string;
-  linkExpiresAt: string;
+  tempPassword?: string;
+  linkExpiresAt?: string;
   type: MemberType;
+  isExistingUser?: boolean;
 }
 
 interface CadastrarMembroConfirmModalProps {
@@ -21,18 +22,33 @@ export function CadastrarMembroConfirmModal({ open, result, onClose }: Cadastrar
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true">
       <div className="bg-telemetry-card border border-telemetry-border/20 text-telemetry-text-primary rounded-2xl shadow-2xl w-full max-w-md p-6 m-4 text-center">
-        <h2 className="text-xl font-bold text-telemetry-text-primary mb-2">Cadastro concluído</h2>
+        <h2 className="text-xl font-bold text-telemetry-text-primary mb-2">
+          {result.isExistingUser ? 'Vínculo concluído' : 'Cadastro concluído'}
+        </h2>
         <p className="text-sm text-telemetry-text-muted mb-6">
-          {result.type === 'TREINADOR' ? 'Treinador' : 'Atleta'} cadastrado com sucesso. Compartilhe a senha provisória para o primeiro acesso.
+          {result.isExistingUser
+            ? `${result.type === 'TREINADOR' ? 'Treinador' : 'Atleta'} já possui conta no RKT e foi associado ao clube com sucesso.`
+            : `${result.type === 'TREINADOR' ? 'Treinador' : 'Atleta'} cadastrado com sucesso. Compartilhe a senha provisória para o primeiro acesso.`}
         </p>
-        <div className="bg-telemetry-alert/10 border border-telemetry-alert/30 rounded-lg p-4 mb-6">
-          <p className="text-xs font-medium text-telemetry-alert mb-1">Senha provisória (DDMMAAAA)</p>
-          <p className="text-sm font-mono font-bold text-telemetry-alert">{result.tempPassword}</p>
-        </div>
+
+        {result.isExistingUser ? (
+          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4 mb-6 text-left">
+            <p className="text-xs font-semibold text-emerald-400 mb-1">Conta já existente no sistema</p>
+            <p className="text-xs text-telemetry-text-muted">
+              O profissional continuará acessando normalmente com seu e-mail/CPF e a senha que já utiliza.
+            </p>
+          </div>
+        ) : (
+          <div className="bg-telemetry-alert/10 border border-telemetry-alert/30 rounded-lg p-4 mb-6">
+            <p className="text-xs font-medium text-telemetry-alert mb-1">Senha provisória (DDMMAAAA)</p>
+            <p className="text-sm font-mono font-bold text-telemetry-alert">{result.tempPassword}</p>
+          </div>
+        )}
+
         <div className="flex justify-center">
           <button
             onClick={onClose}
-            className="bg-telemetry-blue text-white font-semibold py-2.5 px-6 rounded-lg hover:bg-telemetry-blue/90 text-sm"
+            className="bg-telemetry-blue text-white font-semibold py-2.5 px-6 rounded-lg hover:bg-telemetry-blue/90 text-sm cursor-pointer"
           >
             Fechar e continuar
           </button>
@@ -41,4 +57,3 @@ export function CadastrarMembroConfirmModal({ open, result, onClose }: Cadastrar
     </div>
   );
 }
-

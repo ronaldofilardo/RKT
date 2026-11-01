@@ -1,3 +1,5 @@
+import { PasswordInput } from '@/components/ui/password-input';
+
 interface SignupFormFieldsProps {
   name: string;
   setName: (v: string) => void;
@@ -24,7 +26,7 @@ export function SignupFormFields({
       <input
         type="text"
         placeholder="Nome completo"
-        required
+        required={role !== 'GESTOR'}
         value={name}
         onChange={(e) => setName(e.target.value)}
         className="w-full border rounded-lg p-3 text-sm"
@@ -32,19 +34,20 @@ export function SignupFormFields({
       <input
         type="text"
         placeholder="E-mail ou CPF"
-        required
+        required={role !== 'GESTOR'}
         value={identifier}
         onChange={(e) => setIdentifier(e.target.value)}
         className="w-full border rounded-lg p-3 text-sm"
       />
-      <input
-        type="password"
+      <PasswordInput
+        id="signup-password"
+        name="password"
         placeholder="Senha (mínimo 8 caracteres)"
-        required
-        minLength={8}
+        required={role !== 'GESTOR'}
+        minLength={role === 'GESTOR' ? undefined : 8}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="w-full border rounded-lg p-3 text-sm"
+        className="p-3 text-sm"
       />
       <div className="flex flex-col gap-1 text-xs text-gray-600">
         <label htmlFor="signup-role-select" className="font-medium">

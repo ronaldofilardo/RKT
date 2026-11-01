@@ -35,6 +35,9 @@ describe('MatchCard - Ação de Compartilhar Transmissão', () => {
 
     const shareBtn = screen.getByRole('button', { name: /compartilhar transmissão/i });
     expect(shareBtn).toBeInTheDocument();
+    expect(shareBtn).toHaveAttribute('title', 'Compartilhar transmissão');
+    const shareImg = screen.getByAltText('Compartilhar transmissão');
+    expect(shareImg).toHaveAttribute('src', '/icons/compartilhar.webp');
 
     fireEvent.click(shareBtn);
     expect(handleShare).toHaveBeenCalledTimes(1);
@@ -45,6 +48,20 @@ describe('MatchCard - Ação de Compartilhar Transmissão', () => {
   it('não deve renderizar o botão quando onShare não é fornecido', () => {
     render(<MatchCard match={baseMatch} />);
     expect(screen.queryByRole('button', { name: /compartilhar transmissão/i })).not.toBeInTheDocument();
+  });
+
+  it('deve renderizar o botão de ver relatório com imagem e tooltip ao passar o mouse', () => {
+    const handleReport = jest.fn();
+    render(<MatchCard match={baseMatch} onReport={handleReport} />);
+
+    const reportBtn = screen.getByRole('button', { name: /ver relatório/i });
+    expect(reportBtn).toBeInTheDocument();
+    expect(reportBtn).toHaveAttribute('title', 'Ver relatório');
+    const reportImg = screen.getByAltText('Ver relatório');
+    expect(reportImg).toHaveAttribute('src', '/icons/relatorio.webp');
+
+    fireEvent.click(reportBtn);
+    expect(handleReport).toHaveBeenCalledWith(baseMatch);
   });
 });
 

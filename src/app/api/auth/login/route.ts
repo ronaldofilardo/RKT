@@ -6,6 +6,8 @@ import { logger } from '@/lib/logger';
 import { getActor } from '@/services/accessService';
 import { generateLoginToken } from './login-token-logic';
 import { computeLoginProfile } from './login-profile-logic';
+import { resolveAvailableContexts } from './login-contexts.logic';
+import { checkLoginRateLimit, recordLoginAttempt } from './login-ratelimit.logic';
 import type { ActorMembership } from '@/core/access';
 
 export async function POST(request: NextRequest) {
@@ -14,20 +16,7 @@ export async function POST(request: NextRequest) {
     const identifier = (payload.identifier || payload.email || '').trim();
     const ip = request.headers.get('x-forwarded-for') || 'unknown';
 
-    if (process.env.ENABLE_LOGIN_RATELIMIT === 'true') {
-      const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
-      const recentFails = await import('@/lib/prisma').then((m) => m.prisma.loginAttempt.count({
-        where: { ip, success: false, createdAt: { gte: fiveMinsAgo } }
-      })).catch((error: unknown) => {
-        logger.warn('[LOGIN POST] Falha ao contar tentativas de login; rate-limit ignorado:', error);
-        return 0;
-      });
-
-      if (recentFails > 3) {
-        const delayMs = Math.min((recentFails - 3) * 1000, 8000);
-        await new Promise(resolve => setTimeout(resolve, delayMs));
-      }
-    }
+    await checkLoginRateLimit(ip);
 
     const authRes = typeof (authModule as any).authenticateUserDetailed === 'function'
       ? await (authModule as any).authenticateUserDetailed(identifier, payload.password)
@@ -36,33 +25,52 @@ export async function POST(request: NextRequest) {
     const isFailure = !authRes || ('success' in authRes && !authRes.success);
     const user = authRes && 'user' in authRes ? authRes.user : (!isFailure ? authRes : null);
 
-    if (process.env.ENABLE_LOGIN_RATELIMIT === 'true') {
-      await import('@/lib/prisma').then((m) => m.prisma.loginAttempt.create({
-        data: { ip, cpf: identifier, success: !!user }
-      })).catch((error: unknown) => {
-        logger.warn('[LOGIN POST] Falha ao registrar tentativa de login:', error);
-      });
-    }
+    await recordLoginAttempt(ip, identifier, !!user);
 
     if (!user) {
       const reason = authRes && 'reason' in authRes ? authRes.reason : 'UNAUTHORIZED';
       const message = authRes && 'message' in authRes ? authRes.message : 'E-mail, CPF ou senha inválidos';
       logger.warn('[LOGIN POST] credenciais inválidas:', reason);
-      return NextResponse.json(
-        { error: 'UNAUTHORIZED', code: reason, message },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: 'UNAUTHORIZED', code: reason, message }, { status: 401 });
     }
 
-    const actor = await getActor(user.id).catch(() => null);
+    const availableContexts = await resolveAvailableContexts(user.id);
+    let chosenContextId: string | null = payload.contextId ?? null;
+
+    if (availableContexts.length > 1 && !chosenContextId) {
+      return NextResponse.json({
+        requireContext: true,
+        availableContexts,
+        user: { id: user.id, name: user.name, email: user.email },
+      });
+    }
+
+    if (!chosenContextId && availableContexts.length === 1) {
+      chosenContextId = availableContexts[0].id;
+    }
+    if (chosenContextId && !availableContexts.some((c) => c.id === chosenContextId)) {
+      chosenContextId = null;
+    }
+
+    const actor = await getActor(user.id, chosenContextId).catch(() => null);
     const { effectiveRole, effectiveProfile, platformPreset, membershipKind } =
       computeLoginProfile(actor?.memberships as readonly ActorMembership[] | null | undefined, user.role);
 
-    const accessToken = await generateLoginToken(user.id, effectiveRole, user.sessionVersion, user.mustChangePassword, platformPreset, membershipKind);
+    const accessToken = await generateLoginToken(
+      user.id,
+      effectiveRole,
+      user.sessionVersion,
+      user.mustChangePassword,
+      platformPreset,
+      membershipKind,
+      chosenContextId,
+    );
 
     const response = NextResponse.json({
       accessToken,
       mustChangePassword: user.mustChangePassword,
+      activeContextId: chosenContextId,
+      availableContexts,
       user: {
         id: user.id,
         name: user.name,

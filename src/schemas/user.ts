@@ -52,6 +52,7 @@ export const LoginPayloadSchema = z
     identifier: z.string().min(3, 'Informe seu e-mail ou CPF').optional(),
     email: z.string().optional(),
     password: z.string().min(1, 'Informe a senha'),
+    contextId: z.string().optional(),
   })
   .refine((data) => Boolean(data.identifier || data.email), {
     message: 'Informe seu e-mail ou CPF',

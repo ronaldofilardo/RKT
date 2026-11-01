@@ -11,9 +11,9 @@ export function PlayerCardRow({ name, isServer, isReceiver, isPartner }: PlayerC
   const sizeClass = isPartner ? 'text-xs sm:text-sm' : 'text-sm sm:text-lg';
   const colorClass = isPartner
     ? isServer
-      ? 'text-telemetry-volt'
+      ? 'text-telemetry-volt font-black'
       : 'text-telemetry-text-muted'
-    : `text-telemetry-text-primary ${isServer ? 'text-telemetry-volt' : ''}`;
+    : `text-telemetry-text-primary ${isServer ? 'text-telemetry-volt font-black' : ''}`;
 
   return (
     <div className="flex items-center gap-1.5 justify-center max-w-full">
@@ -24,7 +24,7 @@ export function PlayerCardRow({ name, isServer, isReceiver, isPartner }: PlayerC
       </span>
       {isServer && (
         <span className="inline-flex items-center gap-1 flex-shrink-0" aria-label="Sacando">
-          <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-telemetry-volt animate-pulse shadow-[0_0_8px_rgba(204,255,0,0.6)]" />
+          <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-telemetry-volt animate-pulse shadow-[0_0_8px_rgba(204,255,0,0.6)] ring-1 ring-black/20" />
           <span role="img" aria-label="Sacador" className="text-xs select-none leading-none">🎾</span>
         </span>
       )}

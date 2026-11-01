@@ -8,15 +8,17 @@ export type ThemePreference = 'light' | 'dark' | 'system';
 export const THEME_STORAGE_KEY = 'rkt_theme_preference';
 
 export function useThemeProviderState() {
-  const [theme, setThemeState] = useState<ThemePreference>('system');
+  const [theme, setThemeState] = useState<ThemePreference>('dark');
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark');
 
   // Ler preferência salva ao montar
   useEffect(() => {
     try {
       const saved = localStorage.getItem(THEME_STORAGE_KEY) as ThemePreference | null;
-      if (saved === 'light' || saved === 'dark' || saved === 'system') {
+      if (saved === 'light' || saved === 'dark') {
         setThemeState(saved);
+      } else {
+        setThemeState('dark');
       }
     } catch (error) {
       logger.warn('[THEME] Falha ao ler preferência de tema do localStorage:', error);
@@ -28,48 +30,26 @@ export function useThemeProviderState() {
     if (typeof window === 'undefined') return;
 
     const root = document.documentElement;
-    const hasMatchMedia = typeof window.matchMedia === 'function';
-    const mediaQuery = hasMatchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+    const effectiveTheme: 'light' | 'dark' = theme === 'light' ? 'light' : 'dark';
 
-    const applyTheme = (currentPref: ThemePreference) => {
-      const isSystemDark = mediaQuery ? mediaQuery.matches : true;
-      const effectiveTheme: 'light' | 'dark' =
-        currentPref === 'system' ? (isSystemDark ? 'dark' : 'light') : currentPref;
+    setResolvedTheme(effectiveTheme);
 
-      setResolvedTheme(effectiveTheme);
-
-      if (currentPref === 'system') {
-        root.classList.remove('light', 'dark');
-        root.removeAttribute('data-theme');
-      } else if (currentPref === 'dark') {
-        root.classList.add('dark');
-        root.classList.remove('light');
-        root.setAttribute('data-theme', 'dark');
-      } else {
-        root.classList.add('light');
-        root.classList.remove('dark');
-        root.setAttribute('data-theme', 'light');
-      }
-    };
-
-    applyTheme(theme);
-
-    if (mediaQuery && typeof mediaQuery.addEventListener === 'function') {
-      const onSystemThemeChange = () => {
-        if (theme === 'system') {
-          applyTheme('system');
-        }
-      };
-
-      mediaQuery.addEventListener('change', onSystemThemeChange);
-      return () => mediaQuery.removeEventListener('change', onSystemThemeChange);
+    if (effectiveTheme === 'dark') {
+      root.classList.add('dark');
+      root.classList.remove('light');
+      root.setAttribute('data-theme', 'dark');
+    } else {
+      root.classList.add('light');
+      root.classList.remove('dark');
+      root.setAttribute('data-theme', 'light');
     }
   }, [theme]);
 
   const setTheme = (newTheme: ThemePreference) => {
-    setThemeState(newTheme);
+    const target = newTheme === 'light' ? 'light' : 'dark';
+    setThemeState(target);
     try {
-      localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+      localStorage.setItem(THEME_STORAGE_KEY, target);
     } catch (error) {
       logger.warn('[THEME] Falha ao gravar preferência de tema no localStorage:', error);
     }

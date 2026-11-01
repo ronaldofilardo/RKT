@@ -44,11 +44,9 @@ describe('buildMenu — combinações do plano (§7)', () => {
     ]);
   });
 
-  it('3. Suporte puro: só Suporte, com Financeiro desabilitado', () => {
+  it('3. Suporte não gera seção no menu (gerenciado via painel/gestor)', () => {
     const menu = buildMenu(ctx({ isSuporte: true }));
-    expect(keys(menu)).toEqual(['suporte']);
-    const fin = find(menu, 'suporte')!.items.find((i) => i.key === 'financeiro');
-    expect(fin).toEqual(expect.objectContaining({ disabled: true, badge: 'Em breve' }));
+    expect(keys(menu)).toEqual([]);
   });
 
   it('4. Gestor com CT ACTIVE: Gestão do Clube (sem Operação)', () => {
@@ -126,7 +124,7 @@ describe('buildMenu — regras gerais', () => {
       gestor: gestorActive, coach: { ctIds: [] }, athlete: adult,
     }));
     expect(menu.map((s) => s.key)).toEqual([
-      'atleta', 'treinador', 'gestao', 'suporte', 'admin', 'rodape',
+      'atleta', 'treinador', 'gestao', 'admin', 'rodape',
     ]);
   });
 

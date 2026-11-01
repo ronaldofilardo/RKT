@@ -25,7 +25,16 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const parsed = ChangePasswordSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: 'VALIDATION_ERROR', details: parsed.error.flatten() }, { status: 400 });
+      const firstErr = parsed.error.errors[0]?.message || 'Dados inválidos';
+      const fieldMap: Record<string, string> = {};
+      for (const err of parsed.error.errors) {
+        const p = err.path.join('.');
+        if (p && !fieldMap[p]) fieldMap[p] = err.message;
+      }
+      return NextResponse.json(
+        { error: 'VALIDATION_ERROR', message: firstErr, fields: fieldMap, details: parsed.error.flatten() },
+        { status: 400 },
+      );
     }
 
     const { currentPassword, newPassword } = parsed.data;

@@ -67,8 +67,14 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
     <div className="min-h-screen bg-telemetry-base">
       <DashboardChrome title="Painel do Gestor" showMenu={false} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <DashboardHeader me={me} coachesCount={coaches.length} athletesCount={athletes.length} matchesCount={matches.length} />
-        <TabNav tab={tab} onTabChange={setTab} matchesCount={matches.length} />
+        <DashboardHeader me={me} />
+        <TabNav
+          tab={tab}
+          onTabChange={setTab}
+          coachesCount={coaches.length}
+          athletesCount={athletes.length}
+          matchesCount={matches.length}
+        />
         <div className="space-y-6">
           {tab === 'coaches' && (
             <CoachesTable coaches={coaches} selectedIds={coachSelected} onSelectChange={(id, chk) => setCoachSelected((p) => chk ? [...p, id] : p.filter((x) => x !== id))} onSelectAll={(chk) => setCoachSelected(chk ? coaches.map((c) => c.user.id) : [])} onCreateCoach={() => { setCadastroType('TREINADOR'); setCadastroOpen(true); }} onRefresh={fetchCoachesData} />

@@ -4,6 +4,10 @@
 
 import { isValidCnpj } from '@/lib/validators/cnpj.validator';
 import { isValidCpf } from '@/lib/validators/cpf.validator';
+import { isValidPhone } from '@/lib/validators/phone.validator';
+import { isValidEmail } from '@/lib/validators/email.validator';
+import { isValidCep } from '@/lib/validators/cep.validator';
+import { isValidUf } from '@/lib/validators/uf.validator';
 
 export interface AddressForm {
   rua: string;
@@ -38,43 +42,31 @@ export interface GestorFormStep2 {
 }
 
 export const initialStep1: GestorFormStep1 = {
-  cnpj: '',
-  razaoSocial: '',
-  nomeFantasia: '',
-  telefone: '',
-  email: '',
+  cnpj: '', razaoSocial: '', nomeFantasia: '', telefone: '', email: '',
   endereco: { rua: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '', cep: '' },
-  legalRepName: '',
-  legalRepCpf: '',
-  legalRepEmail: '',
-  legalRepPhone: '',
+  legalRepName: '', legalRepCpf: '', legalRepEmail: '', legalRepPhone: '',
 };
 
 export const initialStep2: GestorFormStep2 = {
-  sameAsLegalRep: false,
-  name: '',
-  cpf: '',
-  email: '',
-  password: '',
-  confirmPassword: '',
+  sameAsLegalRep: false, name: '', cpf: '', email: '', password: '', confirmPassword: '',
 };
 
 export function validateStep1(form: GestorFormStep1): string | null {
   if (!isValidCnpj(form.cnpj)) return 'CNPJ inválido';
   if (!form.razaoSocial.trim()) return 'Razão Social é obrigatória';
   if (!form.nomeFantasia.trim()) return 'Nome Fantasia é obrigatório';
-  if (!form.telefone.trim()) return 'Telefone é obrigatório';
-  if (!form.email.trim()) return 'E-mail é obrigatório';
+  if (!isValidPhone(form.telefone)) return 'Telefone institucional inválido';
+  if (!isValidEmail(form.email)) return 'E-mail institucional inválido';
   if (!form.endereco.rua.trim()) return 'Rua é obrigatória';
   if (!form.endereco.numero.trim()) return 'Número é obrigatório';
   if (!form.endereco.bairro.trim()) return 'Bairro é obrigatório';
   if (!form.endereco.cidade.trim()) return 'Cidade é obrigatória';
-  if (!form.endereco.estado.trim()) return 'Estado é obrigatório';
-  if (!form.endereco.cep.trim()) return 'CEP é obrigatório';
-  if (!isValidCpf(form.legalRepCpf)) return 'CPF do representante legal inválido';
+  if (!isValidUf(form.endereco.estado)) return 'Estado (UF) inválido';
+  if (!isValidCep(form.endereco.cep)) return 'CEP inválido';
   if (!form.legalRepName.trim()) return 'Nome do representante legal é obrigatório';
-  if (!form.legalRepEmail.trim()) return 'E-mail do representante legal é obrigatório';
-  if (!form.legalRepPhone.trim()) return 'Telefone do representante legal é obrigatório';
+  if (!isValidCpf(form.legalRepCpf)) return 'CPF do representante legal inválido';
+  if (!isValidEmail(form.legalRepEmail)) return 'E-mail do representante legal inválido';
+  if (!isValidPhone(form.legalRepPhone)) return 'Telefone do representante legal inválido';
   return null;
 }
 
@@ -83,7 +75,7 @@ export function validateStep2(step2: GestorFormStep2): string | null {
   if (!sameAsLegalRep) {
     if (!name.trim()) return 'Nome do responsável é obrigatório';
     if (!isValidCpf(cpf)) return 'CPF do responsável inválido';
-    if (!email.trim()) return 'E-mail do responsável é obrigatório';
+    if (!isValidEmail(email)) return 'E-mail do responsável inválido';
   }
   if (!password.trim()) return 'Senha é obrigatória';
   if (password.length < 8) return 'Senha deve ter pelo menos 8 caracteres';

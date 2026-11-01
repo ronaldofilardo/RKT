@@ -15,4 +15,4 @@ export {
   clearRedirectingFlag,
 } from './auth-client-storage';
 
-export { loginRequest, type LoginResponse } from './auth-client-login';
+export { loginRequest, type LoginResponse, type SessionContextOption } from './auth-client-login';

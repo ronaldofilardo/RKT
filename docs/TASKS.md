@@ -26,6 +26,16 @@
 
 ## 2. Funcionalidades Ausentes (MVP Incompleto)
 
+### A0.8. LGPD, Proteção de Menores e Governança do Sistema 📋
+- **Status:** Planejada / Pronta para Execução (2026-10-31)
+- **Documento:** [`docs/PLANO_LGPD_PROTECAO_MENORES_E_GOVERNANCA_2026-10-31.md`](docs/PLANO_LGPD_PROTECAO_MENORES_E_GOVERNANCA_2026-10-31.md)
+- **DoD:** Implementação completa de governança e proteção de dados em 4 fases:
+  1. *Fase 1 (Proteção de Menores & Convite):* Mascaramento de nomes de menores de 18 anos sem consentimento `BROADCAST` no feed e placar ao vivo (`spectator-projection.ts`); correção de retorno para `/` nas páginas de convite.
+  2. *Fase 2 (Direitos dos Titulares):* Anonimização em cascata alcançando a tabela `Player` em `/api/users/[id]/anonymize`; exportação completa do histórico esportivo com adversários minimizados em `/api/users/[id]/export`.
+  3. *Fase 3 (Tutela e Consentimento):* Cadastro de atleta menor disparando convite ao responsável legal; aprovação de tutela e gravação de consentimentos (`DATA` e `BROADCAST`) exclusiva pelo responsável via `ConsentRecord`.
+  4. *Fase 4 (Onboarding & Páginas Legais):* Leitura validada de `?perfil=` no `/signup`; rotas `/termos` e `/privacidade` no sistema com registro de aceite em `AuditLog`.
+- **Regras:** 100% STE-DEV R-03 ($\le 100$ linhas por arquivo), zero migrações de banco (modelos `GuardianLink` e `ConsentRecord` reaproveitados) e baseline de testes 100% verde.
+
 ### A0.7. Acompanhamento de Partidas ao Vivo (Transmissão Espectador) ✅
 - **Status:** Concluída (2026-10-29)
 - **Documento:** `docs/PLANO_ACOMPANHAMENTO_PARTIDAS_AO_VIVO_2026-10-29.md`

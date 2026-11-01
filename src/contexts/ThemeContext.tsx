@@ -27,7 +27,7 @@ export function useTheme() {
   const context = useContext(ThemeContext);
   if (!context) {
     return {
-      theme: 'system' as const,
+      theme: 'dark' as const,
       resolvedTheme: 'dark' as const,
       setTheme: () => {},
     };

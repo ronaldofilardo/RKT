@@ -40,20 +40,28 @@ export function MatchCardHeader({
         {isLiveOrSuspended && (
           <div className="flex items-center gap-1 sm:gap-1.5">
             {onEditScore && (
-              <HeaderButton id="edit-score" match={match} onClick={onEditScore} title="Editar placar" emoji="✏️" label="Editar Placar" mobileLabel="Placar" />
+              <HeaderButton id="edit-score" match={match} onClick={onEditScore}
+                title="Editar placar" iconSrc="/icons/editar_placar.webp"
+                emoji="✏️" label="Editar Placar" mobileLabel="Placar" />
             )}
             {onResumeMatch && (
-              <HeaderButton id="resume" match={match} onClick={onResumeMatch} title="Retomar partida" emoji="▶" label="Retomar Partida" mobileLabel="Retomar" variant="blue" />
+              <HeaderButton id="resume" match={match} onClick={onResumeMatch}
+                title="Retomar partida" iconSrc="/icons/retomar_partida.webp"
+                emoji="▶" label="Retomar Partida" mobileLabel="Retomar" variant="blue" />
             )}
             {onSetSummary && (
-              <HeaderButton id="set-summary" match={match} onClick={onSetSummary} title="Análise do set" emoji="📊" label="Análise do Set" mobileLabel="Análise" />
+              <HeaderButton id="set-summary" match={match} onClick={onSetSummary}
+                title="Análise do set" iconSrc="/icons/analise_set.webp"
+                emoji="📊" label="Análise do Set" mobileLabel="Análise" />
             )}
           </div>
         )}
       </div>
       <div className="flex items-center gap-2 ml-auto shrink-0 justify-end">
         {!isFinished && onEditInfo && (
-          <HeaderButton id="edit-info" match={match} onClick={onEditInfo} title="Editar Informações da Partida" ariaLabel="Editar Informações" emoji="⚙️" label="Info" />
+          <HeaderButton id="edit-info" match={match} onClick={onEditInfo}
+            title="Editar Informações da Partida" ariaLabel="Editar Informações"
+            iconSrc="/icons/info_partida.webp" emoji="⚙️" label="Info" />
         )}
         <MatchActions match={match} onReport={onReport} onFinish={onFinish} onDelete={onDelete} onShare={onShare} />
         <FormatLabel format={match.format} matchType={match.matchType} />

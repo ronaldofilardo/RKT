@@ -26,7 +26,8 @@ function fromHeaders(request: NextRequest, accept: Accept): Found | null {
   const id = request.headers.get('x-user-id');
   const rawRole = request.headers.get('x-user-role');
   if (!id || !rawRole || !accept(rawRole)) return null;
-  return { user: { id, role: rawRole }, sv: parseSv(request.headers.get('x-user-sv')) };
+  const contextId = request.headers.get('x-user-context') ?? undefined;
+  return { user: { id, role: rawRole, contextId }, sv: parseSv(request.headers.get('x-user-sv')) };
 }
 
 async function fromJwt(request: NextRequest, accept: Accept): Promise<Found | null> {
@@ -42,7 +43,8 @@ async function fromJwt(request: NextRequest, accept: Accept): Promise<Found | nu
   if (!token) return null;
   const payload = await decodeJwtPayload(token);
   if (!payload || !accept(payload.role)) return null;
-  return { user: { id: payload.sub, role: payload.role }, sv: payload.sv };
+  const contextId = payload.cx ?? undefined;
+  return { user: { id: payload.sub, role: payload.role, contextId }, sv: payload.sv };
 }
 
 async function resolveUser(request: NextRequest, accept: Accept): Promise<RLSUser | null> {

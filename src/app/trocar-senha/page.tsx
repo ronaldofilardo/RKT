@@ -2,6 +2,7 @@
 
 import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { BrandLogo } from '@/components/ui/brand-logo';
 import { TrocarSenhaForm, TrocarSenhaSuccess } from './components';
 
 function TrocarSenhaContent() {
@@ -45,20 +46,26 @@ function TrocarSenhaContent() {
 
   if (success) {
     return (
-      <div className="bg-white rounded-2xl shadow-lg border p-8 w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">Senha Definida</h1>
-        <p className="text-sm text-center text-gray-500 mb-6">Sua senha foi atualizada com sucesso.</p>
+      <div className="bg-telemetry-card rounded-2xl shadow-xl border border-telemetry-border/10 p-8 w-full max-w-md">
+        <div className="flex justify-center mb-6">
+          <BrandLogo size="lg" priority />
+        </div>
+        <h1 className="text-2xl font-bold text-center text-telemetry-text-primary mb-2">Senha Definida</h1>
+        <p className="text-sm text-center text-telemetry-text-muted mb-6">Sua senha foi atualizada com sucesso.</p>
         <TrocarSenhaSuccess onLoginClick={() => { }} />
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border p-8 w-full max-w-md">
-      <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">
+    <div className="bg-telemetry-card rounded-2xl shadow-xl border border-telemetry-border/10 p-8 w-full max-w-md">
+      <div className="flex justify-center mb-6">
+        <BrandLogo size="lg" priority />
+      </div>
+      <h1 className="text-2xl font-bold text-center text-telemetry-text-primary mb-2">
         {token ? 'Definir Nova Senha' : 'Trocar Senha'}
       </h1>
-      <p className="text-sm text-center text-gray-500 mb-6">
+      <p className="text-sm text-center text-telemetry-text-muted mb-6">
         {token ? 'Crie sua nova senha de acesso' : 'Informe sua senha atual e crie uma nova senha'}
       </p>
       <TrocarSenhaForm
@@ -79,8 +86,8 @@ function TrocarSenhaContent() {
 
 export default function TrocarSenhaPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <Suspense fallback={<div className="text-sm text-gray-500">Carregando...</div>}>
+    <div className="min-h-screen flex items-center justify-center bg-telemetry-base p-4">
+      <Suspense fallback={<div className="text-sm text-telemetry-text-muted">Carregando...</div>}>
         <TrocarSenhaContent />
       </Suspense>
     </div>

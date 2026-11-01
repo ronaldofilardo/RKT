@@ -10,6 +10,8 @@ import { SpectatorTabs } from './SpectatorTabs';
 import { SpectatorScoreAnnouncer } from './SpectatorScoreAnnouncer';
 import { SpectatorEmptyState } from '@/components/spectate/SpectatorEmptyState';
 import { SpectatorStatusBanner } from '@/components/spectate/SpectatorStatusBanner';
+import { useSpectatorWakeLockPreference } from './use-spectator-wake-lock-preference';
+import { SpectatorWakeLockToggle } from './SpectatorWakeLockToggle';
 
 interface Props {
   view: SpectatorView;
@@ -25,6 +27,8 @@ export function SpectatorLiveContent({ view, feed, updateText, hideHeader = fals
     status, ageSeconds, rhythm, correctionAlert, clearCorrectionAlert,
     isClientOffline, isSessionExpired, resumeSession, lastUpdated,
   } = feed;
+
+  const { isWakeLockWanted, toggleWakeLock } = useSpectatorWakeLockPreference(status);
 
   const [side1, side2] = view.match.sides;
   const lastPoint = view.points.length > 0 ? view.points[view.points.length - 1] : null;
@@ -56,6 +60,9 @@ export function SpectatorLiveContent({ view, feed, updateText, hideHeader = fals
             </p>
           )}
           <SpectatorTabs view={view} />
+          {status !== 'FINISHED' && (
+            <SpectatorWakeLockToggle isActive={isWakeLockWanted} onToggle={toggleWakeLock} />
+          )}
         </>
       )}
 

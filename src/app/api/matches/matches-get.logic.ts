@@ -4,12 +4,11 @@ import { listMatches } from '@/services/matchService';
 import { reportApiError, extractPagination } from '@/lib/api.logic';
 import type { TennisFormat } from '@/core/scoring/types';
 import { logger } from '@/lib/logger';
-
-type RLSUser = { id: string; role: string } | null | undefined;
+import type { RLSUser } from '@/lib/rls-context';
 
 export async function getMatchesResponse(
   request: NextRequest,
-  user: RLSUser,
+  user: RLSUser | null | undefined,
 ): Promise<NextResponse> {
   try {
     if (!user) {
@@ -35,7 +34,7 @@ export async function getMatchesResponse(
       state = parsed.data;
     }
 
-    const matches = await listMatches(state, cursor, limit, user.id);
+    const matches = await listMatches(state, cursor, limit, user.id, user.contextId);
     const nextCursor = matches.length === limit ? matches[matches.length - 1].id : null;
 
     const { normalizeScoreState } = await import('@/core/scoring/score-normalizer');

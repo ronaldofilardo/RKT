@@ -16,7 +16,7 @@ export function SpectatorScoreboard({
   const props = useMemo(() => buildSpectatorScoreboardProps(view), [view]);
 
   return (
-    <div className={`transition-opacity ${isDimmed ? 'opacity-70' : 'opacity-100'}`}>
+    <div className={`sticky top-0 z-20 bg-telemetry-card/95 backdrop-blur-sm py-1 transition-opacity ${isDimmed ? 'opacity-70' : 'opacity-100'}`}>
       {isDimmed && (
         <div className="flex justify-end mb-1">
           <span className="px-1.5 py-0.5 text-[9px] uppercase font-bold bg-amber-500/20 text-amber-300 rounded border border-amber-500/30">

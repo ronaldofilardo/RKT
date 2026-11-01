@@ -7,12 +7,18 @@ export async function listMatches(
   cursor?: string | null,
   limit = 20,
   createdByUserId?: string | null,
+  contextId?: string | null,
 ) {
-  // Isolamento estrito: partidas pertencem ao anotador que as criou.
-  // Se createdByUserId não for fornecido (ex: admin), retorna lista vazia.
   if (!createdByUserId) {
     return [];
   }
+
+  const ctFilter =
+    contextId === 'PARTICULAR'
+      ? { ctId: null }
+      : contextId
+      ? { ctId: contextId }
+      : {};
 
   return prisma.match.findMany({
     take: limit,
@@ -20,6 +26,7 @@ export async function listMatches(
     where: {
       deletedAt: null,
       createdByUserId,
+      ...ctFilter,
       ...(state ? { state: state as MatchState } : {}),
     },
     select: BASE_MATCH_SELECT,

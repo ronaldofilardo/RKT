@@ -32,13 +32,13 @@ export function useGestorOnboarding() {
       if (same) {
         return {
           ...prev,
-          same: true,
+          sameAsLegalRep: true,
           name: form.legalRepName,
           cpf: form.legalRepCpf,
           email: form.legalRepEmail,
         };
       }
-      return { ...prev, same: false, name: '', cpf: '', email: '' };
+      return { ...prev, sameAsLegalRep: false, name: '', cpf: '', email: '' };
     });
   }, [form.legalRepName, form.legalRepCpf, form.legalRepEmail]);
 

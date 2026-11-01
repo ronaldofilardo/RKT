@@ -28,6 +28,13 @@ function isOwnerCtStaff(actor: Actor, m: MatchAccess): boolean {
 /** Quem pode ler a partida e seus relatórios (`report:view`). Nega por padrão. */
 export function canReadMatch(actor: Actor | null | undefined, m: MatchAccess): boolean {
   if (!actor || !actor.isActive) return false;
+  const profiles = getProfiles(actor);
+  if (profiles.includes('ADMIN') || profiles.includes('SUPORTE')) return true;
+
+  if (actor.activeContextId) {
+    if (actor.activeContextId === 'PARTICULAR' && m.ctId) return false;
+    if (actor.activeContextId !== 'PARTICULAR' && m.ctId !== actor.activeContextId) return false;
+  }
   if (isCreatorOrAnnotator(actor, m) || isOwnerCtStaff(actor, m)) return true;
   const ids = m.participantPlayerIds;
   if (actor.athletePlayerId && ids.includes(actor.athletePlayerId)) return true;
@@ -40,12 +47,14 @@ export function canReadMatch(actor: Actor | null | undefined, m: MatchAccess): b
 /** Quem pode anotar (registrar ponto / alterar estado) na partida. Nega por padrão. */
 export function canAnnotateMatch(actor: Actor | null | undefined, m: MatchAccess): boolean {
   if (!actor || !actor.isActive) return false;
-  // Plataforma (ADMIN/SUPORTE) pode anotar em qualquer partida.
   const profiles = getProfiles(actor);
   if (profiles.includes('ADMIN') || profiles.includes('SUPORTE')) return true;
-  // Criador, anotador ou equipe do CT dono da partida.
+
+  if (actor.activeContextId) {
+    if (actor.activeContextId === 'PARTICULAR' && m.ctId) return false;
+    if (actor.activeContextId !== 'PARTICULAR' && m.ctId !== actor.activeContextId) return false;
+  }
   if (isCreatorOrAnnotator(actor, m) || isOwnerCtStaff(actor, m)) return true;
-  // Atleta participante da partida.
   const ids = m.participantPlayerIds;
   if (actor.athletePlayerId && ids.includes(actor.athletePlayerId)) return true;
   return false;

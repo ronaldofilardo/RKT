@@ -1,5 +1,6 @@
 'use client';
 
+import { maskCpf } from '@/lib/validators/masks';
 import type { MemberType } from './cadastrar-membro-confirm-modal';
 
 export interface MembroFormData {
@@ -46,7 +47,7 @@ export function CadastrarMembroForm({
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label htmlFor="membro-cpf" className="text-xs font-medium text-telemetry-text-muted block mb-1">CPF</label>
-          <input id="membro-cpf" type="text" required value={formData.cpf} onChange={(e) => handleChange('cpf', e.target.value)} className={`w-full bg-telemetry-base border border-telemetry-border/30 text-telemetry-text-primary rounded-lg p-2.5 text-sm focus:border-telemetry-blue focus:outline-none ${fieldError === 'cpf' ? 'border-telemetry-error' : ''}`} />
+          <input id="membro-cpf" type="text" placeholder="000.000.000-00" required value={formData.cpf} onChange={(e) => handleChange('cpf', maskCpf(e.target.value))} className={`w-full bg-telemetry-base border border-telemetry-border/30 text-telemetry-text-primary rounded-lg p-2.5 text-sm focus:border-telemetry-blue focus:outline-none ${fieldError === 'cpf' ? 'border-telemetry-error' : ''}`} />
         </div>
         <div>
           <label htmlFor="membro-nascimento" className="text-xs font-medium text-telemetry-text-muted block mb-1">Data de nascimento</label>

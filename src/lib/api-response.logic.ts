@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ZodSchema, ZodError } from 'zod';
+import { ZodType, ZodError } from 'zod';
 import { ApiError } from './errors';
 import { logger } from './logger';
 
@@ -37,7 +37,7 @@ export function formatZodMessage(error: ZodError): string {
  */
 export async function validatedRequest<T>(
   request: NextRequest,
-  schema: ZodSchema<T>
+  schema: ZodType<T, any, any>
 ): Promise<T> {
   try {
     const body = await request.json();
@@ -65,15 +65,29 @@ export function reportApiError(error: unknown): NextResponse {
   logger.error('[API_ERROR]', error);
 
   if (error instanceof ApiError) {
-    return jsonResponse(
-      { error: error.code, message: error.message, details: error.details },
+    const fieldMap: Record<string, string> = {};
+    if (error.details && typeof error.details === 'object' && 'fieldErrors' in (error.details as Record<string, unknown>)) {
+      const fe = (error.details as Record<string, unknown>).fieldErrors as Record<string, string[]>;
+      for (const [k, v] of Object.entries(fe)) {
+        if (Array.isArray(v) && v.length > 0) fieldMap[k] = v[0];
+      }
+    }
+    const payload = {
+      error: error.code,
+      message: error.message,
+      details: error.details,
+      fields: Object.keys(fieldMap).length > 0 ? fieldMap : undefined,
+    };
+    return NextResponse.json(
+      { ...payload, data: payload },
       { status: error.status }
     );
   }
 
   // Erro inesperado — não expor detalhes
-  return jsonResponse(
-    { error: 'INTERNAL_ERROR', message: 'Erro interno do servidor' },
+  const fallback = { error: 'INTERNAL_ERROR', message: 'Erro interno do servidor' };
+  return NextResponse.json(
+    { ...fallback, data: fallback },
     { status: 500 }
   );
 }

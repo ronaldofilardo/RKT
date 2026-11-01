@@ -1,4 +1,4 @@
-# RULES — RKT (Racket App)
+# RULES — RKT (RKT App)
 
 > Diretrizes de código do sistema. **Este é um dos 6 arquivos-canônico** (ver `AGENTS.md`).
 > **Data da análise:** 2026-10-01 · **Commit:** `c53ae98`

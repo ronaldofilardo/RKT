@@ -8,6 +8,7 @@ export const CoachCreateSchema = z.object({
     .refine((v) => isValidCpf(v), 'CPF inválido'),
   birthDate: z.string().min(1, 'Data de nascimento é obrigatória'),
   email: z.string().email('E-mail inválido'),
+  linkExisting: z.boolean().optional(),
 });
 
 export type CoachCreateInput = z.infer<typeof CoachCreateSchema>;

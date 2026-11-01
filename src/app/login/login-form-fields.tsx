@@ -14,7 +14,7 @@ export function LoginFormFields({ errorField }: LoginFormFieldsProps) {
     <>
       <div>
         <label
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-telemetry-text-primary mb-1"
           htmlFor="identifier"
         >
           E-mail ou CPF
@@ -26,17 +26,17 @@ export function LoginFormFields({ errorField }: LoginFormFieldsProps) {
           autoComplete="username"
           placeholder="ex: usuario@email.com ou 123.456.789-00"
           required
-          className={`w-full px-3 py-3 text-base border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+          className={`w-full px-3 py-3 text-base border rounded-lg focus:outline-none focus:ring-2 transition-colors bg-telemetry-elevated/40 text-telemetry-text-primary placeholder:text-telemetry-text-muted/60 ${
             isIdentifierError
-              ? 'border-red-500 focus:border-red-500 focus:ring-red-200 bg-red-50/20'
-              : 'border-telemetry-border/30 focus:border-telemetry-blue focus:ring-telemetry-blue/20'
+              ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 bg-red-500/10'
+              : 'border-telemetry-border/20 focus:border-telemetry-blue focus:ring-telemetry-blue/20'
           }`}
         />
       </div>
 
       <div>
         <label
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-telemetry-text-primary mb-1"
           htmlFor="password"
         >
           Senha

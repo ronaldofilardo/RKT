@@ -104,12 +104,12 @@ describe('createGestorClub', () => {
     expect((result as any).message).toBe('E-mail já cadastrado no sistema');
   });
 
-  it('cria TrainingCenter com status PENDING', async () => {
+  it('cria TrainingCenter com status ACTIVE', async () => {
     await mod.createGestorClub(baseInput);
     expect(mockPrisma.trainingCenter.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          status: 'PENDING',
+          status: 'ACTIVE',
         }),
       }),
     );

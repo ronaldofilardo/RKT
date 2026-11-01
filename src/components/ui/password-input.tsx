@@ -21,10 +21,10 @@ export function PasswordInput({
         id={id}
         name={name}
         type={showPassword ? 'text' : 'password'}
-        className={`w-full px-3 py-3 pr-11 text-base border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+        className={`w-full px-3 py-2.5 pr-11 text-sm border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
           error
             ? 'border-red-500 focus:border-red-500 focus:ring-red-200 bg-red-50/20'
-            : 'border-telemetry-border/30 focus:border-telemetry-blue focus:ring-telemetry-blue/20'
+            : 'border-gray-300 focus:border-sky-600 focus:ring-sky-100'
         } ${className}`}
         {...props}
       />
@@ -32,8 +32,9 @@ export function PasswordInput({
         type="button"
         onClick={() => setShowPassword((prev) => !prev)}
         aria-label={showPassword ? 'Ocultar' : 'Visualizar'}
+        aria-pressed={showPassword}
         title={showPassword ? 'Ocultar senha' : 'Visualizar senha'}
-        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-telemetry-text-secondary hover:text-telemetry-text-primary focus:outline-none focus:ring-2 focus:ring-telemetry-blue/30 rounded"
+        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-200 rounded"
       >
         {showPassword ? (
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">

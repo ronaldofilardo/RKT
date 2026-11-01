@@ -131,4 +131,32 @@ describe('MatchCard - Botões de Ação no Header (Editar Placar, Retomar Partid
     const twos = (allText.match(/2/g) || []).length;
     expect(twos).toBeGreaterThanOrEqual(4);
   });
+
+  it('deve renderizar icones com imagem e tooltip para os botoes de acao do header', () => {
+    render(
+      <MatchCard
+        match={baseMatch}
+        onEditScore={jest.fn()}
+        onResumeMatch={jest.fn()}
+        onSetSummary={jest.fn()}
+        onEditInfo={jest.fn()}
+      />
+    );
+
+    const editImg = screen.getByAltText('Editar placar');
+    expect(editImg).toHaveAttribute('src', '/icons/editar_placar.webp');
+    expect(screen.getByTitle('Editar placar')).toBeInTheDocument();
+
+    const resumeImg = screen.getByAltText('Retomar partida');
+    expect(resumeImg).toHaveAttribute('src', '/icons/retomar_partida.webp');
+    expect(screen.getByTitle('Retomar partida')).toBeInTheDocument();
+
+    const summaryImg = screen.getByAltText('Análise do set');
+    expect(summaryImg).toHaveAttribute('src', '/icons/analise_set.webp');
+    expect(screen.getByTitle('Análise do set')).toBeInTheDocument();
+
+    const infoImg = screen.getByAltText('Editar Informações da Partida');
+    expect(infoImg).toHaveAttribute('src', '/icons/info_partida.webp');
+    expect(screen.getByTitle('Editar Informações da Partida')).toBeInTheDocument();
+  });
 });

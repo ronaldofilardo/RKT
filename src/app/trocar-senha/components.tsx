@@ -1,6 +1,7 @@
-"use client";
+'use client';
 
 import Link from 'next/link';
+import { PasswordInput } from '@/components/ui/password-input';
 
 interface TrocarSenhaFormProps {
   currentPassword: string;
@@ -16,50 +17,56 @@ interface TrocarSenhaFormProps {
 }
 
 export function TrocarSenhaForm({
-  currentPassword,
-  setCurrentPassword,
-  newPassword,
-  setNewPassword,
-  confirmPassword,
-  setConfirmPassword,
-  error,
-  loading,
-  hasToken,
-  onSubmit,
+  currentPassword, setCurrentPassword, newPassword, setNewPassword,
+  confirmPassword, setConfirmPassword, error, loading, hasToken, onSubmit,
 }: TrocarSenhaFormProps) {
+  const passwordsMatch = !confirmPassword || newPassword === confirmPassword;
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-3">
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{error}</div>
       )}
       {!hasToken && (
-        <input
-          type="password"
+        <PasswordInput
+          id="trocar-current-password"
+          name="currentPassword"
           placeholder="Senha atual"
+          autoComplete="current-password"
           required
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
-          className="w-full border rounded-lg p-3 text-sm"
+          className="p-3 text-sm"
         />
       )}
-      <input
-        type="password"
+      <PasswordInput
+        id="trocar-new-password"
+        name="newPassword"
         placeholder="Nova senha (mínimo 8 caracteres)"
+        autoComplete="new-password"
         required
         minLength={8}
         value={newPassword}
         onChange={(e) => setNewPassword(e.target.value)}
-        className="w-full border rounded-lg p-3 text-sm"
+        className="p-3 text-sm"
       />
-      <input
-        type="password"
-        placeholder="Confirmar nova senha"
-        required
-        minLength={8}
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
-        className="w-full border rounded-lg p-3 text-sm"
-      />
+      <div>
+        <PasswordInput
+          id="trocar-confirm-password"
+          name="confirmPassword"
+          placeholder="Confirmar nova senha"
+          autoComplete="new-password"
+          required
+          minLength={8}
+          error={!passwordsMatch}
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          className="p-3 text-sm"
+        />
+        {!passwordsMatch && (
+          <span className="text-xs text-red-500 mt-1 block font-medium">As senhas não conferem</span>
+        )}
+      </div>
       <button
         type="submit"
         disabled={loading}
@@ -74,11 +81,7 @@ export function TrocarSenhaForm({
   );
 }
 
-interface TrocarSenhaSuccessProps {
-  onLoginClick: () => void;
-}
-
-export function TrocarSenhaSuccess({ onLoginClick }: TrocarSenhaSuccessProps) {
+export function TrocarSenhaSuccess({ onLoginClick }: { onLoginClick: () => void }) {
   return (
     <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-center">
       <p className="font-semibold mb-2">Senha alterada com sucesso!</p>

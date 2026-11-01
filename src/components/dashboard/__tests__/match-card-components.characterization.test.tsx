@@ -23,15 +23,38 @@ describe('src/components/dashboard/match-card-components.tsx Caracterizacao', ()
   });
 
   it('deve utilizar classes de contraste dual-theme em MatchStatusBadge para legibilidade no tema claro e escuro', () => {
-    const { container: inProgressContainer } = render(<MatchStatusBadge isSuspended={false} state="IN_PROGRESS" />);
-    const inProgressBadge = inProgressContainer.querySelector('span');
-    expect(inProgressBadge?.className).toContain('text-emerald-800');
-    expect(inProgressBadge?.className).toContain('dark:text-emerald-300');
+    const { container: suspendedContainer } = render(<MatchStatusBadge isSuspended={true} state="IN_PROGRESS" />);
+    const suspendedBadge = suspendedContainer.querySelector('span');
+    expect(suspendedBadge?.className).toContain('text-amber-800');
+    expect(suspendedBadge?.className).toContain('dark:text-amber-300');
 
-    const { container: finishedContainer } = render(<MatchStatusBadge isSuspended={false} state="FINISHED" />);
-    const finishedBadge = finishedContainer.querySelector('span');
-    expect(finishedBadge?.className).toContain('text-slate-800');
-    expect(finishedBadge?.className).toContain('dark:text-slate-200');
+    const { container: suspendedFinishedContainer } = render(<MatchStatusBadge isSuspended={true} state="FINISHED" />);
+    const suspendedFinishedBadge = suspendedFinishedContainer.querySelector('span');
+    expect(suspendedFinishedBadge?.className).toContain('text-amber-800');
+    expect(suspendedFinishedBadge?.className).toContain('dark:text-amber-300');
+  });
+
+  it('deve renderizar a logo LIVE com imagem, tooltip e texto acessivel para partidas em andamento', () => {
+    render(<MatchStatusBadge isSuspended={false} state="IN_PROGRESS" />);
+    const img = screen.getByAltText('Em andamento');
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute('src', '/status/live.webp');
+    expect(screen.getByTitle('Em andamento')).toBeInTheDocument();
+    expect(screen.getByText('Em Andamento')).toBeInTheDocument();
+  });
+
+  it('deve renderizar imagem e tooltip para partidas finalizadas e agendadas', () => {
+    const { rerender } = render(<MatchStatusBadge isSuspended={false} state="FINISHED" />);
+    const finishedImg = screen.getByAltText('Partida finalizada');
+    expect(finishedImg).toHaveAttribute('src', '/status/finalizada.webp');
+    expect(screen.getByTitle('Partida finalizada')).toBeInTheDocument();
+    expect(screen.getByText('Finalizada')).toBeInTheDocument();
+
+    rerender(<MatchStatusBadge isSuspended={false} state="SCHEDULED" />);
+    const scheduledImg = screen.getByAltText('Partida agendada');
+    expect(scheduledImg).toHaveAttribute('src', '/status/agendada.webp');
+    expect(screen.getByTitle('Partida agendada')).toBeInTheDocument();
+    expect(screen.getByText('Agendada')).toBeInTheDocument();
   });
 
   it('deve renderizar FormatLabel utilizando text-telemetry-text-muted para legibilidade em ambos os temas', () => {

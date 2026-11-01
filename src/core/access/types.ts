@@ -44,6 +44,8 @@ export interface Actor {
   guardianOfPlayerIds: readonly string[];
   /** Atletas com vínculo de acompanhamento ativo deste treinador. */
   followedPlayerIds: readonly string[];
+  /** Contexto ativo de sessão (CT ID ou 'PARTICULAR' / null). */
+  activeContextId?: string | null;
 }
 
 /** Recurso sobre o qual a ação é pedida. Campos ausentes = sem informação. */

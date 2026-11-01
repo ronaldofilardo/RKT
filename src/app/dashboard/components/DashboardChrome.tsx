@@ -71,6 +71,8 @@ export function DashboardChrome({ user, navigateToTarget, title, onLogout, showM
         onNewMatch={() => router.push('/match/new')}
         onLogout={endSession}
         showMenuButton={showMenu}
+        activeContextId={meData?.activeContextId}
+        availableContexts={meData?.availableContexts}
       />
       {showMenu && <DashboardSidebar menuOpen={menuOpen} setMenuOpen={setMenuOpen} sections={sections} />}
       {!onLogout && (

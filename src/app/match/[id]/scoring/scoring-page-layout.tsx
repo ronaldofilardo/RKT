@@ -44,36 +44,38 @@ export function ScoringPageLayout({
       className="fixed inset-0 overflow-hidden bg-telemetry-base flex flex-col"
       style={{ fontSize: `${fontScale * 100}%` }}
     >
-      <SyncStatusBanner syncStatus={state.syncStatus} />
+      <div className="flex-1 flex flex-col min-h-0 select-none touch-manipulation overscroll-none">
+        <SyncStatusBanner syncStatus={state.syncStatus} />
 
-      <MatchHeader
-        onClose={async () => {
-          await abandonCurrentSession();
-          navigateDashboard();
-        }}
-        onShare={() => chrome.setIsShareModalOpen(true)}
-        onTimeline={chrome.openTimelineView}
-        isFinished={isFinished}
-      />
+        <MatchHeader
+          onClose={async () => {
+            await abandonCurrentSession();
+            navigateDashboard();
+          }}
+          onShare={() => chrome.setIsShareModalOpen(true)}
+          onTimeline={chrome.openTimelineView}
+          isFinished={isFinished}
+        />
 
-      {chrome.isTimelineLoading && <TimelineLoadingOverlay />}
+        {chrome.isTimelineLoading && <TimelineLoadingOverlay />}
 
-      <ScoringPagePlayArea
-        state={state} handlers={handlers} derived={derived} chrome={chrome}
-        match={match} matchId={matchId} serveControls={serve.controls}
-        onNavigateReport={navigateReport} onNavigateDashboard={navigateDashboard}
-      />
+        <ScoringPagePlayArea
+          state={state} handlers={handlers} derived={derived} chrome={chrome}
+          match={match} matchId={matchId} serveControls={serve.controls}
+          onNavigateReport={navigateReport} onNavigateDashboard={navigateDashboard}
+        />
 
-      <ScoringPageControls state={state} handlers={handlers} derived={derived} matchId={matchId} serveOptions={serve.options} />
+        <ScoringPageControls state={state} handlers={handlers} derived={derived} matchId={matchId} serveOptions={serve.options} />
 
-      <ScoringModals
-        state={state} handlers={handlers} derived={derived} match={match} matchId={matchId}
-        cameFromDashboard={cameFromDashboard} setSummaryModalState={chrome.setSummaryModalState}
-        onCloseSetSummary={() => chrome.setSetSummaryModalState((prev) => ({ ...prev, isOpen: false }))}
-        isShareModalOpen={chrome.isShareModalOpen}
-        onCloseShareModal={() => chrome.setIsShareModalOpen(false)}
-        onNavigateDashboard={navigateDashboard} onNavigateReport={navigateReport}
-      />
+        <ScoringModals
+          state={state} handlers={handlers} derived={derived} match={match} matchId={matchId}
+          cameFromDashboard={cameFromDashboard} setSummaryModalState={chrome.setSummaryModalState}
+          onCloseSetSummary={() => chrome.setSetSummaryModalState((prev) => ({ ...prev, isOpen: false }))}
+          isShareModalOpen={chrome.isShareModalOpen}
+          onCloseShareModal={() => chrome.setIsShareModalOpen(false)}
+          onNavigateDashboard={navigateDashboard} onNavigateReport={navigateReport}
+        />
+      </div>
     </div>
   );
 }

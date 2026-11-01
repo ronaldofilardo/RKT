@@ -38,9 +38,9 @@ export function DashboardSidebar({ menuOpen, setMenuOpen, menuItems, sections }:
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex">
+    <div className="fixed inset-0 z-[60] flex justify-end">
       <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm" onClick={() => setMenuOpen(false)} aria-hidden="true" />
-      <nav className="relative z-[70] bg-telemetry-card w-72 max-w-full h-full shadow-xl flex flex-col p-4 select-none border-r border-telemetry-border/10 overflow-y-auto" aria-label="Menu">
+      <nav className="relative z-[70] bg-telemetry-card w-72 max-w-full h-full shadow-xl flex flex-col p-4 select-none border-l border-telemetry-border/10 overflow-y-auto" aria-label="Menu">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-semibold text-telemetry-text-muted uppercase">Menu</span>
           <button type="button" onClick={() => setMenuOpen(false)} aria-label="Fechar menu" className="p-2 rounded-lg text-telemetry-text-muted hover:bg-telemetry-elevated transition-colors">

@@ -1,10 +1,29 @@
-# MEMORY — RKT (Racket App)
+# MEMORY — RKT (RKT App)
 
 > Diário de bordo técnico · Metodologia RE-DOC (Fase 4 — Auditoria de Qualidade e Histórico)
 > **Este é um dos 6 arquivos-canônicos do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
 
 **Última Atualização:** 2026-10-28
 **Analisado por:** engenharia reversa e implementação sobre `main`
+
+---
+
+## 2.10 Otimização Mobile do Anotador e do Espectador — 2026-10-31
+- **Anotador (`/match/[id]/scoring`):**
+  - **Eliminação de delay e zoom duplo:** Adicionado `touch-manipulation` em botões de ação e no layout da página de pontuação.
+  - **Prevenção de rebotes e overscroll:** `overscroll-none` e `select-none` no container principal impedem recarregamento por pull-to-refresh acidental e seleção indesejada de texto durante anotação veloz.
+  - **Feedback háptico (R-13):** Adicionado `triggerHaptic(20)` e `triggerHaptic(40)` com `navigator.vibrate` protegido por feature detection no `use-player-card-touch.ts`.
+  - **Modo Sol Forte (High-Contrast Outdoor):** Em `PlayerCard.tsx` e `player-card-row.tsx`, anel de sacador reforçado (`ring-[3px] ring-telemetry-volt shadow-[0_0_12px_rgba(var(--telemetry-volt)/0.35)]`), bordas nítidas `border-telemetry-border/30 dark:border-white/10 shadow-sm` e tipografia `font-black tracking-tight drop-shadow-sm` para legibilidade máxima sob luz solar direta em quadra aberta.
+- **Espectador (`/matches/acompanhar/[matchId]`):**
+  - **Placar Sticky:** `SpectatorScoreboard.tsx` com `sticky top-0 z-20 bg-telemetry-card/95 backdrop-blur-sm` mantendo os sets e games visíveis mesmo ao rolar a timeline de pontos no celular.
+  - **Wake Lock da Tela:** Hook `use-wake-lock.ts` mantendo a tela do smartphone ativa enquanto a partida estiver `LIVE` ou `CATCH_UP` via Screen Wake Lock API (`navigator.wakeLock.request('screen')`). Reativação automática com `visibilitychange` ao retornar à aba.
+  - **Toggle Visual de Bateria para o Wake Lock:** Componente `SpectatorWakeLockToggle.tsx` e hook `use-spectator-wake-lock-preference.ts` permitindo ao espectador alternar entre "Tela sempre acesa" e "Economia de bateria (tela apaga)", com preferência persistida localmente.
+  - **Microanimação no Último Ponto:** Indicador pulsante em tempo real no `SpectatorLastPointBanner.tsx` com `animate-ping` e chave de animação por ponto.
+  - **Responsividade e Viewport:** Otimização do container em `page.tsx` com padding responsivo (`p-2 sm:p-4`) e `touch-manipulation`.
+- **Qualidade STE-DEV:**
+  - 100% dos arquivos com $\le 100$ linhas (R-03).
+  - Baseline de testes Jest: 100% verde (7 suites, 26 testes em spectate; suítes de scoring aprovadas).
+  - Tipagem TypeScript: `tsc --noEmit` com 0 erros.
 
 ---
 

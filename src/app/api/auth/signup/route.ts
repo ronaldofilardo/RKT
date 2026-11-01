@@ -15,7 +15,19 @@ const SignupSchema = z.object({
 function validateInput(body: unknown): { ok: true; data: SignupInput } | { ok: false; response: NextResponse } {
   const parsed = SignupSchema.safeParse(body);
   if (!parsed.success) {
-    return { ok: false, response: NextResponse.json({ error: 'VALIDATION_ERROR', details: parsed.error.flatten() }, { status: 400 }) };
+    const firstErr = parsed.error.errors[0]?.message || 'Dados cadastrais inválidos';
+    const fieldMap: Record<string, string> = {};
+    for (const err of parsed.error.errors) {
+      const p = err.path.join('.');
+      if (p && !fieldMap[p]) fieldMap[p] = err.message;
+    }
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { error: 'VALIDATION_ERROR', message: firstErr, fields: fieldMap, details: parsed.error.flatten() },
+        { status: 400 },
+      ),
+    };
   }
   const { name, identifier, password, role, cpf, birthDate } = parsed.data;
   const trimmed = identifier.trim();

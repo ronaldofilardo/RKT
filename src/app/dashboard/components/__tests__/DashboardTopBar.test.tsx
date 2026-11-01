@@ -39,9 +39,10 @@ describe('DashboardTopBar', () => {
 
   const base = { menuOpen: false, setMenuOpen: jest.fn(), user: { name: 'Eduardo', role: 'ANNOTATOR' }, onNewMatch: jest.fn(), onLogout: jest.fn() };
 
-  it('mostra o menu hambúrguer por padrão', () => {
+  it('mostra o menu hambúrguer e a logo RKT por padrão', () => {
     render(<DashboardTopBar {...base} />);
     expect(screen.getByTestId('hamburger-menu-button')).toBeInTheDocument();
+    expect(screen.getByAltText('RKT Tennis')).toBeInTheDocument();
   });
 
   it('esconde o hambúrguer com showMenuButton=false e mantém título, Nova Partida e Sair', () => {
