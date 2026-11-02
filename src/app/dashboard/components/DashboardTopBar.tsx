@@ -16,12 +16,13 @@ interface DashboardTopBarProps {
   showMenuButton?: boolean;
   activeContextId?: string | null;
   availableContexts?: SessionContextOption[];
+  onContextSwitched?: () => void;
   showLogout?: boolean;
 }
 
 export function DashboardTopBar({
   menuOpen, setMenuOpen, user, title, onNewMatch, onLogout, showMenuButton = true,
-  activeContextId, availableContexts, showLogout = true,
+  activeContextId, availableContexts, onContextSwitched, showLogout = true,
 }: DashboardTopBarProps) {
   const firstName = user?.name ? user.name.trim().split(/\s+/)[0] : '';
   const homeHref = user?.role === 'GESTOR' ? '/gestor' : '/dashboard';
@@ -35,7 +36,7 @@ export function DashboardTopBar({
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <ContextSwitcher activeContextId={activeContextId} availableContexts={availableContexts} />
+          <ContextSwitcher activeContextId={activeContextId} availableContexts={availableContexts} onContextSwitched={onContextSwitched} />
           <ThemeToggle />
 
           <button type="button" onClick={onNewMatch} aria-label="Nova partida"

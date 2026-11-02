@@ -34,8 +34,15 @@ export function canReadMatch(actor: Actor | null | undefined, m: MatchAccess): b
   }
 
   if (actor.activeContextId) {
-    if (actor.activeContextId === 'PARTICULAR' && m.ctId) return false;
-    if (actor.activeContextId !== 'PARTICULAR' && m.ctId !== actor.activeContextId) return false;
+    if (actor.activeContextId === 'PARTICULAR') {
+      // No modo particular, bloquear partidas de clube apenas quando nenhum
+      // atleta seguido está participando (caso especial: atleta pessoal em jogo de clube).
+      if (m.ctId && !actor.followedPlayerIds.some((id) => m.participantPlayerIds.includes(id))) {
+        return false;
+      }
+    } else if (m.ctId !== actor.activeContextId) {
+      return false;
+    }
   }
   if (isCreatorOrAnnotator(actor, m) || isOwnerCtStaff(actor, m)) return true;
   const ids = m.participantPlayerIds;

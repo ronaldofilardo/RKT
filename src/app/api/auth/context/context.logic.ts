@@ -3,6 +3,7 @@ import { getActor } from '@/services/accessService';
 import { computeLoginProfile } from '../login/login-profile-logic';
 import { generateLoginToken } from '../login/login-token-logic';
 import { resolveAvailableContexts } from '../login/login-contexts.logic';
+import { homeForArea } from '@/core/access/areas';
 import type { ActorMembership } from '@/core/access';
 
 export async function switchUserContext(userId: string, targetContextId: string) {
@@ -24,6 +25,15 @@ export async function switchUserContext(userId: string, targetContextId: string)
   const { effectiveRole, platformPreset, membershipKind } =
     computeLoginProfile(actor?.memberships as readonly ActorMembership[] | null | undefined, user.role);
 
+  const areaForContext = (() => {
+    if (match.type === 'PARTICULAR') return 'TREINADOR_AVULSO';
+    if (match.type === 'CT') {
+      if (match.role === 'GESTOR') return 'GESTOR';
+      if (match.role === 'TREINADOR') return 'TREINADOR_CLUBE';
+    }
+    return undefined;
+  })();
+
   const accessToken = await generateLoginToken(
     user.id,
     effectiveRole,
@@ -32,6 +42,8 @@ export async function switchUserContext(userId: string, targetContextId: string)
     platformPreset,
     membershipKind,
     targetContextId,
+    areaForContext,
+    match.type === 'CT' ? targetContextId : undefined,
   );
 
   await prisma.auditLog.create({
@@ -43,6 +55,8 @@ export async function switchUserContext(userId: string, targetContextId: string)
     },
   }).catch(() => null);
 
-  return { success: true, accessToken, context: match } as const;
+  const targetUrl = areaForContext ? homeForArea(areaForContext) : undefined;
+
+  return { success: true, accessToken, context: match, targetUrl } as const;
 }
 

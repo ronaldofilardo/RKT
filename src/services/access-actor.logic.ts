@@ -43,12 +43,10 @@ function filterFollowedPlayers(row: ActorRow, contextId?: string | null, activeA
   if (!contextId && activeArea !== 'TREINADOR_AVULSO') return links.map((l) => l.playerId);
 
   if (activeArea === 'TREINADOR_AVULSO' || contextId === 'PARTICULAR') {
-    const coachCtIds = new Set(
-      row.memberships.filter((m) => m.status === 'ACTIVE' && m.ctId).map((m) => m.ctId as string),
-    );
-    return links
-      .filter((l) => !l.player?.playerCts?.some((pc) => pc.status === 'ACTIVE' && coachCtIds.has(pc.ctId)))
-      .map((l) => l.playerId);
+    // No modo particular, incluir TODOS os atletas vinculados ao treinador,
+    // inclusive aqueles que também estejam vinculados a clubes do treinador.
+    // O filtro de ctId já é aplicado separadamente em listMatches / visibility.
+    return links.filter((l) => l.playerId).map((l) => l.playerId);
   }
 
   return links

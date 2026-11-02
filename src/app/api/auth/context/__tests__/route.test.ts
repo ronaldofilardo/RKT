@@ -54,6 +54,7 @@ describe('POST /api/auth/context', () => {
       success: true,
       accessToken: 'jwt-new-token',
       context: { id: 'ct-1', label: 'CT Pinheiros', role: 'TREINADOR', type: 'CT' },
+      targetUrl: '/clube/treinador',
     });
 
     const req = new NextRequest('http://localhost:3000/api/auth/context', {
@@ -66,7 +67,9 @@ describe('POST /api/auth/context', () => {
     const json = await res.json();
     expect(json.success).toBe(true);
     expect(json.accessToken).toBe('jwt-new-token');
+    expect(json.targetUrl).toBe('/clube/treinador');
     expect(res.cookies.get('rkt_access_token')?.value).toBe('jwt-new-token');
+    expect(res.cookies.get('access_token')?.value).toBe('jwt-new-token');
   });
 });
 

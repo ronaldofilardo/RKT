@@ -18,19 +18,28 @@ interface DashboardChromeProps {
   navigateToTarget?: (view: DashboardView) => void;
   title?: string;
   onLogout?: () => void;
+  onContextSwitched?: () => void;
   /** false remove o menu hambúrguer e a barra lateral (ex.: painel do gestor). Padrão: true. */
   showMenu?: boolean;
   /** false oculta o botão "Sair" do header (ex.: painel do suporte). Padrão: true. */
   showLogout?: boolean;
 }
 
-export function DashboardChrome({ user, navigateToTarget, title, onLogout, showMenu = true, showLogout = true }: DashboardChromeProps) {
+export function DashboardChrome({ user, navigateToTarget, title, onLogout, onContextSwitched, showMenu = true, showLogout = true }: DashboardChromeProps) {
   const router = useRouter();
   const toAreaPath = useAreaPath();
   const activeArea = useActiveArea();
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [meData, setMeData] = useState<any>(null);
+
+  const refreshMe = useCallback(() => {
+    fetch('/api/auth/me')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (data) setMeData(data); })
+      .catch(() => { });
+    onContextSwitched?.();
+  }, [onContextSwitched]);
 
   useEffect(() => {
     let cancelled = false;
@@ -85,6 +94,7 @@ export function DashboardChrome({ user, navigateToTarget, title, onLogout, showM
         showLogout={showLogout}
         activeContextId={meData?.activeContextId}
         availableContexts={meData?.availableContexts}
+        onContextSwitched={refreshMe}
       />
       {showMenu && <DashboardSidebar menuOpen={menuOpen} setMenuOpen={setMenuOpen} sections={sections} />}
       {showLogout && !onLogout && (

@@ -8,27 +8,45 @@ export async function listMatches(
   limit = 20,
   createdByUserId?: string | null,
   contextId?: string | null,
+  followedPlayerIds?: readonly string[] | null,
 ) {
   if (!createdByUserId) {
     return [];
   }
 
-  const ctFilter =
-    contextId === 'PARTICULAR'
-      ? { ctId: null }
-      : contextId
-      ? { ctId: contextId }
-      : {};
+  const orConditions: Record<string, unknown>[] = [];
+
+  if (contextId === 'PARTICULAR') {
+    orConditions.push({ ctId: null, createdByUserId });
+  } else if (contextId) {
+    orConditions.push({ ctId: contextId });
+  } else {
+    orConditions.push({ createdByUserId });
+  }
+
+  if (followedPlayerIds && followedPlayerIds.length > 0) {
+    // Partidas onde atletas seguidos participam NÃO filtram por ctId:
+    // um treinador avulso pode ver um atleta pessoal jogando em partida de um clube ao qual também pertence.
+    for (const field of ['player1Id', 'player2Id', 'player1PartnerId', 'player2PartnerId']) {
+      orConditions.push({ [field]: { in: followedPlayerIds } });
+    }
+  }
+
+  const where: Record<string, unknown> = {
+    deletedAt: null,
+    ...(state ? { state: state as MatchState } : {}),
+  };
+
+  if (orConditions.length === 1) {
+    Object.assign(where, orConditions[0]);
+  } else {
+    where.OR = orConditions;
+  }
 
   return prisma.match.findMany({
     take: limit,
     ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
-    where: {
-      deletedAt: null,
-      createdByUserId,
-      ...ctFilter,
-      ...(state ? { state: state as MatchState } : {}),
-    },
+    where,
     select: BASE_MATCH_SELECT,
     orderBy: { createdAt: "desc" },
   });

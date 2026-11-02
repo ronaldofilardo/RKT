@@ -33,14 +33,23 @@ export async function POST(request: NextRequest) {
       success: true,
       accessToken: result.accessToken,
       context: result.context,
+      targetUrl: result.targetUrl,
     });
 
-    response.cookies.set('rkt_access_token', result.accessToken, {
-      httpOnly: true,
-      sameSite: 'lax',
+    const cookieOpts = {
+      sameSite: 'lax' as const,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 2,
       path: '/',
+    };
+
+    response.cookies.set('rkt_access_token', result.accessToken, {
+      ...cookieOpts,
+      httpOnly: true,
+    });
+    response.cookies.set('access_token', result.accessToken, {
+      ...cookieOpts,
+      httpOnly: false,
     });
 
     return response;

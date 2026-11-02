@@ -56,6 +56,17 @@ export async function POST(request: NextRequest) {
     const { effectiveRole, effectiveProfile, platformPreset, membershipKind } =
       computeLoginProfile(actor?.memberships as readonly ActorMembership[] | null | undefined, user.role);
 
+    const chosenContext = availableContexts.find((c) => c.id === chosenContextId);
+    const areaForContext = (() => {
+      if (!chosenContext) return undefined;
+      if (chosenContext.type === 'PARTICULAR') return 'TREINADOR_AVULSO';
+      if (chosenContext.type === 'CT') {
+        if (chosenContext.role === 'GESTOR') return 'GESTOR';
+        if (chosenContext.role === 'TREINADOR') return 'TREINADOR_CLUBE';
+      }
+      return undefined;
+    })();
+
     const accessToken = await generateLoginToken(
       user.id,
       effectiveRole,
@@ -64,6 +75,8 @@ export async function POST(request: NextRequest) {
       platformPreset,
       membershipKind,
       chosenContextId,
+      areaForContext,
+      chosenContext?.type === 'CT' ? chosenContextId : undefined,
     );
 
     const response = NextResponse.json({
@@ -90,6 +103,10 @@ export async function POST(request: NextRequest) {
       ...(user.mustChangePassword ? {} : { maxAge: 60 * 60 * 2 }),
     };
     response.cookies.set('rkt_access_token', accessToken, cookieOpts);
+    response.cookies.set('access_token', accessToken, {
+      ...cookieOpts,
+      httpOnly: false,
+    });
     return response;
   } catch (error) {
     logger.error('[LOGIN POST]', error);

@@ -28,7 +28,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-telemetry-base text-telemetry-text-primary">
-      <DashboardChrome user={model.user} navigateToTarget={model.navigateToTarget} />
+      <DashboardChrome user={model.user} navigateToTarget={model.navigateToTarget} onContextSwitched={model.fetchDashboardData} />
 
       <main className="max-w-4xl mx-auto px-4 py-6">
         <DashboardViewRouter

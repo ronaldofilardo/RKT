@@ -37,6 +37,7 @@ export async function middleware(request: NextRequest) {
   requestHeaders.delete('x-user-mcp');
   requestHeaders.delete('x-active-area');
   requestHeaders.delete('x-active-ct');
+  requestHeaders.delete('x-user-context');
 
   const csrfViolation = enforceOriginCheck(request);
   if (csrfViolation) return csrfViolation;

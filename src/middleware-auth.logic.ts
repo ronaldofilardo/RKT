@@ -48,6 +48,18 @@ export async function handleAuthenticated(
   if (decoded.sv !== undefined) requestHeaders.set('x-user-sv', String(decoded.sv));
   if (decoded.mcp !== undefined) requestHeaders.set('x-user-mcp', String(decoded.mcp));
 
+  const resolvedContextId = decoded.ct ?? decoded.cx ?? (decoded.ax === 'TREINADOR_AVULSO' ? 'PARTICULAR' : undefined);
+  if (resolvedContextId) {
+    requestHeaders.set('x-user-context', resolvedContextId);
+  }
+  if (decoded.ct) {
+    requestHeaders.set('x-active-ct', decoded.ct);
+  }
+  const resolvedActiveArea = decoded.ax ?? resolveUserActiveArea(decoded);
+  if (resolvedActiveArea) {
+    requestHeaders.set('x-active-area', resolvedActiveArea);
+  }
+
   if (pathname === '/login' && (decoded.mcp === true || request.nextUrl?.searchParams?.get?.('exit') === '1')) {
     const res = NextResponse.next({ request: { headers: requestHeaders } });
     const cOpts = { path: '/', maxAge: 0, sameSite: 'lax' as const, secure: process.env.NODE_ENV === 'production' };

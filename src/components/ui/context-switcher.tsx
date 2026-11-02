@@ -37,10 +37,19 @@ export function ContextSwitcher({
         body: JSON.stringify({ contextId }),
       });
       if (res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data?.accessToken && typeof window !== 'undefined') {
+          sessionStorage.setItem('access_token', data.accessToken);
+        }
         setIsOpen(false);
         await purgeOfflineCaches();
-        if (onContextSwitched) onContextSwitched();
-        else window.location.reload();
+        if (data?.targetUrl && typeof window !== 'undefined') {
+          window.location.href = data.targetUrl;
+        } else if (onContextSwitched) {
+          onContextSwitched();
+        } else {
+          window.location.reload();
+        }
       }
     } finally {
       setIsSwitching(false);

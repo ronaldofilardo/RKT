@@ -1,10 +1,13 @@
 import { NextRequest } from 'next/server';
-import { withRLSHandler, withPermissionHandler } from '@/lib/auth';
+import { withAccessHandler } from '@/lib/access-handler';
+import { withPermissionHandler } from '@/lib/auth';
 import { getMatchesResponse } from './matches-get.logic';
 import { postMatchResponse } from './matches-post.logic';
 
 export async function GET(request: NextRequest) {
-  return withRLSHandler(request, 'ANNOTATOR', (user) => getMatchesResponse(request, user));
+  return withAccessHandler(request, null, null, async ({ user, actor }) => {
+    return getMatchesResponse(request, user, actor.followedPlayerIds);
+  });
 }
 
 export async function POST(request: NextRequest) {

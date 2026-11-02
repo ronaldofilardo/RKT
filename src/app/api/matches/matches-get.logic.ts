@@ -9,6 +9,7 @@ import type { RLSUser } from '@/lib/rls-context';
 export async function getMatchesResponse(
   request: NextRequest,
   user: RLSUser | null | undefined,
+  followedPlayerIds?: readonly string[] | null,
 ): Promise<NextResponse> {
   try {
     if (!user) {
@@ -34,7 +35,7 @@ export async function getMatchesResponse(
       state = parsed.data;
     }
 
-    const matches = await listMatches(state, cursor, limit, user.id, user.contextId);
+    const matches = await listMatches(state, cursor, limit, user.id, user.contextId, followedPlayerIds);
     const nextCursor = matches.length === limit ? matches[matches.length - 1].id : null;
 
     const { normalizeScoreState } = await import('@/core/scoring/score-normalizer');
