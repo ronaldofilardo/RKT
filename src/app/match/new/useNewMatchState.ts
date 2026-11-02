@@ -1,8 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Athlete } from './types';
 import { ensureAuthCookie } from '@/lib/auth-client';
 import { useTournamentSuggestions } from './hooks/useTournamentSuggestions';
 import { loadAvailableCts, type CtOption } from './match-new-ct-logic';
+import {
+  initialSlotAffiliation,
+  type SlotAffiliation,
+  type SlotAffiliationMap,
+  type SlotId,
+} from './slot-affiliation';
 export function useNewMatchState() {
   const [loading, setLoading] = useState(false);
   const submittingRef = useRef(false);
@@ -42,9 +48,12 @@ export function useNewMatchState() {
   const [pendingPayload, setPendingPayload] = useState<Record<string, unknown> | null>(null);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [duplicateInfo, setDuplicateInfo] = useState<{ id: string; playerP1?: string; playerP2?: string; matchType?: 'SINGLES' | 'DOUBLES'; scheduledAt?: Date | string | null } | null>(null);
-  const [myClub, setMyClub] = useState(false);
+  const [slotAffiliation, setSlotAffiliation] = useState<SlotAffiliationMap>(initialSlotAffiliation());
   const [ctId, setCtId] = useState(''); const [clubNameMatch, setClubNameMatch] = useState('');
   const [availableCts, setAvailableCts] = useState<CtOption[]>([]);
+  const updateSlotAffiliation = useCallback((slot: SlotId, value: SlotAffiliation) => {
+    setSlotAffiliation((prev) => ({ ...prev, [slot]: value }));
+  }, []);
   useEffect(() => {
     const role = sessionStorage.getItem('user_role');
     if (role === 'ADMIN') {
@@ -56,11 +65,7 @@ export function useNewMatchState() {
   useEffect(() => {
     loadAvailableCts().then((cts) => {
       setAvailableCts(cts);
-      const role = typeof window !== 'undefined' ? sessionStorage.getItem('user_role') : null;
-      if (cts.length === 1 && (role === 'GESTOR' || role === 'TREINADOR' || !role)) {
-        setMyClub(true);
-        setCtId(cts[0].id);
-      }
+      if (cts.length > 0) setCtId((prev) => prev || cts[0].id);
     }).catch(() => undefined);
   }, []);
   useEffect(() => {
@@ -91,7 +96,7 @@ export function useNewMatchState() {
     tournamentSuggestions, showServerModal, setShowServerModal, createdMatchId, setCreatedMatchId,
     startingMatch, setStartingMatch, pendingPayload, setPendingPayload, showDuplicateModal,
     setShowDuplicateModal, duplicateInfo, setDuplicateInfo,
-    myClub, setMyClub, ctId, setCtId, clubNameMatch, setClubNameMatch, availableCts, setAvailableCts,
+    slotAffiliation, setSlotAffiliation, updateSlotAffiliation, ctId, setCtId, clubNameMatch, setClubNameMatch, availableCts, setAvailableCts,
   };
 }
 export type NewMatchState = ReturnType<typeof useNewMatchState>;

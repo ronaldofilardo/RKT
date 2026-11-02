@@ -8,6 +8,8 @@ interface AthleteDropdownPanelProps {
   selectedAthlete: Athlete | null;
   onSelect: (athlete: Athlete) => void;
   onCreateNew: () => void;
+  /** Quando 'OWN' (Meu clube), oculta o nome do clube abaixo de cada atleta para nao poluir a UI. */
+  affiliation?: 'OWN' | 'NOT_OWN';
 }
 
 export function AthleteDropdownPanel({
@@ -16,6 +18,7 @@ export function AthleteDropdownPanel({
   selectedAthlete,
   onSelect,
   onCreateNew,
+  affiliation,
 }: AthleteDropdownPanelProps) {
   const colorClasses = {
     border: 'border-white/10',
@@ -57,7 +60,12 @@ export function AthleteDropdownPanel({
               selectedAthlete?.id === a.id ? colorClasses.bgSelected : ''
             }`}
           >
-            <span className="font-medium text-telemetry-text-primary">{a.name}</span>
+            <div className="min-w-0">
+              <span className="font-medium text-telemetry-text-primary">{a.name}</span>
+              {affiliation !== 'OWN' && a.club && (
+                <p className="text-xs text-telemetry-text-muted truncate">{a.club}</p>
+              )}
+            </div>
             {a.ranking && (
               <span className="text-xs text-telemetry-text-muted bg-white/5 px-2 py-0.5 rounded-full border border-white/10">
                 #{a.ranking}

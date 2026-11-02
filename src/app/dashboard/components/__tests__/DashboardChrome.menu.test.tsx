@@ -4,8 +4,11 @@
 import { render, screen } from '@testing-library/react';
 import { DashboardChrome } from '../DashboardChrome';
 
-jest.mock('next/navigation', () => ({ useRouter: () => ({ push: jest.fn(), replace: jest.fn() }) }));
-jest.mock('@/lib/auth-client', () => ({ clearAuthState: jest.fn() }));
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
+  usePathname: () => '/dashboard',
+}));
+jest.mock('@/lib/auth-client', () => ({ clearAuthState: jest.fn(), performLogout: jest.fn() }));
 jest.mock('@/components/ThemeToggle', () => ({ ThemeToggle: () => null }));
 jest.mock('../DashboardSidebar', () => ({
   DashboardSidebar: () => <nav data-testid="sidebar">sidebar</nav>,

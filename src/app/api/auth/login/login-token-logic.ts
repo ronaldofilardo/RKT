@@ -11,6 +11,9 @@ export async function generateLoginToken(
   platformPreset?: string | null,
   membershipKind?: string | null,
   contextId?: string | null,
+  activeArea?: string | null,
+  activeCtId?: string | null,
+  availableAreas?: string[],
 ): Promise<string> {
   if (!secretKey) {
     throw new Error('JWT_SECRET is not defined in environment');
@@ -23,6 +26,9 @@ export async function generateLoginToken(
     ...(platformPreset !== undefined ? { pp: platformPreset } : {}),
     ...(membershipKind !== undefined ? { mk: membershipKind } : {}),
     ...(contextId ? { cx: contextId } : {}),
+    ...(activeArea ? { ax: activeArea } : {}),
+    ...(activeCtId ? { ct: activeCtId } : {}),
+    ...(availableAreas && availableAreas.length > 0 ? { ars: availableAreas } : {}),
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()

@@ -6,6 +6,7 @@ import { SuporteHeader } from './suporte-header';
 import { ClubesSection } from './clubes-section';
 import { GestoresSection } from './gestores-section';
 import { AvulsosSection } from './avulsos-section';
+import { ExternosSection } from './externos-section';
 import { EditarClubeModal } from './editar-clube-modal';
 import { patchUser, patchTrainingCenter } from './suporte-mutations';
 import { DashboardChrome } from '@/app/dashboard/components/DashboardChrome';
@@ -27,7 +28,7 @@ function SuportePageContent({ data, loading, error, setError, onRetry }: Suporte
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const q = new URLSearchParams(window.location.search).get('module') as SuporteModule;
-      if (q && ['clubes', 'gestores', 'avulsos'].includes(q)) setModule(q);
+      if (q && ['clubes', 'gestores', 'avulsos', 'externos'].includes(q)) setModule(q);
     }
   }, []);
 
@@ -38,6 +39,7 @@ function SuportePageContent({ data, loading, error, setError, onRetry }: Suporte
   const gestoresCount = memberships.filter((m) => m.kind === 'GESTOR').length;
   const userIdsWithMemberships = new Set(memberships.map((m) => m.userId));
   const avulsosCount = users.filter((u) => !userIdsWithMemberships.has(u.id)).length;
+  const externosCount = data?.externos?.totalAthletes ?? 0;
 
   const handleApprove = async (ctId: string) => {
     try { await patchTrainingCenter(ctId, { status: 'ACTIVE' }); onRetry(); }
@@ -65,14 +67,15 @@ function SuportePageContent({ data, loading, error, setError, onRetry }: Suporte
 
   return (
     <div className="min-h-screen bg-telemetry-base">
-      <DashboardChrome title="Painel do Suporte" />
+        <DashboardChrome title="Painel do Suporte" showLogout={false} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <SuporteHeader clubsCount={clubs.length} gestoresCount={gestoresCount} avulsosCount={avulsosCount} />
+        <SuporteHeader clubsCount={clubs.length} gestoresCount={gestoresCount} avulsosCount={avulsosCount} externosCount={externosCount} />
         <SuporteTabNav module={module} onModuleChange={setModule} />
         <div className="space-y-6">
           {module === 'clubes' && <ClubesSection clubs={clubs} filter={ctFilter} onFilterChange={setCtFilter} onApprove={handleApprove} onSuspend={handleSuspend} onReactivate={handleApprove} onEditClub={(ct) => { setSelectedClub(ct); setEditClubOpen(true); }} />}
           {module === 'gestores' && <GestoresSection memberships={memberships} users={users} clubs={clubs} onEdit={handleEditUser} onRefresh={onRetry} />}
           {module === 'avulsos' && <AvulsosSection />}
+          {module === 'externos' && <ExternosSection data={data?.externos ?? null} loading={loading} error={error} onRetry={onRetry} />}
         </div>
         {editClubOpen && selectedClub && <EditarClubeModal open={editClubOpen} onOpenChange={setEditClubOpen} ct={selectedClub} onSave={(val) => handleEditClub(selectedClub!.id, val)} key={selectedClub.id} />}
       </div>

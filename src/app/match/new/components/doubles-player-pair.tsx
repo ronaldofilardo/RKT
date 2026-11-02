@@ -1,22 +1,27 @@
 'use client';
 
 import type { Athlete } from '../types';
+import type { SlotAffiliation } from '../slot-affiliation';
 import { AthleteDropdown } from './AthleteDropdown';
 
 interface PairSlotProps {
   label: string;
+  /** Lista já filtrada pela afiliação deste slot. */
+  athletes: Athlete[];
   selected: Athlete | null;
   isOpen: boolean;
   excluded: (Athlete | null)[];
   onToggle?: () => void;
   onSelect?: (a: Athlete | null) => void;
   onCreateNew?: () => void;
+  affiliation?: SlotAffiliation;
+  onAffiliationChange?: (v: SlotAffiliation) => void;
+  canSelectOwn?: boolean;
 }
 
 export interface DoublesPlayerPairProps {
   accent: 'sky' | 'emerald';
   title: string;
-  athletes: Athlete[];
   primary: PairSlotProps;
   partner: PairSlotProps;
 }
@@ -39,7 +44,6 @@ const ACCENTS = {
 export function DoublesPlayerPair({
   accent,
   title,
-  athletes,
   primary,
   partner,
 }: DoublesPlayerPairProps) {
@@ -48,11 +52,14 @@ export function DoublesPlayerPair({
   const slot = (s: PairSlotProps) => (
     <AthleteDropdown
       label={s.label}
-      athletes={athletes}
+      athletes={s.athletes}
       selectedAthlete={s.selected}
       excludedAthletes={s.excluded}
       isOpen={s.isOpen}
       colorClass={accent}
+      affiliation={s.affiliation}
+      canSelectOwn={s.canSelectOwn}
+      onAffiliationChange={s.onAffiliationChange}
       onToggle={s.onToggle ?? (() => {})}
       onSelect={s.onSelect ?? (() => {})}
       onCreateNew={s.onCreateNew ?? (() => {})}

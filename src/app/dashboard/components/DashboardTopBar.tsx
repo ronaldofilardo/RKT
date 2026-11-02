@@ -12,15 +12,16 @@ interface DashboardTopBarProps {
   user: { name: string; role: string } | null;
   title?: string;
   onNewMatch: () => void;
-  onLogout: () => void;
+  onLogout?: () => void;
   showMenuButton?: boolean;
   activeContextId?: string | null;
   availableContexts?: SessionContextOption[];
+  showLogout?: boolean;
 }
 
 export function DashboardTopBar({
   menuOpen, setMenuOpen, user, title, onNewMatch, onLogout, showMenuButton = true,
-  activeContextId, availableContexts,
+  activeContextId, availableContexts, showLogout = true,
 }: DashboardTopBarProps) {
   const firstName = user?.name ? user.name.trim().split(/\s+/)[0] : '';
   const homeHref = user?.role === 'GESTOR' ? '/gestor' : '/dashboard';
@@ -43,10 +44,12 @@ export function DashboardTopBar({
           </button>
           {firstName && <span className="hidden md:inline text-sm text-telemetry-text-muted font-medium">{firstName}</span>}
           {user?.role === "ADMIN" && <span className="text-xs px-2 py-0.5 rounded bg-telemetry-alert text-telemetry-base font-bold">Admin</span>}
-          <button type="button" onClick={onLogout} aria-label="Sair"
-            className="text-sm text-telemetry-error hover:opacity-80 font-semibold transition-opacity cursor-pointer">
-            Sair
-          </button>
+          {showLogout && onLogout && (
+            <button type="button" onClick={onLogout} aria-label="Sair"
+              className="text-sm text-telemetry-error hover:opacity-80 font-semibold transition-opacity cursor-pointer">
+              Sair
+            </button>
+          )}
 
           {showMenuButton && (
             <button

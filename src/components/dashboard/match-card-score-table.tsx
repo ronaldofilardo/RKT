@@ -18,6 +18,7 @@ export interface MatchCardScoreDerived {
 
 interface PlayerRowSpec {
   name: string;
+  club?: string | null;
   isServer: boolean;
 }
 
@@ -27,18 +28,22 @@ export function MatchCardScoreTable({
   p1,
   p2,
   renderCells,
+  ctId,
 }: {
   barBg: string;
   p1: PlayerRowSpec;
   p2: PlayerRowSpec;
   renderCells: (playerKey: 'player1' | 'player2') => ReactNode;
+  ctId?: string | null;
 }) {
   const row = (spec: PlayerRowSpec, testId: string, playerKey: 'player1' | 'player2') => (
     <MatchCardPlayerRow
       name={spec.name}
+      club={spec.club}
       isServer={spec.isServer}
       serverTestId={testId}
       barBg={barBg}
+      ctId={ctId}
     >
       {renderCells(playerKey)}
     </MatchCardPlayerRow>

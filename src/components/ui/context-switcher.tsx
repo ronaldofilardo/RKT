@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { SessionContextOption } from '@/lib/auth-client-login';
+import { purgeOfflineCaches } from '@/lib/offline-storage-purge';
 import { ContextSwitcherMenu } from './context-switcher-menu';
 
 interface ContextSwitcherProps {
@@ -37,6 +38,7 @@ export function ContextSwitcher({
       });
       if (res.ok) {
         setIsOpen(false);
+        await purgeOfflineCaches();
         if (onContextSwitched) onContextSwitched();
         else window.location.reload();
       }

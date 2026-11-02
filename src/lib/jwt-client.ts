@@ -20,6 +20,9 @@ export interface DecodedJwt {
   pp?: string | null;
   mk?: string | null;
   cx?: string | null;
+  ax?: string | null;
+  ct?: string | null;
+  ars?: string[];
 }
 
 export async function decodeJwtPayload(token: string): Promise<DecodedJwt | null> {
@@ -38,6 +41,9 @@ export async function decodeJwtPayload(token: string): Promise<DecodedJwt | null
     if (typeof payload.pp === 'string') result.pp = payload.pp;
     if (typeof payload.mk === 'string') result.mk = payload.mk;
     if (typeof payload.cx === 'string') result.cx = payload.cx;
+    if (typeof payload.ax === 'string') result.ax = payload.ax;
+    if (typeof payload.ct === 'string') result.ct = payload.ct;
+    if (Array.isArray(payload.ars)) result.ars = payload.ars.filter((x): x is string => typeof x === 'string');
 
     return result;
   } catch {

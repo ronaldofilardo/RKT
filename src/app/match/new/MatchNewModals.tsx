@@ -8,6 +8,7 @@ import {
   DuplicateMatchModal,
 } from './components';
 import type { Athlete } from './types';
+import { isOwnSlot, type SlotAffiliationMap, type SlotId } from './slot-affiliation';
 import type { SelectablePlayer } from './components/ServerSelectionModal';
 import type { DoublesSetup } from '@/schemas/contracts';
 
@@ -30,7 +31,8 @@ interface MatchNewModalsProps {
   setShowDuplicateModal: (v: boolean) => void;
   duplicateInfo: { id: string; playerP1?: string; playerP2?: string } | null;
   createMatchIgnoringWarning: () => void;
-  myClub?: boolean;
+  slotAffiliation: SlotAffiliationMap;
+  newAthleteFor: SlotId | null;
   ctId?: string | null;
 }
 
@@ -53,17 +55,20 @@ export function MatchNewModals({
   setShowDuplicateModal,
   duplicateInfo,
   createMatchIgnoringWarning,
-  myClub = false,
+  slotAffiliation,
+  newAthleteFor,
   ctId = null,
 }: MatchNewModalsProps) {
   const isDoubles = matchType === 'DOUBLES';
+  // O atleta criado agora herda a afiliação do slot que abriu o modal.
+  const modalMyClub = newAthleteFor ? isOwnSlot(slotAffiliation[newAthleteFor], ctId) : false;
   return (
     <>
       <NewAthleteModal
         isOpen={showNewAthleteModal}
         onClose={() => setShowNewAthleteModal(false)}
         onCreated={onAthleteCreationComplete}
-        myClub={myClub}
+        myClub={modalMyClub}
         ctId={ctId}
       />
       {!isDoubles ? (

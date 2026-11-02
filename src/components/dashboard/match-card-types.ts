@@ -4,10 +4,10 @@ export interface DashboardMatchPayload {
   format: string;
   matchType?: string;
   courtType?: string | null;
-  player1: { name: string; id?: string };
-  player2: { name: string; id?: string };
-  player1Partner?: { name: string; id?: string } | null;
-  player2Partner?: { name: string; id?: string } | null;
+  player1: { name: string; id?: string; club?: string | null };
+  player2: { name: string; id?: string; club?: string | null };
+  player1Partner?: { name: string; id?: string; club?: string | null } | null;
+  player2Partner?: { name: string; id?: string; club?: string | null } | null;
   doublesSetup?: unknown;
   scheduledAt?: string | null;
   scoreState?: unknown;
@@ -31,6 +31,8 @@ export interface DashboardMatchPayload {
 
 export interface MatchCardProps {
   match: DashboardMatchPayload;
+  /** ID do CT ativo do usuario logado ("meu clube"). Usado para indicar se cada atleta eh do proprio clube ou de outro. */
+  ctId?: string | null;
   onClick?: (match: DashboardMatchPayload) => void;
   onReport?: (match: DashboardMatchPayload) => void;
   onFinish?: (match: DashboardMatchPayload) => void;

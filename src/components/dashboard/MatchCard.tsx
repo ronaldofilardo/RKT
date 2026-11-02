@@ -22,7 +22,8 @@ export function MatchCard({
   onSetSummary,
   onEditInfo,
   onShare,
-}: MatchCardProps) {
+  ctId,
+}: MatchCardProps & { ctId?: string | null }) {
   const d = useMatchCardData(match);
 
   const format = match.format as string;
@@ -34,6 +35,8 @@ export function MatchCard({
   const columnTitles = Array.from({ length: setCount }, (_, i) => `Set ${i + 1}`);
   const p1Name = abbreviateDoublesName(match.player1.name, match.player1Partner?.name ?? undefined);
   const p2Name = abbreviateDoublesName(match.player2.name, match.player2Partner?.name ?? undefined);
+  const p1Club = match.player1.club ?? null;
+  const p2Club = match.player2.club ?? null;
 
   const onPrimaryClick = useCallback(() => {
     onClick?.(match);
@@ -76,6 +79,9 @@ export function MatchCard({
         columnTitles={columnTitles}
         p1Name={p1Name}
         p2Name={p2Name}
+        p1Club={p1Club}
+        p2Club={p2Club}
+        ctId={ctId}
         isServerP1={d.isServerP1}
         isServerP2={d.isServerP2}
         isLiveOrSuspended={d.isLiveOrSuspended}

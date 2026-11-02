@@ -3,8 +3,161 @@
 > Diário de bordo técnico · Metodologia RE-DOC (Fase 4 — Auditoria de Qualidade e Histórico)
 > **Este é um dos 6 arquivos-canônicos do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
 
-**Última Atualização:** 2026-10-28
+**Última Atualização:** 2026-11-01
 **Analisado por:** engenharia reversa e implementação sobre `main`
+
+---
+
+## 2.17 Plano da Landing Page Institucional e Captação — 2026-11-01
+- **Origem:** Demanda de divulgação institucional e captação de usuários segmentada por perfis.
+- **Diretório da LP:** [`c:\apps\RKT-LP`](file:///c:/apps/RKT-LP)
+  - Plano mestre salvo em: [`c:\apps\RKT-LP\PLANO_LANDING_PAGE.md`](file:///c:/apps/RKT-LP/PLANO_LANDING_PAGE.md).
+  - Ponto de entrada e referências: [`c:\apps\RKT-LP\README.md`](file:///c:/apps/RKT-LP/README.md).
+- **Referências Canônicas:**
+  - Fonte única de verdade para Design System, tokens `telemetry-*`, regras R-03 ($\le 100$ linhas), tipos de telemetria esportiva e fluxos de autenticação (`/signup` com `?perfil=` e `?origem=`) é o sistema principal em `c:\apps\RKT`.
+- **Decisões Arquiteturais:**
+  1. A Landing Page é servida na raiz `/` para visitantes anônimos.
+  2. Usuários já autenticados que acessarem `/` são direcionados para a home da sua área semântica ativa (`homeForArea(activeArea)`).
+  3. Os CTAs segmentam por perfil (`ATLETA`, `TREINADOR`, `GESTOR`, `ESPECTADOR`) com tags de auditoria (`origem=lp_*`).
+
+---
+
+## 2.16 Layout das Subseções de Ranking em 2 Linhas (Sem Scroll Horizontal) — 2026-11-01
+- **Sintoma:** no cadastro de novo atleta (seção "2. Ranking", usada também no Editar Atleta), cada subseção (Estadual, COSAT etc.) renderizava **Categoria, Classe, Posição e Posição Ranking Juvenil numa única linha** (`flex flex-nowrap` + `overflow-x-auto`), forçando barra de rolagem horizontal — UX péssima em telas estreitas.
+- **Causa Raiz:** `src/app/atletas/ranking-form-card.tsx` envolvia os campos em `<div className="flex flex-nowrap ... overflow-x-auto">` e `RankingFields` devolvia todos os campos como irmãos inline.
+- **Resolução Implementada:**
+  - `src/app/atletas/ranking-form-card.tsx`: container vira `flex items-start` simples (sem `flex-nowrap`/`overflow-x-auto`).
+  - `src/app/atletas/ranking-form-fields.tsx`: campos reorganizados em **duas linhas** com `grid grid-cols-2`:
+    - **Linha 1:** Categoria + Posição (para tipos sem categoria, ex. adulto em ESTADUAL, a **Classe sobe** para a linha 1 junto da Posição);
+    - **Linha 2:** Classe + Posição Ranking Juvenil (renderizada só quando faz sentido — categoria juvenil).
+  - Novos componentes extraídos para respeitar R-03 (≤100 linhas): `ranking-field.tsx` (label + controle), `ranking-select-field.tsx` (select rotulado, sufixo " anos" para categorias) e `ranking-number-field.tsx` (input numérico de Posição). Tokens telemetry preservados.
+  - Impacto: vale para **todos** os consumidores de `RankingForm` — cadastro de atleta em `/match/novo` ("2. Ranking") e modal "Editar Atleta" em `/atletas`.
+- **Testes:** `src/app/atletas/__tests__/RankingForm.real.test.tsx` — asserts de layout atualizados para as 2 linhas (`.grid.grid-cols-2`), novo caso "adulto sem categoria: Classe + Posição juntas na linha 1 e sem linha 2" e regressão de ausência de `.overflow-x-auto`. Suítes `RankingForm|EditAthleteModal|NewAthleteModal` verdes (47 testes).
+- **Qualidade:** `tsc --noEmit` 0 erros · `next lint` 0 avisos · arquivos ≤100 linhas (R-03).
+
+## 2.15 "Link Senha" do Gestor Cria a Conta de Atletas Sem Conta — 2026-11-01
+- **Sintoma:** em `/gestor` → aba **Atletas**, clicar em **"Link Senha"** retornava `404 { error: 'NOT_FOUND', message: 'Vínculo de atleta não encontrado' }`; após a primeira correção, o mesmo clique devolvia `409 CONFLICT` quando o CPF do atleta já tinha conta.
+- **Causa Raiz:**
+  1. O `PlayerCT` existia e estava `ACTIVE`; o 404 era disparado por `!playerCt.player.user || !playerCt.player.userId`. Atletas vinculado ao CT **sem conta de acesso** (`Player.userId` nulo — cadastro rápido em partida `PROVISIONAL` ou vínculo avulso via `/api/cts/[id]/athletes`) apareciam com o botão ativo e não tinham como gerar link.
+  2. O CPF é a chave de identidade, mas **só os treinadores** tinham fluxo de vinculação de conta já existente (`linkExistingCoach`, acionado pelo prompt do cadastro). Para atletas, `createAthleteByGestor` devolvia `conflict: true` e o modal ignorava (`canLinkExisting` só era tratado para treinador). Caso real no banco local: atleta *Marcos* (nascimento 2015-01-01) com CPF igual ao da conta `Coah Carter`.
+- **Resolução Implementada:**
+  - `src/app/api/gestor/athletes-link.logic.ts` (novo): `linkExistingAthleteAccount()` — espelho de `linkExistingCoach`. Recusa se a conta já pertence a outro `Player` (`409`), cria/associa o `Player` da conta, garante `PlayerCT` **ACTIVE** (reativa vínculo encerrado em vez de duplicar), propaga `CoachAthleteLink` para os treinadores do CT, grava `AuditLog` (`ATHLETE_LINKED_TO_CT`) e invalida o cache do ator. Aplica a regra "cadastrado pelo clube pertence ao clube".
+  - `src/app/api/gestor/athletes-provision.logic.ts` (novo): `provisionAthleteAccount()` movida para cá (R-03). Valida CPF/nascimento, **vincula a conta de mesmo CPF** ou cria o `User` (`ANNOTATOR`, `canOperate`, senha provisória = data de nascimento `YYYYMMDD`, 7 dias) associando `Player.userId` + `identityStatus: 'CONFIRMED'`. E-mail de outra conta → `409`; corrida `P2002` → `409`.
+  - `src/app/api/gestor/athletes/[id]/regenerate-link/route.ts`: o 404 passa a valer apenas para vínculo inexistente; sem conta, provisiona/vincula na hora e segue o fluxo normal (`LinkInvite` + `PasswordResetRequest` + token).
+  - `src/app/api/gestor/athletes-logic.ts`: `createAthleteByGestor` aceita `linkExisting` — sem ele devolve `canLinkExisting`/`existingUserName` (prompt de confirmação); com ele chama `linkExistingAthleteAccount` e responde `isExistingUser: true` sem nova senha.
+  - `src/lib/validators/athlete-create.schema.ts` + `src/app/api/gestor/athletes/route.ts`: `linkExisting` no schema e no payload de conflito/sucesso (mesmo formato da rota de treinadores).
+  - `src/app/gestor/cadastrar-membro-modal.tsx` e `cadastrar-membro-link-prompt.tsx`: envia `linkExisting` também para atleta e prompt com copy própria ("vincular a conta ao seu clube" / "integrar o elenco").
+  - `src/app/gestor/athlete-row.tsx`: badge **"Sem conta"** e título do botão "Criar conta de acesso e gerar link de senha".
+- **Testes:**
+  - `src/app/api/gestor/athletes/[id]/__tests__/regenerate-link.test.ts` (8 casos: conta existente, provisionamento, vínculo por CPF, 404, 400 nascimento, 400 CPF, 409 outro atleta, 409 e-mail de outra conta).
+  - `src/app/api/gestor/__tests__/athletes-link.test.ts` (5 casos) e `coaches-athletes.test.ts` (+2 casos de `linkExisting`).
+  - `src/app/gestor/__tests__/athlete-row.test.tsx`, `athletes-table-link-senha.test.tsx` e `cadastrar-membro-modal-link.test.tsx`.
+- **Qualidade:** `tsc --noEmit` 0 erros · `next lint` 0 avisos · suítes Jest de gestor verdes (73 testes).
+
+---
+
+## 2.12 Área Ativa e Roteamento Semântico por URLs (Fases 0 a 7 Concluídas) — 2026-11-01
+- **Origem:** Plano [`docs/PLANO_AREAS_ATIVAS_E_URLS_POR_AREA_2026-11-01.md`](docs/PLANO_AREAS_ATIVAS_E_URLS_POR_AREA_2026-11-01.md).
+- **Fase 0 (Spike de Compatibilidade App Router Next.js 15.3):**
+  - Documentado em [`docs/SPIKE_NEXTJS_URL_REWRITE.md`](docs/SPIKE_NEXTJS_URL_REWRITE.md).
+  - Comprovada a preservação da URL externa visível via `usePathname()`, integridade da navegação SPA com `<Link>` e funcionamento transparente da pilha de modais (`useRouterModalStack`).
+- **Fase 1 (Claims de Sessão, Token & Refresh):**
+  - `src/lib/jwt-client.ts`: Suporte aos novos claims de área `ax` (área ativa), `ct` (clube ativo) e `ars` (áreas disponíveis).
+  - `src/core/access/areas.ts`: Funções puras `listAreas`, `prefixForArea`, `homeForArea` mapeando todas as 8 áreas canônicas.
+  - `src/app/api/auth/refresh`: Refatorado com `refresh-token.logic.ts` para preservação integral e sem perdas de `sub`, `role`, `sv`, `mcp`, `pp`, `mk`, `cx`, `ax`, `ct` e `ars`.
+  - `src/app/api/auth/area`: Rota e lógica `switchUserArea` permitindo alternância de área ativa com validação de vínculo e gravação no `AuditLog`.
+  - `src/lib/feature-flags.ts`: Feature flag `isAreaUrlsEnabled()` controlada por `AREA_URLS`.
+- **Fase 2 (Middleware & Camada de Roteamento):**
+  - `src/core/access/app-path.logic.ts`: Helper puro `appPath(area, path)` resolvendo caminhos de todas as áreas com preservação de rotas neutras.
+  - `src/middleware-area.logic.ts`: Reescrita transparente (`NextResponse.rewrite`) de rotas com prefixo (`/treinador`, `/atleta`, etc.) para rotas internas do App Router (`/dashboard`, `/partidasaovivo`, `/match/new`, etc.), e redirecionamento temporário 307 de rotas legadas não prefixadas.
+  - `src/middleware.ts` e `src/middleware-auth.logic.ts`: Atualizados com expansão do matcher incluindo `/login`, `/clube/:path*`, `/treinador/:path*`, `/atleta/:path*`, `/anotador/:path*`, `/espectador/:path*` e `/escolher-area`.
+- **Fase 3 (Isolamento por Área no Servidor):**
+  - `src/services/access-actor.logic.ts`: `buildActor` com suporte a `activeArea`. No contexto `TREINADOR_AVULSO` ou `contextId: 'PARTICULAR'`, filtra estritamente atletas avulsos e nega vínculos de clube; em `ATLETA`, omite papéis de gestão/treinador.
+  - `src/services/accessService.ts`: `getActor` aceita e indexa cache de ator por `activeArea`.
+  - `src/lib/auth-credentials.logic.ts` e `src/lib/access-handler.ts`: Extração de `x-active-area` e `x-active-ct` injetando ator contextualizado em todas as rotas protegidas.
+  - `src/core/access/visibility.ts`: Filtro estrito de visibilidade em `canReadMatch` e `canAnnotateMatch` por `Match.ctId` e contexto ativo.
+- **Fase 4 (Migração de Links e Teste-Guarda):**
+  - `src/hooks/use-area-path.ts`: Hook cliente reativo `useAreaPath()` detectando área da rota atual e gerando caminhos semânticos.
+  - `DashboardChrome.tsx`, `useDashboardNavigation.ts` e `useNewMatchSubmissionActions.ts`: Atualizados com roteamento por área.
+  - `src/__tests__/area-links.guard.test.ts`: Teste-guarda de integridade validando que nenhum link prefixável escapa do padrão.
+- **Fase 5 (UI, Escolha de Área e Limpeza Offline):**
+  - `src/app/escolher-area/page.tsx` e `use-area-selection.ts`: Interface de seleção de áreas disponíveis com redirect automático se conta possuir apenas 1 área.
+  - `src/lib/offline-storage-purge.ts`: Limpeza de caches IndexedDB (`racket_pending_matches` e `racket-offline-db`) ao alternar contexto/área.
+  - `src/components/ui/context-switcher.tsx`: Integrado `purgeOfflineCaches()` na alternância de contexto do menu.
+- **Fase 6 (Páginas Públicas, Segurança & Parâmetro next):**
+  - `src/core/access/safe-redirect.logic.ts`: Sanitização rigorosa contra Open Redirect (CWE-601) em `next` com testes dedicados em `safe-redirect.test.ts`.
+  - `src/app/login/login-success.logic.ts`: Redirecionamento seguro após autenticação para `/escolher-area` (múltiplas áreas) ou rota semântica da área ativa (`/treinador`, `/atleta`, etc.).
+  - `src/app/match/[id]/report/page.tsx` e `src/app/match/[id]/scoring/page.tsx`: Adoção de `useAreaPath()` nos retornos contextuais de relatório e pontuação.
+- **Fase 7 (Homologação Final & Baseline Verde):**
+  - 100% dos novos arquivos com $\le 100$ linhas (R-03).
+  - `tsc --noEmit`: 0 erros.
+  - `next lint`: 0 avisos / 0 erros (`✔ No ESLint warnings or errors`).
+  - Baseline de testes Jest: 38 testes específicos da funcionalidade passando + suíte global verde.
+
+---
+
+## 2.14 Correção do Fluxo de Troca de Senha, Logout e Escape Hatch em /trocar-senha — 2026-11-01
+- **Causa Raiz Identificada:**
+  1. *Logout no Menu Hambúrguer e Header*: O botão "Sair" limpava apenas o estado no `sessionStorage`/`localStorage`, mas não invocava `POST /api/auth/logout`, deixando o cookie `rkt_access_token` (`HttpOnly`) persistido.
+  2. *Bloqueio em /trocar-senha*: O usuário logado com senha provisória tem o claim `mcp: true` no cookie. O middleware forçava redirecionamento de volta para `/trocar-senha`. Ao tentar navegar para o login ou caso a senha provisória estivesse expirada/esquecida, o usuário ficava preso em loop na tela sem conseguir acessar nenhuma outra conta.
+- **Resolução Implementada:**
+  - `src/lib/auth-client-logout.ts`: Criado módulo isolado (23L) com `performLogout()` que faz `POST /api/auth/logout` para expirar cookies `HttpOnly` no servidor e limpa a sessão cliente.
+  - `src/app/dashboard/components/DashboardChrome.tsx`: Integração de `performLogout()` e `clearAuthState()` na confirmação do alertdialog de logout.
+  - `src/app/api/auth/login/route.ts`: Quando `user.mustChangePassword === true`, o cookie `rkt_access_token` é emitido como cookie de sessão (sem `maxAge`), sendo descartado ao fechar o navegador.
+  - `src/middleware-auth.logic.ts`: Se um usuário com `decoded.mcp === true` acessa a raiz `:3000` ou `/login`, o middleware limpa e expira os cookies pendentes e exibe a tela de login livremente, enquanto rotas protegidas (`/dashboard`, `/treinador`, etc.) continuam exigindo a troca de senha.
+  - `src/middleware-auth.logic.ts`: Adicionado suporte a `exit=1` em `/login?exit=1`, limpando e expirando cookies no ato e exibindo a tela de login sem loop de redirecionamento.
+  - `src/app/trocar-senha/components.tsx` e `src/app/trocar-senha/page.tsx`:
+    - Adicionado escape hatch com botões de saída ("Sair desta conta e voltar ao login" no alerta de erro e "Sair e fazer login" no rodapé).
+    - O botão "Ir para o Login" na tela de sucesso chama `performLogout()` e navega para `/login?exit=1`.
+  - Testes dedicados em `src/lib/__tests__/auth-client-logout.test.ts`, `src/app/trocar-senha/__tests__/trocar-senha.test.tsx` e `src/middleware/__tests__/middleware.test.ts`.
+  - R-03 respeitado: todos os arquivos mantidos com $\le 100$ linhas.
+  - `src/app/trocar-senha/components.tsx`: Componente `TrocarSenhaSuccess` atualizado para acionar `onLoginClick` de forma explícita no botão "Ir para o Login".
+  - `src/app/trocar-senha/__tests__/trocar-senha.test.tsx`: Teste unitário criado para garantir o comportamento de sucesso e disparo da navegação.
+- **Qualidade & STE-DEV:**
+  - `change-password/route.ts` (92L), `reset-password/route.ts` (50L), `trocar-senha/page.tsx` (98L), `trocar-senha/components.tsx` (98L) — 100% $\le 100$ linhas (R-03).
+  - `tsc --noEmit`: 0 erros.
+  - `next lint`: 0 erros / 0 avisos.
+  - Testes: 100% verdes.
+
+---
+
+## 2.13 Correção do Fluxo de Logout no Header e Menu Hambúrguer — 2026-11-01
+- **Causa Raiz Identificada:** O cookie de autenticação `rkt_access_token` é definido com `httpOnly: true`. A rotina de logout anterior executava apenas `clearAuthState()`, limpando o `sessionStorage` e tentando `document.cookie` (ineficaz para cookies `HttpOnly`). Sem a chamada ao endpoint `POST /api/auth/logout`, o cookie permanecia no navegador. Ao tentar redirecionar para `/login`, o middleware detectava a sessão ainda ativa e redirecionava imediatamente de volta para a rota da área ativa (`/suporte`, `/dashboard`, etc.).
+- **Resolução Implementada:**
+  - `src/lib/auth-client-logout.ts`: Criado módulo puro `performLogout` que dispara `fetch('/api/auth/logout', { method: 'POST' })` para invalidação dos cookies `HttpOnly` no servidor, seguido de `clearAuthState()`.
+  - `src/lib/auth-client.ts`: Exportada a função `performLogout`.
+  - `src/app/dashboard/components/DashboardChrome.tsx`: `confirmLogout` atualizado para despachar `performLogout()`, `clearAuthState()`, `router.replace('/login')` e navegação de página completa com `window.location.href = '/login'`.
+  - `src/lib/auth-client-storage.ts`: `redirectToLogin()` atualizado para também acionar `fetch('/api/auth/logout', { method: 'POST' })`, evitando retenção inadvertida de cookies ao expirar tokens.
+  - `src/lib/__tests__/auth-client-logout.test.ts`: Cobertura unitária completa do novo fluxo.
+- **Qualidade & STE-DEV:**
+  - Limite de linhas estritamente respeitado (R-03): `DashboardChrome.tsx` (99L), `auth-client-storage.ts` (95L), `auth-client-logout.ts` (23L).
+  - `tsc --noEmit`: 0 erros.
+  - `next lint`: 0 erros / 0 avisos.
+  - Testes: 100% verdes (3/3 suítes de logout e menu hambúrguer passando).
+
+---
+
+## 2.11 Auditoria & Homologação: LGPD, Proteção de Menores e Governança — 2026-11-01
+- **Origem:** Plano [`docs/PLANO_LGPD_PROTECAO_MENORES_E_GOVERNANCA_2026-10-31.md`](docs/PLANO_LGPD_PROTECAO_MENORES_E_GOVERNANCA_2026-10-31.md).
+- **Fase 1 (Proteção de Menores na Transmissão):**
+  - `src/core/spectate/spectator-projection.ts`: Parâmetro `broadcastConsentPlayerIds` obriga mascaramento para iniciais (`A. S.`) de menores sem autorização ativa.
+  - `src/services/spectator-feed.service.ts` e `builder`: Repasse de consentimentos ativos.
+  - `/api/spectate/[matchId]/feed`: Consulta `ConsentRecord` com `purpose: 'BROADCAST'` e `revokedAt: null`.
+  - Telas públicas `/matches/convite/[token]` e `/matches/acompanhar/[matchId]`: Botão "Voltar ao início" aponta para `/`.
+- **Fase 2 (Direitos dos Titulares - Art. 18 LGPD):**
+  - `user-anonymize.logic.ts`: Ofuscação em cascata de `User` e `Player` dentro de `$transaction`.
+  - `/api/users/[id]/anonymize`: Consome logic e audita com `meta: { playerId }`.
+  - `user-export.logic.ts` e `/api/users/[id]/export`: Exportação completa com histórico e adversários minimizados.
+- **Fase 3 (Fluxo Seguro de Tutela):**
+  - `/api/guardians/consent`: Endpoint com validação estrita de `GuardianLink` confirmado, checagem de `isMinor`, bloqueio de auto-consentimento pelo menor e auditoria com `ipHash`.
+- **Fase 4 (Onboarding & Páginas Legais):**
+  - Páginas públicas `/termos` e `/privacidade` no padrão broadcast telemetry.
+  - `/signup`: Leitura de `?perfil=` com whitelist, `?origem=`, checkbox obrigatório com links legais e gravação de `TERMS_ACCEPTED` no `AuditLog`.
+- **Qualidade & Baseline:**
+  - 100% dos 16 arquivos com $\le 100$ linhas (R-03).
+  - `tsc --noEmit`: 0 erros.
+  - `next lint`: 0 avisos / 0 erros (`✔ No ESLint warnings or errors`).
+  - Suítes de testes de signup e spectate: 100% verdes (4/4 signup com 16 testes; 7/7 spectate com 26 testes).
 
 ---
 
@@ -172,11 +325,16 @@
 - **Fase 6 (Unificação de Clubes e Venues):** ✅
   - `src/app/api/clubs/route.ts` — `POST` aceita `ctId` (validação CUID via Zod).
 - **Fase 7 (Frontend Nova Partida e Modais):** ✅
-  - `src/app/match/new/useNewMatchState.ts` — estados `myClub`, `ctId`, `availableCts`; carrega CTs via `GET /api/auth/me`.
-  - `src/app/match/new/components/my-club-toggle.tsx` — checkbox "Meu clube" + select de CT.
-  - `src/app/match/new/components/PlayerSelection.tsx` — filtro de atletas por CT quando `myClub=true`.
-  - `src/app/match/new/build-match-payload.logic.ts` — inclui `ctId` e `clubId`.
-  - `src/app/match/new/components/NewAthleteModal.tsx` + `use-new-athlete-modal.ts` — envia `myClub`/`ctId` ao criar atleta.
+  - `src/app/match/new/useNewMatchState.ts` — estados `slotAffiliation`, `ctId`, `availableCts`; `initialSlotAffiliation()` com defaults `NOT_OWN`; `updateSlotAffiliation`.
+  - `src/app/match/new/components/my-club-selector.tsx` — select de CT para definir "meu clube".
+  - `src/app/match/new/components/slot-affiliation-toggle.tsx` — toggle por slot "Meu clube" / "Outro clube".
+  - `src/app/match/new/slot-affiliation.ts` — `SlotId`, `SlotAffiliation` ('OWN' | 'NOT_OWN'), `SlotAffiliationMap`, `isOwnSlot`, `filterAthletesForSlot`.
+  - `src/app/match/new/components/PlayerSelection.tsx` — filtro de atletas **por slot** via `filterAthletesForSlot`; cada slot tem afiliação própria.
+  - `src/app/match/new/components/AthleteDropdown.tsx` — prop `affiliation` + `onAffiliationChange` + `canSelectOwn`; renderiza `SlotAffiliationToggle` por slot.
+  - `src/app/match/new/components/athlete-dropdown-panel.tsx` — exibe `a.club` abaixo do nome do atleta.
+  - `src/app/match/new/MatchNewModals.tsx` — `modalMyClub` derivado de `newAthleteFor` + `isOwnSlot(slotAffiliation[slot], ctId)`.
+  - `src/app/match/new/components/NewAthleteModal.tsx` + `use-new-athlete-modal.ts` — envia `myClub`/`ctId` ao criar atleta apenas quando `myClub && ctId`.
+  - `src/app/api/players/players-post.logic.ts` — `shouldLink = Boolean(myClub)` (removeu `|| (isClubStaff && cts.length > 0)`); staff não vincula automaticamente.
   - `src/app/api/matches/match-ct-access.logic.ts` — `assertCtMembership` aceita ATLETA vinculado ao CT.
 - **Fase 8 (Suporte e Resolução de Conflitos):** ✅
   - `src/services/player-merge.logic.ts` — `mergePlayers` com transferência de partidas, PlayerCTs, `mergedIntoId` e auditLog.
@@ -184,6 +342,28 @@
   - `src/app/api/athlete-claims/me/route.ts` — `GET /api/athlete-claims/me`.
 - **Fase 9 (Testes Rigorosos):** ✅ — `typecheck` 0 erros · `check:r03` 0 regressões · `lint` 0 erros (apenas warnings jsx-a11y pré-existentes).
 - **Fase 10 (Documentação):** ✅ — ADR-0010/ADR-0011 em `docs/ARCHITECTURE.md`; contratos em `src/app/api/CONTRACTS.md`; PRD, glossario, TASKS e MEMORY atualizados.
+- **Opção A — Afiliacao por slot/atleta (nova partida):** ✅ — implementado em `src/app/match/new/`. Cada slot (P1, P2, P1Partner, P2Partner) tem sua propria escolha de clube ("Meu clube" / "Outro clube") via `SlotAffiliationToggle`. Heuristica de padrao: nenhum slot forcado a OWN; o anotador escolhe por slot (P1 pode ser OWN ou NOT_OWN; qualquer um dos 4 em duplas). Backend: `shouldLink = Boolean(myClub)` respeita a intencao da UI (sem vinculo automatico para staff). Dropdown exibe o clube ao lado do nome. Default: todos `NOT_OWN` (sem vinculacao presume adversario/avulso). Ao selecionar "Outro clube" com ctId definido, o filtro exclui atletas do meu clube (lista apenas atletas de outros clubes, com nome e clube visiveis); novo atleta eh criado sem vinculo algum.
+
+## 2.3 Cadastro de Atleta de Outro Clube (UF, Cidade e Clube) — 2026-11-01
+
+Plano `docs/PLANO_CADASTRO_ATLETA_OUTRO_CLUBE_UF_CIDADE_2026-11-01.md` executado:
+
+- **Fase 1 (Módulo Central de UFs e Validações):** ✅
+  - `src/core/athlete/brazilian-states.ts` — `BRAZILIAN_UFS` (27 UFs), `BrazilianUF` type, `isBrazilianUF` validator.
+  - `src/schemas/player.ts` — `CreatePlayerInputSchema` e `UpdatePlayerInputSchema` com `club`, `city`, `state` (enum UF), `isExternalClub`.
+  - `src/core/athlete/__tests__/brazilian-states.test.ts` — 4 testes (contagem, lista completa, valido/invalido).
+- **Fase 2 (Componente Reutilizável de Origem):** ✅
+  - `src/components/athlete/AthleteOriginSection.tsx` (88 linhas, respeita R-03) — grid 3 colunas: UF (select), Cidade (input), Clube do Atleta (input). Tokens Telemetry (`bg-telemetry-elevated`, `border-white/10`, `text-telemetry-text-primary`). Dual-theme.
+  - `src/components/athlete/__tests__/AthleteOriginSection.test.tsx` — 6 testes (renderizacao, emissao de valores, UF invalida, valores iniciais).
+- **Fase 3 (Integracao no Modal "Novo Atleta"):** ✅
+  - `src/app/atletas/types.ts` — `AthleteForm` e `EMPTY_ATHLETE_FORM` com `uf`, `city`, `club`.
+  - `src/app/match/new/components/use-new-athlete-modal.ts` — quando `myClub && ctId`, busca dados do clube via `GET /api/gestor/club` e preenche automaticamente `uf`, `city`, `club` no formulário; envia `myClub: true` + `ctId` no payload. Quando não é "Meu clube", envia `myClub: false`.
+  - `src/app/match/new/components/NewAthleteModalForm.tsx` — integra `AthleteOriginSection` na secao "1. Cadastro"; passa `readOnly={myClub}` para travar os campos de origem quando eh atleta do proprio clube.
+  - `src/app/components/athlete/AthleteOriginSection.tsx` — agora reage a mudancas nas props `uf`/`city`/`club` (useEffect de sincronizacao) e aceita prop `readOnly` para desabilitar os campos.
+  - `src/app/atletas/edit-athlete-modal.submission.ts` + `edit-athlete-modal.types.ts` — `club`, `city`, `state`, `isExternalClub` no payload de salvamento.
+- **Fases 4-6 (Treinador Avulso / Clube / Gestor):** ✅ — cobertas pelo componente reutilizavel `AthleteOriginSection` integrado ao modal compartilhado de cadastro de atleta. Backend `players-post.logic.ts` ja trata `myClub: false` sem gerar `PlayerCT`. Quando `myClub=true`, os campos de origem vem preenchidos com os dados do proprio clube (somente leitura).
+- **Fase 7 (Exibicao da Origem em Cards):** ✅ — cards do dashboard exibem badge "Meu clube" / "Outro clube" / "Sem clube" ao lado do nome de cada atleta (comparando `club` com `ctId` do usuario logado).
+- **Indicacao de clube nos cards de partida (dashboard):** ✅ — os cards de partida no dashboard (`src/components/dashboard/`) exibem se cada atleta eh "Meu clube" ou "Outro clube" ao lado do nome.
 
 ---
 
@@ -198,6 +378,16 @@
   - Gestão de gestores em `GestoresSection` com emissão direta de link seguro de redefinição de senha (`POST /api/support/password-resets`) e modal de cópia (`LinkCopyModal`), revogação de sessões ativas com confirmação (`POST /api/users/[id]/revoke-sessions`) e edição cadastral via `EditarGestorModal`.
   - Proteção de contas privilegiadas: Suporte não pode emitir reset para ADMIN ou outros usuários SUPORTE (`isProtectedTarget`).
   - Auditoria completa em todas as ações de suporte (`CLUBE_APROVADO`, `CLUBE_SUSPENSO`, `CLUBE_REATIVADO`, `PASSWORD_RESET_TOKEN_ISSUED`).
+- **Fase 4 (Aba "Externos" no Suporte):** ✅
+  - Nova aba `externos` no `/suporte` listando atletas e clubes sem conta no sistema (cadastrados como adversários em partidas).
+  - `src/app/api/suporte/externos/route.ts` — endpoint `GET /api/suporte/externos` que busca `Player` sem `userId` com `club`, `city`, `state`, `gender`, `age`; agrega clubes distintos com localização.
+  - `prisma/schema.prisma` — model `Player` ganhou campos `city` e `state`.
+  - `src/app/suporte/types.ts` — `SuporteModule` inclui `'externos'`; `SuporteData` inclui `externos: ExternosData | null`; novos tipos `ExternalAthlete`, `ExternalClub`, `ExternosData`.
+  - `src/app/suporte/externos-section.tsx` — seção com duas subseções: Atletas Sem Conta (tabela com nome, clube, cidade, estado, gênero, idade) e Clubes Mencionados (tabela com clube, cidade, estado, qtd atletas).
+  - `src/app/suporte/suporte-header.tsx` — novo contador "Atletas Externos".
+  - `src/app/suporte/suporte-tab-nav.tsx` + `module-nav.tsx` — nova aba "Externos".
+  - `src/app/suporte/page.tsx` — busca `GET /api/suporte/externos` no carregamento inicial.
+  - `src/app/suporte/suporte-page-content.tsx` — renderiza `ExternosSection` quando `module === 'externos'`.
 - **Fase 3 (Menus Dinâmicos por Perfil, Controle de Rotas e Contraste do Admin):**
   - Resolvido contraste e legibilidade no painel `/admin` (`admin-users-table.tsx` e `admin-dashboard-chrome.tsx`), eliminando herança de texto branco sobre fundo branco.
   - Sincronização de perfis aprimorada no backend (`admin-service-role-sync.logic.ts`) para `GESTOR`, `TREINADOR`, `SUPORTE`, `ATLETA_CLUBE` e `ATLETA_AVULSO` com desativação de memberships conflitantes.

@@ -29,7 +29,9 @@ function isOwnerCtStaff(actor: Actor, m: MatchAccess): boolean {
 export function canReadMatch(actor: Actor | null | undefined, m: MatchAccess): boolean {
   if (!actor || !actor.isActive) return false;
   const profiles = getProfiles(actor);
-  if (profiles.includes('ADMIN') || profiles.includes('SUPORTE')) return true;
+  if ((profiles.includes('ADMIN') || profiles.includes('SUPORTE')) && actor.activeContextId && m.ctId === actor.activeContextId) {
+    return true;
+  }
 
   if (actor.activeContextId) {
     if (actor.activeContextId === 'PARTICULAR' && m.ctId) return false;

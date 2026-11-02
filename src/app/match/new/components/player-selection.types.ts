@@ -1,4 +1,5 @@
 import type { Athlete } from '../types';
+import type { SlotAffiliation, SlotAffiliationMap, SlotId } from '../slot-affiliation';
 
 export interface PlayerSelectionProps {
   matchType?: 'SINGLES' | 'DOUBLES';
@@ -24,7 +25,9 @@ export interface PlayerSelectionProps {
   onCreateNewP2: () => void;
   onCreateNewP1Partner?: () => void;
   onCreateNewP2Partner?: () => void;
-  /** Quando verdadeiro, filtra atletas pelo CT selecionado. */
-  myClub?: boolean;
+  /** Afiliação por slot: 'OWN' filtra pelo CT e vincula novos atletas ao clube. */
+  slotAffiliation?: SlotAffiliationMap;
+  setSlotAffiliation?: (slot: SlotId, v: SlotAffiliation) => void;
+  /** CT do "meu clube". Ausente => sem opção "Meu clube" nos slots. */
   ctId?: string | null;
 }

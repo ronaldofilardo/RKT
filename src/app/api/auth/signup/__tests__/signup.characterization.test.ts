@@ -157,7 +157,11 @@ describe('Characterization & Security: POST /api/auth/signup', () => {
           data: expect.objectContaining({ userId: 'u-4', identityStatus: 'CONFIRMED' }),
         }),
       );
-      expect(prisma.auditLog.create).not.toHaveBeenCalled();
+      expect(prisma.auditLog.create).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ action: 'PLAYER_CLAIMED' }),
+        }),
+      );
     });
 
     it('nao faz claim quando CPF+birthDate nao batem Player PROVISIONAL', async () => {

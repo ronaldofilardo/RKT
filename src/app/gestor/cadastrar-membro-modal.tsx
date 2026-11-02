@@ -39,12 +39,13 @@ export function CadastrarMembroModal({ open, onOpenChange, onSave, initialType =
       const body: any = { name: formData.name.trim(), cpf: formData.cpf, birthDate: formData.birthDate };
       if (type === 'TREINADOR') {
         body.email = formData.email;
-        if (linkExisting) body.linkExisting = true;
       } else {
         body.email = formData.email || undefined;
         body.gender = formData.gender;
         body.laterality = formData.dominance;
       }
+      // Conta já existente no RKT (treinador ou atleta): vincula em vez de duplicar cadastro.
+      if (linkExisting) body.linkExisting = true;
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -85,7 +86,7 @@ export function CadastrarMembroModal({ open, onOpenChange, onSave, initialType =
             </div>
             {error && <div className="mb-4 p-3 bg-telemetry-error/10 border border-telemetry-error/30 text-telemetry-error text-sm rounded-lg">{error}</div>}
             {existingToLink ? (
-              <CadastrarMembroLinkPrompt name={existingToLink.name} submitting={submitting} onCancel={() => setExistingToLink(null)} onConfirm={() => submitMember(true)} />
+              <CadastrarMembroLinkPrompt name={existingToLink.name} type={type} submitting={submitting} onCancel={() => setExistingToLink(null)} onConfirm={() => submitMember(true)} />
             ) : (
               <CadastrarMembroForm type={type} fixedType={fixedType} setType={setType} formData={formData} setFormData={setFormData} submitting={submitting} fieldError={fieldError} onCancel={() => onOpenChange(false)} onSubmit={(e) => { e.preventDefault(); submitMember(false); }} />
             )}

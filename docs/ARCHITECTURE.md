@@ -161,6 +161,30 @@ rkt/
 | **Normalização de eventos** | `clientEventId` + `sequenceNumber` únicos | Idempotência de sincronização offline |
 | **Snapshots de edição de placar** | `MatchScoreEdit.previousScoreState/newScoreState` | Preserva timeline anterior à correção |
 | **Diretrizes de trabalho** | `AGENTS.md` (índice dos 6) + `docs/RULES.md` | Fronteira legado/novo (pré/pós 2026-07-20) definida em `RULES.md` §10 |
+| **Roteamento Semântico por Área** | `src/middleware-area.logic.ts` + `useAreaPath` | Reescrita transparente de URLs por perfil (`/treinador`, `/atleta`, etc.) mantendo integridade SPA |
+| **Isolamento de Contexto** | `src/services/access-actor.logic.ts` + `visibility.ts` | Segregação estrita de dados entre clubes e atuação particular avulsa |
+
+---
+
+### 4.1 Matriz de Roteamento Semântico por Área Ativa
+
+O sistema adota roteamento semântico transparente suportado pelo Next.js App Router (15.3+). As rotas internas de visualização e anotação permanecem canônicas (`/dashboard`, `/partidasaovivo`, `/match/new`, `/atletas`, etc.), enquanto o middleware reescreve URLs visíveis no browser de acordo com o perfil/área ativa do usuário:
+
+| Área (`AreaCode`) | Prefixo Público | Rota Interna Reescrita |
+|---|---|---|
+| `ADMIN` | `/admin` | `/admin` |
+| `SUPORTE` | `/suporte` | `/suporte` |
+| `GESTOR` | `/clube/gestor` (alias `/gestor`) | `/gestor` |
+| `TREINADOR_CLUBE` | `/clube/treinador` | `/dashboard` |
+| `TREINADOR_AVULSO` | `/treinador` | `/dashboard` |
+| `ATLETA` | `/atleta` | `/dashboard` |
+| `ANOTADOR` | `/anotador` | `/dashboard` |
+| `ESPECTADOR` | `/espectador` | `/dashboard` |
+
+- **Subpáginas com prefixo:** `/match/new`, `/match/[id]/scoring`, `/match/[id]/report`, `/partidasaovivo`, `/partidasanotadas`, `/aguardandoanotador`, `/historico`, `/atletas`.
+- **Rotas neutras (sem prefixo):** `/login`, `/signup`, `/forgot`, `/trocar-senha`, `/dados-pessoais`, `/termos`, `/privacidade`, `/escolher-area`, `/matches/*` (públicas), `/api/*`.
+- **Redirecionamento temporário (307):** Acessos diretos a rotas legadas não prefixadas (ex: `/dashboard`, `/partidasaovivo`) recebem `307 Temporary Redirect` dinamicamente para o prefixo da área ativa.
+- **Sessão & Claims:** O token JWT transporta `ax` (código da área ativa), `ct` (ID do clube ativo) e `ars` (lista de códigos de áreas autorizadas), preservados em sua totalidade no endpoint de refresh `/api/auth/refresh`. A alternância é realizada via `POST /api/auth/area` com purga automática de caches locais do IndexedDB (`purgeOfflineCaches`).
 
 ---
 

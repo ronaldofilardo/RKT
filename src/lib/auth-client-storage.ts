@@ -80,7 +80,13 @@ export function redirectToLogin(_router?: unknown): void {
   if (sessionStorage.getItem(REDIRECTING_KEY) === '1') return;
   sessionStorage.setItem(REDIRECTING_KEY, '1');
   clearAuthState();
-  window.location.replace('/login');
+  try {
+    fetch('/api/auth/logout', { method: 'POST' }).finally(() => {
+      window.location.replace('/login');
+    });
+  } catch {
+    window.location.replace('/login');
+  }
 }
 
 export function clearRedirectingFlag(): void {

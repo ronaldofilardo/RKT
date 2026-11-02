@@ -79,7 +79,31 @@ describe('RankingForm — regressões reais de layout e interação', () => {
     expect(onRankingFieldChange).toHaveBeenNthCalledWith(2, 'ESTADUAL', 'position', '35');
   });
 
-  it('exibe Categoria, Posição e Posição Ranking Juvenil na mesma linha para atleta juvenil de 17 anos', () => {
+  it('adulto sem categoria: Classe + Posição juntas na linha 1 e sem linha 2', () => {
+    const rankings = createRankings();
+    rankings.ESTADUAL.enabled = true;
+
+    const { container } = render(
+      <RankingForm
+        showHeader={false}
+        form={{ gender: 'MALE' }}
+        rankings={rankings}
+        age={25}
+        saving={false}
+        onRankingToggle={jest.fn()}
+        onRankingFieldChange={jest.fn()}
+      />,
+    );
+
+    const rows = container.querySelectorAll('.grid.grid-cols-2');
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toContainElement(screen.getByLabelText('Classe'));
+    expect(rows[0]).toContainElement(screen.getByLabelText('Posição'));
+    expect(screen.queryByLabelText('Categoria')).not.toBeInTheDocument();
+    expect(container.querySelector('.overflow-x-auto')).not.toBeInTheDocument();
+  });
+
+  it('exibe Categoria+Posição na linha 1 e Classe+Posição Ranking Juvenil na linha 2 para atleta juvenil de 17 anos', () => {
     const rankings = createRankings();
     rankings.ESTADUAL.enabled = true;
     rankings.ESTADUAL.category = '17-18';
@@ -108,13 +132,14 @@ describe('RankingForm — regressões reais de layout e interação', () => {
     expect(juvenilePositionInput).toBeInTheDocument();
     expect(removerButton).toBeInTheDocument();
 
-    // Verifica que estão todos dentro do mesmo container flex-nowrap
-    const flexRow = container.querySelector('.flex.flex-nowrap');
-    expect(flexRow).toBeInTheDocument();
-    expect(flexRow).toContainElement(categorySelect);
-    expect(flexRow).toContainElement(positionInput);
-    expect(flexRow).toContainElement(juvenilePositionInput);
-    expect(flexRow).toContainElement(removerButton);
+    // Layout em 2 linhas (sem scroll horizontal): Categoria+Posição / Classe+Posição Juvenil.
+    const rows = container.querySelectorAll('.grid.grid-cols-2');
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toContainElement(categorySelect);
+    expect(rows[0]).toContainElement(positionInput);
+    expect(rows[1]).toContainElement(screen.getByLabelText('Classe'));
+    expect(rows[1]).toContainElement(juvenilePositionInput);
+    expect(container.querySelector('.overflow-x-auto')).not.toBeInTheDocument();
 
     // Interações de alteração dos campos
     fireEvent.change(positionInput, { target: { value: '115' } });

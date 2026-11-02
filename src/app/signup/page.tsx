@@ -2,17 +2,29 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { BrandLogo } from '@/components/ui/brand-logo';
 import { SignupFormFields } from './signup-form-fields';
 import { GestorOnboardingModal } from './gestor-onboarding-modal';
 
+type Perfil = 'ATLETA' | 'TREINADOR' | 'GESTOR' | 'ESPECTADOR';
+const PERFIL_WHITELIST: Perfil[] = ['ATLETA', 'TREINADOR', 'GESTOR', 'ESPECTADOR'];
+
+function resolvePerfil(raw: string | null): Perfil {
+  if (raw && PERFIL_WHITELIST.includes(raw as Perfil)) return raw as Perfil;
+  return 'ATLETA';
+}
+
 export default function SignupPage() {
+  const searchParams = useSearchParams();
   const router = useRouter();
+  const initialRole = resolvePerfil(searchParams.get('perfil'));
+  const origem = searchParams.get('origem') ?? undefined;
   const [name, setName] = useState('');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'ATLETA' | 'TREINADOR' | 'ESPECTADOR' | 'GESTOR'>('ATLETA');
+  const [role, setRole] = useState<Perfil>(initialRole);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showGestorModal, setShowGestorModal] = useState(false);
@@ -21,67 +33,37 @@ export default function SignupPage() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-
-    if (role === 'GESTOR') {
-      setLoading(false);
-      setShowGestorModal(true);
-      return;
-    }
-
+    if (!termsAccepted) { setLoading(false); setError('É necessário aceitar os Termos de Uso e Política de Privacidade'); return; }
+    if (role === 'GESTOR') { setLoading(false); setShowGestorModal(true); return; }
     try {
       const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, identifier, password, role }),
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, identifier, password, role, origem }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.message || data.error || 'Erro ao criar conta');
-      } else {
-        router.push('/login');
-      }
-    } catch {
-      setError('Falha de conexão com o servidor');
-    } finally {
-      setLoading(false);
-    }
+      if (!res.ok) setError(data.message || data.error || 'Erro ao criar conta');
+      else router.push('/login');
+    } catch { setError('Falha de conexão com o servidor'); }
+    finally { setLoading(false); }
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-telemetry-base p-4">
       <div className="bg-telemetry-card rounded-2xl shadow-xl border border-telemetry-border/10 p-8 w-full max-w-md">
-        <div className="flex justify-center mb-6">
-          <BrandLogo size="lg" priority />
-        </div>
+        <div className="flex justify-center mb-6"><BrandLogo size="lg" priority /></div>
         <h1 className="text-2xl font-bold text-center text-telemetry-text-primary mb-2">Criar Conta no RKT</h1>
         <p className="text-sm text-center text-telemetry-text-muted mb-6">Preencha os dados para iniciar seu acesso</p>
         {error && <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-500 dark:text-red-400 text-sm rounded-lg">{error}</div>}
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <SignupFormFields
-            name={name}
-            setName={setName}
-            identifier={identifier}
-            setIdentifier={setIdentifier}
-            password={password}
-            setPassword={setPassword}
-            role={role}
-            setRole={setRole}
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-telemetry-blue hover:bg-telemetry-blue-light text-white font-semibold py-3 rounded-lg disabled:opacity-50 mt-2 transition-colors cursor-pointer shadow-sm"
-          >
+          <SignupFormFields name={name} setName={setName} identifier={identifier} setIdentifier={setIdentifier} password={password} setPassword={setPassword} role={role} setRole={setRole} termsAccepted={termsAccepted} setTermsAccepted={setTermsAccepted} />
+          <button type="submit" disabled={loading} className="w-full bg-telemetry-blue hover:bg-telemetry-blue-light text-white font-semibold py-3 rounded-lg disabled:opacity-50 mt-2 transition-colors cursor-pointer shadow-sm">
             {loading ? 'Processando...' : role === 'GESTOR' ? 'Avançar para Cadastro de Clube' : 'Cadastrar'}
           </button>
           <div className="text-center text-xs text-telemetry-text-muted mt-3 border-t border-telemetry-border/10 pt-3">
             Já possui conta? <Link href="/login" className="text-telemetry-blue hover:text-telemetry-blue-light font-semibold hover:underline">Fazer login</Link>
           </div>
         </form>
-        <GestorOnboardingModal
-          open={showGestorModal}
-          onOpenChange={setShowGestorModal}
-        />
+        <GestorOnboardingModal open={showGestorModal} onOpenChange={setShowGestorModal} />
       </div>
     </div>
   );

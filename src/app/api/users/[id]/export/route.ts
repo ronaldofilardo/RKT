@@ -5,6 +5,7 @@ import { reportApiError } from '@/lib/api.logic';
 import { getAccessUserFromRequest } from '@/lib/auth-credentials.logic';
 import { getActor } from '@/services/accessService';
 import { can } from '@/core/access';
+import { exportUserData } from '@/core/access/user-export.logic';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -22,24 +23,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
-    const found = await prisma.user.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        cpf: true,
-        role: true,
-        club: true,
-        isActive: true,
-        canOperate: true,
-        createdAt: true,
-        updatedAt: true,
-        memberships: true,
+    const data = await exportUserData(id);
+
+    await prisma.auditLog.create({
+      data: {
+        actorUserId: user.id,
+        action: 'USER_DATA_EXPORTED',
+        resourceType: 'User',
+        resourceId: id,
       },
     });
-    if (!found) return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
-    return NextResponse.json(found, { status: 200 });
+
+    return NextResponse.json(data, { status: 200 });
   } catch (error) {
     logger.error('[USER EXPORT GET]', error);
     return reportApiError(error);

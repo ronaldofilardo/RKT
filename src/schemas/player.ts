@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { flexibleIdValidator } from "./common";
 import { isValidCpf } from "@/core/athlete/cpf";
+import { BRAZILIAN_UFS } from "@/core/athlete/brazilian-states";
 
 export const RankingEntrySchema = z.object({
   category: z.string().optional(),
@@ -41,7 +42,10 @@ export const CreatePlayerInputSchema = z.object({
       juvenilePosition: z.number().min(1).optional(),
     })
   ).optional(),
-  club: z.string().optional(),
+  club: z.string().trim().max(100).optional(),
+  city: z.string().trim().max(100).optional(),
+  state: z.enum(BRAZILIAN_UFS).optional(),
+  isExternalClub: z.boolean().optional().default(false),
   cpf: z.string().optional().refine(
     (cpf) => !cpf || isValidCpf(cpf),
     { message: 'CPF inválido' },
@@ -59,6 +63,10 @@ export const UpdatePlayerInputSchema = z.object({
   dominance: z.enum(['LEFT', 'RIGHT']).nullish(),
   backhand: z.enum(['ONE_HANDED', 'TWO_HANDED']).nullish(),
   rankings: RankingsSchema.nullish(),
+  club: z.string().trim().max(100).optional(),
+  city: z.string().trim().max(100).optional(),
+  state: z.enum(BRAZILIAN_UFS).optional(),
+  isExternalClub: z.boolean().optional(),
 });
 export type UpdatePlayerInput = z.infer<typeof UpdatePlayerInputSchema>;
 

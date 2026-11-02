@@ -9,12 +9,13 @@ import { useScoringPageChrome } from "./use-scoring-page-chrome";
 import { ScoringTimelineView } from "./ScoringTimelineView";
 import { ScoringPageLayout } from "./scoring-page-layout";
 import { ErrorScreen, LoadingScreen } from "./scoring-page-screens";
-import { homeForProfileString } from "@/core/access/home";
+import { useAreaPath } from "@/hooks/use-area-path";
 
 function ScoringPageInner() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const toAreaPath = useAreaPath();
   const matchId = params.id as string;
 
   // Se o usuário veio de "Editar Placar" no Dashboard, a URL tem ?modal=edit-score
@@ -41,7 +42,7 @@ function ScoringPageInner() {
     return (
       <ErrorScreen
         message={state.error || "Partida não encontrada"}
-        onBack={() => router.push(homeForProfileString(sessionStorage.getItem('user_role')) as any)}
+        onBack={() => router.push(toAreaPath('/dashboard') as any)}
       />
     );
   }
@@ -62,8 +63,8 @@ function ScoringPageInner() {
         player1Name={match.player1.name}
         player2Name={match.player2.name}
         comments={state.comments}
-        onNavigateReport={() => router.push(`/match/${matchId}/report`)}
-        onNavigateDashboard={() => router.push(homeForProfileString(sessionStorage.getItem('user_role')) as any)}
+        onNavigateReport={() => router.push(toAreaPath(`/match/${matchId}/report`) as any)}
+        onNavigateDashboard={() => router.push(toAreaPath('/dashboard') as any)}
       />
     );
   }

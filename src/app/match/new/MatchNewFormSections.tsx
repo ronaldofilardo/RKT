@@ -8,7 +8,7 @@ import {
 } from './components';
 import { TournamentSection } from './TournamentSection';
 import { MatchNewFormFooter } from './match-new-form-footer';
-import { MyClubToggle } from './components/my-club-toggle';
+import { MyClubSelector } from './components/my-club-selector';
 import type { useNewMatchController } from './useNewMatchController';
 
 type NewMatchController = ReturnType<typeof useNewMatchController>;
@@ -24,6 +24,7 @@ export function MatchNewFormSections({ c }: { c: NewMatchController }) {
         onFormatChange={c.setFormat}
         onCourtChange={c.setCourtType}
       />
+      <MyClubSelector ctId={c.ctId} setCtId={c.setCtId} availableCts={c.availableCts} />
       <PlayerSelection
         matchType={c.matchType}
         onMatchTypeChange={c.setMatchType}
@@ -48,15 +49,9 @@ export function MatchNewFormSections({ c }: { c: NewMatchController }) {
         onCreateNewP2={() => c.openNewAthleteModal('p2')}
         onCreateNewP1Partner={() => c.openNewAthleteModal('p1Partner')}
         onCreateNewP2Partner={() => c.openNewAthleteModal('p2Partner')}
-        myClub={c.myClub}
+        slotAffiliation={c.slotAffiliation}
+        setSlotAffiliation={c.updateSlotAffiliation}
         ctId={c.ctId || null}
-      />
-      <MyClubToggle
-        myClub={c.myClub}
-        setMyClub={c.setMyClub}
-        ctId={c.ctId}
-        setCtId={c.setCtId}
-        availableCts={c.availableCts}
       />
       <DateTimeSection date={c.date} time={c.time} onDateChange={c.setDate} onTimeChange={c.setTime} />
       <TournamentSection

@@ -22,7 +22,7 @@ export default function MatchSpectatePage({ params }: { params: Promise<{ matchI
             title={isRevoked ? 'Seu acesso foi encerrado' : 'Convite inválido ou expirado'}
             description={isRevoked ? 'O dono da partida removeu seu acesso. Peça um novo convite.' : 'Confira o link ou peça um novo ao dono da partida.'}
             actionText="Voltar ao início"
-            actionHref="/dashboard"
+            actionHref="/"
           />
         </div>
       </main>

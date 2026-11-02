@@ -15,6 +15,8 @@ const PUBLIC_ROUTES = [
   '/matches/locate',
   '/matches/convite',
   '/matches/acompanhar',
+  '/termos',
+  '/privacidade',
 ];
 
 const BYPASS_ROUTES = ['/_next/', '/favicon'];
@@ -28,17 +30,18 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Higieniza headers: remove quaisquer headers x-user-* forjados pelo cliente
   const requestHeaders = new Headers(request.headers);
   requestHeaders.delete('x-user-id');
   requestHeaders.delete('x-user-role');
   requestHeaders.delete('x-user-sv');
   requestHeaders.delete('x-user-mcp');
+  requestHeaders.delete('x-active-area');
+  requestHeaders.delete('x-active-ct');
 
   const csrfViolation = enforceOriginCheck(request);
   if (csrfViolation) return csrfViolation;
 
-  const isPublic = PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
+  const isPublic = PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
   if (isPublic) {
     if (pathname === '/login') {
       return handleAuthenticated(request, requestHeaders);
@@ -55,8 +58,10 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/',
+    '/login',
     '/api/:path*',
     '/dashboard/:path*',
+    '/painel/:path*',
     '/admin/:path*',
     '/match/:path*',
     '/matches/:path*',
@@ -69,5 +74,11 @@ export const config = {
     '/trocar-senha/:path*',
     '/gestor/:path*',
     '/suporte/:path*',
+    '/clube/:path*',
+    '/treinador/:path*',
+    '/atleta/:path*',
+    '/anotador/:path*',
+    '/espectador/:path*',
+    '/escolher-area',
   ],
 };

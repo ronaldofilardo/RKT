@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import type { TrainingCenter, UserItem, MembershipItem, SuporteData } from './types';
+import type { TrainingCenter, UserItem, MembershipItem, SuporteData, ExternosData } from './types';
 import SuportePageContent from './suporte-page-content';
 
 async function apiFetchClubs(): Promise<TrainingCenter[]> {
@@ -25,13 +25,20 @@ async function apiFetchMemberships(): Promise<MembershipItem[]> {
   return data.items || [];
 }
 
+async function apiFetchExternos(): Promise<ExternosData | null> {
+  const res = await fetch('/api/suporte/externos');
+  if (!res.ok) return null;
+  return res.json();
+}
+
 async function loadSuporteData(): Promise<SuporteData> {
-  const [c, u, m] = await Promise.all([
+  const [c, u, m, e] = await Promise.all([
     apiFetchClubs(),
     apiFetchUsers(),
     apiFetchMemberships(),
+    apiFetchExternos(),
   ]);
-  return { clubs: c, users: u, memberships: m };
+  return { clubs: c, users: u, memberships: m, externos: e };
 }
 
 export default function SuportePage() {

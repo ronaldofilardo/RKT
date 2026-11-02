@@ -5,6 +5,7 @@ export type DashboardView = 'dashboard' | 'annotated' | 'live' | 'pending' | 'hi
 export interface DashboardViewRouterProps {
   view: DashboardView;
   loading: boolean;
+  ctId?: string | null;
   finishedMatches: DashboardMatchPayload[];
   liveMatches: DashboardMatchPayload[];
   pendingMatches: DashboardMatchPayload[];

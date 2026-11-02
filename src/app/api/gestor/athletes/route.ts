@@ -61,7 +61,23 @@ export async function POST(request: NextRequest) {
       });
 
       if (result.conflict) {
-        return NextResponse.json({ error: 'CONFLICT', message: result.message, inviteKind: result.inviteKind }, { status: 409 });
+        return NextResponse.json({
+          error: 'CONFLICT',
+          message: result.message,
+          inviteKind: result.inviteKind,
+          canLinkExisting: 'canLinkExisting' in result ? result.canLinkExisting : undefined,
+          existingUserName: 'existingUserName' in result ? result.existingUserName : undefined,
+        }, { status: 409 });
+      }
+
+      // Conta já existente no RKT: só associa ao elenco do clube, sem nova senha.
+      if ('isExistingUser' in result && result.isExistingUser) {
+        return NextResponse.json({
+          message: 'Atleta vinculado com sucesso ao clube. Como já possui conta no RKT, o acesso permanece com a senha atual.',
+          userId: result.userId,
+          playerId: result.playerId,
+          isExistingUser: true,
+        }, { status: 201 });
       }
 
       return NextResponse.json({
@@ -70,6 +86,7 @@ export async function POST(request: NextRequest) {
         playerId: result.playerId,
         tempPassword: result.tempPassword,
         linkExpiresAt: result.linkExpiresAt,
+        isExistingUser: false,
       }, { status: 201 });
     } catch (error) {
       logger.error('[GESTOR ATHLETES POST]', error);

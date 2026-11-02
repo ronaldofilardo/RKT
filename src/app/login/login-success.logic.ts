@@ -1,6 +1,9 @@
 import { writeToSessionOnly } from '@/lib/auth-client';
 import { decodeJwtPayload } from '@/lib/jwt-client';
 import { homeForProfileString } from '@/core/access/home';
+import { homeForArea, AreaCode } from '@/core/access/areas';
+import { isAreaUrlsEnabled } from '@/lib/feature-flags';
+import { sanitizeNextRedirect } from '@/core/access/safe-redirect.logic';
 import type { LoginResponse } from '@/lib/auth-client-login';
 
 export async function processLoginSuccess(
@@ -10,9 +13,14 @@ export async function processLoginSuccess(
 ): Promise<void> {
   const effectiveProfile = (data.user as any).profile ?? data.user.role;
   let jwtPlatformPreset: string | null = null;
+  let activeArea: AreaCode | null = null;
+  let availableAreas: string[] = [];
+
   if (data.accessToken) {
     const decoded = await decodeJwtPayload(data.accessToken);
     jwtPlatformPreset = decoded?.pp ?? null;
+    activeArea = (decoded?.ax as AreaCode) ?? null;
+    availableAreas = decoded?.ars ?? [];
   }
   const finalProfile = jwtPlatformPreset ?? effectiveProfile;
 
@@ -29,10 +37,19 @@ export async function processLoginSuccess(
 
   if (data.user.mustChangePassword) {
     pushRoute('/trocar-senha');
+    return;
+  }
+
+  const rawNext = searchParams.get('next');
+  const defaultHome = isAreaUrlsEnabled() && activeArea
+    ? homeForArea(activeArea)
+    : homeForProfileString(finalProfile);
+
+  if (rawNext) {
+    pushRoute(sanitizeNextRedirect(rawNext, defaultHome));
+  } else if (isAreaUrlsEnabled() && availableAreas.length > 1) {
+    pushRoute('/escolher-area');
   } else {
-    const rawNext = searchParams.get('next');
-    const isSafeNext = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//');
-    pushRoute(isSafeNext ? rawNext : homeForProfileString(finalProfile));
+    pushRoute(defaultHome);
   }
 }
-

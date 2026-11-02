@@ -14,32 +14,37 @@ export interface ActorRow {
   }[];
   coachAthleteLinks: {
     playerId: string;
-    player?: {
-      playerCts?: { ctId: string; status: string }[];
-    } | null;
+    player?: { playerCts?: { ctId: string; status: string }[] } | null;
   }[];
 }
 
 function filterMembershipsByContext(
   memberships: ActorMembership[],
   contextId?: string | null,
+  activeArea?: string | null,
 ): ActorMembership[] {
-  if (!contextId) return memberships;
-  if (contextId === 'PARTICULAR') {
-    return memberships.filter((m) => m.kind === 'PLATAFORMA' || m.ctId === null);
+  if (activeArea === 'ATLETA') return memberships.filter((m) => m.kind === 'PLATAFORMA');
+  if (activeArea === 'TREINADOR_AVULSO' || contextId === 'PARTICULAR') {
+    return memberships.filter((m) => m.kind === 'PLATAFORMA' || (m.kind === 'TREINADOR' && m.ctId === null));
   }
+  if (activeArea === 'TREINADOR_CLUBE' && contextId) {
+    return memberships.filter((m) => m.kind === 'PLATAFORMA' || (m.kind === 'TREINADOR' && m.ctId === contextId));
+  }
+  if (activeArea === 'GESTOR' && contextId) {
+    return memberships.filter((m) => m.kind === 'PLATAFORMA' || (m.kind === 'GESTOR' && m.ctId === contextId));
+  }
+  if (!contextId) return memberships;
   return memberships.filter((m) => m.kind === 'PLATAFORMA' || m.ctId === contextId);
 }
 
-function filterFollowedPlayers(row: ActorRow, contextId?: string | null): string[] {
+function filterFollowedPlayers(row: ActorRow, contextId?: string | null, activeArea?: string | null): string[] {
   const links = row.coachAthleteLinks ?? [];
-  if (!contextId) return links.map((l) => l.playerId);
+  if (activeArea === 'ATLETA') return [];
+  if (!contextId && activeArea !== 'TREINADOR_AVULSO') return links.map((l) => l.playerId);
 
-  if (contextId === 'PARTICULAR') {
+  if (activeArea === 'TREINADOR_AVULSO' || contextId === 'PARTICULAR') {
     const coachCtIds = new Set(
-      row.memberships
-        .filter((m) => m.status === 'ACTIVE' && m.ctId)
-        .map((m) => m.ctId as string),
+      row.memberships.filter((m) => m.status === 'ACTIVE' && m.ctId).map((m) => m.ctId as string),
     );
     return links
       .filter((l) => !l.player?.playerCts?.some((pc) => pc.status === 'ACTIVE' && coachCtIds.has(pc.ctId)))
@@ -51,13 +56,17 @@ function filterFollowedPlayers(row: ActorRow, contextId?: string | null): string
     .map((l) => l.playerId);
 }
 
-/** Converte a linha do banco no `Actor` do núcleo puro (com suporte a isolamento de contexto). */
-export function buildActor(row: ActorRow, now: Date, contextId?: string | null): Actor {
+export function buildActor(
+  row: ActorRow,
+  now: Date,
+  contextId?: string | null,
+  activeArea?: string | null,
+): Actor {
   const base = [...row.memberships];
   if (row.role === 'ADMIN' && !base.some((m) => m.kind === 'PLATAFORMA' && m.preset === 'ADMIN')) {
     base.push({ kind: 'PLATAFORMA', preset: 'ADMIN', ctId: null, status: 'ACTIVE' });
   }
-  const filtered = filterMembershipsByContext(base, contextId);
+  const filtered = filterMembershipsByContext(base, contextId, activeArea);
 
   return {
     userId: row.id,
@@ -74,7 +83,8 @@ export function buildActor(row: ActorRow, now: Date, contextId?: string | null):
     guardianOfPlayerIds: row.guardianLinks
       .filter((l) => guardianLinkActive(l, l.player.birthDate, now))
       .map((l) => l.player.id),
-    followedPlayerIds: filterFollowedPlayers(row, contextId),
+    followedPlayerIds: filterFollowedPlayers(row, contextId, activeArea),
     ...(contextId ? { activeContextId: contextId } : {}),
+    ...(activeArea ? { activeArea } : {}),
   };
 }

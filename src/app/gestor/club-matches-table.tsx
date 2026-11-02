@@ -70,7 +70,23 @@ export function ClubMatchesTable({ matches, loading }: ClubMatchesTableProps) {
                     {new Date(m.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })}
                   </td>
                   <td className="px-3 py-4 text-sm text-telemetry-text-primary font-medium">
-                    {m.player1?.name || 'Jogador 1'} <span className="text-telemetry-text-muted font-normal">vs</span> {m.player2?.name || 'Jogador 2'}
+                    <div className="space-y-0.5">
+                      <span>{m.player1?.name || 'Jogador 1'}</span>
+                      {m.player1?.club && (
+                        <span className="text-[10px] text-telemetry-text-muted opacity-80">
+                          {m.player1.club}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-telemetry-text-muted font-normal mt-0.5 block">vs</span>
+                    <div className="space-y-0.5">
+                      <span>{m.player2?.name || 'Jogador 2'}</span>
+                      {m.player2?.club && (
+                        <span className="text-[10px] text-telemetry-text-muted opacity-80">
+                          {m.player2.club}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-3 py-4 text-xs font-mono font-semibold text-telemetry-text-primary whitespace-nowrap">
                     {formatClubMatchScore(m.scoreState, m.format, m.state)}

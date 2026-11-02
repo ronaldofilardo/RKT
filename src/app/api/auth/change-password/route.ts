@@ -54,14 +54,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Verifica se a senha provisória expirou
-    if (dbUser.mustChangePassword && dbUser.tempPasswordExpiresAt) {
-      const now = new Date();
-      if (now > dbUser.tempPasswordExpiresAt) {
-        return NextResponse.json(
-          { error: 'EXPIRED', message: 'Senha provisória expirada. Solicite um novo link de acesso.' },
-          { status: 403 },
-        );
-      }
+    if (dbUser.mustChangePassword && dbUser.tempPasswordExpiresAt && new Date() > dbUser.tempPasswordExpiresAt) {
+      const res = NextResponse.json({ error: 'EXPIRED', message: 'Senha provisória expirada. Solicite um novo link de acesso.' }, { status: 403 });
+      const cOpts = { path: '/', maxAge: 0, sameSite: 'lax' as const, secure: process.env.NODE_ENV === 'production' };
+      res.cookies.set('rkt_access_token', '', { ...cOpts, httpOnly: true });
+      res.cookies.set('access_token', '', cOpts);
+      res.cookies.set('user_role', '', cOpts);
+      return res;
     }
 
     const passwordHash = await bcrypt.hash(newPassword, 10);
@@ -79,10 +78,12 @@ export async function POST(request: NextRequest) {
 
     await bumpSessionVersion(user.id);
 
-    return NextResponse.json(
-      { message: 'Senha alterada com sucesso.' },
-      { status: 200 },
-    );
+    const response = NextResponse.json({ message: 'Senha alterada com sucesso.' }, { status: 200 });
+    const cookieOpts = { path: '/', maxAge: 0, sameSite: 'lax' as const, secure: process.env.NODE_ENV === 'production' };
+    response.cookies.set('rkt_access_token', '', { ...cookieOpts, httpOnly: true });
+    response.cookies.set('access_token', '', cookieOpts);
+    response.cookies.set('user_role', '', cookieOpts);
+    return response;
   } catch (error) {
     logger.error('[CHANGE-PASSWORD POST]', error);
     return reportApiError(error);

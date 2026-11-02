@@ -6,11 +6,12 @@ import { ReportPageView } from './ReportPage.view';
 import type { ReportData } from './report.types';
 import { matchesClient, UnauthorizedError } from '@/services/matchesClient';
 import { redirectToLogin } from '@/lib/auth-client';
-import { homeForProfileString } from '@/core/access/home';
+import { useAreaPath } from '@/hooks/use-area-path';
 
 export default function ReportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: matchId } = use(params);
   const router = useRouter();
+  const toAreaPath = useAreaPath();
 
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,7 +51,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
         <div className="text-center p-6 bg-telemetry-card rounded-2xl border border-white/10">
           <p className="text-telemetry-alert font-semibold">{error || 'Relatório não encontrado'}</p>
           <button
-            onClick={() => router.push(homeForProfileString(sessionStorage.getItem('user_role')) as any)}
+            onClick={() => router.push(toAreaPath('/dashboard') as any)}
             className="mt-4 text-telemetry-blue underline hover:opacity-80 transition-opacity"
           >
             Voltar ao dashboard
@@ -71,8 +72,8 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
       p1Points={p1Points}
       p2Points={p2Points}
       totalPoints={totalPoints}
-      onContinue={() => router.push(`/match/${matchId}/scoring`)}
-      onDashboard={() => router.push(homeForProfileString(sessionStorage.getItem('user_role')) as any)}
+      onContinue={() => router.push(toAreaPath(`/match/${matchId}/scoring`) as any)}
+      onDashboard={() => router.push(toAreaPath('/dashboard') as any)}
     />
   );
 }

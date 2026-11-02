@@ -1,9 +1,7 @@
 import type { RankingType } from '@/lib/ranking/rankingConstants';
 import type { RankingState } from './ranking-form.types';
-
-const inlineLabelClass = 'h-4 flex items-center text-xs text-telemetry-text-muted whitespace-nowrap';
-const inlineSelectClass = 'h-8 rounded border border-white/10 bg-telemetry-elevated px-2 text-xs text-telemetry-text-primary focus:outline-none focus:ring-1 focus:ring-telemetry-volt';
-const inlineInputClass = 'h-8 rounded border border-white/10 bg-telemetry-elevated px-2 text-xs text-telemetry-text-primary placeholder-telemetry-text-muted focus:outline-none focus:ring-1 focus:ring-telemetry-volt';
+import { RankingSelectField } from './ranking-select-field';
+import { RankingNumberField } from './ranking-number-field';
 
 interface RankingFieldsProps {
   type: RankingType;
@@ -17,6 +15,11 @@ interface RankingFieldsProps {
   onFieldChange: (type: RankingType, field: keyof RankingState, value: string) => void;
 }
 
+/**
+ * Campos de cada subseção de ranking em duas linhas (sem scroll horizontal):
+ * linha 1 = Categoria + Posição (ou Classe + Posição quando não há categoria);
+ * linha 2 = Classe + Posição Ranking Juvenil.
+ */
 export function RankingFields({
   type,
   state,
@@ -28,73 +31,69 @@ export function RankingFields({
   showJuvenilePosition,
   onFieldChange,
 }: RankingFieldsProps) {
-  return (
+  const change = (field: keyof RankingState) => (value: string) => onFieldChange(type, field, value);
+
+  const positionField = (
+    <RankingNumberField
+      id={`ranking-${type}-position`}
+      label="Posição"
+      value={state.position}
+      disabled={saving}
+      onChange={change('position')}
+    />
+  );
+
+  const classField = showClasses ? (
+    <RankingSelectField
+      id={`ranking-${type}-class`}
+      label="Classe"
+      value={state.class}
+      options={classOptions}
+      disabled={saving}
+      onChange={change('class')}
+    />
+  ) : null;
+
+  // Sem categoria (ex.: tipos sem faixa etária), a Classe sobe para a linha 1.
+  const firstRow = showCategory ? (
     <>
-      {showCategory && (
-        <div className="flex flex-col gap-1 shrink-0">
-          <label htmlFor={`ranking-${type}-category`} className={inlineLabelClass}>Categoria</label>
-          <select
-            id={`ranking-${type}-category`}
-            value={state.category}
-            onChange={(e) => onFieldChange(type, 'category', e.target.value)}
-            disabled={saving}
-            className={`${inlineSelectClass} min-w-[6.75rem]`}
-          >
-            <option value="">Selecione...</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>{cat} anos</option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {showClasses && (
-        <div className="flex flex-col gap-1 shrink-0">
-          <label htmlFor={`ranking-${type}-class`} className={inlineLabelClass}>Classe</label>
-          <select
-            id={`ranking-${type}-class`}
-            value={state.class}
-            onChange={(e) => onFieldChange(type, 'class', e.target.value)}
-            disabled={saving}
-            className={`${inlineSelectClass} min-w-[6rem]`}
-          >
-            <option value="">Selecione...</option>
-            {classOptions.map((cls) => (
-              <option key={cls} value={cls}>{cls}</option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      <div className="flex flex-col gap-1 shrink-0">
-        <label htmlFor={`ranking-${type}-position`} className={inlineLabelClass}>Posição</label>
-        <input
-          id={`ranking-${type}-position`}
-          type="number"
-          min="1"
-          value={state.position}
-          onChange={(e) => onFieldChange(type, 'position', e.target.value)}
-          disabled={saving}
-          placeholder="Posição"
-          className={`${inlineInputClass} w-16 sm:w-20`}
-        />
-      </div>
-
-      {showJuvenilePosition && (
-        <div className="flex flex-col gap-1 shrink-0">
-          <label htmlFor={`ranking-${type}-juvenile-position`} className={inlineLabelClass}>Posição Ranking Juvenil</label>
-          <input
-            id={`ranking-${type}-juvenile-position`}
-            type="number"
-            min="1"
-            value={state.juvenilePosition}
-            onChange={(e) => onFieldChange(type, 'juvenilePosition', e.target.value)}
-            disabled={saving}
-            placeholder="Posição"
-            className={`${inlineInputClass} w-20 sm:w-24`}
-          />
-        </div>
-      )}
+      <RankingSelectField
+        id={`ranking-${type}-category`}
+        label="Categoria"
+        value={state.category}
+        options={categories}
+        optionSuffix=" anos"
+        disabled={saving}
+        onChange={change('category')}
+      />
+      {positionField}
     </>
+  ) : (
+    <>
+      {classField}
+      {positionField}
+    </>
+  );
+
+  const showSecondRow = (showCategory && showClasses) || showJuvenilePosition;
+
+  return (
+    <div className="flex flex-col gap-2 flex-1 min-w-0">
+      <div className="grid grid-cols-2 gap-3">{firstRow}</div>
+      {showSecondRow && (
+        <div className="grid grid-cols-2 gap-3">
+          {showCategory && classField}
+          {showJuvenilePosition && (
+            <RankingNumberField
+              id={`ranking-${type}-juvenile-position`}
+              label="Posição Ranking Juvenil"
+              value={state.juvenilePosition}
+              disabled={saving}
+              onChange={change('juvenilePosition')}
+            />
+          )}
+        </div>
+      )}
+    </div>
   );
 }

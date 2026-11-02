@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from 'react';
 import { DashboardChrome } from "./components/DashboardChrome";
 import { DashboardViewRouter } from "./components/DashboardViewRouter";
 import { DashboardMatchModals } from "./components/DashboardMatchModals";
@@ -14,6 +15,16 @@ export default function DashboardPage() {
   const actions = useDashboardMatchActions(model);
   const summary = useDashboardSetSummary();
   const share = useDashboardShare();
+  const [ctId, setCtId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/auth/me')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (!cancelled && data) setCtId(data.activeContextId ?? null); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <div className="min-h-screen bg-telemetry-base text-telemetry-text-primary">
@@ -23,6 +34,7 @@ export default function DashboardPage() {
         <DashboardViewRouter
           view={model.view}
           loading={model.loading}
+          ctId={ctId}
           {...model.filters}
           suspendedFromApi={model.suspendedFromApi}
           navigateToTarget={model.navigateToTarget}

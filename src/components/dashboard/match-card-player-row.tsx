@@ -2,20 +2,26 @@
 
 import type { ReactNode } from 'react';
 
-/** Célula de nome do jogador, com indicador de sacador (🎾) quando aplicável. */
+/** Célula de nome do jogador, com indicador de sacador (🎾) e de clube (Meu clube / Outro clube) quando aplicável. */
 export function MatchCardPlayerRow({
   name,
+  club,
   isServer,
   serverTestId,
   barBg,
+  ctId,
   children,
 }: {
   name: string;
+  club?: string | null;
   isServer: boolean;
   serverTestId: string;
   barBg: string;
+  ctId?: string | null;
   children?: ReactNode;
 }) {
+  const isOwnClub = Boolean(ctId && club && club === ctId);
+  const clubLabel = isOwnClub ? 'Meu clube' : club ? 'Outro clube' : 'Sem clube';
   return (
     <div style={{ display: 'table-row' }}>
       <div
@@ -24,6 +30,11 @@ export function MatchCardPlayerRow({
       >
         <span className="inline-flex items-center gap-2">
           <span className="text-white font-semibold">{name}</span>
+          {ctId && (
+            <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-semibold border border-white/20 bg-white/10">
+              {clubLabel}
+            </span>
+          )}
           {isServer && (
             <span
               className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-black/75 border border-yellow-300 text-xs select-none shadow-md ring-1 ring-yellow-400/60"

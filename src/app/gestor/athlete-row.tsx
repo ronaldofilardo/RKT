@@ -21,6 +21,7 @@ export function AthleteRow({ athlete: a, selected, onSelect, onEdit, onGenerateL
       : '-';
   const birthDateLabel = formatBirthDate(a.player.birthDate);
   const age = computeAthleteAge(a.player.birthDate, a.player.age);
+  const hasAccount = Boolean(a.player.user);
 
   return (
     <tr className="border-b border-telemetry-border/10 hover:bg-telemetry-elevated/30 transition-colors">
@@ -51,17 +52,23 @@ export function AthleteRow({ athlete: a, selected, onSelect, onEdit, onGenerateL
       </td>
       <td className="px-3 py-3 text-sm text-telemetry-text-primary">{age != null ? `${age} anos` : '-'}</td>
       <td className="px-3 py-3 text-sm">
-        <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-          a.player.user?.mustChangePassword ? 'bg-telemetry-alert/20 text-telemetry-alert' : 'bg-telemetry-volt/20 text-telemetry-volt'
-        }`}>
-          {a.player.user?.mustChangePassword ? 'Senha pendente' : 'Ativo'}
+        <span
+          className={`px-2 py-0.5 rounded text-xs font-semibold ${
+            !hasAccount
+              ? 'bg-telemetry-text-muted/20 text-telemetry-text-muted'
+              : a.player.user?.mustChangePassword
+                ? 'bg-telemetry-alert/20 text-telemetry-alert'
+                : 'bg-telemetry-volt/20 text-telemetry-volt'
+          }`}
+        >
+          {!hasAccount ? 'Sem conta' : a.player.user?.mustChangePassword ? 'Senha pendente' : 'Ativo'}
         </span>
       </td>
       <td className="px-3 py-3 text-sm whitespace-nowrap text-right">
         <button
           onClick={onGenerateLink}
           className="text-xs text-telemetry-alert hover:underline mr-3 font-medium"
-          title="Gerar link de redefinição de senha"
+          title={hasAccount ? 'Gerar link de redefinição de senha' : 'Criar conta de acesso e gerar link de senha'}
         >
           Link Senha
         </button>

@@ -12,10 +12,13 @@ function makeRequest(opts: {
   pathname: string;
   authorization?: string;
   cookies?: Record<string, string>;
+  search?: string;
 } = { pathname: '/dashboard' }): NextRequest {
   const headers = new Headers();
   if (opts.authorization) headers.set('authorization', opts.authorization);
-  const url = `http://localhost:3000${opts.pathname}`;
+  const search = opts.search || '';
+  const url = `http://localhost:3000${opts.pathname}${search}`;
+  const searchParams = new URLSearchParams(search);
   const req = {
     url,
     headers,
@@ -25,7 +28,7 @@ function makeRequest(opts: {
           ? { value: opts.cookies[name] }
           : undefined,
     },
-    nextUrl: { pathname: opts.pathname },
+    nextUrl: { pathname: opts.pathname, search, searchParams },
   } as unknown as NextRequest;
   return req;
 }
@@ -254,28 +257,50 @@ describe('middleware', () => {
         expect(res.headers.get('location')).toContain('/gestor');
       });
 
-      it('deve redirecionar TREINADOR para /dashboard ao acessar /login', async () => {
+      it('deve redirecionar TREINADOR para sua área semântica ao acessar /login', async () => {
         mockDecodeJwtPayload.mockResolvedValue({ sub: 'coach-1', role: 'ANNOTATOR', mk: 'TREINADOR' });
         const { middleware } = await import('@/middleware');
         const req = makeRequest({ pathname: '/login', authorization: 'Bearer token' });
         const res = await middleware(req);
-        expect(res.headers.get('location')).toContain('/dashboard');
+        expect(res.headers.get('location')).toContain('/clube/treinador');
       });
 
-      it('deve redirecionar ATLETA para /dashboard ao acessar /login', async () => {
+      it('deve redirecionar ATLETA para sua área semântica ao acessar /login', async () => {
         mockDecodeJwtPayload.mockResolvedValue({ sub: 'ath-1', role: 'ATHLETE' });
         const { middleware } = await import('@/middleware');
         const req = makeRequest({ pathname: '/login', authorization: 'Bearer token' });
         const res = await middleware(req);
-        expect(res.headers.get('location')).toContain('/dashboard');
+        expect(res.headers.get('location')).toContain('/atleta');
       });
 
-      it('deve redirecionar para /trocar-senha se mustChangePassword estiver ativo', async () => {
+      it('deve redirecionar para /trocar-senha se mustChangePassword estiver ativo em rota protegida', async () => {
+        mockDecodeJwtPayload.mockResolvedValue({ sub: 'user-1', role: 'ATHLETE', mcp: true });
+        const { middleware } = await import('@/middleware');
+        const req = makeRequest({ pathname: '/dashboard', authorization: 'Bearer token' });
+        const res = await middleware(req);
+        expect(res.headers.get('location')).toContain('/trocar-senha');
+      });
+
+      it('deve permitir acesso a /login e expirar cookies se mustChangePassword estiver ativo ao tentar logar', async () => {
         mockDecodeJwtPayload.mockResolvedValue({ sub: 'user-1', role: 'ATHLETE', mcp: true });
         const { middleware } = await import('@/middleware');
         const req = makeRequest({ pathname: '/login', authorization: 'Bearer token' });
         const res = await middleware(req);
-        expect(res.headers.get('location')).toContain('/trocar-senha');
+        expect(res.headers.get('location')).toBeNull();
+        expect(res.cookies.get('rkt_access_token')?.value).toBe('');
+      });
+
+      it('deve permitir acesso a /login e expirar cookies quando exit=1 estiver presente', async () => {
+        mockDecodeJwtPayload.mockResolvedValue({ sub: 'user-1', role: 'ATHLETE', mcp: true });
+        const { middleware } = await import('@/middleware');
+        const req = makeRequest({
+          pathname: '/login',
+          search: '?exit=1',
+          authorization: 'Bearer token',
+        });
+        const res = await middleware(req);
+        expect(res.headers.get('location')).toBeNull();
+        expect(res.cookies.get('rkt_access_token')?.value).toBe('');
       });
     });
   });

@@ -56,6 +56,17 @@ export function ClubInfo() {
           <p><span className="font-medium text-telemetry-text-muted">E-mail:</span> {club.legalRepEmail || '-'}</p>
         </div>
       </div>
+
+      {/* Nova seção: Gestores Adicionais (conteúdo da aba 'Gestores' anterior) */}
+      <section className="rounded-xl border border-white/10 bg-telemetry-elevated p-4 space-y-3">
+        <h2 className="text-lg font-semibold text-telemetry-text-primary mb-4">Gestores Adicionais</h2>
+        <p className="text-sm text-telemetry-text-muted mb-4">
+          Convide co-gestores para gerenciar este clube junto com você.
+        </p>
+        <div className="bg-telemetry-card rounded-lg p-4 border border-telemetry-border/20">
+          <p className="text-sm text-telemetry-text-muted">Funcionalidade de convite de co-gestores disponível em breve.</p>
+        </div>
+      </section>
       {editOpen && club && (
         <EditarClubeModalGestor
           open={editOpen}

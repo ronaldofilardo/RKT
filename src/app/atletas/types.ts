@@ -7,6 +7,9 @@ export interface AthleteForm {
   birthYear: string;
   dominance: string;
   backhand: string;
+  uf: string;
+  city: string;
+  club: string;
 }
 
 /** Estado inicial do formulário de atleta. */
@@ -18,4 +21,7 @@ export const EMPTY_ATHLETE_FORM: AthleteForm = {
   birthYear: "",
   dominance: "",
   backhand: "",
+  uf: "",
+  city: "",
+  club: "",
 };

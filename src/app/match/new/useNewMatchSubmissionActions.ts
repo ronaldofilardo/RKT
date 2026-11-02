@@ -9,12 +9,14 @@ import { submitOnlineMatch } from './online-match-submit.logic';
 import { isMatchScheduledForFuture } from './schedule-check.logic';
 import { getMissingFields } from './new-match-validate-fields.logic';
 import { createMatchIgnoringWarning, notifyMatchCreated } from './new-match-ignore-warning.logic';
+import { useAreaPath } from '@/hooks/use-area-path';
 
 export function useNewMatchSubmissionActions(
   state: NewMatchState,
   router: ReturnType<typeof useRouter>,
   toast: ReturnType<typeof useToast>['toast'],
 ) {
+  const toAreaPath = useAreaPath();
   const buildPayload = useCallback((overrides?: Record<string, unknown>) => buildMatchPayload({
     sportType: state.sportType, format: state.format, courtType: state.courtType,
     matchType: state.matchType,
@@ -46,7 +48,7 @@ export function useNewMatchSubmissionActions(
     const payload = buildPayload();
     if (await saveOfflineIfNeeded(navigator.onLine, payload)) {
       toast({ type: 'success', message: 'Partida salva localmente. Será enviada ao reconectar.' });
-      router.push('/dashboard');
+      router.push(toAreaPath('/dashboard') as any);
       return;
     }
     state.setLoading(true);
@@ -59,7 +61,7 @@ export function useNewMatchSubmissionActions(
         return;
       }
       notifyMatchCreated(isMatchScheduledForFuture(state.date, state.time), toast);
-      router.push('/dashboard');
+      router.push(toAreaPath('/dashboard') as any);
     } catch {
       state.setError('Erro ao criar partida');
       toast({ type: 'error', message: 'Erro ao criar partida' });

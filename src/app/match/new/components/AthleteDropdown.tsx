@@ -1,7 +1,9 @@
 'use client';
 
 import type { Athlete } from '../types';
+import type { SlotAffiliation } from '../slot-affiliation';
 import { AthleteDropdownPanel } from './athlete-dropdown-panel';
+import { SlotAffiliationToggle } from './slot-affiliation-toggle';
 
 interface AthleteDropdownProps {
   label: string;
@@ -14,6 +16,9 @@ interface AthleteDropdownProps {
   onToggle: () => void;
   onSelect: (athlete: Athlete | null) => void;
   onCreateNew: () => void;
+  affiliation?: SlotAffiliation;
+  onAffiliationChange?: (v: SlotAffiliation) => void;
+  canSelectOwn?: boolean;
 }
 
 export function AthleteDropdown({
@@ -27,6 +32,9 @@ export function AthleteDropdown({
   onToggle,
   onSelect,
   onCreateNew,
+  affiliation = 'NOT_OWN',
+  onAffiliationChange,
+  canSelectOwn = false,
 }: AthleteDropdownProps) {
   const excludedSet = new Set(
     (excludedAthletes ?? (excludedAthlete ? [excludedAthlete] : []))
@@ -48,6 +56,13 @@ export function AthleteDropdown({
         </span>
         <span className="text-telemetry-text-muted text-sm">▼</span>
       </button>
+      {onAffiliationChange && (
+        <SlotAffiliationToggle
+          value={affiliation}
+          onChange={onAffiliationChange}
+          disabled={!canSelectOwn}
+        />
+      )}
       {isOpen && (
         <AthleteDropdownPanel
           colorClass={colorClass}
@@ -55,6 +70,7 @@ export function AthleteDropdown({
           selectedAthlete={selectedAthlete}
           onSelect={onSelect}
           onCreateNew={onCreateNew}
+          affiliation={affiliation}
         />
       )}
     </div>

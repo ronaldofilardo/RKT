@@ -1,4 +1,5 @@
 import { RankingForm } from '@/app/atletas/RankingForm';
+import { AthleteOriginSection } from '@/components/athlete/AthleteOriginSection';
 import { type NewAthleteModalFormProps } from './new-athlete-modal-form.types';
 import { NewAthletePersonalFields } from './new-athlete-personal-fields';
 import { NewAthleteClassCategorySection } from './new-athlete-class-category-section';
@@ -11,6 +12,7 @@ export function NewAthleteModalForm({
   age,
   submitting,
   nameInputRef,
+  myClub = false,
   onRankingToggle,
   onRankingFieldChange
 }: NewAthleteModalFormProps) {
@@ -25,6 +27,16 @@ export function NewAthleteModalForm({
           submitting={submitting}
           nameInputRef={nameInputRef}
           age={age}
+        />
+
+        <AthleteOriginSection
+          uf={(form.uf || null) as import('@/core/athlete/brazilian-states').BrazilianUF | null}
+          city={form.city || null}
+          club={form.club || null}
+          readOnly={myClub}
+          onChange={({ uf, city, club }) => {
+            setForm((prev) => ({ ...prev, uf: uf ?? '', city: city ?? '', club: club ?? '' }));
+          }}
         />
 
         <NewAthleteClassCategorySection

@@ -26,6 +26,56 @@
 
 ## 2. Funcionalidades Ausentes (MVP Incompleto)
 
+### A0.12. Cadastro de Atleta de Outro Clube (UF, Cidade e Clube) 📋
+- **Status:** Planejada / Pronta para Execução (2026-11-01)
+- **Documento:** [`docs/PLANO_CADASTRO_ATLETA_OUTRO_CLUBE_UF_CIDADE_2026-11-01.md`](file:///c:/apps/RKT/docs/PLANO_CADASTRO_ATLETA_OUTRO_CLUBE_UF_CIDADE_2026-11-01.md)
+- **Contexto:** Permitir cadastro de atletas de outros clubes ou avulsos/independentes nas 4 situações do sistema (Gestor, Treinador de Clube, Treinador Avulso e Modal Novo Atleta em `/match/new`), com UF padronizada (27 UFs), cidade livre e clube livre, preservando a regra de não vincular indevidamente via `PlayerCT`.
+- **DoD:**
+  1. [ ] Módulo puro `brazilian-states.ts` com validação de 27 UFs.
+  2. [ ] Componente reutilizável `AthleteOriginSection.tsx` (R-03 $\le 100$ linhas).
+  3. [ ] Schemas Zod atualizados (`CreatePlayerInputSchema`, `UpdatePlayerInputSchema`).
+  4. [ ] Integração no modal Novo Atleta (`/match/new`), Treinador Avulso, Treinador de Clube e Gestor de CT.
+  5. [ ] Exibição broadcast da procedência em placares e relatórios.
+  6. [ ] Linha de base 100% verde (`tsc`, `next lint`, testes Jest).
+
+### A0.11. Landing Page Institucional e de Captação (c:\apps\RKT-LP) 📋
+- **Status:** Planejada / Pronta para Execução (2026-11-01)
+- **Documento:** [`c:\apps\RKT-LP\PLANO_LANDING_PAGE.md`](file:///c:/apps/RKT-LP/PLANO_LANDING_PAGE.md)
+- **Contexto:** Landing page para divulgação e captação de usuários (Atletas, Treinadores, Gestores de CT e Espectadores/Pais), com foco em telemetria esportiva profissional.
+- **DoD:**
+  1. [ ] Configuração de rota pública e middleware no sistema `c:\apps\RKT`.
+  2. [ ] Componentização completa em `c:\apps\RKT-LP` / `src/app/(marketing)` respeitando R-03 ($\le 100$ linhas).
+  3. [ ] Design System Telemetry (Dual-Theme, tokens `telemetry-*`).
+  4. [ ] CTAs com tags de rastreamento de perfil e origem (`?perfil=` e `?origem=`).
+  5. [ ] Auditoria 100% verde (testes, lint, TypeScript).
+
+### A0.10. Correção de Logout e Escape Hatch em /trocar-senha ✅
+- **Status:** Concluída (2026-11-01)
+- **Contexto:**
+  1. O logout no header e menu hambúrguer não invalidava o cookie `rkt_access_token` (`HttpOnly`) no servidor via `POST /api/auth/logout`.
+  2. Usuário com senha provisória (`mcp: true`) ou com senha provisória expirada ficava preso em `/trocar-senha` impedindo qualquer outro usuário de carregar o sistema (deadlock de autenticação).
+- **DoD:**
+  1. [x] Criação de `src/lib/auth-client-logout.ts` com `performLogout()` para chamar `/api/auth/logout` e `clearAuthState()`.
+  2. [x] Acionamento de `performLogout()` ao confirmar saída no header do suporte e no menu hambúrguer (`DashboardChrome.tsx`).
+  3. [x] Expiração de cookies na resposta 403 `EXPIRED` de `/api/auth/change-password`.
+  4. [x] Suporte no middleware para `/login?exit=1`, limpando cookies e permitindo acesso livre à tela de login.
+  5. [x] Escape hatch na UI de `/trocar-senha` (botão de saída no erro e rodapé do formulário) e redirecionamento de sucesso para `/login?exit=1`.
+  6. [x] Suíte de testes 100% verde (`auth-client-logout.test.ts`, `trocar-senha.test.tsx`, `middleware.test.ts`), `tsc` 0 erros, `next lint` 0 erros, R-03 ($\le 100$ linhas) respeitado.
+
+### A0.9. Área Ativa e URLs por Área (Roteamento Semântico e Contexto) ✅
+- **Status:** Concluída (2026-11-01)
+- **Documento:** [`docs/PLANO_AREAS_ATIVAS_E_URLS_POR_AREA_2026-11-01.md`](docs/PLANO_AREAS_ATIVAS_E_URLS_POR_AREA_2026-11-01.md)
+- **DoD:** Implementação do roteamento por área ativa em 8 fases (Fase 0 a Fase 7):
+  1. *Fase 0 (Spike):* [x] Prova de compatibilidade de reescrita no Next.js 15.3 (`usePathname`, `<Link>`, modal stack) documentada em [`docs/SPIKE_NEXTJS_URL_REWRITE.md`](docs/SPIKE_NEXTJS_URL_REWRITE.md).
+  2. *Fase 1 (Token & Claims):* [x] Correção de `/api/auth/refresh` com preservação integral de claims, novos claims `ax`, `ct`, `ars`, `POST /api/auth/area` e feature flag `AREA_URLS`.
+  3. *Fase 2 (Middleware & Helper):* [x] Helper puro `appPath(area, path)`, `middleware-area.logic.ts` com reescrita transparente e redirecionamento temporário 307 para rotas legadas, matcher atualizado com `/login`.
+  4. *Fase 3 (Isolamento por Área):* [x] `getActor` com `activeArea` e contexto, filtro estrito por `Match.ctId`, contexto particular avulso e segregação de atletas em `access-actor.logic.ts`.
+  5. *Fase 4 (Migração de Links):* [x] Hook `useAreaPath`, migração em `DashboardChrome`, `useDashboardNavigation`, `useNewMatchSubmissionActions` e teste-guarda automatizado `area-links.guard.test.ts`.
+  6. *Fase 5 (UI & Sessão):* [x] Tela `/escolher-area`, menu por área ativa, seletor de contexto e purga do IndexedDB na troca de contexto (`purgeOfflineCaches`).
+  7. *Fase 6 (Páginas Públicas & Segurança):* [x] Blindagem contra Open Redirect (`sanitizeNextRedirect`), tradução de `next` para a área ativa, links em `/match/[id]/report` e `scoring` adaptados com `useAreaPath()`.
+  8. *Fase 7 (Rollout & Baseline):* [x] Suíte de testes 100% verde (38 novos testes unitários/integração + 4.200 testes de regressão passando), zero erros no `tsc` e `next lint`.
+- **Regras:** 100% STE-DEV R-03 ($\le 100$ linhas por arquivo), sem migrações de banco e baseline de testes 100% verde.
+
 ### A0.8. LGPD, Proteção de Menores e Governança do Sistema 📋
 - **Status:** Planejada / Pronta para Execução (2026-10-31)
 - **Documento:** [`docs/PLANO_LGPD_PROTECAO_MENORES_E_GOVERNANCA_2026-10-31.md`](docs/PLANO_LGPD_PROTECAO_MENORES_E_GOVERNANCA_2026-10-31.md)

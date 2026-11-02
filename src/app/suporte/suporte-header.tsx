@@ -6,9 +6,10 @@ interface SuporteHeaderProps {
   clubsCount: number;
   gestoresCount: number;
   avulsosCount: number;
+  externosCount: number;
 }
 
-export function SuporteHeader({ clubsCount, gestoresCount, avulsosCount }: SuporteHeaderProps) {
+export function SuporteHeader({ clubsCount, gestoresCount, avulsosCount, externosCount }: SuporteHeaderProps) {
   return (
     <>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -18,10 +19,11 @@ export function SuporteHeader({ clubsCount, gestoresCount, avulsosCount }: Supor
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <StatsCard label="Total de Clubes/CTs" value={clubsCount} />
         <StatsCard label="Total de Gestores" value={gestoresCount} />
         <StatsCard label="Contas Avulsas" value={avulsosCount} />
+        <StatsCard label="Atletas Externos" value={externosCount} />
       </div>
     </>
   );

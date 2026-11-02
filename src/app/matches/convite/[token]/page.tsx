@@ -75,7 +75,7 @@ export default function SpectatorInviteRedeemPage({
               title="Convite inválido ou expirado"
               description="Confira o link ou peça um novo ao dono da partida."
               actionText="Voltar ao início"
-              actionHref="/dashboard"
+              actionHref="/"
             />
           )}
         </div>

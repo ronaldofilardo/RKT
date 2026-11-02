@@ -5,6 +5,7 @@ import { logger } from '@/lib/logger';
 import { reportApiError } from '@/lib/api.logic';
 import { withAccessHandler } from '@/lib/access-handler';
 import { getGestorCtId, denyGestor } from '../../../_logic';
+import { provisionAthleteAccount } from '../../../athletes-provision.logic';
 
 export async function POST(
   request: NextRequest,
@@ -17,22 +18,41 @@ export async function POST(
     request,
     'platform:memberships:manage',
     () => ({ ctId }),
-    async () => {
+    async ({ user }) => {
       try {
         const { id } = await params;
         const playerCt = await prisma.playerCT.findFirst({
           where: { OR: [{ id }, { playerId: id }, { player: { userId: id } }], ctId },
           include: { player: { include: { user: true } } },
         });
-        if (!playerCt || !playerCt.player.user || !playerCt.player.userId) {
+        if (!playerCt) {
           return NextResponse.json(
             { error: 'NOT_FOUND', message: 'Vínculo de atleta não encontrado' },
             { status: 404 },
           );
         }
 
-        const userId = playerCt.player.userId;
-        const userEmail = playerCt.player.user.email ?? null;
+        let userId = playerCt.player.userId;
+        let userEmail = playerCt.player.user?.email ?? null;
+
+        // Atleta vinculado ao CT sem conta de acesso (cadastro rápido/PROVISIONAL):
+        // cria ou vincula a conta na hora para poder emitir o link de senha.
+        if (!userId) {
+          const provisioned = await provisionAthleteAccount({
+            ctId,
+            issuedByUserId: user.id,
+            player: playerCt.player,
+          });
+          if (!provisioned.ok) {
+            return NextResponse.json(
+              { error: provisioned.error, message: provisioned.message },
+              { status: provisioned.status },
+            );
+          }
+          userId = provisioned.userId;
+          userEmail = provisioned.email;
+        }
+
         const token = Buffer.from(`${ctId}:${userId}:${Date.now()}`).toString('base64url');
         const tokenHash = createHash('sha256').update(token).digest('hex');
         const codeHash = createHash('sha256').update(Math.floor(100000 + Math.random() * 900000).toString()).digest('hex');

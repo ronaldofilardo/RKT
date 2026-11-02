@@ -5,6 +5,7 @@ import { logger } from '@/lib/logger';
 import { reportApiError } from '@/lib/api.logic';
 import { buildMeAccess } from './me-access.logic';
 import { resolveAvailableContexts } from '../login/login-contexts.logic';
+import { listAreas } from '@/core/access/areas';
 
 export async function GET(request: NextRequest) {
   try {
@@ -58,6 +59,12 @@ export async function GET(request: NextRequest) {
     }
 
     const availableContexts = await resolveAvailableContexts(dbUser.id);
+    const availableAreas = listAreas({
+      role: dbUser.role,
+      canOperate: dbUser.canOperate,
+      memberships: dbUser.memberships,
+      athlete: dbUser.athleteProfile ? { playerId: dbUser.athleteProfile.id } : null,
+    });
 
     return NextResponse.json({
       user: {
@@ -71,7 +78,9 @@ export async function GET(request: NextRequest) {
       memberships,
       ctStatus,
       activeContextId: user.contextId ?? null,
+      activeArea: user.activeArea ?? null,
       availableContexts,
+      availableAreas,
       ...buildMeAccess(dbUser, new Date(), user.contextId),
     });
   } catch (error) {

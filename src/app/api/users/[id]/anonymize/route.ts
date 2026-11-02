@@ -5,6 +5,7 @@ import { reportApiError } from '@/lib/api.logic';
 import { getAccessUserFromRequest } from '@/lib/auth-credentials.logic';
 import { getActor, bumpSessionVersion } from '@/services/accessService';
 import { can } from '@/core/access';
+import { anonymizeUserAndPlayer } from '@/core/access/user-anonymize.logic';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -22,16 +23,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       }
     }
 
-    const updated = await prisma.user.update({
-      where: { id },
-      data: {
-        name: 'Usuário Removido',
-        email: `anonymized_${id}@rkt.internal`,
-        cpf: `anon_${id}`,
-        isActive: false,
-        canOperate: false,
-      },
-    });
+    const result = await anonymizeUserAndPlayer(id);
 
     await bumpSessionVersion(id);
 
@@ -41,10 +33,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         action: 'USER_ANONYMIZED',
         resourceType: 'User',
         resourceId: id,
+        meta: { playerId: result.playerId ?? null },
       },
     });
 
-    return NextResponse.json({ id: updated.id, message: 'Conta anonimizada com sucesso.' }, { status: 200 });
+    return NextResponse.json({ id: result.userId, message: 'Conta anonimizada com sucesso.' }, { status: 200 });
   } catch (error) {
     logger.error('[USER ANONYMIZE POST]', error);
     return reportApiError(error);

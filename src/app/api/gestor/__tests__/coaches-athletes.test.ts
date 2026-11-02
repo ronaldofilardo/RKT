@@ -12,8 +12,15 @@ const mockPrisma = {
   },
   player: {
     create: jest.fn(),
+    findFirst: jest.fn(),
+    update: jest.fn(),
   },
   playerCT: {
+    create: jest.fn(),
+    findFirst: jest.fn(),
+    update: jest.fn(),
+  },
+  auditLog: {
     create: jest.fn(),
   },
   passwordResetRequest: {
@@ -148,6 +155,10 @@ describe('createAthleteByGestor', () => {
       userId: 'u-athlete-1',
     });
     mockPrisma.playerCT.create.mockResolvedValue({});
+    mockPrisma.playerCT.findFirst.mockResolvedValue(null);
+    mockPrisma.playerCT.update.mockResolvedValue({});
+    mockPrisma.player.findFirst.mockResolvedValue(null);
+    mockPrisma.auditLog.create.mockResolvedValue({});
     mockPrisma.passwordResetRequest.create.mockResolvedValue({});
     mockPrisma.membership.findMany.mockResolvedValue([{ userId: 'u-coach-1' }]);
 
@@ -206,7 +217,7 @@ describe('createAthleteByGestor', () => {
   });
 
   it('detecta atleta já cadastrado (conflito de CPF)', async () => {
-    mockPrisma.user.findUnique.mockResolvedValue({ id: 'u-existing', cpf: '22233344455' });
+    mockPrisma.user.findUnique.mockResolvedValue({ id: 'u-existing', cpf: '22233344455', name: 'Coah Carter' });
     const result = await athletesMod.createAthleteByGestor({
       name: 'Atleta Teste',
       cpf: '222.333.444-55',
@@ -218,6 +229,54 @@ describe('createAthleteByGestor', () => {
     });
     expect((result as any).conflict).toBe(true);
     expect((result as any).inviteKind).toBe('ATLETA');
+    expect((result as any).canLinkExisting).toBe(true);
+    expect((result as any).existingUserName).toBe('Coah Carter');
     expect(mockPrisma.user.create).not.toHaveBeenCalled();
+  });
+
+  it('vincula a conta existente ao elenco do clube quando linkExisting=true', async () => {
+    mockPrisma.player.create.mockResolvedValue({ id: 'u-existing-player', name: 'Coah Carter' });
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: 'u-existing',
+      cpf: '22233344455',
+      name: 'Coah Carter',
+      email: 'coach@rkt.com',
+    });
+    const result = await athletesMod.createAthleteByGestor({
+      name: 'Atleta Teste',
+      cpf: '222.333.444-55',
+      birthDate: '2015-01-01',
+      email: 'atleta@teste.com',
+      gender: 'MASCULINO',
+      laterality: 'DESTRO',
+      ctId: 'ct-1',
+      issuedByUserId: 'u-gestor-1',
+      linkExisting: true,
+    });
+
+    expect((result as any).conflict).toBe(false);
+    expect((result as any).isExistingUser).toBe(true);
+    expect((result as any).userId).toBe('u-existing');
+    expect(mockPrisma.user.create).not.toHaveBeenCalled();
+    expect(mockPrisma.player.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          name: 'Coah Carter',
+          cpf: '22233344455',
+          userId: 'u-existing',
+          createdByUserId: 'u-gestor-1',
+          gender: 'MASCULINO',
+          dominance: 'DESTRO',
+        }),
+      }),
+    );
+    expect(mockPrisma.playerCT.create).toHaveBeenCalledWith({
+      data: { playerId: 'u-existing-player', ctId: 'ct-1', status: 'ACTIVE' },
+    });
+    expect(mockPrisma.coachAthleteLink.createMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: [expect.objectContaining({ coachUserId: 'u-coach-1', playerId: 'u-existing-player', status: 'ACTIVE' })],
+      }),
+    );
   });
 });

@@ -1,4 +1,5 @@
 import { PasswordInput } from '@/components/ui/password-input';
+import Link from 'next/link';
 
 interface SignupFormFieldsProps {
   name: string;
@@ -9,6 +10,8 @@ interface SignupFormFieldsProps {
   setPassword: (v: string) => void;
   role: 'ATLETA' | 'TREINADOR' | 'ESPECTADOR' | 'GESTOR';
   setRole: (v: 'ATLETA' | 'TREINADOR' | 'ESPECTADOR' | 'GESTOR') => void;
+  termsAccepted: boolean;
+  setTermsAccepted: (v: boolean) => void;
 }
 
 export function SignupFormFields({
@@ -20,6 +23,8 @@ export function SignupFormFields({
   setPassword,
   role,
   setRole,
+  termsAccepted,
+  setTermsAccepted,
 }: SignupFormFieldsProps) {
   return (
     <>
@@ -64,6 +69,25 @@ export function SignupFormFields({
           <option value="ESPECTADOR">Espectador / Responsável</option>
           <option value="GESTOR">Gestor de Clube / CT</option>
         </select>
+      </div>
+      <div className="flex items-start gap-2 pt-1">
+        <input
+          id="signup-terms-checkbox"
+          type="checkbox"
+          checked={termsAccepted}
+          onChange={(e) => setTermsAccepted(e.target.checked)}
+          className="mt-0.5 w-4 h-4 cursor-pointer appearance-none border-2 border-gray-400 rounded bg-white checked:bg-sky-600 checked:border-sky-600 focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 transition-colors"
+        />
+        <label htmlFor="signup-terms-checkbox" className="text-sm font-medium text-gray-700 cursor-pointer leading-snug">
+          Li e aceito os{' '}
+          <Link href={"/termos" as any} className="text-telemetry-blue hover:text-telemetry-blue-light hover:underline font-semibold">
+            Termos de Uso
+          </Link>{' '}
+          e a{' '}
+          <Link href={"/privacidade" as any} className="text-telemetry-blue hover:text-telemetry-blue-light hover:underline font-semibold">
+            Política de Privacidade
+          </Link>
+        </label>
       </div>
     </>
   );

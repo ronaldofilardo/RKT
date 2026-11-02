@@ -29,13 +29,15 @@ export interface ToSpectatorViewParams {
   points: SpectatorPoint[];
   markers?: SpectatorMarker[];
   annotatorName?: string | null;
+  /** IDs dos atletas menores com consentimento ativo de BROADCAST (nomes reais podem ser exibidos). */
+  broadcastConsentPlayerIds?: string[];
   guardianPlayerIds?: string[];
   nowDate?: Date;
 }
 
-function resolvePlayerName(player: RawPlayerInput, guardianIds: string[], now: Date): string {
+function resolvePlayerName(player: RawPlayerInput, broadcastConsentIds: string[], now: Date): string {
   const isPlayerMinor = isMinor(player.birthDate ? new Date(player.birthDate) : null, now);
-  if (isPlayerMinor && !guardianIds.includes(player.id)) {
+  if (isPlayerMinor && !broadcastConsentIds.includes(player.id)) {
     return maskNameForMinor(player.name);
   }
   return player.name;
@@ -43,22 +45,24 @@ function resolvePlayerName(player: RawPlayerInput, guardianIds: string[], now: D
 
 /**
  * Converte dados brutos de partida em SpectatorView estritamente lista-branca.
- * Remove comentários, notas privadas, áudios e mascara nomes de menores para não responsáveis.
+ * Remove comentários, notas privadas, áudios e mascara nomes de menores sem
+ * consentimento ativo de BROADCAST (ECA Digital / LGPD).
  */
 export function toSpectatorView(params: ToSpectatorViewParams): SpectatorView {
-  const { match, player1, player2, player1Partner, player2Partner, score, points, markers = [], annotatorName, guardianPlayerIds = [], nowDate = new Date() } = params;
+  const { match, player1, player2, player1Partner, player2Partner, score, points, markers = [], annotatorName, broadcastConsentPlayerIds, guardianPlayerIds, nowDate = new Date() } = params;
+  const consentIds = broadcastConsentPlayerIds ?? guardianPlayerIds ?? [];
 
-  const p1Name = resolvePlayerName(player1, guardianPlayerIds, nowDate);
-  const p2Name = resolvePlayerName(player2, guardianPlayerIds, nowDate);
+  const p1Name = resolvePlayerName(player1, consentIds, nowDate);
+  const p2Name = resolvePlayerName(player2, consentIds, nowDate);
 
   const side1Members = [{ id: player1.id, name: p1Name }];
   if (player1Partner) {
-    side1Members.push({ id: player1Partner.id, name: resolvePlayerName(player1Partner, guardianPlayerIds, nowDate) });
+    side1Members.push({ id: player1Partner.id, name: resolvePlayerName(player1Partner, consentIds, nowDate) });
   }
 
   const side2Members = [{ id: player2.id, name: p2Name }];
   if (player2Partner) {
-    side2Members.push({ id: player2Partner.id, name: resolvePlayerName(player2Partner, guardianPlayerIds, nowDate) });
+    side2Members.push({ id: player2Partner.id, name: resolvePlayerName(player2Partner, consentIds, nowDate) });
   }
 
   return {

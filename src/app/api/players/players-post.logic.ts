@@ -50,8 +50,10 @@ export async function handlePlayersPost(
 
     const creatingProfile = actorCreatingProfile(actor);
     const cts = actorCtIds(actor);
-    const isClubStaff = creatingProfile === 'GESTOR' || creatingProfile === 'TREINADOR';
-    const shouldLink = Boolean(myClub || (isClubStaff && cts.length > 0));
+    // Vincula somente quando o cadastro declara explicitamente "Meu clube" (myClub=true).
+    // Staff (GESTOR/TREINADOR) NÃO vincula automaticamente: permite cadastrar adversários
+    // de outros clube sem criar vínculo indevido com o CT do ator.
+    const shouldLink = Boolean(myClub);
 
     let resolvedCtId: string | null = null;
     if (shouldLink) {

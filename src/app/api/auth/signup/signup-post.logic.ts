@@ -11,10 +11,11 @@ export type SignupInput = {
   role: string;
   cpf?: string | null;
   birthDate?: string | null;
+  origem?: string | null;
 };
 
 export async function handleSignupPost(input: SignupInput): Promise<NextResponse> {
-  const { name, identifier, password, role, cpf: cpfRaw, birthDate: birthDateRaw } = input;
+  const { name, identifier, password, role, cpf: cpfRaw, birthDate: birthDateRaw, origem } = input;
   const trimmed = identifier.trim();
   const isEmail = trimmed.includes('@');
   const email = isEmail ? trimmed.toLowerCase() : null;
@@ -38,6 +39,16 @@ export async function handleSignupPost(input: SignupInput): Promise<NextResponse
       passwordHash,
       canOperate: true,
       role: 'ANNOTATOR',
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorUserId: user.id,
+      action: 'TERMS_ACCEPTED',
+      resourceType: 'User',
+      resourceId: user.id,
+      meta: { termsVersion: '1.0', origem },
     },
   });
 

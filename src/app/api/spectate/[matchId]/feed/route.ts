@@ -10,15 +10,9 @@ async function resolveMatchAccess(matchId: string): Promise<MatchAccess | null> 
   const match = await prisma.match.findUnique({
     where: { id: matchId },
     select: {
-      createdByUserId: true,
-      ctId: true,
-      player1Id: true,
-      player2Id: true,
-      player1PartnerId: true,
-      player2PartnerId: true,
+      createdByUserId: true, ctId: true, player1Id: true, player2Id: true,
+      player1PartnerId: true, player2PartnerId: true,
       annotationSessions: { where: { isActive: true }, select: { annotatorUserId: true } },
-      // CTs ativos dos participantes: permite ao gestor/treinador do clube acompanhar
-      // partidas disputadas por atletas do clube mesmo sem `match.ctId` preenchido.
       player1: { select: { playerCts: { where: { status: 'ACTIVE' }, select: { ctId: true } } } },
       player2: { select: { playerCts: { where: { status: 'ACTIVE' }, select: { ctId: true } } } },
       player1Partner: { select: { playerCts: { where: { status: 'ACTIVE' }, select: { ctId: true } } } },
@@ -32,62 +26,49 @@ async function resolveMatchAccess(matchId: string): Promise<MatchAccess | null> 
   );
 
   return {
-    createdByUserId: match.createdByUserId,
-    ctId: match.ctId,
+    createdByUserId: match.createdByUserId, ctId: match.ctId,
     annotatorUserIds: match.annotationSessions.map((s) => s.annotatorUserId),
     participantPlayerIds,
-    participantCtIds: [
-      match.player1,
-      match.player2,
-      match.player1Partner,
-      match.player2Partner,
-    ].flatMap((p) => p?.playerCts?.map(({ ctId }) => ctId) ?? []),
+    participantCtIds: [match.player1, match.player2, match.player1Partner, match.player2Partner].flatMap(
+      (p) => p?.playerCts?.map(({ ctId }) => ctId) ?? []
+    ),
   };
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ matchId: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ matchId: string }> }) {
   const { matchId } = await params;
   const clientRev = request.nextUrl.searchParams.get('rev') || undefined;
 
-  // 1. Acesso via Concessão de Convidado (Cookie HTTP-only ou Token)
   const guestToken = request.cookies.get(`rkt_spectator_${matchId}`)?.value || request.nextUrl.searchParams.get('token');
   if (guestToken) {
     const isGuestAuthorized = await isGuestSpectatorAuthorized(matchId, guestToken);
     if (isGuestAuthorized) {
-      const feed = await getSpectatorFeed({ matchId, clientRev, guardianPlayerIds: [] });
+      const feed = await getSpectatorFeed({ matchId, clientRev, broadcastConsentPlayerIds: [] });
       if (!feed.ok) return NextResponse.json({ error: feed.error }, { status: feed.status });
       return NextResponse.json(feed, { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } });
     }
   }
 
-  // 2. Acesso via Usuário Autenticado
   const user = await getAccessUserFromRequest(request);
-  if (!user) {
-    return NextResponse.json({ error: 'FORBIDDEN', message: 'Acesso não autorizado' }, { status: 403 });
-  }
+  if (!user) return NextResponse.json({ error: 'FORBIDDEN', message: 'Acesso não autorizado' }, { status: 403 });
 
   const matchAccess = await resolveMatchAccess(matchId);
-  if (!matchAccess) {
-    return NextResponse.json({ error: 'MATCH_NOT_FOUND' }, { status: 404 });
-  }
+  if (!matchAccess) return NextResponse.json({ error: 'MATCH_NOT_FOUND' }, { status: 404 });
 
   const actor = await getActor(user.id);
   const isSpectatorGranted = await hasActiveSpectatorConcession(matchId, user.id);
   const authorized = actor && canWatchMatch(actor, matchAccess, isSpectatorGranted);
+  if (!authorized) return NextResponse.json({ error: 'FORBIDDEN', message: 'Você não tem permissão para acompanhar esta partida' }, { status: 403 });
 
-  if (!authorized) {
-    return NextResponse.json({ error: 'FORBIDDEN', message: 'Você não tem permissão para acompanhar esta partida' }, { status: 403 });
-  }
+  const broadcastConsents = prisma.consentRecord
+    ? await prisma.consentRecord.findMany({
+        where: { playerId: { in: [...matchAccess.participantPlayerIds] as string[] }, purpose: 'BROADCAST', revokedAt: null },
+        select: { playerId: true },
+      })
+    : [];
+  const broadcastConsentPlayerIds = broadcastConsents.map((c) => c.playerId);
 
-  const feed = await getSpectatorFeed({
-    matchId,
-    clientRev,
-    guardianPlayerIds: actor?.guardianOfPlayerIds,
-  });
-
+  const feed = await getSpectatorFeed({ matchId, clientRev, broadcastConsentPlayerIds: actor ? [...broadcastConsentPlayerIds] : [] });
   if (!feed.ok) return NextResponse.json({ error: feed.error }, { status: feed.status });
   return NextResponse.json(feed, { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } });
 }

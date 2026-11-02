@@ -4,6 +4,7 @@ export interface RLSUser {
   id: string;
   role: string;
   contextId?: string | null;
+  activeArea?: string | null;
 }
 
 let rlsStorage = new AsyncLocalStorage<RLSUser>();

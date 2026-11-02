@@ -10,6 +10,7 @@ export const AthleteCreateSchema = z.object({
   email: z.string().email('E-mail inválido').optional().or(z.literal('')),
   gender: z.enum(['MASCULINO', 'FEMININO', 'OUTRO']),
   laterality: z.enum(['DESTRO', 'CANHOTO', 'AMBIDEXTRO']),
+  linkExisting: z.boolean().optional(),
 });
 
 export type AthleteCreateInput = z.infer<typeof AthleteCreateSchema>;

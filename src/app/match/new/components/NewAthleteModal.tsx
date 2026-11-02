@@ -60,6 +60,11 @@ export function NewAthleteModal({
           {error && (
             <div role="alert" className="p-3 bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert text-sm rounded-lg">{error}</div>
           )}
+          {myClub && (
+            <div className="p-2.5 bg-telemetry-volt/10 border border-telemetry-volt/30 text-telemetry-volt text-xs rounded-lg">
+              Este atleta será vinculado ao seu clube.
+            </div>
+          )}
 
           <NewAthleteModalForm
             form={form}
@@ -69,6 +74,7 @@ export function NewAthleteModal({
             age={age}
             submitting={submitting}
             nameInputRef={nameInputRef}
+            myClub={myClub}
             onRankingToggle={(type) => toggleRankingEntry(setRankings, type)}
             onRankingFieldChange={(type, field, value) => updateRankingField(setRankings, type, field, value)}
           />

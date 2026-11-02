@@ -3,6 +3,7 @@ import { MatchCard, type DashboardMatchPayload } from "@/components/dashboard/Ma
 interface DashboardHomeSectionProps {
   visibleMatches: DashboardMatchPayload[];
   suspendedFromApi: DashboardMatchPayload[];
+  ctId?: string | null;
   openMatchDetails: (m: DashboardMatchPayload) => void;
   openMatchReport: (m: DashboardMatchPayload) => void;
   finishMatch: (m: DashboardMatchPayload) => void;
@@ -18,6 +19,7 @@ interface DashboardHomeSectionProps {
 export function DashboardHomeSection({
   visibleMatches,
   suspendedFromApi,
+  ctId,
   openMatchDetails,
   openMatchReport,
   finishMatch,
@@ -43,6 +45,7 @@ export function DashboardHomeSection({
               <MatchCard
                 key={m.id ?? m.suspendedSessionId}
                 match={m}
+                ctId={ctId}
                 onClick={openMatchDetails}
                 onReport={openMatchReport}
                 onEditScore={openMatchEditScore}
@@ -65,6 +68,7 @@ export function DashboardHomeSection({
             <MatchCard
               key={m.id}
               match={m}
+              ctId={ctId}
               onClick={openMatchDetails}
               onReport={openMatchReport}
               onFinish={finishMatch}

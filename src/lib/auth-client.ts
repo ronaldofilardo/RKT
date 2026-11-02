@@ -16,3 +16,4 @@ export {
 } from './auth-client-storage';
 
 export { loginRequest, type LoginResponse, type SessionContextOption } from './auth-client-login';
+export { performLogout } from './auth-client-logout';

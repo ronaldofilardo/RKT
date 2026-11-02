@@ -11,6 +11,9 @@ interface MatchCardScoreTableProps {
   columnTitles: string[];
   p1Name: string;
   p2Name: string;
+  p1Club?: string | null;
+  p2Club?: string | null;
+  ctId?: string | null;
   isServerP1: boolean;
   isServerP2: boolean;
   isLiveOrSuspended: boolean;
@@ -20,11 +23,27 @@ interface MatchCardScoreTableProps {
   currentSetIndex: number;
 }
 
+const clubBadge = (club?: string | null, ctId?: string | null) => {
+  if (!ctId) return null;
+  const isOwn = Boolean(club && club === ctId);
+  return (
+    <span
+      className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-semibold border border-white/20 bg-white/10"
+      title={isOwn ? 'Atleta do seu clube' : 'Atleta de outro clube'}
+    >
+      {isOwn ? 'Meu clube' : club ? 'Outro clube' : 'Sem clube'}
+    </span>
+  );
+};
+
 export function MatchCardScoreTable({
   displayedSets,
   columnTitles,
   p1Name,
   p2Name,
+  p1Club,
+  p2Club,
+  ctId,
   isServerP1,
   isServerP2,
   isLiveOrSuspended,
@@ -82,7 +101,10 @@ export function MatchCardScoreTable({
                 title={p1Name}
                 className={`text-left py-1 px-2 font-bold tracking-wide truncate max-w-full border border-white/10 bg-telemetry-card text-telemetry-text-primary`}
               >
-                {p1Name}
+                <span className="flex items-center gap-1.5">
+                  {p1Name}
+                  {clubBadge(p1Club, ctId)}
+                </span>
               </td>
               <td className={`text-center py-1 bg-telemetry-card border border-white/10 text-xs`}>
                 {isServerP1 ? <span title="Sacador" aria-label="Sacador" role="img" className="text-xs select-none">🎾</span> : null}
@@ -112,7 +134,10 @@ export function MatchCardScoreTable({
                 title={p2Name}
                 className={`text-left py-1 px-2 font-bold tracking-wide truncate max-w-full border border-white/10 bg-telemetry-card text-telemetry-text-primary`}
               >
-                {p2Name}
+                <span className="flex items-center gap-1.5">
+                  {p2Name}
+                  {clubBadge(p2Club, ctId)}
+                </span>
               </td>
               <td className={`text-center py-1 bg-telemetry-card border border-white/10 text-xs`}>
                 {isServerP2 ? <span title="Sacador" aria-label="Sacador" role="img" className="text-xs select-none">🎾</span> : null}

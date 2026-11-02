@@ -82,13 +82,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    response.cookies.set('rkt_access_token', accessToken, {
+    const cookieOpts = {
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: 'lax' as const,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 2,
       path: '/',
-    });
+      ...(user.mustChangePassword ? {} : { maxAge: 60 * 60 * 2 }),
+    };
+    response.cookies.set('rkt_access_token', accessToken, cookieOpts);
     return response;
   } catch (error) {
     logger.error('[LOGIN POST]', error);

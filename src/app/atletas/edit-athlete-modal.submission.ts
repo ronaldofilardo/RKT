@@ -9,6 +9,9 @@ interface AthleteLike {
   birthDate?: string | null;
   dominance?: string | null;
   backhand?: string | null;
+  uf?: string | null;
+  city?: string | null;
+  club?: string | null;
 }
 
 /** Hidrata o formulário de edição a partir dos dados do atleta. */
@@ -22,6 +25,9 @@ export function buildFormFromAthlete(athlete: AthleteLike): AthleteForm {
     birthYear: birthDate ? String(birthDate.getUTCFullYear()) : '',
     dominance: athlete.dominance || '',
     backhand: athlete.backhand || '',
+    uf: athlete.uf || '',
+    city: athlete.city || '',
+    club: athlete.club || '',
   };
 }
 
@@ -40,5 +46,9 @@ export function buildSavePayload(
     dominance: form.dominance || undefined,
     backhand: form.backhand || undefined,
     rankings: rankingsStateToPayload(rankings),
+    club: form.club || undefined,
+    city: form.city || undefined,
+    state: form.uf || undefined,
+    isExternalClub: !form.club ? undefined : true,
   };
 }

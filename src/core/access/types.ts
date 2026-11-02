@@ -46,6 +46,8 @@ export interface Actor {
   followedPlayerIds: readonly string[];
   /** Contexto ativo de sessão (CT ID ou 'PARTICULAR' / null). */
   activeContextId?: string | null;
+  /** Área ativa de navegação e isolamento ('TREINADOR_AVULSO' | 'TREINADOR_CLUBE' | etc.). */
+  activeArea?: string | null;
 }
 
 /** Recurso sobre o qual a ação é pedida. Campos ausentes = sem informação. */

@@ -4,6 +4,7 @@
 
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { linkExistingAthleteAccount } from './athletes-link.logic';
 
 export async function createAthleteByGestor(data: {
   name: string;
@@ -14,17 +15,40 @@ export async function createAthleteByGestor(data: {
   laterality: string;
   ctId: string;
   issuedByUserId?: string;
+  linkExisting?: boolean;
 }) {
-  const { name, cpf, birthDate, email, gender, laterality, ctId, issuedByUserId = '' } = data;
+  const { name, cpf, birthDate, email, gender, laterality, ctId, issuedByUserId = '', linkExisting } = data;
   const normalizedCpf = cpf.replace(/\D/g, '');
 
   const existingUser = await prisma.user.findUnique({ where: { cpf: normalizedCpf } });
   if (existingUser) {
-    return {
-      conflict: true,
-      message: 'Este atleta já possui cadastro no RKT. Deseja enviar um convite de vínculo com seu clube?',
-      inviteKind: 'ATLETA',
-    };
+    if (!linkExisting) {
+      return {
+        conflict: true,
+        canLinkExisting: true,
+        existingUserName: existingUser.name,
+        message: 'Este atleta já possui cadastro no RKT. Deseja vincular a conta ao seu clube?',
+        inviteKind: 'ATLETA',
+      };
+    }
+
+    // O atleta cadastrado pelo clube pertence ao clube: a conta existente é
+    // associada ao elenco (Player + PlayerCT ACTIVE) em vez de duplicar cadastro.
+    const linked = await linkExistingAthleteAccount({
+      ctId,
+      issuedByUserId,
+      existingUser: {
+        id: existingUser.id,
+        name: existingUser.name,
+        email: existingUser.email,
+        cpf: existingUser.cpf,
+      },
+      athlete: { birthDate, gender, laterality },
+    });
+    if ('error' in linked) {
+      return { conflict: true, message: linked.message, inviteKind: 'ATLETA' };
+    }
+    return { conflict: false, isExistingUser: true, userId: linked.userId, playerId: linked.playerId };
   }
 
   const tempPassword = birthDate.replace(/\D/g, '').slice(0, 8);

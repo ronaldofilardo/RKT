@@ -67,6 +67,8 @@ model Player {
   name            String
   email           String?
   club            String?
+  city            String?
+  state           String?
   age             Int?
   backhand        String?
   dominance       String?

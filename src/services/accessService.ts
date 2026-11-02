@@ -10,12 +10,17 @@ interface CacheEntry {
 
 const cache = new Map<string, CacheEntry>();
 
-async function loadActor(userId: string, contextId: string | null | undefined, now: Date): Promise<Actor | null> {
+async function loadActor(
+  userId: string,
+  contextId: string | null | undefined,
+  now: Date,
+  activeArea?: string | null,
+): Promise<Actor | null> {
   if (!prisma?.user?.findUnique) {
     return buildActor({
       id: userId, role: 'ANNOTATOR', isActive: true, canOperate: true,
       memberships: [], athleteProfile: null, guardianLinks: [], coachAthleteLinks: [],
-    }, now, contextId);
+    }, now, contextId, activeArea);
   }
   try {
     const row = await prisma.user.findUnique({
@@ -45,7 +50,7 @@ async function loadActor(userId: string, contextId: string | null | undefined, n
         },
       },
     });
-    return row ? buildActor(row as any, now, contextId) : null;
+    return row ? buildActor(row as any, now, contextId, activeArea) : null;
   } catch {
     return null;
   }
@@ -56,11 +61,12 @@ export async function getActor(
   userId: string,
   contextId?: string | null,
   now: Date = new Date(),
+  activeArea?: string | null,
 ): Promise<Actor | null> {
-  const key = `${userId}:${contextId ?? 'none'}`;
+  const key = `${userId}:${contextId ?? 'none'}:${activeArea ?? 'none'}`;
   const hit = cache.get(key);
   if (hit && now.getTime() - hit.at < SESSION_CACHE_TTL_MS) return hit.actor;
-  const actor = await loadActor(userId, contextId, now);
+  const actor = await loadActor(userId, contextId, now, activeArea);
   cache.set(key, { actor, at: now.getTime() });
   return actor;
 }

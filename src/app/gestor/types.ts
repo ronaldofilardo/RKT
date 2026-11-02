@@ -57,11 +57,11 @@ export interface ClubMatchItem {
   startedAt: string | null;
   finishedAt: string | null;
   createdByUserId: string | null;
-  player1: { id: string; name: string };
-  player2: { id: string; name: string };
+  player1: { id: string; name: string; club?: string | null };
+  player2: { id: string; name: string; club?: string | null };
   createdByUser: { id: string; name: string; email: string } | null;
   scoreState?: unknown;
 }
 
-export type GestorTab = 'coaches' | 'athletes' | 'matches' | 'club' | 'managers' | 'clubs';
+export type GestorTab = 'coaches' | 'athletes' | 'matches' | 'club';
 export type MemberType = 'TREINADOR' | 'ATLETA';

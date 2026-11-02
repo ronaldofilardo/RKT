@@ -29,7 +29,7 @@ export async function withAccessHandler<T extends Response = NextResponse>(
   const user = await getAccessUserFromRequest(request);
   if (!user) return deny(401, 'Token de acesso requerido');
 
-  const actor = await getActor(user.id, user.contextId);
+  const actor = await getActor(user.id, user.contextId, undefined, user.activeArea);
   if (!actor) return deny(401, 'Token de acesso requerido');
 
   const resource = resolveResource ? await resolveResource(user) : undefined;

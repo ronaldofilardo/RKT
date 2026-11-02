@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { BrandLogo } from '@/components/ui/brand-logo';
+import { clearAuthState, performLogout } from '@/lib/auth-client';
 import { TrocarSenhaForm, TrocarSenhaSuccess } from './components';
 
 function TrocarSenhaContent() {
@@ -35,6 +36,7 @@ function TrocarSenhaContent() {
       if (!res.ok) {
         setError(data.message || data.error || 'Erro ao alterar senha');
       } else {
+        clearAuthState();
         setSuccess(true);
       }
     } catch {
@@ -44,24 +46,25 @@ function TrocarSenhaContent() {
     }
   }
 
+  const handleExitToLogin = async () => {
+    await performLogout();
+    if (typeof window !== 'undefined') window.location.href = '/login?exit=1';
+  };
+
   if (success) {
     return (
       <div className="bg-telemetry-card rounded-2xl shadow-xl border border-telemetry-border/10 p-8 w-full max-w-md">
-        <div className="flex justify-center mb-6">
-          <BrandLogo size="lg" priority />
-        </div>
+        <div className="flex justify-center mb-6"><BrandLogo size="lg" priority /></div>
         <h1 className="text-2xl font-bold text-center text-telemetry-text-primary mb-2">Senha Definida</h1>
         <p className="text-sm text-center text-telemetry-text-muted mb-6">Sua senha foi atualizada com sucesso.</p>
-        <TrocarSenhaSuccess onLoginClick={() => { }} />
+        <TrocarSenhaSuccess onLoginClick={handleExitToLogin} />
       </div>
     );
   }
 
   return (
     <div className="bg-telemetry-card rounded-2xl shadow-xl border border-telemetry-border/10 p-8 w-full max-w-md">
-      <div className="flex justify-center mb-6">
-        <BrandLogo size="lg" priority />
-      </div>
+      <div className="flex justify-center mb-6"><BrandLogo size="lg" priority /></div>
       <h1 className="text-2xl font-bold text-center text-telemetry-text-primary mb-2">
         {token ? 'Definir Nova Senha' : 'Trocar Senha'}
       </h1>
@@ -79,6 +82,7 @@ function TrocarSenhaContent() {
         loading={loading}
         hasToken={Boolean(token)}
         onSubmit={handleSubmit}
+        onCancel={handleExitToLogin}
       />
     </div>
   );

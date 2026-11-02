@@ -30,7 +30,7 @@ export function RankingTypeCard({ type, state, gender, age, saving, onToggle, on
 
   return (
     <div className="rounded-lg border border-white/10 bg-telemetry-card/30 p-3">
-      <div className="flex flex-nowrap items-start gap-2.5 sm:gap-3.5 overflow-x-auto">
+      <div className="flex items-start gap-2.5 sm:gap-3.5">
         {/* Coluna 1: Checkbox (linha 1) e Remover (linha 2) */}
         <div className="flex flex-col gap-1 shrink-0">
           <div className="flex items-center gap-1.5 h-4">

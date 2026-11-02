@@ -38,7 +38,8 @@ export default function NewMatchPage() {
         setShowDuplicateModal={c.setShowDuplicateModal}
         duplicateInfo={c.duplicateInfo}
         createMatchIgnoringWarning={c.createMatchIgnoringWarning}
-        myClub={c.myClub}
+        slotAffiliation={c.slotAffiliation}
+        newAthleteFor={c.newAthleteFor}
         ctId={c.ctId || null}
       />
     </div>

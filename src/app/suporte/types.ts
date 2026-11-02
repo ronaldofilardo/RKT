@@ -38,12 +38,40 @@ export interface MembershipItem {
   createdAt: string;
 }
 
-export type SuporteModule = 'clubes' | 'gestores' | 'avulsos';
+export type SuporteModule = 'clubes' | 'gestores' | 'avulsos' | 'externos';
 
 export type CtStatusFilter = 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'ALL';
+
+export interface ExternalAthlete {
+  id: string;
+  name: string;
+  club: string | null;
+  city: string | null;
+  state: string | null;
+  gender: string | null;
+  age: number | null;
+  rankings: unknown;
+  createdAt: string;
+}
+
+export interface ExternalClub {
+  club: string;
+  city: string;
+  state: string;
+  status: string | null;
+  inSystem: boolean;
+}
+
+export interface ExternosData {
+  athletes: ExternalAthlete[];
+  clubs: ExternalClub[];
+  totalAthletes: number;
+  totalClubs: number;
+}
 
 export interface SuporteData {
   clubs: TrainingCenter[];
   users: UserItem[];
   memberships: MembershipItem[];
+  externos: ExternosData | null;
 }

@@ -64,4 +64,5 @@ export interface MenuContext {
   gestor: GestorContext | null;
   coach: CoachContext | null;
   athlete: AthleteContext | null;
+  activeArea?: string | null;
 }

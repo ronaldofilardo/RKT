@@ -21,9 +21,7 @@ export function TabNav({
     { key: 'coaches', label: 'Treinadores', badge: coachesCount },
     { key: 'athletes', label: 'Atletas', badge: athletesCount },
     { key: 'matches', label: 'Partidas do Clube', badge: matchesCount },
-    { key: 'clubs', label: 'Clubes & CTs' },
     { key: 'club', label: 'Dados do Clube' },
-    { key: 'managers', label: 'Gestores' },
   ];
 
   return (

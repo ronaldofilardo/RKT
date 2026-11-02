@@ -13,7 +13,6 @@ jest.mock('../cadastrar-membro-modal', () => ({ CadastrarMembroModal: () => null
 jest.mock('../coaches-table', () => ({ CoachesTable: () => null }));
 jest.mock('../athletes-table', () => ({ AthletesTable: () => null }));
 jest.mock('../club-info', () => ({ ClubInfo: () => null }));
-jest.mock('../managers-section', () => ({ ManagersSection: () => null }));
 jest.mock('../dashboard-header', () => ({ DashboardHeader: () => null }));
 jest.mock('../tab-nav', () => ({ TabNav: () => null }));
 

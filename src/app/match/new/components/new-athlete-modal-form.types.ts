@@ -21,6 +21,7 @@ export interface NewAthleteModalFormProps {
   age: number | null;
   submitting: boolean;
   nameInputRef: React.RefObject<HTMLInputElement>;
+  myClub?: boolean;
   onRankingToggle: (type: RankingType) => void;
   onRankingFieldChange: (type: RankingType, field: keyof RankingState, value: string) => void;
 }

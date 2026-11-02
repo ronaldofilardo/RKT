@@ -7,6 +7,10 @@ export interface EditAthleteSavePayload {
   dominance?: string;
   backhand?: string;
   rankings?: Record<string, RankingEntry>;
+  club?: string;
+  city?: string;
+  state?: string;
+  isExternalClub?: boolean;
 }
 
 export interface EditAthleteModalProps {
