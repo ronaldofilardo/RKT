@@ -44,8 +44,8 @@ export function ScoreboardPlayerRow({
   const nameBg = isSuspended
     ? 'bg-telemetry-alert text-telemetry-base'
     : 'bg-telemetry-card text-telemetry-text-primary';
-  const nameBorder = isLastRow ? '' : ' border-b border-white/10';
-  const statusBorder = isLastRow ? 'border-l border-white/10' : 'border-l border-b border-white/10';
+  const nameBorder = isLastRow ? '' : ' border-b border-telemetry-border/10';
+  const statusBorder = isLastRow ? 'border-l border-telemetry-border/10' : 'border-l border-b border-telemetry-border/10';
   const displayNameValue = displayName ?? abbreviateDoublesName(player.name, partner?.name ?? undefined);
 
   return (
@@ -71,7 +71,7 @@ export function ScoreboardPlayerRow({
         return (
           <td
             key={i}
-            className={`text-center px-1 py-1 text-sm font-space-grotesk font-semibold border-l border-b border-white/10 ${style}`}
+            className={`text-center px-1 py-1 text-sm font-space-grotesk font-semibold border-l border-b border-telemetry-border/10 ${style}`}
           >
             {renderSetScore(set, side)}
           </td>

@@ -20,6 +20,15 @@ export default function CourtBackground({ courtType = 'HARD' }: { courtType?: Co
       aria-hidden="true"
       style={{ backgroundColor: colors.bg }}
     >
+      {/* Micro-gradiente no topo (Pilar 3: identidade esportiva sutil) */}
+      <div
+        className="absolute inset-x-0 top-0 h-12"
+        aria-hidden="true"
+        style={{
+          background: `linear-gradient(to bottom, ${colors.bg} / 0.06, transparent)`,
+        }}
+      />
+
       {/* Net */}
       <div className="absolute inset-x-0 top-1/2 h-0.5 bg-white/30 -translate-y-1/2" />
 

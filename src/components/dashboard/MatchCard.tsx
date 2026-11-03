@@ -46,10 +46,14 @@ export function MatchCard({
 
   const isSuspended = d.isSuspendedAnnotation;
 
+  // Court type border accent (Pilar 3: Micro-Toques de Piso)
+  const courtType = match.courtType ?? 'HARD';
+  const courtBorderClass = `border-l-3 border-[rgb(var(--telemetry-court-${courtType.toLowerCase()}))]`;
+
   return (
     <div
       data-testid={`match-card-${match.id}`}
-      className={`rounded-xl border border-telemetry-border/10 shadow-sm transition-all bg-telemetry-card ${onClick ? "cursor-pointer hover:shadow-md hover:border-telemetry-border/20 hover:bg-telemetry-elevated" : ""}`}
+      className={`rounded-xl border border-telemetry-border/10 shadow-sm transition-all bg-telemetry-card ${onClick ? "cursor-pointer hover:shadow-md hover:border-telemetry-border/20 hover:bg-telemetry-elevated" : ""} ${courtBorderClass}`}
       onClick={onPrimaryClick}
       role={onClick ? 'button' : undefined}
       aria-label={onClick ? `Partida: ${p1Name} vs ${p2Name}` : undefined}

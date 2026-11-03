@@ -69,7 +69,7 @@ describe('ScoreboardCard', () => {
     expect(screen.getByText('Set 1')).toBeInTheDocument();
     const set2Header = screen.getByText('Set 2');
     expect(set2Header).toBeInTheDocument();
-    expect(set2Header).toHaveClass('text-telemetry-volt');
+    expect(set2Header).toHaveClass('text-telemetry-score-accent');
   });
 
   it('displays checkmark for match winner', () => {
@@ -107,7 +107,7 @@ describe('ScoreboardCard', () => {
       />
     );
     const card = screen.getByText('P. One').closest('div');
-    expect(card).toHaveClass('border-white/10', 'bg-telemetry-card');
+    expect(card).toHaveClass('border-telemetry-border/10', 'bg-telemetry-card');
   });
 
   it('renders with empty score state', () => {
@@ -215,7 +215,7 @@ describe('ScoreboardCard', () => {
     expect(screen.getByText('Set 2')).toBeInTheDocument();
     const set3Header = screen.getByText('Set 3');
     expect(set3Header).toBeInTheDocument();
-    expect(set3Header).toHaveClass('text-telemetry-volt');
+    expect(set3Header).toHaveClass('text-telemetry-score-accent');
   });
 
   // ─── Caracterização do bug do "set atual" (2026-08-13) ───────────────
@@ -247,8 +247,8 @@ describe('ScoreboardCard', () => {
         />
       );
       // O set finalizado (Set 1) não deve estar destacado como atual; Set 2 é o atual
-      expect(screen.getByText('Set 1')).not.toHaveClass('text-telemetry-volt');
-      expect(screen.getByText('Set 2')).toHaveClass('text-telemetry-volt');
+      expect(screen.getByText('Set 1')).not.toHaveClass('text-telemetry-score-accent');
+      expect(screen.getByText('Set 2')).toHaveClass('text-telemetry-score-accent');
     });
 
     it('destaca a coluna do set em andamento (Set 2)', () => {
@@ -270,7 +270,7 @@ describe('ScoreboardCard', () => {
           format="BEST_OF_3"
         />
       );
-      expect(screen.getByText('Set 2')).toHaveClass('text-telemetry-volt');
+      expect(screen.getByText('Set 2')).toHaveClass('text-telemetry-score-accent');
     });
 
     it('NÃO destaca nenhum set como "atual" quando partida finalizou', () => {

@@ -57,10 +57,12 @@ describe('src/components/dashboard/match-card-components.tsx Caracterizacao', ()
     expect(screen.getByText('Agendada')).toBeInTheDocument();
   });
 
-  it('deve renderizar FormatLabel utilizando text-telemetry-text-muted para legibilidade em ambos os temas', () => {
+it('deve renderizar FormatLabel utilizando text-telemetry-text-muted para legibilidade em ambos os temas', () => {
     const { container } = render(<FormatLabel format="BEST_OF_3" />);
-    const label = container.querySelector('span');
-    expect(label?.className).toContain('text-telemetry-text-muted');
+    const spans = container.querySelectorAll('span');
+    // Second span contains the format text with text-telemetry-text-muted
+    const formatLabel = spans[1];
+    expect(formatLabel?.className).toContain('text-telemetry-text-muted');
     expect(screen.getByText('Melhor de 3 Sets')).toBeInTheDocument();
     expect(screen.queryByText(/Modo de jogo:/i)).toBeNull();
   });

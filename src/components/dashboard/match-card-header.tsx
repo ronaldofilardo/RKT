@@ -64,7 +64,7 @@ export function MatchCardHeader({
             iconSrc="/icons/info_partida.webp" emoji="⚙️" label="Info" />
         )}
         <MatchActions match={match} onReport={onReport} onFinish={onFinish} onDelete={onDelete} onShare={onShare} />
-        <FormatLabel format={match.format} matchType={match.matchType} />
+        <FormatLabel format={match.format} matchType={match.matchType} courtType={match.courtType ?? undefined} />
       </div>
     </div>
   );

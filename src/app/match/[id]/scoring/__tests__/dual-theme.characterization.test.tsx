@@ -63,11 +63,11 @@ describe('Dual Theme Design System (Light & Dark)', () => {
 
     it('define tokens para tema claro sob @media (prefers-color-scheme: light)', () => {
       expect(globalsCss).toContain('@media (prefers-color-scheme: light)');
-      expect(globalsCss).toMatch(/--telemetry-base:\s*241\s+245\s+249/);
+      expect(globalsCss).toMatch(/--telemetry-base:\s*242\s+239\s+233/);
       expect(globalsCss).toMatch(/--telemetry-card:\s*255\s+255\s+255/);
       expect(globalsCss).toMatch(/--telemetry-text-primary:\s*15\s+23\s+42/);
-      expect(globalsCss).toMatch(/--telemetry-text-muted:\s*100\s+116\s+139/);
-      expect(globalsCss).toMatch(/--telemetry-volt:\s*101\s+163\s+13/);
+      expect(globalsCss).toMatch(/--telemetry-text-muted:\s*51\s+65\s+85/);
+      expect(globalsCss).toMatch(/--telemetry-volt:\s*15\s+80\s+3/);
     });
 
     it('suporta forçamento explícito via classe .dark e .light', () => {

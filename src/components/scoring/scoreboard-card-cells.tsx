@@ -13,24 +13,24 @@ export function getSetCellStyle(
   setsWon: { player1: number; player2: number } | undefined
 ) {
   if (!set) {
-    return 'text-telemetry-text-muted bg-telemetry-card';
+    return 'text-telemetry-score-secondary bg-telemetry-card';
   }
 
   if (isCurrent) {
-    return 'text-telemetry-volt font-bold bg-telemetry-elevated';
+    return 'text-telemetry-score-accent font-bold bg-telemetry-elevated';
   }
 
   const isComplete = set && isSetCompleted(set, tennisFormat, undefined, setsWon);
   if (!isComplete) {
-    return 'text-telemetry-text-muted bg-telemetry-card';
+    return 'text-telemetry-score-secondary bg-telemetry-card';
   }
 
   const playerWon = player === 'player1' ? set.player1 > set.player2 : set.player2 > set.player1;
 
   if (playerWon) {
-    return 'text-white font-bold bg-telemetry-blue';
+    return 'text-telemetry-score-main font-bold bg-telemetry-blue';
   } else {
-    return 'text-telemetry-text-muted bg-telemetry-elevated';
+    return 'text-telemetry-score-secondary bg-telemetry-elevated';
   }
 }
 
