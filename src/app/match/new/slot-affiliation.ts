@@ -19,21 +19,27 @@ export function filterAthletesForSlot(
   athletes: Athlete[],
   affiliation: SlotAffiliation | undefined,
   ctId: string | null,
+  followedPlayerIds: readonly string[] = [],
 ): Athlete[] {
   const target = ctId ? (ctId as string) : null;
   if (affiliation === 'OWN') {
-    if (!target) return athletes;
+    if (!target) {
+      // Modo PARTICULAR/AVULSO: mostrar apenas os atletas vinculados ao treinador.
+      return athletes.filter((a) => followedPlayerIds.includes(a.id));
+    }
     return athletes.filter(
       (a) => a.playerCts?.some((pc) => pc.ctId === target) || a.clubId === target,
     );
   }
   // NOT_OWN (ou undefined): lista apenas atletas de outros clubes,
-  // excluindo os do meu clube quando um ctId estiver definido.
-  // Nome e clube ficam visiveis no panel; novo atleta eh criado sem vinculo.
+  // excluindo os do meu clube quando um ctId estiver definido ou meus atletas no modo avulso.
   if (target) {
     return athletes.filter(
       (a) => !(a.playerCts?.some((pc) => pc.ctId === target) || a.clubId === target),
     );
+  }
+  if (followedPlayerIds.length > 0) {
+    return athletes.filter((a) => !followedPlayerIds.includes(a.id));
   }
   return athletes;
 }

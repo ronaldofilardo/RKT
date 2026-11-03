@@ -28,15 +28,19 @@ export function PlayerSelection({
   slotAffiliation,
   setSlotAffiliation,
   ctId = null,
-}: PlayerSelectionProps) {
+  isParticular = false,
+  followedPlayerIds = [],
+}: PlayerSelectionProps & { isParticular?: boolean; followedPlayerIds?: readonly string[] }) {
   const isDoubles = matchType === 'DOUBLES';
+  const effectiveCtId = isParticular ? null : (ctId || null);
   // Cada slot tem sua própria afiliação: filtra a lista e decide vinculo de novos atletas.
   const binding = (slot: SlotId) => {
     const affiliation = slotAffiliation?.[slot] ?? 'NOT_OWN';
     return {
-      athletes: filterAthletesForSlot(athletes, affiliation, ctId),
+      athletes: filterAthletesForSlot(athletes, affiliation, effectiveCtId, followedPlayerIds),
       affiliation,
-      canSelectOwn: !!ctId,
+      canSelectOwn: !!effectiveCtId || isParticular,
+      isParticular,
       onAffiliationChange: setSlotAffiliation
         ? (v: SlotAffiliation) => setSlotAffiliation(slot, v)
         : undefined,

@@ -24,7 +24,7 @@ export function MatchNewFormSections({ c }: { c: NewMatchController }) {
         onFormatChange={c.setFormat}
         onCourtChange={c.setCourtType}
       />
-      <MyClubSelector ctId={c.ctId} setCtId={c.setCtId} availableCts={c.availableCts} />
+      <MyClubSelector ctId={c.ctId} setCtId={c.setCtId} availableCts={c.availableCts} isParticular={c.isParticular} />
       <PlayerSelection
         matchType={c.matchType}
         onMatchTypeChange={c.setMatchType}
@@ -52,6 +52,8 @@ export function MatchNewFormSections({ c }: { c: NewMatchController }) {
         slotAffiliation={c.slotAffiliation}
         setSlotAffiliation={c.updateSlotAffiliation}
         ctId={c.ctId || null}
+        isParticular={c.isParticular}
+        followedPlayerIds={c.followedPlayerIds}
       />
       <DateTimeSection date={c.date} time={c.time} onDateChange={c.setDate} onTimeChange={c.setTime} />
       <TournamentSection

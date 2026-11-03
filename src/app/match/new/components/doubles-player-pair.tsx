@@ -17,6 +17,7 @@ interface PairSlotProps {
   affiliation?: SlotAffiliation;
   onAffiliationChange?: (v: SlotAffiliation) => void;
   canSelectOwn?: boolean;
+  isParticular?: boolean;
 }
 
 export interface DoublesPlayerPairProps {
@@ -50,20 +51,21 @@ export function DoublesPlayerPair({
   const style = ACCENTS[accent];
 
   const slot = (s: PairSlotProps) => (
-    <AthleteDropdown
-      label={s.label}
-      athletes={s.athletes}
-      selectedAthlete={s.selected}
-      excludedAthletes={s.excluded}
-      isOpen={s.isOpen}
-      colorClass={accent}
-      affiliation={s.affiliation}
-      canSelectOwn={s.canSelectOwn}
-      onAffiliationChange={s.onAffiliationChange}
-      onToggle={s.onToggle ?? (() => {})}
-      onSelect={s.onSelect ?? (() => {})}
-      onCreateNew={s.onCreateNew ?? (() => {})}
-    />
+      <AthleteDropdown
+        label={s.label}
+        athletes={s.athletes}
+        selectedAthlete={s.selected}
+        excludedAthletes={s.excluded}
+        isOpen={s.isOpen}
+        colorClass={accent}
+        affiliation={s.affiliation}
+        canSelectOwn={s.canSelectOwn}
+        isParticular={s.isParticular}
+        onAffiliationChange={s.onAffiliationChange}
+        onToggle={s.onToggle ?? (() => {})}
+        onSelect={s.onSelect ?? (() => {})}
+        onCreateNew={s.onCreateNew ?? (() => {})}
+      />
   );
 
   return (

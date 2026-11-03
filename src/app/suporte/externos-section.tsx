@@ -12,6 +12,8 @@ interface ExternalAthlete {
   age: number | null;
   rankings: unknown;
   createdAt: string;
+  createdByName: string | null;
+  createdByEmail: string | null;
 }
 
 interface ExternalClub {
@@ -146,12 +148,13 @@ export function ExternosSection({
                   Rankings <span className="text-[10px] text-telemetry-text-muted font-normal">(posição)</span>
                 </th>
                 <th className="px-3 pb-4 pt-4 hidden lg:table-cell text-sm font-medium text-telemetry-text-primary">Data Inserção</th>
+                <th className="px-3 pb-4 pt-4 hidden lg:table-cell text-sm font-medium text-telemetry-text-primary">Criado por</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-telemetry-border/20">
               {athletes.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-3 py-8 text-center text-telemetry-text-muted">
+                  <td colSpan={9} className="px-3 py-8 text-center text-telemetry-text-muted">
                     Nenhum atleta externo encontrado.
                   </td>
                 </tr>
@@ -179,6 +182,9 @@ export function ExternosSection({
                     </td>
                     <td className="px-3 py-3 text-sm text-telemetry-text-muted hidden lg:table-cell">
                       {formatDate(a.createdAt)}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-telemetry-text-muted hidden lg:table-cell">
+                      {a.createdByName || a.createdByEmail || '-'}
                     </td>
                   </tr>
                 ))

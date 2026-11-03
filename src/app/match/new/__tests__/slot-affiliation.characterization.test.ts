@@ -54,9 +54,19 @@ describe('slot-affiliation characterization', () => {
       expect(result.map((a) => a.id).sort()).toEqual(['a1', 'a4']);
     });
 
-    it('com OWN e ctId null retorna todos (sem filtro)', () => {
+    it('com OWN e ctId null sem followedPlayerIds retorna vazio (nenhum atleta)', () => {
       const result = filterAthletesForSlot(athletes, 'OWN', null);
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(0);
+    });
+
+    it('com OWN e ctId null com followedPlayerIds retorna apenas os atletas vinculados', () => {
+      const result = filterAthletesForSlot(athletes, 'OWN', null, ['a1', 'a3']);
+      expect(result.map((a) => a.id).sort()).toEqual(['a1', 'a3']);
+    });
+
+    it('com NOT_OWN e ctId null com followedPlayerIds exclui os atletas vinculados', () => {
+      const result = filterAthletesForSlot(athletes, 'NOT_OWN', null, ['a1']);
+      expect(result.map((a) => a.id).sort()).toEqual(['a2', 'a3', 'a4']);
     });
 
     it('com OWN e ctId sem jogadores correspondentes retorna vazio', () => {

@@ -19,6 +19,7 @@ export interface MatchCardScoreDerived {
 interface PlayerRowSpec {
   name: string;
   club?: string | null;
+  createdByName?: string | null;
   isServer: boolean;
 }
 
@@ -40,6 +41,7 @@ export function MatchCardScoreTable({
     <MatchCardPlayerRow
       name={spec.name}
       club={spec.club}
+      createdByName={spec.createdByName}
       isServer={spec.isServer}
       serverTestId={testId}
       barBg={barBg}

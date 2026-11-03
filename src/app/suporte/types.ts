@@ -52,6 +52,8 @@ export interface ExternalAthlete {
   age: number | null;
   rankings: unknown;
   createdAt: string;
+  createdByName: string | null;
+  createdByEmail: string | null;
 }
 
 export interface ExternalClub {

@@ -82,10 +82,10 @@ export function redirectToLogin(_router?: unknown): void {
   clearAuthState();
   try {
     fetch('/api/auth/logout', { method: 'POST' }).finally(() => {
-      window.location.replace('/login');
+      window.location.replace('/login?exit=1');
     });
   } catch {
-    window.location.replace('/login');
+    window.location.replace('/login?exit=1');
   }
 }
 

@@ -17,6 +17,7 @@ describe('menuContextFromMe', () => {
       gestor: null,
       coach: null,
       athlete: null,
+      activeArea: null,
     });
   });
 

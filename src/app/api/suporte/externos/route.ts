@@ -14,6 +14,9 @@ type PlayerExternal = {
   age: number | null;
   rankings: unknown;
   createdAt: Date;
+  createdByUserId: string | null;
+  createdByName: string | null;
+  createdByEmail: string | null;
 };
 
 export async function GET(request: NextRequest) {
@@ -34,6 +37,13 @@ export async function GET(request: NextRequest) {
           age: true,
           rankings: true,
           createdAt: true,
+          createdByUserId: true,
+          createdByUser: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
         } as any,
         orderBy: { name: 'asc' },
         take: 200,
@@ -88,6 +98,9 @@ export async function GET(request: NextRequest) {
           age: p.age ?? null,
           rankings: p.rankings ?? null,
           createdAt: p.createdAt.toISOString(),
+          createdByUserId: p.createdByUserId ?? null,
+          createdByName: (p as any).createdByUser?.name ?? null,
+          createdByEmail: (p as any).createdByUser?.email ?? null,
         })),
         clubs: clubsWithLocation,
         totalAthletes: players.length,

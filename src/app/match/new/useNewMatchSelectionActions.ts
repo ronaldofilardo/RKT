@@ -13,7 +13,7 @@ type SelectionDependencies = Pick<NewMatchState,
   'setSelectedP2Partner' | 'setPlayer2PartnerDropdownOpen' |
   'newAthleteFor' |
   'setShowServerModal' | 'createdMatchId' | 'setStartingMatch' | 'setCreatedMatchId' |
-  'setAthletes'
+  'setAthletes' | 'setFollowedPlayerIds'
 >;
 
 export function useNewMatchSelectionActions(
@@ -55,6 +55,7 @@ export function useNewMatchSelectionActions(
       if (prev.some((a) => a.id === athlete.id)) return prev;
       return [...prev, athlete];
     });
+    state.setFollowedPlayerIds?.((prev) => (prev.includes(athlete.id) ? prev : [...prev, athlete.id]));
     if (state.newAthleteFor) {
       selectAthleteFromList(state.newAthleteFor, athlete);
     }

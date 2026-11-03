@@ -48,6 +48,12 @@ async function loadActor(
             },
           },
         },
+        createdPlayers: {
+          select: {
+            id: true,
+            playerCts: { where: { status: 'ACTIVE' }, select: { ctId: true, status: true } },
+          },
+        },
       },
     });
     return row ? buildActor(row as any, now, contextId, activeArea) : null;

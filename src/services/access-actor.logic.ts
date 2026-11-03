@@ -16,6 +16,10 @@ export interface ActorRow {
     playerId: string;
     player?: { playerCts?: { ctId: string; status: string }[] } | null;
   }[];
+  createdPlayers?: {
+    id: string;
+    playerCts?: { ctId: string; status: string }[];
+  }[];
 }
 
 function filterMembershipsByContext(
@@ -39,19 +43,39 @@ function filterMembershipsByContext(
 
 function filterFollowedPlayers(row: ActorRow, contextId?: string | null, activeArea?: string | null): string[] {
   const links = row.coachAthleteLinks ?? [];
-  if (activeArea === 'ATLETA') return [];
-  if (!contextId && activeArea !== 'TREINADOR_AVULSO') return links.map((l) => l.playerId);
+  const created = (row.createdPlayers ?? []).map((p) => ({
+    playerId: p.id,
+    player: { playerCts: p.playerCts },
+  }));
+  const combined = [...links, ...created];
 
-  if (activeArea === 'TREINADOR_AVULSO' || contextId === 'PARTICULAR') {
-    // No modo particular, incluir TODOS os atletas vinculados ao treinador,
-    // inclusive aqueles que também estejam vinculados a clubes do treinador.
-    // O filtro de ctId já é aplicado separadamente em listMatches / visibility.
-    return links.filter((l) => l.playerId).map((l) => l.playerId);
+  if (activeArea === 'ATLETA') return [];
+  if (!contextId && activeArea !== 'TREINADOR_AVULSO') {
+    return Array.from(new Set(combined.map((l) => l.playerId).filter(Boolean)));
   }
 
-  return links
-    .filter((l) => l.player?.playerCts?.some((pc) => pc.status === 'ACTIVE' && pc.ctId === contextId))
-    .map((l) => l.playerId);
+  if (activeArea === 'TREINADOR_AVULSO' || contextId === 'PARTICULAR') {
+    const coachCtIds = new Set(
+      row.memberships.filter((m) => m.status === 'ACTIVE' && m.ctId).map((m) => m.ctId as string),
+    );
+    return Array.from(
+      new Set(
+        combined
+          .filter((l) => !l.player?.playerCts?.some((pc) => pc.status === 'ACTIVE' && coachCtIds.has(pc.ctId)))
+          .map((l) => l.playerId)
+          .filter(Boolean),
+      ),
+    );
+  }
+
+  return Array.from(
+    new Set(
+      combined
+        .filter((l) => l.player?.playerCts?.some((pc) => pc.status === 'ACTIVE' && pc.ctId === contextId))
+        .map((l) => l.playerId)
+        .filter(Boolean),
+    ),
+  );
 }
 
 export function buildActor(

@@ -6,6 +6,7 @@ import NewMatchPage from '../page';
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn() }),
+  usePathname: () => '/match/new',
 }));
 
 jest.mock('@/components/Toast', () => ({

@@ -46,7 +46,16 @@ export async function processLoginSuccess(
     : homeForProfileString(finalProfile);
 
   if (rawNext) {
-    pushRoute(sanitizeNextRedirect(rawNext, defaultHome));
+    const candidate = sanitizeNextRedirect(rawNext, defaultHome);
+    if (candidate.startsWith('/suporte') && activeArea !== 'SUPORTE' && activeArea !== 'ADMIN') {
+      pushRoute(defaultHome);
+    } else if (candidate.startsWith('/admin') && activeArea !== 'ADMIN') {
+      pushRoute(defaultHome);
+    } else if (candidate.startsWith('/gestor') && activeArea !== 'GESTOR' && activeArea !== 'SUPORTE' && activeArea !== 'ADMIN') {
+      pushRoute(defaultHome);
+    } else {
+      pushRoute(candidate);
+    }
   } else if (isAreaUrlsEnabled() && availableAreas.length > 1) {
     pushRoute('/escolher-area');
   } else {

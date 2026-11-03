@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { logger } from '@/lib/logger';
-import { clearAuthState, performLogout } from '@/lib/auth-client';
+import { performLogout } from '@/lib/auth-client';
 import { buildMenu } from '@/core/access/menu';
 import { menuContextFromMe } from '@/core/access/menu-context';
 import { ConfirmAlertDialog } from '@/components/ConfirmAlertDialog';
@@ -57,13 +57,17 @@ export function DashboardChrome({ user, navigateToTarget, title, onLogout, onCon
 
   const endSession = onLogout ?? internalEndSession;
 
-  const confirmLogout = useCallback(() => {
+  const confirmLogout = useCallback(async () => {
     setLogoutConfirmOpen(false);
-    try { clearAuthState(); } catch (err) { logger.error('[logout] Erro', err); }
-    performLogout().catch(() => {});
-    router.replace('/login');
+    try {
+      await performLogout();
+    } catch (err) {
+      logger.error('[logout] Erro', err);
+    }
     if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
-      window.location.href = '/login';
+      window.location.replace('/login?exit=1');
+    } else {
+      router.replace('/login');
     }
   }, [router]);
 
@@ -97,7 +101,7 @@ export function DashboardChrome({ user, navigateToTarget, title, onLogout, onCon
         onContextSwitched={refreshMe}
       />
       {showMenu && <DashboardSidebar menuOpen={menuOpen} setMenuOpen={setMenuOpen} sections={sections} />}
-      {showLogout && !onLogout && (
+      {!onLogout && (
         <ConfirmAlertDialog
           open={logoutConfirmOpen}
           title="Sair?"

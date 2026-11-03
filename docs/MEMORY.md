@@ -8,6 +8,47 @@
 
 ---
 
+## 2.19 Correção do Logout no Menu Hambúrguer em /suporte — 2026-11-02
+- **Sintoma:** em `/suporte`, ao clicar no menu hambúrguer e depois em "Sair", o logout falhava ou a tela de login aparecia mantendo a URL `/suporte`.
+- **Causa Raiz:**
+  1. O painel do suporte passa `<DashboardChrome title="Painel do Suporte" showLogout={false} />` para não renderizar o botão "Sair" na barra superior (`DashboardTopBar`). No entanto, `DashboardChrome.tsx` condicionava a renderização do diálogo de confirmação (`ConfirmAlertDialog`) a `{showLogout && !onLogout && (...)}`. Como `showLogout` era `false`, o clique em "Sair" no menu hambúrguer abria o estado mas o diálogo não existia na DOM.
+  2. Em `DashboardChrome.tsx`, `confirmLogout` executava `performLogout().catch(...)` de forma assíncrona sem `await`, navegando imediatamente via `router.replace('/login')` e `window.location.href = '/login'`. O cookie httpOnly `rkt_access_token` ainda estava ativo na requisição para `/login`. O middleware, ao detectar usuário autenticado acessando `/login`, aplicava o redirecionamento 307 de volta para a home da área ativa (`/suporte`), gerando uma colisão onde a tela de login renderizava com URL `/suporte`.
+  3. `login-success.logic.ts` não validava se o destino do query param `next` era compatível com os papéis do usuário autenticado (ex.: redirecionar para `/suporte` conta avulsa).
+- **Resolução Implementada:**
+  - `src/app/dashboard/components/DashboardChrome.tsx`:
+    - `<ConfirmAlertDialog>` é montado sempre que `!onLogout`, permitindo que o menu hambúrguer conclua o fluxo.
+    - `confirmLogout` agora é `async`, aguarda `await performLogout()` para que a rota `/api/auth/logout` limpe os cookies httpOnly no servidor antes de navegar.
+    - Navegação com `window.location.replace('/login?exit=1')`, ativando a limpeza segura forçada pelo middleware sem redirecionamento para `homeForArea`.
+  - `src/lib/auth-client-storage.ts`: `redirectToLogin` padronizado para `/login?exit=1`.
+  - `src/app/login/login-success.logic.ts`: valida áreas protegidas (`/suporte`, `/admin`, `/gestor`) contra os acessos reais da conta recém-autenticada, prevenindo desvios para áreas indevidas.
+- **Testes:**
+  - `src/app/dashboard/components/__tests__/DashboardChrome.menu.test.tsx`: valida que mesmo com `showLogout={false}`, o clique em "Sair" no menu hambúrguer abre com sucesso o diálogo de confirmação de logout.
+  - `src/app/login/__tests__/login-success.test.ts`: 7 testes cobrindo redirecionamentos por perfil e bloqueio de `next=/suporte` para contas sem permissão de suporte.
+
+---
+
+## 2.18 Filtro 'Meu atleta' e 'Outros' no Modal Nova Partida (/match/new) — 2026-11-02
+- **Sintoma:** ao abrir o modal Nova Partida (`/match/new`) como treinador particular/avulso, selecionar "Meu atleta" listava todos os atletas do sistema; o botão "Outros" também listava todos os atletas com o nome do clube exibido.
+- **Causa Raiz:**
+  1. Em `src/app/match/new/slot-affiliation.ts`: quando `affiliation === 'OWN'` e `!target` (modo particular sem CT), se `followedPlayerIds` estivesse vazio ou não correspondesse, caía no fallback `return athletes;` (retornando todos os atletas do sistema).
+  2. Em `src/app/api/auth/me/route.ts`: `followedPlayerIds` consultava apenas `dbUser.coachAthleteLinks`, omitindo `createdPlayers` (atletas cadastrados diretamente pelo treinador avulso via `/api/players`).
+  3. Em `src/app/match/new/useNewMatchState.ts`: `loadAvailableCts` preenchia `ctId` com o primeiro CT retornado (`cts[0].id`), forçando inadvertidamente o modo de CT mesmo em contexto `PARTICULAR`.
+  4. Em `src/app/match/new/components/my-club-selector.tsx`: `MyClubSelector` não verificava `isParticular` e renderizava o seletor de CT do clube.
+- **Resolução Implementada:**
+  - `src/app/match/new/slot-affiliation.ts`: corrigido `filterAthletesForSlot` para retornar estritamente `athletes.filter((a) => followedPlayerIds.includes(a.id))` em `OWN` sem CT (retorna lista vazia caso o treinador não tenha atletas vinculados, jamais todos os atletas). Em `NOT_OWN` sem CT, exclui os atletas vinculados de `followedPlayerIds`.
+  - `src/app/api/auth/me/route.ts`: `followedPlayerIds` une `coachAthleteLinks` e `createdPlayers` (`dbUser.createdPlayers.map(p => p.id)`).
+  - `src/services/access-actor.logic.ts` + `accessService.ts`: `filterFollowedPlayers` incorpora `createdPlayers` no ator, isolando atletas de CTs quando no modo avulso/particular.
+  - `src/app/match/new/components/PlayerSelection.tsx`: calcula `effectiveCtId = isParticular ? null : (ctId || null)`.
+  - `src/app/match/new/components/my-club-selector.tsx`: retorna `null` quando `isParticular` é verdadeiro.
+  - `src/app/match/new/useNewMatchState.ts`: garante que em modo `PARTICULAR` o `ctId` permanece vazio (`''`), encadeando `loadAvailableCts` após a leitura do contexto em `/api/auth/me`.
+  - `src/app/match/new/useNewMatchSelectionActions.ts`: novos atletas criados na hora pelo treinador no modal são adicionados reativamente ao `followedPlayerIds`.
+- **Testes:**
+  - `src/app/match/new/__tests__/slot-affiliation.characterization.test.ts`: 14 testes cobrindo `OWN`/`NOT_OWN` com e sem `ctId` e com `followedPlayerIds`.
+  - `src/app/match/new/__tests__/PlayerSelection.characterization.test.tsx`: 7 testes cobrindo renderização, labels `Meu atleta` e `Outros` e filtragem isolada por slot.
+  - 100% de testes verdes em toda a suíte de match e access.
+
+---
+
 ## 2.17 Plano da Landing Page Institucional e Captação — 2026-11-01
 - **Origem:** Demanda de divulgação institucional e captação de usuários segmentada por perfis.
 - **Diretório da LP:** [`c:\apps\RKT-LP`](file:///c:/apps/RKT-LP)

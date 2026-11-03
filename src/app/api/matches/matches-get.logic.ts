@@ -41,8 +41,16 @@ export async function getMatchesResponse(
     const { normalizeScoreState } = await import('@/core/scoring/score-normalizer');
     const payloadMatches = matches.map(m => {
       const { scoreState, ...rest } = m;
+      const playerWithCreator = (p: { createdByUser?: { name: string | null } | null } | null) => ({
+        ...p,
+        createdByName: p?.createdByUser?.name ?? null,
+      });
       return {
         ...rest,
+        player1: playerWithCreator(rest.player1 as any),
+        player2: playerWithCreator(rest.player2 as any),
+        player1Partner: rest.player1Partner ? playerWithCreator(rest.player1Partner as any) : null,
+        player2Partner: rest.player2Partner ? playerWithCreator(rest.player2Partner as any) : null,
         scoreSummary: scoreState ? normalizeScoreState(scoreState, m.format as TennisFormat) : null
       };
     });

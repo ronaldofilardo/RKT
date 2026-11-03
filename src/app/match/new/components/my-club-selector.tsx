@@ -6,19 +6,22 @@ interface MyClubSelectorProps {
   ctId: string;
   setCtId: (v: string) => void;
   availableCts: CtOption[];
+  isParticular?: boolean;
 }
 
 /**
  * Define qual CT é "o meu clube". Os slots de jogador marcados como "Meu clube"
  * passam a filtrar/atrelar atletas a este CT. Sem CT disponível, não há "meu clube".
  */
-export function MyClubSelector({ ctId, setCtId, availableCts }: MyClubSelectorProps) {
-  if (availableCts.length === 0) return null;
+export function MyClubSelector({ ctId, setCtId, availableCts, isParticular = false }: MyClubSelectorProps) {
+  if (availableCts.length === 0 || isParticular) return null;
   const isSingle = availableCts.length === 1;
+  const ownerLabel = isParticular ? 'Meus atletas' : 'Meu clube';
+  const otherLabel = 'Outros';
   return (
     <section className="bg-telemetry-card rounded-xl border border-white/10 p-4 space-y-2">
       <label htmlFor="my-club-select" className="text-sm font-medium text-telemetry-text-primary">
-        Meu clube
+        {ownerLabel}
       </label>
       <select
         id="my-club-select"
@@ -32,8 +35,8 @@ export function MyClubSelector({ ctId, setCtId, availableCts }: MyClubSelectorPr
         ))}
       </select>
       <p className="text-xs text-telemetry-text-muted">
-        Marque <span className="text-telemetry-text-primary">“Meu clube”</span> nos jogadores que
-        pertencem ao seu CT. <span className="text-telemetry-text-primary">“Outro clube”</span> fica
+        Marque <span className="text-telemetry-text-primary">“{ownerLabel}”</span> nos jogadores que
+        pertencem ao seu CT. <span className="text-telemetry-text-primary">“{otherLabel}”</span> fica
         sem vínculo (adversários).
       </p>
     </section>

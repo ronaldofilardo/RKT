@@ -4,10 +4,10 @@ export interface DashboardMatchPayload {
   format: string;
   matchType?: string;
   courtType?: string | null;
-  player1: { name: string; id?: string; club?: string | null };
-  player2: { name: string; id?: string; club?: string | null };
-  player1Partner?: { name: string; id?: string; club?: string | null } | null;
-  player2Partner?: { name: string; id?: string; club?: string | null } | null;
+  player1: { name: string; id?: string; club?: string | null; createdByName?: string | null };
+  player2: { name: string; id?: string; club?: string | null; createdByName?: string | null };
+  player1Partner?: { name: string; id?: string; club?: string | null; createdByName?: string | null } | null;
+  player2Partner?: { name: string; id?: string; club?: string | null; createdByName?: string | null } | null;
   doublesSetup?: unknown;
   scheduledAt?: string | null;
   scoreState?: unknown;

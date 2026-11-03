@@ -51,6 +51,8 @@ export function useNewMatchState() {
   const [slotAffiliation, setSlotAffiliation] = useState<SlotAffiliationMap>(initialSlotAffiliation());
   const [ctId, setCtId] = useState(''); const [clubNameMatch, setClubNameMatch] = useState('');
   const [availableCts, setAvailableCts] = useState<CtOption[]>([]);
+  const [isParticular, setIsParticular] = useState(false);
+  const [followedPlayerIds, setFollowedPlayerIds] = useState<string[]>([]);
   const updateSlotAffiliation = useCallback((slot: SlotId, value: SlotAffiliation) => {
     setSlotAffiliation((prev) => ({ ...prev, [slot]: value }));
   }, []);
@@ -63,10 +65,32 @@ export function useNewMatchState() {
     ensureAuthCookie();
   }, []);
   useEffect(() => {
-    loadAvailableCts().then((cts) => {
-      setAvailableCts(cts);
-      if (cts.length > 0) setCtId((prev) => prev || cts[0].id);
-    }).catch(() => undefined);
+    if (typeof fetch !== 'function') return;
+    fetch('/api/auth/me')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const ctxId = data?.activeContextId ?? null;
+        const area = data?.activeArea ?? null;
+        const particular = ctxId === 'PARTICULAR' || area === 'TREINADOR_AVULSO';
+        setIsParticular(particular);
+        const ids = data?.followedPlayerIds ?? [];
+        if (Array.isArray(ids)) setFollowedPlayerIds(ids);
+
+        return loadAvailableCts().then((cts) => {
+          setAvailableCts(cts);
+          if (particular) {
+            setCtId('');
+          } else if (cts.length > 0) {
+            setCtId((prev) => prev || cts[0].id);
+          }
+        });
+      })
+      .catch(() => {
+        loadAvailableCts().then((cts) => {
+          setAvailableCts(cts);
+          if (cts.length > 0) setCtId((prev) => prev || cts[0].id);
+        }).catch(() => undefined);
+      });
   }, []);
   useEffect(() => {
     if (typeof fetch !== 'function') return;
@@ -96,7 +120,7 @@ export function useNewMatchState() {
     tournamentSuggestions, showServerModal, setShowServerModal, createdMatchId, setCreatedMatchId,
     startingMatch, setStartingMatch, pendingPayload, setPendingPayload, showDuplicateModal,
     setShowDuplicateModal, duplicateInfo, setDuplicateInfo,
-    slotAffiliation, setSlotAffiliation, updateSlotAffiliation, ctId, setCtId, clubNameMatch, setClubNameMatch, availableCts, setAvailableCts,
+    slotAffiliation, setSlotAffiliation, updateSlotAffiliation, ctId, setCtId, clubNameMatch, setClubNameMatch, availableCts, setAvailableCts, isParticular, followedPlayerIds, setFollowedPlayerIds,
   };
 }
 export type NewMatchState = ReturnType<typeof useNewMatchState>;

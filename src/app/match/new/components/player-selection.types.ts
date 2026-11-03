@@ -30,4 +30,8 @@ export interface PlayerSelectionProps {
   setSlotAffiliation?: (slot: SlotId, v: SlotAffiliation) => void;
   /** CT do "meu clube". Ausente => sem opção "Meu clube" nos slots. */
   ctId?: string | null;
+  /** Quando verdadeiro (modo PARTICULAR/AVULSO), rótulos mudam para "Meu atleta"/"Outros". */
+  isParticular?: boolean;
+  /** IDs dos atletas vinculados ao treinador (modo PARTICULAR/AVULSO). */
+  followedPlayerIds?: readonly string[];
 }

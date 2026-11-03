@@ -58,5 +58,23 @@ describe('processLoginSuccess', () => {
     await processLoginSuccess(baseResponse, params, mockPush);
     expect(mockPush).toHaveBeenCalledWith('/treinador');
   });
+
+  it('bloqueia next=/suporte para usuário sem área de suporte caindo no defaultHome', async () => {
+    (jwtClient.decodeJwtPayload as jest.Mock).mockResolvedValue({
+      sub: 'u1', role: 'TREINADOR', ax: 'TREINADOR_AVULSO', ars: ['TREINADOR_AVULSO'],
+    });
+    const params = new URLSearchParams('next=%2Fsuporte');
+    await processLoginSuccess(baseResponse, params, mockPush);
+    expect(mockPush).toHaveBeenCalledWith('/treinador');
+  });
+
+  it('permite next=/suporte para usuário com área SUPORTE', async () => {
+    (jwtClient.decodeJwtPayload as jest.Mock).mockResolvedValue({
+      sub: 'u-sup', role: 'SUPORTE', ax: 'SUPORTE', ars: ['SUPORTE'],
+    });
+    const params = new URLSearchParams('next=%2Fsuporte');
+    await processLoginSuccess({ ...baseResponse, user: { ...baseResponse.user, role: 'SUPORTE' } }, params, mockPush);
+    expect(mockPush).toHaveBeenCalledWith('/suporte');
+  });
 });
 

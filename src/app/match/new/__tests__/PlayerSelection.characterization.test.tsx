@@ -101,4 +101,54 @@ describe('PlayerSelection characterization', () => {
     fireEvent.click(screen.getByText('Silva'));
     expect(onToggleP1).toHaveBeenCalledTimes(1);
   });
+
+  it('quando isParticular=true exibe Meu atleta e filtra apenas atletas vinculados no slot OWN', () => {
+    const athletesWithClubs: Athlete[] = [
+      { id: 'a1', name: 'Atleta Meu', club: 'CT RKT' },
+      { id: 'a2', name: 'Atleta Outro', club: 'Clube Externo' },
+    ];
+    render(
+      <PlayerSelection
+        {...baseProps()}
+        athletes={athletesWithClubs}
+        matchType="SINGLES"
+        isParticular={true}
+        followedPlayerIds={['a1']}
+        slotAffiliation={{ p1: 'OWN', p2: 'NOT_OWN', p1Partner: 'NOT_OWN', p2Partner: 'NOT_OWN' }}
+        setSlotAffiliation={jest.fn()}
+        player1DropdownOpen={true}
+      />
+    );
+
+    // Deve exibir label 'Meu atleta'
+    expect(screen.getAllByText('Meu atleta').length).toBeGreaterThan(0);
+    // No dropdown aberto de P1 (OWN), deve listar apenas 'Atleta Meu'
+    expect(screen.getByText('Atleta Meu')).toBeInTheDocument();
+    expect(screen.queryByText('Atleta Outro')).not.toBeInTheDocument();
+  });
+
+  it('quando isParticular=true no slot NOT_OWN exibe outros atletas com respectivo clube', () => {
+    const athletesWithClubs: Athlete[] = [
+      { id: 'a1', name: 'Atleta Meu', club: 'CT RKT' },
+      { id: 'a2', name: 'Atleta Outro', club: 'Clube Externo' },
+    ];
+    render(
+      <PlayerSelection
+        {...baseProps()}
+        athletes={athletesWithClubs}
+        matchType="SINGLES"
+        isParticular={true}
+        followedPlayerIds={['a1']}
+        slotAffiliation={{ p1: 'NOT_OWN', p2: 'NOT_OWN', p1Partner: 'NOT_OWN', p2Partner: 'NOT_OWN' }}
+        setSlotAffiliation={jest.fn()}
+        player1DropdownOpen={true}
+      />
+    );
+
+    // No dropdown aberto de P1 (NOT_OWN), 'Atleta Meu' e excluido
+    expect(screen.queryByText('Atleta Meu')).not.toBeInTheDocument();
+    // 'Atleta Outro' e exibido junto com o clube
+    expect(screen.getByText('Atleta Outro')).toBeInTheDocument();
+    expect(screen.getByText('Clube Externo')).toBeInTheDocument();
+  });
 });

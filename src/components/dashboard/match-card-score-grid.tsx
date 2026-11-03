@@ -13,6 +13,8 @@ interface MatchCardScoreTableProps {
   p2Name: string;
   p1Club?: string | null;
   p2Club?: string | null;
+  p1CreatedBy?: string | null;
+  p2CreatedBy?: string | null;
   ctId?: string | null;
   isServerP1: boolean;
   isServerP2: boolean;
@@ -23,15 +25,16 @@ interface MatchCardScoreTableProps {
   currentSetIndex: number;
 }
 
-const clubBadge = (club?: string | null, ctId?: string | null) => {
-  if (!ctId) return null;
-  const isOwn = Boolean(club && club === ctId);
+const clubBadge = (club?: string | null, ctId?: string | null, createdByName?: string | null) => {
+  const isOwn = Boolean(club && ctId && club === ctId);
+  const ownerLabel = ctId ? 'Meu clube' : 'Meu atleta';
+  const otherLabel = 'Outros';
   return (
     <span
       className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-semibold border border-white/20 bg-white/10"
-      title={isOwn ? 'Atleta do seu clube' : 'Atleta de outro clube'}
+      title={isOwn ? ownerLabel : club ? `${otherLabel} (clube: ${club})` : createdByName ? `Criado por ${createdByName}` : 'Sem clube'}
     >
-      {isOwn ? 'Meu clube' : club ? 'Outro clube' : 'Sem clube'}
+      {isOwn ? ownerLabel : club ? otherLabel : createdByName ? `Criado por ${createdByName}` : 'Sem clube'}
     </span>
   );
 };
@@ -43,6 +46,8 @@ export function MatchCardScoreTable({
   p2Name,
   p1Club,
   p2Club,
+  p1CreatedBy,
+  p2CreatedBy,
   ctId,
   isServerP1,
   isServerP2,
@@ -103,7 +108,7 @@ export function MatchCardScoreTable({
               >
                 <span className="flex items-center gap-1.5">
                   {p1Name}
-                  {clubBadge(p1Club, ctId)}
+                  {clubBadge(p1Club, ctId, p1CreatedBy)}
                 </span>
               </td>
               <td className={`text-center py-1 bg-telemetry-card border border-white/10 text-xs`}>
@@ -136,7 +141,7 @@ export function MatchCardScoreTable({
               >
                 <span className="flex items-center gap-1.5">
                   {p2Name}
-                  {clubBadge(p2Club, ctId)}
+                  {clubBadge(p2Club, ctId, p2CreatedBy)}
                 </span>
               </td>
               <td className={`text-center py-1 bg-telemetry-card border border-white/10 text-xs`}>

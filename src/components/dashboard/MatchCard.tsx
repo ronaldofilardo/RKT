@@ -37,6 +37,8 @@ export function MatchCard({
   const p2Name = abbreviateDoublesName(match.player2.name, match.player2Partner?.name ?? undefined);
   const p1Club = match.player1.club ?? null;
   const p2Club = match.player2.club ?? null;
+  const p1CreatedBy = match.player1.createdByName ?? null;
+  const p2CreatedBy = match.player2.createdByName ?? null;
 
   const onPrimaryClick = useCallback(() => {
     onClick?.(match);
@@ -81,6 +83,8 @@ export function MatchCard({
         p2Name={p2Name}
         p1Club={p1Club}
         p2Club={p2Club}
+        p1CreatedBy={p1CreatedBy}
+        p2CreatedBy={p2CreatedBy}
         ctId={ctId}
         isServerP1={d.isServerP1}
         isServerP2={d.isServerP2}

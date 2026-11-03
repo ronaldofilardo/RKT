@@ -28,6 +28,13 @@ export async function GET(request: NextRequest) {
           where: { status: 'ACTIVE' },
           select: { kind: true, preset: true, ctId: true, status: true },
         },
+        coachAthleteLinks: {
+          where: { status: 'ACTIVE' },
+          select: { playerId: true },
+        },
+        createdPlayers: {
+          select: { id: true },
+        },
         athleteProfile: {
           select: {
             id: true,
@@ -47,6 +54,14 @@ export async function GET(request: NextRequest) {
       ctId: m.ctId ?? null,
       status: m.status,
     }));
+
+    const coachLinkIds = (dbUser.coachAthleteLinks ?? [])
+      .map((l) => l.playerId)
+      .filter(Boolean);
+    const createdPlayerIds = (dbUser.createdPlayers ?? [])
+      .map((p) => p.id)
+      .filter(Boolean);
+    const followedPlayerIds = Array.from(new Set([...coachLinkIds, ...createdPlayerIds]));
 
     let ctStatus: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | null = null;
     const gestorMembership = memberships.find((m) => m.kind === 'GESTOR' && m.ctId);
@@ -79,6 +94,7 @@ export async function GET(request: NextRequest) {
       ctStatus,
       activeContextId: user.contextId ?? null,
       activeArea: user.activeArea ?? null,
+      followedPlayerIds,
       availableContexts,
       availableAreas,
       ...buildMeAccess(dbUser, new Date(), user.contextId),

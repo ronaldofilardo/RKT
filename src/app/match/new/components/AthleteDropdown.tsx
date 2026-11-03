@@ -19,6 +19,7 @@ interface AthleteDropdownProps {
   affiliation?: SlotAffiliation;
   onAffiliationChange?: (v: SlotAffiliation) => void;
   canSelectOwn?: boolean;
+  isParticular?: boolean;
 }
 
 export function AthleteDropdown({
@@ -35,6 +36,7 @@ export function AthleteDropdown({
   affiliation = 'NOT_OWN',
   onAffiliationChange,
   canSelectOwn = false,
+  isParticular = false,
 }: AthleteDropdownProps) {
   const excludedSet = new Set(
     (excludedAthletes ?? (excludedAthlete ? [excludedAthlete] : []))
@@ -61,6 +63,7 @@ export function AthleteDropdown({
           value={affiliation}
           onChange={onAffiliationChange}
           disabled={!canSelectOwn}
+          isParticular={isParticular}
         />
       )}
       {isOpen && (
