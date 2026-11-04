@@ -50,6 +50,7 @@ export async function handlePlayersPost(
 
     const creatingProfile = actorCreatingProfile(actor);
     const cts = actorCtIds(actor);
+    const isAvulsoCoach = creatingProfile === 'TREINADOR' && cts.length === 0;
     // Vincula somente quando o cadastro declara explicitamente "Meu clube" (myClub=true).
     // Staff (GESTOR/TREINADOR) NÃO vincula automaticamente: permite cadastrar adversários
     // de outros clube sem criar vínculo indevido com o CT do ator.
@@ -57,7 +58,7 @@ export async function handlePlayersPost(
 
     let resolvedCtId: string | null = null;
     if (shouldLink) {
-      if (myClub && cts.length === 0) {
+      if (myClub && cts.length === 0 && !isAvulsoCoach) {
         return NextResponse.json(
           { error: 'FORBIDDEN', message: 'Ator sem CT vinculado para modo "Meu clube"' },
           { status: 403 },
@@ -75,7 +76,7 @@ export async function handlePlayersPost(
     const player = await createPlayer({
       ...playerData,
       cpf: cpf ?? null,
-      myClub: shouldLink && !!resolvedCtId,
+      myClub: shouldLink && (!!resolvedCtId || isAvulsoCoach),
       ctId: resolvedCtId,
       createdByUserId: playerData.createdByUserId ?? userId,
       actorProfile: creatingProfile,

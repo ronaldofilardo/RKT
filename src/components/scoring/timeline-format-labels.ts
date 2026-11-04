@@ -52,8 +52,8 @@ export function subtipo2Label(s?: string): string {
 }
 
 export function duracaoLabel(s?: string): string {
-  if (!s) return '–';
-  const map: Record<string, string> = { opcao_1: '1-4', opcao_2: '5-8', opcao_3: '+9' };
+  if (!s || s === 'opcao_1') return 'até 4';
+  const map: Record<string, string> = { opcao_2: '5-8', opcao_3: '>9' };
   return map[s] ?? s;
 }
 

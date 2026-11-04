@@ -8,6 +8,33 @@
 
 ---
 
+## 2.20 Estatísticas Avançadas, Timeline MT, Responsividade de Atletas e Vínculo de Treinador Avulso — 2026-11-04
+- **Estatísticas Avançadas (EA):**
+  - Colunas centrais de métricas em `advanced-stats-primitives.tsx` e `advanced-stats-stroke-matrix-section.tsx` alargadas (`grid-cols-[1fr_minmax(180px,280px)_1fr] sm:grid-cols-[1fr_280px_1fr]` e `gap-3 sm:gap-4`) sem truncamento de texto, prevenindo corte dos critérios.
+  - Tópico 10 (Breakdown por set) removido por completo de `AdvancedStats.tsx`.
+  - Tópico 7 (Definição de ponto): Aces integrados à contagem de Winners e Duplas Faltas (DFs) integradas à contagem de Erros Não Forçados (ENF). Rótulo simplificado para "Winners".
+  - Tópico 9 (Momentum): Removidos o bloco central de "Sequência atual" e o rodapé de "Sequências de 2+ Pontos"; tabela renomeada para "2 pontos ganhos seguidos", "3 pontos ganhos seguidos", "4+ pontos ganhos seguidos".
+  - Tópico 6 (Pontos de Pressão): Inclusão da palavra "Won" ("Games Points Won", "% Games Points Won", "Set Points Won", "% Set Points Won", "Tiebreaks Won").
+  - Tópico 2 (Devolução): Removidos "Total Break points" e "Break points Won"; ordem reestruturada para: % Devolução 1º saque em quadra, % pontos ganhos na devolução de 1º saque, % dev 2º saque em quadra, % pontos ganhos na dev 2º saque, Games ganhos devolvendo.
+  - Tópico 3 (Fundo de Quadra): Restrito estritamente a pontos com `situacao === 'fundo'`, mantendo abrangência total em Rally Geral.
+- **Timeline e Relatório (/report) em Match Tiebreak (MT):**
+  - Supressão de detecção de fim de game a cada ponto em `timeline-game-end.ts` durante tiebreak.
+  - Remoção de linhas divisórias (`GameEndRow`) entre pontos em MT.
+  - Coluna 'GAMES' omitida em `MATCH_TB_10` na timeline.
+  - Marcador de quebra de serviço no tiebreak renomeado para "Minibreak".
+  - Resumo de sets computa vencedor de MT (`1 - 0` no relatório finalizado).
+- **Criação de Atleta & Vínculo Treinador Avulso:**
+  - `POST /api/players` e `player-create.logic.ts` permitem criação com `myClub: true` para treinador avulso sem CT, estabelecendo vínculo via `CoachAthleteLink` ativo.
+  - Herança do slot `isParticular` em `MatchNewModals.tsx` e `use-new-athlete-modal.ts`.
+- **Tabela de Atletas & Dashboard:**
+  - Layout compacto e responsivo em `AthleteListTable.tsx` com inclusão das colunas Clube e Cidade / UF.
+  - Descrição do modo de jogo no Dashboard alinhada à esquerda e com nomenclatura oficial completa sem abreviações.
+- **Testes & Qualidade:**
+  - Suíte `AdvancedStats.characterization.test.tsx` criada e 100% verde (50 suítes de relatórios passando).
+  - `tsc --noEmit` 0 erros.
+
+---
+
 ## 2.19 Correção do Logout no Menu Hambúrguer em /suporte — 2026-11-02
 - **Sintoma:** em `/suporte`, ao clicar no menu hambúrguer e depois em "Sair", o logout falhava ou a tela de login aparecia mantendo a URL `/suporte`.
 - **Causa Raiz:**

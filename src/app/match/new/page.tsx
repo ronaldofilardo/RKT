@@ -41,6 +41,7 @@ export default function NewMatchPage() {
         slotAffiliation={c.slotAffiliation}
         newAthleteFor={c.newAthleteFor}
         ctId={c.ctId || null}
+        isParticular={c.isParticular}
       />
     </div>
   );

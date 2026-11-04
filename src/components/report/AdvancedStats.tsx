@@ -10,7 +10,6 @@ import { NetPassSection } from './advanced-stats-net-pass-section';
 import { PointDefinitionSection } from './advanced-stats-point-def-section';
 import { StrokeMatrixSection } from './advanced-stats-stroke-matrix-section';
 import { MomentumSection } from './advanced-stats-momentum';
-import { SetBreakdownSection } from './advanced-stats-set-breakdown';
 import { DoublesPlayerBreakdownSection } from './advanced-stats-doubles-players';
 
 interface Props extends AdvancedStatsSectionProps {
@@ -37,7 +36,6 @@ export function AdvancedStats({ stats, player1Name, player2Name, report }: Props
       <PointDefinitionSection stats={stats} player1Name={player1Name} player2Name={player2Name} />
       <StrokeMatrixSection stats={stats} player1Name={player1Name} player2Name={player2Name} />
       <MomentumSection stats={stats} player1Name={player1Name} player2Name={player2Name} />
-      <SetBreakdownSection stats={stats} player1Name={player1Name} player2Name={player2Name} />
       {report?.matchType === 'DOUBLES' && <DoublesPlayerBreakdownSection report={report} />}
     </div>
   );

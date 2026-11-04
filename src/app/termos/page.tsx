@@ -1,5 +1,12 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BrandLogo } from '@/components/ui/brand-logo';
+
+export const metadata: Metadata = {
+  title: 'Termos de Uso | RKT',
+  description:
+    'Termos de uso da plataforma RKT: elegibilidade, conta, proteção de dados, transmissão ao vivo de menores e legislação aplicável.',
+};
 
 export default function TermosPage() {
   return (

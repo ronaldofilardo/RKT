@@ -27,7 +27,7 @@ export function StrokeMatrixSection({ stats, player1Name, player2Name }: Advance
           return (
             <div
               key={p1Row.code}
-              className="grid grid-cols-[1fr_140px_1fr] gap-2 items-center py-1.5 border-b border-white/5 last:border-0 text-xs"
+              className="grid grid-cols-[1fr_minmax(180px,280px)_1fr] sm:grid-cols-[1fr_280px_1fr] gap-3 sm:gap-4 items-center py-1.5 border-b border-white/5 last:border-0 text-xs"
             >
               <div className="text-right font-mono">
                 <span className="text-telemetry-blue font-semibold">{p1Row.winners}</span>
@@ -37,7 +37,7 @@ export function StrokeMatrixSection({ stats, player1Name, player2Name }: Advance
                 <span className="text-telemetry-error font-semibold">{p1Row.unforcedErrors}</span>
                 <span className="text-white/60 ml-1.5 font-bold">({p1Row.total})</span>
               </div>
-              <div className="text-center font-medium text-telemetry-text-muted w-[140px] truncate">
+              <div className="text-center font-medium text-telemetry-text-muted px-1 leading-snug">
                 {p1Row.name}
               </div>
               <div className="text-left font-mono">

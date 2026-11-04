@@ -15,6 +15,9 @@ function checkIsBreak(server: string, winner: 'PLAYER_1' | 'PLAYER_2'): boolean 
 }
 
 function isTransitionToNewGame(current: TimelinePoint, next: TimelinePoint): boolean {
+  // Em tiebreak (incluindo Match Tiebreak), os pontos são contínuos; não há fim de game entre pontos.
+  if (current.isTiebreak) return false;
+
   if (next.gamesScore.player1 !== current.gamesScore.player1) return true;
   if (next.gamesScore.player2 !== current.gamesScore.player2) return true;
   return (
@@ -64,11 +67,12 @@ function onLastPointOfSetGameEnd(currentPoint: TimelinePoint): GameEndInfo | nul
   if (!isSetDecidingPoint(currentPoint)) return null;
 
   const w = currentPoint.winner;
+  const isTb = currentPoint.isTiebreak;
   return {
     isGameEnd: true,
     gameFinalScore: {
-      player1: currentPoint.gamesScore.player1 + (w === 'PLAYER_1' ? 1 : 0),
-      player2: currentPoint.gamesScore.player2 + (w === 'PLAYER_2' ? 1 : 0),
+      player1: isTb ? currentPoint.gameScore.player1 : currentPoint.gamesScore.player1 + (w === 'PLAYER_1' ? 1 : 0),
+      player2: isTb ? currentPoint.gameScore.player2 : currentPoint.gamesScore.player2 + (w === 'PLAYER_2' ? 1 : 0),
     },
     winner: w,
     isBreak: checkIsBreak(currentPoint.server, w),
@@ -80,12 +84,12 @@ export function getGameEndInfo(
   nextPoint: TimelinePoint | null | undefined,
   isLastPointOfSet: boolean,
 ): GameEndInfo | null {
-  if (nextPoint) {
-    return onTransitionGameEnd(currentPoint, nextPoint);
-  }
-
   if (isLastPointOfSet) {
     return onLastPointOfSetGameEnd(currentPoint);
+  }
+
+  if (nextPoint) {
+    return onTransitionGameEnd(currentPoint, nextPoint);
   }
 
   return null;

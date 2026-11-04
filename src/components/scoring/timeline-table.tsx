@@ -18,6 +18,7 @@ interface TimelineTableProps {
   showFinalResult?: boolean;
   scoreState?: unknown;
   doubles?: TimelineDoublesConfig;
+  format?: string;
 }
 
 export function TimelineTable({
@@ -31,16 +32,18 @@ export function TimelineTable({
   showFinalResult,
   scoreState,
   doubles,
+  format,
 }: TimelineTableProps) {
+  const isMatchTb = format === 'MATCH_TB_10';
   return (
     <div className="overflow-hidden border border-white/10 rounded-lg">
       <div className="overflow-auto max-h-[75vh]">
         <div className="min-w-[1000px]">
           <table className="w-full text-[11px]" style={{ tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0 }}>
-            <TimelineTableHead />
+            <TimelineTableHead isMatchTb={isMatchTb} />
             <tbody className="bg-transparent">
               {hasActiveFilters && filteredCount === 0 && (
-                <tr><td colSpan={25} className="text-center py-6 text-telemetry-text-muted text-xs">Nenhum ponto corresponde aos filtros selecionados.</td></tr>
+                <tr><td colSpan={isMatchTb ? 24 : 25} className="text-center py-6 text-telemetry-text-muted text-xs">Nenhum ponto corresponde aos filtros selecionados.</td></tr>
               )}
               {groupedBySet.map((group, gi) => (
                 <SetGroup
@@ -54,6 +57,7 @@ export function TimelineTable({
                   player1Name={player1Name}
                   player2Name={player2Name}
                   doubles={doubles}
+                  isMatchTb={isMatchTb}
                 />
               ))}
               {showFinalResult && <FinalResultRow points={points} scoreState={scoreState} />}

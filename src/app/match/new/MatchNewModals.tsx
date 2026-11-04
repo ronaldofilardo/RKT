@@ -34,6 +34,7 @@ interface MatchNewModalsProps {
   slotAffiliation: SlotAffiliationMap;
   newAthleteFor: SlotId | null;
   ctId?: string | null;
+  isParticular?: boolean;
 }
 
 export function MatchNewModals({
@@ -58,10 +59,15 @@ export function MatchNewModals({
   slotAffiliation,
   newAthleteFor,
   ctId = null,
+  isParticular = false,
 }: MatchNewModalsProps) {
   const isDoubles = matchType === 'DOUBLES';
   // O atleta criado agora herda a afiliação do slot que abriu o modal.
-  const modalMyClub = newAthleteFor ? isOwnSlot(slotAffiliation[newAthleteFor], ctId) : false;
+  const modalMyClub = newAthleteFor
+    ? isParticular
+      ? slotAffiliation[newAthleteFor] === 'OWN'
+      : isOwnSlot(slotAffiliation[newAthleteFor], ctId)
+    : false;
   return (
     <>
       <NewAthleteModal

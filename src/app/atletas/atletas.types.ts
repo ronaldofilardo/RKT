@@ -15,4 +15,9 @@ export interface Athlete {
   backhand?: string | null;
   ranking?: number | null;
   rankings?: Record<string, RankingEntry> | null;
+  city?: string | null;
+  state?: string | null;
+  club?: string | null;
+  clubName?: string | null;
+  createdAt?: string | null;
 }

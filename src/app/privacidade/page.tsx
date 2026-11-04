@@ -1,5 +1,12 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BrandLogo } from '@/components/ui/brand-logo';
+
+export const metadata: Metadata = {
+  title: 'Política de Privacidade | RKT',
+  description:
+    'Política de privacidade do RKT em conformidade com a LGPD: dados coletados, finalidades, direitos do titular, segurança e retenção.',
+};
 
 export default function PrivacidadePage() {
   return (

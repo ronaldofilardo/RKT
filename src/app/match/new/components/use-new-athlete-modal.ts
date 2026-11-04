@@ -100,9 +100,11 @@ export function useNewAthleteModal({
     try {
       const token = sessionStorage.getItem('access_token');
       const payload = buildAthletePayload(form, rankings);
-      if (myClub && ctId) {
+      if (myClub) {
         (payload as Record<string, unknown>).myClub = true;
-        (payload as Record<string, unknown>).ctId = ctId;
+        if (ctId) {
+          (payload as Record<string, unknown>).ctId = ctId;
+        }
       } else {
         (payload as Record<string, unknown>).myClub = false;
       }

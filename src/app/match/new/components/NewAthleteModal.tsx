@@ -62,7 +62,7 @@ export function NewAthleteModal({
           )}
           {myClub && (
             <div className="p-2.5 bg-telemetry-volt/10 border border-telemetry-volt/30 text-telemetry-volt text-xs rounded-lg">
-              Este atleta será vinculado ao seu clube.
+              {ctId ? 'Este atleta será vinculado ao seu clube.' : 'Este atleta será vinculado à sua carteira de atletas.'}
             </div>
           )}
 
@@ -74,7 +74,7 @@ export function NewAthleteModal({
             age={age}
             submitting={submitting}
             nameInputRef={nameInputRef}
-            myClub={myClub}
+            myClub={myClub && !!ctId}
             onRankingToggle={(type) => toggleRankingEntry(setRankings, type)}
             onRankingFieldChange={(type, field, value) => updateRankingField(setRankings, type, field, value)}
           />

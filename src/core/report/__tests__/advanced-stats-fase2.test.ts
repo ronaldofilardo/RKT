@@ -45,7 +45,7 @@ describe('Fase 2 - Novas Seções e Métricas da Planilha', () => {
     expect(p2Return.secondServeReturnInPct).toBe(0); // 1 erro de devolução de 1 pt jogável
   });
 
-  it('calcula fundo de quadra, rede/passada e definição sem ace/DF', () => {
+  it('calcula fundo de quadra, rede/passada e definição incluindo ace/DF', () => {
     const points: TimelinePoint[] = [
       createMockPoint({ pointNumber: 1, winner: 'PLAYER_1', type: 'WINNER', rallyLength: 2, rallyDetails: { situacao: 'fundo', golpe: 'forehand' } as any }),
       createMockPoint({ pointNumber: 2, winner: 'PLAYER_2', type: 'UNFORCED_ERROR', rallyLength: 5, rallyDetails: { situacao: 'fundo', golpe: 'backhand' } as any }),
@@ -68,9 +68,9 @@ describe('Fase 2 - Novas Seções e Métricas da Planilha', () => {
     expect(stats.netPass?.player1.netApproachesWon).toBe(1);
     expect(stats.netPass?.player2.passingShotsWon).toBe(1);
 
-    // Definição sem ace nem DF
-    expect(stats.pointDefinition?.player1.cleanWinners).toBe(2); // Pt 1 e Pt 3 (sem contar Ace pt 5)
-    expect(stats.pointDefinition?.player1.unforcedErrors).toBe(1); // Pt 2 (não conta DF pt 6)
+    // Definição incluindo ace e DF
+    expect(stats.pointDefinition?.player1.cleanWinners).toBe(3); // Pt 1, Pt 3 e Pt 5 (com Ace)
+    expect(stats.pointDefinition?.player1.unforcedErrors).toBe(2); // Pt 2 (ENF) e Pt 6 (DF)
 
     // Matriz de golpes
     const sqP1 = stats.strokeMatrix?.player1.find(r => r.code === 'sq');

@@ -4,7 +4,7 @@ import { resolvePointRallyCategory } from './pressure-shot-stats';
 
 function isBaselinePoint(p: TimelinePoint): boolean {
   if (p.type === 'ACE' || p.type === 'DOUBLE_FAULT' || p.type === 'FAULT_FIRST') return false;
-  return p.rallyDetails?.situacao === 'fundo' || (!p.rallyDetails?.situacao && Boolean(p.rallyDetails));
+  return p.rallyDetails?.situacao === 'fundo';
 }
 
 function calcPct(n: number, d: number): number {

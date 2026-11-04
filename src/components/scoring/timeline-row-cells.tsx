@@ -4,7 +4,7 @@ import type { TimelinePoint } from '@/core/scoring/types';
 import { direcaoLabel, efeitoLabel, golpeEspLabel, golpeLabel, duracaoLabel, situacaoLabel, subtipo1Label, subtipo2Label } from './timeline.logic';
 import { BADGE_COLORS, getGameScoreLabelForPoint, getPointBadge } from './timeline-row.logic';
 
-const TD = 'px-1.5 py-1.5 text-[10px]';
+const TD = 'px-1.5 py-1.5 text-[10px] text-center';
 const MUTED = `${TD} text-telemetry-text-muted`;
 
 interface FlagCellProps {
@@ -21,14 +21,15 @@ function FlagCell({ active, label, color }: FlagCellProps) {
   );
 }
 
-/** 5 células: no., SAC, Venc, GAMES e PONTOS. */
-export function IdentityCells({ p, serverNumber, winnerNumber, serverInitials, winnerInitials, isFirstPointOfGame }: {
+/** 5 células (ou 4 em MT): no., SAC, Venc, GAMES (opcional em MT) e PONTOS. */
+export function IdentityCells({ p, serverNumber, winnerNumber, serverInitials, winnerInitials, isFirstPointOfGame, isMatchTb }: {
   p: TimelinePoint;
   serverNumber: number;
   winnerNumber: number;
   serverInitials: string;
   winnerInitials: string;
   isFirstPointOfGame: boolean;
+  isMatchTb?: boolean;
 }) {
   return (
     <>
@@ -41,12 +42,14 @@ export function IdentityCells({ p, serverNumber, winnerNumber, serverInitials, w
       <td className={`${TD} text-center font-bold ${winnerNumber === 1 ? 'text-telemetry-blue' : 'text-telemetry-error'}`}>
         {winnerInitials}
       </td>
-      <td className={`${TD} text-telemetry-text-primary font-semibold text-center`}>
-        {p.isTiebreak
-          ? `${p.gamesScore.player1}x${p.gamesScore.player2}`
-          : isFirstPointOfGame ? p.gamesScore.player1 + p.gamesScore.player2 + 1 : '–'}
-      </td>
-      <td className={`${TD} font-bold text-telemetry-text-primary`}>{getGameScoreLabelForPoint(p)}</td>
+      {!isMatchTb && (
+        <td className={`${TD} text-telemetry-text-primary font-semibold text-center`}>
+          {p.isTiebreak
+            ? `${p.gamesScore.player1}x${p.gamesScore.player2}`
+            : isFirstPointOfGame ? p.gamesScore.player1 + p.gamesScore.player2 + 1 : '–'}
+        </td>
+      )}
+      <td className={`${TD} font-bold text-telemetry-text-primary text-center`}>{getGameScoreLabelForPoint(p)}</td>
     </>
   );
 }
@@ -90,7 +93,7 @@ export function RallyDetailCells({ p, isServeDecidedPoint }: {
       <td className={MUTED}>{dash(efeitoLabel(rd?.efeito))}</td>
       <td className={MUTED}>{dash(direcaoLabel(rd?.direcao))}</td>
       <td className={MUTED}>{dash(golpeEspLabel(rd?.golpe_esp))}</td>
-      <td className={`${TD} text-telemetry-text-muted/70`}>{dash(duracaoLabel(rd?.duracao))}</td>
+      <td className={`${TD} text-telemetry-text-muted/70`}>{duracaoLabel(rd?.duracao)}</td>
     </>
   );
 }

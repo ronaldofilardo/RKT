@@ -29,7 +29,20 @@ export function ReportStats({ report, p1Points, p2Points, totalPoints }: ReportS
         <MiniStat label="Duplas faltas" p1={p1.doubleFaults} p2={p2.doubleFaults} names={report} p1Name={p1Name} p2Name={p2Name} />
         <MiniStat label="Break points" p1={p1.breakPoints} p2={p2.breakPoints} names={report} p1Name={p1Name} p2Name={p2Name} />
         <MiniStat label="BP ganhos" p1={p1.breakPointsWon} p2={p2.breakPointsWon} names={report} p1Name={p1Name} p2Name={p2Name} />
-        <MiniStat label="Sets registrados" p1={report.summary.sets.filter((set) => set.player1 > set.player2).length} p2={report.summary.sets.filter((set) => set.player2 > set.player1).length} names={report} p1Name={p1Name} p2Name={p2Name} />
+        <MiniStat
+          label="Sets registrados"
+          p1={
+            report.summary.sets.filter((set) => set.player1 > set.player2).length ||
+            (report.state === 'FINISHED' && report.winnerId === report.player1.id ? 1 : 0)
+          }
+          p2={
+            report.summary.sets.filter((set) => set.player2 > set.player1).length ||
+            (report.state === 'FINISHED' && report.winnerId === report.player2.id ? 1 : 0)
+          }
+          names={report}
+          p1Name={p1Name}
+          p2Name={p2Name}
+        />
       </div>}
     </section>
   );

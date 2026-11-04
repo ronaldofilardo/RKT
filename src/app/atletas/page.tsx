@@ -39,7 +39,7 @@ export default function AtletasPage() {
         onNewAthlete={() => setShowNewAthleteModal(true)}
       />
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-5xl mx-auto px-2 sm:px-4 py-4 sm:py-6">
         {error && (
           <div className="mb-4 p-4 bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert rounded-lg flex items-center gap-2">
             <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">

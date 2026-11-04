@@ -8,6 +8,7 @@ export async function listPlayers(cursor?: string | null, limit = 20, userId?: s
     select: {
       id: true, name: true, gender: true, age: true, birthDate: true, dominance: true,
       backhand: true, ranking: true, rankings: true, club: true, clubId: true,
+      city: true, state: true, createdAt: true,
       playerCts: { select: { ctId: true } },
     },
     orderBy: { name: 'asc' },

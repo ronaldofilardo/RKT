@@ -63,7 +63,7 @@ it('deve renderizar FormatLabel utilizando text-telemetry-text-muted para legibi
     // Second span contains the format text with text-telemetry-text-muted
     const formatLabel = spans[1];
     expect(formatLabel?.className).toContain('text-telemetry-text-muted');
-    expect(screen.getByText('Melhor de 3 Sets')).toBeInTheDocument();
+    expect(screen.getByText('Melhor de 3 sets com vantagem')).toBeInTheDocument();
     expect(screen.queryByText(/Modo de jogo:/i)).toBeNull();
   });
 });

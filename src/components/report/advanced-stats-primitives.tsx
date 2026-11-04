@@ -17,9 +17,9 @@ export function StatRow({ label, p1, p2, format = 'number' }: {
 }) {
   const fmt = (v: number | string) => (format === 'pct' ? `${Number(v).toFixed(1)}%` : String(v));
   return (
-    <div className="grid grid-cols-[1fr_140px_1fr] gap-2 items-center py-1 border-b border-white/5 last:border-0">
+    <div className="grid grid-cols-[1fr_minmax(180px,280px)_1fr] sm:grid-cols-[1fr_280px_1fr] gap-3 sm:gap-4 items-center py-1.5 border-b border-white/5 last:border-0">
       <span className="text-right font-mono text-sm text-telemetry-blue">{fmt(p1)}</span>
-      <span className="text-xs text-telemetry-text-muted text-center w-[140px] truncate">{label}</span>
+      <span className="text-xs text-telemetry-text-muted text-center px-1 leading-snug">{label}</span>
       <span className="font-mono text-sm text-telemetry-error">{fmt(p2)}</span>
     </div>
   );
@@ -41,9 +41,9 @@ export function PlayerColumnHeader({ player1Name, player2Name, centerLabel }: {
   centerLabel?: string;
 }) {
   return (
-    <div className="grid grid-cols-[1fr_140px_1fr] gap-2 text-xs text-telemetry-text-muted mb-2 px-1 items-center">
+    <div className="grid grid-cols-[1fr_minmax(180px,280px)_1fr] sm:grid-cols-[1fr_280px_1fr] gap-3 sm:gap-4 text-xs text-telemetry-text-muted mb-2 px-1 items-center">
       <span className="text-right truncate">{player1Name}</span>
-      <span className="text-center w-[140px] truncate">{centerLabel}</span>
+      <span className="text-center truncate px-1">{centerLabel}</span>
       <span className="truncate">{player2Name}</span>
     </div>
   );

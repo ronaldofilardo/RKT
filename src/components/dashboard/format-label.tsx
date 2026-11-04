@@ -15,7 +15,7 @@ export function FormatLabel({ format, matchType, courtType }: FormatLabelProps) 
   const badgeTextColor = ct === 'HARD' ? 'rgb(var(--telemetry-blue-light))' : `rgb(var(--telemetry-court-${ct.toLowerCase()}))`;
 
   return (
-    <span className="flex items-center gap-1.5 text-right whitespace-nowrap">
+    <span className="flex items-center gap-1.5 text-left">
       {courtType && (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold"
               style={{

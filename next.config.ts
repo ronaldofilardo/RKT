@@ -21,6 +21,40 @@ const securityHeaders = [
   { key: 'Content-Security-Policy-Report-Only', value: cspHeader },
 ];
 
+/**
+ * Blindagem preventiva do domínio do sistema (PLANO_SEO_ESTRUTURAL, Fase 5):
+ * áreas autenticadas e fluxos de recuperação não devem ser indexados nem
+ * rastreados, para não canibalizar a Landing Page (rkt-app.com) nem indexar
+ * dados vazios. Lista espelha o matcher de `src/middleware.ts` — as rotas
+ * públicas (`/login`, `/signup`, `/termos`, `/privacidade`) ficam de fora.
+ */
+const noindexHeaders = [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }];
+
+const noindexSources = [
+  '/app', // prefixo futuro previsto no plano
+  '/admin',
+  '/dashboard',
+  '/painel',
+  '/match',
+  '/matches', // inclui convite/[token] e acompanhar/[matchId] (links efêmeros)
+  '/historico',
+  '/dados-pessoais',
+  '/partidasanotadas',
+  '/partidasaovivo',
+  '/aguardandoanotador',
+  '/atletas',
+  '/gestor',
+  '/suporte',
+  '/clube',
+  '/treinador',
+  '/atleta',
+  '/anotador',
+  '/espectador',
+  '/escolher-area',
+  '/forgot', // fluxo de recuperação (fora do matcher do middleware)
+  '/trocar-senha', // fluxo de recuperação
+];
+
 const nextConfig: NextConfig = {
   reactStrictMode: process.env.NODE_ENV === 'production',
   allowedDevOrigins: [
@@ -47,6 +81,10 @@ const nextConfig: NextConfig = {
         source: '/(.*)',
         headers: securityHeaders,
       },
+      ...noindexSources.flatMap((source) => [
+        { source, headers: noindexHeaders },
+        { source: `${source}/:path*`, headers: noindexHeaders },
+      ]),
     ];
   },
   async redirects() {

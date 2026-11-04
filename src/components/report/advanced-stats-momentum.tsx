@@ -25,17 +25,8 @@ export function MomentumSection({ stats, player1Name = 'J1', player2Name = 'J2' 
           <div className="text-xs text-telemetry-error">Sequência Máx. Pontos Ganhos ({player2Name})</div>
         </div>
       </div>
-      <div className="mt-3 text-center">
-        <div className="text-xs text-telemetry-text-muted">Sequência atual: </div>
-        <div className={`text-lg font-bold ${momentum.currentStreak > 0 ? 'text-telemetry-blue' : 'text-telemetry-error'}`}>
-          {momentum.currentStreak > 0 ? `${momentum.currentStreak} pts` : `${Math.abs(momentum.currentStreak)} pts`}
-          <span className="text-xs text-telemetry-text-muted ml-1">
-            ({momentum.currentStreak > 0 ? player1Name : player2Name})
-          </span>
-        </div>
-      </div>
       <div className="mt-4">
-        <div className="text-xs font-semibold text-telemetry-text-primary mb-2">Sequências exatas por jogador</div>
+        <div className="text-xs font-semibold text-telemetry-text-primary mb-2">Sequências por jogador</div>
         <table className="w-full text-xs border-collapse border border-white/10 rounded-lg">
           <thead>
             <tr className="bg-telemetry-elevated border-b border-white/10">
@@ -46,42 +37,23 @@ export function MomentumSection({ stats, player1Name = 'J1', player2Name = 'J2' 
           </thead>
           <tbody>
             <tr className="border-b border-white/5">
-              <td className="py-2 px-2 text-telemetry-text-muted">Exatamente 2 pontos</td>
+              <td className="py-2 px-2 text-telemetry-text-muted">2 pontos ganhos seguidos</td>
               <td className="text-center py-2 px-2 font-mono font-bold">{momentum.streakCountP1.len2}</td>
               <td className="text-center py-2 px-2 font-mono font-bold">{momentum.streakCountP2.len2}</td>
             </tr>
             <tr className="border-b border-white/5">
-              <td className="py-2 px-2 text-telemetry-text-muted">Exatamente 3 pontos</td>
+              <td className="py-2 px-2 text-telemetry-text-muted">3 pontos ganhos seguidos</td>
               <td className="text-center py-2 px-2 font-mono font-bold">{momentum.streakCountP1.len3}</td>
               <td className="text-center py-2 px-2 font-mono font-bold">{momentum.streakCountP2.len3}</td>
             </tr>
             <tr>
-              <td className="py-2 px-2 text-telemetry-text-muted">4+ pontos</td>
+              <td className="py-2 px-2 text-telemetry-text-muted">4+ pontos ganhos seguidos</td>
               <td className="text-center py-2 px-2 font-mono font-bold">{momentum.streakCountP1.len4Plus}</td>
               <td className="text-center py-2 px-2 font-mono font-bold">{momentum.streakCountP2.len4Plus}</td>
             </tr>
           </tbody>
         </table>
       </div>
-      {momentum.scoringRuns.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-white/10">
-          <div className="text-xs font-semibold text-telemetry-text-primary mb-2">Sequências de 2+ Pontos</div>
-          <div className="flex flex-wrap gap-1">
-            {momentum.scoringRuns.map((run, i) => (
-              <span
-                key={i}
-                className={`text-xs px-2 py-0.5 rounded-full ${
-                  run.player === 'PLAYER_1'
-                    ? 'bg-telemetry-blue/20 text-telemetry-blue-light'
-                    : 'bg-telemetry-error/20 text-telemetry-error-light'
-                }`}
-              >
-                {run.length}x {run.player === 'PLAYER_1' ? player1Name : player2Name}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
     </Section>
   );
 }

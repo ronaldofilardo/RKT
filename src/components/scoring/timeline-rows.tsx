@@ -21,15 +21,16 @@ interface SetGroupProps {
   player1Name: string;
   player2Name: string;
   doubles?: TimelineDoublesConfig;
+  isMatchTb?: boolean;
 }
 
-export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLast, matchId, player1Name, player2Name, doubles }: SetGroupProps) {
+export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLast, matchId, player1Name, player2Name, doubles, isMatchTb }: SetGroupProps) {
   return (
     <>
       {!hasActiveFilters && (
         <tr>
           <td
-            colSpan={25}
+            colSpan={isMatchTb ? 24 : 25}
             aria-label={`Set ${_setNumber}`}
             className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-telemetry-text-primary bg-telemetry-elevated border-y border-white/10"
           >
@@ -69,6 +70,7 @@ export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLa
               player1Name={player1Name}
               player2Name={player2Name}
               doubles={doubles}
+              isMatchTb={isMatchTb}
             />
             {gameEnd && (
               <GameEndRow

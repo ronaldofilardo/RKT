@@ -374,12 +374,12 @@ describe("MatchCard", () => {
 
   it("exibe formato da partida traduzido para português", () => {
     const formats: { value: string; label: string }[] = [
-      { value: "BEST_OF_3", label: "Melhor de 3 Sets" },
-      { value: "BEST_OF_3_MATCH_TB", label: "Melhor de 3 - TB 3º" },
-      { value: "BEST_OF_5", label: "Melhor de 5 Sets" },
-      { value: "SHORT_SET_2V2_NO_AD", label: "Sets Curtos 2/2" },
-      { value: "MATCH_TB_10", label: "Match Tie-break" },
-      { value: "PRO_SET_8", label: "Set Profissional 8" },
+      { value: "BEST_OF_3", label: "Melhor de 3 sets com vantagem" },
+      { value: "BEST_OF_3_MATCH_TB", label: "Melhor de 3 sets com vantagem e Match Tie break (MT)" },
+      { value: "BEST_OF_5", label: "Melhor de 5 sets (Grand Slam)" },
+      { value: "SHORT_SET_2V2_NO_AD", label: 'Melhor de 3 sets "no ad" e placar inicia em 2/2 e MT' },
+      { value: "MATCH_TB_10", label: "Match Tie break" },
+      { value: "PRO_SET_8", label: "Set profissional até 8 games com vantagem" },
     ];
 
     for (const fmt of formats) {

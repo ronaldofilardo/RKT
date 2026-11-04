@@ -1,21 +1,30 @@
-const COL_WIDTHS = [
-  '3%', '3%', '5%', '3%', '4%', '5%', '3%', '3%', '3%', '4%',
-  '4%', '3%', '3%', '3%', '4%', '4%', '5%', '4%', '4%', '4%',
-  '4%', '4%', '4%', '5%', '4%',
+const COL_WIDTHS_DEFAULT = [
+  '3%', '3.5%', '3.5%', '3.5%', '4.5%',
+  '3%', '3%', '3%', '4%', '4%',
+  '3%', '3%', '3%', '4%', '4%',
+  '5%', '5%', '4%', '4%', '4%', '4%', '4%', '4%', '5%', '7%',
 ];
 
-export function TimelineTableHead() {
+const COL_WIDTHS_MATCH_TB = [
+  '3%', '3.5%', '3.5%', '5.5%',
+  '3%', '3%', '3%', '4%', '4%',
+  '3%', '3%', '3%', '4%', '4%',
+  '5%', '5%', '4%', '4%', '4%', '4%', '4%', '4%', '6%', '8.5%',
+];
+
+export function TimelineTableHead({ isMatchTb }: { isMatchTb?: boolean }) {
+  const colWidths = isMatchTb ? COL_WIDTHS_MATCH_TB : COL_WIDTHS_DEFAULT;
   return (
     <>
       <colgroup>
-        {COL_WIDTHS.map((width, i) => (
+        {colWidths.map((width, i) => (
           <col key={i} style={{ width }} />
         ))}
       </colgroup>
       <thead className="sticky top-0 z-20 shadow-sm">
         <tr className="bg-telemetry-elevated border-b border-white/10">
           <th colSpan={3} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide sticky top-0 left-0 bg-telemetry-elevated z-30 border-r border-white/10">SET</th>
-          <th colSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide border-r border-white/10 sticky top-0 bg-telemetry-elevated z-20">PLACAR</th>
+          <th colSpan={isMatchTb ? 1 : 2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide border-r border-white/10 sticky top-0 bg-telemetry-elevated z-20">PLACAR</th>
           <th colSpan={5} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide border-r border-white/10 sticky top-0 bg-telemetry-elevated z-20">1º Saque</th>
           <th colSpan={5} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide border-r border-white/10 sticky top-0 bg-telemetry-elevated z-20">2º Saque</th>
           <th rowSpan={2} className="px-1.5 py-1 text-center text-[9px] font-semibold text-telemetry-text-muted uppercase tracking-wide sticky top-0 bg-telemetry-elevated z-20">SITUAÇÃO</th>
@@ -37,8 +46,10 @@ export function TimelineTableHead() {
         <tr className="bg-telemetry-card border-b border-white/5">
           <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase sticky top-[24px] left-0 bg-telemetry-card z-30">no.</th>
           <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase sticky top-[24px] left-[3%] bg-telemetry-card z-30">SAC</th>
-          <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase border-r border-white/10 sticky top-[24px] left-[6%] bg-telemetry-card z-30">Venc</th>
-          <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase sticky top-[24px] bg-telemetry-card z-20">GAMES</th>
+          <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase border-r border-white/10 sticky top-[24px] left-[6.5%] bg-telemetry-card z-30">Venc</th>
+          {!isMatchTb && (
+            <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase sticky top-[24px] bg-telemetry-card z-20">GAMES</th>
+          )}
           <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase border-r border-white/10 sticky top-[24px] bg-telemetry-card z-20">PONTOS</th>
           <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase sticky top-[24px] bg-telemetry-card z-20">ACE</th>
           <th className="px-1 py-1 text-center text-[8px] font-semibold text-telemetry-text-muted uppercase sticky top-[24px] bg-telemetry-card z-20">OUT</th>

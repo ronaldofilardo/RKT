@@ -37,6 +37,7 @@ export function MatchCardHeader({
     <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-3 pb-2">
       <div className="flex flex-wrap items-center gap-2">
         <MatchStatusBadge isSuspended={isSuspended} state={match.state} />
+        <FormatLabel format={match.format} matchType={match.matchType} courtType={match.courtType ?? undefined} />
         {isLiveOrSuspended && (
           <div className="flex items-center gap-1 sm:gap-1.5">
             {onEditScore && (
@@ -64,7 +65,6 @@ export function MatchCardHeader({
             iconSrc="/icons/info_partida.webp" emoji="⚙️" label="Info" />
         )}
         <MatchActions match={match} onReport={onReport} onFinish={onFinish} onDelete={onDelete} onShare={onShare} />
-        <FormatLabel format={match.format} matchType={match.matchType} courtType={match.courtType ?? undefined} />
       </div>
     </div>
   );

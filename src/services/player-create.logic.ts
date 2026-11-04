@@ -73,11 +73,17 @@ export async function createPlayer(data: {
     select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, cpfHash: true, cpfLast2: true, identityStatus: true, athleteCode: true, userId: true, createdByUserId: true },
   });
 
-  if (data.myClub && data.ctId && data.actorProfile) {
-    const status = data.actorProfile === 'ATLETA' ? 'PENDING' : 'ACTIVE';
-    await prisma.playerCT.create({
-      data: { playerId: player.id, ctId: data.ctId, status },
-    });
+  if (data.myClub && data.actorProfile) {
+    if (data.ctId) {
+      const status = data.actorProfile === 'ATLETA' ? 'PENDING' : 'ACTIVE';
+      await prisma.playerCT.create({
+        data: { playerId: player.id, ctId: data.ctId, status },
+      });
+    } else if (data.actorProfile === 'TREINADOR' && data.createdByUserId) {
+      await prisma.coachAthleteLink.create({
+        data: { coachUserId: data.createdByUserId, playerId: player.id, status: 'ACTIVE' },
+      });
+    }
   }
 
   return player;

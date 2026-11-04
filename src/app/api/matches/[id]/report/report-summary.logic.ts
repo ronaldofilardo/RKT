@@ -42,12 +42,15 @@ export function buildReportSummary(
   timelinePoints: TimelinePoint[],
 ): ReportSummary {
   const completed = computeCompletedGames(timelinePoints);
-  const setGamesMap = new Map<number, { p1: number; p2: number; isTiebreak: boolean }>();
+  const setGamesMap = new Map<number, { p1: number; p2: number; isTiebreak: boolean; p1Points: number; p2Points: number }>();
 
   for (const p of timelinePoints) {
     const s = p.setNumber;
-    if (!setGamesMap.has(s)) setGamesMap.set(s, { p1: 0, p2: 0, isTiebreak: false });
-    if (p.isTiebreak) setGamesMap.get(s)!.isTiebreak = true;
+    if (!setGamesMap.has(s)) setGamesMap.set(s, { p1: 0, p2: 0, isTiebreak: false, p1Points: 0, p2Points: 0 });
+    const entry = setGamesMap.get(s)!;
+    if (p.isTiebreak) entry.isTiebreak = true;
+    if (p.winner === 'PLAYER_1') entry.p1Points++;
+    else if (p.winner === 'PLAYER_2') entry.p2Points++;
   }
 
   for (const g of completed) {
@@ -60,7 +63,15 @@ export function buildReportSummary(
 
   const sets: ReportSummary['sets'] = [];
   for (const [, v] of setGamesMap) {
-    sets.push({ player1: v.p1, player2: v.p2, isTiebreak: v.isTiebreak });
+    if (v.isTiebreak && v.p1 === 0 && v.p2 === 0 && (v.p1Points > 0 || v.p2Points > 0)) {
+      sets.push({
+        player1: v.p1Points > v.p2Points ? 1 : 0,
+        player2: v.p2Points > v.p1Points ? 1 : 0,
+        isTiebreak: true,
+      });
+    } else {
+      sets.push({ player1: v.p1, player2: v.p2, isTiebreak: v.isTiebreak });
+    }
   }
 
   return {

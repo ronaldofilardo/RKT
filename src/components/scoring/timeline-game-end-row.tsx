@@ -10,10 +10,11 @@ export function GameEndRow({ point, winnerName, gameFinalScore, isBreak }: {
   isBreak: boolean;
 }) {
   const scoreLabel = `${gameFinalScore.player1}x${gameFinalScore.player2}`;
+  const isMinibreak = point.isTiebreak && isBreak;
   return (
     <tr
       data-testid={`game-end-${point.setNumber}-${point.pointNumber}`}
-      aria-label={`Placar final do game: ${scoreLabel}`}
+      aria-label={`Placar final do ${point.isTiebreak ? 'tiebreak' : 'game'}: ${scoreLabel}`}
       className="bg-telemetry-elevated/70 border-y border-white/10 font-bold"
     >
       <td
@@ -30,7 +31,7 @@ export function GameEndRow({ point, winnerName, gameFinalScore, isBreak }: {
           <span className="font-semibold text-telemetry-text-primary">{winnerName}</span>
           {isBreak ? (
             <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-semibold">
-              Quebra de saque
+              {isMinibreak ? 'Minibreak' : 'Quebra de saque'}
             </span>
           ) : !point.isTiebreak ? (
             <span className="text-[9px] text-telemetry-text-muted/60">Confirmou o saque</span>

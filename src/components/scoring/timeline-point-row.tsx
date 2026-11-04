@@ -17,9 +17,10 @@ export interface PointRowProps {
   player1Name: string;
   player2Name: string;
   doubles?: TimelineDoublesConfig;
+  isMatchTb?: boolean;
 }
 
-export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPointOfGame, player1Name, player2Name, doubles }: PointRowProps) {
+export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPointOfGame, player1Name, player2Name, doubles, isMatchTb }: PointRowProps) {
   const rd = p.rallyDetails;
   const isServeDecidedPoint = p.type === 'ACE' || p.type === 'DOUBLE_FAULT' || p.type === 'FAULT_FIRST';
 
@@ -55,6 +56,7 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPo
         serverInitials={serverInitials}
         winnerInitials={winnerInitials}
         isFirstPointOfGame={isFirstPointOfGame}
+        isMatchTb={isMatchTb}
       />
       <ServeOutcomeCells
         outcome={firstOutcome}

@@ -10,14 +10,14 @@ export function computePointDefinitionStats(
   let forcedErrors = 0;
 
   for (const p of points) {
-    if (p.type === 'ACE' || p.type === 'DOUBLE_FAULT' || p.type === 'FAULT_FIRST') continue;
+    if (p.type === 'FAULT_FIRST') continue;
 
     if (p.winner === player) {
-      if (p.type === 'WINNER' || p.rallyDetails?.tipo === 'winner') {
+      if (p.type === 'WINNER' || p.type === 'ACE' || p.rallyDetails?.tipo === 'winner') {
         cleanWinners++;
       }
     } else {
-      if (p.type === 'UNFORCED_ERROR' || p.rallyDetails?.tipo === 'erro_nao_forcado') {
+      if (p.type === 'UNFORCED_ERROR' || p.type === 'DOUBLE_FAULT' || p.rallyDetails?.tipo === 'erro_nao_forcado') {
         unforcedErrors++;
       } else if (p.type === 'FORCED_ERROR' || p.rallyDetails?.tipo === 'erro_forcado') {
         forcedErrors++;

@@ -73,6 +73,7 @@ export function MatchTimelineView({
         showFinalResult={showFinalResult}
         scoreState={scoreState}
         doubles={doubles}
+        format={matchInfo?.format ?? undefined}
       />
 
       {matchInfo && <MatchInfoLine info={matchInfo} />}

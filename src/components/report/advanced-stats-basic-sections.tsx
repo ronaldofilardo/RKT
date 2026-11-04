@@ -33,15 +33,11 @@ export function ReturnSection({ stats, player1Name, player2Name }: AdvancedStats
   return (
     <Section title="2. Devolução">
       <PlayerColumnHeader player1Name={player1Name} player2Name={player2Name} />
-      <StatRow label="Total Break points" p1={p1.breakPointOpportunities} p2={p2.breakPointOpportunities} />
-      <StatRow label="Break points Won" p1={p1.breakPointsConverted} p2={p2.breakPointsConverted} />
-      <StatRow label="% Saques quebrados" p1={p1.breakPointsConvertedPct} p2={p2.breakPointsConvertedPct} format="pct" />
-      <StatRow label="% Devoluções em quadra (1º)" p1={p1.firstServeReturnInPct ?? 0} p2={p2.firstServeReturnInPct ?? 0} format="pct" />
-      <StatRow label="% Devoluções em quadra (2º)" p1={p1.secondServeReturnInPct ?? 0} p2={p2.secondServeReturnInPct ?? 0} format="pct" />
-      <StatRow label="Pontos ganhos devolvendo" p1={`${p1.returnPointsWon ?? p1.firstServeReturnPointsWon}/${p1.totalReturnPoints ?? p1.totalPoints}`} p2={`${p2.returnPointsWon ?? p2.firstServeReturnPointsWon}/${p2.totalReturnPoints ?? p2.totalPoints}`} />
-      <StatRow label="% Pontos ganhos devolvendo" p1={p1.returnPointsWonPct ?? 0} p2={p2.returnPointsWonPct ?? 0} format="pct" />
-      <StatRow label="Games de Retorno" p1={`${p1.returnGamesWon}/${p1.returnGamesPlayed}`} p2={`${p2.returnGamesWon}/${p2.returnGamesPlayed}`} />
-      <StatRow label="% Games de Retorno" p1={p1.returnGamesWonPct} p2={p2.returnGamesWonPct} format="pct" />
+      <StatRow label="% Devolução 1º saque em quadra" p1={p1.firstServeReturnInPct ?? 0} p2={p2.firstServeReturnInPct ?? 0} format="pct" />
+      <StatRow label="% pontos ganhos na devolução de 1º saque" p1={p1.firstServeReturnPointsWonPct ?? 0} p2={p2.firstServeReturnPointsWonPct ?? 0} format="pct" />
+      <StatRow label="% dev 2º saque em quadra" p1={p1.secondServeReturnInPct ?? 0} p2={p2.secondServeReturnInPct ?? 0} format="pct" />
+      <StatRow label="% pontos ganhos na dev 2º saque" p1={p1.secondServeReturnPointsWonPct ?? 0} p2={p2.secondServeReturnPointsWonPct ?? 0} format="pct" />
+      <StatRow label="Games ganhos devolvendo" p1={`${p1.returnGamesWon}/${p1.returnGamesPlayed}`} p2={`${p2.returnGamesWon}/${p2.returnGamesPlayed}`} />
     </Section>
   );
 }
@@ -51,11 +47,11 @@ export function PressureSection({ stats, player1Name, player2Name }: AdvancedSta
   return (
     <Section title="6. Pontos de Pressão">
       <PlayerColumnHeader player1Name={player1Name} player2Name={player2Name} />
-      <StatRow label="Game Points" p1={`${pressure.player1.gamePointsWon}/${pressure.player1.gamePointsTotal}`} p2={`${pressure.player2.gamePointsWon}/${pressure.player2.gamePointsTotal}`} />
-      <StatRow label="% Game Points" p1={pressure.player1.gamePointsWonPct} p2={pressure.player2.gamePointsWonPct} format="pct" />
-      <StatRow label="Set Points" p1={`${pressure.player1.setPointsWon}/${pressure.player1.setPointsTotal}`} p2={`${pressure.player2.setPointsWon}/${pressure.player2.setPointsTotal}`} />
-      <StatRow label="% Set Points" p1={pressure.player1.setPointsWonPct} p2={pressure.player2.setPointsWonPct} format="pct" />
-      <StatRow label="Tiebreaks" p1={`${pressure.player1.tiebreaksWon}/${pressure.player1.tiebreaksPlayed}`} p2={`${pressure.player2.tiebreaksWon}/${pressure.player2.tiebreaksPlayed}`} />
+      <StatRow label="Games Points Won" p1={`${pressure.player1.gamePointsWon}/${pressure.player1.gamePointsTotal}`} p2={`${pressure.player2.gamePointsWon}/${pressure.player2.gamePointsTotal}`} />
+      <StatRow label="% Games Points Won" p1={pressure.player1.gamePointsWonPct} p2={pressure.player2.gamePointsWonPct} format="pct" />
+      <StatRow label="Set Points Won" p1={`${pressure.player1.setPointsWon}/${pressure.player1.setPointsTotal}`} p2={`${pressure.player2.setPointsWon}/${pressure.player2.setPointsTotal}`} />
+      <StatRow label="% Set Points Won" p1={pressure.player1.setPointsWonPct} p2={pressure.player2.setPointsWonPct} format="pct" />
+      <StatRow label="Tiebreaks Won" p1={`${pressure.player1.tiebreaksWon}/${pressure.player1.tiebreaksPlayed}`} p2={`${pressure.player2.tiebreaksWon}/${pressure.player2.tiebreaksPlayed}`} />
       <StatRow label="Total de Pontos Ganhos" p1={pressure.player1.totalPointsWon} p2={pressure.player2.totalPointsWon} />
     </Section>
   );
