@@ -64,7 +64,10 @@ export function buildExistingSetsPayload(params: {
     return { shouldSave: false, existingSets: [], recalculatedServer: currentServer };
   }
 
-  const recalculatedServer = calculateServerForExistingSets(existingSets, currentServer, matchFormat, initialServer);
+  const calculated = calculateServerForExistingSets(existingSets, currentServer, matchFormat, initialServer);
+  const recalculatedServer = (state.nextServer && state.nextServer !== currentServer)
+    ? state.nextServer
+    : calculated;
   appendPartialGamePointsSet(existingSets, state, scoresAreZero);
 
   return { shouldSave: true, existingSets, recalculatedServer };

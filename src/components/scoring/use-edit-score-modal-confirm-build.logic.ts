@@ -32,7 +32,7 @@ export function buildConfirmSubmission(params: {
     })),
   ];
 
-  const nextServer = calculateNextServer({
+  const calculatedNext = calculateNextServer({
     currentServer,
     initialServer: params.initialServer,
     p1Games: p1Val,
@@ -43,6 +43,10 @@ export function buildConfirmSubmission(params: {
       : null,
     completedSets: allCompletedSetsForServer,
   }) || currentServer;
+
+  const nextServer = (state.nextServer && state.nextServer !== currentServer)
+    ? state.nextServer
+    : calculatedNext;
 
   const allNewSetsForConfirm = [...state.newSets, setData];
   const allSets = [...getCompletedSets(state, completedSets, matchFormat), ...allNewSetsForConfirm];

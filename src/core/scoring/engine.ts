@@ -5,6 +5,7 @@ import { parseSerializedEnginePayload } from './engine-from-serialized';
 import { processPointFlow } from './engine-apply-point';
 import { unwrapStateEnvelope } from './state-envelope';
 import { getServingMemberId, getReceiverMemberId } from './doubles';
+import { applyGameServerChange } from './game-server-change.logic';
 
 export class ScoringEngine {
   private state: ScoringState;
@@ -56,6 +57,11 @@ export class ScoringEngine {
 
   setArrangement(arrangement: DoublesArrangement): void {
     if (this.config.doubles) this.state.doubles = arrangement;
+  }
+
+  setGameServer(serverId: string): void {
+    if (this.state.isFinished) throw new Error('MATCH_ALREADY_FINISHED');
+    this.state = applyGameServerChange(this.state, this.config, serverId);
   }
 
   getPointHistory(): HistoryEntry[] { return getPointHistory(this.history); }

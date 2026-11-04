@@ -27,6 +27,7 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     cancelServeError,
     confirmPointDetails,
     updateDoublesArrangement,
+    changeGameServer,
     isProcessing,
   } = useScoringPageHandlersBridge(state);
 
@@ -81,6 +82,7 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
     cancelServeError,
     confirmPointDetails,
     updateDoublesArrangement,
+    changeGameServer,
     onPointSelectFromCard,
     startServeErrorDetails,
     dismissServeErrorDetails,

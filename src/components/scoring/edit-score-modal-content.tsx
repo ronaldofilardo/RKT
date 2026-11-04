@@ -3,6 +3,7 @@
 import { MatchSummary, EditableSetsSummary } from './edit-score-summary';
 import { EditScoreNoteField } from './edit-score-note-field';
 import { EditScoreSetInputSection } from './edit-score-set-input-section';
+import { EditScoreServerSection } from './EditScoreServerSection';
 import type { EditScoreModalContentProps } from './edit-score-modal.types';
 import {
   getAllCompletedSets,
@@ -74,6 +75,21 @@ export function EditScoreModalContent({
         p2SetsWon={p2SetsWon}
         setsToWin={setsToWin}
         playerNames={effectivePlayerNames}
+      />
+
+      <EditScoreServerSection
+        currentServer={currentServer}
+        selectedServer={state.nextServer}
+        selectedServerId={(state as any).targetServerId}
+        onSelectServer={(server, serverId) => {
+          setState((prev) => ({
+            ...prev,
+            nextServer: server,
+            targetServerId: serverId,
+          } as any));
+        }}
+        playerNames={playerNames}
+        doubles={doubles}
       />
 
       <EditScoreSetInputSection

@@ -7,6 +7,7 @@ import { ScoringEditScoreModal } from "./scoring-edit-score-modal";
 import { ScoringSessionModals } from "./scoring-session-modals";
 import { PointDetailsModalBlock } from "./scoring-point-modals";
 import { ShareSpectateModal } from "@/components/scoring/ShareSpectateModal";
+import { ChangeServerModal } from "@/components/scoring/ChangeServerModal";
 
 interface ScoringModalsProps {
   state: ScoringPageState;
@@ -60,6 +61,20 @@ export function ScoringModals({
 
       {state.activeModal === "point-details" && (
         <PointDetailsModalBlock state={state} handlers={handlers} derived={derived} match={match} />
+      )}
+
+      {state.activeModal === "change-server" && (
+        <ChangeServerModal
+          isOpen={true}
+          onClose={state.close}
+          match={match}
+          activeServerId={derived.activeServerId}
+          onSelectServer={async (serverId) => {
+            if (handlers.changeGameServer) {
+              await handlers.changeGameServer(serverId);
+            }
+          }}
+        />
       )}
 
       {isShareModalOpen && (

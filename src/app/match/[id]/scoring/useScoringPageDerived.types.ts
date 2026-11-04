@@ -7,6 +7,7 @@ export interface ScoringPageDerived {
   isMatchPoint: boolean;
   isSetPoint: boolean;
   isBreakPoint: boolean;
+  isDecidingPoint: boolean;
   isTiebreak: boolean;
   isSuperTiebreak: boolean;
   isFinished: boolean;

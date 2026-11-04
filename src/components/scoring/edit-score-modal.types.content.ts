@@ -16,6 +16,10 @@ export interface EditScoreModalContentProps {
   doubles?: {
     player1PartnerName?: string;
     player2PartnerName?: string;
+    player1Id?: string;
+    player2Id?: string;
+    player1PartnerId?: string;
+    player2PartnerId?: string;
   };
   state: {
     editableCompletedSets: SetEditData[];
@@ -24,6 +28,8 @@ export interface EditScoreModalContentProps {
     p2Input: string;
     p1Points: string;
     p2Points: string;
+    nextServer: Player;
+    targetServerId?: string;
     tiebreakP1: string;
     tiebreakP2: string;
     note?: string;

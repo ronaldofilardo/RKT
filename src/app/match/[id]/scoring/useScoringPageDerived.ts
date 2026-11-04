@@ -12,6 +12,8 @@ import {
 } from "./scoring-page-derived-edit-score.logic";
 import { resolveDisplayState } from "./scoring-page-display.logic";
 import { resolveActivePlayers } from "./scoring-page-active-players.logic";
+import { isNoAdDecidingPoint } from "@/core/scoring/doubles";
+import type { TennisFormat } from "@/core/scoring/types";
 import type { ScoringPageDerived } from "./useScoringPageDerived.types";
 
 export type { ScoringPageDerived } from "./useScoringPageDerived.types";
@@ -54,7 +56,17 @@ export function useScoringPageDerived(
     ? (effectiveScoreState.server === "player1" ? match.player2.name : match.player1.name)
     : "";
 
-  const { activeServerId, activeReceiverId } = resolveActivePlayers(effectiveScoreState, match);
+  const isDecidingPoint = Boolean(
+    effectiveScoreState &&
+    match?.format &&
+    isNoAdDecidingPoint(effectiveScoreState, match.format as TennisFormat)
+  );
+
+  const { activeServerId, activeReceiverId } = resolveActivePlayers(
+    effectiveScoreState,
+    match,
+    state.decidingPointReceiverOverride,
+  );
 
   return {
     effectiveScoreState,
@@ -65,6 +77,7 @@ export function useScoringPageDerived(
     isMatchPoint,
     isSetPoint,
     isBreakPoint,
+    isDecidingPoint,
     isTiebreak,
     isSuperTiebreak,
     isFinished,

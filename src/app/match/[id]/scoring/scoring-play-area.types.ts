@@ -15,6 +15,7 @@ export interface ScoringPlayAreaProps {
   activeReceiverId?: string | null;
   isSetPoint: boolean;
   isBreakPoint: boolean;
+  isDecidingPoint?: boolean;
   isMatchPoint: boolean;
   isTiebreak: boolean;
   isSuperTiebreak: boolean;
@@ -32,4 +33,6 @@ export interface ScoringPlayAreaProps {
   onSwipeUndo: () => void;
   onNavigateReport: () => void;
   onRegisterAndExit: () => Promise<void>;
+  onChangeServer?: () => void;
+  onSelectReceiverOverride?: (receiverId: string) => void;
 }

@@ -56,14 +56,25 @@ describe('DoublesServerSelectionModal — characterization das seções (pré-ex
     expect(initialServerId).toBe('p1');
   });
 
-  it('Seção 2: clicar nos partners define o 1º sacador de cada dupla (serveOrder invertido)', () => {
+  it('Seção 2: com Dupla 1 sacando (default), define 1º sacador da Dupla 1 e exibe aviso de Game 2 para Dupla 2', () => {
     const { onConfirmDoublesSetup } = renderModal();
 
+    expect(screen.getByText(/O 1º sacador será definido no Game 2/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '1º: Carlos Alcaraz' }));
-    fireEvent.click(screen.getByRole('button', { name: '1º: Novak Djokovic' }));
 
     const { setup } = confirmAndGet(onConfirmDoublesSetup);
     expect(setup.serveOrder.player1).toEqual(['p1p', 'p1']);
+    expect(setup.serveOrder.player2).toEqual(['p2', 'p2p']);
+  });
+
+  it('Seção 2: com Dupla 2 selecionada, define 1º sacador da Dupla 2', () => {
+    const { onConfirmDoublesSetup } = renderModal();
+
+    fireEvent.click(screen.getByRole('button', { name: /Dupla 2 Roger/ }));
+    fireEvent.click(screen.getByRole('button', { name: '1º: Novak Djokovic' }));
+
+    const { setup } = confirmAndGet(onConfirmDoublesSetup);
+    expect(setup.serveOrder.player1).toEqual(['p1', 'p1p']);
     expect(setup.serveOrder.player2).toEqual(['p2p', 'p2']);
   });
 

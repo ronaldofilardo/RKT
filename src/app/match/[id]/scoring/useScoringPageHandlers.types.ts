@@ -15,6 +15,7 @@ export interface ScoringPageHandlers {
   cancelServeError: ReturnType<typeof useScoringHandlers>["cancelServeError"];
   confirmPointDetails: ReturnType<typeof useScoringHandlers>["confirmPointDetails"];
   updateDoublesArrangement?: ReturnType<typeof useScoringHandlers>["updateDoublesArrangement"];
+  changeGameServer?: ReturnType<typeof useScoringHandlers>["changeGameServer"];
   onPointSelectFromCard: (winnerSide: "player1" | "player2") => void;
   startServeErrorDetails: (errorType: "out" | "net", step: "first" | "second") => void;
   dismissServeErrorDetails: () => void;

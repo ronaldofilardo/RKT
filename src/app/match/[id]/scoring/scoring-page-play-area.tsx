@@ -47,6 +47,7 @@ export function ScoringPagePlayArea({
     isMatchPoint,
     isTiebreak,
     isSuperTiebreak,
+    isDecidingPoint,
     winner,
     isFinished,
   } = derived;
@@ -68,6 +69,7 @@ export function ScoringPagePlayArea({
       isMatchPoint={isMatchPoint}
       isTiebreak={isTiebreak}
       isSuperTiebreak={isSuperTiebreak}
+      isDecidingPoint={isDecidingPoint}
       winner={winner}
       pointsHistory={pointsHistory}
       scoreState={scoreState}
@@ -75,6 +77,8 @@ export function ScoringPagePlayArea({
       matchId={matchId}
       serverControls={<ServeInlineControls {...serveControls} />}
       isServePanelOpen={serveControls.openAction !== null}
+      onChangeServer={() => state.open('change-server')}
+      onSelectReceiverOverride={state.setDecidingPointReceiverOverride}
       onOpenSetSummary={() =>
         chrome.setSetSummaryModalState({
           isOpen: true,

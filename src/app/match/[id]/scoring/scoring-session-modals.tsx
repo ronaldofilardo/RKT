@@ -4,6 +4,7 @@ import { UndoConfirmModal } from '@/components/scoring/UndoConfirmModal';
 import { CommentModal } from '@/components/scoring/CommentModal';
 import { SetSummaryModal } from '@/components/scoring/SetSummaryModal';
 import { DoublesArrangementModal } from '@/components/scoring/DoublesArrangementModal';
+import { Game2ServerSelectionModal } from '@/components/scoring/Game2ServerSelectionModal';
 import type { ScoringPageState } from './useScoringPageState';
 import type { ScoringPageHandlers } from './useScoringPageEffects';
 import type { ScoringPageDerived } from './useScoringPageDerived';
@@ -28,6 +29,27 @@ export function ScoringSessionModals({
   onNavigateReport,
 }: ScoringSessionModalsProps) {
   const [isArrangementOpen, setIsArrangementOpen] = useState(false);
+  const [isGame2ModalDismissed, setIsGame2ModalDismissed] = useState(false);
+
+  const isDoubles = match.matchType === 'DOUBLES' && Boolean(match.player1Partner && match.player2Partner);
+  const currentSet = derived.effectiveScoreState?.sets?.[0];
+  const completedGamesSet1 = currentSet ? (currentSet.player1 + currentSet.player2) : 0;
+  const isGame2Start = Boolean(
+    isDoubles &&
+    completedGamesSet1 === 1 &&
+    derived.effectiveScoreState?.currentGame &&
+    derived.effectiveScoreState.currentGame.player1 === 0 &&
+    derived.effectiveScoreState.currentGame.player2 === 0 &&
+    !derived.effectiveScoreState.currentGame.secondServe &&
+    !derived.isFinished &&
+    state.activeModal === null
+  );
+
+  const showGame2Modal = isGame2Start && !isGame2ModalDismissed;
+  const game2ServingSide = derived.effectiveScoreState?.server ?? 'player2';
+  const game2TeamName = game2ServingSide === 'player1' ? 'Dupla 1' : 'Dupla 2';
+  const game2P1 = game2ServingSide === 'player1' ? match.player1 : match.player2;
+  const game2P2 = game2ServingSide === 'player1' ? match.player1Partner! : match.player2Partner!;
 
   return (
     <>
@@ -73,6 +95,23 @@ export function ScoringSessionModals({
             : undefined
         }
       />
+
+      {showGame2Modal && (
+        <Game2ServerSelectionModal
+          isOpen={true}
+          onClose={() => setIsGame2ModalDismissed(true)}
+          teamName={game2TeamName}
+          player1={game2P1}
+          player2={game2P2}
+          currentServerId={derived.activeServerId}
+          onSelectServer={async (serverId) => {
+            if (handlers.changeGameServer) {
+              await handlers.changeGameServer(serverId);
+            }
+            setIsGame2ModalDismissed(true);
+          }}
+        />
+      )}
 
       {match.matchType === 'DOUBLES' && match.player1Partner && match.player2Partner && (
         <DoublesArrangementModal

@@ -58,6 +58,7 @@ export function DoublesServerSelectionModal({
         selectedP2Partner={selectedP2Partner}
       />
       <DoublesServeOrderSection
+        servingSide={servingSide}
         activeFirstServerP1={activeFirstServerP1}
         activeFirstServerP2={activeFirstServerP2}
         onFirstServerP1={setFirstServerP1}

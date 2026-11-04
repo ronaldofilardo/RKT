@@ -1,4 +1,37 @@
 import type { ScoringEngineConfig, ScoringState, HistoryEntry } from './types';
+import { sideOfPlayer } from './doubles-members';
+
+/**
+ * Lado do sacador inicial, cônscio de duplas (titular ou parceiro).
+ * Fallback simples mantém o comportamento legado para partidas de simples.
+ */
+function initialServerSide(config: ScoringEngineConfig): 'player1' | 'player2' {
+  if (config.doubles) {
+    const side = sideOfPlayer(config.doubles, config.initialServerId);
+    if (side) return side;
+  }
+  return config.initialServerId === config.player2Id ? 'player2' : 'player1';
+}
+
+/**
+ * Janela em que `correctInitialServer` reescreve `state.server` a partir do
+ * `initialServerId`: game 1 do 1º set (0 games concluídos, sem pontos de
+ * tiebreak). Correções de sacador feitas nessa janela devem também sincronizar
+ * o `initialServerId` persistido, senão a reidratação desfaz a troca.
+ */
+export function isInitialServerCorrectionWindow(
+  state: ScoringState,
+  config: ScoringEngineConfig,
+): boolean {
+  const totalCompletedGames = (state.sets ?? []).reduce(
+    (acc, s) => acc + (s.player1 || 0) + (s.player2 || 0),
+    0,
+  );
+  const hasTiebreakPoints = (state.sets ?? []).some(
+    (s) => s.tiebreakScore && (s.tiebreakScore.player1 > 0 || s.tiebreakScore.player2 > 0),
+  );
+  return config.format !== 'MATCH_TB_10' && totalCompletedGames === 0 && !hasTiebreakPoints;
+}
 
 /**
  * Normaliza o `server` de payloads legados: dados antigos gravavam o userId
@@ -22,10 +55,6 @@ function normalizeServer(state: ScoringState, config: ScoringEngineConfig): void
  * canônico diverge (ex.: reconstrução de sessão suspensa).
  */
 function correctInitialServer(state: ScoringState, config: ScoringEngineConfig, history: HistoryEntry[]): void {
-  const totalCompletedGames = (state.sets ?? []).reduce(
-    (acc, s) => acc + (s.player1 || 0) + (s.player2 || 0),
-    0
-  );
   const hasCurrentGamePoints = Boolean(
     state.currentGame && (
       state.currentGame.player1 > 0 ||
@@ -34,24 +63,17 @@ function correctInitialServer(state: ScoringState, config: ScoringEngineConfig, 
       state.currentGame.secondServe
     )
   );
-  const hasTiebreakPoints = Boolean(
-    (state.sets ?? []).some(
-      (s) => s.tiebreakScore && (s.tiebreakScore.player1 > 0 || s.tiebreakScore.player2 > 0)
-    )
-  );
+  const isGame1 = isInitialServerCorrectionWindow(state, config);
   const isVirginState =
-    config.format !== 'MATCH_TB_10' &&
-    totalCompletedGames === 0 &&
+    isGame1 &&
     !hasCurrentGamePoints &&
-    !hasTiebreakPoints &&
     history.length === 0 &&
     state.startedAt == null;
 
-  const isGame1 = config.format !== 'MATCH_TB_10' && totalCompletedGames === 0 && !hasTiebreakPoints;
-  if (isGame1 && config.initialServerId === config.player2Id && state.server === 'player1') {
+  if (isGame1 && initialServerSide(config) === 'player2' && state.server === 'player1') {
     state.server = 'player2';
   } else if (isVirginState && config.initialServerId) {
-    state.server = config.initialServerId === config.player2Id ? 'player2' : 'player1';
+    state.server = initialServerSide(config);
   }
 }
 

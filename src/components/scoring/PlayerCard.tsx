@@ -18,6 +18,7 @@ export function PlayerCard({
   onPoint,
   onSwipeDown,
   disabled,
+  onChangeServer,
 }: PlayerCardProps) {
   const score = formatScore(scoreState, side);
   const progress = getGameProgressRatio(scoreState, side);
@@ -50,6 +51,7 @@ export function PlayerCard({
           isServer={Boolean(isServerPlayer1 || isServerPlayer2)}
           isReceiver={Boolean(isReceiverPlayer1 || isReceiverPlayer2)}
           isPartner={Boolean(partner)}
+          onChangeServer={onChangeServer}
         />
         {partner && (
           <PlayerCardRow
@@ -57,6 +59,7 @@ export function PlayerCard({
             isServer={Boolean(isServerPlayer2)}
             isReceiver={Boolean(isReceiverPlayer2)}
             isPartner
+            onChangeServer={onChangeServer}
           />
         )}
       </div>

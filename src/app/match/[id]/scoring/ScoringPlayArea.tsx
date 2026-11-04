@@ -9,6 +9,7 @@ import { TacticalInsightBanner } from "@/components/scoring/TacticalInsightBanne
 import type { ScoringPlayAreaProps } from "./scoring-play-area.types";
 import { PlayAreaPlayers } from "./scoring-play-area-players";
 import { ScoringFinishedBanner } from "./scoring-finished-banner";
+import { abbreviatePlayerName } from "@/components/scoring/doubles-name-abbreviation.logic";
 
 export function ScoringPlayArea({
   match,
@@ -21,7 +22,14 @@ export function ScoringPlayArea({
   isTiebreak, isSuperTiebreak, winner, pointsHistory, scoreState, isFinished,
   serverControls, isServePanelOpen = false,
   onOpenSetSummary, onPoint, onSwipeUndo, onNavigateReport, onRegisterAndExit,
+  onChangeServer,
+  onSelectReceiverOverride,
+  isDecidingPoint = false,
 }: ScoringPlayAreaProps) {
+  const receivingTeam = p1IsServing
+    ? [match.player2, match.player2Partner].filter(Boolean)
+    : [match.player1, match.player1Partner].filter(Boolean);
+
   // flex-1 min-h-0: ocupa o espaço entre header e ActionBar; os cards dos jogadores
   // absorvem a sobra/falta de altura. SEM scroll interno: com o painel de detalhes
   // aberto, blocos secundários recolhem via [data-serve-collapse] (globals.css).
@@ -52,6 +60,36 @@ export function ScoringPlayArea({
         {!isServePanelOpen && <TacticalInsightBanner insights={tacticalInsights} />}
       </div>
 
+      {isDecidingPoint && match.matchType === 'DOUBLES' && receivingTeam.length === 2 && (
+        <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-telemetry-elevated/90 border border-telemetry-volt/30 shadow-md flex-shrink-0 animate-in fade-in">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs">⚡</span>
+            <span className="text-xs font-bold text-telemetry-volt">Ponto Decisivo (No-Ad)</span>
+            <span className="text-[11px] text-telemetry-text-muted hidden sm:inline">— Quem recebe:</span>
+          </div>
+          <div className="flex gap-1">
+            {receivingTeam.map((member) => {
+              if (!member) return null;
+              const isSelected = activeReceiverId === member.id;
+              return (
+                <button
+                  key={member.id}
+                  type="button"
+                  onClick={() => onSelectReceiverOverride?.(member.id)}
+                  className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all ${
+                    isSelected
+                      ? 'bg-telemetry-volt text-black ring-1 ring-white/40'
+                      : 'bg-telemetry-card text-telemetry-text-muted hover:text-white'
+                  }`}
+                >
+                  {abbreviatePlayerName(member.name)} {isSelected ? '✓' : ''}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <PlayAreaPlayers
         player1={match.player1}
         player2={match.player2}
@@ -69,6 +107,7 @@ export function ScoringPlayArea({
         serverControls={serverControls}
         onPoint={onPoint}
         onSwipeUndo={onSwipeUndo}
+        onChangeServer={onChangeServer}
       />
 
       <div data-serve-collapse="extras" className="contents">

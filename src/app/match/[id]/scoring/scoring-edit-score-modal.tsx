@@ -63,6 +63,10 @@ export function ScoringEditScoreModal({
           ? {
               player1PartnerName: match.player1Partner?.name,
               player2PartnerName: match.player2Partner?.name,
+              player1Id: match.player1.id,
+              player2Id: match.player2.id,
+              player1PartnerId: match.player1Partner?.id,
+              player2PartnerId: match.player2Partner?.id,
             }
           : undefined
       }

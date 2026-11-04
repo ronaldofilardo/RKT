@@ -42,5 +42,9 @@ export interface EditScoreModalProps {
   doubles?: {
     player1PartnerName?: string;
     player2PartnerName?: string;
+    player1Id?: string;
+    player2Id?: string;
+    player1PartnerId?: string;
+    player2PartnerId?: string;
   };
 }

@@ -30,6 +30,12 @@ export interface PersistStateOptions {
   voidLastPoint?: boolean;
   isUndo?: boolean;
   note?: string;
+  /**
+   * Sincroniza o sacador inicial persistido junto com o scoreState.
+   * Usado pela correção de sacador no game 1, quando a reidratação ainda
+   * deriva `state.server` a partir do `initialServerId`.
+   */
+  initialServerId?: string;
 }
 
 export interface VersionConflictPayload {

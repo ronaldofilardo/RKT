@@ -11,6 +11,7 @@ interface ResolveActivePlayersResult {
 export function resolveActivePlayers(
   effectiveScoreState: ScoringState | null,
   match: ScoringPageState["match"],
+  overrideReceiverId?: string | null,
 ): ResolveActivePlayersResult {
   let activeServerId: string | null = null;
   let activeReceiverId: string | null = null;
@@ -19,7 +20,11 @@ export function resolveActivePlayers(
       const engineConfig = buildEngineConfig(match);
       if (engineConfig.doubles) {
         activeServerId = getServingMemberId(effectiveScoreState, engineConfig.doubles);
-        activeReceiverId = getReceiverMemberId(effectiveScoreState, engineConfig.doubles);
+        activeReceiverId = getReceiverMemberId(
+          effectiveScoreState,
+          engineConfig.doubles,
+          overrideReceiverId ?? undefined,
+        );
       }
     } catch {
       activeServerId = null;

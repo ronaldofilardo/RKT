@@ -16,6 +16,7 @@ export interface EditScoreState {
   p1Points: string;
   p2Points: string;
   nextServer: Player;
+  targetServerId?: string;
   tiebreakP1: string;
   tiebreakP2: string;
   newSets: SetEditData[];

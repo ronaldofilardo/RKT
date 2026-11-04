@@ -40,4 +40,5 @@ export interface PlayerCardProps {
   onPoint: () => void;
   onSwipeDown: () => void;
   disabled?: boolean;
+  onChangeServer?: () => void;
 }

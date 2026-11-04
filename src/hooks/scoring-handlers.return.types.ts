@@ -36,5 +36,6 @@ export interface ScoringHandlersReturn {
   updateDoublesArrangement?: (
     arrangement: DoublesArrangement
   ) => Promise<void>;
+  changeGameServer?: (serverId: string) => Promise<{ success: boolean }>;
   isProcessing: boolean;
 }

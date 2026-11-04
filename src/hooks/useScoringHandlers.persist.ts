@@ -3,7 +3,7 @@ import type { HistoryEntry, ScoringState } from "@/core/scoring/types";
 import { persistStateWithRetry } from "./useScoringHandlers.persistence";
 import type { MatchData } from "./useScoringHandlers.types";
 
-interface PersistStateOptions {
+export interface PersistStateOptions {
   allowScoreEdit?: boolean;
   isManualScoreEdit?: boolean;
   voidPointLogId?: string;
@@ -11,14 +11,21 @@ interface PersistStateOptions {
   isUndo?: boolean;
   history?: HistoryEntry[];
   note?: string;
+  initialServerId?: string;
 }
 
-interface PersistStateResult {
+export interface PersistStateResult {
   success: boolean;
   needsResync?: boolean;
   conflict?: boolean;
   version?: number;
 }
+
+export type PersistStateFn = (
+  state: ScoringState,
+  label: string,
+  persistOptions?: PersistStateOptions,
+) => Promise<PersistStateResult>;
 
 interface PersistStateServiceDeps {
   matchId: string;
@@ -70,6 +77,7 @@ export function createPersistStateService({
       voidPointLogId: persistOptions?.voidPointLogId,
       voidLastPoint: persistOptions?.voidLastPoint,
       isUndo: persistOptions?.isUndo ?? (label === "undo" || label === "undo-retry"),
+      initialServerId: persistOptions?.initialServerId,
       history,
     });
 

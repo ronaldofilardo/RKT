@@ -28,13 +28,14 @@ export function useScoringHandlers(
   });
 
   const { confirmMatchSetup } = createSetupConfirmService({ ctx, fetchMatch });
-  const { serveActionsService, arrangementService } = createFinalizeServices({
+  const { serveActionsService, arrangementService, serverChangeService } = createFinalizeServices({
     ctx,
     matchVersionRef,
     fetchMatch,
     serverHelpers,
     modalService,
     applyPoint: (flow) => pointProcessorService.applyPoint(flow),
+    persistState,
   });
 
   return {
@@ -59,6 +60,7 @@ export function useScoringHandlers(
       pointProcessorService.confirmPointDetails(details, audio);
     },
     updateDoublesArrangement: arrangementService.updateDoublesArrangement,
+    changeGameServer: serverChangeService.changeGameServer,
     isProcessing: ctx.isProcessingRef.current,
   };
 }

@@ -3,8 +3,30 @@
 > Diário de bordo técnico · Metodologia RE-DOC (Fase 4 — Auditoria de Qualidade e Histórico)
 > **Este é um dos 6 arquivos-canônicos do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
 
-**Última Atualização:** 2026-11-01
+**Última Atualização:** 2026-11-04
 **Analisado por:** engenharia reversa e implementação sobre `main`
+
+---
+
+## 2.21 Duplas Just-in-Time, Ponto Decisivo No-Ad e Edição Ágil de Sacador — 2026-11-04
+- **Contexto & Problema:**
+  - Em testes com usuários reais (anotadores e treinadores), o início de duplas exigia antecipadamente a escolha dos sacadores de ambas as duplas, violando a Regra 14 da ITF (onde a dupla recebedora só define quem saca no Game 2).
+  - Em formatos No-Ad no 40-40 (ponto decisivo), não havia forma rápida de marcar quem recebia o serviço decisivo.
+  - Se o anotador errasse o sacador inicial, não era possível editar o sacador sem reiniciar a partida inteira.
+- **Pilar 1: Duplas Just-in-Time (Regra 14 ITF):**
+  - `DoublesServerSelectionModal.tsx` e `doubles-serve-order-section.tsx` simplificados para coletar exclusivamente o primeiro sacador da dupla que começa no saque (`servingSide`). A outra dupla recebe aviso visual de que seu sacador será escolhido no Game 2.
+  - Micro-modal `Game2ServerSelectionModal.tsx` integrado a `ScoringSessionModals.tsx`, disparado no início do Game 2 com 1 toque para escolher o sacador da dupla B, consolidando a rotação oficial para todo o set.
+- **Pilar 2: Ponto Decisivo No-Ad (40-40):**
+  - Reconhecimento automático de ponto decisivo em formatos sem vantagem via `isNoAdDecidingPoint`.
+  - Banner interativo no `ScoringPlayArea.tsx` exibindo os dois recebedores da dupla que devolve, permitindo alternar com 1 toque o atleta que recebe o ponto decisivo (`activeReceiverId`), integrando diretamente com `PointDetailsModal`.
+- **Pilar 3: Edição / Troca Ágil de Sacador em Qualquer Momento (Tolerância a Erro):**
+  - Ícone da bolinha (`🎾`) no `PlayerCardRow.tsx` / `PlayerCard.tsx` com `role="button"` e cursor clicável, acionando o `ChangeServerModal.tsx` (inversão em Simples e seletor dos 4 atletas em Duplas).
+  - Botão de recuperação rápida pós-undo ou no início do game no `0-0` em `PlayAreaPlayers.tsx` ("Corrigir Sacador").
+  - Seção dedicada e visível no modal de edição de placar (`EditScoreServerSection.tsx` integrado a `EditScoreModalContent.tsx`) para retificar o sacador ativo do game.
+  - Core: `applyGameServerChange` em `game-server-change.logic.ts` e `engine.setGameServer(serverId)` com sincronização no Game 1 via `createServerChangeService`.
+- **Testes & Qualidade:**
+  - Suítes dedicadas `ChangeServerModal.test.tsx`, `game-server-change.test.ts`, `DoublesServerSelectionModal.characterization.test.tsx` e `engine-from-serialized.initial-server.regression.test.ts` 100% verdes.
+  - TypeScript estrito (`tsc --noEmit`) 0 erros.
 
 ---
 
