@@ -6,6 +6,9 @@ export interface DashboardViewRouterProps {
   view: DashboardView;
   loading: boolean;
   ctId?: string | null;
+  ctName?: string | null;
+  userId?: string | null;
+  followedPlayerIds?: readonly string[] | string[] | null;
   finishedMatches: DashboardMatchPayload[];
   liveMatches: DashboardMatchPayload[];
   pendingMatches: DashboardMatchPayload[];

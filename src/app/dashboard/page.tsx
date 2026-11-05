@@ -16,12 +16,31 @@ export default function DashboardPage() {
   const summary = useDashboardSetSummary();
   const share = useDashboardShare();
   const [ctId, setCtId] = useState<string | null>(null);
+  const [ctName, setCtName] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [followedPlayerIds, setFollowedPlayerIds] = useState<string[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     fetch('/api/auth/me')
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => { if (!cancelled && data) setCtId(data.activeContextId ?? null); })
+      .then((data) => {
+        if (!cancelled && data) {
+          const activeId = data.activeContextId ?? null;
+          setCtId(activeId);
+          setUserId(data.user?.id ?? null);
+          setFollowedPlayerIds(data.followedPlayerIds ?? []);
+
+          if (activeId && activeId !== 'PARTICULAR') {
+            const currentMem = data.memberships?.find((m: any) => m.ctId === activeId);
+            const currentCtx = data.availableContexts?.find((c: any) => c.id === activeId);
+            const name = currentMem?.ct?.name || currentCtx?.label?.split(' (')[0] || null;
+            setCtName(name);
+          } else {
+            setCtName(null);
+          }
+        }
+      })
       .catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -35,6 +54,9 @@ export default function DashboardPage() {
           view={model.view}
           loading={model.loading}
           ctId={ctId}
+          ctName={ctName}
+          userId={userId}
+          followedPlayerIds={followedPlayerIds}
           {...model.filters}
           suspendedFromApi={model.suspendedFromApi}
           navigateToTarget={model.navigateToTarget}

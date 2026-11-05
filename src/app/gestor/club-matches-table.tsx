@@ -70,19 +70,19 @@ export function ClubMatchesTable({ matches, loading }: ClubMatchesTableProps) {
                     {new Date(m.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })}
                   </td>
                   <td className="px-3 py-4 text-sm text-telemetry-text-primary font-medium">
-                    <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <span>{m.player1?.name || 'Jogador 1'}</span>
                       {m.player1?.club && (
-                        <span className="text-[10px] text-telemetry-text-muted opacity-80">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border border-telemetry-border/20 bg-telemetry-elevated/70 text-telemetry-text-muted">
                           {m.player1.club}
                         </span>
                       )}
                     </div>
-                    <span className="text-telemetry-text-muted font-normal mt-0.5 block">vs</span>
-                    <div className="space-y-0.5">
+                    <span className="text-telemetry-text-muted font-normal text-xs my-0.5 block">vs</span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <span>{m.player2?.name || 'Jogador 2'}</span>
                       {m.player2?.club && (
-                        <span className="text-[10px] text-telemetry-text-muted opacity-80">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border border-telemetry-border/20 bg-telemetry-elevated/70 text-telemetry-text-muted">
                           {m.player2.club}
                         </span>
                       )}

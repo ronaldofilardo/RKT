@@ -24,7 +24,7 @@ export function MatchStatusBadge({ isSuspended, state }: MatchStatusBadgeProps) 
     return (
       <span
         title={info.title}
-        className="inline-flex items-center justify-center cursor-default"
+        className="inline-flex items-center gap-1.5 cursor-default"
       >
         <Image
           src={info.src}
@@ -35,18 +35,25 @@ export function MatchStatusBadge({ isSuspended, state }: MatchStatusBadgeProps) 
           priority={state === 'IN_PROGRESS'}
         />
         <span className="sr-only">{info.title}</span>
-        <span className="sr-only">{info.label}</span>
+        {state === 'FINISHED' ? (
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-900 border border-emerald-400 dark:bg-telemetry-volt/15 dark:text-telemetry-volt dark:border-telemetry-volt/40 inline-flex items-center gap-1 shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-telemetry-volt dark:shadow-[0_0_8px_rgba(204,255,0,0.8)]"></span>
+            Finalizada
+          </span>
+        ) : (
+          <span className="sr-only">{info.label}</span>
+        )}
       </span>
     );
   }
 
-  let badgeStyle = "bg-sky-500/15 text-sky-800 dark:text-sky-300 border border-sky-500/30";
+  let badgeStyle = "bg-sky-500/15 text-sky-800 dark:text-sky-300 border border-sky-500/30 font-bold";
   if (isSuspended) {
-    badgeStyle = "bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30";
+    badgeStyle = "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300 border border-amber-400 dark:border-amber-500/30 font-bold";
   } else if (state === "FINISHED") {
-    badgeStyle = "bg-slate-200 text-slate-800 dark:bg-slate-700/50 dark:text-slate-200 border border-slate-300 dark:border-white/10";
+    badgeStyle = "bg-emerald-100 text-emerald-900 dark:bg-telemetry-volt/15 dark:text-telemetry-volt border border-emerald-400 dark:border-telemetry-volt/40 font-bold";
   } else if (state === "SCHEDULED") {
-    badgeStyle = "bg-purple-500/15 text-purple-800 dark:text-purple-300 border border-purple-500/30";
+    badgeStyle = "bg-purple-100 text-purple-900 dark:bg-purple-500/15 dark:text-purple-300 border border-purple-400 dark:border-purple-500/30 font-bold";
   }
 
   return (

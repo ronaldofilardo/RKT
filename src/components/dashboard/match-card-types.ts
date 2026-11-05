@@ -1,13 +1,24 @@
+export interface MatchPlayerPayload {
+  name: string;
+  id?: string;
+  club?: string | null;
+  clubId?: string | null;
+  createdByUserId?: string | null;
+  createdByName?: string | null;
+  playerCts?: { ctId: string }[] | null;
+}
+
 export interface DashboardMatchPayload {
   id: string;
   state: string;
   format: string;
   matchType?: string;
   courtType?: string | null;
-  player1: { name: string; id?: string; club?: string | null; createdByName?: string | null };
-  player2: { name: string; id?: string; club?: string | null; createdByName?: string | null };
-  player1Partner?: { name: string; id?: string; club?: string | null; createdByName?: string | null } | null;
-  player2Partner?: { name: string; id?: string; club?: string | null; createdByName?: string | null } | null;
+  ctId?: string | null;
+  player1: MatchPlayerPayload;
+  player2: MatchPlayerPayload;
+  player1Partner?: MatchPlayerPayload | null;
+  player2Partner?: MatchPlayerPayload | null;
   doublesSetup?: unknown;
   scheduledAt?: string | null;
   scoreState?: unknown;
@@ -33,6 +44,12 @@ export interface MatchCardProps {
   match: DashboardMatchPayload;
   /** ID do CT ativo do usuario logado ("meu clube"). Usado para indicar se cada atleta eh do proprio clube ou de outro. */
   ctId?: string | null;
+  /** Nome do CT ativo do usuario logado. */
+  ctName?: string | null;
+  /** ID do usuario logado (usado para treinador avulso identificar "meu atleta"). */
+  userId?: string | null;
+  /** IDs de atletas vinculados ao treinador. */
+  followedPlayerIds?: readonly string[] | string[] | null;
   onClick?: (match: DashboardMatchPayload) => void;
   onReport?: (match: DashboardMatchPayload) => void;
   onFinish?: (match: DashboardMatchPayload) => void;

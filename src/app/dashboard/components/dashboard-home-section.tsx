@@ -4,6 +4,9 @@ interface DashboardHomeSectionProps {
   visibleMatches: DashboardMatchPayload[];
   suspendedFromApi: DashboardMatchPayload[];
   ctId?: string | null;
+  ctName?: string | null;
+  userId?: string | null;
+  followedPlayerIds?: readonly string[] | string[] | null;
   openMatchDetails: (m: DashboardMatchPayload) => void;
   openMatchReport: (m: DashboardMatchPayload) => void;
   finishMatch: (m: DashboardMatchPayload) => void;
@@ -20,6 +23,9 @@ export function DashboardHomeSection({
   visibleMatches,
   suspendedFromApi,
   ctId,
+  ctName,
+  userId,
+  followedPlayerIds,
   openMatchDetails,
   openMatchReport,
   finishMatch,
@@ -46,6 +52,9 @@ export function DashboardHomeSection({
                 key={m.id ?? m.suspendedSessionId}
                 match={m}
                 ctId={ctId}
+                ctName={ctName}
+                userId={userId}
+                followedPlayerIds={followedPlayerIds}
                 onClick={openMatchDetails}
                 onReport={openMatchReport}
                 onEditScore={openMatchEditScore}
@@ -69,6 +78,9 @@ export function DashboardHomeSection({
               key={m.id}
               match={m}
               ctId={ctId}
+              ctName={ctName}
+              userId={userId}
+              followedPlayerIds={followedPlayerIds}
               onClick={openMatchDetails}
               onReport={openMatchReport}
               onFinish={finishMatch}

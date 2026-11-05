@@ -28,12 +28,13 @@ export const BASE_MATCH_SELECT = {
   player2Id: true,
   player1PartnerId: true,
   player2PartnerId: true,
-  player1: { select: { id: true, name: true, club: true, createdByUser: { select: { name: true } } } },
-  player2: { select: { id: true, name: true, club: true, createdByUser: { select: { name: true } } } },
-  player1Partner: { select: { id: true, name: true, club: true, createdByUser: { select: { name: true } } } },
-  player2Partner: { select: { id: true, name: true, club: true, createdByUser: { select: { name: true } } } },
+  player1: { select: { id: true, name: true, club: true, clubId: true, createdByUserId: true, playerCts: { select: { ctId: true } }, createdByUser: { select: { name: true } } } },
+  player2: { select: { id: true, name: true, club: true, clubId: true, createdByUserId: true, playerCts: { select: { ctId: true } }, createdByUser: { select: { name: true } } } },
+  player1Partner: { select: { id: true, name: true, club: true, clubId: true, createdByUserId: true, playerCts: { select: { ctId: true } }, createdByUser: { select: { name: true } } } },
+  player2Partner: { select: { id: true, name: true, club: true, clubId: true, createdByUserId: true, playerCts: { select: { ctId: true } }, createdByUser: { select: { name: true } } } },
   doublesSetup: true,
   createdByUserId: true,
+  ctId: true,
 } as const;
 
 // getMatch inclui os campos de encerramento não expostos na listagem.
