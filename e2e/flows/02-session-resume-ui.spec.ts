@@ -57,8 +57,8 @@ test.describe('Fluxo de Retomada: Dashboard -> Modal -> Scoring', () => {
     await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
 
-    // 2. Localizar partida na seção "Anotações Suspensas"
-    const suspendedSection = page.locator('h3:has-text("Anotações Suspensas")');
+    // 2. Localizar partida na seção "Partidas pausadas"
+    const suspendedSection = page.locator('h3:has-text("Partidas pausadas")');
     await expect(suspendedSection).toBeVisible({ timeout: 15_000 });
 
     const suspendedCard = page.locator(`[data-testid="match-card-${matchId}"]`);

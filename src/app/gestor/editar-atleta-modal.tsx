@@ -40,7 +40,7 @@ export function EditarAtletaModal({ open, onOpenChange, atleta, onSave, cpfRequi
       setSubmitting(false);
       onOpenChange(false);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Erro ao salvar atleta';
+      const msg = err instanceof Error ? err.message : 'Não foi possível salvar. Tente novamente.';
       const match = msg.match(/^([a-zA-Z]+):/);
       setFieldError(match ? match[1] : null);
       setError(msg);

@@ -21,10 +21,10 @@ export function ScoringFinishedBanner({
     <div className="mt-2 sm:mt-3 bg-yellow-500/20 border-2 border-yellow-400 rounded-2xl p-3 sm:p-5 text-center relative z-10 mx-0">
       <span className="text-2xl sm:text-4xl">🏆</span>
       <h2 className="text-base sm:text-xl font-black text-white mt-1 sm:mt-2">
-        PARTIDA FINALIZADA!
+        Partida encerrada!
       </h2>
       <p className="text-sm sm:text-lg font-bold text-yellow-300 mt-0.5 sm:mt-1">
-        VENCEDOR:{" "}
+        Vencedor:{" "}
         {winner === "player1" ? match.player1.name : match.player2.name}
       </p>
       <p className="text-[11px] sm:text-sm text-telemetry-text-muted mt-0.5 sm:mt-1">
@@ -35,13 +35,13 @@ export function ScoringFinishedBanner({
           onClick={onNavigateReport}
           className="flex-1 sm:flex-none px-3 sm:px-5 py-2.5 sm:py-2 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold rounded-xl text-[11px] sm:text-sm min-h-[44px]"
         >
-          📊 Relatório
+          Ver relatório
         </button>
         <button
           onClick={onRegisterAndExit}
           className="flex-1 sm:flex-none px-3 sm:px-5 py-2.5 sm:py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-[11px] sm:text-sm border border-white/20 min-h-[44px]"
         >
-          ✅ Registrar
+          Salvar e sair
         </button>
       </div>
     </div>

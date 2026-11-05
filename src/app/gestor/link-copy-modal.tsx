@@ -55,7 +55,7 @@ export function LinkCopyModal({
         </div>
 
         <p className="text-sm text-telemetry-text-muted mb-4">
-          Link gerado para <span className="font-semibold text-telemetry-text-primary">{recipientName}</span>. Envie este link para o membro cadastrar ou redefinir sua senha:
+          Envie este link para <span className="font-semibold text-telemetry-text-primary">{recipientName}</span> criar ou redefinir a senha de acesso:
         </p>
 
         <div className="bg-telemetry-base border border-telemetry-border/30 rounded-lg p-3 mb-4">
@@ -80,7 +80,7 @@ export function LinkCopyModal({
             onClick={handleCopy}
             className="bg-telemetry-blue text-white font-semibold py-2 px-5 rounded-lg hover:bg-telemetry-blue/90 text-sm flex items-center gap-1.5"
           >
-            {copied ? '✓ Copiado!' : 'Copiar Link'}
+            {copied ? '✓ Copiado!' : 'Copiar link'}
           </button>
         </div>
       </div>

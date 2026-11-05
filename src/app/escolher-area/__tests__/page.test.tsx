@@ -26,7 +26,7 @@ describe('EscolherAreaPage (/escolher-area)', () => {
     });
 
     render(<EscolherAreaPage />);
-    expect(screen.getByText('Carregando áreas disponíveis...')).toBeInTheDocument();
+    expect(screen.getByText('Carregando seus perfis...')).toBeInTheDocument();
   });
 
   it('renderiza opções de áreas e permite seleção', () => {
@@ -41,7 +41,7 @@ describe('EscolherAreaPage (/escolher-area)', () => {
     });
 
     render(<EscolherAreaPage />);
-    expect(screen.getByText('Escolha sua Área')).toBeInTheDocument();
+    expect(screen.getByText('Como você quer entrar?')).toBeInTheDocument();
     expect(screen.getByText('Treinador Particular')).toBeInTheDocument();
     expect(screen.getByText('Painel do Atleta')).toBeInTheDocument();
 

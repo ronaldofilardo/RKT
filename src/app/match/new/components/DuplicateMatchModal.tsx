@@ -52,7 +52,10 @@ export function DuplicateMatchModal({
           no mesmo dia ({scheduledAt}).
         </p>
         <p className="text-xs text-telemetry-text-muted mb-6">
-          ID: {existingMatch.id}
+          <details className="text-telemetry-text-muted mt-2 cursor-pointer">
+            <summary>Detalhes técnicos</summary>
+            ID: {existingMatch.id}
+          </details>
         </p>
         <div className="flex flex-col gap-2">
           <button
@@ -60,14 +63,14 @@ export function DuplicateMatchModal({
             onClick={() => onGoToMatch(existingMatch.id)}
             className="w-full py-3 bg-telemetry-active hover:bg-sky-700 text-white font-semibold rounded-xl transition-all active:scale-95"
           >
-            Ir para aquela partida
+            Ver partida existente
           </button>
           <button
             type="button"
             onClick={onForceCreate}
             className="w-full py-3 bg-telemetry-elevated border-2 border-white/10 text-telemetry-text-primary font-semibold rounded-xl hover:bg-white/5 transition-all"
           >
-            Criar mesmo assim
+            Criar nova mesmo assim
           </button>
           <button
             type="button"

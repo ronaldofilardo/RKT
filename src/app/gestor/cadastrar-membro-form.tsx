@@ -76,7 +76,7 @@ export function CadastrarMembroForm({
       )}
       <div className="flex justify-end gap-2 pt-2 border-t border-telemetry-border/20">
         <button type="button" onClick={onCancel} className="text-sm text-telemetry-text-muted hover:text-telemetry-text-primary px-3 py-2">Cancelar</button>
-        <button type="submit" disabled={submitting} className="bg-telemetry-blue text-white font-semibold py-2 px-5 rounded-lg hover:bg-telemetry-blue/90 disabled:opacity-50 text-sm">{submitting ? 'Cadastrando...' : 'Cadastrar'}</button>
+        <button type="submit" disabled={submitting} className="bg-telemetry-blue text-white font-semibold py-2 px-5 rounded-lg hover:bg-telemetry-blue/90 disabled:opacity-50 text-sm">{submitting ? 'Adicionando...' : type === 'TREINADOR' ? 'Adicionar Treinador' : 'Adicionar Atleta'}</button>
       </div>
     </form>
   );

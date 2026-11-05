@@ -20,8 +20,8 @@ export function TabNav({
   const tabs: Array<{ key: GestorTab; label: string; badge?: number }> = [
     { key: 'coaches', label: 'Treinadores', badge: coachesCount },
     { key: 'athletes', label: 'Atletas', badge: athletesCount },
-    { key: 'matches', label: 'Partidas do Clube', badge: matchesCount },
-    { key: 'club', label: 'Dados do Clube' },
+    { key: 'matches', label: 'Partidas', badge: matchesCount },
+    { key: 'club', label: 'Clube' },
   ];
 
   return (

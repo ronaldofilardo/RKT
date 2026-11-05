@@ -47,7 +47,7 @@ export function EditarTreinadorModal({ open, onOpenChange, treinador, onSave }: 
       setSubmitting(false);
       onOpenChange(false);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Erro ao salvar treinador';
+      const msg = err instanceof Error ? err.message : 'Não foi possível salvar. Tente novamente.';
       const match = msg.match(/^([a-zA-Z]+):/);
       setFieldError(match ? match[1] : null);
       setError(msg);

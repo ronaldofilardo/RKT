@@ -31,7 +31,7 @@ export function EditarClubeModalGestor({ open, onOpenChange, ct, onSave }: Edita
     e.preventDefault();
     setError(null);
     setSubmitting(true);
-    try { onSave(formData); setSubmitting(false); onOpenChange(false); } catch { setError('Erro ao salvar alterações'); setSubmitting(false); }
+    try { onSave(formData); setSubmitting(false); onOpenChange(false); } catch { setError('Não foi possível salvar. Tente novamente.'); setSubmitting(false); }
   }
 
   if (!open) return null;

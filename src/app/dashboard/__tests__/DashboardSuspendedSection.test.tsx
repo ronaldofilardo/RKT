@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  *
- * Testes para a renderização da seção "Anotações Suspensas" no DashboardPage.
+ * Testes para a renderização da seção "Partidas pausadas" no DashboardPage.
  * Valida que partidas com suspendedSessionId/matchStateSnapshot vindas de
  * /api/matches/suspended-sessions são exibidas no topo da view padrão.
  */
@@ -65,7 +65,7 @@ const setupAuth = () => {
   });
 };
 
-describe('DashboardPage - seção Anotações Suspensas (TD-046)', () => {
+describe('DashboardPage - seção Partidas pausadas (TD-046)', () => {
   const mockRouter = { push: jest.fn() };
 
   beforeEach(() => {
@@ -102,7 +102,7 @@ describe('DashboardPage - seção Anotações Suspensas (TD-046)', () => {
     render(<DashboardPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Anotações Suspensas/i)).toBeInTheDocument();
+      expect(screen.getByText(/Partidas pausadas/i)).toBeInTheDocument();
     });
     expect(screen.getByText('SUSPENDED:m-suspended-1')).toBeInTheDocument();
   });
@@ -119,6 +119,6 @@ describe('DashboardPage - seção Anotações Suspensas (TD-046)', () => {
     render(<DashboardPage />);
 
     await waitFor(() => screen.getByTestId('hamburger-menu-button'));
-    expect(screen.queryByText(/Anotações Suspensas/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Partidas pausadas/i)).not.toBeInTheDocument();
   });
 });

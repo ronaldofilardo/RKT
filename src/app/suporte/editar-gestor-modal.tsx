@@ -33,7 +33,7 @@ export function EditarGestorModal({ open, onOpenChange, user, onSave }: EditarGe
       setSubmitting(false);
       onOpenChange(false);
     } catch {
-      setError('Erro ao salvar alterações');
+      setError('Não foi possível salvar. Tente novamente.');
       setFieldError(null);
       setSubmitting(false);
     }

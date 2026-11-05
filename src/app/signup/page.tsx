@@ -33,7 +33,7 @@ export default function SignupPage() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    if (!termsAccepted) { setLoading(false); setError('É necessário aceitar os Termos de Uso e Política de Privacidade'); return; }
+    if (!termsAccepted) { setLoading(false); setError('Aceite os Termos de Uso e a Política de Privacidade para continuar'); return; }
     if (role === 'GESTOR') { setLoading(false); setShowGestorModal(true); return; }
     try {
       const res = await fetch('/api/auth/signup', {
@@ -43,7 +43,7 @@ export default function SignupPage() {
       const data = await res.json();
       if (!res.ok) setError(data.message || data.error || 'Erro ao criar conta');
       else router.push('/login');
-    } catch { setError('Falha de conexão com o servidor'); }
+    } catch { setError('Sem conexão. Verifique sua internet e tente novamente.'); }
     finally { setLoading(false); }
   }
 
@@ -51,16 +51,16 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center bg-telemetry-base p-4">
       <div className="bg-telemetry-card rounded-2xl shadow-xl border border-telemetry-border/10 p-8 w-full max-w-md">
         <div className="flex justify-center mb-6"><BrandLogo size="lg" priority /></div>
-        <h1 className="text-2xl font-bold text-center text-telemetry-text-primary mb-2">Criar Conta no RKT</h1>
-        <p className="text-sm text-center text-telemetry-text-muted mb-6">Preencha os dados para iniciar seu acesso</p>
+        <h1 className="text-2xl font-bold text-center text-telemetry-text-primary mb-2">Crie sua conta</h1>
+        <p className="text-sm text-center text-telemetry-text-muted mb-6">Preencha seus dados para começar</p>
         {error && <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-500 dark:text-red-400 text-sm rounded-lg">{error}</div>}
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <SignupFormFields name={name} setName={setName} identifier={identifier} setIdentifier={setIdentifier} password={password} setPassword={setPassword} role={role} setRole={setRole} termsAccepted={termsAccepted} setTermsAccepted={setTermsAccepted} />
           <button type="submit" disabled={loading} className="w-full bg-telemetry-blue hover:bg-telemetry-blue-light text-white font-semibold py-3 rounded-lg disabled:opacity-50 mt-2 transition-colors cursor-pointer shadow-sm">
-            {loading ? 'Processando...' : role === 'GESTOR' ? 'Avançar para Cadastro de Clube' : 'Cadastrar'}
+            {loading ? 'Criando conta...' : role === 'GESTOR' ? 'Avançar: cadastrar clube' : 'Criar conta'}
           </button>
           <div className="text-center text-xs text-telemetry-text-muted mt-3 border-t border-telemetry-border/10 pt-3">
-            Já possui conta? <Link href="/login" className="text-telemetry-blue hover:text-telemetry-blue-light font-semibold hover:underline">Fazer login</Link>
+            Já tem conta? <Link href="/login" className="text-telemetry-blue hover:text-telemetry-blue-light font-semibold hover:underline">Entrar</Link>
           </div>
         </form>
         <GestorOnboardingModal open={showGestorModal} onOpenChange={setShowGestorModal} />

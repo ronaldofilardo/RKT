@@ -56,7 +56,7 @@ export function SignupFormFields({
       />
       <div className="flex flex-col gap-1 text-xs text-gray-600">
         <label htmlFor="signup-role-select" className="font-medium">
-          Perfil principal:
+          Qual é o seu perfil?
         </label>
         <select
           id="signup-role-select"
@@ -66,7 +66,7 @@ export function SignupFormFields({
         >
           <option value="ATLETA">Atleta</option>
           <option value="TREINADOR">Treinador</option>
-          <option value="ESPECTADOR">Espectador / Responsável</option>
+          <option value="ESPECTADOR">Responsável / Espectador</option>
           <option value="GESTOR">Gestor de Clube / CT</option>
         </select>
       </div>

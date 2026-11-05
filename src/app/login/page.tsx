@@ -44,7 +44,7 @@ function LoginFormContent() {
       ) : (
         <>
           <p className="text-sm text-center text-telemetry-text-muted mb-6">
-            Acesse com seu e-mail ou CPF
+            Entre com e-mail ou CPF
           </p>
           <form ref={formRef} onSubmit={submitLoginForm} className="flex flex-col gap-4">
             <LoginFormFields errorField={errorField} />
@@ -66,7 +66,7 @@ function LoginFormContent() {
               Esqueceu sua senha?
             </a>
             <div className="text-telemetry-text-muted text-xs">
-              Ainda não tem conta?{' '}
+              Novo no RKT?{' '}
               <a
                 href="/signup"
                 className="text-telemetry-blue hover:text-telemetry-blue-light hover:underline font-semibold"
@@ -84,7 +84,7 @@ function LoginFormContent() {
 export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-telemetry-base p-4">
-      <Suspense fallback={<div className="text-sm text-telemetry-text-muted">Carregando...</div>}>
+      <Suspense fallback={<div className="text-sm text-telemetry-text-muted">Carregando login...</div>}>
         <LoginFormContent />
       </Suspense>
     </div>

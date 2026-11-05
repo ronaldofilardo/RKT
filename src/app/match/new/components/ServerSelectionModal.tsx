@@ -42,7 +42,7 @@ export function ServerSelectionModal({
           Quem saca primeiro?
         </h2>{" "}
         <p className="text-sm text-telemetry-text-muted mb-6">
-          Selecione o jogador que fará o primeiro saque
+          Toque no jogador que começa sacando
         </p>{" "}
         <div className="flex flex-col gap-3">
           {" "}

@@ -394,7 +394,7 @@ describe("ScoringPage - Characterization Tests", () => {
       render(<ScoringPage />);
 
       await waitFor(() => {
-        expect(screen.getByText("PARTIDA FINALIZADA!")).toBeInTheDocument();
+        expect(screen.getByText("Partida encerrada!")).toBeInTheDocument();
       });
     });
 
@@ -402,8 +402,8 @@ describe("ScoringPage - Characterization Tests", () => {
       render(<ScoringPage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/📊 Relatório/)).toBeInTheDocument();
-        expect(screen.getByText(/Registrar/)).toBeInTheDocument();
+        expect(screen.getByText(/Ver relatório/)).toBeInTheDocument();
+        expect(screen.getByText(/Salvar e sair/)).toBeInTheDocument();
       });
     });
   });

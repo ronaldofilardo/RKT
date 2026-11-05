@@ -64,8 +64,8 @@ export function ScoringPlayArea({
         <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-telemetry-elevated/90 border border-telemetry-volt/30 shadow-md flex-shrink-0 animate-in fade-in">
           <div className="flex items-center gap-1.5">
             <span className="text-xs">⚡</span>
-            <span className="text-xs font-bold text-telemetry-volt">Ponto Decisivo (No-Ad)</span>
-            <span className="text-[11px] text-telemetry-text-muted hidden sm:inline">— Quem recebe:</span>
+            <span className="text-xs font-bold text-telemetry-volt">Ponto decisivo — No-Ad</span>
+            <span className="text-[11px] text-telemetry-text-muted hidden sm:inline">Quem recebe agora?</span>
           </div>
           <div className="flex gap-1">
             {receivingTeam.map((member) => {

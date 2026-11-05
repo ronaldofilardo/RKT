@@ -47,11 +47,11 @@ describe('CadastrarMembroModal - vínculo de atleta com conta existente', () => 
     fireEvent.change(screen.getByLabelText('Nome completo'), { target: { value: 'Marcos' } });
     fireEvent.change(screen.getByLabelText('CPF'), { target: { value: '63983014046' } });
     fireEvent.change(screen.getByLabelText('Data de nascimento'), { target: { value: '2015-01-01' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Cadastrar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Adicionar Atleta' }));
 
     // Prompt com copy própria de atleta ("elenco do clube", não "equipe técnica").
     expect(
-      await screen.findByText(/Deseja vincular a conta ao seu clube\?/, { selector: 'p' }),
+      await screen.findByText(/Quer adicioná-lo ao elenco\?/, { selector: 'p' }),
     ).toBeInTheDocument();
     expect(screen.getByText('Coah Carter')).toBeInTheDocument();
     expect(screen.queryByText(/equipe técnica/)).not.toBeInTheDocument();
@@ -59,11 +59,11 @@ describe('CadastrarMembroModal - vínculo de atleta com conta existente', () => 
     const firstBody = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string);
     expect(firstBody.linkExisting).toBeUndefined();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Confirmar Vínculo' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Sim, vincular' }));
 
-    expect(await screen.findByText('Vínculo concluído')).toBeInTheDocument();
+    expect(await screen.findByText('Vínculo feito com sucesso')).toBeInTheDocument();
     expect(
-      screen.getByText(/foi associado ao clube com sucesso/, { selector: 'p' }),
+      screen.getByText(/já tinha conta no RKT e agora está vinculado ao clube/, { selector: 'p' }),
     ).toBeInTheDocument();
 
     const secondBody = JSON.parse((fetchMock.mock.calls[1][1] as RequestInit).body as string);

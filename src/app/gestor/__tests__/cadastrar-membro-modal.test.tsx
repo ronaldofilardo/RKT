@@ -31,13 +31,13 @@ describe('CadastrarMembroModal', () => {
     fireEvent.change(screen.getByLabelText('CPF'), { target: { value: '11144477735' } });
     fireEvent.change(screen.getByLabelText('Data de nascimento'), { target: { value: '1985-03-15' } });
     fireEvent.change(screen.getByLabelText('E-mail'), { target: { value: 'coach@example.com' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Cadastrar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Adicionar Treinador' }));
 
     expect(await screen.findByText('Cadastro concluído')).toBeInTheDocument();
     expect(onSave).toHaveBeenCalledWith(result);
     expect(onSave).toHaveBeenCalledTimes(1);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Fechar e continuar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     expect(onSave).toHaveBeenCalledTimes(1);
   });
 });

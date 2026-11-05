@@ -34,9 +34,7 @@ export function EditarClubeModal({ open, onOpenChange, ct, onSave }: EditarClube
     setFieldError(null);
     setSubmitting(true);
     try { onSave(formData); setSubmitting(false); onOpenChange(false); } catch {
-      const msg = 'Erro ao salvar alterações';
-      setFieldError(null);
-      setError(msg);
+      setError('Não foi possível salvar. Tente novamente.');
       setSubmitting(false);
     }
   }

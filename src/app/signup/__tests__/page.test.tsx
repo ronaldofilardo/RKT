@@ -37,7 +37,7 @@ describe('SignupPage - Fluxo de redirecionamento pós-cadastro', () => {
     render(<SignupPage />);
 
     fillFormAndSubmit();
-    fireEvent.click(screen.getByRole('button', { name: /Cadastrar/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Criar conta/i }));
 
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/login');
@@ -53,7 +53,7 @@ describe('SignupPage - Fluxo de redirecionamento pós-cadastro', () => {
     render(<SignupPage />);
 
     fillFormAndSubmit();
-    fireEvent.click(screen.getByRole('button', { name: /Cadastrar/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Criar conta/i }));
 
     await waitFor(() => {
       expect(screen.getByText('E-mail já cadastrado')).toBeInTheDocument();
@@ -72,10 +72,10 @@ describe('SignupPage - Fluxo de redirecionamento pós-cadastro', () => {
     fireEvent.change(screen.getByPlaceholderText(/Nome completo/i), { target: { value: 'Atleta Teste' } });
     fireEvent.change(screen.getByPlaceholderText(/E-mail ou CPF/i), { target: { value: 'atleta@teste.com' } });
     fireEvent.change(screen.getByPlaceholderText(/Senha/i), { target: { value: 'senhaForte123' } });
-    fireEvent.click(screen.getByRole('button', { name: /Cadastrar/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Criar conta/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/É necessário aceitar os Termos de Uso e Política de Privacidade/)).toBeInTheDocument();
+      expect(screen.getByText(/Aceite os Termos de Uso e a Política de Privacidade para continuar/)).toBeInTheDocument();
     });
     expect(mockPush).not.toHaveBeenCalled();
   });
@@ -84,9 +84,9 @@ describe('SignupPage - Fluxo de redirecionamento pós-cadastro', () => {
     render(<SignupPage />);
 
     fillFormAndSubmit();
-    fireEvent.change(screen.getByLabelText(/Perfil principal/i), { target: { value: 'GESTOR' } });
+    fireEvent.change(screen.getByLabelText(/Qual é o seu perfil/i), { target: { value: 'GESTOR' } });
 
-    const btn = screen.getByRole('button', { name: /Avançar para Cadastro de Clube/i });
+    const btn = screen.getByRole('button', { name: /Avançar: cadastrar clube/i });
     expect(btn).toBeInTheDocument();
     fireEvent.click(btn);
 

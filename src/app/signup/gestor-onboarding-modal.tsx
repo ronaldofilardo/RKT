@@ -58,7 +58,7 @@ export function GestorOnboardingModal({ open, onOpenChange }: GestorOnboardingMo
       onOpenChange(false);
       router.push('/login');
     } catch {
-      setError('Falha de conexão com o servidor');
+      setError('Sem conexão. Verifique sua internet e tente novamente.');
       setSubmitting(false);
     }
   }

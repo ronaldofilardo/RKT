@@ -44,7 +44,7 @@ export function DashboardHomeSection({
       {suspendedFromApi.length > 0 && (
         <div className="mb-6">
           <h3 className="text-sm font-semibold text-telemetry-text-muted uppercase mb-3">
-            Anotações Suspensas
+            Partidas pausadas
           </h3>
           <div className="space-y-3">
             {suspendedFromApi.map((m: DashboardMatchPayload) => (
@@ -70,7 +70,7 @@ export function DashboardHomeSection({
       <div className="space-y-3">
         {visibleMatches.length === 0 ? (
           <p className="text-telemetry-text-muted text-center py-8">
-            Nenhuma partida encontrada.
+            Nenhuma partida por aqui ainda.
           </p>
         ) : (
           visibleMatches.map((m: DashboardMatchPayload) => (

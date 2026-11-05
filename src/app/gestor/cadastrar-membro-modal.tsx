@@ -30,7 +30,7 @@ export function CadastrarMembroModal({ open, onOpenChange, onSave, initialType =
     setError(null);
     setFieldError(null);
     if (!formData.name.trim() || !formData.cpf.trim() || !formData.birthDate) {
-      setError('Preencha Nome, CPF e Data de Nascimento.');
+      setError('Nome, CPF e data de nascimento são obrigatórios.');
       return;
     }
     setSubmitting(true);
@@ -66,7 +66,7 @@ export function CadastrarMembroModal({ open, onOpenChange, onSave, initialType =
       setExistingToLink(null);
       onOpenChange(false);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Erro ao cadastrar membro';
+      const msg = err instanceof Error ? err.message : 'Não foi possível salvar. Tente novamente.';
       const match = msg.match(/^([a-zA-Z]+):/);
       setFieldError(match ? match[1] : null);
       setError(msg);

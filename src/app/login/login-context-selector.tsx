@@ -18,10 +18,10 @@ export function LoginContextSelector({
   return (
     <div className="flex flex-col gap-3">
       <h2 className="text-base font-semibold text-telemetry-text-primary text-center">
-        Selecione o Contexto de Atuação
+        Com qual perfil você quer entrar?
       </h2>
       <p className="text-xs text-telemetry-text-muted text-center mb-2">
-        Identificamos múltiplos vínculos ativos. Escolha por onde deseja atuar nesta sessão:
+        Você tem mais de um vínculo ativo. Escolha como quer entrar agora:
       </p>
 
       <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
@@ -38,7 +38,7 @@ export function LoginContextSelector({
                 {ctx.label}
               </p>
               <span className="text-xs text-telemetry-text-muted">
-                {ctx.type === 'PARTICULAR' ? 'Atendimento avulso' : `Vínculo: ${ctx.role}`}
+                {ctx.type === 'PARTICULAR' ? 'Atendimento avulso' : `${ctx.role} em ${ctx.label}`}
               </span>
             </div>
             <span className="text-telemetry-text-muted group-hover:text-telemetry-blue text-lg">
@@ -54,7 +54,7 @@ export function LoginContextSelector({
         onClick={onCancel}
         className="mt-2 text-xs text-telemetry-text-muted hover:text-telemetry-text-primary text-center underline cursor-pointer"
       >
-        Voltar para login
+        ← Voltar
       </button>
     </div>
   );

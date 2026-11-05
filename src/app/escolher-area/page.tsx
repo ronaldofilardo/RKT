@@ -9,7 +9,7 @@ export default function EscolherAreaPage() {
   if (loading) {
     return (
       <main className="min-h-screen bg-telemetry-base flex items-center justify-center p-4">
-        <div className="text-telemetry-text-muted text-sm font-medium animate-pulse">Carregando áreas disponíveis...</div>
+        <div className="text-telemetry-text-muted text-sm font-medium animate-pulse">Carregando seus perfis...</div>
       </main>
     );
   }
@@ -21,9 +21,9 @@ export default function EscolherAreaPage() {
           <div className="flex justify-center mb-4">
             <BrandLogo size="md" priority />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Escolha sua Área</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Como você quer entrar?</h1>
           <p className="text-sm text-telemetry-text-muted">
-            Você possui acesso a múltiplos perfis. Selecione o ambiente em que deseja atuar:
+            Você tem mais de um perfil ativo. Escolha com qual quer continuar:
           </p>
         </div>
 
@@ -44,7 +44,7 @@ export default function EscolherAreaPage() {
                   <div className="text-xs text-telemetry-text-muted mt-0.5">{opt.prefix}</div>
                 </div>
                 <div className="text-telemetry-blue font-bold text-sm">
-                  {isCurrentSwitching ? 'Acessando...' : 'Entrar →'}
+                  {isCurrentSwitching ? 'Entrando...' : 'Entrar →'}
                 </div>
               </button>
             );

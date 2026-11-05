@@ -10,14 +10,14 @@ interface CadastrarMembroLinkPromptProps {
 
 const copy = {
   TREINADOR: {
-    subject: 'O profissional',
-    action: 'Deseja vinculá-lo à equipe técnica do seu clube?',
-    detail: 'Ele continuará utilizando sua senha atual e passará a ter acesso à visão deste clube.',
+    subject: '',
+    action: 'Quer adicioná-lo como treinador?',
+    detail: 'Ele mantém a senha atual e ganha acesso a este clube.',
   },
   ATLETA: {
-    subject: 'O atleta',
-    action: 'Deseja vincular a conta ao seu clube?',
-    detail: 'Ele continuará utilizando sua senha atual e passará a integrar o elenco deste clube.',
+    subject: '',
+    action: 'Quer adicioná-lo ao elenco?',
+    detail: 'Ele mantém a senha atual e ganha acesso a este clube.',
   },
 };
 
@@ -33,10 +33,10 @@ export function CadastrarMembroLinkPrompt({
     <div className="flex flex-col gap-4 text-center">
       <div className="p-4 rounded-xl bg-telemetry-elevated/40 border border-telemetry-border/20 text-left">
         <h3 className="text-sm font-semibold text-telemetry-text-primary mb-1">
-          Usuário já cadastrado no RKT
+          {name} já tem uma conta no RKT
         </h3>
         <p className="text-xs text-telemetry-text-muted leading-relaxed">
-          {texts.subject} <strong className="text-telemetry-text-primary">{name}</strong> já possui cadastro na plataforma. {texts.action}
+          <strong className="text-telemetry-text-primary">{name}</strong> já tem conta no RKT. {texts.action}
         </p>
         <p className="text-[11px] text-telemetry-text-muted/80 mt-2">
           {texts.detail}
@@ -58,7 +58,7 @@ export function CadastrarMembroLinkPrompt({
           onClick={onConfirm}
           className="px-4 py-2 text-xs bg-telemetry-blue hover:bg-telemetry-blue-light text-white font-semibold rounded-lg transition-colors cursor-pointer disabled:opacity-50"
         >
-          {submitting ? 'Vinculando...' : 'Confirmar Vínculo'}
+          {submitting ? 'Vinculando...' : 'Sim, vincular'}
         </button>
       </div>
     </div>
