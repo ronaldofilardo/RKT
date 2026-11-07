@@ -32,9 +32,9 @@ export function SpectatorTabs({ view }: { view: SpectatorView }) {
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab)}
-              className={`px-3 py-2 text-[13px] font-medium transition-colors border-b-2 -mb-[1px] ${
+              className={`px-3 py-2 text-[13px] font-medium font-mono transition-colors border-b-2 -mb-[1px] ${
                 isActive
-                  ? 'text-telemetry-text-primary border-telemetry-text-primary'
+                  ? 'text-telemetry-volt border-telemetry-volt'
                   : 'text-telemetry-text-muted border-transparent hover:text-telemetry-text-primary'
               }`}
             >

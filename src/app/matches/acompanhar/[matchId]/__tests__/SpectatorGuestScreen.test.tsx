@@ -60,30 +60,31 @@ describe('Spectator Guest Screen Components', () => {
       <SpectatorHeader match={mockMatch} status="LIVE" updateText="Atualizado há 3 s" />
     );
 
-    expect(screen.getByText('Ana S. × Bia L.')).toBeInTheDocument();
+    expect(screen.getByText('Ana S.')).toBeInTheDocument();
+    expect(screen.getByText('Bia L.')).toBeInTheDocument();
+    expect(screen.getByText('×')).toBeInTheDocument();
     expect(screen.getByText('Ao vivo')).toBeInTheDocument();
     expect(screen.getByText('Atualizado há 3 s')).toBeInTheDocument();
-    expect(screen.getByLabelText('Voltar')).toBeInTheDocument();
+    expect(screen.getByLabelText('Voltar ao dashboard')).toBeInTheDocument();
   });
 
-  it('SpectatorScoreboard renders the /scoring table pattern (Set N, server, game column)', () => {
+  it('SpectatorScoreboard renders broadcast-style scoreboard with large scores', () => {
     render(
       <SpectatorScoreboard view={{ match: mockMatch, score: mockScore, points: mockPoints }} />
     );
 
-    // Mesmo padrão do /scoring: colunas "Set N", nomes abreviados e coluna do game.
-    expect(screen.getByText('Set 1')).toBeInTheDocument();
-    expect(screen.getByText('Set 2')).toBeInTheDocument();
-    expect(screen.getByText('Set 3')).toBeInTheDocument();
-    expect(screen.getByText('Pts')).toBeInTheDocument();
+    // Novo design: placar estilo broadcast com nomes abreviados acima e scores grandes
     expect(screen.getByText('A. S.')).toBeInTheDocument();
     expect(screen.getByText('B. L.')).toBeInTheDocument();
-    expect(screen.getByLabelText('Sacador')).toBeInTheDocument();
+    expect(screen.getByText('3')).toBeInTheDocument(); // p1 sets won
+    expect(screen.getByText('2')).toBeInTheDocument(); // p2 sets won
+    expect(screen.getByText('Atualizado há poucos segundos')).toBeInTheDocument();
     expect(screen.getByText('40')).toBeInTheDocument();
     expect(screen.getByText('30')).toBeInTheDocument();
+    expect(screen.getByText('Pts')).toBeInTheDocument();
   });
 
-  it('SpectatorLastPointBanner renders single-line accent banner', () => {
+it('SpectatorLastPointBanner renders single-line accent banner', () => {
     render(
       <SpectatorLastPointBanner
         lastPoint={mockPoints[1]}
@@ -91,7 +92,10 @@ describe('Spectator Guest Screen Components', () => {
       />
     );
 
-    expect(screen.getByText('Último ponto · Ana S. · ace')).toBeInTheDocument();
+    expect(screen.getByText('Último ponto')).toBeInTheDocument();
+    expect(screen.getByText((content) => content.includes('Ana S.'))).toBeInTheDocument();
+    expect(screen.getByText(/ace/i)).toBeInTheDocument();
+    expect(screen.getByTestId('live-pulse')).toBeInTheDocument();
   });
 
   it('SpectatorTabs switches between Pontos, Resumo and Estatísticas', () => {
@@ -103,9 +107,10 @@ describe('Spectator Guest Screen Components', () => {
     expect(screen.getByRole('button', { name: 'Resumo' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Estatísticas' })).toBeInTheDocument();
 
-    // Timeline is shown on Pontos tab
+    // Timeline is shown on Pontos tab - now shows initials
     expect(screen.getByText('G4 · 40-30')).toBeInTheDocument();
-    expect(screen.getByText('Ana S. · ace')).toBeInTheDocument();
+    expect(screen.getByText('A.S.')).toBeInTheDocument();
+    expect(screen.getByText('ace')).toBeInTheDocument();
 
     // Click Resumo
     fireEvent.click(screen.getByRole('button', { name: 'Resumo' }));

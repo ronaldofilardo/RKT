@@ -45,7 +45,7 @@ export function FloatingSpectatorWindow({ item, index, expanded, isDesktop, zInd
   } else if (!view) {
     body = <div className="mx-auto my-8 w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />;
   } else {
-    body = <SpectatorLiveContent view={view} feed={feed} updateText={updateText} hideHeader />;
+    body = <SpectatorLiveContent view={view} feed={feed} updateText={updateText} hideBack />;
   }
 
   return (

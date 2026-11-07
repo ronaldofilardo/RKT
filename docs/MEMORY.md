@@ -1,10 +1,27 @@
 # MEMORY — RKT (RKT App)
 
 > Diário de bordo técnico · Metodologia RE-DOC (Fase 4 — Auditoria de Qualidade e Histórico)
-> **Este é um dos 6 arquivos-canônicos do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
+> **Este é um dos 6 arquivos-canônico do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
 
 **Última Atualização:** 2026-11-07
 **Analisado por:** engenharia reversa e implementação sobre `main`
+
+---
+
+## 2.27 UI da Transmissão Compartilhada e do Gestor (Visual) — 2026-11-07
+- **Contexto & Demanda:**
+  - Plano: `docs/PLANO_UI_TRANSMISSAO_COMPARTILHADA_E_GESTOR_2026-11-07.md`.
+  - Objetivo: melhorar clareza e hierarquia visual da tela de transmissão (link compartilhado e popup Gestor → Partidas → Ver Partida), aproximando da referência visual da landing page (RKT-LP `MatchReplay`), sem alterar dados, payloads, feed, regras ou estados funcionais.
+- **Mudança exclusivamente visual (sem alteração de dados/regras):**
+  1. **Header (`SpectatorHeader`):** título centralizado (lado 1 × lado 2 com destaque volt), formato do jogo, badges de status harmonizados com tokens Telemetry (ao vivo/sem sinal/pausada/encerrada/aguardando) com indicador pulsante, botão “Voltar” compacto; `hideBack` para superfícies embutidas.
+  2. **Placar (`SpectatorScoreboard`):** layout broadcast (nomes acima, scores grandes/tabulares, centro “Final” ou atualização), destaque do vencedor em `telemetry-volt`, placar do game em andamento (Pts/TB) com indicação de sacador; mantém `buildSpectatorScoreboardProps` e dados reais do feed. Sticky preservado.
+  3. **Último ponto (`SpectatorLastPointBanner`):** faixa compacta alinhada (rótulo à esquerda, evento à direita) com indicador pulsante ao vivo.
+  4. **Timeline (`SpectatorTimeline`):** coluna fixa de score/game, iniciais do vencedor, alinhamento por lado (esquerda/direita), chips de detalhe com tokens Telemetry; preserva marcadores/correções, ordem e legenda. Extrações R-03: `spectator-timeline-badge.logic.ts`, `SpectatorDetailLegend.tsx`, `spectator-timeline-initials.logic.ts`.
+  5. **Abas/Status (`SpectatorTabs`, `SpectatorStatusBanner`):** abas com destaque volt; banners NO_SIGNAL/PAUSED/OFFLINE harmonizados com tokens Telemetry e textos/semântica preservados.
+  6. **Superfícies:** rota compartilhada (`/matches/acompanhar/[matchId]`) e janela flutuante do Gestor (via `SpectatorLiveContent`/`FloatingSpectatorWindow`, `hideBack`) usam o mesmo conteúdo visual; destinos funcionais (finalizada → relatório no Gestor) preservados.
+  7. **CSS:** `@keyframes pillar-pulse` em `src/app/globals.css` (com `prefers-reduced-motion` já coberto globalmente).
+- **Restrições respeitadas:** nenhum campo/evento/aviso/marcador/controle removido; placar/timeline continuam do feed real; sem dados/loop/comportamento demonstrativo da landing; fluxo de convite inalterado.
+- **Validação:** `pnpm typecheck` 0 erros · `pnpm lint` 0 avisos · `pnpm test:design` 3/3 (26) · `pnpm check:r03` OK (0 regressões) · testes spectator/club-match 20/20 suites, 83/83 testes (atualizado `SpectatorGuestScreen.test.tsx` para refletir o novo layout visual, mantendo asserções funcionais).
 
 ---
 

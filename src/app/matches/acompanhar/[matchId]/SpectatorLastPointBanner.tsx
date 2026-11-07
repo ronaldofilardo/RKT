@@ -15,8 +15,11 @@ export function SpectatorLastPointBanner({
 }) {
   if (!lastPoint) {
     return (
-      <div className="bg-sky-950/50 border border-sky-500/20 text-sky-300 rounded-lg px-3 py-2 text-[13px]">
-        Aguardando o primeiro ponto da partida...
+      <div className="flex items-center justify-between gap-3 border-b border-telemetry-border/10 px-4 py-2">
+        <span className="shrink-0 font-mono text-sm text-telemetry-text-muted">
+          Último ponto
+        </span>
+        <p className="truncate font-mono text-xs text-telemetry-text-muted">Aguardando pontos…</p>
       </div>
     );
   }
@@ -25,17 +28,21 @@ export function SpectatorLastPointBanner({
   const rhythmNotice = rhythm?.label ? ` · ${rhythm.label}` : '';
 
   return (
-    <div
-      key={lastPoint.id}
-      className="bg-sky-950/50 border border-sky-500/20 text-sky-300 rounded-lg px-3 py-2 text-[13px] font-medium flex items-center justify-between gap-2"
-    >
-      <span className="truncate">
-        Último ponto · {winnerName || 'Atleta'} · {desc}{rhythmNotice}
+    <div className="flex items-center justify-between gap-3 border-b border-telemetry-border/10 px-4 py-2">
+      <span className="shrink-0 font-mono text-sm text-telemetry-text-muted">
+        Último ponto
       </span>
-      <span className="relative flex h-2 w-2 shrink-0" title="Ao vivo">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-telemetry-volt opacity-75" />
-        <span className="relative inline-flex rounded-full h-2 w-2 bg-telemetry-volt" />
-      </span>
+      <p className="flex min-w-0 items-center justify-end gap-1.5 font-mono text-sm text-telemetry-text-primary">
+        <span className="truncate">
+          {winnerName || 'Atleta'} · {desc}{rhythmNotice}
+        </span>
+        <span
+          className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-telemetry-volt"
+          style={{ animation: 'pillar-pulse 1.4s ease-in-out infinite' }}
+          aria-hidden="true"
+          data-testid="live-pulse"
+        />
+      </p>
     </div>
   );
 }

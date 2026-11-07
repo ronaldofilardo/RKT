@@ -17,12 +17,12 @@ interface Props {
   view: SpectatorView;
   feed: SpectatorFeedState;
   updateText: string;
-  /** No popup flutuante o título/status ficam na barra da janela. */
-  hideHeader?: boolean;
+  /** No popup flutuante o botão voltar fica oculto. */
+  hideBack?: boolean;
 }
 
 /** Conteúdo da tela de acompanhamento (compartilhado entre a página do convite e o popup do gestor). */
-export function SpectatorLiveContent({ view, feed, updateText, hideHeader = false }: Props) {
+export function SpectatorLiveContent({ view, feed, updateText, hideBack = false }: Props) {
   const {
     status, ageSeconds, rhythm, correctionAlert, clearCorrectionAlert,
     isClientOffline, isSessionExpired, resumeSession, lastUpdated,
@@ -39,7 +39,7 @@ export function SpectatorLiveContent({ view, feed, updateText, hideHeader = fals
   return (
     <>
       <SpectatorScoreAnnouncer score={view.score} side1Label={side1.label} side2Label={side2.label} />
-      {!hideHeader && <SpectatorHeader match={view.match} status={status} updateText={updateText} />}
+      {!hideBack && <SpectatorHeader match={view.match} status={status} updateText={updateText} />}
       <SpectatorCorrectionBanner alert={correctionAlert} onDismiss={clearCorrectionAlert} />
 
       {showBanner && <SpectatorStatusBanner kind={bannerKind} ageSeconds={ageSeconds} lastUpdated={lastUpdated} />}
