@@ -1,5 +1,8 @@
-import { renderSetScore } from "@/components/scoring/scoreboard-card-cells";
-import { getSinglePointDisplay } from "@/components/dashboard/match-card.logic";
+'use client';
+
+import { getSinglePointDisplay } from '@/components/dashboard/match-card.logic';
+import { computeSetHeaderColor } from '@/core/scoring/match-card-color.logic';
+import { MatchCardRow } from './match-card-row';
 
 interface MatchCardScoreTableProps {
   displayedSets: Array<{
@@ -32,41 +35,6 @@ interface MatchCardScoreTableProps {
   currentSetIndex: number;
 }
 
-const clubBadge = (
-  club?: string | null,
-  isOwnClub?: boolean,
-  isOwnAthlete?: boolean,
-  createdByName?: string | null
-) => {
-  let label = 'Outros';
-  let isHighlight = false;
-
-  if (isOwnClub) {
-    label = 'Meu Clube';
-    isHighlight = true;
-  } else if (isOwnAthlete) {
-    label = 'Meu Atleta';
-    isHighlight = true;
-  } else if (club && club.trim() !== '') {
-    label = club.trim();
-  } else if (createdByName) {
-    label = `Por: ${createdByName}`;
-  }
-
-  return (
-    <span
-      className={`inline-flex shrink-0 items-center justify-center px-1 sm:px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-semibold border ${
-        isHighlight
-          ? 'border-telemetry-border/30 bg-telemetry-elevated text-telemetry-text-primary'
-          : 'border-telemetry-border/15 bg-telemetry-elevated/60 text-telemetry-text-muted'
-      }`}
-      title={label}
-    >
-      <span className="truncate max-w-[70px] sm:max-w-[105px]">{label}</span>
-    </span>
-  );
-};
-
 export function MatchCardScoreTable({
   displayedSets,
   columnTitles,
@@ -93,29 +61,9 @@ export function MatchCardScoreTable({
   currentSetIndex,
 }: MatchCardScoreTableProps) {
   const headerClasses = 'text-center px-0.5 sm:px-1 py-0.5 bg-telemetry-elevated border border-telemetry-border/10 text-[9px] sm:text-[10px] font-space-grotesk';
-  // Colunas de sets compactas e responsivas: adaptam em telas menores para não cortar os nomes dos atletas/clubes.
   const setColClasses = 'w-7 sm:w-10 md:w-11';
   const pontuacaoClasses = 'w-9 sm:w-11 md:w-12 border border-telemetry-border/10';
   const cellClasses = 'text-center px-0.5 sm:px-1 py-1 text-xs sm:text-sm font-space-grotesk font-semibold border border-telemetry-border/10';
-
-  const p1TextColor = isFinished
-    ? (isWinnerP1 ? 'text-emerald-800 dark:text-telemetry-volt font-black' : isWinnerP2 ? 'text-telemetry-text-muted/70 font-normal' : 'text-telemetry-text-primary font-bold')
-    : (isServerP1 ? 'text-emerald-800 dark:text-telemetry-volt font-black' : 'text-telemetry-text-primary font-bold');
-
-  const p2TextColor = isFinished
-    ? (isWinnerP2 ? 'text-emerald-800 dark:text-telemetry-volt font-black' : isWinnerP1 ? 'text-telemetry-text-muted/70 font-normal' : 'text-telemetry-text-primary font-bold')
-    : (isServerP2 ? 'text-emerald-800 dark:text-telemetry-volt font-black' : 'text-telemetry-text-primary font-bold');
-
-  const pontosP1 = isCurrentSetMT
-    ? '-'
-    : lastSetTiebreakScore
-      ? String(lastSetTiebreakScore.player1 ?? 0)
-      : getSinglePointDisplay(currentGame ?? undefined, 'player1');
-  const pontosP2 = isCurrentSetMT
-    ? '-'
-    : lastSetTiebreakScore
-      ? String(lastSetTiebreakScore.player2 ?? 0)
-      : getSinglePointDisplay(currentGame ?? undefined, 'player2');
 
   return (
     <div className="px-3 sm:px-4 pb-3">
@@ -132,7 +80,7 @@ export function MatchCardScoreTable({
                     key={i}
                     scope="col"
                     aria-label={title}
-                    className={`${headerClasses} ${setColClasses} ${isCurrentHeader ? 'font-bold text-telemetry-score-accent' : 'text-telemetry-score-secondary'}`}
+                    className={`${headerClasses} ${setColClasses} ${computeSetHeaderColor(isCurrentHeader)}`}
                   >
                     {title}
                   </th>
@@ -146,90 +94,44 @@ export function MatchCardScoreTable({
             </tr>
           </thead>
           <tbody>
-            <tr className="text-xs">
-              <td
-                title={p1Name}
-                className={`text-left py-1 px-1.5 sm:px-2 tracking-wide border border-telemetry-border/10 bg-telemetry-card ${p1TextColor}`}
-              >
-                <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
-                  <span className="truncate" title={p1Name}>{p1Name}</span>
-                  {clubBadge(p1Club, isP1OwnClub, isP1OwnAthlete, p1CreatedBy)}
-                </div>
-              </td>
-              <td className="text-center py-1 bg-telemetry-card border border-telemetry-border/10 text-xs">
-                {isServerP1 ? <span title="Sacador" aria-label="Sacador" role="img" className="text-xs select-none">🎾</span> : null}
-                {isFinished && isWinnerP1 ? (
-                  <span title="Vencedor" aria-label="Vencedor" className="text-xs select-none filter dark:drop-shadow-[0_0_6px_rgba(204,255,0,0.7)]">
-                    🏆
-                  </span>
-                ) : null}
-              </td>
-              {displayedSets.map((set, i) => {
-                const isCurrent = isLiveOrSuspended && i === currentSetIndex;
-                const style = isCurrent
-                  ? 'text-telemetry-score-accent font-bold bg-telemetry-card'
-                  : isFinished && isWinnerP1
-                    ? 'text-emerald-800 dark:text-telemetry-volt font-black bg-telemetry-card'
-                    : isFinished && isWinnerP2
-                      ? 'text-telemetry-text-muted/70 bg-telemetry-card font-normal'
-                      : 'text-telemetry-score-secondary bg-telemetry-card';
-                return (
-                  <td
-                    key={i}
-                    className={`${cellClasses} ${style}`}
-                  >
-                    {renderSetScore(set as { player1: number; player2: number; isTiebreak?: boolean; tiebreakScore?: { player1: number; player2: number } | null } | undefined, 'player1')}
-                  </td>
-                );
-              })}
-              {isLiveOrSuspended && (
-                <td className={`${cellClasses} bg-telemetry-card text-telemetry-score-accent font-bold`}>
-                  {pontosP1}
-                </td>
-              )}
-            </tr>
-            <tr className="text-xs">
-              <td
-                title={p2Name}
-                className={`text-left py-1 px-1.5 sm:px-2 tracking-wide border border-telemetry-border/10 bg-telemetry-card ${p2TextColor}`}
-              >
-                <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
-                  <span className="truncate" title={p2Name}>{p2Name}</span>
-                  {clubBadge(p2Club, isP2OwnClub, isP2OwnAthlete, p2CreatedBy)}
-                </div>
-              </td>
-              <td className="text-center py-1 bg-telemetry-card border border-telemetry-border/10 text-xs">
-                {isServerP2 ? <span title="Sacador" aria-label="Sacador" role="img" className="text-xs select-none">🎾</span> : null}
-                {isFinished && isWinnerP2 ? (
-                  <span title="Vencedor" aria-label="Vencedor" className="text-xs select-none filter dark:drop-shadow-[0_0_6px_rgba(204,255,0,0.7)]">
-                    🏆
-                  </span>
-                ) : null}
-              </td>
-              {displayedSets.map((set, i) => {
-                const isCurrent = isLiveOrSuspended && i === currentSetIndex;
-                const style = isCurrent
-                  ? 'text-telemetry-score-accent font-bold bg-telemetry-card'
-                  : isFinished && isWinnerP2
-                    ? 'text-emerald-800 dark:text-telemetry-volt font-black bg-telemetry-card'
-                    : isFinished && isWinnerP1
-                      ? 'text-telemetry-text-muted/70 bg-telemetry-card font-normal'
-                      : 'text-telemetry-score-secondary bg-telemetry-card';
-                return (
-                  <td
-                    key={i}
-                    className={`${cellClasses} ${style}`}
-                  >
-                    {renderSetScore(set as { player1: number; player2: number; isTiebreak?: boolean; tiebreakScore?: { player1: number; player2: number } | null } | undefined, 'player2')}
-                  </td>
-                );
-              })}
-              {isLiveOrSuspended && (
-                <td className={`${cellClasses} bg-telemetry-card text-telemetry-score-accent font-bold`}>
-                  {pontosP2}
-                </td>
-              )}
-            </tr>
+            <MatchCardRow
+              name={p1Name}
+              club={p1Club}
+              createdBy={p1CreatedBy}
+              isOwnClub={isP1OwnClub}
+              isOwnAthlete={isP1OwnAthlete}
+              isServer={isServerP1}
+              isFinished={isFinished ?? false}
+              isWinner={isWinnerP1 ?? false}
+              displayedSets={displayedSets}
+              currentSetIndex={currentSetIndex}
+              isLiveOrSuspended={isLiveOrSuspended}
+              isCurrentSetMT={isCurrentSetMT}
+              lastSetTiebreakScore={lastSetTiebreakScore}
+              currentGame={currentGame}
+              getSinglePointDisplay={getSinglePointDisplay}
+              playerKey="player1"
+              cellClasses={cellClasses}
+            />
+            <MatchCardRow
+              name={p2Name}
+              club={p2Club}
+              createdBy={p2CreatedBy}
+              isOwnClub={isP2OwnClub}
+              isOwnAthlete={isP2OwnAthlete}
+              isServer={isServerP2}
+              isFinished={isFinished ?? false}
+              isWinner={isWinnerP2 ?? false}
+              displayedSets={displayedSets}
+              currentSetIndex={currentSetIndex}
+              isLiveOrSuspended={isLiveOrSuspended}
+              isCurrentSetMT={isCurrentSetMT}
+              lastSetTiebreakScore={lastSetTiebreakScore}
+              currentGame={currentGame}
+              getSinglePointDisplay={getSinglePointDisplay}
+              playerKey="player2"
+              cellClasses={cellClasses}
+            />
           </tbody>
         </table>
       </div>
