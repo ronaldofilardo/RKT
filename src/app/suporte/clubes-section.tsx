@@ -18,7 +18,6 @@ export function ClubesSection({
   const filtered = clubs.filter((c) => filter === 'ALL' || c.status === filter);
 
   const statuses: Array<{ key: CtStatusFilter; label: string }> = [
-    { key: 'PENDING', label: 'Pendentes' },
     { key: 'ACTIVE', label: 'Ativos' },
     { key: 'SUSPENDED', label: 'Bloqueados' },
     { key: 'ALL', label: 'Todos' },
@@ -67,14 +66,12 @@ export function ClubesSection({
                 <td className="px-3 py-3 text-sm">
                   <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
                     ct.status === 'ACTIVE' ? 'bg-telemetry-volt/20 text-telemetry-volt' :
-                    ct.status === 'PENDING' ? 'bg-telemetry-alert/20 text-telemetry-alert' :
                     'bg-telemetry-error/20 text-telemetry-error'
                   }`}>
-                    {ct.status === 'ACTIVE' ? 'Ativo' : ct.status === 'PENDING' ? 'Pendente' : 'Bloqueado'}
+                    {ct.status === 'ACTIVE' ? 'Ativo' : 'Bloqueado'}
                   </span>
                 </td>
                 <td className="px-3 py-3 text-sm text-right whitespace-nowrap">
-                  {ct.status === 'PENDING' && <button onClick={() => onApprove(ct.id)} className="text-xs text-telemetry-blue hover:underline mr-3 font-semibold">Aprovar</button>}
                   {ct.status === 'ACTIVE' && <button onClick={() => onSuspend(ct.id)} className="text-xs text-telemetry-error hover:underline mr-3 font-medium">Bloquear</button>}
                   {ct.status === 'SUSPENDED' && <button onClick={() => onReactivate ? onReactivate(ct.id) : onApprove(ct.id)} className="text-xs text-telemetry-volt hover:underline mr-3 font-semibold">Desbloquear</button>}
                   <button onClick={() => onEditClub(ct)} className="text-xs text-telemetry-blue hover:underline font-medium">Editar</button>

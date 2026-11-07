@@ -24,7 +24,7 @@ function makeUser(id: string, name: string): UserItem {
 }
 
 const data: SuporteData = {
-  clubs: [makeCt('ct-p', 'Clube Pendente', 'PENDING'), makeCt('ct-a', 'Clube Ativo', 'ACTIVE')],
+  clubs: [makeCt('ct-s', 'Clube Suspenso', 'SUSPENDED'), makeCt('ct-a', 'Clube Ativo', 'ACTIVE')],
   users: [makeUser('u1', 'Gestor Uno'), makeUser('u2', 'Ana Avulsa'), makeUser('u3', 'Bruno Avulso'), makeUser('u4', 'Caio Avulso')],
   memberships: [
     { id: 'm1', userId: 'u1', kind: 'GESTOR', ctId: 'ct-a', status: 'ACTIVE', createdAt: '2026-01-01' } as MembershipItem,

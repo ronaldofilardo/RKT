@@ -1,7 +1,7 @@
 export interface Club {
   id: string;
   name: string;
-  status: 'ACTIVE' | 'SUSPENDED' | 'PENDING';
+  status: 'ACTIVE' | 'SUSPENDED';
   cnpj: string;
   email: string;
   createdAt: string;
@@ -37,12 +37,10 @@ export function ClubsTable({ clubs, onStatusChange }: ClubsTableProps) {
                   className={`px-2 py-1 rounded text-xs font-medium ${
                     club.status === 'ACTIVE'
                       ? 'bg-green-100/30 text-green-700'
-                      : club.status === 'SUSPENDED'
-                        ? 'bg-red-100/30 text-red-700'
-                        : 'bg-yellow-100/30 text-yellow-700'
+                      : 'bg-red-100/30 text-red-700'
                   }`}
                 >
-                  {club.status === 'ACTIVE' ? 'Ativo' : club.status === 'SUSPENDED' ? 'Suspenso' : 'Pendente'}
+                  {club.status === 'ACTIVE' ? 'Ativo' : 'Suspenso'}
                 </span>
               </td>
               <td className="py-3 px-4 space-x-2">

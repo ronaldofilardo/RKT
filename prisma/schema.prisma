@@ -400,7 +400,7 @@ model TrainingCenter {
   legalRepEmail   String?
   /// Telefone do Representante Legal.
   legalRepPhone   String?
-  status          String       @default("PENDING")
+  status          String       @default("ACTIVE")
   createdAt       DateTime     @default(now())
   createdByUserId String?
   memberships     Membership[]

@@ -33,7 +33,7 @@ describe('PATCH /api/training-centers/[id]', () => {
     mockPrisma.trainingCenter.findUnique.mockResolvedValue({
       id: 'ct-1',
       name: 'CT Teste',
-      status: 'PENDING',
+      status: 'SUSPENDED',
     });
     mockPrisma.trainingCenter.update.mockImplementation(async ({ data }: any) => ({
       id: 'ct-1',
@@ -43,7 +43,7 @@ describe('PATCH /api/training-centers/[id]', () => {
     mockPrisma.auditLog.create.mockResolvedValue({});
   });
 
-  it('aprova CT alterando status para ACTIVE', async () => {
+  it('reativa CT alterando status para ACTIVE', async () => {
     const { PATCH } = await import('../route');
 
     const req = new Request('http://localhost:3000/api/training-centers/ct-1', {
@@ -64,7 +64,7 @@ describe('PATCH /api/training-centers/[id]', () => {
     expect(mockPrisma.auditLog.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          action: 'CLUBE_APROVADO',
+          action: 'CLUBE_REATIVADO',
         }),
       }),
     );

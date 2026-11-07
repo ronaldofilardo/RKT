@@ -21,7 +21,7 @@ interface SuportePageContentProps {
 
 function SuportePageContent({ data, loading, error, setError, onRetry }: SuportePageContentProps) {
   const [module, setModule] = useState<SuporteModule>('clubes');
-  const [ctFilter, setCtFilter] = useState<CtStatusFilter>('PENDING');
+  const [ctFilter, setCtFilter] = useState<CtStatusFilter>('ACTIVE');
   const [editClubOpen, setEditClubOpen] = useState(false);
   const [selectedClub, setSelectedClub] = useState<TrainingCenter | null>(null);
 

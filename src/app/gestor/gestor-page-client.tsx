@@ -5,7 +5,6 @@ import type { MeResponse, GestorTab } from './types';
 import { fetchMe } from './data-logic';
 import { GestorLoading } from './loading';
 import { GestorError } from './error-state';
-import { PendingStatus } from './status-pages';
 import { SuspendedStatus } from './status-pages';
 import { GestorDashboard } from './dashboard';
 
@@ -39,7 +38,6 @@ export function GestorPageClient({
 
   if (!me) return <GestorLoading />;
   if (error) return <GestorError error={error} />;
-  if (me.ctStatus === 'PENDING') return <PendingStatus />;
   if (me.ctStatus === 'SUSPENDED') return <SuspendedStatus />;
 
   return (

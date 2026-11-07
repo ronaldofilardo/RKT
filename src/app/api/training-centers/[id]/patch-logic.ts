@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const StatusSchema = z.object({
-  status: z.enum(['PENDING', 'ACTIVE', 'SUSPENDED']),
+  status: z.enum(['ACTIVE', 'SUSPENDED']),
 });
 
 export const ClubDataSchema = z.object({

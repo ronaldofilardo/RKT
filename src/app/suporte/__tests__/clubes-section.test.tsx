@@ -8,14 +8,13 @@ import type { TrainingCenter, CtStatusFilter } from '../types';
 
 function makeCt(overrides: Partial<TrainingCenter> = {}): TrainingCenter {
   return {
-    id: 'ct1', name: 'Clube Padrão', slug: 'clube-padrao', status: 'PENDING',
+    id: 'ct1', name: 'Clube Padrão', slug: 'clube-padrao', status: 'ACTIVE',
     cnpj: '84967753800121', legalName: 'Razão Social LTDA', phone: null, email: null,
     address: null, legalRepName: null, legalRepCpf: null, legalRepEmail: null, legalRepPhone: null,
     ...overrides,
   };
 }
 
-const pending = makeCt({ id: 'ct-p', name: 'Clube Pendente', status: 'PENDING' });
 const active = makeCt({ id: 'ct-a', name: 'Clube Ativo', status: 'ACTIVE' });
 const suspended = makeCt({ id: 'ct-s', name: 'Clube Suspenso', status: 'SUSPENDED' });
 
@@ -44,59 +43,55 @@ describe('ClubesSection (aba Clubes e CTs)', () => {
     }
   });
 
-  it('exibe os 4 chips de filtro de status', () => {
+  it('exibe os 3 chips de filtro de status', () => {
     renderSection([]);
-    for (const chip of ['Pendentes', 'Ativos', 'Bloqueados', 'Todos']) {
+    for (const chip of ['Ativos', 'Bloqueados', 'Todos']) {
       expect(screen.getByRole('button', { name: chip })).toBeInTheDocument();
     }
   });
 
   it('destaca o chip do filtro ativo com fundo azul translúcido', () => {
-    const { container } = renderSection([], 'PENDING');
-    const pendentes = screen.getByRole('button', { name: 'Pendentes' });
+    const { container } = renderSection([], 'ACTIVE');
+    const ativos = screen.getByRole('button', { name: 'Ativos' });
     const todos = screen.getByRole('button', { name: 'Todos' });
-    expect(pendentes.className).toContain('bg-telemetry-blue/10');
+    expect(ativos.className).toContain('bg-telemetry-blue/10');
     expect(todos.className).not.toContain('bg-telemetry-blue/10');
     expect(container.querySelector('table')).toBeInTheDocument();
   });
 
   it('filtra clubes pelo status selecionado', () => {
-    renderSection([pending, active, suspended], 'ACTIVE');
+    renderSection([active, suspended], 'ACTIVE');
     expect(screen.getByText('Clube Ativo')).toBeInTheDocument();
-    expect(screen.queryByText('Clube Pendente')).not.toBeInTheDocument();
     expect(screen.queryByText('Clube Suspenso')).not.toBeInTheDocument();
   });
 
   it('exibe badge de status para cada situação', () => {
-    renderSection([pending, active, suspended], 'ALL');
-    expect(screen.getByText('Pendente')).toBeInTheDocument();
+    renderSection([active, suspended], 'ALL');
     expect(screen.getByText('Ativo')).toBeInTheDocument();
     expect(screen.getByText('Bloqueado')).toBeInTheDocument();
   });
 
   it('exibe a ação adequada ao status, além de Editar sempre', () => {
-    renderSection([pending, active, suspended], 'ALL');
-    expect(screen.getByRole('button', { name: 'Aprovar' })).toBeInTheDocument();
+    renderSection([active, suspended], 'ALL');
+    expect(screen.queryByRole('button', { name: 'Aprovar' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Bloquear' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Desbloquear' })).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'Editar' })).toHaveLength(3);
+    expect(screen.getAllByRole('button', { name: 'Editar' })).toHaveLength(2);
   });
 
   it('dispara os callbacks com o id do clube', () => {
-    renderSection([pending, active, suspended], 'ALL');
-    fireEvent.click(screen.getByRole('button', { name: 'Aprovar' }));
+    renderSection([active, suspended], 'ALL');
     fireEvent.click(screen.getByRole('button', { name: 'Bloquear' }));
     fireEvent.click(screen.getByRole('button', { name: 'Desbloquear' }));
     fireEvent.click(screen.getAllByRole('button', { name: 'Editar' })[0]);
 
-    expect(onApprove).toHaveBeenCalledWith('ct-p');
     expect(onSuspend).toHaveBeenCalledWith('ct-a');
     expect(onReactivate).toHaveBeenCalledWith('ct-s');
-    expect(onEditClub).toHaveBeenCalledWith(expect.objectContaining({ id: 'ct-p' }));
+    expect(onEditClub).toHaveBeenCalledWith(expect.objectContaining({ id: 'ct-a' }));
   });
 
   it('notifica mudança de filtro ao clicar em um chip', () => {
-    renderSection([], 'PENDING');
+    renderSection([], 'ACTIVE');
     fireEvent.click(screen.getByRole('button', { name: 'Todos' }));
     expect(onFilterChange).toHaveBeenCalledWith('ALL');
   });
@@ -107,7 +102,7 @@ describe('ClubesSection (aba Clubes e CTs)', () => {
   });
 
   it('exibe estado vazio quando nenhum clube corresponde ao filtro', () => {
-    renderSection([], 'PENDING');
+    renderSection([], 'ACTIVE');
     expect(screen.getByText('Nenhum clube encontrado nesta categoria.')).toBeInTheDocument();
   });
 });

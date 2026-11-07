@@ -46,7 +46,6 @@ describe('Padrão visual do /suporte (regressão do bug de baixo contraste)', ()
     const { container } = render(
       <ClubesSection
         clubs={[
-          makeCt('ct-p', 'Clube Pendente', 'PENDING'),
           makeCt('ct-a', 'Clube Ativo', 'ACTIVE'),
           makeCt('ct-s', 'Clube Suspenso', 'SUSPENDED'),
         ]}
@@ -61,7 +60,6 @@ describe('Padrão visual do /suporte (regressão do bug de baixo contraste)', ()
     const classes = classNamesOf(container);
     expect(classes.some((c) => c.includes('hover:bg-telemetry-elevated/30'))).toBe(true);
     expect(classes.some((c) => c.includes('bg-telemetry-volt/20') && c.includes('text-telemetry-volt'))).toBe(true);
-    expect(classes.some((c) => c.includes('bg-telemetry-alert/20') && c.includes('text-telemetry-alert'))).toBe(true);
     expect(classes.some((c) => c.includes('bg-telemetry-error/20') && c.includes('text-telemetry-error'))).toBe(true);
     expect(classes.some((c) => c.includes('p-0 sm:p-6 space-y-6'))).toBe(true);
   });

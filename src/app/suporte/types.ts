@@ -40,7 +40,7 @@ export interface MembershipItem {
 
 export type SuporteModule = 'clubes' | 'gestores' | 'avulsos' | 'externos';
 
-export type CtStatusFilter = 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'ALL';
+export type CtStatusFilter = 'ACTIVE' | 'SUSPENDED' | 'ALL';
 
 export interface ExternalAthlete {
   id: string;

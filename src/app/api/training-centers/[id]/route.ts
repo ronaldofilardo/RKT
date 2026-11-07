@@ -6,7 +6,7 @@ import { reportApiError } from '@/lib/api.logic';
 import { withAccessHandler } from '@/lib/access-handler';
 import { bumpSessionVersion } from '@/services/accessService';
 
-const StatusSchema = z.object({ status: z.enum(['PENDING', 'ACTIVE', 'SUSPENDED']) });
+const StatusSchema = z.object({ status: z.enum(['ACTIVE', 'SUSPENDED']) });
 const ClubDataSchema = z.object({
   name: z.string().min(2).max(120),
   slug: z.string().min(2).max(60),
