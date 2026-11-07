@@ -2,7 +2,6 @@
   "src/app/gestor/club-matches-table.tsx": 143,
   "src/app/match/new/components/use-new-athlete-modal.ts": 142,
   "src/components/dashboard/match-card-score-grid.tsx": 140,
-  "src/components/dashboard/MatchCard.tsx": 200,
-  "src/components/scoring/EditScoreServerSection.tsx": 163,
-  "src/lib/db/db-target.ts": 216
+  "src/components/dashboard/MatchCard.tsx": 144,
+  "src/lib/db/db-target.ts": 102
 }
