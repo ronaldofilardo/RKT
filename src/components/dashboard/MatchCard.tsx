@@ -1,60 +1,18 @@
-"use client";
+'use client';
 
-import { useCallback } from "react";
-import { findCurrentSetIndex, getMaxSetsForFormat } from "@/components/scoring/scoreboard-card-logic";
-import { abbreviateDoublesName } from "@/components/scoring/doubles-name-abbreviation.logic";
-import { MatchCardHeader } from "./match-card-header";
-import { MatchCardScoreTable } from "./match-card-score-grid";
-import { useMatchCardData } from "./use-match-card-data";
-import type { MatchCardProps, MatchPlayerPayload } from "./match-card-types";
+import { useCallback } from 'react';
+import { findCurrentSetIndex, getMaxSetsForFormat } from '@/components/scoring/scoreboard-card-logic';
+import { abbreviateDoublesName } from '@/components/scoring/doubles-name-abbreviation.logic';
+import { MatchCardHeader } from './match-card-header';
+import { MatchCardScoreTable } from './match-card-score-grid';
+import { useMatchCardData } from './use-match-card-data';
+import { checkPlayerOwnClub, checkPlayerOwnCoach, determineWinner } from './match-card-helpers';
+import { MatchCardFinishedFooter } from './match-card-finished-footer';
+import { MatchCardScheduledFooter } from './match-card-scheduled-footer';
+import type { MatchCardProps } from './match-card-types';
 
 // Re-export de compatibilidade (tipo movido para ./match-card-types).
-export type { DashboardMatchPayload, MatchCardProps } from "./match-card-types";
-
-function checkPlayerOwnClub(
-  p1: MatchPlayerPayload,
-  p1Partner?: MatchPlayerPayload | null,
-  activeCtId?: string | null,
-  activeCtName?: string | null,
-  matchCtId?: string | null,
-): boolean {
-  if (!activeCtId || activeCtId === 'PARTICULAR') return false;
-
-  const testPlayer = (p?: MatchPlayerPayload | null) => {
-    if (!p) return false;
-    if (p.playerCts?.some((pc) => pc.ctId === activeCtId)) return true;
-    if (p.clubId && p.clubId === activeCtId) return true;
-    if (p.club && (p.club === activeCtId || (activeCtName && p.club.trim().toLowerCase() === activeCtName.trim().toLowerCase()))) {
-      return true;
-    }
-    if (matchCtId && matchCtId === activeCtId && (!p.club || (activeCtName && p.club.trim().toLowerCase() === activeCtName.trim().toLowerCase()))) {
-      return true;
-    }
-    return false;
-  };
-
-  return testPlayer(p1) || testPlayer(p1Partner);
-}
-
-function checkPlayerOwnCoach(
-  p1: MatchPlayerPayload,
-  p1Partner?: MatchPlayerPayload | null,
-  userId?: string | null,
-  followedPlayerIds?: readonly string[] | string[] | null,
-  activeCtId?: string | null,
-): boolean {
-  const isParticular = activeCtId === 'PARTICULAR' || !activeCtId;
-  if (!isParticular) return false;
-
-  const testPlayer = (p?: MatchPlayerPayload | null) => {
-    if (!p) return false;
-    if (userId && p.createdByUserId === userId) return true;
-    if (p.id && followedPlayerIds && followedPlayerIds.includes(p.id)) return true;
-    return false;
-  };
-
-  return testPlayer(p1) || testPlayer(p1Partner);
-}
+export type { DashboardMatchPayload, MatchCardProps } from './match-card-types';
 
 export function MatchCard({
   match,
@@ -94,13 +52,13 @@ export function MatchCard({
   const isP1OwnAthlete = checkPlayerOwnCoach(match.player1, match.player1Partner, userId, followedPlayerIds, ctId);
   const isP2OwnAthlete = checkPlayerOwnCoach(match.player2, match.player2Partner, userId, followedPlayerIds, ctId);
 
-  const isWinnerP1 = d.isFinished && (
-    Boolean(match.winnerId && (match.winnerId === match.player1.id || match.winnerId === match.player1Partner?.id)) ||
-    d.setsWonP1 > d.setsWonP2 || (d.isCurrentSetMT && (d.displayedSets[0]?.player1 ?? 0) > (d.displayedSets[0]?.player2 ?? 0))
-  );
-  const isWinnerP2 = d.isFinished && (
-    Boolean(match.winnerId && (match.winnerId === match.player2.id || match.winnerId === match.player2Partner?.id)) ||
-    d.setsWonP2 > d.setsWonP1 || (d.isCurrentSetMT && (d.displayedSets[0]?.player2 ?? 0) > (d.displayedSets[0]?.player1 ?? 0))
+  const { isWinnerP1, isWinnerP2 } = determineWinner(
+    d.isFinished,
+    match,
+    d.setsWonP1,
+    d.setsWonP2,
+    d.isCurrentSetMT,
+    d.displayedSets,
   );
 
   const onPrimaryClick = useCallback(() => {
@@ -112,18 +70,18 @@ export function MatchCard({
   // Court type border accent e destaque para partida finalizada
   const courtType = match.courtType ?? 'HARD';
   const courtBorderClass = d.isFinished
-    ? "border-l-4 border-emerald-600 dark:border-telemetry-volt dark:shadow-[0_0_12px_rgba(204,255,0,0.35)]"
+    ? 'border-l-4 border-emerald-600 dark:border-telemetry-volt dark:shadow-[0_0_12px_rgba(204,255,0,0.35)]'
     : `border-l-3 border-[rgb(var(--telemetry-court-${courtType.toLowerCase()}))]`;
 
   // Diferenciação visual marcante para partida finalizada (identificação rápida na listagem)
   const finishedCardClass = d.isFinished
-    ? "bg-emerald-50/40 dark:bg-[#0c1424] border-emerald-500/40 dark:border-telemetry-volt/30 dark:ring-1 dark:ring-telemetry-volt/25 shadow-md"
-    : "bg-telemetry-card border-telemetry-border/10";
+    ? 'bg-emerald-50/40 dark:bg-[#0c1424] border-emerald-500/40 dark:border-telemetry-volt/30 dark:ring-1 dark:ring-telemetry-volt/25 shadow-md'
+    : 'bg-telemetry-card border-telemetry-border/10';
 
   return (
     <div
       data-testid={`match-card-${match.id}`}
-      className={`rounded-xl border shadow-sm transition-all ${finishedCardClass} ${onClick ? "cursor-pointer hover:shadow-md hover:border-telemetry-border/20 hover:bg-telemetry-elevated" : ""} ${courtBorderClass}`}
+      className={`rounded-xl border shadow-sm transition-all ${finishedCardClass} ${onClick ? 'cursor-pointer hover:shadow-md hover:border-telemetry-border/20 hover:bg-telemetry-elevated' : ''} ${courtBorderClass}`}
       onClick={onPrimaryClick}
       role={onClick ? 'button' : undefined}
       aria-label={onClick ? `Partida: ${p1Name} vs ${p2Name}` : undefined}
@@ -177,23 +135,9 @@ export function MatchCard({
       />
 
       {d.isFinished ? (
-        <div className="px-4 pb-2.5 pt-1.5 flex items-center justify-between text-xs font-medium text-telemetry-text-muted border-t border-telemetry-border/10 mt-1">
-          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-telemetry-volt">
-            <span aria-hidden="true" className="font-black text-sm">✓</span> Partida Finalizada
-          </span>
-          {match.scheduledAt && (
-            <span className="text-xs text-telemetry-text-muted/70">
-              📅 {new Date(match.scheduledAt).toLocaleString("pt-BR")}
-            </span>
-          )}
-        </div>
-      ) : match.scheduledAt && (
-        <div className={`px-4 pb-3 flex items-center gap-1.5 text-xs font-medium ${match.state === 'SCHEDULED' ? 'text-purple-400' : 'text-telemetry-text-muted'}`}>
-          <span aria-hidden="true" className={match.state === 'SCHEDULED' ? 'text-purple-400' : 'text-telemetry-text-primary/70'}>
-            {match.state === 'SCHEDULED' ? '⏰' : '📅'}
-          </span>
-          <span>{new Date(match.scheduledAt).toLocaleString("pt-BR")}</span>
-        </div>
+        <MatchCardFinishedFooter match={match} />
+      ) : (
+        <MatchCardScheduledFooter match={match} />
       )}
     </div>
   );
