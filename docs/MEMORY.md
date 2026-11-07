@@ -3,8 +3,22 @@
 > Diário de bordo técnico · Metodologia RE-DOC (Fase 4 — Auditoria de Qualidade e Histórico)
 > **Este é um dos 6 arquivos-canônicos do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
 
-**Última Atualização:** 2026-11-06
+**Última Atualização:** 2026-11-07
 **Analisado por:** engenharia reversa e implementação sobre `main`
+
+---
+
+## 2.25 R-03: congelamento do baseline e reparo do CI (pnpm 10) — 2026-11-07
+- **Contexto & Problema:**
+  - `pnpm check:r03` estava vermelho com **38 violações** (>100 linhas) em arquivos de produção, todas pré-existentes; `scripts/r03-baseline.json` estava `{}` (zerado), ou seja, o ratchet não congelava nada e qualquer crescimento passava despercebido até estourar o limite.
+  - O CI (`RKT quality`) falhava **antes** do R-03: `actions/setup-node@v4` abortava com `ERROR packages field missing or empty` — `pnpm-workspace.yaml` contém apenas `allowBuilds` (sem `packages`) e o workflow fixava **pnpm 9**, enquanto o ambiente local usa **pnpm 10.14.0**. Resultado: nenhum gate de qualidade rodava no GitHub Actions há 12+ dias.
+- **Mitigação aplicada (Fase 0):**
+  1. `node scripts/check-r03-line-limit.mjs --update` → baseline regravado com as **38 violações conhecidas** (2 isentas por `ste-exception R-03`). Check volta a `exit 0` e volta a proteger: falha em arquivo novo >100L, em crescimento de arquivo do baseline e em baseline obsoleto.
+  2. `.github/workflows/quality.yml`: `pnpm/action-setup` `version: 9` → `10` (compatível com `lockfileVersion: '9.0'` e com o `pnpm-workspace.yaml`).
+  3. **Regra de ouro:** `--update` só com diff revisado; ampliar o baseline exige justificativa.
+- **Plano de drenagem (5 fases):** Fase 1 = 13 arquivos 101–110L · Fase 2 = 17 arquivos 111–140L (Characterization-First em rotas/hooks) · Fase 3 = 8 monólitos 142–246L (uma onda por arquivo) · Fase 4 = exceções pontuais `ste-exception R-03` registradas em `docs/ste-dev.md` · Fase 5 = baseline de volta a `{}`. Ao corrigir um arquivo do baseline, rodar `--update` **no mesmo commit** (senão: `BASELINE obsoleto`).
+- **Estado:** `check:r03` exit 0 (38 congeladas, 2 isentas, 0 regressões) · 1137 arquivos de produção · 53 arquivos na zona de risco 96–100L (alerta, não falha).
+- **Validação:** `node scripts/check-r03-line-limit.mjs` → `OK R-03 … 0 regressoes`.
 
 ---
 
