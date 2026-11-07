@@ -1,29 +1,11 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useEffect } from 'react';
 import type { Athlete } from '../types';
-import type { RankingType } from '@/lib/ranking/rankingConstants';
-import { useAge } from '../hooks/useAge';
-import {
-  type RankingState,
-  initialRankings,
-  assignCategoryAutomatically,
-} from '@/app/atletas/rankingLogic';
-import { buildAthletePayload, validateAthleteForm } from './new-athlete-modal.logic';
-import { playersClient } from '@/services/playersClient';
-
-const EMPTY_FORM = {
-  name: '',
-  gender: '',
-  birthDay: '',
-  birthMonth: '',
-  birthYear: '',
-  dominance: '',
-  backhand: '',
-  uf: '',
-  city: '',
-  club: '',
-};
+import { useNewAthleteModalForm } from './use-new-athlete-modal-form';
+import { useNewAthleteModalClub } from './use-new-athlete-modal-club';
+import { useNewAthleteModalRankings } from './use-new-athlete-modal-rankings';
+import { useNewAthleteModalFocus } from './use-new-athlete-modal-focus';
 
 interface UseNewAthleteModalOptions {
   isOpen: boolean;
@@ -34,49 +16,43 @@ interface UseNewAthleteModalOptions {
 }
 
 export function useNewAthleteModal({
-  isOpen, onClose, onCreated, myClub = false, ctId = null,
+  isOpen,
+  onClose,
+  onCreated,
+  myClub = false,
+  ctId = null,
 }: UseNewAthleteModalOptions) {
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const nameInputRef = useRef<HTMLInputElement>(null);
-  const [clubData, setClubData] = useState<{ uf: string; city: string; club: string } | null>(null);
-  const [form, setForm] = useState<EMPTY_FORM_TYPE>({ ...EMPTY_FORM });
-  const [rankings, setRankings] = useState<Record<RankingType, RankingState>>(initialRankings());
+  const { nameInputRef } = useNewAthleteModalFocus(isOpen);
 
-  useEffect(() => {
-    if (isOpen) {
-      nameInputRef.current?.focus();
-    }
-  }, [isOpen]);
+  const {
+    submitting,
+    error,
+    form,
+    setForm,
+    rankings,
+    setRankings,
+    submitNewAthleteForm,
+    resetForm,
+  } = useNewAthleteModalForm({
+    onCreated,
+    onClose,
+    myClub,
+    ctId,
+  });
 
-  const age = useAge(form.birthYear, form.birthMonth, form.birthDay);
+  const { clubData, setClubData } = useNewAthleteModalClub({
+    isOpen,
+    myClub,
+    ctId,
+  });
 
-  // Quando cadastra atleta do próprio clube, preenche automaticamente
-  // estado, cidade e clube com os dados do CT/clube do usuário.
-  useEffect(() => {
-    if (!isOpen || !(myClub && ctId)) return;
-    let cancelled = false;
-    fetch(`/api/gestor/club`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (cancelled) return;
-        const ct = data?.data || data;
-        const addr = ct?.address || {};
-        setClubData({
-          uf: (addr.estado || addr.state || '') as string,
-          city: (addr.cidade || addr.city || '') as string,
-          club: (ct.name || '') as string,
-        });
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [isOpen, myClub, ctId]);
-
-  useEffect(() => {
-    assignCategoryAutomatically(setRankings, age);
-  }, [age]);
+  const { age } = useNewAthleteModalRankings({
+    form,
+    setRankings,
+  });
 
   // Hidrata os campos de origem com os dados do clube quando disponíveis
+  // biome-ignore lint/correctness/useExhaustiveDependencies: clubData é intencionalmente usado apenas para efeito colateral
   useEffect(() => {
     if (!clubData) return;
     setForm((prev) => ({
@@ -85,58 +61,20 @@ export function useNewAthleteModal({
       city: clubData.city,
       club: clubData.club,
     }));
-  }, [clubData]);
+  }, [clubData, setForm]);
 
-  const submitNewAthleteForm = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const validationError = validateAthleteForm(form);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    setSubmitting(true);
-    setError(null);
-    try {
-      const token = sessionStorage.getItem('access_token');
-      const payload = buildAthletePayload(form, rankings);
-      if (myClub) {
-        (payload as Record<string, unknown>).myClub = true;
-        if (ctId) {
-          (payload as Record<string, unknown>).ctId = ctId;
-        }
-      } else {
-        (payload as Record<string, unknown>).myClub = false;
-      }
-      if (form.uf) (payload as Record<string, unknown>).state = form.uf;
-      if (form.city) (payload as Record<string, unknown>).city = form.city;
-      if (form.club) (payload as Record<string, unknown>).club = form.club;
-
-      const json = await playersClient.create(payload, token);
-      const player = json?.data || json;
-
-      onCreated({
-        id: player.id,
-        name: player.name,
-        gender: player.gender,
-        age: player.age,
-        dominance: player.dominance,
-        backhand: player.backhand,
-        ranking: player.ranking,
-      });
-
-      setForm(EMPTY_FORM);
-      setClubData(null);
-      setRankings(initialRankings());
-      onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao criar atleta. Tente novamente.');
-    } finally {
-      setSubmitting(false);
-    }
+  return {
+    submitting,
+    error,
+    nameInputRef,
+    form,
+    setForm,
+    rankings,
+    setRankings,
+    age,
+    submitNewAthleteForm,
+    clubData,
+    setClubData,
+    resetForm,
   };
-
-  return { submitting, error, nameInputRef, form, setForm, rankings, setRankings, age, submitNewAthleteForm, clubData };
 }
-
-type EMPTY_FORM_TYPE = typeof EMPTY_FORM;
