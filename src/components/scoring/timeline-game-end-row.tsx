@@ -1,14 +1,18 @@
 'use client';
 
 import type { TimelinePoint } from '@/core/scoring/types';
+import { usePlayerColors } from '@/components/ui/player-color.context';
 
 /** Linha de placar final exibida após o último ponto de um game. */
-export function GameEndRow({ point, winnerName, gameFinalScore, isBreak }: {
+export function GameEndRow({ point, winnerName, winnerSide, gameFinalScore, isBreak }: {
   point: TimelinePoint;
   winnerName: string;
+  winnerSide?: 'PLAYER_1' | 'PLAYER_2';
   gameFinalScore: { player1: number; player2: number };
   isBreak: boolean;
 }) {
+  const colors = usePlayerColors();
+  const winnerColor = winnerSide === 'PLAYER_1' ? colors.p1 : winnerSide === 'PLAYER_2' ? colors.p2 : 'text-telemetry-text-primary';
   const scoreLabel = `${gameFinalScore.player1}x${gameFinalScore.player2}`;
   const isMinibreak = point.isTiebreak && isBreak;
   return (
@@ -28,7 +32,7 @@ export function GameEndRow({ point, winnerName, gameFinalScore, isBreak }: {
       </td>
       <td colSpan={20} className="px-2 py-1.5 text-[10px] text-telemetry-text-muted font-normal">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-telemetry-text-primary">{winnerName}</span>
+          <span className={`font-semibold ${winnerColor}`}>{winnerName}</span>
           {isBreak ? (
             <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-semibold">
               {isMinibreak ? 'Minibreak' : 'Quebra de saque'}

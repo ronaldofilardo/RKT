@@ -1,8 +1,13 @@
+import { usePlayerColors } from '@/components/ui/player-color.context';
+
 export function TimelineLegend({ player1Name, player2Name }: { player1Name: string; player2Name: string }) {
+  const colors = usePlayerColors();
+  const p1 = <strong className={colors.p1}>{player1Name}</strong>;
+  const p2 = <strong className={colors.p2}>{player2Name}</strong>;
   return (
     <div className="mt-3 text-[10px] text-telemetry-text-muted bg-telemetry-elevated border border-white/5 rounded-lg px-3 py-2 space-y-1">
       <p className="font-semibold text-telemetry-text-primary mb-1">Como ler esta tabela</p>
-      <p>Cada linha é um ponto disputado, na ordem em que aconteceu. <strong>no.</strong> = número do ponto; <strong>SAC</strong> = sacador ({player1Name}/{player2Name}); <strong>Venc</strong> = ganhador do ponto ({player1Name}/{player2Name}).</p>
+      <p>Cada linha é um ponto disputado, na ordem em que aconteceu. <strong>no.</strong> = número do ponto; <strong>SAC</strong> = sacador ({p1}/{p2}); <strong>Venc</strong> = ganhador do ponto ({p1}/{p2}).</p>
       <p><strong>GAMES</strong> = placar de games/set (mostrado só no 1º ponto de cada game).</p>
       <p><strong>PONTOS</strong> = placar de pontos (15-0, Deuce, Adv. P1).</p>
       <p><strong>1º / 2º Saque</strong>: mostra ACE, OUT ou NET conforme o resultado de cada saque, além de efeito e direção. Apenas um dos saques é preenchido por ponto.</p>

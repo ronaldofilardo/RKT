@@ -1,6 +1,7 @@
 'use client';
 
 import type { TimelinePoint } from '@/core/scoring/types';
+import { usePlayerColors } from '@/components/ui/player-color.context';
 import { SetGroup } from './timeline-rows';
 import { TimelineTableHead } from './timeline-table-head';
 import { getSetResults } from './timeline-set-results';
@@ -70,18 +71,21 @@ export function TimelineTable({
 }
 
 function FinalResultRow({ points, scoreState }: { points: TimelinePoint[]; scoreState?: unknown }) {
+  const colors = usePlayerColors();
   const setResults = getSetResults(points, scoreState);
   return (
     <tr className="bg-telemetry-elevated border-t border-white/10 font-bold">
       <td colSpan={3} className="px-1.5 py-2 text-[10px] text-telemetry-text-primary sticky left-0 bg-telemetry-elevated z-10 border-r border-white/10 text-right pr-3">
         Resultado
       </td>
-      <td colSpan={2} className="px-1.5 py-2 text-[10px] border-r border-white/10">
+      <td colSpan={2} className="px-1.5 py-2 text-[10px] border-r border-white/10 font-mono">
         <div className="flex flex-col leading-tight">
           {setResults.map((sr) => (
-            <span key={sr.setNumber} className="text-telemetry-text-primary">
-              {sr.p1}x{sr.p2}
-              {sr.tiebreak ? ` (${sr.tiebreak.p1}x${sr.tiebreak.p2})` : ''}
+            <span key={sr.setNumber}>
+              <span className={colors.p1}>{sr.p1}</span>
+              <span className="text-telemetry-text-muted/60">x</span>
+              <span className={colors.p2}>{sr.p2}</span>
+              {sr.tiebreak ? <span className="text-telemetry-text-muted text-[9px] font-normal"> ({sr.tiebreak.p1}x{sr.tiebreak.p2})</span> : ''}
             </span>
           ))}
         </div>

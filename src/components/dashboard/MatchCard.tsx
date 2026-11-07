@@ -95,12 +95,12 @@ export function MatchCard({
   const isP2OwnAthlete = checkPlayerOwnCoach(match.player2, match.player2Partner, userId, followedPlayerIds, ctId);
 
   const isWinnerP1 = d.isFinished && (
-    d.setsWonP1 > d.setsWonP2 ||
-    (d.isCurrentSetMT && (d.displayedSets[0]?.player1 ?? 0) > (d.displayedSets[0]?.player2 ?? 0))
+    Boolean(match.winnerId && (match.winnerId === match.player1.id || match.winnerId === match.player1Partner?.id)) ||
+    d.setsWonP1 > d.setsWonP2 || (d.isCurrentSetMT && (d.displayedSets[0]?.player1 ?? 0) > (d.displayedSets[0]?.player2 ?? 0))
   );
   const isWinnerP2 = d.isFinished && (
-    d.setsWonP2 > d.setsWonP1 ||
-    (d.isCurrentSetMT && (d.displayedSets[0]?.player2 ?? 0) > (d.displayedSets[0]?.player1 ?? 0))
+    Boolean(match.winnerId && (match.winnerId === match.player2.id || match.winnerId === match.player2Partner?.id)) ||
+    d.setsWonP2 > d.setsWonP1 || (d.isCurrentSetMT && (d.displayedSets[0]?.player2 ?? 0) > (d.displayedSets[0]?.player1 ?? 0))
   );
 
   const onPrimaryClick = useCallback(() => {

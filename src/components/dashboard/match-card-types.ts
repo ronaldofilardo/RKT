@@ -27,6 +27,7 @@ export interface DashboardMatchPayload {
   matchStateSnapshot?: string | null;
   initialServerId?: string | null;
   finishReason?: string | null;
+  winnerId?: string | null;
   status?: string | null;
   tournamentName?: string | null;
   category?: string | null;

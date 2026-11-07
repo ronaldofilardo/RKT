@@ -76,6 +76,7 @@ export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLa
               <GameEndRow
                 point={p}
                 winnerName={winnerName}
+                winnerSide={gameEnd.winner}
                 gameFinalScore={gameEnd.gameFinalScore}
                 isBreak={gameEnd.isBreak}
               />

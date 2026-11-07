@@ -8,6 +8,29 @@
 
 ---
 
+## 2.26 Padronização de Cores de Nomes em Jogos de Duplas (/scoring, /report e Dashboard) — 2026-11-07
+- **Contexto & Demanda:**
+  - O ambiente `/scoring` é a fonte da verdade visual: em partidas de duplas, os dois atletas da Dupla 1 compartilham o status/cor de Jogador 1, e os dois atletas da Dupla 2 compartilham o status/cor de Jogador 2.
+  - Nas telas de `/report` (Estatísticas Avançadas e Timeline) e no card do Dashboard, partidas de duplas em andamento não destacavam a dupla sacadora, omitiam o indicador de saque (🎾) no Dashboard quando o parceiro sacava, e não identificavam o campeão de duplas caso o `winnerId` fosse do parceiro.
+- **Implementação:**
+  1. **Resolução de Cores (`src/components/ui/player-color.context.tsx`):**
+     - `resolvePlayerColors` expandido para reconhecer `matchType === 'DOUBLES'`, `player1Partner` e `player2Partner`.
+     - Em partidas finalizadas (`FINISHED`), identifica vitória da Dupla 1 ou Dupla 2 tanto por titular quanto por parceiro, aplicando `MATCH_WINNER_TEXT` (`text-emerald-800 dark:text-telemetry-volt font-black`) e borda `border-l-telemetry-volt`.
+     - Em partidas em andamento (`IN_PROGRESS`), alinha-se ao `/scoring`: a dupla no saque recebe a cor em volt e a recebedora permanece em branco neutro.
+  2. **Dashboard Card (`src/components/dashboard/use-match-card-data.ts` e `MatchCard.tsx`):**
+     - `currentServer` em duplas agora resolve `player1Partner.id` para `player1` e `player2Partner.id` para `player2`.
+     - `isWinnerP1` e `isWinnerP2` reconhecem o `winnerId` do parceiro em duplas.
+     - `match-card-score-grid.tsx`: em partidas em andamento, a equipe sacadora (simples ou duplas) recebe o estilo de destaque `text-emerald-800 dark:text-telemetry-volt font-black` junto ao ícone de saque 🎾.
+  3. **Timeline e Estatísticas Avançadas:**
+     - Na Timeline, as células SAC e VENC e a borda lateral esquerda de cada linha do ponto acompanham dinamicamente a dupla correspondente.
+     - Em Estatísticas Avançadas, tanto os blocos gerais quanto o detalhamento individual de atletas de duplas (`DoublesPlayerBreakdownSection`) mantêm a equivalência de cor da respectiva dupla.
+- **Validação:**
+  - `pnpm typecheck`: 0 erros.
+  - `pnpm check:r03`: 0 regressões.
+  - Nova suíte de testes: `src/components/ui/__tests__/player-color.context.test.ts` (6/6 PASS).
+
+---
+
 ## 2.25 R-03: congelamento do baseline e reparo do CI (pnpm 10) — 2026-11-07
 - **Contexto & Problema:**
   - `pnpm check:r03` estava vermelho com **38 violações** (>100 linhas) em arquivos de produção, todas pré-existentes; `scripts/r03-baseline.json` estava `{}` (zerado), ou seja, o ratchet não congelava nada e qualquer crescimento passava despercebido até estourar o limite.

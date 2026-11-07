@@ -59,14 +59,12 @@ export function useMatchCardData(match: DashboardMatchPayload) {
   }, [displayedSets, isLiveOrSuspended, isFinished, maxSetsForFormat]);
 
   const currentServer = useMemo(() => {
-    const s = scoreState?.server || suspendedAnnotationScore?.server;
+    const s = scoreState?.server || suspendedAnnotationScore?.server || match.initialServerId;
     if (s === 'player1' || s === 'player2') return s;
-    if (s && match.player1?.id && s === match.player1.id) return 'player1';
-    if (s && match.player2?.id && s === match.player2.id) return 'player2';
-    if (match.initialServerId && match.player1?.id && match.player1.id === match.initialServerId) return 'player1';
-    if (match.initialServerId && match.player2?.id && match.player2.id === match.initialServerId) return 'player2';
+    if (s && (s === match.player1?.id || s === match.player1Partner?.id)) return 'player1';
+    if (s && (s === match.player2?.id || s === match.player2Partner?.id)) return 'player2';
     return null;
-  }, [scoreState, suspendedAnnotationScore, match.initialServerId, match.player1, match.player2]);
+  }, [scoreState, suspendedAnnotationScore, match.initialServerId, match.player1, match.player2, match.player1Partner, match.player2Partner]);
 
   const showServer = !isFinished && !isScheduled && Boolean(currentServer);
   const hasScore = scoreState != null || suspendedAnnotationScore != null;

@@ -40,9 +40,9 @@ export function ReportHeader({ report, onContinue, onDashboard, onExport: _onExp
           <div>
             <h1 className="text-xl font-bold text-telemetry-text-primary">Relatório da Partida</h1>
             <p className="text-sm text-telemetry-text-muted mt-1">
-              <span className={`font-semibold ${colors.p1}`}>P1</span>{' '}
+              <span className={`font-semibold ${colors.p1}`}>{isDoubles ? 'Dupla 1' : 'P1'}</span>{' '}
               <span className={colors.p1}>{p1Name}</span> vs{' '}
-              <span className={`font-semibold ${colors.p2}`}>P2</span>{' '}
+              <span className={`font-semibold ${colors.p2}`}>{isDoubles ? 'Dupla 2' : 'P2'}</span>{' '}
               <span className={colors.p2}>{p2Name}</span> · {isDoubles ? 'Duplas · ' : ''}{report.format.replace(/_/g, ' ')} · {stateLabel}
             </p>
             <p className="text-xs text-telemetry-text-muted/70 mt-1">Início: {formatDate(report.startedAt)} · Fim: {formatDate(report.finishedAt)}</p>

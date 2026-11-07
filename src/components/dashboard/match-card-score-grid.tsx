@@ -99,20 +99,12 @@ export function MatchCardScoreTable({
   const cellClasses = 'text-center px-0.5 sm:px-1 py-1 text-xs sm:text-sm font-space-grotesk font-semibold border border-telemetry-border/10';
 
   const p1TextColor = isFinished
-    ? (isWinnerP1
-        ? 'text-emerald-800 dark:text-telemetry-volt font-black'
-        : isWinnerP2
-          ? 'text-telemetry-text-muted/70 font-normal'
-          : 'text-telemetry-text-primary font-bold')
-    : 'text-telemetry-text-primary font-bold';
+    ? (isWinnerP1 ? 'text-emerald-800 dark:text-telemetry-volt font-black' : isWinnerP2 ? 'text-telemetry-text-muted/70 font-normal' : 'text-telemetry-text-primary font-bold')
+    : (isServerP1 ? 'text-emerald-800 dark:text-telemetry-volt font-black' : 'text-telemetry-text-primary font-bold');
 
   const p2TextColor = isFinished
-    ? (isWinnerP2
-        ? 'text-emerald-800 dark:text-telemetry-volt font-black'
-        : isWinnerP1
-          ? 'text-telemetry-text-muted/70 font-normal'
-          : 'text-telemetry-text-primary font-bold')
-    : 'text-telemetry-text-primary font-bold';
+    ? (isWinnerP2 ? 'text-emerald-800 dark:text-telemetry-volt font-black' : isWinnerP1 ? 'text-telemetry-text-muted/70 font-normal' : 'text-telemetry-text-primary font-bold')
+    : (isServerP2 ? 'text-emerald-800 dark:text-telemetry-volt font-black' : 'text-telemetry-text-primary font-bold');
 
   const pontosP1 = isCurrentSetMT
     ? '-'
