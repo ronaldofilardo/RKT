@@ -20,4 +20,5 @@ export interface Athlete {
   club?: string | null;
   clubName?: string | null;
   createdAt?: string | null;
+  createdByUserId?: string | null;
 }

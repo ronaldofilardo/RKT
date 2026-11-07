@@ -33,7 +33,7 @@ export const FINANCEIRO = soon('financeiro', 'Financeiro', '💰');
 export const TORNEIOS = soon('torneios', 'Torneios', '🏆');
 
 export const TREINADOR: readonly MenuItem[] = [
-  soon('treinador-atletas', 'Meus Atletas', '🎾'),
+  link('treinador-atletas', 'Meus Atletas', '/atletas', '🎾'),
   soon('treinador-solicitacoes', 'Solicitações', '📨'),
   soon('treinador-relatorios', 'Relatórios', '📊'),
   link('nova-partida', 'Nova Partida', '/match/new', '➕'),

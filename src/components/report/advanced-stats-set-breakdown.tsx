@@ -1,8 +1,10 @@
 'use client';
 
 import { Section, type AdvancedStatsSectionProps } from './advanced-stats-primitives';
+import { usePlayerColors } from '@/components/ui/player-color.context';
 
 export function SetBreakdownSection({ stats, player1Name, player2Name }: AdvancedStatsSectionProps) {
+  const colors = usePlayerColors();
   const totalDuration = stats.durations?.totalDurationMinutes;
   return (
     <Section title="10. Breakdown por Set">
@@ -11,8 +13,8 @@ export function SetBreakdownSection({ stats, player1Name, player2Name }: Advance
           <thead>
             <tr className="border-b-2 border-white/10">
               <th className="text-left py-2 px-2 font-bold text-telemetry-text-primary">Set</th>
-              <th className="text-center py-2 px-2 font-bold text-telemetry-blue">{player1Name}</th>
-              <th className="text-center py-2 px-2 font-bold text-telemetry-error">{player2Name}</th>
+              <th className={`text-center py-2 px-2 font-bold ${colors.p1}`}>{player1Name}</th>
+              <th className={`text-center py-2 px-2 font-bold ${colors.p2}`}>{player2Name}</th>
               <th className="text-center py-2 px-2 font-bold text-telemetry-text-primary">Pontos</th>
               <th className="text-center py-2 px-2 font-bold text-telemetry-text-primary">Aces</th>
               <th className="text-center py-2 px-2 font-bold text-telemetry-text-primary">Winners</th>
@@ -27,7 +29,7 @@ export function SetBreakdownSection({ stats, player1Name, player2Name }: Advance
                   Set {set.setNumber}
                   {set.isTiebreak && <span className="text-telemetry-alert ml-1 font-bold">TB</span>}
                 </td>
-                <td className="text-center py-2 px-2 text-telemetry-blue font-mono font-bold text-sm">
+                <td className={`text-center py-2 px-2 font-mono font-bold text-sm ${colors.p1}`}>
                   {set.p1Games}x{set.p2Games}
                   {set.isTiebreak && set.tiebreakP1 != null && set.tiebreakP2 != null && (
                     <span className="text-[10px] text-telemetry-text-muted ml-1 font-normal">
@@ -35,7 +37,7 @@ export function SetBreakdownSection({ stats, player1Name, player2Name }: Advance
                     </span>
                   )}
                 </td>
-                <td className="text-center py-2 px-2 text-telemetry-error font-mono font-bold text-sm">
+                <td className={`text-center py-2 px-2 font-mono font-bold text-sm ${colors.p2}`}>
                   {set.p2Games}x{set.p1Games}
                   {set.isTiebreak && set.tiebreakP1 != null && set.tiebreakP2 != null && (
                     <span className="text-[10px] text-telemetry-text-muted ml-1 font-normal">
@@ -44,22 +46,22 @@ export function SetBreakdownSection({ stats, player1Name, player2Name }: Advance
                   )}
                 </td>
                 <td className="text-center py-2 px-2">
-                  <span className="text-telemetry-blue font-bold">{set.p1Points}</span>
+                  <span className={`font-bold ${colors.p1}`}>{set.p1Points}</span>
                   <span className="text-telemetry-text-muted/50 mx-1">/</span>
-                  <span className="text-telemetry-error font-bold">{set.p2Points}</span>
+                  <span className={`font-bold ${colors.p2}`}>{set.p2Points}</span>
                 </td>
                 <td className="text-center py-2 px-2">
-                  <span className="text-telemetry-blue font-bold">{set.p1Aces}</span>
+                  <span className={`font-bold ${colors.p1}`}>{set.p1Aces}</span>
                   <span className="text-telemetry-text-muted/50 mx-1">/</span>
-                  <span className="text-telemetry-error font-bold">{set.p2Aces}</span>
+                  <span className={`font-bold ${colors.p2}`}>{set.p2Aces}</span>
                 </td>
                 <td className="text-center py-2 px-2">
-                  <span className="text-telemetry-blue font-bold">{set.p1Winners}</span>
+                  <span className={`font-bold ${colors.p1}`}>{set.p1Winners}</span>
                   <span className="text-telemetry-text-muted/50 mx-1">/</span>
-                  <span className="text-telemetry-error font-bold">{set.p2Winners}</span>
+                  <span className={`font-bold ${colors.p2}`}>{set.p2Winners}</span>
                 </td>
                 <td className="text-center py-2 px-2">
-                  <span className="text-telemetry-blue font-bold">{set.p1Errors}</span>
+                  <span className="text-telemetry-error font-bold">{set.p1Errors}</span>
                   <span className="text-telemetry-text-muted/50 mx-1">/</span>
                   <span className="text-telemetry-error font-bold">{set.p2Errors}</span>
                 </td>

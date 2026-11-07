@@ -191,7 +191,54 @@ body {
   color: var(--body-fg);
   background-color: var(--body-bg);
   overflow-x: hidden;
-  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ── Transição suave de tema (claro ↔ escuro) ──────────────
+   Global para cobrir componentes futuros automaticamente.
+   Variáveis CSS não animam; o que transita é a propriedade que as consome. */
+*,
+*::before,
+*::after {
+  transition:
+    background-color 2s ease,
+    color 2s ease,
+    border-color 2s ease,
+    fill 2s ease,
+    stroke 2s ease,
+    box-shadow 2s ease;
+}
+
+/* ── Overrides: interações não herdam o timing de tema ─────── */
+button,
+a,
+.btn-primary,
+.btn-white {
+  transition:
+    color var(--motion-fast) var(--ease-standard),
+    background-color var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard),
+    opacity var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+.transition-base {
+  transition: all var(--motion-base) var(--ease-standard);
+}
+
+.transition-fast {
+  transition: all var(--motion-fast) var(--ease-standard);
+}
+
+/* ── Acessibilidade: sem animações para quem prefere movimento reduzido ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ==========================================================================

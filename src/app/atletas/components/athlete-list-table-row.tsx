@@ -3,14 +3,24 @@ import { formatRankings } from './athlete-list-table.logic';
 
 interface AthleteTableRowProps {
   athlete: Athlete;
+  currentUserId?: string | null;
+  userRole?: string | null;
   onEditAthlete: (athlete: Athlete) => void;
   onDeleteAthlete: (athlete: Athlete) => void;
 }
 
-export function AthleteTableRow({ athlete: a, onEditAthlete, onDeleteAthlete }: AthleteTableRowProps) {
+export function AthleteTableRow({
+  athlete: a,
+  currentUserId,
+  userRole,
+  onEditAthlete,
+  onDeleteAthlete,
+}: AthleteTableRowProps) {
   const rankingList = formatRankings(a.rankings);
   const location = [a.city, a.state].filter(Boolean).join(' - ');
   const clubDisplay = a.club || a.clubName;
+  const isCreator = !a.createdByUserId || (currentUserId ? a.createdByUserId === currentUserId : true);
+  const canDelete = isCreator || userRole === 'ADMIN';
 
   return (
     <tr className="hover:bg-white/5 transition-colors">
@@ -70,13 +80,15 @@ export function AthleteTableRow({ athlete: a, onEditAthlete, onDeleteAthlete }: 
           >
             Editar
           </button>
-          <button
-            onClick={() => onDeleteAthlete(a)}
-            aria-label={`Excluir atleta ${a.name}`}
-            className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert text-xs sm:text-sm font-medium rounded-lg hover:bg-telemetry-alert/20 transition-colors"
-          >
-            Excluir
-          </button>
+          {canDelete && (
+            <button
+              onClick={() => onDeleteAthlete(a)}
+              aria-label={`Excluir atleta ${a.name}`}
+              className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert text-xs sm:text-sm font-medium rounded-lg hover:bg-telemetry-alert/20 transition-colors"
+            >
+              Excluir
+            </button>
+          )}
         </div>
       </td>
     </tr>

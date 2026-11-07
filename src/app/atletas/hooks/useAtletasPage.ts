@@ -93,6 +93,8 @@ export function useAtletasPage() {
     athleteToDelete,
     setAthleteToDelete,
     deleting,
+    currentUserId: typeof window !== 'undefined' ? sessionStorage.getItem('user_id') : null,
+    userRole: typeof window !== 'undefined' ? sessionStorage.getItem('user_role') : null,
     saveAthleteChanges,
     confirmAthleteDeletion,
     loadAthletes,

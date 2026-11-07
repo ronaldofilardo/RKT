@@ -4,9 +4,10 @@ import { homeForProfileString } from '@/core/access/home';
 interface AthleteSearchHeaderProps {
   athleteCount: number;
   onNewAthlete: () => void;
+  title?: string;
 }
 
-export function AthleteSearchHeader({ athleteCount, onNewAthlete }: AthleteSearchHeaderProps) {
+export function AthleteSearchHeader({ athleteCount, onNewAthlete, title = 'Atletas' }: AthleteSearchHeaderProps) {
   const router = useRouter();
   
   return (
@@ -23,7 +24,7 @@ export function AthleteSearchHeader({ athleteCount, onNewAthlete }: AthleteSearc
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="text-xl sm:text-2xl font-bold text-telemetry-text-primary">Atletas</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-telemetry-text-primary">{title}</h1>
           <span className="bg-telemetry-blue/20 text-telemetry-blue text-xs font-semibold px-2 py-1 rounded-full">
             {athleteCount}
           </span>

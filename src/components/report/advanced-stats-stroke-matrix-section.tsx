@@ -5,8 +5,10 @@ import {
   Section,
   type AdvancedStatsSectionProps,
 } from './advanced-stats-primitives';
+import { usePlayerColors } from '@/components/ui/player-color.context';
 
 export function StrokeMatrixSection({ stats, player1Name, player2Name }: AdvancedStatsSectionProps) {
+  const colors = usePlayerColors();
   const p1Matrix = stats.strokeMatrix?.player1;
   const p2Matrix = stats.strokeMatrix?.player2;
   if (!p1Matrix || !p2Matrix) return null;
@@ -15,10 +17,10 @@ export function StrokeMatrixSection({ stats, player1Name, player2Name }: Advance
     <Section title="8. Estatísticas dos Golpes">
       <PlayerColumnHeader player1Name={player1Name} player2Name={player2Name} centerLabel="Golpes" />
       <div className="text-[11px] text-telemetry-text-muted text-center mb-3">
-        Formato: <span className="text-telemetry-blue font-bold">W</span> |{' '}
+        Formato: <span className="text-telemetry-text-primary font-bold">W</span> |{' '}
         <span className="text-telemetry-alert font-bold">EF</span> |{' '}
         <span className="text-telemetry-error font-bold">ENF</span> &bull;{' '}
-        <span className="text-white font-bold">Tot</span>
+        <span className="text-white/60 font-bold">Tot</span>
       </div>
       <div className="space-y-1">
         {p1Matrix.map((p1Row, idx) => {
@@ -30,7 +32,7 @@ export function StrokeMatrixSection({ stats, player1Name, player2Name }: Advance
               className="grid grid-cols-[1fr_minmax(180px,280px)_1fr] sm:grid-cols-[1fr_280px_1fr] gap-3 sm:gap-4 items-center py-1.5 border-b border-white/5 last:border-0 text-xs"
             >
               <div className="text-right font-mono">
-                <span className="text-telemetry-blue font-semibold">{p1Row.winners}</span>
+                <span className={`font-semibold ${colors.p1}`}>{p1Row.winners}</span>
                 <span className="text-white/30 mx-0.5">|</span>
                 <span className="text-telemetry-alert font-semibold">{p1Row.forcedErrors}</span>
                 <span className="text-white/30 mx-0.5">|</span>
@@ -41,7 +43,7 @@ export function StrokeMatrixSection({ stats, player1Name, player2Name }: Advance
                 {p1Row.name}
               </div>
               <div className="text-left font-mono">
-                <span className="text-telemetry-blue font-semibold">{p2Row.winners}</span>
+                <span className={`font-semibold ${colors.p2}`}>{p2Row.winners}</span>
                 <span className="text-white/30 mx-0.5">|</span>
                 <span className="text-telemetry-alert font-semibold">{p2Row.forcedErrors}</span>
                 <span className="text-white/30 mx-0.5">|</span>

@@ -1,8 +1,10 @@
 'use client';
 
 import { Section, type AdvancedStatsSectionProps } from './advanced-stats-primitives';
+import { usePlayerColors } from '@/components/ui/player-color.context';
 
 export function RallySection({ stats, player1Name, player2Name }: AdvancedStatsSectionProps) {
+  const colors = usePlayerColors();
   const { shots } = stats;
   const dist = shots.player1.rallyLengthDistribution;
   const avgP1 = shots.player1.rallyAvgLength.toFixed(1);
@@ -26,9 +28,9 @@ export function RallySection({ stats, player1Name, player2Name }: AdvancedStatsS
       </div>
       <div className="text-center text-xs text-telemetry-text-muted mt-3 pt-2 border-t border-white/10">
         Duração média por ponto:{' '}
-        <span className="font-mono text-telemetry-blue font-semibold">{player1Name}: {avgP1}</span>
+        <span className={`font-mono font-semibold ${colors.p1}`}>{player1Name}: {avgP1}</span>
         <span className="text-white/30 mx-2">&bull;</span>
-        <span className="font-mono text-telemetry-error font-semibold">{player2Name}: {avgP2}</span>
+        <span className={`font-mono font-semibold ${colors.p2}`}>{player2Name}: {avgP2}</span>
       </div>
     </Section>
   );

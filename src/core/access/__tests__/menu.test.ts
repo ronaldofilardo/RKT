@@ -67,11 +67,25 @@ describe('buildMenu — combinações do plano (§7)', () => {
   );
 
   it('6. Treinador avulso: Treinador (sem Operação)', () => {
-    expect(keys(buildMenu(ctx({ coach: { ctIds: [] } })))).toEqual(['treinador']);
+    const menu = buildMenu(ctx({ coach: { ctIds: [] } }));
+    expect(keys(menu)).toEqual(['treinador']);
+    const meusAtletas = find(menu, 'treinador')!.items.find((i) => i.key === 'treinador-atletas');
+    expect(meusAtletas).toEqual(expect.objectContaining({
+      label: 'Meus Atletas',
+      href: '/atletas',
+      disabled: false,
+    }));
   });
 
   it('7. Treinador de clube: Treinador (sem Operação)', () => {
-    expect(keys(buildMenu(ctx({ coach: { ctIds: ['ct-1'] } })))).toEqual(['treinador']);
+    const menu = buildMenu(ctx({ coach: { ctIds: ['ct-1'] } }));
+    expect(keys(menu)).toEqual(['treinador']);
+    const meusAtletas = find(menu, 'treinador')!.items.find((i) => i.key === 'treinador-atletas');
+    expect(meusAtletas).toEqual(expect.objectContaining({
+      label: 'Meus Atletas',
+      href: '/atletas',
+      disabled: false,
+    }));
   });
 
   it('8. Atleta avulso: "Vincular a clube"', () => {

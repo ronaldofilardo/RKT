@@ -16,7 +16,7 @@ export function BaselineSection({ stats, player1Name, player2Name }: AdvancedSta
     <Section title="3. Fundo de Quadra">
       <PlayerColumnHeader player1Name={player1Name} player2Name={player2Name} />
       <StatRow label="Winners no Fundo" p1={p1.winners} p2={p2.winners} />
-      <StatRow label="Erros Não Forçados" p1={p1.unforcedErrors} p2={p2.unforcedErrors} />
+      <StatRow label="Erros Não Forçados" p1={p1.unforcedErrors} p2={p2.unforcedErrors} tone="error" />
       <StatRow label="Erros Forçados" p1={p1.forcedErrors} p2={p2.forcedErrors} />
       <StatRow label="Aproveitamento/Total" p1={`${p1.winners}/${p1.total}`} p2={`${p2.winners}/${p2.total}`} />
       <StatRow label="% Aproveitamento no Fundo" p1={p1.successPct} p2={p2.successPct} format="pct" />

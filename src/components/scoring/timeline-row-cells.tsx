@@ -1,19 +1,14 @@
 'use client';
 
 import type { TimelinePoint } from '@/core/scoring/types';
+import { usePlayerColors } from '@/components/ui/player-color.context';
 import { direcaoLabel, efeitoLabel, golpeEspLabel, golpeLabel, duracaoLabel, situacaoLabel, subtipo1Label, subtipo2Label } from './timeline.logic';
 import { BADGE_COLORS, getGameScoreLabelForPoint, getPointBadge } from './timeline-row.logic';
 
 const TD = 'px-1.5 py-1.5 text-[10px] text-center';
 const MUTED = `${TD} text-telemetry-text-muted`;
 
-interface FlagCellProps {
-  active: boolean;
-  label: string;
-  color: string;
-}
-
-function FlagCell({ active, label, color }: FlagCellProps) {
+function FlagCell({ active, label, color }: { active: boolean; label: string; color: string }) {
   return (
     <td className={`${TD} text-center font-semibold ${active ? color : 'text-telemetry-text-muted/50'}`}>
       {active ? label : '–'}
@@ -22,24 +17,27 @@ function FlagCell({ active, label, color }: FlagCellProps) {
 }
 
 /** 5 células (ou 4 em MT): no., SAC, Venc, GAMES (opcional em MT) e PONTOS. */
-export function IdentityCells({ p, serverNumber, winnerNumber, serverInitials, winnerInitials, isFirstPointOfGame, isMatchTb }: {
+export function IdentityCells({ p, serverInitials, winnerInitials, isFirstPointOfGame, isMatchTb, serverNumber, winnerNumber }: {
   p: TimelinePoint;
-  serverNumber: number;
-  winnerNumber: number;
   serverInitials: string;
   winnerInitials: string;
   isFirstPointOfGame: boolean;
   isMatchTb?: boolean;
+  /** 1 | 2 — define a cor da célula SAC (cor do atleta, como no card). */
+  serverNumber: number;
+  /** 1 | 2 — define a cor da célula Venc (cor do atleta, como no card). */
+  winnerNumber: number;
 }) {
+  const colors = usePlayerColors();
   return (
     <>
       <td className={`${TD} text-telemetry-text-primary font-semibold sticky left-0 bg-telemetry-base z-10 border-r border-white/10`}>
         {p.pointNumber}
       </td>
-      <td className={`${TD} text-center font-semibold ${serverNumber === 1 ? 'text-telemetry-blue' : 'text-telemetry-error'}`}>
+      <td className={`${TD} text-center font-semibold ${serverNumber === 1 ? colors.p1 : colors.p2}`}>
         {serverInitials}
       </td>
-      <td className={`${TD} text-center font-bold ${winnerNumber === 1 ? 'text-telemetry-blue' : 'text-telemetry-error'}`}>
+      <td className={`${TD} text-center font-bold ${winnerNumber === 1 ? colors.p1 : colors.p2}`}>
         {winnerInitials}
       </td>
       {!isMatchTb && (

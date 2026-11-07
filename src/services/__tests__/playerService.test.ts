@@ -36,7 +36,7 @@ describe('playerService', () => {
 
       expect(mockPrisma.player.findMany).toHaveBeenCalledWith({
         take: 20,
-        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, clubId: true, city: true, state: true, createdAt: true, playerCts: { select: { ctId: true } } },
+        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, clubId: true, city: true, state: true, createdAt: true, createdByUserId: true, playerCts: { select: { ctId: true } } },
         orderBy: { name: 'asc' },
         where: {},
       });
@@ -59,7 +59,7 @@ describe('playerService', () => {
       );
     });
 
-    it('deve filtrar por userId quando fornecido', async () => {
+    it('deve filtrar por userId (criador ou vínculo de treinador ativo) quando fornecido', async () => {
       const { listPlayers } = await import('@/services/playerService');
 
       mockPrisma.player.findMany.mockResolvedValue([]);
@@ -68,7 +68,12 @@ describe('playerService', () => {
 
       expect(mockPrisma.player.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { createdByUserId: 'user-123' },
+          where: {
+            OR: [
+              { createdByUserId: 'user-123' },
+              { coachAthleteLinks: { some: { coachUserId: 'user-123', status: 'ACTIVE' } } },
+            ],
+          },
         }),
       );
     });

@@ -1,6 +1,7 @@
 'use client';
 
 import type { TimelinePoint } from '@/core/scoring/types';
+import { usePlayerColors } from '@/components/ui/player-color.context';
 import { direcaoLabel, efeitoLabel } from './timeline.logic';
 import { type TimelineDoublesConfig } from './timeline-row.logic';
 import { resolveServerInitials, resolveWinnerInitials } from './timeline-row-initials.logic';
@@ -21,19 +22,20 @@ export interface PointRowProps {
 }
 
 export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPointOfGame, player1Name, player2Name, doubles, isMatchTb }: PointRowProps) {
+  const colors = usePlayerColors();
   const rd = p.rallyDetails;
   const isServeDecidedPoint = p.type === 'ACE' || p.type === 'DOUBLE_FAULT' || p.type === 'FAULT_FIRST';
-
+  const serverNumber = p.server === 'player1' ? 1 : 2;
+  const winnerNumber = p.winner === 'PLAYER_1' ? 1 : 2;
+  // Borda esquerda acompanha a cor do atleta vencedor do ponto (como no card).
+  const winnerBorder = winnerNumber === 1 ? colors.p1Border : colors.p2Border;
   const rowClass = [
     'border-b border-white/5 hover:bg-white/5 transition-colors',
-    p.winner === 'PLAYER_1' ? 'border-l-[3px] border-l-telemetry-blue' : 'border-l-[3px] border-l-telemetry-error',
+    `border-l-[3px] ${winnerBorder}`,
     p.isBreakPoint ? 'bg-telemetry-alert/10' : '',
   ].join(' ');
 
   const ariaLabel = `Ponto: ${p.winner === 'PLAYER_1' ? 'P1' : 'P2'} venceu`;
-
-  const serverNumber = p.server === 'player1' ? 1 : 2;
-  const winnerNumber = p.winner === 'PLAYER_1' ? 1 : 2;
 
   const serverInitials = resolveServerInitials({
     serverNumber,
@@ -51,12 +53,12 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPo
     <>
       <IdentityCells
         p={p}
-        serverNumber={serverNumber}
-        winnerNumber={winnerNumber}
         serverInitials={serverInitials}
         winnerInitials={winnerInitials}
         isFirstPointOfGame={isFirstPointOfGame}
         isMatchTb={isMatchTb}
+        serverNumber={serverNumber}
+        winnerNumber={winnerNumber}
       />
       <ServeOutcomeCells
         outcome={firstOutcome}

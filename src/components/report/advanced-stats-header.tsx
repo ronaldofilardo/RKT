@@ -2,6 +2,7 @@
 
 import type { ReportData } from '@/app/match/[id]/report/report.types';
 import type { AdvancedMatchStats } from '@/core/report/compute-stats';
+import { usePlayerColors } from '@/components/ui/player-color.context';
 
 interface HeaderProps {
   report?: ReportData;
@@ -20,6 +21,7 @@ function formatCourtType(c?: string | null): string {
 }
 
 export function AdvancedStatsHeader({ report, stats, player1Name, player2Name }: HeaderProps) {
+  const colors = usePlayerColors();
   if (!report) return null;
 
   const mode = report.matchType === 'DOUBLES' ? 'Duplas' : 'Simples';
@@ -39,9 +41,9 @@ export function AdvancedStatsHeader({ report, stats, player1Name, player2Name }:
     <div className="bg-telemetry-elevated rounded-xl border border-white/10 p-4 mb-4 text-xs">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3 mb-3">
         <div>
-          <span className="font-bold text-sm text-telemetry-text-primary mr-2">{player1Name}</span>
+          <span className={`font-bold text-sm mr-2 ${colors.p1}`}>{player1Name}</span>
           <span className="text-telemetry-text-muted">vs</span>
-          <span className="font-bold text-sm text-telemetry-text-primary ml-2">{player2Name}</span>
+          <span className={`font-bold text-sm ml-2 ${colors.p2}`}>{player2Name}</span>
         </div>
         <div className="text-telemetry-blue font-semibold uppercase tracking-wider text-[11px]">
           {mode} &bull; {report.format}

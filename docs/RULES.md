@@ -171,25 +171,43 @@ Characterization tests **não testam se o código está certo** — testam **o q
 
 ---
 
-## 9. Política de Ambientes e Variáveis
+## 9. Política de Ambientes e Variáveis — Premissa Inquebrantável P-01
 
-| Ambiente | Arquivo `.env` | Banco | Propósito |
-|---|---|---|---|
-| `local` | `.env.local` | `racket_mvp` | Desenvolvimento diário |
-| `test` | `.env.test` | `racket_mvp_test` | Unit/E2E/Mutation |
-| `production` | `.env.production` | Neon (cloud) | Produção |
+> [!CRITICAL]
+> **PREMISSA P-01 (INQUEBRANTÁVEL — TOLERÂNCIA ZERO):**
+> 1. **Servidor Local (`development`):** usa **SOMENTE** o banco local `racket_mvp` (loopback: `localhost`, `127.0.0.1`, `::1`). **JAMAIS** conecta ao banco de produção do Neon.
+> 2. **Testes (`test`):** rodam **SOMENTE** no banco local `racket_mvp_test` (loopback). Testes nunca usam `racket_mvp` (dev) nem o banco de produção.
+> 3. **Produção (`production`):** usa **SOMENTE** o banco do Neon (`*.neon.tech`), provisionado via painel da Vercel / Neon console. Requer marcadores explícitos de deploy (`VERCEL=1` ou `APP_ENV=production`).
+> Toda e qualquer alteração de código, script ou pipeline DEVE respeitar esta regra sem exceção. Qualquer violação falha rápido com `DbTargetError`.
 
-**Regras:**
-- `.env` (defaults, commiteado, **sem segredos**) · `.env.local`, `.env.test`, `.env.production` → **nunca commitar** (gitignored).
-- **Proibido:** apontar scripts de dev para `racket_mvp_test`; usar dados de produção em teste.
-- **Permitido:** `pnpm test:setup` antes da primeira execução; fixtures no banco de teste.
-- Testes carregam `.env.test` via `dotenv-cli` + `NODE_ENV=test`; o `Prisma Client` lê `DATABASE_URL` do ambiente carregado.
+| Ambiente | Arquivo `.env` | Variável de Banco | Destino Obrigatório | Propósito |
+|---|---|---|---|---|
+| `development` | `.env.local` / `.env` | `DATABASE_URL_DEV` | `localhost:5432/racket_mvp` | Desenvolvimento diário |
+| `test` | `.env.test` | `DATABASE_URL_TEST` | `localhost:5432/racket_mvp_test` | Unit/E2E/Mutation/Playwright |
+| `production` | Painel Vercel/Neon | `DATABASE_URL` | `*.neon.tech/neondb` | Produção em nuvem |
 
-**Scripts de teste:** `pnpm test:setup` (prepara ambiente) · `pnpm db:test:create` (recria banco) · `pnpm db:test:push` (schema) · `pnpm db:test:seed` (dados).
+**Regras e Mecanismos de Proteção:**
+- **Segregação de Variáveis:** Não existe variável genérica `DATABASE_URL` em ambiente local. Cada ambiente possui sua variável dedicada (`DATABASE_URL_DEV` e `DATABASE_URL_TEST`), eliminando compartilhamento acidental de credenciais.
+- **Tripla Barreira de Runtime:**
+  1. **Pré-voo (`scripts/db/preflight.ts`):** Todos os comandos do `package.json` (`dev`, `build`, `start`, `test*`, `db:*`) executam o pré-voo antes do processo-alvo, validando host e nome de banco.
+  2. **Next.js Boot (`src/instrumentation.ts`):** Hook nativo do Next.js valida o alvo no boot do servidor Node.js antes de qualquer requisição.
+  3. **Prisma Client Guard (`src/lib/prisma.ts`):** O cliente Prisma obtém a URL validada via `assertDbTarget()` e injeta `datasourceUrl: dbTarget.url`.
+- **Proibições Estritas:**
+  - **PROIBIDO:** Usar credenciais de produção do Neon em máquinas locais de desenvolvimento ou criar `.env.production` localmente.
+  - **PROIBIDO:** Apontar scripts de desenvolvimento para `racket_mvp_test`.
+  - **PROIBIDO:** Executar testes contra `racket_mvp` ou produção.
+  - **PROIBIDO:** Instanciar `new PrismaClient()` solto em código de aplicação fora de `src/lib/prisma.ts` (ou `scripts/db/script-prisma.ts` em scripts).
+- **Git Hygiene:** `.env.local`, `.env.production` são gitignored e **nunca** devem ser commitados. `.env.example` é a referência canônica sem segredos.
 
-**Variáveis obrigatórias:** `NEXT_PUBLIC_APP_URL`, `JWT_SECRET`, `DATABASE_URL` (ver `.env.example`).
+**Scripts de Banco:**
+- `pnpm db:where` — inspeciona e valida o alvo atual do banco.
+- `pnpm db:push` / `pnpm db:migrate` / `pnpm db:seed` — executam contra `racket_mvp` local com pré-voo.
+- `pnpm test:setup` / `pnpm db:test:create` / `pnpm db:test:push` / `pnpm db:test:seed` — executam contra `racket_mvp_test` local com pré-voo.
 
-**Troubleshooting:** *"Database does not exist"* → `pnpm test:setup` · *"Connection refused"* → verificar PostgreSQL · *"Permission denied"* → recriar `racket_mvp_test` e `pnpm db:test:push`.
+**Troubleshooting:**
+- *"BLOQUEADO: ambiente development exige banco local"* ➔ Verifique se `DATABASE_URL_DEV` em `.env` aponta para `localhost:5432/racket_mvp`.
+- *"BLOQUEADO: ambiente test exige banco local"* ➔ Verifique se `DATABASE_URL_TEST` em `.env.test` aponta para `localhost:5432/racket_mvp_test`.
+- *"Database does not exist"* ➔ Execute `pnpm test:setup` (para testes) ou crie `racket_mvp` no PostgreSQL local.
 
 ---
 

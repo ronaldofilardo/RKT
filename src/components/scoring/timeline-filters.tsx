@@ -32,33 +32,28 @@ export function FilterBar({ activeFilters, onToggleFilter, onClearFilters, count
       <Chip
         label={`P1 · ${playerNames.p1} (${counts.p1})`}
         active={activeFilters.has('p1')}
-        color="blue"
         onClick={() => onToggleFilter('p1')}
       />
       <Chip
         label={`P2 · ${playerNames.p2} (${counts.p2})`}
         active={activeFilters.has('p2')}
-        color="rose"
         onClick={() => onToggleFilter('p2')}
       />
       {counts.bp > 0 && (
         <Chip
           label={`Breakpoints (${counts.bp})`}
           active={activeFilters.has('bp')}
-          color="gray"
           onClick={() => onToggleFilter('bp')}
         />
       )}
       <Chip
         label={`Winners / Aces (${winnerCount})`}
         active={activeFilters.has('winners')}
-        color="gray"
         onClick={() => onToggleFilter('winners')}
       />
       <Chip
         label={`Erros (${errorCount})`}
         active={activeFilters.has('errors')}
-        color="gray"
         onClick={() => onToggleFilter('errors')}
       />
       {hasActiveFilters && (

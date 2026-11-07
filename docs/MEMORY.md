@@ -8,6 +8,50 @@
 
 ---
 
+## 2.24 Habilitação de 'Meus Atletas' no Menu do Treinador e Listagem de Vínculos — 2026-11-06
+- **Contexto & Demanda:**
+  - No perfil de Treinador (avulso/particular e clube), o item "Meus Atletas" no menu lateral estava desabilitado com o badge "Em breve" (sem rota).
+  - A rota `/atletas` (tabela completa de atletas com criação e edição) só buscava atletas criados diretamente pelo usuário (`createdByUserId = userId`), omitindo atletas vinculados via `CoachAthleteLink`.
+- **Implementação:**
+  1. **Menu Lateral (`src/core/access/menu-items.ts`):** Ativado o item `link('treinador-atletas', 'Meus Atletas', '/atletas', '🎾')` na seção `TREINADOR`.
+  2. **Query de Atletas (`src/services/player-service-queries.logic.ts`):** A função `listPlayers` foi atualizada para buscar atletas onde o usuário é o criador OU possui vínculo de treinador ativo:
+     ```ts
+     where: userId ? {
+       OR: [
+         { createdByUserId: userId },
+         { coachAthleteLinks: { some: { coachUserId: userId, status: 'ACTIVE' } } },
+       ],
+     } : {}
+     ```
+  3. **Segurança e UX de Exclusão (`src/app/atletas/components/athlete-list-table-row.tsx`):**
+     - O treinador pode criar novos atletas e editar existentes.
+     - A exclusão é restrita aos atletas criados por ele mesmo (`createdByUserId === currentUserId` ou admin), ocultando o botão "Excluir" em atletas vinculados criados por terceiros.
+  4. **Cabeçalho Contextual (`src/app/atletas/components/AthleteSearchHeader.tsx`):** Exibe "Meus Atletas" quando acessado na área/perfil de treinador.
+- **Validação:** Suítes `menu.test.ts` (21/21 PASS), `playerService.test.ts` (23/23 PASS), `src/app/atletas/__tests__` (23/23 PASS) e `pnpm typecheck` (0 erros).
+
+---
+
+## 2.23 Premissa P-01: Isolamento Inquebrantável de Bancos de Dados e Guarda de Pré-Voo — 2026-11-06
+- **Contexto & Problema Crítico:**
+  - Em ambiente de desenvolvimento local, a ausência de segregação rígida nas variáveis de ambiente fazia com que o Next.js e o Prisma Client herdassem uma DATABASE_URL conectada ao Neon em nuvem, salvando partidas, atletas e dados locais de teste diretamente no banco de produção.
+- **Premissa Inquebrantável P-01 (Tolerância Zero):**
+  - **Servidor local (development):** opera **SOMENTE** no PostgreSQL local racket_mvp em loopback (localhost, 127.0.0.1, ::1). Bloqueado categoricamente de acessar o Neon.
+  - **Testes (test):** rodam **SOMENTE** no PostgreSQL local racket_mvp_test em loopback.
+  - **Produção (production):** opera **SOMENTE** no Neon Console (*.neon.tech). Exige marcadores explícitos de infraestrutura de deploy (VERCEL=1 ou APP_ENV=production).
+- **Arquitetura da Solução:**
+  1. **Segregação de Variáveis:** Renomeadas em .env.example, .env e .env.test para DATABASE_URL_DEV e DATABASE_URL_TEST. Em desenvolvimento local não existe DATABASE_URL genérico.
+  2. **Guarda Central (src/lib/db/db-target.ts):** Valida protocolo, host (loopback vs *.neon.tech), e nome exato do banco antes de qualquer conexão. Violações lançam DbTargetError (fail-fast).
+  3. **Boot Guard no Next.js (src/instrumentation.ts):** Valida o destino no boot do Node.js runtime antes de atender rotas.
+  4. **Injeção Dinâmica no Prisma (src/lib/prisma.ts):** new PrismaClient recebe explicitamente datasourceUrl: dbTarget.url validado.
+  5. **Pré-voo de Processos (scripts/db/preflight.ts):** Integrado a todos os scripts do package.json (dev, build, start, test*, db:*), inspecionando e validando o banco antes de disparar o comando filho.
+  6. **Isolamento de E2E (playwright.config.ts):** O servidor web de testes roda exclusivamente com preflight.ts --mode=test apontando para racket_mvp_test com reuseExistingServer: false.
+- **Testes & Qualidade:**
+  - Suíte dedicada src/lib/db/__tests__/db-target.test.ts com 29 testes cobrindo todas as tentativas de invasão entre ambientes (100% PASS).
+  - Limpeza e saneamento de credenciais locais no .env.
+  - Documentação formalizada em docs/RULES.md (Seção 9).
+
+---
+
 ## 2.22 Correção de Corte de Nomes/Clubes no Card e Alinhamento dos Testes de Logout — 2026-11-06
 - **Problema 1 — Card do dashboard cortando nome e badge de clube:**
   - Em `src/components/dashboard/match-card-score-grid.tsx`, a coluna "Jogador" estava travada em `w-[110px] sm:w-[120px]` e, como a tabela usa `table-fixed`, o excedente de largura era distribuído igualmente entre as colunas de Sets — Set 1 recebia ~200px para exibir um dígito enquanto nome + badge ("Outros", "Criado por RKT") eram esmagados e cortados no meio da palavra.

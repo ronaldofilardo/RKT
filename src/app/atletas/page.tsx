@@ -19,10 +19,14 @@ export default function AtletasPage() {
     athleteToDelete,
     setAthleteToDelete,
     deleting,
+    currentUserId,
+    userRole,
     saveAthleteChanges,
     confirmAthleteDeletion,
     loadAthletes,
   } = useAtletasPage();
+
+  const isTreinador = userRole === 'TREINADOR';
 
   if (loading) {
     return (
@@ -35,6 +39,7 @@ export default function AtletasPage() {
   return (
     <div className="min-h-screen bg-telemetry-base">
       <AthleteSearchHeader
+        title={isTreinador ? 'Meus Atletas' : undefined}
         athleteCount={athletes.length}
         onNewAthlete={() => setShowNewAthleteModal(true)}
       />
@@ -51,6 +56,8 @@ export default function AtletasPage() {
 
         <AthleteListTable
           athletes={athletes}
+          currentUserId={currentUserId}
+          userRole={userRole}
           onEditAthlete={setEditingAthlete}
           onDeleteAthlete={setAthleteToDelete}
         />

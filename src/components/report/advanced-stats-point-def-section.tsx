@@ -17,7 +17,7 @@ export function PointDefinitionSection({ stats, player1Name, player2Name }: Adva
       <PlayerColumnHeader player1Name={player1Name} player2Name={player2Name} />
       <StatRow label="Winners" p1={p1.cleanWinners} p2={p2.cleanWinners} />
       <StatRow label="Erros Forçados" p1={p1.forcedErrors} p2={p2.forcedErrors} />
-      <StatRow label="Erros Não Forçados" p1={p1.unforcedErrors} p2={p2.unforcedErrors} />
+      <StatRow label="Erros Não Forçados" p1={p1.unforcedErrors} p2={p2.unforcedErrors} tone="error" />
       <StatRow label="Total Golpes Definição" p1={p1.total} p2={p2.total} />
     </Section>
   );

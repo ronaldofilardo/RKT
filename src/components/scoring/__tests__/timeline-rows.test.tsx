@@ -4,6 +4,7 @@
 import { render, screen } from '@testing-library/react';
 import { PointRow, getPlayerInitials } from '../timeline-rows';
 import type { TimelinePoint } from '@/core/scoring/types';
+import { PlayerColorProvider, resolvePlayerColors } from '@/components/ui/player-color.context';
 
 function makePoint(overrides: Partial<TimelinePoint>): TimelinePoint {
   return {
@@ -265,16 +266,58 @@ describe('PointRow — regressão do novo layout (25 colunas, sem coluna SET)', 
     expect(screen.getByText('marcação interrompida')).toBeInTheDocument();
   });
 
-  it('vencedor PLAYER_2 usa borda vermelha, PLAYER_1 usa borda azul', () => {
+  it('sem vencedor (partida em andamento) → borda neutra em ambas as linhas', () => {
     const p1 = makePoint({ winner: 'PLAYER_1' });
     const p2 = makePoint({ winner: 'PLAYER_2' });
     const { container: c1 } = render(<table><tbody><PointRow {...baseProps} point={p1} hasGap={false} isLast={true} /></tbody></table>);
     const row1 = c1.querySelector('tr');
-    expect(row1?.className).toContain('border-l-telemetry-blue');
+    expect(row1?.className).toContain('border-l-white/10');
+    expect(row1?.className).not.toContain('border-l-telemetry-volt');
 
     const { container: c2 } = render(<table><tbody><PointRow {...baseProps} point={p2} hasGap={false} isLast={true} /></tbody></table>);
     const row2 = c2.querySelector('tr');
-    expect(row2?.className).toContain('border-l-telemetry-error');
+    expect(row2?.className).toContain('border-l-white/10');
+    expect(row2?.className).not.toContain('border-l-telemetry-volt');
+  });
+
+  it('partida finalizada → borda na cor do atleta campeão (volt) nos pontos dele', () => {
+    const colors = resolvePlayerColors({
+      state: 'FINISHED',
+      winnerId: 'p2',
+      player1: { id: 'p1' },
+      player2: { id: 'p2' },
+    });
+    const p1 = makePoint({ winner: 'PLAYER_1' });
+    const p2 = makePoint({ winner: 'PLAYER_2' });
+
+    const { container: c1 } = render(
+      <PlayerColorProvider colors={colors}>
+        <table><tbody><PointRow {...baseProps} point={p1} hasGap={false} isLast={true} /></tbody></table>
+      </PlayerColorProvider>
+    );
+    const row1 = c1.querySelector('tr');
+    expect(row1?.className).toContain('border-l-white/10');
+    expect(row1?.className).not.toContain('border-l-telemetry-volt');
+
+    const { container: c2 } = render(
+      <PlayerColorProvider colors={colors}>
+        <table><tbody><PointRow {...baseProps} point={p2} hasGap={false} isLast={true} /></tbody></table>
+      </PlayerColorProvider>
+    );
+    const row2 = c2.querySelector('tr');
+    expect(row2?.className).toContain('border-l-telemetry-volt');
+    expect(row2?.className).not.toContain('border-l-white/10');
+  });
+
+  it('SAC e Venc usam a cor do atleta (sem provider → branco canônico)', () => {
+    const p = makePoint({ server: 'player2', winner: 'PLAYER_1' });
+    const { container } = render(<table><tbody><PointRow {...baseProps} point={p} hasGap={false} isLast={true} /></tbody></table>);
+    const cells = container.querySelectorAll('td');
+    // [1]=SAC (P2, sem vencedor → neutro), [2]=Venc (P1, neutro)
+    expect(cells[1]?.className).toContain('text-telemetry-text-primary');
+    expect(cells[2]?.className).toContain('text-telemetry-text-primary');
+    expect(cells[1]?.className).not.toContain('text-telemetry-volt');
+    expect(cells[2]?.className).not.toContain('text-telemetry-volt');
   });
 });
 

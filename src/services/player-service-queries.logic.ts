@@ -4,11 +4,18 @@ export async function listPlayers(cursor?: string | null, limit = 20, userId?: s
   return prisma.player.findMany({
     take: limit,
     ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
-    where: userId ? { createdByUserId: userId } : {},
+    where: userId
+      ? {
+          OR: [
+            { createdByUserId: userId },
+            { coachAthleteLinks: { some: { coachUserId: userId, status: 'ACTIVE' } } },
+          ],
+        }
+      : {},
     select: {
       id: true, name: true, gender: true, age: true, birthDate: true, dominance: true,
       backhand: true, ranking: true, rankings: true, club: true, clubId: true,
-      city: true, state: true, createdAt: true,
+      city: true, state: true, createdAt: true, createdByUserId: true,
       playerCts: { select: { ctId: true } },
     },
     orderBy: { name: 'asc' },

@@ -4,11 +4,19 @@ import { AthleteTableRow } from './athlete-list-table-row';
 
 interface AthleteListTableProps {
   athletes: Athlete[];
+  currentUserId?: string | null;
+  userRole?: string | null;
   onEditAthlete: (athlete: Athlete) => void;
   onDeleteAthlete: (athlete: Athlete) => void;
 }
 
-export function AthleteListTable({ athletes, onEditAthlete, onDeleteAthlete }: AthleteListTableProps) {
+export function AthleteListTable({
+  athletes,
+  currentUserId,
+  userRole,
+  onEditAthlete,
+  onDeleteAthlete,
+}: AthleteListTableProps) {
   if (athletes.length === 0) {
     return <AthleteListEmpty />;
   }
@@ -35,7 +43,14 @@ export function AthleteListTable({ athletes, onEditAthlete, onDeleteAthlete }: A
           </thead>
           <tbody className="divide-y divide-white/5 text-xs sm:text-sm">
             {athletes.map((a) => (
-              <AthleteTableRow key={a.id} athlete={a} onEditAthlete={onEditAthlete} onDeleteAthlete={onDeleteAthlete} />
+              <AthleteTableRow
+                key={a.id}
+                athlete={a}
+                currentUserId={currentUserId}
+                userRole={userRole}
+                onEditAthlete={onEditAthlete}
+                onDeleteAthlete={onDeleteAthlete}
+              />
             ))}
           </tbody>
         </table>
