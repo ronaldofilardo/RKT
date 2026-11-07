@@ -13,6 +13,7 @@ export interface ScoringPageDerived {
   isFinished: boolean;
   winner: string | null;
   canUndo: boolean;
+  canChangeServer: boolean;
   isSetupNeeded: boolean;
   isProcessingPoint: boolean;
   gamePointToDisplay: (p: number) => string;

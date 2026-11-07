@@ -62,6 +62,8 @@ const EXPECTED_KEYS = [
   'pendingEditScore', 'setPendingEdit', 'floorCurrentSets', 'setFloorCurrentSets',
   'viewMode', 'setViewMode', 'engineTick', 'setEngineTick',
   'isProcessingRef', 'debounceTimerRef', 'tokenRef', 'sessionActive', 'setSessionActive',
+  'decidingPointReceiverOverride', 'setDecidingPointReceiverOverride',
+  'isSinglesServerLocked', 'setIsSinglesServerLocked',
   'activeModal', 'modalParams', 'open', 'close', 'closeAll',
   'session', 'clearPendingEdit', 'updateScore',
   'modalParamsRef', 'openRef', 'matchIdRef', 'engineRef',
@@ -76,7 +78,7 @@ describe('useScoringPageState - characterization pré-extração (B-10)', () => 
     const { result } = renderHook(() => useScoringPageState('match-1'));
 
     expect(Object.keys(result.current).sort()).toEqual([...EXPECTED_KEYS].sort());
-    expect(EXPECTED_KEYS).toHaveLength(71);
+    expect(EXPECTED_KEYS).toHaveLength(75);
   });
 
   it('gamePointToDisplay mapeia 0→"0", 1→"15", 2→"30", 3→"40", 4→"AD" e demais valores como string', () => {

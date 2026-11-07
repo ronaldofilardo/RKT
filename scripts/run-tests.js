@@ -1,4 +1,4 @@
-require('dotenv').config({ path: '.env.test' });
+require('dotenv').config({ path: '.env.test', override: true });
 process.env.NODE_ENV = 'test';
 
 const jest = require('jest');

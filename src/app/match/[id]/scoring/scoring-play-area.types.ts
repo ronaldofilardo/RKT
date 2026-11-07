@@ -23,6 +23,7 @@ export interface ScoringPlayAreaProps {
   pointsHistory: ScoringPageState["pointsHistory"];
   scoreState: ScoringPageState["scoreState"];
   isFinished: boolean;
+  canChangeServer?: boolean;
   matchId: string;
   /** Ace/Out/Net (+ painel inline), renderizados sob o card do sacador. */
   serverControls?: React.ReactNode;

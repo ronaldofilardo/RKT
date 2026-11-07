@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { createScriptPrisma } from './db/script-prisma';
 import { runShadowReplaySafely } from '../src/core/scoring/shadow-replay';
 import { logger } from '../src/lib/logger';
 
@@ -16,7 +17,7 @@ export interface ShadowValidatorSummary {
  * com o placar derivado pelo replay. Risco zero em produção ou branch Neon.
  */
 export async function runShadowReplayBatch(prismaClient?: PrismaClient): Promise<ShadowValidatorSummary> {
-  const prisma = prismaClient ?? new PrismaClient();
+  const prisma = prismaClient ?? createScriptPrisma();
   const summary: ShadowValidatorSummary = {
     inspected: 0,
     matched: 0,

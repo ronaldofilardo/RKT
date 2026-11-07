@@ -25,6 +25,7 @@ export function ScoringPlayArea({
   onChangeServer,
   onSelectReceiverOverride,
   isDecidingPoint = false,
+  canChangeServer = true,
 }: ScoringPlayAreaProps) {
   const receivingTeam = p1IsServing
     ? [match.player2, match.player2Partner].filter(Boolean)
@@ -108,6 +109,7 @@ export function ScoringPlayArea({
         onPoint={onPoint}
         onSwipeUndo={onSwipeUndo}
         onChangeServer={onChangeServer}
+        canChangeServer={canChangeServer}
       />
 
       <div data-serve-collapse="extras" className="contents">

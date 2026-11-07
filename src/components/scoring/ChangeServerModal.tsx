@@ -41,7 +41,15 @@ export function ChangeServerModal({
   };
 
   if (!isDoubles) {
-    const adversary = activeServerId === player1.id ? player2 : player1;
+    const rawServerSide =
+      match.scoreState && typeof match.scoreState === 'object' && 'server' in match.scoreState
+        ? (match.scoreState as { server?: string }).server
+        : undefined;
+    const currentServerId =
+      activeServerId ?? (rawServerSide === 'player2' ? player2.id : player1.id);
+    const adversary = currentServerId === player1.id ? player2 : player1;
+    const currentServer = currentServerId === player1.id ? player1 : player2;
+
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
         <div className="bg-telemetry-card border border-white/10 rounded-2xl p-5 max-w-sm w-full shadow-2xl text-center space-y-4">
@@ -50,14 +58,24 @@ export function ChangeServerModal({
           </div>
           <div>
             <h3 className="text-lg font-bold text-telemetry-text-primary">
-              Inverter Sacador do Game
+              Inverter sacador inicial
             </h3>
-            <p className="text-xs text-telemetry-text-muted mt-1">
-              Deseja passar o saque deste game para{' '}
+            <p className="text-xs text-telemetry-text-muted mt-2 leading-relaxed">
+              O primeiro saque está com <span className="text-telemetry-text-primary font-semibold">{currentServer.name}</span>. Deseja passar o saque inicial para{' '}
               <span className="text-telemetry-text-primary font-semibold">
                 {adversary.name}
               </span>
               ?
+            </p>
+          </div>
+
+          <div className="p-3 rounded-xl bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert text-left">
+            <p className="text-xs font-semibold flex items-center gap-1.5 mb-1">
+              <span>⚠️</span>
+              <span>Atenção: ação única</span>
+            </p>
+            <p className="text-[11px] leading-relaxed text-telemetry-alert/90">
+              A troca só pode ser realizada antes do primeiro ponto. Ao confirmar, o novo sacador será definido e não será mais possível alterar o sacador ao longo de toda a partida.
             </p>
           </div>
 
@@ -66,7 +84,7 @@ export function ChangeServerModal({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="flex-1 py-2.5 px-4 rounded-xl border border-white/10 text-xs font-semibold text-telemetry-text-muted hover:bg-telemetry-elevated transition-colors"
+              className="flex-1 py-2.5 px-4 rounded-xl border border-white/10 text-xs font-semibold text-telemetry-text-muted hover:bg-telemetry-elevated transition-colors cursor-pointer"
             >
               Cancelar
             </button>
@@ -74,9 +92,9 @@ export function ChangeServerModal({
               type="button"
               onClick={() => handleSelect(adversary.id)}
               disabled={isSubmitting}
-              className="flex-1 py-2.5 px-4 rounded-xl bg-telemetry-volt text-black text-xs font-bold hover:brightness-110 active:scale-[0.98] transition-all shadow-md shadow-telemetry-volt/20"
+              className="flex-1 py-2.5 px-4 rounded-xl bg-telemetry-volt text-black text-xs font-bold hover:brightness-110 active:scale-[0.98] transition-all shadow-md shadow-telemetry-volt/20 cursor-pointer"
             >
-              {isSubmitting ? 'Salvando...' : 'Confirmar Inversão'}
+              {isSubmitting ? 'Salvando...' : 'Confirmar troca'}
             </button>
           </div>
         </div>

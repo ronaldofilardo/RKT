@@ -39,7 +39,7 @@ describe('ChangeServerModal — Tolerância a Falhas e Troca Ágil de Sacador', 
   };
 
   describe('Partidas de Simples', () => {
-    it('exibe diálogo de confirmação para inverter sacador para o adversário', async () => {
+    it('exibe diálogo de confirmação com aviso de bloqueio para inverter sacador para o adversário', async () => {
       const onSelectServer = jest.fn();
       const onClose = jest.fn();
 
@@ -53,11 +53,36 @@ describe('ChangeServerModal — Tolerância a Falhas e Troca Ágil de Sacador', 
         />
       );
 
-      expect(screen.getByText('Inverter Sacador do Game')).toBeInTheDocument();
+      expect(screen.getByText('Inverter sacador inicial')).toBeInTheDocument();
+      expect(screen.getByText(/Jannik Sinner/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/não será mais possível alterar o sacador ao longo de toda a partida/i)
+      ).toBeInTheDocument();
+
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: /Confirmar troca/i }));
+      });
+      expect(onSelectServer).toHaveBeenCalledWith('p2');
+    });
+
+    it('inverte corretamente para o adversário mesmo quando activeServerId é omitido', async () => {
+      const onSelectServer = jest.fn();
+      const onClose = jest.fn();
+
+      render(
+        <ChangeServerModal
+          isOpen={true}
+          onClose={onClose}
+          match={{ ...singlesMatch, scoreState: { server: 'player1' } as any }}
+          onSelectServer={onSelectServer}
+        />
+      );
+
+      expect(screen.getByText('Inverter sacador inicial')).toBeInTheDocument();
       expect(screen.getByText(/Jannik Sinner/)).toBeInTheDocument();
 
       await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: /Confirmar Inversão/i }));
+        fireEvent.click(screen.getByRole('button', { name: /Confirmar troca/i }));
       });
       expect(onSelectServer).toHaveBeenCalledWith('p2');
     });

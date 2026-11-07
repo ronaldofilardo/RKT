@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { createScriptPrisma } from './db/script-prisma';
 import { normalizeScoreState } from '../src/core/scoring/score-normalizer';
 import { logger } from '../src/lib/logger';
 
@@ -14,7 +15,7 @@ export interface BackfillSummary {
  * Isso desacopla o score-normalizer da dependência futura de `history`.
  */
 export async function backfillTiebreakScores(prismaClient?: PrismaClient): Promise<BackfillSummary> {
-  const prisma = prismaClient ?? new PrismaClient();
+  const prisma = prismaClient ?? createScriptPrisma();
   const summary: BackfillSummary = { inspected: 0, updated: 0, errors: 0 };
 
   try {

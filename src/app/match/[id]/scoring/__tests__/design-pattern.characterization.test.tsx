@@ -15,6 +15,8 @@ import React from "react";
 import { render } from "@testing-library/react";
 
 jest.mock("next/navigation", () => ({
+  // `page.tsx` usa useAreaPath() -> useActiveArea() -> usePathname().
+  usePathname: () => "/match/design-test-match/scoring",
   useParams: () => ({ id: "design-test-match" }),
   useRouter: () => ({ push: jest.fn(), replace: jest.fn(), back: jest.fn() }),
   useSearchParams: () => new URLSearchParams(),

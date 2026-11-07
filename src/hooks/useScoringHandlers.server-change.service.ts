@@ -40,6 +40,10 @@ export function createServerChangeService({
     }
 
     const state = engine.getState() as ScoringState;
+    if (match.matchType !== 'DOUBLES') {
+      (state as unknown as { singlesServerLocked?: boolean }).singlesServerLocked = true;
+    }
+
     let initialServerId: string | undefined;
     try {
       const config = buildEngineConfig(match);

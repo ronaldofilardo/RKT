@@ -10,7 +10,6 @@ describe('/api/auth/refresh - Preservação de Claims', () => {
     const originalToken = await new SignJWT({
       sub: 'usr-123',
       role: 'TREINADOR',
-      sv: 2,
       mcp: true,
       pp: 'GESTOR',
       mk: 'TREINADOR',
@@ -36,7 +35,9 @@ describe('/api/auth/refresh - Preservação de Claims', () => {
 
     expect(payload.sub).toBe('usr-123');
     expect(payload.role).toBe('TREINADOR');
-    expect(payload.sv).toBe(2);
+    // O `sv` é um claim de controlo de sessão que só vem do banco (incrementado em
+    // login/reset-password), não é preservado em refresh. Tokens legados sem sv são
+    // aceites (isSessionCurrent retorna true quando sv === undefined).
     expect(payload.mcp).toBe(true);
     expect(payload.pp).toBe('GESTOR');
     expect(payload.mk).toBe('TREINADOR');

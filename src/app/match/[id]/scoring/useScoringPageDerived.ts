@@ -13,6 +13,7 @@ import {
 import { resolveDisplayState } from "./scoring-page-display.logic";
 import { resolveActivePlayers } from "./scoring-page-active-players.logic";
 import { isNoAdDecidingPoint } from "@/core/scoring/doubles";
+import { canChangeServerInMatch } from "@/core/scoring/singles-server-guard.logic";
 import type { TennisFormat } from "@/core/scoring/types";
 import type { ScoringPageDerived } from "./useScoringPageDerived.types";
 
@@ -68,6 +69,13 @@ export function useScoringPageDerived(
     state.decidingPointReceiverOverride,
   );
 
+  const canChangeServer = canChangeServerInMatch({
+    matchType: match?.matchType,
+    scoreState: effectiveScoreState,
+    pointsHistoryCount: (timelinePoints?.length ?? 0) || (state.pointsHistory?.length ?? 0),
+    isSinglesServerLocked: state.isSinglesServerLocked,
+  });
+
   return {
     effectiveScoreState,
     p1IsServing,
@@ -83,6 +91,7 @@ export function useScoringPageDerived(
     isFinished,
     winner,
     canUndo,
+    canChangeServer,
     isSetupNeeded,
     isProcessingPoint,
     gamePointToDisplay,

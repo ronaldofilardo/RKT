@@ -3,8 +3,25 @@
 > Diário de bordo técnico · Metodologia RE-DOC (Fase 4 — Auditoria de Qualidade e Histórico)
 > **Este é um dos 6 arquivos-canônicos do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
 
-**Última Atualização:** 2026-11-04
+**Última Atualização:** 2026-11-06
 **Analisado por:** engenharia reversa e implementação sobre `main`
+
+---
+
+## 2.22 Correção de Corte de Nomes/Clubes no Card e Alinhamento dos Testes de Logout — 2026-11-06
+- **Problema 1 — Card do dashboard cortando nome e badge de clube:**
+  - Em `src/components/dashboard/match-card-score-grid.tsx`, a coluna "Jogador" estava travada em `w-[110px] sm:w-[120px]` e, como a tabela usa `table-fixed`, o excedente de largura era distribuído igualmente entre as colunas de Sets — Set 1 recebia ~200px para exibir um dígito enquanto nome + badge ("Outros", "Criado por RKT") eram esmagados e cortados no meio da palavra.
+  - **Correção:** inversão de prioridade de largura — colunas de Sets compactas e fixas (`w-7 sm:w-10 md:w-11`), Pontos `w-11 sm:w-12`, bola `w-6`, e a coluna do Jogador sem largura fixa (absorve 60-70% do card); nome com `truncate min-w-0 flex-1` + tooltip `title` e badge com `shrink-0` (nunca corta a palavra, corta o nome com reticências). Alteração embarcada no commit `f01ccdd` (2026-11-04).
+- **Problema 2 — Testes de logout desatualizados em relação ao fluxo da seção 2.19:**
+  - O fluxo real é `await performLogout()` → `POST /api/auth/logout` + `clearAuthState()` → `window.location.replace('/login?exit=1')`, e `redirectToLogin` (`src/lib/auth-client-storage.ts`) faz o mesmo POST antes de navegar. Três suítes ainda esperavam o comportamento antigo (`router.replace('/login')` e `fetch` nunca chamado).
+  - **Nenhuma mudança em código de produção** — apenas testes:
+    - `src/app/dashboard/__tests__/HamburgerMenu.test.tsx`: o teste força o ramo de produção (mock de `window.location` + `process.env.NODE_ENV !== 'test'`, restaurado no `afterEach`) e usa `waitFor` porque `confirmLogout` é `async`; asserções: `POST /api/auth/logout` → `clearAuthState()` → `window.location.replace('/login?exit=1')`, sem `router.replace('/login')`. Teste de cancelar também afirma que o POST de logout não dispara.
+    - `src/app/dashboard/__tests__/dashboard.hooks.test.tsx`: sem `access_token` a única requisição é o `POST /api/auth/logout` (nenhuma busca de partidas) + redirect `/login?exit=1`.
+    - `src/app/dashboard/__tests__/dashboard.hooks.guards.test.tsx`: guard de token expirado agora espera `'/login?exit=1'` e o POST de logout (antes afirava `fetch` nunca chamado).
+- **Correções de testes pré-existentes encontradas na varredura completa da suíte:**
+  - `src/app/admin/__tests__/page.confirm-dialog.test.tsx` e `src/app/match/[id]/report/__tests__/report-page.test.tsx`: mock de `next/navigation` incompleto (`useRouter` sem `usePathname`), quebrado pela migração de `DashboardChrome`/`ReportPage` para `useAreaPath()` → `useActiveArea()` → `usePathname()`. Adicionado `usePathname` nos dois mocks.
+  - `src/services/__tests__/playerService.test.ts`: expectativa do `select` de `listPlayers` defasada em relação a `player-service-queries.logic.ts` (campos `city`, `state`, `createdAt` adicionados sem atualizar o teste).
+- **Validação:** `pnpm test` (suíte completa) → **488 suítes / 4405 testes / 2 snapshots verdes**; `next lint` sem warnings.
 
 ---
 

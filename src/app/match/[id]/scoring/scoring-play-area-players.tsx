@@ -25,6 +25,7 @@ interface PlayAreaPlayersProps {
   onPoint: (side: 'player1' | 'player2') => void;
   onSwipeUndo: () => void;
   onChangeServer?: () => void;
+  canChangeServer?: boolean;
 }
 
 /** Coluna de um jogador: card (encolhe primeiro) + controles de saque opcionais abaixo. */
@@ -40,7 +41,7 @@ function PlayerColumn({ controls, children }: { controls?: ReactNode; children: 
 export function PlayAreaPlayers({
   player1, player2, player1Partner, player2Partner, activeServerId, activeReceiverId, scoreState,
   p1IsServing, p2IsServing, isSetPoint, isBreakPoint, winner, isFinished, serverControls, onPoint, onSwipeUndo,
-  onChangeServer,
+  onChangeServer, canChangeServer = true,
 }: PlayAreaPlayersProps) {
   const isZeroZeroGame = Boolean(
     scoreState?.currentGame &&
@@ -59,6 +60,7 @@ export function PlayAreaPlayers({
     onSwipeDown: onSwipeUndo,
     disabled: isFinished,
     onChangeServer,
+    canChangeServer,
   };
 
   return (
@@ -75,16 +77,16 @@ export function PlayAreaPlayers({
         </PlayerColumn>
       </div>
 
-      {isZeroZeroGame && onChangeServer && (
+      {isZeroZeroGame && canChangeServer && onChangeServer && (
         <div className="flex justify-center -mt-0.5">
           <button
             type="button"
             onClick={onChangeServer}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-telemetry-elevated/80 border border-white/10 text-[11px] font-medium text-telemetry-text-muted hover:text-white hover:bg-telemetry-elevated transition-colors"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-telemetry-elevated/80 border border-white/10 text-[11px] font-medium text-telemetry-text-muted hover:text-white hover:bg-telemetry-elevated transition-colors cursor-pointer"
             title="Corrigir quem está sacando no game atual"
           >
             <span>🎾</span>
-            <span>Corrigir Sacador</span>
+            <span>Corrigir sacador</span>
           </button>
         </div>
       )}

@@ -98,7 +98,7 @@ describe('useScoringHandlers - composição dos serviços core (characterizaçã
     jest.clearAllMocks();
   });
 
-  it('return expõe o contrato completo (18 chaves de ScoringHandlersReturn)', () => {
+  it('return expõe o contrato completo (19 chaves de ScoringHandlersReturn)', () => {
     const { result } = renderHook(() => useScoringHandlers(createMockContext()));
 
     expect(Object.keys(result.current).sort()).toEqual(
@@ -120,6 +120,7 @@ describe('useScoringHandlers - composição dos serviços core (characterizaçã
         'cancelServeError',
         'confirmPointDetails',
         'updateDoublesArrangement',
+        'changeGameServer',
         'isProcessing',
       ].sort()
     );

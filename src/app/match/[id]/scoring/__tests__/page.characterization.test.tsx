@@ -6,6 +6,8 @@ import { render, screen } from '@testing-library/react';
 import ScoringPage from '../page';
 
 jest.mock('next/navigation', () => ({
+  // `page.tsx` usa useAreaPath() -> useActiveArea() -> usePathname().
+  usePathname: () => '/match/match-smoke-test/scoring',
   useParams: () => ({ id: 'match-smoke-test' }),
   useRouter: () => ({
     push: jest.fn(),

@@ -45,6 +45,7 @@ export function useScoringPageLocalState() {
   const tokenRef = useRef<string | null>(null);
   const [sessionActive, setSessionActive] = useState(false);
   const [decidingPointReceiverOverride, setDecidingPointReceiverOverride] = useState<string | null>(null);
+  const [isSinglesServerLocked, setIsSinglesServerLocked] = useState(false);
 
   return {
     match, setMatch, isLoading, setIsLoading, error, setError,
@@ -59,5 +60,6 @@ export function useScoringPageLocalState() {
     engineTick, setEngineTick, isProcessingRef, debounceTimerRef, tokenRef,
     sessionActive, setSessionActive,
     decidingPointReceiverOverride, setDecidingPointReceiverOverride,
+    isSinglesServerLocked, setIsSinglesServerLocked,
   };
 }

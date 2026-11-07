@@ -54,6 +54,7 @@ jest.mock('@/lib/matchConfig', () => ({
 }));
 
 describe('DashboardPage - Menu Hamburguer (TD-046)', () => {
+  const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
   const mockRouter = {
     push: jest.fn(),
     replace: jest.fn(),
@@ -99,6 +100,11 @@ describe('DashboardPage - Menu Hamburguer (TD-046)', () => {
         json: () => Promise.resolve({ matches: [] }),
       } as any)
     ) as jest.Mock;
+  });
+
+  afterEach(() => {
+    // Restaura o ambiente: só o teste de logout força o ramo de produção (NODE_ENV !== 'test')
+    process.env.NODE_ENV = ORIGINAL_NODE_ENV;
   });
 
   it('deve renderizar o botão do menu hamburguer', async () => {
@@ -263,6 +269,13 @@ describe('DashboardPage - Menu Hamburguer (TD-046)', () => {
     const confirmSpy = jest.fn(() => true);
     window.confirm = confirmSpy;
 
+    // Ramo de produção do confirmLogout: POST /api/auth/logout + window.location.replace('/login?exit=1')
+    Object.defineProperty(window, 'location', {
+      value: { pathname: '/dashboard', assign: jest.fn(), replace: jest.fn() },
+      writable: true,
+    });
+    process.env.NODE_ENV = 'development';
+
     render(<DashboardPage />);
 
     await openMenu();
@@ -275,14 +288,22 @@ describe('DashboardPage - Menu Hamburguer (TD-046)', () => {
     // Ainda não saiu: aguardando a confirmação no alertdialog
     const dialog = await screen.findByRole('alertdialog');
     expect(confirmSpy).not.toHaveBeenCalled();
-    expect(mockRouter.replace).not.toHaveBeenCalledWith('/login');
+    expect(window.location.replace).not.toHaveBeenCalled();
 
     fireEvent.click(within(dialog).getByRole('button', { name: 'Sair' }));
 
+    // confirmLogout é async: primeiro o POST de logout, depois a limpeza local
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenCalledWith('/api/auth/logout', { method: 'POST' })
+    );
     // clearAuthState chama removeItem para cada chave
     expect(sessionStorageMock.removeItem).toHaveBeenCalled();
-    // Verifica se navegou para /login
-    expect(mockRouter.replace).toHaveBeenCalledWith('/login');
+
+    // Só então redireciona para /login?exit=1 (full navigation, sem router do Next)
+    await waitFor(() =>
+      expect(window.location.replace).toHaveBeenCalledWith('/login?exit=1')
+    );
+    expect(mockRouter.replace).not.toHaveBeenCalledWith('/login');
   });
 
   it('deve cancelar o logout pelo alertdialog sem limpar a sessão', async () => {
@@ -299,6 +320,8 @@ describe('DashboardPage - Menu Hamburguer (TD-046)', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
 
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    // Cancelar não dispara o fluxo de logout nem a navegação para /login
+    expect(global.fetch).not.toHaveBeenCalledWith('/api/auth/logout', { method: 'POST' });
     expect(mockRouter.replace).not.toHaveBeenCalledWith('/login');
   });
 

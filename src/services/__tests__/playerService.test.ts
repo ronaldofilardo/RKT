@@ -36,7 +36,7 @@ describe('playerService', () => {
 
       expect(mockPrisma.player.findMany).toHaveBeenCalledWith({
         take: 20,
-        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, clubId: true, playerCts: { select: { ctId: true } } },
+        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, clubId: true, city: true, state: true, createdAt: true, playerCts: { select: { ctId: true } } },
         orderBy: { name: 'asc' },
         where: {},
       });

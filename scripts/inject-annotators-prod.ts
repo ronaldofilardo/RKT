@@ -1,17 +1,33 @@
 import { PrismaClient, Role } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import dotenv from 'dotenv';
+import { assertDbTarget, describeDbTarget } from '../src/lib/db/db-target';
 
-// Garante o carregamento das credenciais de produção
-dotenv.config({ path: '.env.production', override: true });
+/**
+ * Injeção de anotadores — SOMENTE no banco de produção (Neon).
+ *
+ * A guarda P-01 decide o alvo: este script se recusa a rodar se o destino não for
+ * produção. Uso:
+ *   APP_ENV=production DATABASE_URL="<neon>" pnpm db:inject:annotators:prod
+ * (nunca crie .env.production nesta máquina; as credenciais vêm do painel da Vercel/Neon)
+ */
+const target = (() => {
+  try {
+    return assertDbTarget();
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : error);
+    process.exit(1);
+  }
+})();
 
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
-  },
-});
+if (target.env !== 'production') {
+  console.error(
+    `[db] BLOQUEADO: este script só roda em produção, mas o alvo é ${describeDbTarget(target)}. ` +
+      'Defina APP_ENV=production e DATABASE_URL do Neon para rodar.',
+  );
+  process.exit(1);
+}
+
+const prisma = new PrismaClient({ datasources: { db: { url: target.url } } });
 
 interface AnnotatorInput {
   name: string;
@@ -67,8 +83,7 @@ const annotatorsToInject: AnnotatorInput[] = [
 
 async function main() {
   console.log('--- INJEÇÃO DE ANOTADORES NO BANCO DE PRODUÇÃO ---');
-  const targetHost = process.env.DATABASE_URL?.split('@')[1]?.split('/')[0];
-  console.log(`Alvo: ${targetHost}\n`);
+  console.log(`Alvo: ${target.host}/${target.database}\n`);
 
   for (const item of annotatorsToInject) {
     const cleanCpf = item.cpfRaw.replace(/\D/g, '');

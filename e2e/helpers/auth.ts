@@ -20,14 +20,19 @@ let cachedTokens: Partial<Record<UserRole, string>> = {};
 let cachedIds: Partial<Record<UserRole, string>> = {};
 import type { Page } from '@playwright/test';
 
+// A API valida Origem em mutações (CSRF). Clientes que não são browser precisam
+// enviar o header explicitamente — com host igual ao destino.
+const API_BASE = 'http://127.0.0.1:3000';
+const ORIGIN_HEADERS = { Origin: API_BASE };
+
 export async function loginAs(role: UserRole): Promise<{ token: string; userId: string; api: APIRequestContext }> {
   if (cachedTokens[role] && cachedIds[role]) {
-    const api = await request.newContext({ baseURL: 'http://127.0.0.1:3000' });
+    const api = await request.newContext({ baseURL: API_BASE, extraHTTPHeaders: ORIGIN_HEADERS });
     return { token: cachedTokens[role]!, userId: cachedIds[role]!, api };
   }
 
   const user = USERS[role];
-  const api = await request.newContext({ baseURL: 'http://127.0.0.1:3000' });
+  const api = await request.newContext({ baseURL: API_BASE, extraHTTPHeaders: ORIGIN_HEADERS });
 
   const res = await api.post('/api/auth/login', {
     data: { identifier: user.email, password: user.password },

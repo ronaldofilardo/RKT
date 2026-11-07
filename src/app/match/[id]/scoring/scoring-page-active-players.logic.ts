@@ -25,6 +25,10 @@ export function resolveActivePlayers(
           engineConfig.doubles,
           overrideReceiverId ?? undefined,
         );
+      } else {
+        const isPlayer1Serving = effectiveScoreState.server === "player1";
+        activeServerId = isPlayer1Serving ? match.player1.id : match.player2.id;
+        activeReceiverId = isPlayer1Serving ? match.player2.id : match.player1.id;
       }
     } catch {
       activeServerId = null;

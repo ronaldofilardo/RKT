@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { createScriptPrisma } from './db/script-prisma';
 
-const prisma = new PrismaClient();
+const prisma = createScriptPrisma('development');
 
 async function main() {
   const memberships = await prisma.membership.findMany({

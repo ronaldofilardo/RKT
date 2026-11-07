@@ -270,7 +270,9 @@ describe('PlayerCard — setsWon', () => {
         setsWon: { player1: 2, player2: 1 },
       },
     });
-    const dots = screen.getAllByRole('button')[0].querySelectorAll('.rounded-full.bg-telemetry-text-primary');
+    // A camada de clique é um botão vazio (o conteúdo fica fora dela), então as
+    // bolinhas são consultadas na raiz do card.
+    const dots = screen.getByTestId('player-card').querySelectorAll('.rounded-full.bg-telemetry-text-primary');
     expect(dots.length).toBe(2);
   });
 
@@ -281,7 +283,7 @@ describe('PlayerCard — setsWon', () => {
         setsWon: { player1: 0, player2: 0 },
       },
     });
-    const dots = screen.getAllByRole('button')[0].querySelectorAll('.rounded-full.bg-gray-900');
+    const dots = screen.getByTestId('player-card').querySelectorAll('.rounded-full.bg-gray-900');
     expect(dots.length).toBe(0);
   });
 });

@@ -48,6 +48,7 @@ export function ScoringPagePlayArea({
     isTiebreak,
     isSuperTiebreak,
     isDecidingPoint,
+    canChangeServer,
     winner,
     isFinished,
   } = derived;
@@ -64,6 +65,7 @@ export function ScoringPagePlayArea({
       p2IsServing={p2IsServing}
       activeServerId={activeServerId}
       activeReceiverId={activeReceiverId}
+      canChangeServer={canChangeServer}
       isSetPoint={isSetPoint}
       isBreakPoint={isBreakPoint}
       isMatchPoint={isMatchPoint}

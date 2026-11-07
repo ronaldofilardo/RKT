@@ -131,7 +131,7 @@ describe('useDashboardData - parsing de response (TD-046 + jose ESM blocker)', (
     expect(result.current.matches).toEqual([]);
   });
 
-  it('n�o fetcha quando access_token estiver ausente', async () => {
+  it('não busca partidas sem access_token, apenas encerra a sessão (logout + /login?exit=1)', async () => {
     const store: Record<string, string> = {};
     Object.defineProperty(window, 'sessionStorage', {
       value: {
@@ -151,7 +151,10 @@ describe('useDashboardData - parsing de response (TD-046 + jose ESM blocker)', (
     const { result } = renderHook(() => useDashboardData());
 
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(global.fetch).not.toHaveBeenCalled();
+    // Sem sessão válida: a única requisição é o POST de logout (nenhuma busca de partidas)
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledWith('/api/auth/logout', { method: 'POST' });
+    await waitFor(() => expect(window.location.replace).toHaveBeenCalledWith('/login?exit=1'));
     expect(result.current.matches).toEqual([]);
   });
 });

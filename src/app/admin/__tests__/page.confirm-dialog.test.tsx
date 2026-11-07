@@ -11,6 +11,8 @@ const mockRouter = { push: mockPush, replace: jest.fn() };
 
 jest.mock('next/navigation', () => ({
   useRouter: () => mockRouter,
+  // DashboardChrome → useAreaPath()/useActiveArea() chamam usePathname()
+  usePathname: () => '/admin',
 }));
 
 const mockRedirectToLogin = jest.fn();

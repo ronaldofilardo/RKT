@@ -3,7 +3,28 @@
 // Lista divergências entre o claim legado (`User.role`) e o derivado dos vínculos.
 import { PrismaClient } from '@prisma/client'
 
-const prisma = new PrismaClient()
+// Premissa P-01 (docs/RULES.md): sempre rodar pelo pré-voo —
+//   pnpm db:check:access          (banco local de desenvolvimento)
+// O pré-voo valida o destino e exporta DATABASE_URL já conferida.
+const LOOPBACK = new Set(['localhost', '127.0.0.1', '::1', '[::1]'])
+const databaseUrl = process.env.DATABASE_URL?.trim()
+
+if (!databaseUrl) {
+  console.error('[db] DATABASE_URL ausente. Rode via "pnpm db:check:access" (pré-voo P-01).')
+  process.exit(1)
+}
+
+const host = new URL(databaseUrl).hostname.toLowerCase()
+if (!LOOPBACK.has(host) && process.env.APP_ENV !== 'production') {
+  console.error(
+    `[db] BLOQUEADO: este script local não pode usar o banco "${host}". ` +
+      'Use o pré-voo (pnpm db:check:access) ou defina APP_ENV=production conscientemente.',
+  )
+  process.exit(1)
+}
+
+console.log(`[db] alvo=${host}/${new URL(databaseUrl).pathname.slice(1)}`)
+const prisma = new PrismaClient({ datasources: { db: { url: databaseUrl } } })
 
 function derive(user) {
   const active = user.memberships.filter((m) => m.status === 'ACTIVE')

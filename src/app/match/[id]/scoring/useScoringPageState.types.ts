@@ -59,6 +59,8 @@ export interface ScoringPageState {
   setSessionActive: React.Dispatch<React.SetStateAction<boolean>>;
   decidingPointReceiverOverride: string | null;
   setDecidingPointReceiverOverride: React.Dispatch<React.SetStateAction<string | null>>;
+  isSinglesServerLocked: boolean;
+  setIsSinglesServerLocked: React.Dispatch<React.SetStateAction<boolean>>;
   activeModal: string | null;
   modalParams: Record<string, string>;
   open: (name: string, params?: Record<string, string>) => void;

@@ -2,7 +2,8 @@
  * @jest-environment jsdom
  *
  * Testes para os fixes aplicados em useDashboardData:
- * - Guard de token expirado (isTokenExpired) limpa sessão e redireciona
+ * - Guard de token expirado (isTokenExpired) limpa sessão, faz POST /api/auth/logout
+ *   e redireciona para /login?exit=1
  * - Renderiza suspendedFromApi no estado
  * - As chamadas usam AbortController signal para timeout e cleanup
  * - Não executa 2x sob StrictMode (fetchedRef previne double-mount)
@@ -88,8 +89,10 @@ describe('useDashboardData - guard de token expirado (TD-046 + jose ESM blocker)
     const { useDashboardData } = await import('@/app/dashboard/dashboard.hooks');
     renderHook(() => useDashboardData());
 
-    await waitFor(() => expect(window.location.replace).toHaveBeenCalledWith('/login'));
-    expect(global.fetch).not.toHaveBeenCalled();
+    await waitFor(() => expect(window.location.replace).toHaveBeenCalledWith('/login?exit=1'));
+    // Encerra a sessão no servidor antes de redirecionar; nenhuma busca de partidas
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledWith('/api/auth/logout', { method: 'POST' });
   }, 15000);
 
   it('não redireciona quando access_token tem exp no futuro', async () => {

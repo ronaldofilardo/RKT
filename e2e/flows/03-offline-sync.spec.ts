@@ -146,7 +146,7 @@ test.describe('TEST-02.3: Offline — indicador visual, fila IndexedDB e mecanis
         serverId: athlete1Id,
         sequenceNumber: 1,
       },
-      headers: { Authorization: `Bearer ${athlete1Token}` },
+      headers: { Authorization: `Bearer ${athlete1Token}`, Origin: 'http://localhost:3000' },
     });
     expect(res.ok()).toBeTruthy();
     const body = await res.json();

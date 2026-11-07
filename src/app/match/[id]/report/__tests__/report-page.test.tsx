@@ -30,6 +30,8 @@ jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
+  // ReportPage chama useAreaPath()/useActiveArea() → usePathname()
+  usePathname: () => '/match/match-xyz/report',
 }));
 
 const mockRedirectToLogin = jest.fn();

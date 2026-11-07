@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { createScriptPrisma } from './db/script-prisma';
 import { ScoringEngine } from '../src/core/scoring/engine';
 import type { ScoringEngineConfig } from '../src/core/scoring/types';
 
@@ -21,7 +22,7 @@ export interface AuditSummary {
  * em partidas históricas, especialmente MATCH_TB_10 e partidas com histórico de pontos.
  */
 export async function auditServerId(prismaClient?: PrismaClient): Promise<AuditSummary> {
-  const prisma = prismaClient ?? new PrismaClient();
+  const prisma = prismaClient ?? createScriptPrisma();
   const summary: AuditSummary = {
     inspected: 0,
     tb10Matches: 0,

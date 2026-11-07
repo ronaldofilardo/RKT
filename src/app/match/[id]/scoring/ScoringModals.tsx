@@ -72,6 +72,9 @@ export function ScoringModals({
           onSelectServer={async (serverId) => {
             if (handlers.changeGameServer) {
               await handlers.changeGameServer(serverId);
+              if (match.matchType !== "DOUBLES") {
+                state.setIsSinglesServerLocked(true);
+              }
             }
           }}
         />
