@@ -1,8 +1,7 @@
 {
   "src/app/gestor/club-matches-table.tsx": 143,
   "src/app/match/new/components/use-new-athlete-modal.ts": 142,
-  "src/app/suporte/externos-section.tsx": 246,
-  "src/components/dashboard/match-card-score-grid.tsx": 246,
+  "src/components/dashboard/match-card-score-grid.tsx": 238,
   "src/components/dashboard/MatchCard.tsx": 200,
   "src/components/scoring/ChangeServerModal.tsx": 228,
   "src/components/scoring/EditScoreServerSection.tsx": 163,

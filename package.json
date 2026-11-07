@@ -10,7 +10,7 @@
     "lint": "next lint",
     "test": "tsx scripts/db/preflight.ts --mode=test && node scripts/run-tests.js --ci",
     "test:design": "tsx scripts/db/preflight.ts --mode=test && node scripts/run-tests.js --ci \"design-pattern.characterization\" \"dual-theme.characterization\" \"telemetry-integrity\"",
-    "test:strict": "tsx scripts/db/preflight.ts --mode=test && pnpm typecheck && node scripts/check-no-skipped-tests.mjs && node scripts/run-tests.js --ci --runInBand",
+    "test:strict": "tsx scripts/db/preflight.ts --mode=test && pnpm typecheck && node scripts/check-no-skipped-tests.mjs && pnpm check:r03 && node scripts/run-tests.js --ci --runInBand",
     "check:r03": "node scripts/check-r03-line-limit.mjs",
     "test:watch": "tsx scripts/db/preflight.ts --mode=test && node -e \"process.env.NODE_ENV='test'; require('dotenv').config({path:'.env.test', override:true}); require('jest').run(['--watch'])\"",
     "test:coverage": "tsx scripts/db/preflight.ts --mode=test && node scripts/run-tests.js --ci --coverage --runInBand",

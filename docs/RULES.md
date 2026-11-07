@@ -171,6 +171,33 @@ Characterization tests **não testam se o código está certo** — testam **o q
 
 ---
 
+## 8.1. Regra R-03 — Limite de Arquivo (≤ 100 linhas)
+
+**Regra STE-DEV R-03 (MUST):** Arquivos de produção não devem exceder **100 linhas cruas**.
+
+### Mecanismo Ratchet (Anti-Regressão)
+- Baseline congelado em `scripts/r03-baseline.json` — lista violações conhecidas aceitas temporariamente.
+- `pnpm check:r03` falha se:
+  1. Novo arquivo >100L fora do baseline (nova violação);
+  2. Arquivo do baseline **cresceu** (regressão de tamanho);
+  3. Arquivo do baseline ficou ≤100L (baseline obsoleto — remover entrada).
+- Isenção: cabeçalho com `// ste-exception R-03: <motivo detalhado>`.
+
+### Integração no Pipeline
+- `check:r03` roda em `test:strict` (CI + local) e no workflow `quality.yml`.
+- **Checklist de PR:** "arquivos alterados ≤ 100L".
+
+### Precedentes de Divisão (Fases 1–3)
+| Padrão | Exemplo | Redução |
+|---|---|---|
+| Extrair seções internas | `gestor/*-section.tsx` | 293→47 |
+| Shell + corpo + rodapé (modais) | `ServerEffectModal` | 172→95 |
+| Sub-hooks | `NewAthleteModalForm` | 128→60 |
+| Linhas/tabela em módulo irmão | `club-matches-table` | 143→<100 |
+| Separar validação pura | `db-target.validate.ts` | 216→<100 |
+
+---
+
 ## 9. Política de Ambientes e Variáveis — Premissa Inquebrantável P-01
 
 > [!CRITICAL]
