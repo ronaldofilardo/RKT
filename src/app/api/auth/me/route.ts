@@ -6,6 +6,7 @@ import { reportApiError } from '@/lib/api.logic';
 import { buildMeAccess } from './me-access.logic';
 import { resolveAvailableContexts } from '../login/login-contexts.logic';
 import { listAreas } from '@/core/access/areas';
+import { ME_USER_SELECT } from './me-select.logic';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,36 +15,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'UNAUTHORIZED', message: 'Token de acesso requerido' }, { status: 401 });
     }
 
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        cpf: true,
-        mustChangePassword: true,
-        canOperate: true,
-        memberships: {
-          where: { status: 'ACTIVE' },
-          select: { kind: true, preset: true, ctId: true, status: true },
-        },
-        coachAthleteLinks: {
-          where: { status: 'ACTIVE' },
-          select: { playerId: true },
-        },
-        createdPlayers: {
-          select: { id: true },
-        },
-        athleteProfile: {
-          select: {
-            id: true,
-            birthDate: true,
-            playerCts: { where: { status: 'ACTIVE' }, select: { ctId: true } },
-          },
-        },
-      },
-    });
+    const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: ME_USER_SELECT });
 
     if (!dbUser) {
       return NextResponse.json({ error: 'NOT_FOUND', message: 'Usuário não encontrado' }, { status: 404 });

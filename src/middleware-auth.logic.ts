@@ -6,6 +6,15 @@ import { homeForArea } from '@/core/access/areas';
 import { isAreaUrlsEnabled } from '@/lib/feature-flags';
 import { resolveUserActiveArea, handleAreaRewriteOrRedirect } from './middleware-area.logic';
 
+/** Sem token válido: /login segue, /api/ responde 401 e o resto redireciona para /login?next=. */
+function rejectUnauthenticated(request: NextRequest, requestHeaders: Headers, message: string): NextResponse {
+  const { pathname } = request.nextUrl;
+  if (pathname === '/login') return NextResponse.next({ request: { headers: requestHeaders } });
+  if (pathname.startsWith('/api/')) return NextResponse.json({ error: 'UNAUTHORIZED', message }, { status: 401 });
+  const target = `${pathname}${request.nextUrl.search}`;
+  return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(target)}`, request.url));
+}
+
 export async function handleAuthenticated(
   request: NextRequest,
   requestHeaders: Headers,
@@ -14,33 +23,13 @@ export async function handleAuthenticated(
   const token = getAuthToken(request);
 
   if (!token) {
-    if (pathname === '/login') {
-      return NextResponse.next({ request: { headers: requestHeaders } });
-    }
-    if (pathname.startsWith('/api/')) {
-      return NextResponse.json(
-        { error: 'UNAUTHORIZED', message: 'Token de acesso requerido' },
-        { status: 401 },
-      );
-    }
-    const target = `${pathname}${request.nextUrl.search}`;
-    return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(target)}`, request.url));
+    return rejectUnauthenticated(request, requestHeaders, 'Token de acesso requerido');
   }
 
   const decoded = await decodeJwtPayload(token);
 
   if (!decoded) {
-    if (pathname === '/login') {
-      return NextResponse.next({ request: { headers: requestHeaders } });
-    }
-    if (pathname.startsWith('/api/')) {
-      return NextResponse.json(
-        { error: 'UNAUTHORIZED', message: 'Token inválido ou expirado' },
-        { status: 401 },
-      );
-    }
-    const target = `${pathname}${request.nextUrl.search}`;
-    return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(target)}`, request.url));
+    return rejectUnauthenticated(request, requestHeaders, 'Token inválido ou expirado');
   }
 
   requestHeaders.set('x-user-id', decoded.sub);

@@ -63,41 +63,30 @@ export function useMatchCardData(match: DashboardMatchPayload) {
     if (s === 'player1' || s === 'player2') return s;
     if (s && match.player1?.id && s === match.player1.id) return 'player1';
     if (s && match.player2?.id && s === match.player2.id) return 'player2';
-    if (match.initialServerId) {
-      if (match.player1?.id && match.player1.id === match.initialServerId) return 'player1';
-      if (match.player2?.id && match.player2.id === match.initialServerId) return 'player2';
-    }
+    if (match.initialServerId && match.player1?.id && match.player1.id === match.initialServerId) return 'player1';
+    if (match.initialServerId && match.player2?.id && match.player2.id === match.initialServerId) return 'player2';
     return null;
   }, [scoreState, suspendedAnnotationScore, match.initialServerId, match.player1, match.player2]);
 
   const showServer = !isFinished && !isScheduled && Boolean(currentServer);
   const hasScore = scoreState != null || suspendedAnnotationScore != null;
   const isCurrentSetMT = isMatchTiebreakFormat(match.format) && displayedSets.length > 0
-    ? isCurrentSetMatchTiebreak(displayedSets, match.format as TennisFormat)
-    : false;
+    ? isCurrentSetMatchTiebreak(displayedSets, match.format as TennisFormat) : false;
   const lastSet = displayedSets.length > 0 ? displayedSets[displayedSets.length - 1] : null;
-  const lastSetTiebreakScore =
-    !isCurrentSetMT && lastSet?.isTiebreak && lastSet?.tiebreakScore ? lastSet.tiebreakScore : null;
+  const lastSetTiebreakScore = !isCurrentSetMT && lastSet?.isTiebreak && lastSet?.tiebreakScore
+    ? lastSet.tiebreakScore : null;
 
   const courtColors = COURT_COLORS[match.courtType ?? ''] ?? DEFAULT_COURT_COLOR;
 
   return {
-    isSuspendedAnnotation,
-    isLiveOrSuspended,
-    isFinished,
-    scoreState,
-    suspendedAnnotationScore,
-    hasScore,
-    displayedSets,
+    isSuspendedAnnotation, isLiveOrSuspended, isFinished, scoreState,
+    suspendedAnnotationScore, hasScore, displayedSets,
     isServerP1: showServer && currentServer === 'player1',
     isServerP2: showServer && currentServer === 'player2',
-    isCurrentSetMT,
-    lastSetTiebreakScore,
+    isCurrentSetMT, lastSetTiebreakScore,
     barBg: isSuspendedAnnotation ? 'rgb(var(--telemetry-alert, 245 158 11))' : courtColors.bar,
     scoreBg: isSuspendedAnnotation ? 'rgb(var(--telemetry-alert, 217 119 6) / 0.7)' : courtColors.score,
-    setsWonP1: scoreState?.setsWon?.player1 ?? 0,
-    setsWonP2: scoreState?.setsWon?.player2 ?? 0,
-    currentGame: scoreState?.currentGame ?? null,
-    paddedSets,
+    setsWonP1: scoreState?.setsWon?.player1 ?? 0, setsWonP2: scoreState?.setsWon?.player2 ?? 0,
+    currentGame: scoreState?.currentGame ?? null, paddedSets,
   };
 }

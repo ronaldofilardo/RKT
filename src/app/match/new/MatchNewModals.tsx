@@ -38,35 +38,17 @@ interface MatchNewModalsProps {
 }
 
 export function MatchNewModals({
-  router,
-  showNewAthleteModal,
-  setShowNewAthleteModal,
-  onAthleteCreationComplete,
-  showServerModal,
-  setShowServerModal,
-  matchType = 'SINGLES',
-  selectedP1,
-  selectedP2,
-  selectedP1Partner = null,
-  selectedP2Partner = null,
-  startingMatch,
-  selectServingPlayer,
-  selectDoublesServingSetup,
-  showDuplicateModal,
-  setShowDuplicateModal,
-  duplicateInfo,
-  createMatchIgnoringWarning,
-  slotAffiliation,
-  newAthleteFor,
-  ctId = null,
-  isParticular = false,
+  router, showNewAthleteModal, setShowNewAthleteModal, onAthleteCreationComplete,
+  showServerModal, setShowServerModal, matchType = 'SINGLES',
+  selectedP1, selectedP2, selectedP1Partner = null, selectedP2Partner = null,
+  startingMatch, selectServingPlayer, selectDoublesServingSetup,
+  showDuplicateModal, setShowDuplicateModal, duplicateInfo, createMatchIgnoringWarning,
+  slotAffiliation, newAthleteFor, ctId = null, isParticular = false,
 }: MatchNewModalsProps) {
   const isDoubles = matchType === 'DOUBLES';
   // O atleta criado agora herda a afiliação do slot que abriu o modal.
   const modalMyClub = newAthleteFor
-    ? isParticular
-      ? slotAffiliation[newAthleteFor] === 'OWN'
-      : isOwnSlot(slotAffiliation[newAthleteFor], ctId)
+    ? (isParticular ? slotAffiliation[newAthleteFor] === 'OWN' : isOwnSlot(slotAffiliation[newAthleteFor], ctId))
     : false;
   return (
     <>

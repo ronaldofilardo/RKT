@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { BrazilianUF } from '@/core/athlete/brazilian-states';
-import { BRAZILIAN_UFS } from '@/core/athlete/brazilian-states';
+import { BRAZILIAN_UFS, type BrazilianUF } from '@/core/athlete/brazilian-states';
 
 interface AthleteOriginSectionProps {
   uf?: BrazilianUF | null;
@@ -56,11 +55,8 @@ export function AthleteOriginSection({
             Estado (UF)
           </label>
           <select
-            id="athlete-origin-uf"
-            value={localUf ?? ''}
-            onChange={handleUfChange}
-            disabled={disabled}
-            className={`${baseClasses} ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+            id="athlete-origin-uf" value={localUf ?? ''} onChange={handleUfChange}
+            disabled={disabled} className={`${baseClasses} ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
             <option value="">Selecione</option>
             {BRAZILIAN_UFS.map((v) => (
@@ -73,12 +69,8 @@ export function AthleteOriginSection({
             Cidade
           </label>
           <input
-            id="athlete-origin-city"
-            type="text"
-            placeholder="Ex: Curitiba"
-            value={localCity ?? ''}
-            onChange={handleCityChange}
-            disabled={disabled}
+            id="athlete-origin-city" type="text" placeholder="Ex: Curitiba"
+            value={localCity ?? ''} onChange={handleCityChange} disabled={disabled}
             className={`${baseClasses} ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
           />
         </div>
@@ -87,12 +79,8 @@ export function AthleteOriginSection({
             Clube do Atleta
           </label>
           <input
-            id="athlete-origin-club"
-            type="text"
-            placeholder="Ex: Clube Curitibano"
-            value={localClub ?? ''}
-            onChange={handleClubChange}
-            disabled={disabled}
+            id="athlete-origin-club" type="text" placeholder="Ex: Clube Curitibano"
+            value={localClub ?? ''} onChange={handleClubChange} disabled={disabled}
             className={`${baseClasses} ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
           />
         </div>

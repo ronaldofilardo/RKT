@@ -30,10 +30,7 @@ export function NewAthleteModal({
     >
       <div
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-        onClick={onClose}
-        role="button"
-        tabIndex={-1}
-        aria-label="Fechar modal"
+        onClick={onClose} role="button" tabIndex={-1} aria-label="Fechar modal"
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose(); }}
       />
       <div
@@ -67,13 +64,8 @@ export function NewAthleteModal({
           )}
 
           <NewAthleteModalForm
-            form={form}
-            setForm={setForm}
-            rankings={rankings}
-            setRankings={setRankings}
-            age={age}
-            submitting={submitting}
-            nameInputRef={nameInputRef}
+            form={form} setForm={setForm} rankings={rankings} setRankings={setRankings}
+            age={age} submitting={submitting} nameInputRef={nameInputRef}
             myClub={myClub && !!ctId}
             onRankingToggle={(type) => toggleRankingEntry(setRankings, type)}
             onRankingFieldChange={(type, field, value) => updateRankingField(setRankings, type, field, value)}
@@ -81,16 +73,13 @@ export function NewAthleteModal({
 
           <div className="flex gap-3 pt-4">
             <button
-              type="button"
-              onClick={onClose}
-              disabled={submitting}
+              type="button" onClick={onClose} disabled={submitting}
               className="flex-1 bg-transparent border border-white/10 text-telemetry-text-muted font-semibold py-2.5 rounded-lg hover:bg-telemetry-elevated hover:text-telemetry-text-primary disabled:opacity-50 transition-colors"
             >
               Cancelar
             </button>
             <button
-              type="submit"
-              disabled={submitting || !form.name.trim()}
+              type="submit" disabled={submitting || !form.name.trim()}
               className="flex-1 bg-telemetry-blue text-white font-semibold py-2.5 rounded-lg hover:opacity-90 disabled:opacity-50 transition-colors shadow-[0_0_12px_rgba(37,99,235,0.3)]"
             >
               {submitting ? 'Salvando...' : 'Salvar Atleta'}

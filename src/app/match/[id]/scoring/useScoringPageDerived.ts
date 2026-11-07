@@ -23,16 +23,13 @@ export function useScoringPageDerived(
   state: ScoringPageState,
   handlers: ScoringPageHandlers,
 ): ScoringPageDerived {
-  const { match, scoreState, engineRef, activeModal, gamePointToDisplay, timelinePoints, serveErrorState } =
-    state;
-  const { isProcessing } = handlers;
-  const { suspendedSession, session } = state;
+  const { match, activeModal, timelinePoints } = state;
 
   const effectiveScoreState = resolveDisplayState({
     activeModal,
-    scoreState,
-    pendingEditScore: session.pendingEditScore,
-    suspendedSession,
+    scoreState: state.scoreState,
+    pendingEditScore: state.session.pendingEditScore,
+    suspendedSession: state.suspendedSession,
     match,
   });
 
@@ -45,10 +42,10 @@ export function useScoringPageDerived(
   const winner = effectiveScoreState?.winner ?? null;
 
   const canUndo =
-    (engineRef.current ? engineRef.current.getHistoryLength() > 0 : false) ||
-    serveErrorState?.serveStep === 'second';
+    (state.engineRef.current ? state.engineRef.current.getHistoryLength() > 0 : false) ||
+    state.serveErrorState?.serveStep === 'second';
   const isSetupNeeded = activeModal === "setup" && !match?.initialServerId;
-  const isProcessingPoint = isProcessing === true;
+  const isProcessingPoint = handlers.isProcessing === true;
 
   const editScoreCurrentSets = deriveEditScoreCurrentSets(effectiveScoreState, match?.format);
   const editScoreCompletedSets = deriveEditScoreCompletedSets(effectiveScoreState, match?.format);
@@ -58,16 +55,11 @@ export function useScoringPageDerived(
     : "";
 
   const isDecidingPoint = Boolean(
-    effectiveScoreState &&
-    match?.format &&
+    effectiveScoreState && match?.format &&
     isNoAdDecidingPoint(effectiveScoreState, match.format as TennisFormat)
   );
 
-  const { activeServerId, activeReceiverId } = resolveActivePlayers(
-    effectiveScoreState,
-    match,
-    state.decidingPointReceiverOverride,
-  );
+  const { activeServerId, activeReceiverId } = resolveActivePlayers(effectiveScoreState, match, state.decidingPointReceiverOverride);
 
   const canChangeServer = canChangeServerInMatch({
     matchType: match?.matchType,
@@ -94,7 +86,7 @@ export function useScoringPageDerived(
     canChangeServer,
     isSetupNeeded,
     isProcessingPoint,
-    gamePointToDisplay,
+    gamePointToDisplay: state.gamePointToDisplay,
     timelinePoints,
     editScoreCurrentSets,
     editScoreCompletedSets,

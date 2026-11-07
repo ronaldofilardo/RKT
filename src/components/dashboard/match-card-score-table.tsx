@@ -25,11 +25,7 @@ interface PlayerRowSpec {
 
 /** Tabela de 2 linhas (P1 / separador / P2); `renderCells` devolve as células de placar. */
 export function MatchCardScoreTable({
-  barBg,
-  p1,
-  p2,
-  renderCells,
-  ctId,
+  barBg, p1, p2, renderCells, ctId,
 }: {
   barBg: string;
   p1: PlayerRowSpec;
@@ -39,13 +35,8 @@ export function MatchCardScoreTable({
 }) {
   const row = (spec: PlayerRowSpec, testId: string, playerKey: 'player1' | 'player2') => (
     <MatchCardPlayerRow
-      name={spec.name}
-      club={spec.club}
-      createdByName={spec.createdByName}
-      isServer={spec.isServer}
-      serverTestId={testId}
-      barBg={barBg}
-      ctId={ctId}
+      name={spec.name} club={spec.club} createdByName={spec.createdByName}
+      isServer={spec.isServer} serverTestId={testId} barBg={barBg} ctId={ctId}
     >
       {renderCells(playerKey)}
     </MatchCardPlayerRow>
@@ -61,14 +52,7 @@ export function MatchCardScoreTable({
 
 /** Células de games + pontos de um jogador, no modo "sets completos". */
 export function MatchCardSetsCells({
-  playerKey,
-  scoreBg,
-  format,
-  displayedSets,
-  currentGame,
-  isFinished,
-  isCurrentSetMT,
-  lastSetTiebreakScore,
+  playerKey, scoreBg, format, displayedSets, currentGame, isFinished, isCurrentSetMT, lastSetTiebreakScore,
 }: {
   playerKey: 'player1' | 'player2';
   scoreBg: string;

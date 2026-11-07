@@ -39,10 +39,8 @@ export function useAtletasPage() {
   }, []);
 
   useEffect(() => {
-    // A autenticação real é o cookie httpOnly `rkt_access_token` (validado pelo
-    // middleware e pela API). O sessionStorage guarda apenas user_id/user_role —
-    // `access_token` NÃO é mais gravado no login, então exigi-lo aqui mandava o
-    // usuário SEMPRE de volta para /login ao abrir "Atletas" pelo menu.
+    // A autenticação real é o cookie httpOnly `rkt_access_token` (middleware/API); o sessionStorage
+    // guarda apenas user_id/user_role — exigir `access_token` aqui mandava sempre de volta ao /login.
     const userRole = sessionStorage.getItem('user_role');
     if (!userRole) {
       router.push('/login');
@@ -83,20 +81,10 @@ export function useAtletasPage() {
   };
 
   return {
-    loading,
-    athletes,
-    error,
-    editingAthlete,
-    setEditingAthlete,
-    showNewAthleteModal,
-    setShowNewAthleteModal,
-    athleteToDelete,
-    setAthleteToDelete,
-    deleting,
+    loading, athletes, error, editingAthlete, setEditingAthlete,
+    showNewAthleteModal, setShowNewAthleteModal, athleteToDelete, setAthleteToDelete, deleting,
     currentUserId: typeof window !== 'undefined' ? sessionStorage.getItem('user_id') : null,
     userRole: typeof window !== 'undefined' ? sessionStorage.getItem('user_role') : null,
-    saveAthleteChanges,
-    confirmAthleteDeletion,
-    loadAthletes,
+    saveAthleteChanges, confirmAthleteDeletion, loadAthletes,
   };
 }

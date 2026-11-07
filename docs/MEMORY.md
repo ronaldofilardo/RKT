@@ -17,8 +17,11 @@
   2. `.github/workflows/quality.yml`: `pnpm/action-setup` `version: 9` → `10` (compatível com `lockfileVersion: '9.0'` e com o `pnpm-workspace.yaml`).
   3. **Regra de ouro:** `--update` só com diff revisado; ampliar o baseline exige justificativa.
 - **Plano de drenagem (5 fases):** Fase 1 = 13 arquivos 101–110L · Fase 2 = 17 arquivos 111–140L (Characterization-First em rotas/hooks) · Fase 3 = 8 monólitos 142–246L (uma onda por arquivo) · Fase 4 = exceções pontuais `ste-exception R-03` registradas em `docs/ste-dev.md` · Fase 5 = baseline de volta a `{}`. Ao corrigir um arquivo do baseline, rodar `--update` **no mesmo commit** (senão: `BASELINE obsoleto`).
-- **Estado:** `check:r03` exit 0 (38 congeladas, 2 isentas, 0 regressões) · 1137 arquivos de produção · 53 arquivos na zona de risco 96–100L (alerta, não falha).
-- **Validação:** `node scripts/check-r03-line-limit.mjs` → `OK R-03 … 0 regressoes`.
+- **Fase 1 concluída (2026-11-07) — 13 arquivos 101–110L → ≤96L, baseline 38 → 25:**
+  - `scoring-page-play-area.tsx` 101→94 · `useScoringPageDerived.ts` 103→95 · `Game2ServerSelectionModal.tsx` 106→92 · `MatchNewModals.tsx` 110→92 · `NewAthleteModal.tsx` 103→92 · `match-card-score-table.tsx` 102→86 · `use-match-card-data.ts` 103→92 · `AthleteOriginSection.tsx` 102→90 · `useAtletasPage.ts` 102→90 · `middleware-auth.logic.ts` 106→95 (blocos de rejeição unificados) · `auth/me/route.ts` 106→78 (`ME_USER_SELECT` em `me-select.logic.ts`) · `gestor/athletes-link.logic.ts` 105→57 (transação em `athletes-link-player.logic.ts`) · `gestor/athletes/[id]/route.ts` 107→19 (handler em `patch-handler.logic.ts`).
+  - 3 arquivos novos ≤100L; nenhum export/contrato alterado; `--update` no mesmo commit.
+- **Estado:** `check:r03` exit 0 (**25** congeladas, 2 isentas, 0 regressões) · 1140 arquivos de produção · 56 arquivos na zona de risco 96–100L (alerta, não falha).
+- **Validação Fase 1:** `pnpm typecheck` 0 erros · `pnpm lint` 0 erros · `pnpm test` 489/489 suites (4.422 testes) · `pnpm test:design` 3/3 (26) · `node scripts/check-r03-line-limit.mjs` → `OK R-03 … 0 regressoes`.
 
 ---
 

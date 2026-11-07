@@ -5,6 +5,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { invalidateActor } from '@/services/accessService';
+import { resolveLinkedPlayerId } from './athletes-link-player.logic';
 
 export interface AthleteLinkError {
   error: 'CONFLICT';
@@ -24,7 +25,7 @@ export async function linkExistingAthleteAccount(input: {
   | { ok: true; userId: string; playerId: string; isExistingUser: true }
   | AthleteLinkError
 > {
-  const { ctId, issuedByUserId, existingUser, playerId, athlete } = input;
+  const { ctId, issuedByUserId, existingUser, playerId } = input;
 
   // Conta única por atleta (Player.userId é único): não sobrescreve vínculo de outro Player.
   const ownedByOther = await prisma.player.findFirst({
@@ -35,56 +36,7 @@ export async function linkExistingAthleteAccount(input: {
     return { error: 'CONFLICT', message: 'Esta conta já está vinculada a outro atleta.', status: 409 };
   }
 
-  const linkedPlayerId = await prisma.$transaction(async (tx) => {
-    let pid = playerId ?? null;
-
-    if (!pid) {
-      const ownPlayer = await tx.player.findFirst({ where: { userId: existingUser.id }, select: { id: true } });
-      if (ownPlayer) {
-        pid = ownPlayer.id;
-      } else {
-        const created = await tx.player.create({
-          data: {
-            name: existingUser.name,
-            email: existingUser.email ?? null,
-            cpf: existingUser.cpf ?? null,
-            birthDate: athlete ? new Date(athlete.birthDate) : null,
-            gender: athlete?.gender,
-            dominance: athlete?.laterality,
-            userId: existingUser.id,
-            createdByUserId: issuedByUserId,
-            identityStatus: 'CONFIRMED',
-          },
-          select: { id: true },
-        });
-        pid = created.id;
-      }
-    } else {
-      await tx.player.update({
-        where: { id: pid },
-        data: { userId: existingUser.id, identityStatus: 'CONFIRMED' },
-      });
-    }
-
-    // O atleta cadastrado pelo clube pertence ao clube: vínculo nasce/re-nasce ACTIVE.
-    const pct = await tx.playerCT.findFirst({ where: { playerId: pid, ctId }, select: { id: true } });
-    if (pct) {
-      await tx.playerCT.update({ where: { id: pct.id }, data: { status: 'ACTIVE', endedAt: null } });
-    } else {
-      await tx.playerCT.create({ data: { playerId: pid, ctId, status: 'ACTIVE' } });
-    }
-
-    const coaches = await tx.membership.findMany({
-      where: { ctId, kind: 'TREINADOR', status: 'ACTIVE' },
-      select: { userId: true },
-    });
-    await tx.coachAthleteLink.createMany({
-      data: coaches.map((c) => ({ coachUserId: c.userId, playerId: pid, status: 'ACTIVE' })),
-      skipDuplicates: true,
-    });
-
-    return pid;
-  });
+  const linkedPlayerId = await resolveLinkedPlayerId(input);
 
   await prisma.auditLog
     .create({

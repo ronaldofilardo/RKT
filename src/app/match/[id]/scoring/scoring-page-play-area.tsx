@@ -34,8 +34,6 @@ export function ScoringPagePlayArea({
   onNavigateReport,
   onNavigateDashboard,
 }: ScoringPagePlayAreaProps) {
-  const { scoreState, pointsHistory, suspendedSession } = state;
-  const { onPointSelectFromCard, abandonCurrentSession } = handlers;
   const {
     effectiveScoreState,
     p1IsServing,
@@ -57,7 +55,7 @@ export function ScoringPagePlayArea({
     <ScoringPlayArea
       match={match}
       effectiveScoreState={effectiveScoreState}
-      suspendedSession={suspendedSession}
+      suspendedSession={state.suspendedSession}
       liveCounters={chrome.liveCounters}
       tacticalInsights={chrome.tacticalInsights}
       completedSetsCount={derived.editScoreCompletedSets?.length ?? 0}
@@ -73,26 +71,21 @@ export function ScoringPagePlayArea({
       isSuperTiebreak={isSuperTiebreak}
       isDecidingPoint={isDecidingPoint}
       winner={winner}
-      pointsHistory={pointsHistory}
-      scoreState={scoreState}
+      pointsHistory={state.pointsHistory}
+      scoreState={state.scoreState}
       isFinished={isFinished}
       matchId={matchId}
       serverControls={<ServeInlineControls {...serveControls} />}
       isServePanelOpen={serveControls.openAction !== null}
       onChangeServer={() => state.open('change-server')}
       onSelectReceiverOverride={state.setDecidingPointReceiverOverride}
-      onOpenSetSummary={() =>
-        chrome.setSetSummaryModalState({
-          isOpen: true,
-          setNumber: derived.editScoreCompletedSets?.length || 1,
-        })
-      }
-      onPoint={onPointSelectFromCard}
+      onOpenSetSummary={() => chrome.setSetSummaryModalState({ isOpen: true, setNumber: derived.editScoreCompletedSets?.length || 1 })}
+      onPoint={handlers.onPointSelectFromCard}
       onSwipeUndo={() => state.open('undo')}
       onNavigateReport={onNavigateReport}
       onRegisterAndExit={async () => {
         if (isFinished) {
-          await abandonCurrentSession();
+          await handlers.abandonCurrentSession();
         }
         onNavigateDashboard();
       }}
