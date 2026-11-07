@@ -34,19 +34,15 @@ export function DashboardChrome({ user, navigateToTarget, title, onLogout, onCon
   const [meData, setMeData] = useState<any>(null);
 
   const refreshMe = useCallback(() => {
-    fetch('/api/auth/me')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => { if (data) setMeData(data); })
-      .catch(() => { });
+    fetch('/api/auth/me').then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (data) setMeData(data); }).catch(() => { });
     onContextSwitched?.();
   }, [onContextSwitched]);
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/auth/me')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => { if (!cancelled && data) setMeData(data); })
-      .catch(() => { });
+    fetch('/api/auth/me').then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (!cancelled && data) setMeData(data); }).catch(() => { });
     return () => { cancelled = true; };
   }, []);
 
@@ -54,21 +50,14 @@ export function DashboardChrome({ user, navigateToTarget, title, onLogout, onCon
     logger.info('[DashboardPage] logout click');
     setLogoutConfirmOpen(true);
   }, []);
-
   const endSession = onLogout ?? internalEndSession;
 
   const confirmLogout = useCallback(async () => {
     setLogoutConfirmOpen(false);
-    try {
-      await performLogout();
-    } catch (err) {
-      logger.error('[logout] Erro', err);
-    }
+    try { await performLogout(); } catch (err) { logger.error('[logout] Erro', err); }
     if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
       window.location.replace('/login?exit=1');
-    } else {
-      router.replace('/login');
-    }
+    } else { router.replace('/login'); }
   }, [router]);
 
   const currentUser = user || (meData?.user ? { name: meData.user.name, role: meData.user.role } : null);
@@ -79,36 +68,24 @@ export function DashboardChrome({ user, navigateToTarget, title, onLogout, onCon
       : getDefaultMenuContext(currentUser?.role);
     const rawSections = buildMenu(ctx);
     return mapMenuSectionsToSidebar(rawSections, {
-      navigateToTarget,
-      routerPush: (href) => router.push(toAreaPath(href) as any),
-      endSession,
+      navigateToTarget, routerPush: (href) => router.push(toAreaPath(href) as any), endSession,
     });
   }, [meData, currentUser?.role, navigateToTarget, router, endSession, toAreaPath, activeArea]);
 
   return (
     <>
       <DashboardTopBar
-        menuOpen={menuOpen}
-        setMenuOpen={setMenuOpen}
-        user={currentUser}
-        title={title}
-        onNewMatch={() => router.push(toAreaPath('/match/new') as any)}
-        onLogout={endSession}
-        showMenuButton={showMenu}
-        showLogout={showLogout}
-        activeContextId={meData?.activeContextId}
-        availableContexts={meData?.availableContexts}
+        menuOpen={menuOpen} setMenuOpen={setMenuOpen} user={currentUser} title={title}
+        onNewMatch={() => router.push(toAreaPath('/match/new') as any)} onLogout={endSession}
+        showMenuButton={showMenu} showLogout={showLogout}
+        activeContextId={meData?.activeContextId} availableContexts={meData?.availableContexts}
         onContextSwitched={refreshMe}
       />
       {showMenu && <DashboardSidebar menuOpen={menuOpen} setMenuOpen={setMenuOpen} sections={sections} />}
       {!onLogout && (
         <ConfirmAlertDialog
-          open={logoutConfirmOpen}
-          title="Sair?"
-          description="Deseja realmente sair?"
-          confirmLabel="Sair"
-          onConfirm={confirmLogout}
-          onCancel={() => setLogoutConfirmOpen(false)}
+          open={logoutConfirmOpen} title="Sair?" description="Deseja realmente sair?" confirmLabel="Sair"
+          onConfirm={confirmLogout} onCancel={() => setLogoutConfirmOpen(false)}
         />
       )}
     </>

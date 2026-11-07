@@ -3,23 +3,11 @@
  * R-03: <= 100 linhas por arquivo.
  */
 
-export type SpectatorFeedStatus =
-  | 'NOT_STARTED'
-  | 'LIVE'
-  | 'NO_SIGNAL'
-  | 'PAUSED'
-  | 'CATCH_UP'
-  | 'FINISHED';
+export type SpectatorFeedStatus = 'NOT_STARTED' | 'LIVE' | 'NO_SIGNAL' | 'PAUSED' | 'CATCH_UP' | 'FINISHED';
 
 export type SpectatorRhythmKind =
-  | 'RALLY_IN_PROGRESS'
-  | 'CHANGEOVER_BREAK'
-  | 'SET_BREAK'
-  | 'WAITING_NEXT_POINT'
-  | 'NO_SIGNAL'
-  | 'PAUSED'
-  | 'FINISHED'
-  | 'CLIENT_OFFLINE';
+  | 'RALLY_IN_PROGRESS' | 'CHANGEOVER_BREAK' | 'SET_BREAK' | 'WAITING_NEXT_POINT'
+  | 'NO_SIGNAL' | 'PAUSED' | 'FINISHED' | 'CLIENT_OFFLINE';
 
 export interface SpectatorRhythmState {
   kind: SpectatorRhythmKind;
@@ -37,15 +25,8 @@ export interface SpectatorPlayerSide {
  * Lista-branca: observações/notas, áudio e ids de jogadores NÃO entram aqui.
  */
 export interface SpectatorPointDetails {
-  situacao?: string;
-  tipo?: string;
-  golpe?: string;
-  efeito?: string;
-  direcao?: string;
-  golpeEsp?: string;
-  subtipo1?: string;
-  subtipo2?: string;
-  duracao?: string;
+  situacao?: string; tipo?: string; golpe?: string; efeito?: string; direcao?: string;
+  golpeEsp?: string; subtipo1?: string; subtipo2?: string; duracao?: string;
   isSecondServe?: boolean;
   firstFault?: { serveEffect?: string; direction?: string } | null;
 }
@@ -57,12 +38,12 @@ export interface SpectatorPoint {
   gameNumber: number;
   scoreAfter: string;
   winnerSide: 'side1' | 'side2';
+  type: string;
   serverSide?: 'side1' | 'side2' | null;
   serverMemberId?: string | null;
   receiverMemberId?: string | null;
   courtSide?: 'deuce' | 'ad' | null;
   hitterId?: string | null;
-  type: string;
   details?: SpectatorPointDetails | null;
   isBreakPoint?: boolean;
   receivedLate?: boolean;
@@ -72,10 +53,8 @@ export interface SpectatorMarker {
   kind: 'SCORE_EDIT' | 'ARRANGEMENT_CHANGE';
   at: string;
   description: string;
-  /** Marcador fica depois do ponto com esta sequência (0 = antes do primeiro ponto). */
-  afterSeq?: number | null;
-  /** Placar antes/depois da edição manual, já em texto legível (ex.: "6-4, 3-2 · game 30-30"). */
-  from?: string | null;
+  /** Marcador fica depois do ponto com esta sequência (0 = antes do primeiro ponto). */ afterSeq?: number | null;
+  /** Placar antes/depois da edição manual, já em texto legível (ex.: "6-4, 3-2 · game 30-30"). */ from?: string | null;
   to?: string | null;
 }
 

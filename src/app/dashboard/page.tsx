@@ -22,26 +22,19 @@ export default function DashboardPage() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/auth/me')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!cancelled && data) {
-          const activeId = data.activeContextId ?? null;
-          setCtId(activeId);
-          setUserId(data.user?.id ?? null);
-          setFollowedPlayerIds(data.followedPlayerIds ?? []);
-
-          if (activeId && activeId !== 'PARTICULAR') {
-            const currentMem = data.memberships?.find((m: any) => m.ctId === activeId);
-            const currentCtx = data.availableContexts?.find((c: any) => c.id === activeId);
-            const name = currentMem?.ct?.name || currentCtx?.label?.split(' (')[0] || null;
-            setCtName(name);
-          } else {
-            setCtName(null);
-          }
-        }
-      })
-      .catch(() => {});
+    fetch('/api/auth/me').then((res) => (res.ok ? res.json() : null)).then((data) => {
+      if (!cancelled && data) {
+        const activeId = data.activeContextId ?? null;
+        setCtId(activeId);
+        setUserId(data.user?.id ?? null);
+        setFollowedPlayerIds(data.followedPlayerIds ?? []);
+        if (activeId && activeId !== 'PARTICULAR') {
+          const currentMem = data.memberships?.find((m: any) => m.ctId === activeId);
+          const currentCtx = data.availableContexts?.find((c: any) => c.id === activeId);
+          setCtName(currentMem?.ct?.name || currentCtx?.label?.split(' (')[0] || null);
+        } else { setCtName(null); }
+      }
+    }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
 
@@ -51,66 +44,36 @@ export default function DashboardPage() {
 
       <main className="max-w-4xl mx-auto px-4 py-6">
         <DashboardViewRouter
-          view={model.view}
-          loading={model.loading}
-          ctId={ctId}
-          ctName={ctName}
-          userId={userId}
-          followedPlayerIds={followedPlayerIds}
-          {...model.filters}
-          suspendedFromApi={model.suspendedFromApi}
+          view={model.view} loading={model.loading} ctId={ctId} ctName={ctName} userId={userId}
+          followedPlayerIds={followedPlayerIds} {...model.filters} suspendedFromApi={model.suspendedFromApi}
           navigateToTarget={model.navigateToTarget}
-          openMatchDetails={actions.openMatchDetails}
-          openMatchReport={actions.openMatchReport}
-          finishMatch={actions.finishMatch}
-          deleteMatch={actions.deleteMatch}
-          openMatchEditScore={actions.openMatchEditScore}
-          resumeMatch={actions.resumeMatch}
-          openMatchSetSummary={summary.openMatchSetSummary}
-          openMatchEditInfo={actions.openMatchEditInfo}
+          openMatchDetails={actions.openMatchDetails} openMatchReport={actions.openMatchReport}
+          finishMatch={actions.finishMatch} deleteMatch={actions.deleteMatch}
+          openMatchEditScore={actions.openMatchEditScore} resumeMatch={actions.resumeMatch}
+          openMatchSetSummary={summary.openMatchSetSummary} openMatchEditInfo={actions.openMatchEditInfo}
           onShareMatch={share.openShareModal}
         />
       </main>
 
       <DashboardMatchModals
-        matchToDelete={model.matchToDelete}
-        onCancelDelete={() => model.setMatchToDelete(null)}
-        onConfirmDelete={() => {
-          model.confirmDeleteMatch("hard");
-          model.setMatchToDelete(null);
-        }}
-        matchToFinish={model.matchToFinish}
-        onCancelFinish={() => model.setMatchToFinish(null)}
-        onConfirmFinish={model.confirmFinishMatch}
-        serverMatch={actions.selectedMatchForServer}
-        startingMatch={actions.startingMatch}
-        onSelectServer={actions.selectServingPlayer}
-        onCloseServer={() => actions.setSelectedMatchForServer(null)}
-        setSummaryMatch={summary.setSummaryMatch}
-        setSummaryTimelinePoints={summary.setSummaryTimelinePoints}
-        completedSetsCount={summary.completedSetsCount}
-        completedSetsData={summary.completedSetsData}
-        onCloseSetSummary={() => summary.setSetSummaryMatch(null)}
+        matchToDelete={model.matchToDelete} onCancelDelete={() => model.setMatchToDelete(null)}
+        onConfirmDelete={() => { model.confirmDeleteMatch("hard"); model.setMatchToDelete(null); }}
+        matchToFinish={model.matchToFinish} onCancelFinish={() => model.setMatchToFinish(null)}
+        onConfirmFinish={model.confirmFinishMatch} serverMatch={actions.selectedMatchForServer}
+        startingMatch={actions.startingMatch} onSelectServer={actions.selectServingPlayer}
+        onCloseServer={() => actions.setSelectedMatchForServer(null)} setSummaryMatch={summary.setSummaryMatch}
+        setSummaryTimelinePoints={summary.setSummaryTimelinePoints} completedSetsCount={summary.completedSetsCount}
+        completedSetsData={summary.completedSetsData} onCloseSetSummary={() => summary.setSetSummaryMatch(null)}
         onResumeSetSummary={() => {
-          if (!summary.setSummaryMatch) return;
-          const m = summary.setSummaryMatch;
-          summary.setSetSummaryMatch(null);
-          actions.resumeMatch(m);
+          if (!summary.setSummaryMatch) return; const m = summary.setSummaryMatch;
+          summary.setSetSummaryMatch(null); actions.resumeMatch(m);
         }}
-        editMatch={actions.matchToEditInfo}
-        onCloseEditInfo={() => actions.setMatchToEditInfo(null)}
-        onSuccessEditInfo={() => {
-          model.fetchDashboardData();
-          actions.setMatchToEditInfo(null);
-        }}
+        editMatch={actions.matchToEditInfo} onCloseEditInfo={() => actions.setMatchToEditInfo(null)}
+        onSuccessEditInfo={() => { model.fetchDashboardData(); actions.setMatchToEditInfo(null); }}
       />
 
       {share.matchToShare && (
-        <ShareSpectateModal
-          matchId={share.matchToShare.id}
-          isOpen={Boolean(share.matchToShare)}
-          onClose={share.closeShareModal}
-        />
+        <ShareSpectateModal matchId={share.matchToShare.id} isOpen={Boolean(share.matchToShare)} onClose={share.closeShareModal} />
       )}
     </div>
   );

@@ -20,8 +20,13 @@
 - **Fase 1 concluída (2026-11-07) — 13 arquivos 101–110L → ≤96L, baseline 38 → 25:**
   - `scoring-page-play-area.tsx` 101→94 · `useScoringPageDerived.ts` 103→95 · `Game2ServerSelectionModal.tsx` 106→92 · `MatchNewModals.tsx` 110→92 · `NewAthleteModal.tsx` 103→92 · `match-card-score-table.tsx` 102→86 · `use-match-card-data.ts` 103→92 · `AthleteOriginSection.tsx` 102→90 · `useAtletasPage.ts` 102→90 · `middleware-auth.logic.ts` 106→95 (blocos de rejeição unificados) · `auth/me/route.ts` 106→78 (`ME_USER_SELECT` em `me-select.logic.ts`) · `gestor/athletes-link.logic.ts` 105→57 (transação em `athletes-link-player.logic.ts`) · `gestor/athletes/[id]/route.ts` 107→19 (handler em `patch-handler.logic.ts`).
   - 3 arquivos novos ≤100L; nenhum export/contrato alterado; `--update` no mesmo commit.
-- **Estado:** `check:r03` exit 0 (**25** congeladas, 2 isentas, 0 regressões) · 1140 arquivos de produção · 56 arquivos na zona de risco 96–100L (alerta, não falha).
-- **Validação Fase 1:** `pnpm typecheck` 0 erros · `pnpm lint` 0 erros · `pnpm test` 489/489 suites (4.422 testes) · `pnpm test:design` 3/3 (26) · `node scripts/check-r03-line-limit.mjs` → `OK R-03 … 0 regressoes`.
+- **Fase 2 concluída (2026-11-07) — 17 arquivos 111–140L → ≤96L, baseline 25 → 8:**
+  - scoring: `ScoringPlayArea` 133→87 (faixa No-Ad → `scoring-deciding-point-banner.tsx`), `scoring-session-modals` 135→66 (modais ativos → `scoring-session-active-modals.tsx`; derivação Game 2 → `scoring-session-game2.logic.ts`), `edit-score-modal-content` 116→69.
+  - match/new: `useNewMatchState` 126→96 (carga de contexto → `match-new-context-load.logic.ts`), `PlayerSelection` 122→77, `doubles-serve-order-section` 118→44 (coluna → `doubles-serve-order-card.tsx`).
+  - API: `gestor/athletes-logic` 122→71 (transação → `athletes-create-transaction.logic.ts`), `athletes-provision.logic` 129→87 (criação → `athletes-provision-create.logic.ts`), `regenerate-link/route` 116→69 (emissão → `regenerate-link-issue.logic.ts`), `suporte/externos/route` 114→35 (`externos-query.logic.ts`), `auth/login/route` 115→91 (`login-response.logic.ts`).
+  - UI/hook: `clubs-section` 127→60 (`clubs-table.tsx`), `dashboard/page` 117→80, `DashboardChrome` 116→93, `useSpectatorFeed` 120→96 (`spectator-feed-url.logic.ts`), `core/spectate/types` 117→96, `access-actor.logic` 112→89.
+- **Estado:** `check:r03` exit 0 (**8** congeladas, 2 isentas, 0 regressões) · 1152 arquivos de produção · 56 arquivos na zona de risco 96–100L (alerta, não falha).
+- **Validação Fase 2:** `pnpm typecheck` 0 erros · `pnpm lint` 0 erros · `pnpm test` 489/489 suites (4.422 testes) · `pnpm test:design` 3/3 (26) · `node scripts/check-r03-line-limit.mjs` → `OK R-03 … 0 regressoes`.
 
 ---
 

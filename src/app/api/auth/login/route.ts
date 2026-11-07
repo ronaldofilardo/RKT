@@ -8,6 +8,7 @@ import { generateLoginToken } from './login-token-logic';
 import { computeLoginProfile } from './login-profile-logic';
 import { resolveAvailableContexts } from './login-contexts.logic';
 import { checkLoginRateLimit, recordLoginAttempt } from './login-ratelimit.logic';
+import { applyLoginCookies, resolveLoginArea } from './login-response.logic';
 import type { ActorMembership } from '@/core/access';
 
 export async function POST(request: NextRequest) {
@@ -57,25 +58,11 @@ export async function POST(request: NextRequest) {
       computeLoginProfile(actor?.memberships as readonly ActorMembership[] | null | undefined, user.role);
 
     const chosenContext = availableContexts.find((c) => c.id === chosenContextId);
-    const areaForContext = (() => {
-      if (!chosenContext) return undefined;
-      if (chosenContext.type === 'PARTICULAR') return 'TREINADOR_AVULSO';
-      if (chosenContext.type === 'CT') {
-        if (chosenContext.role === 'GESTOR') return 'GESTOR';
-        if (chosenContext.role === 'TREINADOR') return 'TREINADOR_CLUBE';
-      }
-      return undefined;
-    })();
+    const areaForContext = resolveLoginArea(chosenContext);
 
     const accessToken = await generateLoginToken(
-      user.id,
-      effectiveRole,
-      user.sessionVersion,
-      user.mustChangePassword,
-      platformPreset,
-      membershipKind,
-      chosenContextId,
-      areaForContext,
+      user.id, effectiveRole, user.sessionVersion, user.mustChangePassword,
+      platformPreset, membershipKind, chosenContextId, areaForContext,
       chosenContext?.type === 'CT' ? chosenContextId : undefined,
     );
 
@@ -95,18 +82,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const cookieOpts = {
-      httpOnly: true,
-      sameSite: 'lax' as const,
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-      ...(user.mustChangePassword ? {} : { maxAge: 60 * 60 * 2 }),
-    };
-    response.cookies.set('rkt_access_token', accessToken, cookieOpts);
-    response.cookies.set('access_token', accessToken, {
-      ...cookieOpts,
-      httpOnly: false,
-    });
+    applyLoginCookies(response, accessToken, user.mustChangePassword);
     return response;
   } catch (error) {
     logger.error('[LOGIN POST]', error);

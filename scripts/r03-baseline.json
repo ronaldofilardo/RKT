@@ -1,27 +1,10 @@
 {
-  "src/app/api/auth/login/route.ts": 115,
-  "src/app/api/gestor/athletes/[id]/regenerate-link/route.ts": 116,
-  "src/app/api/gestor/athletes-logic.ts": 122,
-  "src/app/api/gestor/athletes-provision.logic.ts": 129,
-  "src/app/api/suporte/externos/route.ts": 114,
-  "src/app/dashboard/components/DashboardChrome.tsx": 116,
-  "src/app/dashboard/page.tsx": 117,
   "src/app/gestor/club-matches-table.tsx": 143,
-  "src/app/gestor/clubs-section.tsx": 127,
-  "src/app/match/new/components/doubles-serve-order-section.tsx": 118,
-  "src/app/match/new/components/PlayerSelection.tsx": 122,
   "src/app/match/new/components/use-new-athlete-modal.ts": 142,
-  "src/app/match/new/useNewMatchState.ts": 126,
-  "src/app/match/[id]/scoring/scoring-session-modals.tsx": 135,
-  "src/app/match/[id]/scoring/ScoringPlayArea.tsx": 133,
   "src/app/suporte/externos-section.tsx": 246,
   "src/components/dashboard/match-card-score-grid.tsx": 246,
   "src/components/dashboard/MatchCard.tsx": 200,
   "src/components/scoring/ChangeServerModal.tsx": 228,
-  "src/components/scoring/edit-score-modal-content.tsx": 116,
   "src/components/scoring/EditScoreServerSection.tsx": 163,
-  "src/core/spectate/types.ts": 117,
-  "src/hooks/useSpectatorFeed.ts": 120,
-  "src/lib/db/db-target.ts": 216,
-  "src/services/access-actor.logic.ts": 112
+  "src/lib/db/db-target.ts": 216
 }

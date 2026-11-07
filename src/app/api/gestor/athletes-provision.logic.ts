@@ -5,6 +5,7 @@
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { linkExistingAthleteAccount } from './athletes-link.logic';
+import { createProvisionedAthleteAccount } from './athletes-provision-create.logic';
 
 export interface AthleteAccountResult {
   ok: true;
@@ -40,20 +41,10 @@ export async function provisionAthleteAccount(input: {
 
   const cpf = player.cpf?.replace(/\D/g, '') ?? '';
   if (cpf.length !== 11) {
-    return {
-      ok: false,
-      error: 'VALIDATION_ERROR',
-      message: 'Informe o CPF do atleta em "Editar" antes de gerar o link de senha.',
-      status: 400,
-    };
+    return { ok: false, error: 'VALIDATION_ERROR', status: 400, message: 'Informe o CPF do atleta em "Editar" antes de gerar o link de senha.' };
   }
   if (!player.birthDate) {
-    return {
-      ok: false,
-      error: 'VALIDATION_ERROR',
-      message: 'Informe a data de nascimento do atleta em "Editar" antes de gerar o link de senha.',
-      status: 400,
-    };
+    return { ok: false, error: 'VALIDATION_ERROR', status: 400, message: 'Informe a data de nascimento do atleta em "Editar" antes de gerar o link de senha.' };
   }
 
   const email = (player.email || `${cpf}@local`).toLowerCase();
@@ -89,41 +80,8 @@ export async function provisionAthleteAccount(input: {
   const passwordHash = await bcrypt.hash(tempPassword, 10);
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-  try {
-    const created = await prisma.$transaction(async (tx) => {
-      const user = await tx.user.create({
-        data: {
-          name: player.name,
-          email,
-          cpf,
-          passwordHash,
-          role: 'ANNOTATOR',
-          canOperate: true,
-          mustChangePassword: true,
-          tempPasswordExpiresAt: expiresAt,
-        },
-        select: { id: true, email: true },
-      });
-
-      await tx.player.update({
-        where: { id: player.id },
-        data: { userId: user.id, identityStatus: 'CONFIRMED' },
-      });
-
-      return user;
-    });
-
-    return { ok: true, userId: created.id, email: created.email };
-  } catch (error) {
-    // Corrida com um cadastro simultâneo do mesmo CPF/e-mail: trata como conflito.
-    if ((error as { code?: string })?.code === 'P2002') {
-      return {
-        ok: false,
-        error: 'CONFLICT',
-        message: 'Já existe uma conta com este CPF ou e-mail. Atualize a lista e tente novamente.',
-        status: 409,
-      };
-    }
-    throw error;
-  }
+  return createProvisionedAthleteAccount({
+    playerId: player.id, playerName: player.name,
+    email, cpf, passwordHash, expiresAt,
+  });
 }

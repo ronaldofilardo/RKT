@@ -13,21 +13,9 @@ import {
 
 /** Área rolável do modal: erros, sets completados, resumo, formulário e nota. */
 export function EditScoreModalContent({
-  matchFormat,
-  playerNames,
-  currentServer,
-  completedSets,
-  floorCurrentSets,
-  currentGamePoints,
-  effectiveFloorTiebreak,
-  confirmError,
-  floorValidationError,
-  doubles,
-  state,
-  setState,
-  calculations,
-  canConfirmSet,
-  handlers,
+  matchFormat, playerNames, currentServer, completedSets, floorCurrentSets, currentGamePoints,
+  effectiveFloorTiebreak, confirmError, floorValidationError, doubles, state, setState,
+  calculations, canConfirmSet, handlers,
 }: EditScoreModalContentProps) {
   const { matchState } = calculations;
   const { p1SetsWon, p2SetsWon, setsToWin } = matchState;
@@ -37,20 +25,9 @@ export function EditScoreModalContent({
     p2: doubles?.player2PartnerName ? `${playerNames.p2} / ${doubles.player2PartnerName}` : playerNames.p2,
   };
 
-  const allCompletedSets = getAllCompletedSets(
-    state.editableCompletedSets,
-    completedSets,
-    state.newSets
-  );
-  const completedSetValidationErrors = computeCompletedSetValidationErrors(
-    allCompletedSets,
-    matchFormat
-  );
-  const editableCompletedSets = buildEditableCompletedSets(
-    allCompletedSets,
-    completedSetValidationErrors
-  );
-
+  const allCompletedSets = getAllCompletedSets(state.editableCompletedSets, completedSets, state.newSets);
+  const completedSetValidationErrors = computeCompletedSetValidationErrors(allCompletedSets, matchFormat);
+  const editableCompletedSets = buildEditableCompletedSets(allCompletedSets, completedSetValidationErrors);
   const hasErrors = Boolean(confirmError || floorValidationError);
 
   return (
@@ -62,55 +39,31 @@ export function EditScoreModalContent({
       )}
 
       <EditableSetsSummary
-        title="Sets Completados"
-        sets={editableCompletedSets}
-        playerNames={effectivePlayerNames}
-        startIndex={0}
+        title="Sets Completados" sets={editableCompletedSets} playerNames={effectivePlayerNames}
+        startIndex={0} validationErrors={completedSetValidationErrors}
         onEditSet={(index: number, p1: number, p2: number) => handlers.openEditCompletedSet(index, p1, p2)}
-        validationErrors={completedSetValidationErrors}
       />
 
-      <MatchSummary
-        p1SetsWon={p1SetsWon}
-        p2SetsWon={p2SetsWon}
-        setsToWin={setsToWin}
-        playerNames={effectivePlayerNames}
-      />
+      <MatchSummary p1SetsWon={p1SetsWon} p2SetsWon={p2SetsWon} setsToWin={setsToWin}
+        playerNames={effectivePlayerNames} />
 
       <EditScoreServerSection
-        currentServer={currentServer}
-        selectedServer={state.nextServer}
-        selectedServerId={(state as any).targetServerId}
-        onSelectServer={(server, serverId) => {
-          setState((prev) => ({
-            ...prev,
-            nextServer: server,
-            targetServerId: serverId,
-          } as any));
-        }}
-        playerNames={playerNames}
-        doubles={doubles}
+        currentServer={currentServer} selectedServer={state.nextServer}
+        selectedServerId={(state as any).targetServerId} playerNames={playerNames} doubles={doubles}
+        onSelectServer={(server, serverId) => setState((prev) => ({
+          ...prev, nextServer: server, targetServerId: serverId,
+        } as any))}
       />
 
       <EditScoreSetInputSection
-        matchFormat={matchFormat}
-        playerNames={effectivePlayerNames}
-        currentServer={currentServer}
-        floorCurrentSets={floorCurrentSets}
-        currentGamePoints={currentGamePoints}
-        effectiveFloorTiebreak={effectiveFloorTiebreak}
-        floorValidationError={floorValidationError}
-        state={state}
-        setState={setState}
-        calculations={calculations}
-        canConfirmSet={canConfirmSet}
-        handlers={handlers}
+        matchFormat={matchFormat} playerNames={effectivePlayerNames} currentServer={currentServer}
+        floorCurrentSets={floorCurrentSets} currentGamePoints={currentGamePoints}
+        effectiveFloorTiebreak={effectiveFloorTiebreak} floorValidationError={floorValidationError}
+        state={state} setState={setState} calculations={calculations}
+        canConfirmSet={canConfirmSet} handlers={handlers}
       />
 
-      <EditScoreNoteField
-        value={state.note ?? ''}
-        onChange={(v) => setState((prev) => ({ ...prev, note: v }))}
-      />
+      <EditScoreNoteField value={state.note ?? ''} onChange={(v) => setState((prev) => ({ ...prev, note: v }))} />
     </div>
   );
 }

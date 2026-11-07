@@ -2,17 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Athlete } from './types';
 import { ensureAuthCookie } from '@/lib/auth-client';
 import { useTournamentSuggestions } from './hooks/useTournamentSuggestions';
-import { loadAvailableCts, type CtOption } from './match-new-ct-logic';
-import {
-  initialSlotAffiliation,
-  type SlotAffiliation,
-  type SlotAffiliationMap,
-  type SlotId,
-} from './slot-affiliation';
+import { type CtOption } from './match-new-ct-logic';
+import { initialSlotAffiliation, type SlotAffiliation, type SlotAffiliationMap, type SlotId } from './slot-affiliation';
+import { loadActiveContext } from './match-new-context-load.logic';
+
 export function useNewMatchState() {
   const [loading, setLoading] = useState(false);
-  const submittingRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
+  const submittingRef = useRef(false);
   const [missingFields, setMissingFields] = useState<string[]>([]);
   const [athletes, setAthletes] = useState<Athlete[]>([]);
   const [matchType, setMatchType] = useState<'SINGLES' | 'DOUBLES'>('SINGLES');
@@ -34,12 +31,10 @@ export function useNewMatchState() {
   const [clubName, setClubName] = useState('');
   const [category, setCategory] = useState<'INFANTIL' | 'JUVENIL' | 'ADULTO' | 'VETERANO' | ''>('');
   const [roundName, setRoundName] = useState('');
-  const bracketType = '' as const;
-  const [venueId, setVenueId] = useState('');
+  const bracketType = '' as const;  const [venueId, setVenueId] = useState('');
   const [publicMatchCode, setPublicMatchCode] = useState('');
   const [temperature, setTemperature] = useState(''); const [humidity, setHumidity] = useState('');
-  const [tags, setTags] = useState('');
-  const [details, setDetails] = useState('');
+  const [tags, setTags] = useState(''); const [details, setDetails] = useState('');
   const [openForAnnotation, setOpenForAnnotation] = useState(false);
   const [showTournamentDropdown, setShowTournamentDropdown] = useState(false);
   const tournamentSuggestions = useTournamentSuggestions(tournamentName);
@@ -56,71 +51,46 @@ export function useNewMatchState() {
   const updateSlotAffiliation = useCallback((slot: SlotId, value: SlotAffiliation) => {
     setSlotAffiliation((prev) => ({ ...prev, [slot]: value }));
   }, []);
+
   useEffect(() => {
     const role = sessionStorage.getItem('user_role');
-    if (role === 'ADMIN') {
-      setVisibility('PUBLIC');
-      setOpenForAnnotation(true);
-    }
+    if (role === 'ADMIN') { setVisibility('PUBLIC'); setOpenForAnnotation(true); }
     ensureAuthCookie();
   }, []);
-  useEffect(() => {
-    if (typeof fetch !== 'function') return;
-    fetch('/api/auth/me')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        const ctxId = data?.activeContextId ?? null;
-        const area = data?.activeArea ?? null;
-        const particular = ctxId === 'PARTICULAR' || area === 'TREINADOR_AVULSO';
-        setIsParticular(particular);
-        const ids = data?.followedPlayerIds ?? [];
-        if (Array.isArray(ids)) setFollowedPlayerIds(ids);
 
-        return loadAvailableCts().then((cts) => {
-          setAvailableCts(cts);
-          if (particular) {
-            setCtId('');
-          } else if (cts.length > 0) {
-            setCtId((prev) => prev || cts[0].id);
-          }
-        });
-      })
-      .catch(() => {
-        loadAvailableCts().then((cts) => {
-          setAvailableCts(cts);
-          if (cts.length > 0) setCtId((prev) => prev || cts[0].id);
-        }).catch(() => undefined);
-      });
+  useEffect(() => {
+    void loadActiveContext({ setIsParticular, setFollowedPlayerIds, setCtId, setAvailableCts });
   }, []);
+
   useEffect(() => {
     if (typeof fetch !== 'function') return;
-    const headers: Record<string, string> = {};
-    fetch('/api/players?limit=100', { headers })
-      .then((response) => response.json())
+    fetch('/api/players?limit=100', { headers: {} })
+      .then((r) => r.json())
       .then((json: { data?: { players?: Athlete[] }; players?: Athlete[] }) => {
         const players = json?.data?.players ?? json?.players ?? [];
         setAthletes(Array.isArray(players) ? players : []);
       })
       .catch(() => undefined);
   }, []);
+
   return {
     loading, setLoading, submittingRef, error, setError, missingFields, setMissingFields, athletes, setAthletes,
-    matchType, setMatchType,
-    player1DropdownOpen, setPlayer1DropdownOpen, player2DropdownOpen, setPlayer2DropdownOpen,
+    matchType, setMatchType, player1DropdownOpen, setPlayer1DropdownOpen, player2DropdownOpen, setPlayer2DropdownOpen,
     player1PartnerDropdownOpen, setPlayer1PartnerDropdownOpen, player2PartnerDropdownOpen, setPlayer2PartnerDropdownOpen,
     showNewAthleteModal, setShowNewAthleteModal, newAthleteFor, setNewAthleteFor,
-    selectedP1, setSelectedP1, selectedP2, setSelectedP2,
-    selectedP1Partner, setSelectedP1Partner, selectedP2Partner, setSelectedP2Partner,
-    doublesSetup, setDoublesSetup, format, setFormat, courtType, setCourtType,
-    sportType, setSportType, date, setDate, time, setTime, nickname, visibility, setVisibility,
-    anotadorEmail, setAnotadorEmail, tournamentName, setTournamentName, clubName, setClubName,
-    category, setCategory, roundName, setRoundName, bracketType, venueId, setVenueId,
+    selectedP1, setSelectedP1, selectedP2, setSelectedP2, selectedP1Partner, setSelectedP1Partner,
+    selectedP2Partner, setSelectedP2Partner, doublesSetup, setDoublesSetup, format, setFormat,
+    courtType, setCourtType, sportType, setSportType, date, setDate, time, setTime, nickname,
+    visibility, setVisibility, anotadorEmail, setAnotadorEmail, tournamentName, setTournamentName,
+    clubName, setClubName, category, setCategory, roundName, setRoundName, bracketType, venueId, setVenueId,
     publicMatchCode, setPublicMatchCode, temperature, setTemperature, humidity, setHumidity,
     tags, setTags, details, setDetails, openForAnnotation, showTournamentDropdown, setShowTournamentDropdown,
     tournamentSuggestions, showServerModal, setShowServerModal, createdMatchId, setCreatedMatchId,
     startingMatch, setStartingMatch, pendingPayload, setPendingPayload, showDuplicateModal,
-    setShowDuplicateModal, duplicateInfo, setDuplicateInfo,
-    slotAffiliation, setSlotAffiliation, updateSlotAffiliation, ctId, setCtId, clubNameMatch, setClubNameMatch, availableCts, setAvailableCts, isParticular, followedPlayerIds, setFollowedPlayerIds,
+    setShowDuplicateModal, duplicateInfo, setDuplicateInfo, slotAffiliation, setSlotAffiliation,
+    updateSlotAffiliation, ctId, setCtId, clubNameMatch, setClubNameMatch, availableCts, setAvailableCts,
+    isParticular, followedPlayerIds, setFollowedPlayerIds,
   };
 }
+
 export type NewMatchState = ReturnType<typeof useNewMatchState>;
