@@ -21,7 +21,7 @@ export function CoachesTable({
 }: CoachesTableProps) {
   const {
     editing, setEditing, linkData, setLinkData,
-    handleGenerateLink, handleSave, handleToggleCanInsertAthletes,
+    handleGenerateLink, handleSave, handleToggleCanInsertAthletes, handleDelete,
   } = useCoachesTableHandlers({ onRefresh });
 
   const allSelected = useMemo(
@@ -63,7 +63,7 @@ export function CoachesTable({
             </thead>
             <tbody className="divide-y divide-telemetry-border/20">
               {coaches.map((c) => (
-                <CoachRow key={c.user.id} coach={c} selected={selectedIds.includes(c.user.id)} onSelect={(chk) => onSelectChange(c.user.id, chk)} onEdit={() => setEditing(c)} onGenerateLink={() => handleGenerateLink(c)} onToggleCanInsertAthletes={(chk) => handleToggleCanInsertAthletes(c, chk)} />
+                <CoachRow key={c.user.id} coach={c} selected={selectedIds.includes(c.user.id)} onSelect={(chk) => onSelectChange(c.user.id, chk)} onEdit={() => setEditing(c)} onGenerateLink={() => handleGenerateLink(c)} onToggleCanInsertAthletes={(chk) => handleToggleCanInsertAthletes(c, chk)} onDelete={() => handleDelete(c)} />
               ))}
             </tbody>
           </table>

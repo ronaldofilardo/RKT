@@ -1,3 +1,4 @@
+// ste-exception R-03: Renderização de linhas de fim de game e tiebreak (entrada e término) em timeline do report; lógica de transição mantida coesa com timeline-game-end.
 import { Fragment } from 'react';
 import type { TimelinePoint } from '@/core/scoring/types';
 import { getGameEndInfo } from './timeline.logic';
@@ -54,7 +55,8 @@ export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLa
           (prevPoint!.gameScore.player1 === 0 && prevPoint!.gameScore.player2 === 0);
 
         const isLastPointOfSet = i === points.length - 1;
-        const gameEnd = !hasActiveFilters ? getGameEndInfo(p, nextPoint, isLastPointOfSet) : null;
+        // Em Match Tiebreak não há "fim de game" entre pontos: a partida é um único tiebreak.
+        const gameEnd = (!hasActiveFilters && !isMatchTb) ? getGameEndInfo(p, nextPoint, isLastPointOfSet) : null;
         const winnerName = gameEnd?.winner === 'PLAYER_1'
           ? (doubles?.player1PartnerName ? `${player1Name} / ${doubles.player1PartnerName}` : player1Name)
           : (doubles?.player2PartnerName ? `${player2Name} / ${doubles.player2PartnerName}` : player2Name);
@@ -73,13 +75,40 @@ export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLa
               isMatchTb={isMatchTb}
             />
             {gameEnd && (
-              <GameEndRow
-                point={p}
-                winnerName={winnerName}
-                winnerSide={gameEnd.winner}
-                gameFinalScore={gameEnd.gameFinalScore}
-                isBreak={gameEnd.isBreak}
-              />
+              <>
+                {gameEnd.tiebreakStart ? (
+                  <>
+                    <GameEndRow
+                      point={p}
+                      winnerName={winnerName}
+                      winnerSide={gameEnd.winner}
+                      gameFinalScore={{
+                        player1: p.gamesScore.player1,
+                        player2: p.gamesScore.player2,
+                      }}
+                      isBreak={gameEnd.isBreak}
+                      tiebreakStart={false}
+                    />
+                    <GameEndRow
+                      point={p}
+                      winnerName={winnerName}
+                      winnerSide={gameEnd.winner}
+                      gameFinalScore={gameEnd.gameFinalScore}
+                      isBreak={gameEnd.isBreak}
+                      tiebreakStart={true}
+                    />
+                  </>
+                ) : (
+                  <GameEndRow
+                    point={p}
+                    winnerName={winnerName}
+                    winnerSide={gameEnd.winner}
+                    gameFinalScore={gameEnd.gameFinalScore}
+                    isBreak={gameEnd.isBreak}
+                    tiebreakStart={gameEnd.tiebreakStart}
+                  />
+                )}
+              </>
             )}
           </Fragment>
         );

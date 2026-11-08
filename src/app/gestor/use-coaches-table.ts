@@ -36,6 +36,7 @@ export function useCoachesTableHandlers({
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || result.error || 'Falha ao atualizar treinador');
     onRefresh?.();
+    toast({ type: 'success', message: 'Treinador atualizado com sucesso!' });
   };
 
   const handleToggleCanInsertAthletes = async (c: CoachItem, checked: boolean) => {
@@ -50,8 +51,24 @@ export function useCoachesTableHandlers({
         throw new Error(err.message || 'Falha ao atualizar permissão');
       }
       onRefresh?.();
+      toast({ type: 'info', message: checked ? 'Permissão ativada' : 'Permissão desativada' });
     } catch (err) {
       toast({ type: 'error', message: err instanceof Error ? err.message : 'Erro ao atualizar permissão de atletas' });
+    }
+  };
+
+  const handleDelete = async (c: CoachItem) => {
+    if (!window.confirm(`Excluir o treinador "${c.user.name}"? Esta ação é irreversível para a listagem ativa.`)) return;
+    try {
+      const res = await fetch(`/api/gestor/coaches/${c.user.id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Erro ao excluir treinador');
+      }
+      onRefresh?.();
+      toast({ type: 'success', message: 'Treinador excluído com sucesso!' });
+    } catch (err) {
+      toast({ type: 'error', message: err instanceof Error ? err.message : 'Erro ao excluir treinador' });
     }
   };
 
@@ -63,5 +80,6 @@ export function useCoachesTableHandlers({
     handleGenerateLink,
     handleSave,
     handleToggleCanInsertAthletes,
+    handleDelete,
   };
 }

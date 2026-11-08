@@ -9,9 +9,10 @@ interface CoachRowProps {
   onEdit: () => void;
   onGenerateLink: () => void;
   onToggleCanInsertAthletes: (checked: boolean) => void;
+  onDelete?: () => void;
 }
 
-export function CoachRow({ coach: c, selected, onSelect, onEdit, onGenerateLink, onToggleCanInsertAthletes }: CoachRowProps) {
+export function CoachRow({ coach: c, selected, onSelect, onEdit, onGenerateLink, onToggleCanInsertAthletes, onDelete }: CoachRowProps) {
   const formattedCpf = c.user.cpf
     ? c.user.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
     : '-';
@@ -50,19 +51,30 @@ export function CoachRow({ coach: c, selected, onSelect, onEdit, onGenerateLink,
         </label>
       </td>
       <td className="px-3 py-3 text-sm whitespace-nowrap text-right">
-        <button
-          onClick={onGenerateLink}
-          className="text-xs text-telemetry-alert hover:underline mr-3 font-medium"
-          title="Gerar link de redefinição de senha"
-        >
-          Link Senha
-        </button>
-        <button
-          onClick={onEdit}
-          className="text-xs text-telemetry-blue hover:underline font-medium"
-        >
-          Editar
-        </button>
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={onGenerateLink}
+            className="text-xs text-telemetry-alert hover:underline mr-2 font-medium"
+            title="Gerar link de redefinição de senha"
+          >
+            Link Senha
+          </button>
+          <button
+            onClick={onEdit}
+            className="text-xs text-telemetry-blue hover:underline font-medium"
+          >
+            Editar
+          </button>
+          {onDelete && (
+            <button
+              onClick={onDelete}
+              className="text-xs text-telemetry-error hover:underline font-medium"
+              title="Excluir treinador"
+            >
+              Excluir
+            </button>
+          )}
+        </div>
       </td>
     </tr>
   );

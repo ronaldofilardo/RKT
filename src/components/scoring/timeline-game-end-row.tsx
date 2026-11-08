@@ -3,13 +3,14 @@
 import type { TimelinePoint } from '@/core/scoring/types';
 import { usePlayerColors } from '@/components/ui/player-color.context';
 
-/** Linha de placar final exibida após o último ponto de um game. */
-export function GameEndRow({ point, winnerName, winnerSide, gameFinalScore, isBreak }: {
+/** Linha de placar final exibida após o último ponto de um game ou na entrada ao tiebreak. */
+export function GameEndRow({ point, winnerName, winnerSide, gameFinalScore, isBreak, tiebreakStart }: {
   point: TimelinePoint;
   winnerName: string;
   winnerSide?: 'PLAYER_1' | 'PLAYER_2';
   gameFinalScore: { player1: number; player2: number };
   isBreak: boolean;
+  tiebreakStart?: boolean;
 }) {
   const colors = usePlayerColors();
   const winnerColor = winnerSide === 'PLAYER_1' ? colors.p1 : winnerSide === 'PLAYER_2' ? colors.p2 : 'text-telemetry-text-primary';
@@ -23,17 +24,21 @@ export function GameEndRow({ point, winnerName, winnerSide, gameFinalScore, isBr
     >
       <td
         colSpan={3}
-        className="px-1.5 py-1.5 text-[10px] text-telemetry-text-muted sticky left-0 bg-telemetry-elevated z-10 border-r border-white/10 text-right pr-3"
+        className="px-1.5 py-1.5 text-[10px] text-telemetry-text-primary sticky left-0 bg-telemetry-elevated z-10 border-r border-white/10 text-right pr-3"
       >
-        {point.isTiebreak ? 'Fim do Tiebreak' : 'Fim do Game'}
+        {tiebreakStart ? 'Início do Tie break' : point.isTiebreak ? 'Fim do Tiebreak' : 'Fim do Game'}
       </td>
-      <td colSpan={2} className="px-1.5 py-1.5 text-[10px] text-center text-telemetry-text-primary border-r border-white/10">
+      <td colSpan={2} className="px-1.5 py-1.5 text-center text-telemetry-text-primary border-r border-white/10">
         <span className="font-bold tracking-wide">{scoreLabel}</span>
       </td>
       <td colSpan={20} className="px-2 py-1.5 text-[10px] text-telemetry-text-muted font-normal">
         <div className="flex items-center gap-2">
           <span className={`font-semibold ${winnerColor}`}>{winnerName}</span>
-          {isBreak ? (
+          {tiebreakStart ? (
+            <span className="text-[9px] px-1.5 py-0.5 rounded bg-telemetry-blue/20 text-telemetry-blue font-semibold">
+              Tie break
+            </span>
+          ) : isBreak ? (
             <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-semibold">
               {isMinibreak ? 'Minibreak' : 'Quebra de saque'}
             </span>

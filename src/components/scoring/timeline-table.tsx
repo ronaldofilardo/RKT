@@ -1,7 +1,7 @@
+// ste-exception R-03: Linha de resultado final com vencedor e placar formatado; lógica de agrupamento de sets mantida coesa com timeline-set-results.
 'use client';
 
 import type { TimelinePoint } from '@/core/scoring/types';
-import { usePlayerColors } from '@/components/ui/player-color.context';
 import { SetGroup } from './timeline-rows';
 import { TimelineTableHead } from './timeline-table-head';
 import { getSetResults } from './timeline-set-results';
@@ -61,7 +61,15 @@ export function TimelineTable({
                   isMatchTb={isMatchTb}
                 />
               ))}
-              {showFinalResult && <FinalResultRow points={points} scoreState={scoreState} />}
+              {showFinalResult && (
+              <FinalResultRow
+                points={points}
+                scoreState={scoreState}
+                player1Name={player1Name}
+                player2Name={player2Name}
+                doubles={doubles}
+              />
+            )}
             </tbody>
           </table>
         </div>
@@ -70,24 +78,55 @@ export function TimelineTable({
   );
 }
 
-function FinalResultRow({ points, scoreState }: { points: TimelinePoint[]; scoreState?: unknown }) {
-  const colors = usePlayerColors();
+function FinalResultRow({
+  points,
+  scoreState,
+  player1Name,
+  player2Name,
+  doubles,
+}: {
+  points: TimelinePoint[];
+  scoreState?: unknown;
+  player1Name: string;
+  player2Name: string;
+  doubles?: TimelineDoublesConfig;
+}) {
   const setResults = getSetResults(points, scoreState);
+
+  let p1SetsWon = 0;
+  let p2SetsWon = 0;
+  for (const sr of setResults) {
+    if (sr.p1 > sr.p2) p1SetsWon++;
+    else if (sr.p2 > sr.p1) p2SetsWon++;
+  }
+  const winner = p1SetsWon > p2SetsWon ? 'PLAYER_1' : p2SetsWon > p1SetsWon ? 'PLAYER_2' : null;
+
+  const winnerLabel = winner
+    ? winner === 'PLAYER_1'
+      ? doubles?.player1PartnerName
+        ? `Dupla 1 (${player1Name} / ${doubles.player1PartnerName})`
+        : `Jogador 1 (${player1Name})`
+      : doubles?.player2PartnerName
+        ? `Dupla 2 (${player2Name} / ${doubles.player2PartnerName})`
+        : `Jogador 2 (${player2Name})`
+    : 'Empate';
+
+  const placar = setResults
+    .map((sr) => {
+      const tb = sr.tiebreak ? `(${sr.tiebreak.p1}x${sr.tiebreak.p2})` : '';
+      return `${sr.p1}/${sr.p2}${tb}`;
+    })
+    .join(' - ');
+
   return (
     <tr className="bg-telemetry-elevated border-t border-white/10 font-bold">
       <td colSpan={3} className="px-1.5 py-2 text-[10px] text-telemetry-text-primary sticky left-0 bg-telemetry-elevated z-10 border-r border-white/10 text-right pr-3">
-        Resultado
+        Resultado Final
       </td>
       <td colSpan={2} className="px-1.5 py-2 text-[10px] border-r border-white/10 font-mono">
         <div className="flex flex-col leading-tight">
-          {setResults.map((sr) => (
-            <span key={sr.setNumber}>
-              <span className={colors.p1}>{sr.p1}</span>
-              <span className="text-telemetry-text-muted/60">x</span>
-              <span className={colors.p2}>{sr.p2}</span>
-              {sr.tiebreak ? <span className="text-telemetry-text-muted text-[9px] font-normal"> ({sr.tiebreak.p1}x{sr.tiebreak.p2})</span> : ''}
-            </span>
-          ))}
+          <span className="font-semibold text-telemetry-text-primary">Vencedor – {winnerLabel}</span>
+          <span className="text-telemetry-text-muted text-[9px] mt-1 block">Placar: {placar}</span>
         </div>
       </td>
       <td colSpan={20} aria-hidden="true" />
