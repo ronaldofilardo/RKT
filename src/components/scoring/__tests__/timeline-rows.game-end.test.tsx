@@ -167,6 +167,7 @@ describe('SetGroup — exibição do placar final após finalizar o game', () =>
             matchId="m1"
             player1Name="Carlos Alcaraz"
             player2Name="Jannik Sinner"
+            matchFinished={true}
           />
         </tbody>
       </table>
@@ -209,6 +210,7 @@ describe('SetGroup — exibição do placar final após finalizar o game', () =>
             matchId="m1"
             player1Name="Carlos Alcaraz"
             player2Name="Jannik Sinner"
+            matchFinished={true}
           />
         </tbody>
       </table>
@@ -248,7 +250,7 @@ describe('SetGroup — exibição do placar final após finalizar o game', () =>
             matchId="m1"
             player1Name="Carlos Alcaraz"
             player2Name="Jannik Sinner"
-            matchFinished={false}
+            matchFinished={true}
           />
         </tbody>
       </table>

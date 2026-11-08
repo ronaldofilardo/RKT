@@ -56,9 +56,9 @@ export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLa
           (prevPoint!.gameScore.player1 === 0 && prevPoint!.gameScore.player2 === 0);
 
         const isLastPointOfSet = i === points.length - 1;
-        // Em Match Tiebreak não há "fim de game" entre pontos: a partida é um único tiebreak.
-        // Só mostra "Fim do Tiebreak" quando a partida está finalizada.
-        const gameEnd = (!hasActiveFilters && !isMatchTb && (!isLastPointOfSet || matchFinished)) ? getGameEndInfo(p, nextPoint, isLastPointOfSet, matchFinished) : null;
+        // Só mostra "Fim do Game" / "Fim do Tiebreak" quando a partida está finalizada.
+        // Durante o jogo em andamento não sabemos se o game atual é o último do set.
+        const gameEnd = (!hasActiveFilters && !isMatchTb && matchFinished) ? getGameEndInfo(p, nextPoint, isLastPointOfSet, matchFinished) : null;
         const winnerName = gameEnd?.winner === 'PLAYER_1'
           ? (doubles?.player1PartnerName ? `${player1Name} / ${doubles.player1PartnerName}` : player1Name)
           : (doubles?.player2PartnerName ? `${player2Name} / ${doubles.player2PartnerName}` : player2Name);
