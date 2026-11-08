@@ -93,7 +93,10 @@ export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLa
                       point={p}
                       winnerName={winnerName}
                       winnerSide={gameEnd.winner}
-                      gameFinalScore={gameEnd.gameFinalScore}
+                      gameFinalScore={{
+                        player1: p.gamesScore.player1,
+                        player2: p.gamesScore.player2,
+                      }}
                       isBreak={gameEnd.isBreak}
                       tiebreakStart={true}
                     />
