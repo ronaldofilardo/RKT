@@ -44,6 +44,11 @@ export function TimelineHeader({
         {hasActiveFilters ? `${filteredCount} de ${totalCount} pontos` : `${totalCount} pontos`}
         {formatLabel && ` · ${formatLabel}`}
       </p>
+      {formatLabel && (
+        <p className="text-[10px] text-telemetry-text-primary font-medium mb-2 flex items-center gap-1">
+          <span className="text-telemetry-text-muted">Formato:</span> {formatLabel}
+        </p>
+      )}
     </>
   );
 }

@@ -26,7 +26,9 @@ export function GameEndRow({ point, winnerName, winnerSide, gameFinalScore, isBr
         colSpan={3}
         className="px-1.5 py-1.5 text-[10px] text-telemetry-text-primary sticky left-0 bg-telemetry-elevated z-10 border-r border-white/10 text-right pr-3"
       >
-        {tiebreakStart ? 'Tie break' : point.isTiebreak ? 'Fim Tiebreak' : 'Fim Game'}
+        <div className="flex items-center gap-1">
+          {tiebreakStart ? 'Início do Tie break' : point.isTiebreak ? 'Fim do Tiebreak' : 'Fim do Game'}
+        </div>
       </td>
       <td colSpan={2} className="px-1.5 py-1.5 text-center text-telemetry-text-primary border-r border-white/10">
         <span className="font-bold tracking-wide">{scoreLabel}</span>

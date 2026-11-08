@@ -152,7 +152,7 @@ describe('SetGroup — exibição do placar final após finalizar o game', () =>
     // Linha de fim do game deve existir para o ponto 4
     const gameEndRow = screen.getByTestId('game-end-1-4');
     expect(gameEndRow).toBeInTheDocument();
-    expect(gameEndRow.textContent).toContain('Fim Game');
+    expect(gameEndRow.textContent).toContain('Fim do Game');
     expect(gameEndRow.textContent).toContain('1x0');
     expect(gameEndRow.textContent).toContain('Carlos Alcaraz');
     expect(gameEndRow.textContent).toContain('Confirmou o saque');
