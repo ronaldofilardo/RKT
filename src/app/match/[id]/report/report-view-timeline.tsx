@@ -27,7 +27,7 @@ export function ReportTimeline({ report, matchId, onContinue }: ReportTimelinePr
         player2Name={report.player2.name}
         matchId={matchId}
         hideFilters
-        showFinalResult
+        showFinalResult={report.state === 'FINISHED'}
         scoreState={report.scoreState}
         comments={report.comments}
         doubles={
