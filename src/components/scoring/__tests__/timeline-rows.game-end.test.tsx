@@ -96,6 +96,29 @@ describe('getGameEndInfo (helper unit tests)', () => {
     expect(result?.gameFinalScore).toEqual({ player1: 6, player2: 4 });
     expect(result?.winner).toBe('PLAYER_1');
   });
+
+  it('na entrada do tiebreak soma o game decidido apenas ao vencedor (Set Pro 8: 9x8 → 9x9)', () => {
+    const current = {
+      ...basePoint,
+      pointNumber: 9,
+      server: 'player1' as const,
+      winner: 'PLAYER_2' as const,
+      gameScore: { player1: 2, player2: 3 },
+      gamesScore: { player1: 9, player2: 8 },
+    };
+    const next = {
+      ...basePoint,
+      pointNumber: 10,
+      isTiebreak: true,
+      gameScore: { player1: 0, player2: 0 },
+      gamesScore: { player1: 0, player2: 0 },
+    };
+    const result = getGameEndInfo(current, next, false, false);
+    expect(result?.tiebreakStart).toBe(true);
+    expect(result?.gameFinalScore).toEqual({ player1: 9, player2: 8 });
+    expect(result?.winner).toBe('PLAYER_2');
+    expect(result?.isBreak).toBe(true);
+  });
 });
 
 describe('SetGroup — exibição do placar final após finalizar o game', () => {
@@ -195,5 +218,50 @@ describe('SetGroup — exibição do placar final após finalizar o game', () =>
     expect(gameEndRow.textContent).toContain('Quebra de saque');
     expect(gameEndRow.textContent).toContain('0x1');
     expect(gameEndRow.textContent).toContain('Jannik Sinner');
+  });
+
+  it('funde "Fim do Game" e "Início do Tie break" numa única linha com o placar 9x9', () => {
+    const lastGamePoint = makePoint({
+      pointNumber: 9,
+      server: 'player1',
+      winner: 'PLAYER_2',
+      gameScore: { player1: 2, player2: 3 },
+      gamesScore: { player1: 9, player2: 8 },
+    });
+    const firstTiebreakPoint = makePoint({
+      pointNumber: 10,
+      isTiebreak: true,
+      type: 'ACE',
+      gameScore: { player1: 0, player2: 0 },
+      gamesScore: { player1: 0, player2: 0 },
+    });
+
+    render(
+      <table>
+        <tbody>
+          <SetGroup
+            setNumber={1}
+            points={[lastGamePoint, firstTiebreakPoint]}
+            allPoints={[lastGamePoint, firstTiebreakPoint]}
+            hasActiveFilters={false}
+            isLast={false}
+            matchId="m1"
+            player1Name="Carlos Alcaraz"
+            player2Name="Jannik Sinner"
+            matchFinished={false}
+          />
+        </tbody>
+      </table>
+    );
+
+    const gameEndRows = screen.getAllByTestId('game-end-1-9');
+    expect(gameEndRows).toHaveLength(1);
+    const mergedRow = gameEndRows[0];
+    expect(mergedRow.textContent).toContain('Fim do Game');
+    expect(mergedRow.textContent).not.toContain('Início do Tie break');
+    expect(mergedRow.textContent).toContain('9x8');
+    expect(mergedRow.textContent).not.toContain('9x9');
+    expect(mergedRow.textContent).toContain('Jannik Sinner');
+    expect(mergedRow.textContent).toContain('Quebra de saque');
   });
 });
