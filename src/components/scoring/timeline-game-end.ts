@@ -50,8 +50,8 @@ function onTransitionGameEnd(current: TimelinePoint, next: TimelinePoint): GameE
     isGameEnd: true,
     gameFinalScore: tbEntry
       ? {
-          player1: current.gamesScore.player1 + 1,
-          player2: current.gamesScore.player2 + 1,
+          player1: current.gamesScore.player1,
+          player2: current.gamesScore.player2,
         }
       : {
           player1: next.gamesScore.player1,
