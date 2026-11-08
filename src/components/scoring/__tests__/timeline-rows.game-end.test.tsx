@@ -97,7 +97,7 @@ describe('getGameEndInfo (helper unit tests)', () => {
     expect(result?.winner).toBe('PLAYER_1');
   });
 
-  it('na entrada do tiebreak soma o game decidido apenas ao vencedor (Set Pro 8: 9x8 → 9x9)', () => {
+  it('na entrada do tiebreak mostra o placar real dos games (Set Pro 8: 9x8)', () => {
     const current = {
       ...basePoint,
       pointNumber: 9,
@@ -114,7 +114,6 @@ describe('getGameEndInfo (helper unit tests)', () => {
       gamesScore: { player1: 0, player2: 0 },
     };
     const result = getGameEndInfo(current, next, false);
-    expect(result?.tiebreakStart).toBe(true);
     expect(result?.gameFinalScore).toEqual({ player1: 9, player2: 8 });
     expect(result?.winner).toBe('PLAYER_2');
     expect(result?.isBreak).toBe(true);

@@ -1,4 +1,4 @@
-// ste-exception R-03: Lógica de fim de game e detecção de entrada em tiebreak (Pro Set 8) requer tratamento de transições e placar do set; mantido coeso para correta detecção de estado.
+// ste-exception R-03: Lógica de fim de game requer detecção de transição de placar entre games; mantido coeso para correta renderização da linha de resultado no timeline do report.
 import type { TimelinePoint } from '@/core/scoring/types';
 
 interface GameEndInfo {
@@ -6,8 +6,6 @@ interface GameEndInfo {
   gameFinalScore: { player1: number; player2: number };
   winner: 'PLAYER_1' | 'PLAYER_2';
   isBreak: boolean;
-  /** Quando verdadeiro, indica transição para tiebreak (ex.: set 8-8 → tiebreak). */
-  tiebreakStart: boolean;
 }
 
 function checkIsBreak(server: string, winner: 'PLAYER_1' | 'PLAYER_2'): boolean {
@@ -30,10 +28,6 @@ function isTransitionToNewGame(current: TimelinePoint, next: TimelinePoint): boo
   );
 }
 
-function isTiebreakEntry(current: TimelinePoint, next: TimelinePoint): boolean {
-  return !current.isTiebreak && !!next.isTiebreak;
-}
-
 function resolveTransitionWinner(current: TimelinePoint, next: TimelinePoint): 'PLAYER_1' | 'PLAYER_2' {
   if (next.gamesScore.player1 > current.gamesScore.player1) return 'PLAYER_1';
   if (next.gamesScore.player2 > current.gamesScore.player2) return 'PLAYER_2';
@@ -44,38 +38,24 @@ function onTransitionGameEnd(current: TimelinePoint, next: TimelinePoint): GameE
   if (!isTransitionToNewGame(current, next)) return null;
 
   const winner = resolveTransitionWinner(current, next);
-  const tbEntry = isTiebreakEntry(current, next);
+  const tiebreakEntry = !current.isTiebreak && next.isTiebreak;
 
   return {
     isGameEnd: true,
-    gameFinalScore: tbEntry
-      ? {
-          player1: current.gamesScore.player1,
-          player2: current.gamesScore.player2,
-        }
-      : {
-          player1: next.gamesScore.player1,
-          player2: next.gamesScore.player2,
-        },
+    gameFinalScore: tiebreakEntry
+      ? { player1: current.gamesScore.player1, player2: current.gamesScore.player2 }
+      : { player1: next.gamesScore.player1, player2: next.gamesScore.player2 },
     winner,
     isBreak: checkIsBreak(current.server, winner),
-    tiebreakStart: tbEntry,
   };
 }
 
 export function isSetDecidingPoint(point: TimelinePoint): boolean {
-  if (point.isTiebreak) return true;
   const isP1 = point.winner === 'PLAYER_1';
   const myScore = isP1 ? point.gameScore.player1 : point.gameScore.player2;
   const opponentScore = isP1 ? point.gameScore.player2 : point.gameScore.player1;
-  const targetAdvantage = isP1 ? 'player1' : 'player2';
 
-  return (
-    (myScore >= 3 && myScore > opponentScore) ||
-    point.gameAdvantage === targetAdvantage ||
-    point.isGameBall ||
-    point.isSetBall
-  );
+  return myScore >= 3 && myScore > opponentScore;
 }
 
 function onLastPointOfSetGameEnd(currentPoint: TimelinePoint): GameEndInfo | null {
@@ -91,7 +71,6 @@ function onLastPointOfSetGameEnd(currentPoint: TimelinePoint): GameEndInfo | nul
     },
     winner: w,
     isBreak: checkIsBreak(currentPoint.server, w),
-    tiebreakStart: false,
   };
 }
 
@@ -100,11 +79,24 @@ export function getGameEndInfo(
   nextPoint: TimelinePoint | null | undefined,
   isLastPointOfSet: boolean,
 ): GameEndInfo | null {
-  if (isLastPointOfSet) {
+  if (isLastPointOfSet && !currentPoint.isTiebreak) {
     return onLastPointOfSetGameEnd(currentPoint);
   }
 
   if (nextPoint) {
+    // Entrada em tiebreak: o gamesScore é reiniciado para 0x0, então usamos o placar atual dos games.
+    if (!currentPoint.isTiebreak && nextPoint.isTiebreak) {
+      const winner = resolveTransitionWinner(currentPoint, nextPoint);
+      return {
+        isGameEnd: true,
+        gameFinalScore: {
+          player1: currentPoint.gamesScore.player1,
+          player2: currentPoint.gamesScore.player2,
+        },
+        winner,
+        isBreak: checkIsBreak(currentPoint.server, winner),
+      };
+    }
     return onTransitionGameEnd(currentPoint, nextPoint);
   }
 
