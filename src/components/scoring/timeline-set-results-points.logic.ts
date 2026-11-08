@@ -24,12 +24,22 @@ function computeTiebreakSetResult(
   lastPoint: TimelinePoint,
 ): SetResult {
   const winner = lastPoint.winner;
-  const tbP1 = (lastPoint.gameScore?.player1 ?? 0) + (winner === 'PLAYER_1' ? 1 : 0);
-  const tbP2 = (lastPoint.gameScore?.player2 ?? 0) + (winner === 'PLAYER_2' ? 1 : 0);
+
+  // Bug 2 — gameScore agora contém corretamente os pontos do tiebreak
+  // (após correção do Bug 1 em point-snapshot.logic.ts). O último ponto
+  // registrado é ANTES do vencedor ser aplicado, então somamos +1 ao
+  // vencedor para obter o placar final do tiebreak.
+  const tbP1 = lastPoint.gameScore.player1 + (winner === 'PLAYER_1' ? 1 : 0);
+  const tbP2 = lastPoint.gameScore.player2 + (winner === 'PLAYER_2' ? 1 : 0);
   const tb = { p1: tbP1, p2: tbP2 };
 
+  // Para o placar de games do set, usamos gamesScore (que agora é sempre
+  // o placar real de games, independente de tiebreak — Bug 1 corrigido).
+  // Buscamos o último ponto ainda em jogo regular (não-tiebreak) para
+  // obter os games reais no momento em que o tiebreak foi iniciado.
   const lastRegular = [...setPoints].reverse().find((p) => !p.isTiebreak);
   if (!lastRegular) {
+    // Set é 100% tiebreak (ex: MATCH_TB_10 onde games começam em 0x0).
     return {
       setNumber: setNum,
       p1: winner === 'PLAYER_1' ? 1 : 0,
@@ -38,6 +48,9 @@ function computeTiebreakSetResult(
     };
   }
 
+  // O tiebreak foi iniciado quando os games chegaram a empate (ex: 6x6 ou 9x9).
+  // gamesScore do último ponto regular já contém esse valor. O vencedor do
+  // tiebreak recebe +1 game (ex: 7x6 ou 10x9).
   const regWinner = lastRegular.winner;
   const regP1 = lastRegular.gamesScore.player1 + (regWinner === 'PLAYER_1' ? 1 : 0);
   const regP2 = lastRegular.gamesScore.player2 + (regWinner === 'PLAYER_2' ? 1 : 0);
@@ -82,7 +95,7 @@ function computeSetResultFromPoints(
 export function computeSetResultsFromPoints(points: TimelinePoint[]): SetResult[] {
   if (!points || points.length === 0) return [];
   const { setOrder, bySet } = groupPointsBySet(points);
-  const results: SetResult[] = [];
+  const results: SetResult[] = []
   for (let sIdx = 0; sIdx < setOrder.length; sIdx++) {
     const setNum = setOrder[sIdx];
     const result = computeSetResultFromPoints(

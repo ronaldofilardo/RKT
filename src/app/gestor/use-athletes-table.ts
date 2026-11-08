@@ -36,6 +36,7 @@ export function useAthletesTableHandlers({
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || result.error || 'Falha ao atualizar atleta');
     onRefresh?.();
+    toast({ type: 'success', message: 'Atleta atualizado com sucesso!' });
   };
 
   return {

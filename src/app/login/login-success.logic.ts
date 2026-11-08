@@ -1,10 +1,11 @@
 import { writeToSessionOnly } from '@/lib/auth-client';
 import { decodeJwtPayload } from '@/lib/jwt-client';
 import { homeForProfileString } from '@/core/access/home';
-import { homeForArea, AreaCode } from '@/core/access/areas';
+import { homeForArea, type AreaCode } from '@/core/access/areas';
 import { isAreaUrlsEnabled } from '@/lib/feature-flags';
 import { sanitizeNextRedirect } from '@/core/access/safe-redirect.logic';
 import type { LoginResponse } from '@/lib/auth-client-login';
+import { isOnboarded, onboardingProfileFor, onboardingProfileForArea } from '@/lib/onboarding';
 
 export async function processLoginSuccess(
   data: LoginResponse,
@@ -41,24 +42,30 @@ export async function processLoginSuccess(
   }
 
   const rawNext = searchParams.get('next');
-  const defaultHome = isAreaUrlsEnabled() && activeArea
-    ? homeForArea(activeArea)
+  const inferredArea = data.availableAreas?.find((area) => onboardingProfileForArea(area.code))?.code as AreaCode | undefined;
+  const resolvedArea = activeArea ?? inferredArea ?? null;
+  const defaultHome = isAreaUrlsEnabled() && resolvedArea
+    ? homeForArea(resolvedArea)
     : homeForProfileString(finalProfile);
 
+  let destination = defaultHome;
   if (rawNext) {
     const candidate = sanitizeNextRedirect(rawNext, defaultHome);
-    if (candidate.startsWith('/suporte') && activeArea !== 'SUPORTE' && activeArea !== 'ADMIN') {
-      pushRoute(defaultHome);
-    } else if (candidate.startsWith('/admin') && activeArea !== 'ADMIN') {
-      pushRoute(defaultHome);
-    } else if (candidate.startsWith('/gestor') && activeArea !== 'GESTOR' && activeArea !== 'SUPORTE' && activeArea !== 'ADMIN') {
-      pushRoute(defaultHome);
-    } else {
-      pushRoute(candidate);
-    }
+    const blocked =
+      (candidate.startsWith('/suporte') && activeArea !== 'SUPORTE' && activeArea !== 'ADMIN') ||
+      (candidate.startsWith('/admin') && activeArea !== 'ADMIN') ||
+      (candidate.startsWith('/gestor') && activeArea !== 'GESTOR' && activeArea !== 'SUPORTE' && activeArea !== 'ADMIN');
+    destination = blocked ? defaultHome : candidate;
   } else if (isAreaUrlsEnabled() && availableAreas.length > 1) {
-    pushRoute('/escolher-area');
-  } else {
-    pushRoute(defaultHome);
+    destination = '/escolher-area';
   }
+
+  const onboardingProfile = onboardingProfileFor(resolvedArea, finalProfile);
+  if (onboardingProfile && !isOnboarded(data.user.id)) {
+    const query = new URLSearchParams({ next: destination, perfil: onboardingProfile });
+    pushRoute(`/onboarding?${query.toString()}`);
+    return;
+  }
+
+  pushRoute(destination);
 }

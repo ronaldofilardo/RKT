@@ -10,6 +10,7 @@ import { resolveAvailableContexts } from './login-contexts.logic';
 import { checkLoginRateLimit, recordLoginAttempt } from './login-ratelimit.logic';
 import { applyLoginCookies, resolveLoginArea } from './login-response.logic';
 import type { ActorMembership } from '@/core/access';
+import { computeAvailableAreas } from './login-available-areas.logic';
 
 export async function POST(request: NextRequest) {
   try {
@@ -59,6 +60,7 @@ export async function POST(request: NextRequest) {
 
     const chosenContext = availableContexts.find((c) => c.id === chosenContextId);
     const areaForContext = resolveLoginArea(chosenContext);
+    const availableAreas = computeAvailableAreas(user.role, actor);
 
     const accessToken = await generateLoginToken(
       user.id, effectiveRole, user.sessionVersion, user.mustChangePassword,
@@ -71,6 +73,7 @@ export async function POST(request: NextRequest) {
       mustChangePassword: user.mustChangePassword,
       activeContextId: chosenContextId,
       availableContexts,
+      availableAreas,
       user: {
         id: user.id,
         name: user.name,

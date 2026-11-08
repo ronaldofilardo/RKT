@@ -9,6 +9,7 @@ export interface DashboardViewRouterProps {
   ctName?: string | null;
   userId?: string | null;
   followedPlayerIds?: readonly string[] | string[] | null;
+  activeArea?: string | null;
   finishedMatches: DashboardMatchPayload[];
   liveMatches: DashboardMatchPayload[];
   pendingMatches: DashboardMatchPayload[];

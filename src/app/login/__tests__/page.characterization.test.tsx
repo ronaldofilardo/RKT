@@ -55,7 +55,7 @@ describe('LoginPage Characterization', () => {
     fireEvent.click(screen.getByRole('button', { name: /Entrar/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent(/Usuário não encontrado/i);
+      expect(screen.getByRole('alert')).toHaveTextContent('Não encontramos uma conta com este e-mail ou CPF.');
     });
   });
 });

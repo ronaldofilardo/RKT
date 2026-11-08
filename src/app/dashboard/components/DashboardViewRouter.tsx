@@ -5,7 +5,7 @@ import type { DashboardViewRouterProps } from "./dashboard-view-router.types";
 
 export function DashboardViewRouter(props: DashboardViewRouterProps) {
   const {
-    view, loading, ctId, ctName, userId, followedPlayerIds, finishedMatches, liveMatches, pendingMatches, historyMatches,
+    view, loading, ctId, ctName, userId, followedPlayerIds, activeArea, finishedMatches, liveMatches, pendingMatches, historyMatches,
     visibleMatches, suspendedFromApi, navigateToTarget, openMatchDetails,
     openMatchReport, finishMatch, deleteMatch, openMatchEditScore,
     resumeMatch, openMatchSetSummary, openMatchEditInfo, onShareMatch,
@@ -76,6 +76,7 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
       <DashboardHomeSection
         visibleMatches={visibleMatches} suspendedFromApi={suspendedFromApi}
         ctId={ctId} ctName={ctName} userId={userId} followedPlayerIds={followedPlayerIds}
+        activeArea={activeArea}
         openMatchDetails={openMatchDetails} openMatchReport={openMatchReport}
         finishMatch={finishMatch} deleteMatch={deleteMatch}
         openMatchEditScore={openMatchEditScore} resumeMatch={resumeMatch}

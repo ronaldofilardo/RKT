@@ -266,15 +266,31 @@ describe('PointRow — regressão do novo layout (25 colunas, sem coluna SET)', 
     expect(screen.getByText('marcação interrompida')).toBeInTheDocument();
   });
 
-  it('sem vencedor (partida em andamento) → borda neutra em ambas as linhas', () => {
+  it('partida em andamento → borda segue a cor do atleta definida no provider', () => {
+    // Em partida em andamento o provider colore o atleta que está sacando.
+    const colors = resolvePlayerColors({
+      state: 'IN_PROGRESS',
+      player1: { id: 'p1' },
+      player2: { id: 'p2' },
+      initialServerId: 'player1',
+    });
     const p1 = makePoint({ winner: 'PLAYER_1' });
     const p2 = makePoint({ winner: 'PLAYER_2' });
-    const { container: c1 } = render(<table><tbody><PointRow {...baseProps} point={p1} hasGap={false} isLast={true} /></tbody></table>);
-    const row1 = c1.querySelector('tr');
-    expect(row1?.className).toContain('border-l-white/10');
-    expect(row1?.className).not.toContain('border-l-telemetry-volt');
 
-    const { container: c2 } = render(<table><tbody><PointRow {...baseProps} point={p2} hasGap={false} isLast={true} /></tbody></table>);
+    const { container: c1 } = render(
+      <PlayerColorProvider colors={colors}>
+        <table><tbody><PointRow {...baseProps} point={p1} hasGap={false} isLast={true} /></tbody></table>
+      </PlayerColorProvider>
+    );
+    const row1 = c1.querySelector('tr');
+    expect(row1?.className).toContain('border-l-telemetry-volt');
+    expect(row1?.className).not.toContain('border-l-white/10');
+
+    const { container: c2 } = render(
+      <PlayerColorProvider colors={colors}>
+        <table><tbody><PointRow {...baseProps} point={p2} hasGap={false} isLast={true} /></tbody></table>
+      </PlayerColorProvider>
+    );
     const row2 = c2.querySelector('tr');
     expect(row2?.className).toContain('border-l-white/10');
     expect(row2?.className).not.toContain('border-l-telemetry-volt');

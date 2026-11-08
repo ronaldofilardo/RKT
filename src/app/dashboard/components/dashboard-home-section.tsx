@@ -1,4 +1,5 @@
 import { MatchCard, type DashboardMatchPayload } from "@/components/dashboard/MatchCard";
+import { DashboardEmptyState } from "./dashboard-empty-state";
 
 interface DashboardHomeSectionProps {
   visibleMatches: DashboardMatchPayload[];
@@ -7,6 +8,7 @@ interface DashboardHomeSectionProps {
   ctName?: string | null;
   userId?: string | null;
   followedPlayerIds?: readonly string[] | string[] | null;
+  activeArea?: string | null;
   openMatchDetails: (m: DashboardMatchPayload) => void;
   openMatchReport: (m: DashboardMatchPayload) => void;
   finishMatch: (m: DashboardMatchPayload) => void;
@@ -26,6 +28,7 @@ export function DashboardHomeSection({
   ctName,
   userId,
   followedPlayerIds,
+  activeArea,
   openMatchDetails,
   openMatchReport,
   finishMatch,
@@ -69,9 +72,7 @@ export function DashboardHomeSection({
       )}
       <div className="space-y-3">
         {visibleMatches.length === 0 ? (
-          <p className="text-telemetry-text-muted text-center py-8">
-            Nenhuma partida por aqui ainda.
-          </p>
+          <DashboardEmptyState activeArea={activeArea} />
         ) : (
           visibleMatches.map((m: DashboardMatchPayload) => (
             <MatchCard

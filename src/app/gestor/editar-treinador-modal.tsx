@@ -70,15 +70,9 @@ export function EditarTreinadorModal({ open, onOpenChange, treinador, onSave }: 
             <label htmlFor="editar-treinador-nome" className="text-xs font-medium text-telemetry-text-muted block mb-1">Nome completo</label>
             <input id="editar-treinador-nome" type="text" required value={formData.name} onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} className={`w-full bg-telemetry-base border border-telemetry-border/30 text-telemetry-text-primary rounded-lg p-2.5 text-sm focus:border-telemetry-blue focus:outline-none ${fieldError === 'name' ? 'border-telemetry-error' : ''}`} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label htmlFor="editar-treinador-cpf" className="text-xs font-medium text-telemetry-text-muted block mb-1">CPF</label>
-              <input id="editar-treinador-cpf" type="text" required value={formData.cpf} onChange={(e) => setFormData((p) => ({ ...p, cpf: e.target.value }))} className={`w-full bg-telemetry-base border border-telemetry-border/30 text-telemetry-text-primary rounded-lg p-2.5 text-sm focus:border-telemetry-blue focus:outline-none ${fieldError === 'cpf' ? 'border-telemetry-error' : ''}`} />
-            </div>
-            <div>
-              <label htmlFor="editar-treinador-nascimento" className="text-xs font-medium text-telemetry-text-muted block mb-1">Data de nascimento</label>
-              <input id="editar-treinador-nascimento" type="date" required value={formData.birthDate} onChange={(e) => setFormData((p) => ({ ...p, birthDate: e.target.value }))} className={`w-full bg-telemetry-base border border-telemetry-border/30 text-telemetry-text-primary rounded-lg p-2.5 text-sm focus:border-telemetry-blue focus:outline-none ${fieldError === 'birthDate' ? 'border-telemetry-error' : ''}`} />
-            </div>
+          <div>
+            <label htmlFor="editar-treinador-cpf" className="text-xs font-medium text-telemetry-text-muted block mb-1">CPF</label>
+            <input id="editar-treinador-cpf" type="text" required value={formData.cpf} onChange={(e) => setFormData((p) => ({ ...p, cpf: e.target.value }))} className={`w-full bg-telemetry-base border border-telemetry-border/30 text-telemetry-text-primary rounded-lg p-2.5 text-sm focus:border-telemetry-blue focus:outline-none ${fieldError === 'cpf' ? 'border-telemetry-error' : ''}`} />
           </div>
           <div>
             <label htmlFor="editar-treinador-email" className="text-xs font-medium text-telemetry-text-muted block mb-1">E-mail</label>

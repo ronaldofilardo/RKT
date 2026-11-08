@@ -17,7 +17,7 @@ function FlagCell({ active, label, color }: { active: boolean; label: string; co
 }
 
 /** 5 células (ou 4 em MT): no., SAC, Venc, GAMES (opcional em MT) e PONTOS. */
-export function IdentityCells({ p, serverInitials, winnerInitials, isFirstPointOfGame, isMatchTb, serverNumber, winnerNumber }: {
+export function IdentityCells({ p, serverInitials, winnerInitials, isFirstPointOfGame, isMatchTb, serverNumber, winnerNumber, initialGames = 0 }: {
   p: TimelinePoint;
   serverInitials: string;
   winnerInitials: string;
@@ -27,6 +27,13 @@ export function IdentityCells({ p, serverInitials, winnerInitials, isFirstPointO
   serverNumber: number;
   /** 1 | 2 — define a cor da célula Venc (cor do atleta, como no card). */
   winnerNumber: number;
+  /**
+   * Bug 7 — games iniciais do set (2 para SHORT_SET_2V2_NO_AD, 0 para os demais).
+   * Necessário para calcular o número ordinal do game corretamente quando o set
+   * não começa em 0x0 (ex: SHORT_SET começa em 2x2, então o 1º game é o de número
+   * 2+2+1=5 sem o fix, mas deve ser 1).
+   */
+  initialGames?: number;
 }) {
   const colors = usePlayerColors();
   return (
@@ -43,8 +50,14 @@ export function IdentityCells({ p, serverInitials, winnerInitials, isFirstPointO
       {!isMatchTb && (
         <td className={`${TD} text-telemetry-text-primary font-semibold text-center`}>
           {p.isTiebreak
+            // Durante tiebreak: gamesScore contém os games reais (ex: 6x6 ou 9x9).
             ? `${p.gamesScore.player1}x${p.gamesScore.player2}`
-            : isFirstPointOfGame ? p.gamesScore.player1 + p.gamesScore.player2 + 1 : '–'}
+            // Jogo regular: exibe o número ordinal do game.
+            // Bug 7: subtrai os games iniciais do set para que SHORT_SET_2V2_NO_AD
+            // (que começa em 2x2) exiba "1", "2", "3"... em vez de "5", "6", "7"...
+            : isFirstPointOfGame
+              ? p.gamesScore.player1 + p.gamesScore.player2 + 1 - 2 * initialGames
+              : '–'}
         </td>
       )}
       <td className={`${TD} font-bold text-telemetry-text-primary text-center`}>{getGameScoreLabelForPoint(p)}</td>

@@ -51,12 +51,17 @@ export function TrocarSenhaForm({
         <PasswordInput
           id="trocar-confirm-password" name="confirmPassword" placeholder="Confirmar nova senha"
           autoComplete="new-password" required minLength={8} error={!passwordsMatch}
+          aria-describedby={!passwordsMatch ? 'trocar-confirm-error' : undefined}
           value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="p-3 text-sm"
         />
-        {!passwordsMatch && <span className="text-xs text-red-500 mt-1 block font-medium">As senhas não conferem</span>}
+        {!passwordsMatch && (
+          <span id="trocar-confirm-error" role="status" className="text-xs text-red-500 mt-1 block font-medium">
+            As senhas não coincidem
+          </span>
+        )}
       </div>
       <button
-        type="submit" disabled={loading}
+        type="submit" disabled={loading || !passwordsMatch}
         className="w-full bg-sky-700 text-white font-semibold py-3 rounded-lg hover:bg-sky-800 disabled:opacity-50"
       >
         {loading ? 'Alterando senha...' : 'Trocar Senha'}

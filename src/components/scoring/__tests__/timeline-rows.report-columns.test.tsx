@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import { render, screen } from '@testing-library/react';
-import { PointRow } from '../timeline-rows';
+import { PointRow, SetGroup } from '../timeline-rows';
 import type { TimelinePoint } from '@/core/scoring/types';
 
 function makePoint(overrides: Partial<TimelinePoint>): TimelinePoint {
@@ -97,5 +97,64 @@ describe('PointRow — novo layout (25 colunas, sem coluna SET)', () => {
     const cells = container.querySelectorAll('td');
     expect(cells[3]?.textContent).toBe('–');
     expect(cells[4]?.textContent).toBe('15-0');
+
+    // Durante o tiebreak, GAMES mostra o placar real de games do set (ex.: 6x6).
+    const tb = makePoint({
+      setNumber: 1,
+      pointNumber: 12,
+      isTiebreak: true,
+      gamesScore: { player1: 6, player2: 6 },
+      gameScore: { player1: 0, player2: 0 },
+    });
+    const { container: cTb } = renderRow(tb, { isFirstPointOfGame: true });
+    const tbCells = cTb.querySelectorAll('td');
+    expect(tbCells[3]?.textContent).toBe('6x6');
+  });
+});
+
+describe('SetGroup — cabeçalho do set', () => {
+  it('set decisivo de Match Tiebreak exibe o banner "Match Tie-break" no cabeçalho', () => {
+    const p = makePoint({ setNumber: 3, pointNumber: 1 });
+    render(
+      <table>
+        <tbody>
+          <SetGroup
+            setNumber={3}
+            points={[p]}
+            allPoints={[p]}
+            hasActiveFilters={false}
+            isLast={true}
+            matchId="match-1"
+            player1Name="Rafael Nadal"
+            player2Name="Djokovic"
+            isMatchTb
+          />
+        </tbody>
+      </table>
+    );
+    expect(screen.getByText('Set 3')).toBeInTheDocument();
+    expect(screen.getByText('Match Tie-break')).toBeInTheDocument();
+  });
+
+  it('set regular não exibe o banner de Match Tiebreak', () => {
+    const p = makePoint({ setNumber: 1, pointNumber: 1 });
+    render(
+      <table>
+        <tbody>
+          <SetGroup
+            setNumber={1}
+            points={[p]}
+            allPoints={[p]}
+            hasActiveFilters={false}
+            isLast={true}
+            matchId="match-1"
+            player1Name="Rafael Nadal"
+            player2Name="Djokovic"
+          />
+        </tbody>
+      </table>
+    );
+    expect(screen.getByText('Set 1')).toBeInTheDocument();
+    expect(screen.queryByText('Match Tie-break')).not.toBeInTheDocument();
   });
 });

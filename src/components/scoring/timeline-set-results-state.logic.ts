@@ -55,14 +55,15 @@ function hasAnySetScore(sets: RawSet[]): boolean {
 
 function toSetResult(s: RawSet, idx: number): SetResult {
   const tb = s.tiebreakScore;
-  const hasTb =
-    Boolean(s.isTiebreak) ||
-    Boolean(tb && ((tb.player1 ?? 0) > 0 || (tb.player2 ?? 0) > 0));
+  // Bug 6 — incluir o tiebreak sempre que isTiebreak=true, mesmo com 0x0.
+  // Antes, a condição exigia pontos > 0, o que fazia o tiebreak sumir no
+  // resultado final de partidas retomadas com 6x6 / 0x0 no TB.
+  const hasTb = Boolean(s.isTiebreak) || Boolean(tb && ((tb.player1 ?? 0) > 0 || (tb.player2 ?? 0) > 0));
   return {
     setNumber: idx + 1,
     p1: s.player1 ?? 0,
     p2: s.player2 ?? 0,
-    tiebreak: hasTb && tb ? { p1: tb.player1 ?? 0, p2: tb.player2 ?? 0 } : undefined,
+    tiebreak: hasTb ? { p1: tb?.player1 ?? 0, p2: tb?.player2 ?? 0 } : undefined,
   };
 }
 

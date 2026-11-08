@@ -19,9 +19,11 @@ export interface PointRowProps {
   player2Name: string;
   doubles?: TimelineDoublesConfig;
   isMatchTb?: boolean;
+  /** Bug 7 — games iniciais do set (2 para SHORT_SET_2V2_NO_AD, 0 para os demais). */
+  initialGames?: number;
 }
 
-export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPointOfGame, player1Name, player2Name, doubles, isMatchTb }: PointRowProps) {
+export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPointOfGame, player1Name, player2Name, doubles, isMatchTb, initialGames = 0 }: PointRowProps) {
   const colors = usePlayerColors();
   const rd = p.rallyDetails;
   const isServeDecidedPoint = p.type === 'ACE' || p.type === 'DOUBLE_FAULT' || p.type === 'FAULT_FIRST';
@@ -59,6 +61,7 @@ export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPo
         isMatchTb={isMatchTb}
         serverNumber={serverNumber}
         winnerNumber={winnerNumber}
+        initialGames={initialGames}
       />
       <ServeOutcomeCells
         outcome={firstOutcome}

@@ -1,35 +1,30 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { LoginPayloadSchema } from '@/schemas/contracts';
 import { loginRequest, type SessionContextOption } from '@/lib/auth-client';
 import { processLoginSuccess } from './login-success.logic';
+import { humanizeLoginError } from './login-errors.logic';
+import { parseLoginPayload } from './login-payload.logic';
+import { usePasswordChangeNotice } from './use-password-change-notice';
+import { useLoginFormReset } from './use-login-form-reset';
 
 export type LoginErrorField = 'identifier' | 'password' | 'both' | null;
 
 export function useLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const formRef = useRef<HTMLFormElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorField, setErrorField] = useState<LoginErrorField>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [pendingContexts, setPendingContexts] = useState<SessionContextOption[] | null>(null);
   const [savedCredentials, setSavedCredentials] = useState<{ identifier: string; password: string } | null>(null);
-
-  const clearForm = useCallback(() => {
-    if (formRef.current) formRef.current.reset();
+  const { passwordChangeNotice, scheduleRedirect } = usePasswordChangeNotice();
+  const resetContexts = useCallback(() => {
     setPendingContexts(null);
     setSavedCredentials(null);
   }, []);
-
-  useEffect(() => {
-    clearForm();
-    const handlePageShow = (e: PageTransitionEvent) => { if (e.persisted) clearForm(); };
-    window.addEventListener('pageshow', handlePageShow);
-    return () => window.removeEventListener('pageshow', handlePageShow);
-  }, [clearForm]);
+  const formRef = useLoginFormReset(resetContexts);
 
   async function handleLoginAttempt(payload: { identifier: string; password: string; contextId?: string }) {
     setError(null);
@@ -44,13 +39,21 @@ export function useLoginForm() {
         setIsLoading(false);
         return;
       }
+      if (data.user.mustChangePassword) {
+        setPendingContexts(null);
+        setIsLoading(false);
+        scheduleRedirect(() => {
+          void processLoginSuccess(data, searchParams, (url) => router.push(url as any));
+        });
+        return;
+      }
       await processLoginSuccess(data, searchParams, (url) => router.push(url as any));
     } catch (err: any) {
       if (formRef.current) {
         const passEl = formRef.current.elements.namedItem('password') as HTMLInputElement | null;
         if (passEl) passEl.value = '';
       }
-      setError(err?.message || 'Erro ao fazer login');
+      setError(humanizeLoginError(err));
       setErrorField(err?.code === 'USER_NOT_FOUND' ? 'identifier' : err?.code === 'INVALID_PASSWORD' ? 'password' : 'both');
       setIsLoading(false);
     }
@@ -58,20 +61,13 @@ export function useLoginForm() {
 
   async function submitLoginForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const raw = {
-      identifier: (formData.get('identifier') as string || '').trim(),
-      password: (formData.get('password') as string || '').trim(),
-    };
-
-    const parsed = LoginPayloadSchema.safeParse(raw);
-    if (!parsed.success) {
-      const firstIssue = parsed.error.issues[0];
-      setError(firstIssue?.message || 'Informe e-mail ou CPF e a senha.');
-      setErrorField(String(firstIssue?.path?.[0] || '') === 'password' ? 'password' : 'identifier');
+    const parsed = parseLoginPayload(new FormData(e.currentTarget));
+    if (!parsed.ok) {
+      setError(parsed.message);
+      setErrorField(parsed.field);
       return;
     }
-    await handleLoginAttempt(parsed.data as { identifier: string; password: string });
+    await handleLoginAttempt(parsed.data);
   }
 
   async function selectContext(contextId: string) {
@@ -90,6 +86,7 @@ export function useLoginForm() {
     errorField,
     isLoading,
     pendingContexts,
+    passwordChangeNotice,
     submitLoginForm,
     selectContext,
     cancelContextSelection,

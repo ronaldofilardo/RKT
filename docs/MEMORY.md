@@ -8,6 +8,23 @@
 
 ---
 
+## 2.28 Timeline do /report: fusão de "Fim do Game" + "Início do Tie break" (Set Pro 8) — 2026-11-07
+- **Contexto & Demanda:**
+  - No formato **Set Profissional até 8 games** (`PRO_SET_8`), a timeline exibia duas linhas consecutivas ao entrar no tiebreak: “Fim do Game” e “Início do Tie break”, ambas repetindo o mesmo placar (9x8) e a mesma informação de placar final.
+  - O tiebreak começa em **9x9** (`getTiebreakAtForFormat('PRO_SET_8') = 9`), mas a linha mostrava o placar anterior ao último game (9x8).
+- **Causa Raiz:**
+  1. `timeline-rows.tsx` renderizava **dois** `GameEndRow` quando `gameEnd.tiebreakStart` era verdadeiro, ambos com `p.gamesScore`.
+  2. `TimelinePoint.gamesScore` é o placar **antes** do ponto (`stateBefore`). No ponto que abre o tiebreak ele vale 9x8 e o game decisivo ainda não foi contabilizado — somar +1 aos dois lados (comportamento antigo) gerava 10x9.
+- **Implementação:**
+  1. `timeline-rows.tsx`: entrada do tiebreak passa a renderizar **uma única** `GameEndRow` com o placar de `gameEnd.gameFinalScore`.
+  2. `timeline-game-end.ts`: no `tbEntry`, o placar final do set é `current.gamesScore` **+1 apenas ao vencedor do último game** (9x8 → 9x9; 5x6 → 6x6 em sets regulares).
+  3. `timeline-game-end-row.tsx`: rótulo em duas linhas (“Fim do Game” / “Início do Tie break”, este em `telemetry-blue`), badge “Tie break” somado ao badge de quebra de saque e supressão do texto redundante “· Placar final” nessa linha fundida. `aria-label` atualizado (“Fim do game e início do tie break: 9x9”).
+- **Testes:**
+  - `timeline-rows.game-end.test.tsx`: +2 casos (helper retorna 9x9 na entrada do tiebreak; `SetGroup` renderiza **uma só** linha com 9x9, “Fim do Game”, “Início do Tie break” e “Quebra de saque”). 8/8 PASS.
+- **Validação:** `tsc --noEmit` 0 erros · ESLint 0 avisos/erros · `check:r03` OK (0 regressões; `timeline-rows.tsx` 94L) · suítes `src/components/scoring/__tests__` + `src/app/match` 133/135 (2 falhas pré-existentes em `MatchTimelineView.setResults` e `MatchTimelineView.doubles`, confirmadas em `HEAD` antes da mudança).
+
+---
+
 ## 2.27 UI da Transmissão Compartilhada e do Gestor (Visual) — 2026-11-07
 - **Contexto & Demanda:**
   - Plano: `docs/PLANO_UI_TRANSMISSAO_COMPARTILHADA_E_GESTOR_2026-11-07.md`.

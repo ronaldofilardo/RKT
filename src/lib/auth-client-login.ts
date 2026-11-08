@@ -9,6 +9,7 @@ export interface LoginResponse {
   accessToken?: string;
   requireContext?: boolean;
   availableContexts?: SessionContextOption[];
+  availableAreas?: Array<{ code: string }>;
   activeContextId?: string | null;
   user: {
     id: string;
@@ -50,8 +51,9 @@ export async function loginRequest(payload: {
       data.data?.message ||
       data.error ||
       'Erro ao fazer login';
-    const err = new Error(errorMsg);
-    (err as any).code = data.code || data.data?.code || data.error;
+    const err = new Error(errorMsg) as Error & { code?: string; status?: number };
+    err.code = data.code || data.data?.code || data.error;
+    err.status = res.status;
     throw err;
   }
 

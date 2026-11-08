@@ -90,11 +90,12 @@ describe('getGameEndInfo (helper unit tests)', () => {
       gamesScore: { player1: 5, player2: 4 },
       isSetBall: true,
     };
-    const result = getGameEndInfo(current, null, true, true);
+    const result = getGameEndInfo(current, null, true);
     expect(result).not.toBeNull();
     expect(result?.isGameEnd).toBe(true);
     expect(result?.gameFinalScore).toEqual({ player1: 6, player2: 4 });
     expect(result?.winner).toBe('PLAYER_1');
+    expect(result?.isTiebreakEntry).toBe(false);
   });
 
   it('na entrada do tiebreak mostra o placar real dos games (Set Pro 8: 9x8)', () => {
@@ -117,6 +118,7 @@ describe('getGameEndInfo (helper unit tests)', () => {
     expect(result?.gameFinalScore).toEqual({ player1: 9, player2: 8 });
     expect(result?.winner).toBe('PLAYER_2');
     expect(result?.isBreak).toBe(true);
+    expect(result?.isTiebreakEntry).toBe(true);
   });
 });
 
@@ -219,7 +221,7 @@ describe('SetGroup — exibição do placar final após finalizar o game', () =>
     expect(gameEndRow.textContent).toContain('Jannik Sinner');
   });
 
-  it('funde "Fim do Game" e "Início do Tie break" numa única linha com o placar 9x9', () => {
+  it('na entrada do tiebreak separa "Fim do Game" do banner "Tie-break" com o placar 9x8', () => {
     const lastGamePoint = makePoint({
       pointNumber: 9,
       server: 'player1',
@@ -252,14 +254,23 @@ describe('SetGroup — exibição do placar final após finalizar o game', () =>
       </table>
     );
 
+    // A linha de fim de game continua única e mostra o placar real dos games.
     const gameEndRows = screen.getAllByTestId('game-end-1-9');
     expect(gameEndRows).toHaveLength(1);
-    const mergedRow = gameEndRows[0];
-    expect(mergedRow.textContent).toContain('Fim do Game');
-    expect(mergedRow.textContent).not.toContain('Início do Tie break');
-    expect(mergedRow.textContent).toContain('9x8');
-    expect(mergedRow.textContent).not.toContain('9x9');
-    expect(mergedRow.textContent).toContain('Jannik Sinner');
-    expect(mergedRow.textContent).toContain('Quebra de saque');
+    const gameEndRow = gameEndRows[0];
+    expect(gameEndRow.textContent).toContain('Fim do Game');
+    expect(gameEndRow.textContent).not.toContain('Início do Tie break');
+    expect(gameEndRow.textContent).toContain('9x8');
+    expect(gameEndRow.textContent).not.toContain('9x9');
+    expect(gameEndRow.textContent).toContain('Jannik Sinner');
+    expect(gameEndRow.textContent).toContain('Quebra de saque');
+
+    // O banner de tiebreak é uma linha separada, logo abaixo da linha de fim de game.
+    const bannerLabel = screen.getByText(/Tie-break/);
+    const bannerRow = bannerLabel.closest('tr');
+    expect(bannerRow).not.toBeNull();
+    expect(bannerRow).not.toBe(gameEndRow);
+    expect(bannerRow?.textContent).toContain('Tie-break');
+    expect(bannerRow?.textContent).toContain('9x8 games');
   });
 });

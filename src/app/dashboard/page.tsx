@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const [ctName, setCtName] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [followedPlayerIds, setFollowedPlayerIds] = useState<string[]>([]);
+  const [activeArea, setActiveArea] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -28,6 +29,7 @@ export default function DashboardPage() {
         setCtId(activeId);
         setUserId(data.user?.id ?? null);
         setFollowedPlayerIds(data.followedPlayerIds ?? []);
+        setActiveArea(data.activeArea ?? null);
         if (activeId && activeId !== 'PARTICULAR') {
           const currentMem = data.memberships?.find((m: any) => m.ctId === activeId);
           const currentCtx = data.availableContexts?.find((c: any) => c.id === activeId);
@@ -45,7 +47,7 @@ export default function DashboardPage() {
       <main className="max-w-4xl mx-auto px-4 py-6">
         <DashboardViewRouter
           view={model.view} loading={model.loading} ctId={ctId} ctName={ctName} userId={userId}
-          followedPlayerIds={followedPlayerIds} {...model.filters} suspendedFromApi={model.suspendedFromApi}
+          followedPlayerIds={followedPlayerIds} activeArea={activeArea} {...model.filters} suspendedFromApi={model.suspendedFromApi}
           navigateToTarget={model.navigateToTarget}
           openMatchDetails={actions.openMatchDetails} openMatchReport={actions.openMatchReport}
           finishMatch={actions.finishMatch} deleteMatch={actions.deleteMatch}

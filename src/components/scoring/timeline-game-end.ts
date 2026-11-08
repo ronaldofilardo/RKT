@@ -1,11 +1,13 @@
 // ste-exception R-03: Lógica de fim de game requer detecção de transição de placar entre games; mantido coeso para correta renderização da linha de resultado no timeline do report.
 import type { TimelinePoint } from '@/core/scoring/types';
 
-interface GameEndInfo {
+export interface GameEndInfo {
   isGameEnd: boolean;
   gameFinalScore: { player1: number; player2: number };
   winner: 'PLAYER_1' | 'PLAYER_2';
   isBreak: boolean;
+  /** true quando este game-end marca a ENTRADA no tiebreak do set (ex: 6x6 ou 9x9). */
+  isTiebreakEntry: boolean;
 }
 
 function checkIsBreak(server: string, winner: 'PLAYER_1' | 'PLAYER_2'): boolean {
@@ -38,15 +40,16 @@ function onTransitionGameEnd(current: TimelinePoint, next: TimelinePoint): GameE
   if (!isTransitionToNewGame(current, next)) return null;
 
   const winner = resolveTransitionWinner(current, next);
-  const tiebreakEntry = !current.isTiebreak && next.isTiebreak;
+  const isTiebreakEntry = !current.isTiebreak && next.isTiebreak === true;
 
   return {
     isGameEnd: true,
-    gameFinalScore: tiebreakEntry
+    gameFinalScore: isTiebreakEntry
       ? { player1: current.gamesScore.player1, player2: current.gamesScore.player2 }
       : { player1: next.gamesScore.player1, player2: next.gamesScore.player2 },
     winner,
     isBreak: checkIsBreak(current.server, winner),
+    isTiebreakEntry,
   };
 }
 
@@ -66,11 +69,16 @@ function onLastPointOfSetGameEnd(currentPoint: TimelinePoint): GameEndInfo | nul
   return {
     isGameEnd: true,
     gameFinalScore: {
-      player1: isTb ? currentPoint.gameScore.player1 : currentPoint.gamesScore.player1 + (w === 'PLAYER_1' ? 1 : 0),
-      player2: isTb ? currentPoint.gameScore.player2 : currentPoint.gamesScore.player2 + (w === 'PLAYER_2' ? 1 : 0),
+      player1: isTb
+        ? currentPoint.gameScore.player1
+        : currentPoint.gamesScore.player1 + (w === 'PLAYER_1' ? 1 : 0),
+      player2: isTb
+        ? currentPoint.gameScore.player2
+        : currentPoint.gamesScore.player2 + (w === 'PLAYER_2' ? 1 : 0),
     },
     winner: w,
     isBreak: checkIsBreak(currentPoint.server, w),
+    isTiebreakEntry: false,
   };
 }
 
@@ -84,7 +92,7 @@ export function getGameEndInfo(
   }
 
   if (nextPoint) {
-    // Entrada em tiebreak: o gamesScore é reiniciado para 0x0, então usamos o placar atual dos games.
+    // Entrada em tiebreak: gamesScore contém os games reais do set.
     if (!currentPoint.isTiebreak && nextPoint.isTiebreak) {
       const winner = resolveTransitionWinner(currentPoint, nextPoint);
       return {
@@ -95,6 +103,7 @@ export function getGameEndInfo(
         },
         winner,
         isBreak: checkIsBreak(currentPoint.server, winner),
+        isTiebreakEntry: true,
       };
     }
     return onTransitionGameEnd(currentPoint, nextPoint);
