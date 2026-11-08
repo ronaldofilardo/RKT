@@ -29,7 +29,7 @@ describe('getGameEndInfo (helper unit tests)', () => {
   it('retorna null quando o próximo ponto pertence ao mesmo game', () => {
     const current = { ...basePoint, pointNumber: 1, gameScore: { player1: 0, player2: 0 } };
     const next = { ...basePoint, pointNumber: 2, gameScore: { player1: 1, player2: 0 } };
-    const result = getGameEndInfo(current, next, false, false);
+    const result = getGameEndInfo(current, next, false);
     expect(result).toBeNull();
   });
 
@@ -49,7 +49,7 @@ describe('getGameEndInfo (helper unit tests)', () => {
       gameScore: { player1: 0, player2: 0 },
       gamesScore: { player1: 1, player2: 0 },
     };
-    const result = getGameEndInfo(current, next, false, false);
+    const result = getGameEndInfo(current, next, false);
     expect(result).not.toBeNull();
     expect(result?.isGameEnd).toBe(true);
     expect(result?.gameFinalScore).toEqual({ player1: 1, player2: 0 });
@@ -73,7 +73,7 @@ describe('getGameEndInfo (helper unit tests)', () => {
       gameScore: { player1: 0, player2: 0 },
       gamesScore: { player1: 0, player2: 1 },
     };
-    const result = getGameEndInfo(current, next, false, false);
+    const result = getGameEndInfo(current, next, false);
     expect(result).not.toBeNull();
     expect(result?.isBreak).toBe(true);
     expect(result?.winner).toBe('PLAYER_2');
@@ -113,7 +113,7 @@ describe('getGameEndInfo (helper unit tests)', () => {
       gameScore: { player1: 0, player2: 0 },
       gamesScore: { player1: 0, player2: 0 },
     };
-    const result = getGameEndInfo(current, next, false, false);
+    const result = getGameEndInfo(current, next, false);
     expect(result?.tiebreakStart).toBe(true);
     expect(result?.gameFinalScore).toEqual({ player1: 9, player2: 8 });
     expect(result?.winner).toBe('PLAYER_2');
@@ -167,7 +167,6 @@ describe('SetGroup — exibição do placar final após finalizar o game', () =>
             matchId="m1"
             player1Name="Carlos Alcaraz"
             player2Name="Jannik Sinner"
-            matchFinished={true}
           />
         </tbody>
       </table>
@@ -210,7 +209,6 @@ describe('SetGroup — exibição do placar final após finalizar o game', () =>
             matchId="m1"
             player1Name="Carlos Alcaraz"
             player2Name="Jannik Sinner"
-            matchFinished={true}
           />
         </tbody>
       </table>
@@ -250,7 +248,6 @@ describe('SetGroup — exibição do placar final após finalizar o game', () =>
             matchId="m1"
             player1Name="Carlos Alcaraz"
             player2Name="Jannik Sinner"
-            matchFinished={true}
           />
         </tbody>
       </table>
