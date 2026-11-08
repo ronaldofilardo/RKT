@@ -23,9 +23,10 @@ interface SetGroupProps {
   player2Name: string;
   doubles?: TimelineDoublesConfig;
   isMatchTb?: boolean;
+  matchFinished?: boolean;
 }
 
-export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLast, matchId, player1Name, player2Name, doubles, isMatchTb }: SetGroupProps) {
+export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLast, matchId, player1Name, player2Name, doubles, isMatchTb, matchFinished }: SetGroupProps) {
   return (
     <>
       {!hasActiveFilters && (
@@ -56,7 +57,8 @@ export function SetGroup({ setNumber: _setNumber, points, hasActiveFilters, isLa
 
         const isLastPointOfSet = i === points.length - 1;
         // Em Match Tiebreak não há "fim de game" entre pontos: a partida é um único tiebreak.
-        const gameEnd = (!hasActiveFilters && !isMatchTb) ? getGameEndInfo(p, nextPoint, isLastPointOfSet) : null;
+        // Só mostra "Fim do Tiebreak" quando a partida está finalizada.
+        const gameEnd = (!hasActiveFilters && !isMatchTb && (!isLastPointOfSet || matchFinished)) ? getGameEndInfo(p, nextPoint, isLastPointOfSet, matchFinished) : null;
         const winnerName = gameEnd?.winner === 'PLAYER_1'
           ? (doubles?.player1PartnerName ? `${player1Name} / ${doubles.player1PartnerName}` : player1Name)
           : (doubles?.player2PartnerName ? `${player2Name} / ${doubles.player2PartnerName}` : player2Name);

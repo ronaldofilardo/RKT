@@ -59,6 +59,7 @@ export function MatchTimelineView({
           filteredCount={filteredPoints.length}
           totalCount={points.length}
           hasActiveFilters={hasActiveFilters}
+          format={matchInfo?.format ?? undefined}
         />
       )}
 

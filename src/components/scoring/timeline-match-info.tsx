@@ -1,3 +1,5 @@
+import { getMatchFormatDisplayLabel } from '@/app/gestor/club-matches.logic';
+
 export interface MatchInfoData {
   tournamentName?: string | null;
   clubName?: string | null;
@@ -35,7 +37,7 @@ export function buildInfoItems(info: MatchInfoData): InfoItem[] {
   if (info.round) items.push({ label: 'Rodada', value: info.round });
   if (info.category) items.push({ label: 'Categoria', value: info.category });
   if (info.courtType) items.push({ label: 'Quadra', value: COURT_TYPE_LABELS[info.courtType.toUpperCase()] ?? info.courtType });
-  if (info.format) items.push({ label: 'Formato', value: info.format.replace(/_/g, ' ') });
+  if (info.format) items.push({ label: 'Formato', value: getMatchFormatDisplayLabel(info.format) });
   if (info.temperature != null) items.push({ label: 'Temp', value: `${info.temperature}°C` });
   if (info.humidity != null) items.push({ label: 'Umidade', value: `${info.humidity}%` });
   if (info.startedAt) items.push({ label: 'Início', value: formatDateTime(info.startedAt) });

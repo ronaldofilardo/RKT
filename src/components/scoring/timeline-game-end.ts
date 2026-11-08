@@ -78,8 +78,10 @@ export function isSetDecidingPoint(point: TimelinePoint): boolean {
   );
 }
 
-function onLastPointOfSetGameEnd(currentPoint: TimelinePoint): GameEndInfo | null {
+function onLastPointOfSetGameEnd(currentPoint: TimelinePoint, matchFinished: boolean): GameEndInfo | null {
   if (!isSetDecidingPoint(currentPoint)) return null;
+  // Só mostra "Fim do Tiebreak" / "Fim Game" quando a partida está finalizada.
+  if (!matchFinished) return null;
 
   const w = currentPoint.winner;
   const isTb = currentPoint.isTiebreak;
@@ -99,9 +101,10 @@ export function getGameEndInfo(
   currentPoint: TimelinePoint,
   nextPoint: TimelinePoint | null | undefined,
   isLastPointOfSet: boolean,
+  matchFinished?: boolean,
 ): GameEndInfo | null {
   if (isLastPointOfSet) {
-    return onLastPointOfSetGameEnd(currentPoint);
+    return onLastPointOfSetGameEnd(currentPoint, !!matchFinished);
   }
 
   if (nextPoint) {

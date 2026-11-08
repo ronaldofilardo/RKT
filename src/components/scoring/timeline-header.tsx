@@ -3,6 +3,7 @@
 import { FilterBar } from './timeline-filters';
 import type { FilterCounts } from './timeline-filters';
 import type { FilterKey } from './timeline-types';
+import { getMatchFormatDisplayLabel } from '@/app/gestor/club-matches.logic';
 
 interface TimelineHeaderProps {
   activeFilters: Set<FilterKey>;
@@ -14,6 +15,7 @@ interface TimelineHeaderProps {
   filteredCount: number;
   totalCount: number;
   hasActiveFilters: boolean;
+  format?: string | null;
 }
 
 export function TimelineHeader({
@@ -26,7 +28,9 @@ export function TimelineHeader({
   filteredCount,
   totalCount,
   hasActiveFilters,
+  format,
 }: TimelineHeaderProps) {
+  const formatLabel = format ? getMatchFormatDisplayLabel(format) : undefined;
   return (
     <>
       <FilterBar
@@ -38,6 +42,7 @@ export function TimelineHeader({
       />
       <p className="text-xs text-telemetry-text-muted mb-3">
         {hasActiveFilters ? `${filteredCount} de ${totalCount} pontos` : `${totalCount} pontos`}
+        {formatLabel && ` · ${formatLabel}`}
       </p>
     </>
   );

@@ -59,6 +59,7 @@ export function TimelineTable({
                   player2Name={player2Name}
                   doubles={doubles}
                   isMatchTb={isMatchTb}
+                  matchFinished={showFinalResult}
                 />
               ))}
               {showFinalResult && (
