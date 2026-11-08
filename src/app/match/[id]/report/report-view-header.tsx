@@ -2,6 +2,7 @@ import type { ReportData } from './report.types';
 import { formatDate } from './report-view.logic';
 import { BrandLogo } from '@/components/ui/brand-logo';
 import { usePlayerColors } from '@/components/ui/player-color.context';
+import { getMatchFormatDisplayLabel } from '@/app/gestor/club-matches.logic';
 
 interface ReportHeaderProps {
   report: ReportData;
@@ -43,7 +44,7 @@ export function ReportHeader({ report, onContinue, onDashboard, onExport: _onExp
               <span className={`font-semibold ${colors.p1}`}>{isDoubles ? 'Dupla 1' : 'P1'}</span>{' '}
               <span className={colors.p1}>{p1Name}</span> vs{' '}
               <span className={`font-semibold ${colors.p2}`}>{isDoubles ? 'Dupla 2' : 'P2'}</span>{' '}
-              <span className={colors.p2}>{p2Name}</span> · {isDoubles ? 'Duplas · ' : ''}{report.format.replace(/_/g, ' ')} · {stateLabel}
+              <span className={colors.p2}>{p2Name}</span> · {isDoubles ? 'Duplas · ' : ''}{getMatchFormatDisplayLabel(report.format)} · {stateLabel}
             </p>
             <p className="text-xs text-telemetry-text-muted/70 mt-1">Início: {formatDate(report.startedAt)} · Fim: {formatDate(report.finishedAt)}</p>
             <p className="text-xs text-telemetry-text-muted/70 mt-1">
