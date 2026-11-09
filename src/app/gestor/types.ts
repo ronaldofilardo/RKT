@@ -32,6 +32,7 @@ export interface AthleteItem {
   player: {
     id: string;
     name: string;
+    nickname?: string | null;
     cpf: string;
     email: string | null;
     birthDate: string | null;

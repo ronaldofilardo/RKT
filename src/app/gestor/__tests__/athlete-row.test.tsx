@@ -83,4 +83,14 @@ describe('AthleteRow - status e ação de senha', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Link Senha' }));
     expect(onGenerateLink).toHaveBeenCalledTimes(1);
   });
+
+  it('exibe o nickname formatado com @ quando presente', () => {
+    renderRow(makeAthlete({ nickname: 'joaosilva' }));
+    expect(screen.getByText('@joaosilva')).toBeInTheDocument();
+  });
+
+  it('exibe hífen quando não possui nickname', () => {
+    renderRow(makeAthlete({ nickname: null }));
+    expect(screen.getByText('-')).toBeInTheDocument();
+  });
 });

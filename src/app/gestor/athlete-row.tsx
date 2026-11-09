@@ -36,6 +36,13 @@ export function AthleteRow({ athlete: a, selected, onSelect, onEdit, onGenerateL
         />
       </td>
       <td className="px-3 py-3 text-sm text-telemetry-text-primary font-medium">{a.player.name}</td>
+      <td className="px-3 py-3 text-sm text-telemetry-text-primary font-mono text-xs">
+        {a.player.nickname ? (
+          <span className="text-telemetry-volt font-medium">@{a.player.nickname}</span>
+        ) : (
+          <span className="text-telemetry-text-muted">-</span>
+        )}
+      </td>
       <td className="px-3 py-3 text-sm text-telemetry-text-primary font-mono text-xs">{formattedCpf}</td>
       <td className="px-3 py-3 text-sm text-telemetry-text-primary">{genderLabel(a.player.gender)}</td>
       <td className="px-3 py-3 text-sm">
