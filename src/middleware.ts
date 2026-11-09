@@ -67,6 +67,7 @@ export const config = {
     '/match/:path*',
     '/matches/:path*',
     '/historico/:path*',
+    '/relatorios/:path*',
     '/dados-pessoais/:path*',
     '/partidasanotadas/:path*',
     '/partidasaovivo/:path*',

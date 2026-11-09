@@ -1,6 +1,7 @@
 import type { DashboardMatchPayload } from '@/components/dashboard/MatchCard';
+import type { DashboardView } from '../dashboard.types';
 
-export type DashboardView = 'dashboard' | 'annotated' | 'live' | 'pending' | 'history';
+export type { DashboardView };
 
 export interface DashboardViewRouterProps {
   view: DashboardView;
@@ -8,6 +9,8 @@ export interface DashboardViewRouterProps {
   ctId?: string | null;
   ctName?: string | null;
   userId?: string | null;
+  /** Primeiro nome do usuário logado — usado na saudação da home. */
+  userName?: string | null;
   followedPlayerIds?: readonly string[] | string[] | null;
   activeArea?: string | null;
   finishedMatches: DashboardMatchPayload[];
@@ -18,7 +21,7 @@ export interface DashboardViewRouterProps {
   suspendedFromApi: DashboardMatchPayload[];
   navigateToTarget: (v: DashboardView) => void;
   openMatchDetails: (m: DashboardMatchPayload) => void;
-  openMatchReport: (m: DashboardMatchPayload) => void;
+  openMatchReport: (m: DashboardMatchPayload, tab?: string) => void;
   finishMatch: (m: DashboardMatchPayload) => void;
   deleteMatch: (m: DashboardMatchPayload) => void;
   openMatchEditScore?: (m: DashboardMatchPayload) => void;

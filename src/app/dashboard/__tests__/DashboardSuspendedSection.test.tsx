@@ -74,8 +74,9 @@ describe('DashboardPage - seção Partidas pausadas (TD-046)', () => {
     (usePathname as jest.Mock).mockReturnValue('/dashboard');
   });
 
-  it('renderiza partidas suspensas vindas da API', async () => {
+  it('renderiza partidas suspensas em Minhas Partidas', async () => {
     setupAuth();
+    (usePathname as jest.Mock).mockReturnValue('/historico');
     const suspended = {
       id: 'm-suspended-1',
       suspendedSessionId: 'sess-1',
@@ -102,13 +103,13 @@ describe('DashboardPage - seção Partidas pausadas (TD-046)', () => {
     render(<DashboardPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Partidas pausadas/i)).toBeInTheDocument();
+      expect(screen.getByText('SUSPENDED:m-suspended-1')).toBeInTheDocument();
     });
-    expect(screen.getByText('SUSPENDED:m-suspended-1')).toBeInTheDocument();
   });
 
-  it('não renderiza a seção quando suspendedFromApi está vazia', async () => {
+  it('não renderiza lista de partidas no Início (dashboard)', async () => {
     setupAuth();
+    (usePathname as jest.Mock).mockReturnValue('/dashboard');
     global.fetch = jest.fn(() =>
       Promise.resolve({
         ok: true,
@@ -119,6 +120,6 @@ describe('DashboardPage - seção Partidas pausadas (TD-046)', () => {
     render(<DashboardPage />);
 
     await waitFor(() => screen.getByTestId('hamburger-menu-button'));
-    expect(screen.queryByText(/Partidas pausadas/i)).not.toBeInTheDocument();
+    expect(screen.queryByTestId('match-card')).not.toBeInTheDocument();
   });
 });

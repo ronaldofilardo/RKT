@@ -15,17 +15,7 @@ import {
 } from './dashboard.hooks';
 import { useResumeSession } from './dashboard.resume';
 import { useDeleteMatch, useFinishMatch } from './dashboard.actions';
-
-type DashboardPageView = 'dashboard' | 'annotated' | 'live' | 'pending' | 'history';
-
-/** Deriva a view ativa a partir do pathname (partidas anotadas, ao vivo, etc.). */
-function resolveDashboardView(pathname: string | null): DashboardPageView {
-  if (pathname?.startsWith('/partidasanotadas')) return 'annotated';
-  if (pathname?.startsWith('/partidasaovivo')) return 'live';
-  if (pathname?.startsWith('/aguardandoanotador')) return 'pending';
-  if (pathname?.startsWith('/historico')) return 'history';
-  return 'dashboard';
-}
+import { resolveDashboardView } from './dashboard-view.logic';
 
 /**
  * Liga os hooks centrais do dashboard: sessão/auth, navegação, dados,

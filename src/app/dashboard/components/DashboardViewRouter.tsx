@@ -5,7 +5,8 @@ import type { DashboardViewRouterProps } from "./dashboard-view-router.types";
 
 export function DashboardViewRouter(props: DashboardViewRouterProps) {
   const {
-    view, loading, ctId, ctName, userId, followedPlayerIds, activeArea, finishedMatches, liveMatches, pendingMatches, historyMatches,
+    view, loading, ctId, ctName, userId, userName, followedPlayerIds, activeArea,
+    finishedMatches, liveMatches, pendingMatches,
     visibleMatches, suspendedFromApi, navigateToTarget, openMatchDetails,
     openMatchReport, finishMatch, deleteMatch, openMatchEditScore,
     resumeMatch, openMatchSetSummary, openMatchEditInfo, onShareMatch,
@@ -19,72 +20,73 @@ export function DashboardViewRouter(props: DashboardViewRouterProps) {
     );
   }
 
+  const shared = { ctId, ctName, userId, followedPlayerIds, onShare: onShareMatch };
+  const allCardActions = {
+    ...shared,
+    onClick: openMatchDetails,
+    onReport: openMatchReport,
+    onFinish: finishMatch,
+    onDelete: deleteMatch,
+    onEditScore: openMatchEditScore,
+    onResumeMatch: resumeMatch,
+    onSetSummary: openMatchSetSummary,
+    onEditInfo: openMatchEditInfo,
+  };
+
+  const allMatches = suspendedFromApi.length > 0 ? [...suspendedFromApi, ...visibleMatches] : visibleMatches;
+
   const views: Record<string, () => JSX.Element> = {
     annotated: () => (
       <DashboardMatchListSection
-        headingId="annotated-heading"
-        title="Partidas Anotadas"
-        emptyMessage="Nenhuma partida anotada encontrada."
-        matches={finishedMatches}
+        headingId="annotated-heading" title="Partidas Anotadas"
+        emptyMessage="Nenhuma partida anotada encontrada." matches={finishedMatches}
         onBack={() => navigateToTarget("dashboard")}
-        renderCard={(m) => (
-          <MatchCard key={m.id} match={m} ctId={ctId} ctName={ctName} userId={userId} followedPlayerIds={followedPlayerIds} onClick={openMatchDetails} onReport={openMatchReport} onShare={onShareMatch} />
-        )}
+        renderCard={(m) => <MatchCard key={m.id} match={m} {...shared} onClick={openMatchDetails} onReport={openMatchReport} />}
       />
     ),
     live: () => (
       <DashboardMatchListSection
-        headingId="live-heading"
-        title="Partidas Ao Vivo"
-        emptyMessage="Nenhuma partida ao vivo no momento."
-        matches={liveMatches}
+        headingId="live-heading" title="Partidas Ao Vivo"
+        emptyMessage="Nenhuma partida ao vivo no momento." matches={liveMatches}
         onBack={() => navigateToTarget("dashboard")}
-        renderCard={(m) => (
-          <MatchCard
-            key={m.id} match={m} ctId={ctId} ctName={ctName} userId={userId} followedPlayerIds={followedPlayerIds} onClick={openMatchDetails} onReport={openMatchReport}
-            onFinish={finishMatch} onEditScore={openMatchEditScore} onResumeMatch={resumeMatch}
-            onSetSummary={openMatchSetSummary} onEditInfo={openMatchEditInfo} onShare={onShareMatch}
-          />
-        )}
+        renderCard={(m) => <MatchCard key={m.id} match={m} {...allCardActions} />}
       />
     ),
     pending: () => (
       <DashboardMatchListSection
-        headingId="pending-heading"
-        title="Partidas Aguardando"
-        emptyMessage="Nenhuma partida agendada aguardando no momento."
-        matches={pendingMatches}
+        headingId="pending-heading" title="Partidas Aguardando"
+        emptyMessage="Nenhuma partida agendada aguardando no momento." matches={pendingMatches}
         onBack={() => navigateToTarget("dashboard")}
-        renderCard={(m) => (
-          <MatchCard key={m.id} match={m} ctId={ctId} ctName={ctName} userId={userId} followedPlayerIds={followedPlayerIds} onClick={openMatchDetails} onDelete={deleteMatch} onEditInfo={openMatchEditInfo} onShare={onShareMatch} />
-        )}
+        renderCard={(m) => <MatchCard key={m.id} match={m} {...shared} onClick={openMatchDetails} onDelete={deleteMatch} onEditInfo={openMatchEditInfo} />}
       />
     ),
     history: () => (
       <DashboardMatchListSection
-        headingId="history-heading"
-        title="Histórico de Partidas"
-        emptyMessage="Nenhuma partida no histórico."
-        matches={historyMatches}
+        headingId="history-heading" title="Minhas Partidas"
+        emptyMessage="Nenhuma partida encontrada." matches={allMatches}
+        activeArea={activeArea} showEmptyState={true}
+        onBack={() => navigateToTarget("dashboard")}
+        renderCard={(m) => <MatchCard key={m.id ?? m.suspendedSessionId} match={m} {...allCardActions} />}
+      />
+    ),
+    reports: () => (
+      <DashboardMatchListSection
+        headingId="reports-heading" title="Relatórios"
+        emptyMessage="Nenhuma partida finalizada com relatório encontrada." matches={finishedMatches}
         onBack={() => navigateToTarget("dashboard")}
         renderCard={(m) => (
-          <MatchCard key={m.id} match={m} ctId={ctId} ctName={ctName} userId={userId} followedPlayerIds={followedPlayerIds} onClick={openMatchDetails} onReport={openMatchReport} onDelete={deleteMatch} onShare={onShareMatch} />
+          <MatchCard
+            key={m.id} match={m} {...shared}
+            onClick={(match) => openMatchReport(match, 'timeline')}
+            onReport={(match) => openMatchReport(match, 'timeline')}
+          />
         )}
       />
     ),
     dashboard: () => (
-      <DashboardHomeSection
-        visibleMatches={visibleMatches} suspendedFromApi={suspendedFromApi}
-        ctId={ctId} ctName={ctName} userId={userId} followedPlayerIds={followedPlayerIds}
-        activeArea={activeArea}
-        openMatchDetails={openMatchDetails} openMatchReport={openMatchReport}
-        finishMatch={finishMatch} deleteMatch={deleteMatch}
-        openMatchEditScore={openMatchEditScore} resumeMatch={resumeMatch}
-        openMatchSetSummary={openMatchSetSummary} openMatchEditInfo={openMatchEditInfo}
-        onShareMatch={onShareMatch}
-      />
+      <DashboardHomeSection userName={userName} activeArea={activeArea} navigateToTarget={navigateToTarget} />
     ),
   };
 
-  return views[view]() || views.dashboard();
+  return views[view]?.() ?? views.dashboard();
 }

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { DashboardMatchPayload } from '@/components/dashboard/MatchCard';
+import { DashboardEmptyState } from './dashboard-empty-state';
 
 interface DashboardMatchListSectionProps {
   headingId: string;
@@ -8,9 +9,10 @@ interface DashboardMatchListSectionProps {
   matches: DashboardMatchPayload[];
   onBack: () => void;
   renderCard: (m: DashboardMatchPayload) => ReactNode;
+  activeArea?: string | null;
+  showEmptyState?: boolean;
 }
 
-/** Seção de lista de partidas: cabeçalho, link de volta, vazio e cards. */
 export function DashboardMatchListSection({
   headingId,
   title,
@@ -18,6 +20,8 @@ export function DashboardMatchListSection({
   matches,
   onBack,
   renderCard,
+  activeArea,
+  showEmptyState,
 }: DashboardMatchListSectionProps) {
   return (
     <section aria-labelledby={headingId}>
@@ -34,7 +38,11 @@ export function DashboardMatchListSection({
         </button>
       </div>
       {matches.length === 0 ? (
-        <p className="text-telemetry-text-muted text-center py-8">{emptyMessage}</p>
+        showEmptyState && activeArea ? (
+          <DashboardEmptyState activeArea={activeArea} />
+        ) : (
+          <p className="text-telemetry-text-muted text-center py-8">{emptyMessage}</p>
+        )
       ) : (
         <div className="space-y-3">{matches.map((m) => renderCard(m))}</div>
       )}

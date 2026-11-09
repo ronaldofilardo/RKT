@@ -45,12 +45,12 @@ describe('DashboardTopBar', () => {
     expect(screen.getByAltText('RKT Tennis')).toBeInTheDocument();
   });
 
-  it('esconde o hambúrguer com showMenuButton=false e mantém título, Nova Partida e Sair', () => {
+  it('esconde o hambúrguer com showMenuButton=false e mantém título e Sair', () => {
     render(<DashboardTopBar {...base} title="Painel do Gestor" showMenuButton={false} />);
     expect(screen.queryByTestId('hamburger-menu-button')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Abrir menu')).not.toBeInTheDocument();
     expect(screen.getByText('Painel do Gestor')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Nova partida' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Nova partida' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
   });
 });

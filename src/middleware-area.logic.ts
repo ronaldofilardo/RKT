@@ -13,6 +13,7 @@ export const LEGACY_UNPREFIXED_ROUTES = [
   '/historico',
   '/atletas',
   '/match',
+  '/relatorios',
 ];
 
 export function resolveUserActiveArea(decoded: DecodedJwt): AreaCode {

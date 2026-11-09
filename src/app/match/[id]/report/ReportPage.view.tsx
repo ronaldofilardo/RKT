@@ -21,7 +21,11 @@ type Props = {
 };
 
 export function ReportPageView({ report, matchId, p1Points, p2Points, totalPoints, onContinue, onDashboard }: Props) {
-  const [activeTab, setActiveTab] = useState<ReportViewTab>('summary');
+  const defaultTab: ReportViewTab =
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('tab') === 'timeline'
+      ? 'timeline'
+      : 'summary';
+  const [activeTab, setActiveTab] = useState<ReportViewTab>(defaultTab);
   const playerColors = resolvePlayerColors(report);
 
   return (

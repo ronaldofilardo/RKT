@@ -65,8 +65,9 @@ export function useDashboardMatchActions({
     }
   }, [router, resumeSuspendedMatch]);
 
-  const openMatchReport = useCallback((match: DashboardMatchPayload) => {
-    router.push(`/match/${match.id}/report` as AppRouteInput);
+  const openMatchReport = useCallback((match: DashboardMatchPayload, tab?: string) => {
+    const query = tab ? `?tab=${tab}` : '';
+    router.push(`/match/${match.id}/report${query}` as AppRouteInput);
   }, [router]);
 
   const finishMatch = useCallback((match: FinishableMatch) => {

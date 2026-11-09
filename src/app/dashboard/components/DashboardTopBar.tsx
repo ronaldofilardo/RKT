@@ -11,7 +11,7 @@ interface DashboardTopBarProps {
   setMenuOpen: (open: boolean) => void;
   user: { name: string; role: string } | null;
   title?: string;
-  onNewMatch: () => void;
+  onNewMatch?: () => void;
   onLogout?: () => void;
   showMenuButton?: boolean;
   activeContextId?: string | null;
@@ -21,7 +21,7 @@ interface DashboardTopBarProps {
 }
 
 export function DashboardTopBar({
-  menuOpen, setMenuOpen, user, title, onNewMatch, onLogout, showMenuButton = true,
+  menuOpen, setMenuOpen, user, title, onLogout, showMenuButton = true,
   activeContextId, availableContexts, onContextSwitched, showLogout = true,
 }: DashboardTopBarProps) {
   const firstName = user?.name ? user.name.trim().split(/\s+/)[0] : '';
@@ -38,11 +38,6 @@ export function DashboardTopBar({
         <div className="flex items-center gap-2 sm:gap-3">
           <ContextSwitcher activeContextId={activeContextId} availableContexts={availableContexts} onContextSwitched={onContextSwitched} />
           <ThemeToggle />
-
-          <button type="button" onClick={onNewMatch} aria-label="Nova partida"
-            className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-telemetry-blue hover:bg-telemetry-blue-light text-white shadow-sm transition-colors cursor-pointer">
-            + Nova Partida
-          </button>
           {firstName && <span className="hidden md:inline text-sm text-telemetry-text-muted font-medium">{firstName}</span>}
           {user?.role === "ADMIN" && <span className="text-xs px-2 py-0.5 rounded bg-telemetry-alert text-telemetry-base font-bold">Admin</span>}
           {showLogout && onLogout && (

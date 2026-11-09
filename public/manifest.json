@@ -1,9 +1,9 @@
 {
-  "name": "Racket",
-  "short_name": "Racket",
+  "name": "RKT Tennis",
+  "short_name": "RKT",
   "start_url": "/",
   "display": "browser",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
-  "description": "Stub manifest — PWA desabilitado"
+  "background_color": "#0A0F1D",
+  "theme_color": "#0A0F1D",
+  "description": "RKT - Estatísticas de Partida e Inteligência no Tênis"
 }

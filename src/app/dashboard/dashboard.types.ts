@@ -9,7 +9,8 @@ export type DashboardView =
   | "profile"
   | "atletas"
   | "newMatch"
-  | "admin";
+  | "admin"
+  | "reports";
 
 export interface User {
   id: string;

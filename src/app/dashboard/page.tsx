@@ -18,6 +18,7 @@ export default function DashboardPage() {
   const [ctId, setCtId] = useState<string | null>(null);
   const [ctName, setCtName] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   const [followedPlayerIds, setFollowedPlayerIds] = useState<string[]>([]);
   const [activeArea, setActiveArea] = useState<string | null>(null);
 
@@ -28,6 +29,7 @@ export default function DashboardPage() {
         const activeId = data.activeContextId ?? null;
         setCtId(activeId);
         setUserId(data.user?.id ?? null);
+        setUserName(data.user?.name ?? null);
         setFollowedPlayerIds(data.followedPlayerIds ?? []);
         setActiveArea(data.activeArea ?? null);
         if (activeId && activeId !== 'PARTICULAR') {
@@ -46,8 +48,11 @@ export default function DashboardPage() {
 
       <main className="max-w-4xl mx-auto px-4 py-6">
         <DashboardViewRouter
-          view={model.view} loading={model.loading} ctId={ctId} ctName={ctName} userId={userId}
-          followedPlayerIds={followedPlayerIds} activeArea={activeArea} {...model.filters} suspendedFromApi={model.suspendedFromApi}
+          view={model.view} loading={model.loading}
+          ctId={ctId} ctName={ctName} userId={userId} userName={userName}
+          followedPlayerIds={followedPlayerIds} activeArea={activeArea}
+          {...model.filters}
+          suspendedFromApi={model.suspendedFromApi}
           navigateToTarget={model.navigateToTarget}
           openMatchDetails={actions.openMatchDetails} openMatchReport={actions.openMatchReport}
           finishMatch={actions.finishMatch} deleteMatch={actions.deleteMatch}

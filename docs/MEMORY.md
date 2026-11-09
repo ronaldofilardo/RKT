@@ -3,8 +3,45 @@
 > Diário de bordo técnico · Metodologia RE-DOC (Fase 4 — Auditoria de Qualidade e Histórico)
 > **Este é um dos 6 arquivos-canônico do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
 
-**Última Atualização:** 2026-11-07
+**Última Atualização:** 2026-11-08
 **Analisado por:** engenharia reversa e implementação sobre `main`
+
+---
+
+## 2.29 Reorganização do Dashboard: Partidas em 'Minhas Partidas', remoção de 'Nova Partida' do Header e 'Relatórios' direto para Timelines — 2026-11-08
+- **Contexto & Demanda:**
+  1. A lista de partidas (Pausadas, Em Andamento, Recentes) deve ser movida da tela inicial (`/dashboard`) para dentro de 'Minhas Partidas' (`/historico` / view `history`).
+  2. Remover do header o botão '+ Nova Partida' (`DashboardTopBar`).
+  3. 'Relatórios' no menu e no ícone da tela inicial deixa de ser "Em breve" e passa a ser a listagem de timelines de todas as partidas finalizadas do usuário.
+- **Implementação:**
+  1. **Header limpo (`DashboardTopBar.tsx`, `DashboardChrome.tsx`):**
+     - Removido o botão `+ Nova Partida` do topo superior.
+     - `onNewMatch` tornado opcional em `DashboardTopBarProps`.
+  2. **Tela Inicial e Atalhos (`dashboard-home-section.tsx`, `dashboard-shortcuts.logic.ts`, `dashboard-shortcut-card.tsx`):**
+     - A tela inicial (`Início`) agora renderiza apenas a saudação e os atalhos rápidos em grid (`ShortcutCard`), removendo a renderização direta de listas de partidas.
+     - Cartão 'Minhas Partidas' aponta para `view: 'history'`.
+     - Cartão 'Relatórios' ativo (sem "Em breve"), apontando para `view: 'reports'`.
+     - R-03 respeitado: `dashboard-home-section.tsx` modularizado (56L).
+  3. **Minhas Partidas (`DashboardViewRouter.tsx`, `dashboard-match-list-section.tsx`):**
+     - View `history` (`/historico`) concentra a visualização completa de todas as partidas (`allMatches`) com ações de retomar, excluir e ver relatório.
+  4. **Relatórios (`DashboardViewRouter.tsx`, `/relatorios`, `useDashboardNavigation.ts`, `menu-items.ts`):**
+     - View `reports` filtra partidas com estado `FINISHED` (`finishedMatches`).
+     - Ações de clique direcionam para `/match/[id]/report?tab=timeline`, exibindo diretamente a timeline da partida finalizada.
+     - Nova rota `src/app/relatorios/page.tsx` monta o `DashboardPage` na visão de relatórios.
+     - Itens de menu habilitados para perfil de treinador e atleta.
+  5. **Resolução de Views em Rotas Prefixadas (`dashboard-view.logic.ts`):**
+     - O `resolveDashboardView` avaliava apenas `pathname.startsWith('/historico')` direto, falhando quando o usuário acessava rotas prefixadas por área (como `/clube/treinador/historico` ou `/atleta/relatorios`) e caindo indevidamente no `view: 'dashboard'` (tela inicial com atalhos).
+     - Criado helper `normalizeDashboardPath` que remove prefixos de área conhecidos (`AREA_PREFIXES`) antes de resolver a view.
+     - Suporte em middleware para rotas de relatórios (`/relatorios/:path*`).
+  6. **Acessibilidade e Guardas:**
+     - `dashboard-shortcut-card.tsx` ajustado com tags semânticas, `role="button"` e handlers de teclado acessíveis (`Enter` / `Space`).
+     - Atualizados testes de integração, rotas prefixadas e snapshots de componentes.
+- **Validação:**
+  - `pnpm typecheck`: 0 erros.
+  - `pnpm test src/app/dashboard`: 18/18 suítes passaram, 86/86 testes passaram.
+  - `pnpm test src/core/access/__tests__/menu.test.ts`: 21/21 passaram.
+  - `pnpm test src/__tests__/area-links.guard.test.ts`: 4/4 passaram.
+  - `check-r03`: todos os arquivos novos/modificados rigorosamente <= 100 linhas.
 
 ---
 

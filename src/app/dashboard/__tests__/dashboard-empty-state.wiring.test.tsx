@@ -56,7 +56,7 @@ describe('DashboardPage — empty state contextual', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useRouter as jest.Mock).mockReturnValue({ push: jest.fn() });
-    (usePathname as jest.Mock).mockReturnValue('/dashboard');
+    (usePathname as jest.Mock).mockReturnValue('/historico');
     setupAuth();
   });
 

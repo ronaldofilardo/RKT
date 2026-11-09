@@ -35,7 +35,7 @@ export const TORNEIOS = soon('torneios', 'Torneios', '🏆');
 export const TREINADOR: readonly MenuItem[] = [
   link('treinador-atletas', 'Meus Atletas', '/atletas', '🎾'),
   soon('treinador-solicitacoes', 'Solicitações', '📨'),
-  soon('treinador-relatorios', 'Relatórios', '📊'),
+  link('treinador-relatorios', 'Relatórios', '/relatorios', '📊'),
   link('nova-partida', 'Nova Partida', '/match/new', '➕'),
 ];
 
@@ -61,6 +61,7 @@ export const SAIR: MenuItem = { key: 'sair', label: 'Sair', icon: '🚪', action
 /** Atleta com clube vê "Meus Clubes"; avulso vê "Vincular a clube" (mesma rota). */
 export function atletaItems(athlete: AthleteContext): MenuItem[] {
   const items: MenuItem[] = [
+    link('atleta-relatorios', 'Relatórios', '/relatorios', '📊'),
     link('atleta-estatisticas', 'Minhas Estatísticas', '/atleta/estatisticas', '📈', true, 'Em breve'),
     link('atleta-treinador', 'Meu Treinador', '/atleta/treinador', '🧑‍🏫', true, 'Em breve'),
     link(

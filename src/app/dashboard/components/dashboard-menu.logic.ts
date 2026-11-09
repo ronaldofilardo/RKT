@@ -50,6 +50,7 @@ export function mapMenuSectionsToSidebar(
           else if (item.href === '/atletas') action = () => navigateToTarget('atletas');
           else if (item.href === '/match/new') action = () => navigateToTarget('newMatch');
           else if (item.href === '/dados-pessoais') action = () => navigateToTarget('profile');
+          else if (item.href === '/relatorios') action = () => navigateToTarget('reports');
           else action = () => routerPush(item.href!);
         } else {
           action = () => routerPush(item.href!);

@@ -76,7 +76,7 @@ export function DashboardChrome({ user, navigateToTarget, title, onLogout, onCon
     <>
       <DashboardTopBar
         menuOpen={menuOpen} setMenuOpen={setMenuOpen} user={currentUser} title={title}
-        onNewMatch={() => router.push(toAreaPath('/match/new') as any)} onLogout={endSession}
+        onLogout={endSession}
         showMenuButton={showMenu} showLogout={showLogout}
         activeContextId={meData?.activeContextId} availableContexts={meData?.availableContexts}
         onContextSwitched={refreshMe}

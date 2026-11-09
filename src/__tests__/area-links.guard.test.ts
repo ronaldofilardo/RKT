@@ -9,6 +9,7 @@ describe('area-links.guard.test.ts - Teste-Guarda de Integridade de Links', () =
     '/aguardandoanotador',
     '/historico',
     '/atletas',
+    '/relatorios',
     '/match/new',
     '/match/123/scoring',
     '/match/123/report',

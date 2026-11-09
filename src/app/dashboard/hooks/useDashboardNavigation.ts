@@ -28,6 +28,9 @@ export function useDashboardNavigation(router: RouterLike) {
         case "atletas":
           router.push(toAreaPath("/atletas") as any);
           break;
+        case "reports":
+          router.push(toAreaPath("/relatorios") as any);
+          break;
         case "newMatch":
           router.push(toAreaPath("/match/new") as any);
           break;
