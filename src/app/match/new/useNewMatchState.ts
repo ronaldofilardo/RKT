@@ -26,6 +26,7 @@ export function useNewMatchState() {
   const [date, setDate] = useState(''); const [time, setTime] = useState('');
   const [nickname] = useState('');
   const [visibility, setVisibility] = useState('PLAYERS_ONLY');
+  const [isPublicTemplate, setIsPublicTemplate] = useState(false);
   const [anotadorEmail, setAnotadorEmail] = useState('');
   const [tournamentName, setTournamentName] = useState('');
   const [clubName, setClubName] = useState('');
@@ -81,7 +82,7 @@ export function useNewMatchState() {
     selectedP1, setSelectedP1, selectedP2, setSelectedP2, selectedP1Partner, setSelectedP1Partner,
     selectedP2Partner, setSelectedP2Partner, doublesSetup, setDoublesSetup, format, setFormat,
     courtType, setCourtType, sportType, setSportType, date, setDate, time, setTime, nickname,
-    visibility, setVisibility, anotadorEmail, setAnotadorEmail, tournamentName, setTournamentName,
+    visibility, setVisibility, isPublicTemplate, setIsPublicTemplate, anotadorEmail, setAnotadorEmail, tournamentName, setTournamentName,
     clubName, setClubName, category, setCategory, roundName, setRoundName, bracketType, venueId, setVenueId,
     publicMatchCode, setPublicMatchCode, temperature, setTemperature, humidity, setHumidity,
     tags, setTags, details, setDetails, openForAnnotation, showTournamentDropdown, setShowTournamentDropdown,

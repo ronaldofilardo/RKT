@@ -75,7 +75,7 @@ describe('GET /api/players/pool', () => {
 
     expect(res.status).toBe(200);
     expect(data.data.players).toEqual([
-      { id: 'p-1', name: 'Joao Silva', athleteCode: 'ABC12345', club: 'Clube A', minor: false },
+      { id: 'p-1', name: 'Joao Silva', athleteCode: 'ABC12345', club: 'Clube A', nickname: null, minor: false },
     ]);
     expect(data.data.nextCursor).toBeNull();
     expect(mockListPoolPlayers).toHaveBeenCalledWith({
@@ -107,6 +107,7 @@ describe('GET /api/players/pool', () => {
         name: 'M***',
         athleteCode: null,
         club: null,
+        nickname: null,
         minor: true,
       },
     ]);

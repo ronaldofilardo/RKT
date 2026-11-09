@@ -25,6 +25,7 @@ export const OPERACAO: readonly MenuItem[] = [
   link('partidas-anotadas', 'Partidas Anotadas', '/partidasanotadas', '📝'),
   link('ao-vivo', 'Ao Vivo', '/partidasaovivo', '🔴'),
   link('aguardando', 'Aguardando', '/aguardandoanotador', '⏳'),
+  link('partidas-publicas', 'Partidas Públicas', '/partidas-publicas', '📡'),
   link('atletas', 'Atletas', '/atletas', '📋'),
   link('nova-partida', 'Nova Partida', '/match/new', '➕'),
 ];
@@ -36,6 +37,7 @@ export const TREINADOR: readonly MenuItem[] = [
   link('treinador-atletas', 'Meus Atletas', '/atletas', '🎾'),
   soon('treinador-solicitacoes', 'Solicitações', '📨'),
   link('treinador-relatorios', 'Relatórios', '/relatorios', '📊'),
+  link('partidas-publicas', 'Partidas Públicas', '/partidas-publicas', '📡'),
   link('nova-partida', 'Nova Partida', '/match/new', '➕'),
 ];
 

@@ -36,7 +36,7 @@ describe('playerService', () => {
 
       expect(mockPrisma.player.findMany).toHaveBeenCalledWith({
         take: 20,
-        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, clubId: true, city: true, state: true, createdAt: true, createdByUserId: true, playerCts: { select: { ctId: true } } },
+        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, clubId: true, city: true, state: true, createdAt: true, createdByUserId: true, nickname: true, playerCts: { select: { ctId: true } } },
         orderBy: { name: 'asc' },
         where: {},
       });
@@ -377,7 +377,7 @@ describe('playerService', () => {
 
       expect(mockPrisma.player.findUnique).toHaveBeenCalledWith({
         where: { id: 'p1' },
-        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, createdByUserId: true },
+        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, createdByUserId: true, userId: true, nickname: true, poolVisible: true, poolVisibleSince: true },
       });
       expect(result?.name).toBe('Player');
     });
@@ -428,7 +428,7 @@ describe('playerService', () => {
           backhand: '2H',
           ranking: 5,
         },
-        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true },
+        select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, nickname: true },
       });
       expect(result.name).toBe('Updated');
     });

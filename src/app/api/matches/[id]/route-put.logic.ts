@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
 import { updateMatch } from '@/services/matchService';
+import { propagateTemplateUpdate } from '@/services/match-template-propagation.logic';
 
 /**
  * PUT /api/matches/[id] — confere autoria, extrai `version` do body (controle
@@ -15,7 +16,7 @@ export async function handleMatchPut(
   try {
     const match = await prisma.match.findFirst({
       where: { id },
-      select: { createdByUserId: true },
+      select: { createdByUserId: true, isPublicTemplate: true },
     });
 
     if (!match) {
@@ -46,6 +47,10 @@ export async function handleMatchPut(
         );
       }
       return NextResponse.json({ error: updated.error }, { status: 400 });
+    }
+
+    if (match.isPublicTemplate) {
+      await propagateTemplateUpdate(id, updated as unknown as Record<string, unknown>);
     }
 
     return NextResponse.json(updated);

@@ -83,6 +83,12 @@ model Player {
 
   /// Código curto público do atleta (pool global). Preenchido por script/serviço na Fase 2.
   athleteCode       String?            @unique
+  /// Apelido legível escolhido pelo próprio atleta (único globalmente no pool).
+  nickname          String?            @unique
+  /// true = aparece nas buscas do pool público. Opt-in explícito; default oculto.
+  poolVisible       Boolean            @default(false)
+  /// Quando o atleta (ou responsável) autorizou a visibilidade no pool.
+  poolVisibleSince  DateTime?
   /// Conta ligada ao atleta (vínculo ATLETA).
   userId            String?            @unique
   user              User?              @relation("PlayerAccount", fields: [userId], references: [id], onDelete: SetNull)
@@ -110,6 +116,7 @@ model Player {
   matchesAsPlayer2Partner Match[] @relation("Player2Partner")
 
   @@index([name])
+  @@index([poolVisible], name: "Player_poolVisible_idx")
   @@map("Player")
 }
 
@@ -130,6 +137,12 @@ model Match {
   courtType          String?
   nickname           String?
   visibility         String                   @default("PUBLIC")
+  /// true = este registro é um template de partida pública (pool).
+  /// Nunca tem PointLog próprio. Apenas metadados.
+  isPublicTemplate   Boolean                  @default(false)
+  /// FK para o template quando esta Match é uma anotação derivada.
+  /// null = partida privada normal.
+  sourceMatchId      String?
   isResuming         Boolean                  @default(false)
   openForAnnotation  Boolean                  @default(false)
   tournamentName     String?
@@ -163,6 +176,8 @@ model Match {
   player2            Player                   @relation("Player2", fields: [player2Id], references: [id])
   player1Partner     Player?                  @relation("Player1Partner", fields: [player1PartnerId], references: [id])
   player2Partner     Player?                  @relation("Player2Partner", fields: [player2PartnerId], references: [id])
+  sourceMatch        Match?                   @relation("MatchAnnotations", fields: [sourceMatchId], references: [id], onDelete: SetNull)
+  annotations        Match[]                  @relation("MatchAnnotations")
   pointLog           PointLog[]
   annotationSessions MatchAnnotationSession[]
   scoreEdits         MatchScoreEdit[]
@@ -175,6 +190,8 @@ model Match {
   @@index([createdByUserId, createdAt(sort: Desc)])
   @@index([ctId])
   @@index([tournamentId])
+  @@index([isPublicTemplate], name: "Match_isPublicTemplate_idx")
+  @@index([sourceMatchId], name: "Match_sourceMatchId_idx")
 }
 
 model PointLog {
@@ -658,6 +675,7 @@ enum ResetStatus {
 enum ConsentPurpose {
   DATA
   BROADCAST
+  POOL_VISIBILITY
 }
 
 enum InviteKind {

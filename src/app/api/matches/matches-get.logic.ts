@@ -1,15 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MatchStateSchema } from '@/schemas/contracts';
 import { listMatches } from '@/services/matchService';
+import { loadCtMemberUserIds, type MatchListScope } from '@/services/matchRepository';
+import type { Actor } from '@/core/access';
 import { reportApiError, extractPagination } from '@/lib/api.logic';
 import type { TennisFormat } from '@/core/scoring/types';
 import { logger } from '@/lib/logger';
 import type { RLSUser } from '@/lib/rls-context';
 
+async function resolveScope(user: RLSUser, actor?: Actor | null): Promise<MatchListScope> {
+  const memberships = actor?.memberships ?? [];
+  const isPlatform = memberships.some(
+    (m) => m.kind === 'PLATAFORMA' && m.status === 'ACTIVE',
+  );
+  const isGestor = memberships.some(
+    (m) => m.kind === 'GESTOR' && m.status === 'ACTIVE' && !!m.ctId,
+  );
+
+  let ctMemberUserIds: string[] = [];
+  if (!isPlatform && isGestor && user.contextId && user.contextId !== 'PARTICULAR') {
+    ctMemberUserIds = await loadCtMemberUserIds(user.contextId);
+  }
+
+  return { unrestricted: isPlatform, ctMemberUserIds };
+}
+
 export async function getMatchesResponse(
   request: NextRequest,
   user: RLSUser | null | undefined,
   followedPlayerIds?: readonly string[] | null,
+  actor?: Actor | null,
 ): Promise<NextResponse> {
   try {
     if (!user) {
@@ -35,7 +55,8 @@ export async function getMatchesResponse(
       state = parsed.data;
     }
 
-    const matches = await listMatches(state, cursor, limit, user.id, user.contextId, followedPlayerIds);
+    const scope = await resolveScope(user, actor);
+    const matches = await listMatches(state, cursor, limit, user.id, user.contextId, followedPlayerIds, scope);
     const nextCursor = matches.length === limit ? matches[matches.length - 1].id : null;
 
     const { normalizeScoreState } = await import('@/core/scoring/score-normalizer');

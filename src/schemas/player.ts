@@ -2,6 +2,15 @@ import { z } from "zod";
 import { flexibleIdValidator } from "./common";
 import { isValidCpf } from "@/core/athlete/cpf";
 import { BRAZILIAN_UFS } from "@/core/athlete/brazilian-states";
+import { NICKNAME_MAX, NICKNAME_MIN, normalizeNickname, validateNickname } from "@/core/athlete/nickname";
+
+/** Apelido público: normalizado em minúsculas e validado pelas regras de core. */
+export const NicknameSchema = z
+  .string()
+  .transform((value) => normalizeNickname(value))
+  .refine((value) => validateNickname(value).valid, {
+    message: `Apelido deve ter ${NICKNAME_MIN}-${NICKNAME_MAX} caracteres e usar apenas letras, números, ponto, hífen ou sublinhado`,
+  });
 
 export const RankingEntrySchema = z.object({
   category: z.string().optional(),
@@ -21,6 +30,7 @@ export const PlayerSchema = z.object({
   id: flexibleIdValidator,
   name: z.string().min(2).max(100),
   club: z.string().optional(),
+  nickname: z.string().nullable().optional(),
 });
 export type Player = z.infer<typeof PlayerSchema>;
 
@@ -53,6 +63,8 @@ export const CreatePlayerInputSchema = z.object({
   myClub: z.boolean().optional().default(false),
   ctId: z.string().optional(),
   createdByUserId: z.string().optional(),
+  nickname: NicknameSchema.optional(),
+  poolVisible: z.boolean().optional(),
 });
 export type CreatePlayerInput = z.infer<typeof CreatePlayerInputSchema>;
 
@@ -67,6 +79,7 @@ export const UpdatePlayerInputSchema = z.object({
   city: z.string().trim().max(100).optional(),
   state: z.enum(BRAZILIAN_UFS).optional(),
   isExternalClub: z.boolean().optional(),
+  nickname: NicknameSchema.nullish(),
 });
 export type UpdatePlayerInput = z.infer<typeof UpdatePlayerInputSchema>;
 

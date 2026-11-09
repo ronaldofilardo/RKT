@@ -19,6 +19,7 @@ export function useNewAthleteModalForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<AthleteForm>({ ...EMPTY_FORM });
+  const [nickname, setNickname] = useState('');
   const [rankings, setRankings] = useState<Record<RankingType, RankingState>>(initialRankings());
 
   const submitNewAthleteForm = useCallback(async (e: React.FormEvent) => {
@@ -35,17 +36,18 @@ export function useNewAthleteModalForm({
       if (form.uf) (payload as Record<string, unknown>).state = form.uf;
       if (form.city) (payload as Record<string, unknown>).city = form.city;
       if (form.club) (payload as Record<string, unknown>).club = form.club;
+      if (nickname.trim()) (payload as Record<string, unknown>).nickname = nickname.trim();
 
       const json = await playersClient.create(payload, token);
       const player = json?.data || json;
 
       onCreated({ id: player.id, name: player.name, gender: player.gender, age: player.age, dominance: player.dominance, backhand: player.backhand, ranking: player.ranking });
-      setForm({ ...EMPTY_FORM }); setRankings(initialRankings()); onClose();
+      setForm({ ...EMPTY_FORM }); setNickname(''); setRankings(initialRankings()); onClose();
     } catch (err) { setError(err instanceof Error ? err.message : 'Erro ao criar atleta. Tente novamente.'); }
     finally { setSubmitting(false); }
-  }, [form, rankings, myClub, ctId, onCreated, onClose]);
+  }, [form, nickname, rankings, myClub, ctId, onCreated, onClose]);
 
-  const resetForm = useCallback(() => { setForm({ ...EMPTY_FORM }); setRankings(initialRankings()); setError(null); }, []);
+  const resetForm = useCallback(() => { setForm({ ...EMPTY_FORM }); setNickname(''); setRankings(initialRankings()); setError(null); }, []);
 
-  return { submitting, error, form, setForm, rankings, setRankings, submitNewAthleteForm, resetForm };
+  return { submitting, error, form, setForm, nickname, setNickname, rankings, setRankings, submitNewAthleteForm, resetForm };
 }

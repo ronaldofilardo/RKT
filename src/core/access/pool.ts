@@ -27,6 +27,8 @@ export interface PoolPlayerRow {
   birthDate?: Date | null;
   athleteCode?: string | null;
   club?: string | null;
+  nickname?: string | null;
+  poolVisible?: boolean | null;
 }
 
 /** View minima de atleta para busca global no pool (dados sensiveis omitidos). */
@@ -35,8 +37,16 @@ export interface PoolPlayerView {
   name: string;
   athleteCode?: string | null;
   club?: string | null;
+  /** Apelido público — só aparece com opt-in (`poolVisible`) e nunca para menores. */
+  nickname?: string | null;
   /** true quando o atleta e menor de idade (dados sensiveis mascarados na UI). */
   minor: boolean;
+}
+
+/** Nickname só é exposto no pool com opt-in explícito e para maiores de idade. */
+export function visiblePoolNickname(row: PoolPlayerRow, minor: boolean): string | null {
+  if (minor || !row.poolVisible) return null;
+  return row.nickname ?? null;
 }
 
 /** Mascara o nome de um menor para busca global (privacidade ECA/LGPD). */
@@ -53,6 +63,7 @@ export function toPoolPlayerView(row: PoolPlayerRow, now: Date): PoolPlayerView 
     name: minor ? maskNameForMinor(row.name) : row.name,
     athleteCode: minor ? null : row.athleteCode ?? null,
     club: minor ? null : row.club ?? null,
+    nickname: visiblePoolNickname(row, minor),
     minor,
   };
 }

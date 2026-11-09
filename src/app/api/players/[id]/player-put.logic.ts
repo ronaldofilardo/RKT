@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
+import { ApiError } from '@/lib/errors';
 import { getRLSUser } from '@/lib/auth';
 import { UpdatePlayerInputSchema, RankingTypeSchema } from '@/schemas/player';
 import { getPlayerById, updatePlayer } from '@/services/playerService';
@@ -18,7 +19,7 @@ export async function putPlayerResponse(
         { status: 400 }
       );
     }
-    const { name, gender, birthDate, dominance, backhand, rankings } = parsedBody.data;
+    const { name, gender, birthDate, dominance, backhand, rankings, nickname } = parsedBody.data;
 
     const existing = await getPlayerById(id);
     if (!existing) {
@@ -26,7 +27,7 @@ export async function putPlayerResponse(
     }
 
     const user = getRLSUser();
-    const isOwner = user?.id === id;
+    const isOwner = user?.id === id || (!!existing.userId && existing.userId === user?.id);
     const isStaff = user?.role === 'ADMIN';
     const isCreator = existing.createdByUserId && user?.id === existing.createdByUserId;
 
@@ -68,11 +69,18 @@ export async function putPlayerResponse(
     if (dominance !== undefined) updateData.dominance = dominance;
     if (backhand !== undefined) updateData.backhand = backhand;
     if (rankings !== undefined) updateData.rankings = rankings;
+    if (nickname !== undefined) updateData.nickname = nickname;
 
     const updated = await updatePlayer(id, updateData as Parameters<typeof updatePlayer>[1]);
     return NextResponse.json(updated);
   } catch (error) {
     logger.error('[PLAYERS PUT]', error);
+    if (error instanceof ApiError) {
+      return NextResponse.json(
+        { error: error.code, message: error.message, details: error.details },
+        { status: error.status },
+      );
+    }
     return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });
   }
 }

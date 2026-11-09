@@ -20,6 +20,7 @@ export type PoolPlayerListResponse = {
       name: string;
       athleteCode: string | null;
       club: string | null;
+      nickname: string | null;
       minor: boolean;
     }[];
     nextCursor: string | null;

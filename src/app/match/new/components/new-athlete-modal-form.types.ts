@@ -16,6 +16,8 @@ export const fieldIds = {
 export interface NewAthleteModalFormProps {
   form: AthleteForm;
   setForm: React.Dispatch<React.SetStateAction<AthleteForm>>;
+  nickname: string;
+  onNicknameChange: (value: string) => void;
   rankings: Record<RankingType, RankingState>;
   setRankings: React.Dispatch<React.SetStateAction<Record<RankingType, RankingState>>>;
   age: number | null;

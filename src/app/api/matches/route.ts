@@ -6,7 +6,7 @@ import { postMatchResponse } from './matches-post.logic';
 
 export async function GET(request: NextRequest) {
   return withAccessHandler(request, null, null, async ({ user, actor }) => {
-    return getMatchesResponse(request, user, actor.followedPlayerIds);
+    return getMatchesResponse(request, user, actor.followedPlayerIds, actor);
   });
 }
 

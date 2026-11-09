@@ -73,6 +73,7 @@ export const config = {
     '/partidasaovivo/:path*',
     '/aguardandoanotador/:path*',
     '/atletas/:path*',
+    '/partidas-publicas/:path*',
     '/trocar-senha/:path*',
     '/gestor/:path*',
     '/suporte/:path*',

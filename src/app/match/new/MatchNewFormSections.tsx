@@ -79,6 +79,7 @@ export function MatchNewFormSections({ c }: { c: NewMatchController }) {
         tags={c.tags}
         details={c.details}
         onVisibilityChange={c.setVisibility}
+        onPublicTemplateChange={c.setIsPublicTemplate}
         onAnotadorChange={c.setAnotadorEmail}
         onVenueChange={c.setVenueId}
         onPublicCodeChange={c.setPublicMatchCode}

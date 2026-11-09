@@ -22,11 +22,6 @@ export const SPORT_TYPES = [
 ];
 
 
-export const VISIBILITY_OPTIONS = [
-  { value: 'PUBLIC', label: 'Pública' },
-  { value: 'PLAYERS_ONLY', label: 'Apenas Jogadores' },
-];
-
 export const ROUND_OPTIONS = [
   { value: 'round robin', label: 'Round Robin' },
   { value: '1a rodada', label: '1a Rodada' },

@@ -15,5 +15,7 @@ export interface Athlete {
   rankings?: Record<string, RankingEntry>;
   club?: string | null;
   clubId?: string | null;
+  /** Apelido público (exibido apenas quando o atleta optou pelo pool). */
+  nickname?: string | null;
   playerCts?: { ctId: string }[];
 }

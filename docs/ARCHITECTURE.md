@@ -285,6 +285,19 @@ As decisões arquiteturais estruturantes do projeto foram consolidadas diretamen
     - *Apropriação por conhecimento de dados alheios:* Mitigado por validação estrita de dígitos mod 11, rate limit no signup, mensagens genéricas sem confirmação prévia de existência, registro em `AuditLog` e reversão administrativa via Suporte da Plataforma.
 - **Plano:** `docs/PLANO_POOL_BUSCA_CADASTRO_ATLETAS_E_CLAIM_2026-10-27.md`.
 
+### ADR-0012 — Pool de Partidas Públicas e Nickname de Atleta (2026-11-09)
+- **Problema:** a mesma partida real pode ser anotada por vários usuários; hoje cada anotação é privada e não há como um treinador do CT-A encontrar a partida do CT-B. Atletas também não têm um identificador legível (o `athleteCode` é opaco) nem controle sobre aparecer em buscas.
+- **Decisão:**
+  - **Template é cartaz:** `Match.isPublicTemplate = true` reutiliza o model existente, sem `PointLog` próprio e sem `MatchAnnotationSession`. É apenas metadado do evento.
+  - **Anotação derivada é soberana:** cada usuário cria um `Match` com `sourceMatchId` apontando para o template. `PointLog`, placar e ciclo de vida são independentes; não existe relatório comparativo.
+  - **Um template, uma anotação ativa por usuário:** criação duplicada responde `409 ALREADY_ANNOTATING` com o `matchId` existente.
+  - **Edição propaga metadados:** somente `PROPAGABLE_FIELDS` do template são copiados para derivadas em `SCHEDULED`/`IN_PROGRESS`; `FINISHED`/`CANCELLED` permanecem intocadas.
+  - **Encerramento do template é soft-delete** (`deletedAt`/`deletedBy`) pelo criador; derivadas continuam acessíveis.
+  - **Visibilidade da listagem por perfil:** Admin/Suporte irrestrito; Gestor vê o CT e as derivadas anotadas por membros ativos; demais veem apenas o que criaram. Templates ficam fora de `GET /api/matches` (têm `GET /api/matches/pool`).
+  - **Nickname é identidade escolhida:** `Player.nickname` é único globalmente e normalizado (minúsculas). `poolVisible` é opt-in (`false` por padrão) e só pode ser ligado por menor com `ConsentRecord` `POOL_VISIBILITY` ativo. O nickname só é exposto no pool com opt-in e nunca para menores.
+- **Consequência:** nenhuma tabela nova; duas colunas em `Match`, três em `Player` e um valor de enum. Templates e derivadas compartilham os mesmos contratos de leitura, diferenciados por `isPublicTemplate`/`sourceMatchId`.
+- **Plano:** `docs/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md`.
+
 ---
 
 ## 7. Padrões de Infraestrutura Transversal

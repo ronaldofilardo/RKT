@@ -26,6 +26,8 @@
     "db:where": "tsx scripts/db/preflight.ts --mode=development",
     "db:push": "tsx scripts/db/preflight.ts --mode=development -- prisma db push",
     "db:migrate": "tsx scripts/db/preflight.ts --mode=development -- prisma migrate dev",
+    "db:migrate:deploy": "tsx scripts/db/preflight.ts --mode=development -- prisma migrate deploy",
+    "db:migrate:status": "tsx scripts/db/preflight.ts --mode=development -- prisma migrate status",
     "db:seed": "tsx scripts/db/preflight.ts --mode=development -- tsx prisma/seed.ts",
     "spec:validate": "node scripts/validate-spec-drift.mjs",
     "typecheck": "tsc --noEmit",

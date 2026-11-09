@@ -61,6 +61,15 @@ export interface ClubMatchItem {
   player2: { id: string; name: string; club?: string | null };
   createdByUser: { id: string; name: string; email: string } | null;
   scoreState?: unknown;
+  /** Presente quando esta partida é uma anotação derivada de um cartaz público. */
+  sourceMatchId?: string | null;
+  sourceMatch?: {
+    id: string;
+    scheduledAt: string | null;
+    format: string;
+    player1: { name: string };
+    player2: { name: string };
+  } | null;
 }
 
 export type GestorTab = 'coaches' | 'athletes' | 'matches' | 'club';

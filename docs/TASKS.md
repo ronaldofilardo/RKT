@@ -38,6 +38,34 @@
   5. [ ] Exibição broadcast da procedência em placares e relatórios.
   6. [ ] Linha de base 100% verde (`tsc`, `next lint`, testes Jest).
 
+### A0.13. Pool de Partidas Públicas (S1) ⏳
+- **Status:** Backend e frontend implementados (2026-11-09); migrations prontas, aguardando execução local (`pnpm db:migrate`).
+- **Documento:** [`docs/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md`](file:///c:/apps/RKT/docs/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md)
+- **Contexto:** múltiplos anotadores para a mesma partida real. O template (`Match.isPublicTemplate = true`) é apenas um cartaz no pool, sem `PointLog`; cada usuário gera sua própria anotação derivada (`sourceMatchId`), isolada e soberana.
+- **DoD:**
+  1. [x] Schema: `isPublicTemplate`, `sourceMatchId` (auto-relação `MatchAnnotations`), índices e migration `20261109000000_add_public_match_template`.
+  2. [x] `createPublicTemplate` (exige consentimento DATA para menores) + `createAnnotationFromTemplate` (409 `ALREADY_ANNOTATING`).
+  3. [x] `GET /api/matches/pool` (cursor, `scheduledAt DESC NULLS LAST`, `annotationCount`).
+  4. [x] `POST /api/matches/pool/[templateId]/annotate` (201 `{ matchId }`).
+  5. [x] Propagação de metadados do template (`PROPAGABLE_FIELDS`) e encerramento soft (`DELETE /api/matches/[id]/template`).
+  6. [x] Visibilidade por perfil em `GET /api/matches` (Admin/Suporte irrestrito; Gestor vê derivadas de membros do CT).
+  7. [x] Frontend: toggle Privada/Pública no formulário, tela `/partidas-publicas`, card com "Anotar esta partida", menu e middleware.
+  8. [x] Painel do Gestor agrupado por template + filtro por membro anotador.
+  9. [ ] E2E `08-public-match-pool.spec.ts`.
+
+### A0.14. Nickname de Atleta no Pool (S2) ⏳
+- **Status:** Fluxo de maiores de idade implementado (2026-11-09); fluxo de menores depende de A0.8.
+- **Documento:** [`docs/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md`](file:///c:/apps/RKT/docs/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md)
+- **Contexto:** apelido legível e único (`@unique`), escolhido pelo atleta, distinto do `athleteCode`. Visibilidade no pool é opt-in (`poolVisible: false` por padrão).
+- **DoD:**
+  1. [x] Schema: `Player.nickname`, `poolVisible`, `poolVisibleSince`, enum `ConsentPurpose.POOL_VISIBILITY` e migration `20261109010000_add_player_nickname_pool`.
+  2. [x] Core puro `src/core/athlete/nickname.ts` (3–30 chars, `[a-z0-9._-]`, normalização).
+  3. [x] `setPlayerPoolVisibility` + `PATCH /api/players/[id]/pool-visibility` (menor exige `ConsentRecord POOL_VISIBILITY`).
+  4. [x] Pool de busca expõe nickname apenas com opt-in e nunca para menores.
+  5. [x] `createPlayer`/`PATCH` com nickname e `P2002 → 409 NICKNAME_TAKEN`.
+  6. [x] Frontend: Perfil Público em `/dados-pessoais`, campo no modal de atleta e `@nickname` no seletor de atletas.
+  7. [ ] Fluxo de consentimento de menores (bloqueado por A0.8).
+
 ### A0.11. Landing Page Institucional e de Captação (c:\apps\RKT-LP) 📋
 - **Status:** Planejada / Pronta para Execução (2026-11-01)
 - **Documento:** [`c:\apps\RKT-LP\PLANO_LANDING_PAGE.md`](file:///c:/apps/RKT-LP/PLANO_LANDING_PAGE.md)

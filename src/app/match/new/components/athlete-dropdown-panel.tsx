@@ -62,6 +62,9 @@ export function AthleteDropdownPanel({
           >
             <div className="min-w-0">
               <span className="font-medium text-telemetry-text-primary">{a.name}</span>
+              {a.nickname && (
+                <span className="ml-1 text-xs text-telemetry-volt">@{a.nickname}</span>
+              )}
               {affiliation !== 'OWN' && a.club && (
                 <p className="text-xs text-telemetry-text-muted truncate">{a.club}</p>
               )}

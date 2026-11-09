@@ -1,7 +1,7 @@
 'use client';
 
-import { VISIBILITY_OPTIONS } from '../matchConstants';
 import { DetailsField, DetailTextInput, DetailTextarea } from './match-details-section-fields';
+import { MatchVisibilityField } from './MatchVisibilityField';
 import { WeatherFields } from './match-details-section-weather';
 
 interface MatchDetailsSectionProps {
@@ -14,6 +14,7 @@ interface MatchDetailsSectionProps {
   tags: string;
   details: string;
   onVisibilityChange: (value: string) => void;
+  onPublicTemplateChange?: (value: boolean) => void;
   onAnotadorChange: (value: string) => void;
   onVenueChange: (value: string) => void;
   onPublicCodeChange: (value: string) => void;
@@ -33,6 +34,7 @@ export function MatchDetailsSection({
   tags,
   details,
   onVisibilityChange,
+  onPublicTemplateChange,
   onAnotadorChange,
   onVenueChange,
   onPublicCodeChange,
@@ -43,20 +45,12 @@ export function MatchDetailsSection({
 }: MatchDetailsSectionProps) {
   return (
     <>
-      <DetailsField title="Visibilidade">
-        <div className="flex-1">
-          <select
-            value={visibility}
-            onChange={(e) => onVisibilityChange(e.target.value)}
-            className="w-full px-3 py-2 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary [color-scheme:dark]"
-          >
-            {VISIBILITY_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value} className="bg-telemetry-elevated text-telemetry-text-primary">
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+      <DetailsField title="Visibilidade" align="start">
+        <MatchVisibilityField
+          visibility={visibility}
+          onVisibilityChange={onVisibilityChange}
+          onPublicTemplateChange={onPublicTemplateChange}
+        />
       </DetailsField>
 
       <DetailsField title="Anotador" optional>

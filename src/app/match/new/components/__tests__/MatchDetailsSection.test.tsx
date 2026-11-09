@@ -15,6 +15,7 @@ describe('MatchDetailsSection', () => {
     tags: '',
     details: '',
     onVisibilityChange: jest.fn(),
+    onPublicTemplateChange: jest.fn(),
     onAnotadorChange: jest.fn(),
     onVenueChange: jest.fn(),
     onPublicCodeChange: jest.fn(),
@@ -56,21 +57,25 @@ describe('MatchDetailsSection', () => {
     }
   });
 
-  it('deve renderizar opções de visibilidade com estilo de alto contraste e disparar onVisibilityChange', () => {
+  it('deve renderizar visibilidade como rádio (Privada/Pública) e disparar os handlers', () => {
     render(<MatchDetailsSection {...defaultProps} />);
 
-    const select = screen.getByRole('combobox') as HTMLSelectElement;
-    expect(select).toBeInTheDocument();
-    expect(select).toHaveClass('[color-scheme:dark]', 'text-telemetry-text-primary');
+    const privateRadio = screen.getByRole('radio', { name: /Privada/i });
+    const publicRadio = screen.getByRole('radio', { name: /Pública/i });
+    expect(privateRadio).toBeChecked();
+    expect(publicRadio).not.toBeChecked();
 
-    const options = Array.from(select.options);
-    expect(options.length).toBeGreaterThan(0);
-    options.forEach((opt) => {
-      expect(opt).toHaveClass('text-telemetry-text-primary', 'bg-telemetry-elevated');
-    });
-
-    fireEvent.change(select, { target: { value: 'PUBLIC' } });
+    fireEvent.click(publicRadio);
     expect(defaultProps.onVisibilityChange).toHaveBeenCalledWith('PUBLIC');
+    expect(defaultProps.onPublicTemplateChange).toHaveBeenCalledWith(true);
+  });
+
+  it('desmarca o template ao voltar para Privada', () => {
+    render(<MatchDetailsSection {...defaultProps} visibility="PUBLIC" />);
+
+    fireEvent.click(screen.getByRole('radio', { name: /Privada/i }));
+    expect(defaultProps.onVisibilityChange).toHaveBeenCalledWith('PLAYERS_ONLY');
+    expect(defaultProps.onPublicTemplateChange).toHaveBeenCalledWith(false);
   });
 
   it('deve renderizar campo livre para Detalhes e disparar onDetailsChange', () => {

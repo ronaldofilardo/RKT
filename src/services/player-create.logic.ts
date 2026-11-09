@@ -4,6 +4,8 @@ import { Rankings } from '@/schemas/contracts';
 import { getAutoCategoryForAge } from '@/lib/ranking/rankingConstants';
 import { hashCpf } from '@/core/athlete/cpf';
 import { generateUniqueAthleteCode } from '@/core/athlete/athlete-code';
+import { normalizeNickname } from '@/core/athlete/nickname';
+import { createPlayerRow } from './player-create-row.logic';
 
 type CreatePlayerActor = 'ATLETA' | 'GESTOR' | 'TREINADOR' | null;
 
@@ -23,6 +25,7 @@ export async function createPlayer(data: {
   cpf?: string | null;
   myClub?: boolean;
   ctId?: string | null;
+  nickname?: string | null;
   actorProfile?: CreatePlayerActor;
 }) {
   const pepper = process.env.CPF_HASH_PEPPER ?? '';
@@ -51,7 +54,9 @@ export async function createPlayer(data: {
     }
   }
 
-  const player = await prisma.player.create({
+  const nickname = data.nickname ? normalizeNickname(data.nickname) : null;
+
+  const player = await createPlayerRow({
     data: {
       name: data.name,
       email: data.email || null,
@@ -69,8 +74,9 @@ export async function createPlayer(data: {
       cpfLast2,
       identityStatus: data.createdByUserId ? 'CONFIRMED' : 'PROVISIONAL',
       athleteCode,
+      nickname,
     },
-    select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, cpfHash: true, cpfLast2: true, identityStatus: true, athleteCode: true, userId: true, createdByUserId: true },
+    select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, cpfHash: true, cpfLast2: true, identityStatus: true, athleteCode: true, nickname: true, poolVisible: true, userId: true, createdByUserId: true },
   });
 
   if (data.myClub && data.actorProfile) {
@@ -88,3 +94,4 @@ export async function createPlayer(data: {
 
   return player;
 }
+

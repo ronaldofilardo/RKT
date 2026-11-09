@@ -11,6 +11,8 @@ function buildCreateFormatFields(data: CreateMatchInput) {
     nickname: data.nickname || null,
     visibility: data.visibility || 'PUBLIC',
     openForAnnotation: data.openForAnnotation || false,
+    isPublicTemplate: data.isPublicTemplate ?? false,
+    sourceMatchId: data.sourceMatchId ?? null,
   };
 }
 

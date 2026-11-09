@@ -5,6 +5,10 @@ import { validatedRequest } from '@/lib/api.logic';
 import { logger } from '@/lib/logger';
 import { assertCtMembership } from './match-ct-access.logic';
 import { createMatchWithDuplicateCheck } from './match-create-with-duplicate-check.logic';
+import {
+  createAnnotationFromTemplate,
+  createPublicTemplate,
+} from '@/services/match-template-create.logic';
 import type { RLSUser } from '@/lib/rls-context';
 
 export async function postMatchResponse(
@@ -20,6 +24,27 @@ export async function postMatchResponse(
     }
     await assertCtMembership(input.ctId, currentUserId);
     logger.match.created(currentUserId ?? "anonymous");
+
+    if (!currentUserId) {
+      return NextResponse.json(
+        { error: 'UNAUTHORIZED', message: 'Token de acesso requerido' },
+        { status: 401 }
+      );
+    }
+
+    if (input.isPublicTemplate) {
+      const template = await createPublicTemplate(input, currentUserId);
+      return NextResponse.json({ data: template, ...template }, { status: 201 });
+    }
+
+    if (input.sourceMatchId) {
+      const derived = await createAnnotationFromTemplate(
+        input.sourceMatchId,
+        currentUserId,
+        input.ctId ?? null,
+      );
+      return NextResponse.json({ data: derived, ...derived }, { status: 201 });
+    }
 
     if (!force) {
       const match = await createMatchWithDuplicateCheck(input, currentUserId);

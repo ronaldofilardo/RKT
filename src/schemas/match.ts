@@ -221,6 +221,10 @@ export const CreateMatchInputSchema = z
     humidity: z.number().nullish(),
     force: z.boolean().optional(),
     details: z.string().nullish(),
+    /** true = este registro é um template de partida pública (cartaz no pool). */
+    isPublicTemplate: z.boolean().optional().default(false),
+    /** ID do template público quando este registro é uma anotação derivada. */
+    sourceMatchId: z.string().min(1).optional(),
   })
   .refine((data) => {
     if (data.matchType === "DOUBLES") {
@@ -237,6 +241,15 @@ export const CreateMatchInputSchema = z
   }, {
     message: "Em partidas de duplas, todos os 4 atletas devem ser distintos e preenchidos; em simples, Jogador 2 deve ser diferente de Jogador 1",
     path: ["player2PartnerId"],
+  })
+  .superRefine((data, ctx) => {
+    if (data.isPublicTemplate && data.sourceMatchId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["sourceMatchId"],
+        message: "Um template público não pode ser derivado de outro template",
+      });
+    }
   });
 export type CreateMatchInput = z.infer<typeof CreateMatchInputSchema>;
 

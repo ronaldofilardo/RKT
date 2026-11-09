@@ -17,7 +17,7 @@ export function NewAthleteModal({
   isOpen, onClose, onCreated, myClub = false, ctId = null,
 }: NewAthleteModalProps) {
   const {
-    submitting, error, nameInputRef, form, setForm, rankings, setRankings, age, submitNewAthleteForm,
+    submitting, error, nameInputRef, form, setForm, nickname, setNickname, rankings, setRankings, age, submitNewAthleteForm,
   } = useNewAthleteModal({ isOpen, onClose, onCreated, myClub, ctId });
 
   if (!isOpen) return null;
@@ -65,6 +65,7 @@ export function NewAthleteModal({
 
           <NewAthleteModalForm
             form={form} setForm={setForm} rankings={rankings} setRankings={setRankings}
+            nickname={nickname} onNicknameChange={setNickname}
             age={age} submitting={submitting} nameInputRef={nameInputRef}
             myClub={myClub && !!ctId}
             onRankingToggle={(type) => toggleRankingEntry(setRankings, type)}

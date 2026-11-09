@@ -26,7 +26,7 @@ export async function listPlayers(
     select: {
       id: true, name: true, gender: true, age: true, birthDate: true, dominance: true,
       backhand: true, ranking: true, rankings: true, club: true, clubId: true,
-      city: true, state: true, createdAt: true, createdByUserId: true,
+      city: true, state: true, createdAt: true, createdByUserId: true, nickname: true,
       playerCts: { select: { ctId: true } },
     },
     orderBy: { name: 'asc' },
@@ -43,7 +43,7 @@ export async function findPlayerByEmail(email: string) {
 export async function getPlayerById(id: string) {
   return prisma.player.findUnique({
     where: { id },
-    select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, createdByUserId: true },
+    select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, createdByUserId: true, userId: true, nickname: true, poolVisible: true, poolVisibleSince: true },
   });
 }
 

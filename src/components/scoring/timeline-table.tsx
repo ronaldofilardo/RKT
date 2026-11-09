@@ -163,7 +163,11 @@ function FinalResultRow({
       <td colSpan={3} className="px-1.5 py-2 text-[10px] text-telemetry-text-primary sticky left-0 bg-telemetry-elevated z-10 border-r border-white/10 text-right pr-3">
         Resultado Final
       </td>
-      <td colSpan={2} className="px-1.5 py-2 text-[10px] border-r border-white/10 font-mono">
+      <td
+        colSpan={2}
+        className="px-1.5 py-2 text-[10px] border-r border-white/10 font-mono"
+        aria-label={`Vencedor: ${winnerLabel}. Placar: ${placar}`}
+      >
         <div className="flex flex-col leading-tight">
           <span className="font-semibold text-telemetry-text-primary">Vencedor – {winnerLabel}</span>
           <span className="text-telemetry-text-muted text-[9px] mt-1 block">Placar: {placar}</span>

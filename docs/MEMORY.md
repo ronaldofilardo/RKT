@@ -8,6 +8,37 @@
 
 ---
 
+## 2.31 Pool de Partidas Públicas e Nickname de Atleta (A0.13/A0.14) — 2026-11-09
+- **Contexto & Demanda:**
+  - S1: a mesma partida real é anotada por vários usuários; faltava um cartaz público compartilhável sem compartilhar `PointLog`.
+  - S2: atletas não tinham apelido legível nem controle de exposição em buscas (o `athleteCode` é opaco).
+  - Plano: `docs/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md`.
+- **Modelagem (sem tabela nova):**
+  - `Match.isPublicTemplate` + `Match.sourceMatchId` (auto-relação `MatchAnnotations`, `onDelete: SetNull`), índices `Match_isPublicTemplate_idx` e `Match_sourceMatchId_idx`.
+  - `Player.nickname @unique`, `Player.poolVisible` (default `false`), `Player.poolVisibleSince`; `ConsentPurpose.POOL_VISIBILITY`.
+  - Migrations: `20261109000000_add_public_match_template` e `20261109010000_add_player_nickname_pool`. Índices criados como índices plenos (não parciais) para evitar drift entre o Prisma schema e o histórico de migrations.
+- **Backend S1:**
+  - `match-template-create.logic.ts`: `createPublicTemplate` (exige `ConsentRecord DATA` para menor) e `createAnnotationFromTemplate` (privada `PLAYERS_ONLY`, `SCHEDULED`, 409 `ALREADY_ANNOTATING`).
+  - `match-template-propagation.logic.ts`: `PROPAGABLE_FIELDS` + `propagateTemplateUpdate` (só `SCHEDULED`/`IN_PROGRESS`). `PATCH /api/matches/[id]` propaga quando o alvo é template.
+  - `match-template-close.logic.ts`: `DELETE /api/matches/[id]/template` (soft-delete, só o criador).
+  - `GET /api/matches/pool` (cursor, máximo 50, `scheduledAt DESC NULLS LAST`, `annotationCount`) e `POST /api/matches/pool/[templateId]/annotate` (201 `{ matchId }`).
+  - `POST /api/matches` despacha `isPublicTemplate` / `sourceMatchId` antes do fluxo padrão.
+  - Fase 4: `listMatches` aceita `MatchListScope` (`unrestricted` para Admin/Suporte; `ctMemberUserIds` para Gestor), oculta templates da listagem privada e corrigiu o caso de `OR: []` (que zerava resultados quando não havia condições).
+- **Backend S2:**
+  - Core puro `src/core/athlete/nickname.ts` (`validateNickname`/`normalizeNickname`).
+  - `setPlayerPoolVisibility` + `PATCH /api/players/[id]/pool-visibility`; regra pura `evaluatePoolVisibility` (dono ou Admin/Suporte; menor exige consentimento).
+  - `listPoolPlayers`/`toPoolPlayerView` expõem `nickname` somente com opt-in e nunca para menores (mesma máscara do `athleteCode`).
+  - `createPlayer`/`updatePlayer` normalizam nickname e mapeiam `P2002 → 409 NICKNAME_TAKEN`; `GET /api/players/[id]` devolve `userId`, `nickname` e `poolVisible`, e o PUT reconhece o dono por `Player.userId`.
+- **Frontend:**
+  - `/match/new`: `isPublicTemplate` no estado/payload; seletor de visibilidade virou rádio Privada/Pública (`MatchVisibilityField`).
+  - `/partidas-publicas`: hook `usePublicMatchPool` (paginação + busca local), `PublicMatchCard` com "Anotar esta partida" e continuidade em 409; link `📡 Partidas Públicas` no menu de Operação/Treinador e matcher no middleware.
+  - Gestor → Partidas do Clube: agrupamento por template + filtro por membro anotador (`group-club-matches.logic.ts`); `/api/gestor/matches` inclui `sourceMatchId`/`sourceMatch`.
+  - `/dados-pessoais` passou a ser uma página real com "Perfil Público" (nickname + opt-in, aviso para menores); `NewAthleteModal` ganhou campo de apelido e o seletor de atletas mostra `@nickname`.
+- **Validação:** `tsc --noEmit` 0 erros · `next lint` sem novos avisos · suítes novas de template, nickname, pool, visibilidade e gestor 100% verdes · suítes de match/new, matchService, matchRepository e `/api/matches` 24/24 verdes (279 testes) · `check:r03` sem violações nos arquivos novos/modificados.
+- **Pendências:** executar as duas migrations localmente; E2E `08-public-match-pool.spec.ts`; fluxo de consentimento de menores (A0.8). `check:r03` segue vermelho por 5 arquivos pré-existentes fora do baseline (`timeline-*.tsx`, `timeline-set-results-points.logic.ts`, `point-ball-context.logic.ts`), não tocados por esta entrega.
+
+---
+
 ## 2.30 Segregação de Atletas de Treinador por Contexto (Clube vs Particular) — 2026-11-08
 - **Contexto & Demanda:**
   - Treinadores vinculados a um clube e que também atendem atletas particulares viam atletas misturados.

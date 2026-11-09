@@ -27,10 +27,10 @@ describe('buildMenu — combinações do plano (§7)', () => {
     expect(keys(menu)).toEqual(['operacao']);
     const op = find(menu, 'operacao')!;
     expect(op.items.map((i) => i.label)).toEqual([
-      'Início', 'Histórico', 'Partidas Anotadas', 'Ao Vivo', 'Aguardando', 'Atletas', 'Nova Partida',
+      'Início', 'Histórico', 'Partidas Anotadas', 'Ao Vivo', 'Aguardando', 'Partidas Públicas', 'Atletas', 'Nova Partida',
     ]);
     expect(op.items.map((i) => i.href)).toEqual([
-      '/dashboard', '/historico', '/partidasanotadas', '/partidasaovivo', '/aguardandoanotador', '/atletas', '/match/new',
+      '/dashboard', '/historico', '/partidasanotadas', '/partidasaovivo', '/aguardandoanotador', '/partidas-publicas', '/atletas', '/match/new',
     ]);
     expect(itemKeys(menu)).toContain('aguardando');
   });

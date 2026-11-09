@@ -7,6 +7,8 @@ const POOL_SELECT = {
   birthDate: true,
   athleteCode: true,
   club: true,
+  nickname: true,
+  poolVisible: true,
 } as const;
 
 /** Lista de atletas do pool com escopo de CT (toggle "Meu clube") e busca por nome. */

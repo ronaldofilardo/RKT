@@ -81,6 +81,7 @@ describe('Core Access: pool (regras puras)', () => {
       name: 'Joao Silva',
       athleteCode: 'ABC12345',
       club: 'Clube A',
+      nickname: null,
       minor: false,
     });
   });
@@ -99,6 +100,7 @@ describe('Core Access: pool (regras puras)', () => {
     expect(view).toEqual({
       id: 'p-2',
       name: 'M***',
+      nickname: null,
       athleteCode: null,
       club: null,
       minor: true,
