@@ -85,6 +85,22 @@ function run(): void {
   if (command.length === 0) return;
 
   const [file, ...args] = command;
+
+  // Bloqueio de segurança: impede execução de "prisma migrate dev" que pode resetar o banco
+  const isPrismaMigrateDev =
+    file === 'prisma' &&
+    args.includes('migrate') &&
+    args.includes('dev') &&
+    !args.includes('--create-only');
+
+  if (isPrismaMigrateDev) {
+    console.error(
+      '\n[db] BLOQUEADO: "prisma migrate dev" foi desativado para prevenir reset acidental do banco.\n' +
+      'Use "pnpm db:migrate:deploy" para aplicar migrações ou "pnpm db:push" para sincronizar o schema.\n'
+    );
+    process.exit(1);
+  }
+
   // O filho recebe o destino já validado: DATABASE_URL para o Prisma CLI/seed e
   // DB_TARGET para a guarda dentro do app (dev server do Playwright no banco de teste).
   const childEnv: NodeJS.ProcessEnv = {
