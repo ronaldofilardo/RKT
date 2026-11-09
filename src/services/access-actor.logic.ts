@@ -31,7 +31,7 @@ function filterMembershipsByContext(
   return memberships.filter((m) => m.kind === 'PLATAFORMA' || m.ctId === contextId);
 }
 
-function filterFollowedPlayers(row: ActorRow, contextId?: string | null, activeArea?: string | null): string[] {
+export function filterFollowedPlayers(row: ActorRow, contextId?: string | null, activeArea?: string | null): string[] {
   const links = row.coachAthleteLinks ?? [];
   const created = (row.createdPlayers ?? []).map((p) => ({
     playerId: p.id,

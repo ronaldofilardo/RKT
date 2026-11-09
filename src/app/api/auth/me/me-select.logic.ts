@@ -19,10 +19,20 @@ export const ME_USER_SELECT = {
   },
   coachAthleteLinks: {
     where: { status: 'ACTIVE' },
-    select: { playerId: true },
+    select: {
+      playerId: true,
+      player: {
+        select: {
+          playerCts: { where: { status: 'ACTIVE' }, select: { ctId: true, status: true } },
+        },
+      },
+    },
   },
   createdPlayers: {
-    select: { id: true },
+    select: {
+      id: true,
+      playerCts: { where: { status: 'ACTIVE' }, select: { ctId: true, status: true } },
+    },
   },
   athleteProfile: {
     select: {

@@ -1,17 +1,28 @@
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
 
-export async function listPlayers(cursor?: string | null, limit = 20, userId?: string | null) {
-  return prisma.player.findMany({
-    take: limit,
-    ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
-    where: userId
+export async function listPlayers(
+  cursor?: string | null,
+  limit = 20,
+  userId?: string | null,
+  followedPlayerIds?: readonly string[] | null,
+) {
+  const whereClause: Prisma.PlayerWhereInput =
+    followedPlayerIds !== undefined && followedPlayerIds !== null
+      ? { id: { in: [...followedPlayerIds] } }
+      : userId
       ? {
           OR: [
             { createdByUserId: userId },
             { coachAthleteLinks: { some: { coachUserId: userId, status: 'ACTIVE' } } },
           ],
         }
-      : {},
+      : {};
+
+  return prisma.player.findMany({
+    take: limit,
+    ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+    where: whereClause,
     select: {
       id: true, name: true, gender: true, age: true, birthDate: true, dominance: true,
       backhand: true, ranking: true, rankings: true, club: true, clubId: true,

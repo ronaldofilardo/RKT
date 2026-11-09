@@ -7,6 +7,7 @@ import { buildMeAccess } from './me-access.logic';
 import { resolveAvailableContexts } from '../login/login-contexts.logic';
 import { listAreas } from '@/core/access/areas';
 import { ME_USER_SELECT } from './me-select.logic';
+import { filterFollowedPlayers } from '@/services/access-actor.logic';
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,13 +28,7 @@ export async function GET(request: NextRequest) {
       status: m.status,
     }));
 
-    const coachLinkIds = (dbUser.coachAthleteLinks ?? [])
-      .map((l) => l.playerId)
-      .filter(Boolean);
-    const createdPlayerIds = (dbUser.createdPlayers ?? [])
-      .map((p) => p.id)
-      .filter(Boolean);
-    const followedPlayerIds = Array.from(new Set([...coachLinkIds, ...createdPlayerIds]));
+    const followedPlayerIds = filterFollowedPlayers(dbUser as any, user.contextId, user.activeArea);
 
     let ctStatus: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | null = null;
     const gestorMembership = memberships.find((m) => m.kind === 'GESTOR' && m.ctId);

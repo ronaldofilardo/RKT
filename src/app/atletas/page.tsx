@@ -6,27 +6,24 @@ import { AthleteSearchHeader } from './components/AthleteSearchHeader';
 import { AthleteListTable } from './components/AthleteListTable';
 import { DeleteAthleteModal } from './components/DeleteAthleteModal';
 import { useAtletasPage } from './hooks/useAtletasPage';
+import { useAtletasContext } from './hooks/use-atletas-context';
 
 export default function AtletasPage() {
   const {
-    loading,
-    athletes,
-    error,
-    editingAthlete,
-    setEditingAthlete,
-    showNewAthleteModal,
-    setShowNewAthleteModal,
-    athleteToDelete,
-    setAthleteToDelete,
-    deleting,
-    currentUserId,
-    userRole,
-    saveAthleteChanges,
-    confirmAthleteDeletion,
-    loadAthletes,
+    loading, athletes, error, editingAthlete, setEditingAthlete,
+    showNewAthleteModal, setShowNewAthleteModal, athleteToDelete, setAthleteToDelete,
+    deleting, currentUserId, userRole, saveAthleteChanges, confirmAthleteDeletion, loadAthletes,
   } = useAtletasPage();
+  const ctx = useAtletasContext();
 
   const isTreinador = userRole === 'TREINADOR';
+  const headerTitle = isTreinador
+    ? ctx.isParticular
+      ? 'Meus Atletas (Particulares)'
+      : ctx.ctName
+      ? `Meus Atletas · ${ctx.ctName}`
+      : 'Meus Atletas'
+    : undefined;
 
   if (loading) {
     return (
@@ -39,9 +36,12 @@ export default function AtletasPage() {
   return (
     <div className="min-h-screen bg-telemetry-base">
       <AthleteSearchHeader
-        title={isTreinador ? 'Meus Atletas' : undefined}
+        title={headerTitle}
         athleteCount={athletes.length}
         onNewAthlete={() => setShowNewAthleteModal(true)}
+        activeContextId={ctx.activeContextId}
+        availableContexts={ctx.availableContexts}
+        onContextSwitched={() => { ctx.loadContext(); loadAthletes(); }}
       />
 
       <main className="max-w-5xl mx-auto px-2 sm:px-4 py-4 sm:py-6">
@@ -55,33 +55,26 @@ export default function AtletasPage() {
         )}
 
         <AthleteListTable
-          athletes={athletes}
-          currentUserId={currentUserId}
-          userRole={userRole}
-          onEditAthlete={setEditingAthlete}
-          onDeleteAthlete={setAthleteToDelete}
+          athletes={athletes} currentUserId={currentUserId} userRole={userRole}
+          onEditAthlete={setEditingAthlete} onDeleteAthlete={setAthleteToDelete}
         />
       </main>
 
       <EditAthleteModal
-        athlete={editingAthlete}
-        isOpen={!!editingAthlete}
-        onClose={() => setEditingAthlete(null)}
-        onSave={saveAthleteChanges}
+        athlete={editingAthlete} isOpen={!!editingAthlete}
+        onClose={() => setEditingAthlete(null)} onSave={saveAthleteChanges}
       />
 
       <NewAthleteModal
-        isOpen={showNewAthleteModal}
-        onClose={() => setShowNewAthleteModal(false)}
+        isOpen={showNewAthleteModal} onClose={() => setShowNewAthleteModal(false)}
         onCreated={() => { setShowNewAthleteModal(false); loadAthletes(); }}
+        myClub={true} ctId={ctx.isParticular ? null : ctx.activeContextId}
       />
 
       {athleteToDelete && (
         <DeleteAthleteModal
-          athleteName={athleteToDelete.name}
-          deleting={deleting}
-          onCancel={() => setAthleteToDelete(null)}
-          onConfirm={confirmAthleteDeletion}
+          athleteName={athleteToDelete.name} deleting={deleting}
+          onCancel={() => setAthleteToDelete(null)} onConfirm={confirmAthleteDeletion}
         />
       )}
     </div>

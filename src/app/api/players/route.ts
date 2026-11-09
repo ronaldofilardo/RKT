@@ -4,7 +4,7 @@ import { listPlayers } from '@/services/playerService';
 import { handlePlayersPost } from './players-post.logic';
 
 export async function GET(request: NextRequest) {
-  return withAccessHandler(request, 'athlete:search', null, async () => {
+  return withAccessHandler(request, 'athlete:search', null, async ({ actor, user }) => {
     try {
       const searchParams = request.nextUrl.searchParams;
       const userId = searchParams.get('userId') ?? undefined;
@@ -12,7 +12,13 @@ export async function GET(request: NextRequest) {
       const rawLimit = searchParams.get('limit');
       const limit = rawLimit ? parseInt(rawLimit, 10) : undefined;
 
-      const players = await listPlayers(cursor, limit, userId);
+      const isSelfSearch = Boolean(userId && userId === user.id);
+      const isCoachContext = Boolean(user.contextId || user.activeArea);
+      const followedIds = isSelfSearch && isCoachContext ? actor.followedPlayerIds : undefined;
+
+      const players = followedIds !== undefined
+        ? await listPlayers(cursor, limit, userId, followedIds)
+        : await listPlayers(cursor, limit, userId);
       const nextCursor = limit && players.length === limit ? players[players.length - 1].id : null;
       return NextResponse.json({ data: { players, nextCursor } }, { status: 200 });
     } catch (error) {

@@ -1,15 +1,27 @@
 import { useRouter } from 'next/navigation';
 import { homeForProfileString } from '@/core/access/home';
+import { ContextSwitcher } from '@/components/ui/context-switcher';
+import type { SessionContextOption } from '@/lib/auth-client-login';
 
 interface AthleteSearchHeaderProps {
   athleteCount: number;
   onNewAthlete: () => void;
   title?: string;
+  activeContextId?: string | null;
+  availableContexts?: SessionContextOption[];
+  onContextSwitched?: () => void;
 }
 
-export function AthleteSearchHeader({ athleteCount, onNewAthlete, title = 'Atletas' }: AthleteSearchHeaderProps) {
+export function AthleteSearchHeader({
+  athleteCount,
+  onNewAthlete,
+  title = 'Atletas',
+  activeContextId,
+  availableContexts,
+  onContextSwitched,
+}: AthleteSearchHeaderProps) {
   const router = useRouter();
-  
+
   return (
     <header className="bg-telemetry-base shadow-sm border-b border-white/10 sticky top-0 z-10 safe-top">
       <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -28,6 +40,13 @@ export function AthleteSearchHeader({ athleteCount, onNewAthlete, title = 'Atlet
           <span className="bg-telemetry-blue/20 text-telemetry-blue text-xs font-semibold px-2 py-1 rounded-full">
             {athleteCount}
           </span>
+          {availableContexts && availableContexts.length > 1 && (
+            <ContextSwitcher
+              activeContextId={activeContextId}
+              availableContexts={availableContexts}
+              onContextSwitched={onContextSwitched}
+            />
+          )}
         </div>
         <button
           onClick={onNewAthlete}

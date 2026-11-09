@@ -8,6 +8,31 @@
 
 ---
 
+## 2.30 Segregação de Atletas de Treinador por Contexto (Clube vs Particular) — 2026-11-08
+- **Contexto & Demanda:**
+  - Treinadores vinculados a um clube e que também atendem atletas particulares viam atletas misturados.
+  - Ao alternar a opção de contexto (Clube vs Atuação Particular no `ContextSwitcher`), os atletas exibidos em "Meus Atletas" (`/atletas`) e no seletor de partidas (`/match/new`) devem ser estritamente segregados considerando se o contexto ativo é do clube ou particular.
+- **Implementação:**
+  1. **Segregação no Backend (`access-actor.logic.ts` e `route.ts` de `/api/auth/me`):**
+     - `filterFollowedPlayers` exportado e integrado em `GET /api/auth/me`: a resposta agora entrega `followedPlayerIds` filtrado estritamente pelo contexto da sessão (`user.contextId` e `user.activeArea`).
+     - No contexto de CT (`TREINADOR_CLUBE`), retorna apenas atletas com vínculo ativo naquele CT.
+     - No contexto `PARTICULAR` (`TREINADOR_AVULSO`), retorna apenas atletas associados ao treinador que não pertencem a nenhum dos CTs ativos do treinador.
+  2. **Consulta Segregada de Atletas (`player-service-queries.logic.ts` e `GET /api/players`):**
+     - `listPlayers` atualizado para aceitar `followedPlayerIds`. Quando fornecido, filtra com `id: { in: followedPlayerIds }`, garantindo que consultas em `/atletas` exibam estritamente os atletas do contexto ativo.
+     - Preservada retrocompatibilidade quando `followedPlayerIds` não for enviado.
+  3. **UI de Atletas e Contexto (`use-atletas-context.ts`, `AthleteSearchHeader.tsx`, `page.tsx`):**
+     - Criado hook `useAtletasContext` (50L, R-03) que carrega o contexto ativo (`activeContextId`, `availableContexts`, `ctName`, `isParticular`).
+     - `AthleteSearchHeader` integrado com `ContextSwitcher`: permite ao treinador alternar entre os clubes aos quais é vinculado e sua atuação particular diretamente na tela de atletas.
+     - Título dinâmico: exibe "Meus Atletas · [Nome do Clube]" ou "Meus Atletas (Particulares)".
+     - `NewAthleteModal` passa `ctId: isParticular ? null : activeContextId`, garantindo que novos atletas cadastrados herdem o vínculo correto do contexto selecionado.
+- **Validação:**
+  - Teste unitário dedicado: `src/services/__tests__/coach-athlete-context-segregation.test.ts` (PASS).
+  - Suítes de `atletas`, `auth/me`, `players`: 15/15 suítes passaram (127/127 testes).
+  - TypeScript: `pnpm typecheck` com 0 erros.
+  - Limite de linhas (R-03): todos os arquivos modificados rigorosamente <= 90 linhas.
+
+---
+
 ## 2.29 Reorganização do Dashboard: Partidas em 'Minhas Partidas', remoção de 'Nova Partida' do Header e 'Relatórios' direto para Timelines — 2026-11-08
 - **Contexto & Demanda:**
   1. A lista de partidas (Pausadas, Em Andamento, Recentes) deve ser movida da tela inicial (`/dashboard`) para dentro de 'Minhas Partidas' (`/historico` / view `history`).
