@@ -91,7 +91,7 @@ describe('AdvancedStats - Regras 1 a 7', () => {
   it('inclui Aces em Winners e DFs em ENF no tópico 7. Definição do Ponto (Item 3)', () => {
     render(<AdvancedStats stats={stats} player1Name="Carlos" player2Name="Rafael" />);
     expect(screen.getByText('7. Definição do Ponto')).toBeInTheDocument();
-    expect(screen.getByText('Winners')).toBeInTheDocument();
+    expect(screen.getAllByText('Winners').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Erros Não Forçados').length).toBeGreaterThanOrEqual(1);
     // P1 tem 3 winners (Ace pt 1 + Winner pt 3 + Winner pt 4)
     expect(stats.pointDefinition?.player1.cleanWinners).toBe(3);

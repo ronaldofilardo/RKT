@@ -11,6 +11,8 @@ import { PointDefinitionSection } from './advanced-stats-point-def-section';
 import { StrokeMatrixSection } from './advanced-stats-stroke-matrix-section';
 import { MomentumSection } from './advanced-stats-momentum';
 import { DoublesPlayerBreakdownSection } from './advanced-stats-doubles-players';
+import { PerformanceRadarSection } from './advanced-stats-radar';
+import { SetLensSection, FioDoJogoSection } from './advanced-stats-premium-visuals';
 
 interface Props extends AdvancedStatsSectionProps {
   report?: ReportData;
@@ -27,6 +29,9 @@ export function AdvancedStats({ stats, player1Name, player2Name, report }: Props
           player2Name={player2Name}
         />
       )}
+      <PerformanceRadarSection stats={stats} player1Name={player1Name} player2Name={player2Name} />
+      <SetLensSection stats={stats} player1Name={player1Name} player2Name={player2Name} report={report} />
+      <FioDoJogoSection stats={stats} player1Name={player1Name} player2Name={player2Name} report={report} />
       <ServeSection stats={stats} player1Name={player1Name} player2Name={player2Name} />
       <ReturnSection stats={stats} player1Name={player1Name} player2Name={player2Name} />
       <BaselineSection stats={stats} player1Name={player1Name} player2Name={player2Name} />
