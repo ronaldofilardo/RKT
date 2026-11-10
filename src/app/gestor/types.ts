@@ -58,6 +58,9 @@ export interface ClubMatchItem {
   startedAt: string | null;
   finishedAt: string | null;
   createdByUserId: string | null;
+  assignedCoachId?: string | null;
+  assignedCoach?: { id: string; name: string; email?: string } | null;
+  isPublicTemplate?: boolean;
   player1: { id: string; name: string; club?: string | null };
   player2: { id: string; name: string; club?: string | null };
   createdByUser: { id: string; name: string; email: string } | null;

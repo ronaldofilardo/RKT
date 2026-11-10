@@ -42,7 +42,10 @@ export function useAreaSelection() {
         body: JSON.stringify({ area, ctId }),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok && data.home) {
+      if (res.ok && data.accessToken) {
+        sessionStorage.setItem('access_token', data.accessToken);
+        window.location.href = data.home || home || '/dashboard';
+      } else if (data.home) {
         window.location.href = data.home;
       } else if (home) {
         window.location.href = home;

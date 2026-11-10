@@ -1,9 +1,6 @@
 /**
  * Auth client-side storage helpers.
- *
- * Responsabilidade: manter cookie + sessionStorage sincronizados
- * para que o middleware (Server-side) e os hooks (Client-side)
- * concordem sobre o estado de autenticacao.
+ * Mantém cookie + sessionStorage sincronizados entre middleware e hooks.
  */
 
 const USER_ROLE_KEY = 'user_role';
@@ -21,19 +18,20 @@ export function writeToSessionOnly(data: {
   userId: string;
   userRole: string;
   userName?: string;
+  accessToken?: string;
 }): void {
   if (typeof window === 'undefined') return;
   sessionStorage.setItem(USER_ID_KEY, data.userId);
   sessionStorage.setItem(USER_ROLE_KEY, data.userRole);
-  if (data.userName) {
-    sessionStorage.setItem(USER_NAME_KEY, data.userName);
+  if (data.userName) sessionStorage.setItem(USER_NAME_KEY, data.userName);
+  if (data.accessToken) {
+    sessionStorage.setItem('access_token', data.accessToken);
+  } else {
+    sessionStorage.removeItem('access_token');
   }
   clearRedirectingFlag();
 }
 
-/**
- * Sincroniza o cookie de access_token com o sessionStorage.
- */
 export function ensureAuthCookie(): boolean {
   if (typeof window === 'undefined') return false;
   const userRole = sessionStorage.getItem(USER_ROLE_KEY);
@@ -57,11 +55,9 @@ export function readAuthState(): {
   };
 }
 
-/**
- * Limpa estado de autenticacao de ambos os lados (cliente e middleware).
- */
 export function clearAuthState(): void {
   if (typeof window === 'undefined') return;
+  sessionStorage.removeItem('access_token');
   sessionStorage.removeItem(USER_ID_KEY);
   sessionStorage.removeItem(USER_ROLE_KEY);
   sessionStorage.removeItem(USER_NAME_KEY);
@@ -70,10 +66,6 @@ export function clearAuthState(): void {
   document.cookie = 'user_role=; path=/; max-age=0; SameSite=Lax';
 }
 
-/**
- * Redireciona para /login limpando o estado de auth.
- * Usa window.location para full navigation (garante middleware rodar).
- */
 export function redirectToLogin(_router?: unknown): void {
   if (typeof window === 'undefined') return;
   if (window.location.pathname === '/login') return;

@@ -53,6 +53,8 @@ export async function POST(request: NextRequest) {
     };
     response.cookies.set('rkt_access_token', result.accessToken, { ...cookieOpts, httpOnly: true });
     response.cookies.set('access_token', result.accessToken, { ...cookieOpts, httpOnly: false });
+    const userRoleValue = parsed.data.area.startsWith('TREINADOR') ? 'TREINADOR' : parsed.data.area;
+    response.cookies.set('user_role', userRoleValue, { ...cookieOpts, httpOnly: false });
 
     return response;
   } catch (error) {

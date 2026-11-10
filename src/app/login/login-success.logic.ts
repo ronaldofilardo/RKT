@@ -29,6 +29,7 @@ export async function processLoginSuccess(
     userId: data.user.id,
     userRole: finalProfile,
     userName: data.user.name,
+    accessToken: data.accessToken,
   });
 
   const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';

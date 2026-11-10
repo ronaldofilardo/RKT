@@ -9,11 +9,13 @@ import { useFloatingSpectatorOptional } from '@/contexts/FloatingSpectatorContex
 interface ClubMatchesTableProps {
   matches: ClubMatchItem[];
   loading?: boolean;
+  onCreateMatch?: () => void;
+  onAssignCoach?: (match: ClubMatchItem) => void;
 }
 
 const HEAD_CELLS = ['Data', 'Confronto', 'Placar', 'Formato', 'Anotador / Criador', 'Status', 'Ação'];
 
-export function ClubMatchesTable({ matches, loading }: ClubMatchesTableProps) {
+export function ClubMatchesTable({ matches, loading, onCreateMatch, onAssignCoach }: ClubMatchesTableProps) {
   const floating = useFloatingSpectatorOptional();
   const [annotator, setAnnotator] = useState('');
 
@@ -28,24 +30,36 @@ export function ClubMatchesTable({ matches, loading }: ClubMatchesTableProps) {
 
   return (
     <div className="p-0 sm:p-6 space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-telemetry-text-primary">Partidas do Clube</h2>
           <p className="text-xs text-telemetry-text-muted">Agrupadas pelo cartaz público; privadas ao final</p>
         </div>
-        <label className="flex items-center gap-2 text-xs text-telemetry-text-muted">
-          Membro anotador
-          <select
-            value={annotator}
-            onChange={(event) => setAnnotator(event.target.value)}
-            className="px-2 py-1 rounded-lg border border-white/10 bg-telemetry-elevated text-telemetry-text-primary [color-scheme:dark]"
-          >
-            <option value="">Todos</option>
-            {annotators.map((member) => (
-              <option key={member.id} value={member.id}>{member.name}</option>
-            ))}
-          </select>
-        </label>
+        <div className="flex items-center gap-3 flex-wrap">
+          <label className="flex items-center gap-2 text-xs text-telemetry-text-muted">
+            Membro anotador
+            <select
+              value={annotator}
+              onChange={(event) => setAnnotator(event.target.value)}
+              className="px-2 py-1 rounded-lg border border-white/10 bg-telemetry-elevated text-telemetry-text-primary [color-scheme:dark]"
+            >
+              <option value="">Todos</option>
+              {annotators.map((member) => (
+                <option key={member.id} value={member.id}>{member.name}</option>
+              ))}
+            </select>
+          </label>
+          {onCreateMatch && (
+            <button
+              type="button"
+              onClick={onCreateMatch}
+              className="px-3 py-1.5 rounded-lg bg-telemetry-blue hover:bg-telemetry-blue/80 text-white text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
+            >
+              <span>➕</span>
+              <span>Nova Partida</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {groups.length === 0 ? (
@@ -67,13 +81,13 @@ export function ClubMatchesTable({ matches, loading }: ClubMatchesTableProps) {
                 <tr className="bg-telemetry-elevated/40">
                   <th colSpan={HEAD_CELLS.length} scope="colgroup" className="px-3 py-2 text-left text-xs font-semibold text-telemetry-text-primary">
                     {group.source
-                      ? `📡 ${group.source.player1.name} × ${group.source.player2.name} · ${group.matches.length} anotação(ões)`
+                      ? `📡 ${group.source.player1?.name || 'Jogador 1'} × ${group.source.player2?.name || 'Jogador 2'} · ${group.matches.length} anotação(ões)`
                       : 'Partidas privadas / avulsas'}
                   </th>
                 </tr>
                 {group.matches.map((m) => (
                   <Fragment key={m.id}>
-                    <ClubMatchRow match={m} floating={floating} />
+                    <ClubMatchRow match={m} floating={floating} onAssign={onAssignCoach} />
                   </Fragment>
                 ))}
               </tbody>

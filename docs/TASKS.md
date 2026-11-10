@@ -66,6 +66,26 @@
   6. [x] Frontend: Perfil Público em `/dados-pessoais`, campo no modal de atleta e `@nickname` no seletor de atletas.
   7. [ ] Fluxo de consentimento de menores (bloqueado por A0.8).
 
+### A0.16. Notificações In-App — Pool de Partidas (S3) ✅
+- **Status:** Concluído (2026-11-10)
+- **Contexto:** Badges no dashboard avisam o usuário sobre partidas públicas relevantes no pool antes de criar uma nova.
+- **DoD:**
+  1. [x] Fase 0: Characterization travar baseline sem efeitos colaterais de notificação.
+  2. [x] Fase 1: Schema e migration aditiva: model `Notification` e enum `NotificationType`.
+  3. [x] Fase 2: Geração síncrona dentro da mesma transaction do template público (`POOL_MATCH_WITH_MY_ATHLETE` e `POOL_MATCH_AVAILABLE`).
+  4. [x] Fase 4: Endpoints de contagem e leitura: `GET /api/notifications/count`, `PATCH /api/notifications/[id]/read` e `PATCH /api/notifications/read-all`.
+  5. [x] Fase 5: Frontend: `useNotificationCount`, `NotifBadge` e badges dinâmicos nos cards "Meus Atletas" e "Nova Partida".
+
+### A0.17. Mural do Treinador e Designação pelo Gestor (S4) ✅
+- **Status:** Concluído (2026-11-10)
+- **Contexto:** Gestor designa treinador do CT para anotar template do pool e tela de entrada do treinador exibe bloco de avisos ativos de designação.
+- **DoD:**
+  1. [x] Schema e migration: campo `assignedCoachId` e relation em `Match`.
+  2. [x] Rota de designação pelo gestor: `POST /api/matches/pool/[templateId]/assign` com validação de CT e auditoria.
+  3. [x] Endpoint de consulta do mural: `GET /api/notifications/assigned`.
+  4. [x] Frontend: `useAssignedNotifications`, `AssignedNotifCard` e `AssignedNotifSection` acima dos atalhos no `DashboardHomeSection`.
+  5. [x] Ações "Ver Partida" e "Dispensar" funcionando com marcação de leitura e designação mantida.
+
 ### A0.11. Landing Page Institucional e de Captação (c:\apps\RKT-LP) 📋
 - **Status:** Planejada / Pronta para Execução (2026-11-01)
 - **Documento:** [`c:\apps\RKT-LP\PLANO_LANDING_PAGE.md`](file:///c:/apps/RKT-LP/PLANO_LANDING_PAGE.md)

@@ -46,6 +46,8 @@ model User {
   authoredComments       MatchComment[]           @relation("AuthoredComments")
   createdShareLinks      MatchShareLink[]         @relation("CreatedShareLinks")
   spectatingMatches      MatchSpectator[]         @relation("UserSpectators")
+  assignedMatches        Match[]                  @relation("MatchAssignedCoach")
+  notifications          Notification[]
 
   @@map("users")
 }
@@ -172,6 +174,8 @@ model Match {
   venueClub          Club?                    @relation("VenueMatches", fields: [venueClubId], references: [id], onDelete: SetNull)
   tournament         Tournament?              @relation(fields: [tournamentId], references: [id], onDelete: SetNull)
   createdByUser      User?                    @relation("CreatedMatches", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  assignedCoachId    String?
+  assignedCoach      User?                    @relation("MatchAssignedCoach", fields: [assignedCoachId], references: [id], onDelete: SetNull)
   player1            Player                   @relation("Player1", fields: [player1Id], references: [id])
   player2            Player                   @relation("Player2", fields: [player2Id], references: [id])
   player1Partner     Player?                  @relation("Player1Partner", fields: [player1PartnerId], references: [id])
@@ -192,6 +196,7 @@ model Match {
   @@index([tournamentId])
   @@index([isPublicTemplate], name: "Match_isPublicTemplate_idx")
   @@index([sourceMatchId], name: "Match_sourceMatchId_idx")
+  @@index([assignedCoachId], name: "Match_assignedCoachId_idx")
 }
 
 model PointLog {
@@ -695,4 +700,25 @@ enum SupportAccessStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum NotificationType {
+  POOL_MATCH_WITH_MY_ATHLETE
+  POOL_MATCH_AVAILABLE
+  ASSIGNED_TO_ANNOTATE
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  recipientId String
+  type        NotificationType
+  payload     Json
+  readAt      DateTime?
+  createdAt   DateTime         @default(now())
+  expiresAt   DateTime?
+
+  recipient   User             @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, readAt], name: "Notification_recipient_unread_idx")
+  @@index([createdAt],           name: "Notification_createdAt_idx")
 }

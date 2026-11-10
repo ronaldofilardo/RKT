@@ -2,17 +2,22 @@
 
 import Link from 'next/link';
 import { appPath } from '@/core/access/app-path.logic';
+import { NotifBadge } from '@/components/ui/notif-badge';
 import type { Shortcut } from './dashboard-shortcuts.logic';
 import type { DashboardView } from '../dashboard.types';
 
 export function ShortcutCard({
   shortcut,
   activeArea,
+  badgeCount,
   onClick,
+  onCardClick,
 }: {
   shortcut: Shortcut;
   activeArea?: string | null;
+  badgeCount?: number;
   onClick: (view: DashboardView) => void;
+  onCardClick?: () => void;
 }) {
   const isAction = !shortcut.soon && !shortcut.href;
 
@@ -29,18 +34,25 @@ export function ShortcutCard({
       role={isAction ? 'button' : undefined}
       tabIndex={isAction ? 0 : shortcut.soon ? -1 : undefined}
       aria-label={shortcut.label}
-      onClick={isAction ? () => shortcut.view && onClick(shortcut.view as DashboardView) : undefined}
+      onClick={isAction ? () => {
+        onCardClick?.();
+        if (shortcut.view) onClick(shortcut.view as DashboardView);
+      } : undefined}
       onKeyDown={
         isAction
           ? (e) => {
               if ((e.key === 'Enter' || e.key === ' ') && shortcut.view) {
                 e.preventDefault();
+                onCardClick?.();
                 onClick(shortcut.view as DashboardView);
               }
             }
           : undefined
       }
     >
+      {badgeCount !== undefined && badgeCount > 0 && (
+        <NotifBadge count={badgeCount} />
+      )}
       {shortcut.soon && (
         <span className="absolute top-2 right-2 text-[9px] font-bold text-telemetry-text-muted/60 uppercase tracking-wider bg-white/5 px-1.5 py-0.5 rounded">
           Em breve
@@ -58,7 +70,7 @@ export function ShortcutCard({
 
   if (shortcut.href && !shortcut.soon) {
     const resolved = appPath(activeArea, shortcut.href);
-    return <Link href={resolved as any} className="block">{content}</Link>;
+    return <Link href={resolved as any} className="block" onClick={onCardClick}>{content}</Link>;
   }
 
   return content;

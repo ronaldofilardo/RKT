@@ -3,8 +3,35 @@
 > Diário de bordo técnico · Metodologia RE-DOC (Fase 4 — Auditoria de Qualidade e Histórico)
 > **Este é um dos 6 arquivos-canônico do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
 
-**Última Atualização:** 2026-11-08
+**Última Atualização:** 2026-11-10
 **Analisado por:** engenharia reversa e implementação sobre `main`
+
+---
+
+## 2.32 Notificações In-App, Mural do Treinador e Gestão de Partidas do Clube (A0.16/A0.17) — 2026-11-10
+- **Contexto & Demanda:**
+  - S3: badges in-app no dashboard avisam treinadores e atletas sobre cartazes de partidas públicas relevantes no pool.
+  - S4: Mural do Treinador exibe avisos ativos de designação de anotação feitas pelo gestor do clube.
+  - Painel do Gestor: botão "Nova Partida" navega para o fluxo canônico `/match/new`; ação de "Indicar Anotador" (`IndicarAnotadorModal`) para partidas já criadas; partidas sem anotador são listadas normalmente.
+  - Fix de Estabilidade de Sessão: eliminação do bug de logout cíclico imediato ao entrar no dashboard como treinador.
+- **Modelagem & Banco de Dados:**
+  - `Match.assignedCoachId` referenciando `User.id` (`onDelete: SetNull`).
+  - Model `Notification` (`id`, `recipientId`, `type`, `payload`, `readAt`, `createdAt`, `expiresAt`) com enum `NotificationType` (`POOL_MATCH_WITH_MY_ATHLETE`, `POOL_MATCH_AVAILABLE`, `ASSIGNED_TO_ANNOTATE`).
+  - Migration `20261110000000_add_notification_assigned_coach` executada no banco local (`pnpm db:migrate:deploy`) e teste (`pnpm db:test:push`).
+- **Backend:**
+  - Notificações de pool disparadas na criação de templates em `src/services/notification-create.logic.ts`.
+  - Designação de treinador por gestor em `src/services/match-assign.logic.ts`, rotas `/api/matches/pool/[templateId]/assign` e `/api/gestor/matches/[id]/assign`.
+  - Endpoints de leitura: `GET /api/notifications/count`, `GET /api/notifications/assigned`, `PATCH /api/notifications/[id]/read`, `PATCH /api/notifications/read-all`.
+  - `/api/gestor/matches`: suporte a `assignedCoach`, listagem correta de partidas criadas com ou sem anotador designado.
+- **Frontend & Sessão:**
+  - `AssignedNotifSection` e `NotifBadge` integrados no `DashboardHomeSection` para o perfil de treinador.
+  - Gestor: `ClubMatchesTable` e `ClubMatchRow` com botão canônico para `/match/new` e modal de indicação (`IndicarAnotadorModal`).
+  - Correção de persistência de sessão: `writeToSessionOnly` e `clearAuthState` agora sincronizam e limpam `access_token` no `sessionStorage`, eliminando tokens expirados residuais que disparavam `redirectToLogin` indevidamente.
+- **Validação:**
+  - `pnpm typecheck`: 0 erros.
+  - `pnpm test:design`: 26/26 aprovados.
+  - Suítes de guards, gestor, tabela de partidas e notificações 100% verdes.
+  - Conformidade R-03: todos os arquivos novos e modificados $\le 100$ linhas cruas.
 
 ---
 

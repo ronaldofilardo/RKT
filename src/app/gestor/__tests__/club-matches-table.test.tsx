@@ -80,4 +80,34 @@ describe('ClubMatchesTable — Ver Partida', () => {
     expect(open).toHaveBeenCalledWith('m6', 'Ana × Bia');
     expect(screen.getByRole('link', { name: 'Ver timeline' })).toHaveAttribute('href', '/match/m6/report');
   });
+
+  it('renderiza o botão "Nova Partida" e aciona onCreateMatch', () => {
+    const onCreateMatch = jest.fn();
+    render(<ClubMatchesTable matches={[]} onCreateMatch={onCreateMatch} />);
+
+    const btn = screen.getByRole('button', { name: /Nova Partida/i });
+    expect(btn).toBeInTheDocument();
+    fireEvent.click(btn);
+    expect(onCreateMatch).toHaveBeenCalledTimes(1);
+  });
+
+  it('renderiza o botão "Indicar" e aciona onAssignCoach', () => {
+    const onAssignCoach = jest.fn();
+    const m = match('m7', 'SCHEDULED');
+    render(<ClubMatchesTable matches={[m]} onAssignCoach={onAssignCoach} />);
+
+    const btn = screen.getByRole('button', { name: /Indicar/i });
+    expect(btn).toBeInTheDocument();
+    fireEvent.click(btn);
+    expect(onAssignCoach).toHaveBeenCalledWith(m);
+  });
+
+  it('exibe nome do anotador designado quando presente', () => {
+    const m = {
+      ...match('m8', 'SCHEDULED'),
+      assignedCoach: { id: 'c1', name: 'Treinador Roberto' },
+    };
+    render(<ClubMatchesTable matches={[m]} />);
+    expect(screen.getByText('Treinador Roberto')).toBeInTheDocument();
+  });
 });

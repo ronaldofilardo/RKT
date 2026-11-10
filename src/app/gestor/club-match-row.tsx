@@ -9,11 +9,13 @@ import { getStateBadge, getStateLabel, opensLiveView } from './club-match-helper
 interface ClubMatchRowProps {
   match: ClubMatchItem;
   floating?: { open: (matchId: string, title: string) => void } | null;
+  onAssign?: (match: ClubMatchItem) => void;
 }
 
-export function ClubMatchRow({ match, floating }: ClubMatchRowProps) {
+export function ClubMatchRow({ match, floating, onAssign }: ClubMatchRowProps) {
   const m = match;
   const openLive = opensLiveView(m.state) && floating;
+  const matchTitle = `${m.player1?.name || 'Jogador 1'} × ${m.player2?.name || 'Jogador 2'}`;
 
   return (
     <tr key={m.id} className="hover:bg-telemetry-elevated/40 transition-colors">
@@ -43,42 +45,35 @@ export function ClubMatchRow({ match, floating }: ClubMatchRowProps) {
         {formatClubMatchScore(m.scoreState, m.format, m.state)}
       </td>
       <td className="hidden md:table-cell px-3 py-4 text-xs text-telemetry-text-muted">
-        <span title={getMatchFormatDisplayLabel(m.format)}>
-          {getMatchFormatShortLabel(m.format)}
-        </span>
+        <span title={getMatchFormatDisplayLabel(m.format)}>{getMatchFormatShortLabel(m.format)}</span>
       </td>
       <td className="hidden md:table-cell px-3 py-4 text-xs text-telemetry-text-muted">
-        {m.createdByUser?.name || 'Anotador'}
+        {m.assignedCoach ? (
+          <span className="text-telemetry-blue-light font-medium" title="Anotador designado">{m.assignedCoach.name}</span>
+        ) : (
+          <span>{m.createdByUser?.name || 'Não indicado'}</span>
+        )}
       </td>
       <td className="px-3 py-4 text-sm">
-        <span className={`px-2 py-0.5 rounded text-xs font-semibold ${getStateBadge(m.state)}`}>
-          {getStateLabel(m.state)}
-        </span>
+        <span className={`px-2 py-0.5 rounded text-xs font-semibold ${getStateBadge(m.state)}`}>{getStateLabel(m.state)}</span>
       </td>
       <td className="px-3 py-4 text-sm text-right whitespace-nowrap">
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex items-center justify-end gap-2.5">
+          {onAssign && (
+            <button type="button" onClick={() => onAssign(m)} className="text-xs text-telemetry-blue-light hover:underline font-medium">
+              {m.assignedCoach ? 'Alterar' : 'Indicar'}
+            </button>
+          )}
           {openLive ? (
-            <button
-              type="button"
-              onClick={() => floating!.open(m.id, `${m.player1?.name || 'Jogador 1'} × ${m.player2?.name || 'Jogador 2'}`)}
-              className="text-xs text-telemetry-blue hover:underline font-medium"
-            >
+            <button type="button" onClick={() => floating!.open(m.id, matchTitle)} className="text-xs text-telemetry-blue hover:underline font-medium">
               Ver Partida
             </button>
           ) : (
-            <Link
-              href={opensLiveView(m.state) ? `/matches/acompanhar/${m.id}` : `/match/${m.id}/report`}
-              className="text-xs text-telemetry-blue hover:underline font-medium"
-            >
+            <Link href={opensLiveView(m.state) ? `/matches/acompanhar/${m.id}` : `/match/${m.id}/report`} className="text-xs text-telemetry-blue hover:underline font-medium">
               Ver Partida
             </Link>
           )}
-          <Link
-            href={`/match/${m.id}/report`}
-            aria-label="Ver timeline"
-            title="Ver timeline da partida"
-            className="inline-flex items-center text-telemetry-text-muted hover:text-telemetry-blue transition-colors"
-          >
+          <Link href={`/match/${m.id}/report`} aria-label="Ver timeline" title="Ver timeline da partida" className="inline-flex items-center text-telemetry-text-muted hover:text-telemetry-blue transition-colors">
             <TimelineIcon />
           </Link>
         </div>
