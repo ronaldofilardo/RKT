@@ -40,6 +40,7 @@ export function isRankingTypeAllowedForProfile(
 ): boolean {
   if (gender && !isRankingGenderCompatible(rankingType, gender)) return false;
   if (age === null) return true;
+  if (rankingType === 'ESTADUAL') return age >= 11;
   if (rankingType === 'ITF_Juniors') return age >= 14 && age <= 18;
   if (rankingType === 'ATP' || rankingType === 'WTA') return age <= 40;
   if (!hasCategories(rankingType)) return true;

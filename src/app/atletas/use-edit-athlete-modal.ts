@@ -1,10 +1,5 @@
-import { useEffect, useState } from 'react';
-import {
-  RankingType,
-  calculateAgeFromYear,
-  hasCategories,
-  getAutoCategoryForAge,
-} from '@/lib/ranking/rankingConstants';
+import { useEffect, useState, useMemo } from 'react';
+import type { RankingType } from '@/lib/ranking/rankingConstants';
 import { EMPTY_ATHLETE_FORM, type AthleteForm } from './types';
 import {
   createEmptyRankingState,
@@ -13,6 +8,7 @@ import {
 } from './edit-athlete-modal.logic';
 import type { EditAthleteModalProps, EditAthleteSavePayload } from './edit-athlete-modal.types';
 import { buildFormFromAthlete, buildSavePayload } from './edit-athlete-modal.submission';
+import { calculateEffectiveAge, syncRankingsWithAgeAndGender } from './ranking-sync.logic';
 
 interface UseEditAthleteModalParams {
   athlete: EditAthleteModalProps['athlete'];
@@ -35,26 +31,22 @@ export function useEditAthleteModal({ athlete, onSave }: UseEditAthleteModalPara
 
   useEffect(() => {
     if (!athlete) return;
-    setForm(buildFormFromAthlete(athlete));
-    setRankings(athleteToRankingsState(athlete.rankings));
+    const initialForm = buildFormFromAthlete(athlete);
+    setForm(initialForm);
+    const initialAge = calculateEffectiveAge(initialForm.birthYear, athlete.age);
+    const initialRankings = athleteToRankingsState(athlete.rankings);
+    setRankings(syncRankingsWithAgeAndGender(initialRankings, initialAge, initialForm.gender));
     setError(null);
   }, [athlete]);
 
-  const age = calculateAgeFromYear(parseInt(form.birthYear) || 0);
+  const age = useMemo(
+    () => calculateEffectiveAge(form.birthYear, athlete?.age),
+    [form.birthYear, athlete?.age]
+  );
 
   useEffect(() => {
-    if (age < 11) return;
-    setRankings((prev) => {
-      const updated = { ...prev };
-      if (hasCategories('ESTADUAL')) {
-        const autoCats = getAutoCategoryForAge('ESTADUAL', age);
-        if (autoCats.length > 0 && updated.ESTADUAL.category === '') {
-          updated.ESTADUAL = { ...updated.ESTADUAL, category: autoCats[0] };
-        }
-      }
-      return updated;
-    });
-  }, [age]);
+    setRankings((prev) => syncRankingsWithAgeAndGender(prev, age, form.gender));
+  }, [age, form.gender]);
 
   const toggleRankingEntry = (type: RankingType) => {
     setRankings((prev) => ({

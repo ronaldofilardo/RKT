@@ -36,8 +36,8 @@ export function buildSavePayload(
   form: AthleteForm,
   rankings: Record<RankingType, RankingState>,
 ): EditAthleteSavePayload {
-  const birthDate = form.birthYear && form.birthMonth && form.birthDay
-    ? `${form.birthYear}-${form.birthMonth.padStart(2, '0')}-${form.birthDay.padStart(2, '0')}`
+  const birthDate = form.birthYear
+    ? `${form.birthYear}-${(form.birthMonth || '01').padStart(2, '0')}-${(form.birthDay || '01').padStart(2, '0')}`
     : undefined;
   return {
     name: form.name.trim(),

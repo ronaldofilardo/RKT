@@ -30,7 +30,7 @@ export function computeAvailableTypes(age: number | null, gender = ''): RankingT
   return RANKING_TYPES.filter((type) => {
     if (!isGenderCompatible(type, gender)) return false;
     if (age === null) return true;
-    if (type === 'ESTADUAL') return true;
+    if (type === 'ESTADUAL') return age >= 11;
     if (type === 'ATP' || type === 'WTA') return age <= 40;
     if (type === 'ITF_Juniors') return age >= 14 && age <= 18;
     if (!hasCategories(type)) return true;
