@@ -43,7 +43,12 @@ export function parseDatabaseUrl(url: string): { host: string; database: string 
 
 export function readDatabaseUrl(env: NodeJS.ProcessEnv, envName: DbEnv): string {
   const variable = DATABASE_URL_VARIABLE[envName];
-  const url = env[variable];
+  let url = env[variable];
+
+  // Em produção na Vercel/Neon, aceita fallbacks fornecidos pela integração (POSTGRES_PRISMA_URL, POSTGRES_URL)
+  if (envName === 'production' && (!url || url.trim() === '')) {
+    url = env.POSTGRES_PRISMA_URL || env.POSTGRES_URL || env.POSTGRES_URL_NON_POOLING;
+  }
 
   if (typeof url !== 'string' || url.trim() === '') {
     const file = envName === 'test' ? '.env.test' : envName === 'development' ? '.env' : 'painel da Vercel/Neon';
