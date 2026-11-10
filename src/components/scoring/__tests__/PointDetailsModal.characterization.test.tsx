@@ -498,45 +498,28 @@ describe('PointDetailsModal — Characterization Tests', () => {
   });
 
   describe('Cancel & Close dialog', () => {
-    it('opens close dialog on Cancel click', async () => {
+    it('calls onCancel directly on Cancel click without close dialog', async () => {
       renderModal();
       await waitFor(() => expect(screen.getByText(/Situa\u00e7\u00e3o do Ponto/i)).toBeInTheDocument());
       fireEvent.click(screen.getByText('Cancelar'));
-      await waitFor(() => expect(screen.getByText('Descartar detalhes?')).toBeInTheDocument());
+      expect(screen.queryByText('Descartar detalhes?')).toBeNull();
+      expect(mockOnCancel).toHaveBeenCalled();
     });
 
-    it('opens close dialog on Escape key', async () => {
+    it('calls onCancel directly on Escape key without close dialog', async () => {
       renderModal();
       await waitFor(() => expect(screen.getByText(/Situa\u00e7\u00e3o do Ponto/i)).toBeInTheDocument());
       fireEvent.keyDown(document, { key: 'Escape' });
-      await waitFor(() => expect(screen.getByText('Descartar detalhes?')).toBeInTheDocument());
+      expect(screen.queryByText('Descartar detalhes?')).toBeNull();
+      expect(mockOnCancel).toHaveBeenCalled();
     });
 
-    it('closes dialog on "Continuar preenchendo" (does not call onCancel)', async () => {
-      renderModal();
-      await waitFor(() => expect(screen.getByText(/Situa\u00e7\u00e3o do Ponto/i)).toBeInTheDocument());
-      fireEvent.click(screen.getByText('Cancelar'));
-      await waitFor(() => expect(screen.getByText('Descartar detalhes?')).toBeInTheDocument());
-      fireEvent.click(screen.getByText('Continuar preenchendo'));
-      // Just verify onCancel was not called
-      expect(mockOnCancel).not.toHaveBeenCalled();
-    });
-
-    it('calls onCancel on "Descartar e voltar"', async () => {
-      renderModal();
-      await waitFor(() => expect(screen.getByText(/Situa\u00e7\u00e3o do Ponto/i)).toBeInTheDocument());
-      fireEvent.click(screen.getByText('Cancelar'));
-      await waitFor(() => expect(screen.getByText('Descartar detalhes?')).toBeInTheDocument());
-      fireEvent.click(screen.getByText('Descartar e voltar'));
-      await waitFor(() => expect(mockOnCancel).toHaveBeenCalled());
-    });
-
-    it('opens close dialog on backdrop click (does not call onCancel directly)', async () => {
+    it('calls onCancel directly on backdrop click without close dialog', async () => {
       renderModal();
       await waitFor(() => expect(screen.getByText(/Situa\u00e7\u00e3o do Ponto/i)).toBeInTheDocument());
       fireEvent.click(screen.getByLabelText('Fechar modal'));
-      await waitFor(() => expect(screen.getByText('Descartar detalhes?')).toBeInTheDocument());
-      expect(mockOnCancel).not.toHaveBeenCalled();
+      expect(screen.queryByText('Descartar detalhes?')).toBeNull();
+      expect(mockOnCancel).toHaveBeenCalled();
     });
   });
 

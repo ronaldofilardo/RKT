@@ -625,17 +625,16 @@ describe('useScoringHandlers - voltar no 2º saque não deve mexer no placar', (
     expect(closeAll).toHaveBeenCalled();
   });
 
-  it('returnToPreviousScreen("none"): abre o modal de undo sem mexer no estado de saque', () => {
+  it('returnToPreviousScreen("none"): executa diretamente undoLastPoint sem abrir modal de undo', () => {
     const { ctx, undoLastPoint, setScoreState, clearFirstServeError, setServeStep } = makeCancelCtx();
 
     const { result } = renderHook(() => useScoringHandlers(ctx));
     result.current.returnToPreviousScreen('none');
 
-    expect(undoLastPoint).not.toHaveBeenCalled();
-    expect(setScoreState).not.toHaveBeenCalled();
+    expect(undoLastPoint).toHaveBeenCalled();
     expect(clearFirstServeError).not.toHaveBeenCalled();
     expect(setServeStep).not.toHaveBeenCalled();
-    expect(ctx.open).toHaveBeenCalledWith('undo');
+    expect(ctx.open).not.toHaveBeenCalledWith('undo');
   });
 
   it('cancelServeError: NUNCA chama undoLastPoint(), tanto em serveStep "second" quanto "first"', () => {

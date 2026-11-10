@@ -3,7 +3,7 @@ import { createUndoLastPoint } from "./undo-redo-undo.logic";
 import type { UndoRedoDeps } from "./undo-redo.types";
 
 export function createUndoRedoService(deps: UndoRedoDeps) {
-  const { debounceTimerRef, isProcessingRef, closeAll, clearFirstServeError, setServeStep, closeServeErrorModal, open } = deps;
+  const { debounceTimerRef, isProcessingRef, closeAll, clearFirstServeError, setServeStep, closeServeErrorModal } = deps;
 
   const undoLastPoint = createUndoLastPoint(deps);
 
@@ -21,7 +21,7 @@ export function createUndoRedoService(deps: UndoRedoDeps) {
       closeAll();
       return;
     }
-    open("undo");
+    undoLastPoint();
   };
 
   const uploadAudioNote = async (

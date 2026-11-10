@@ -29,7 +29,6 @@ export function usePointDetailsModal({
   doubles,
 }: UsePointDetailsModalOptions) {
   const [mounted, setMounted] = useState(false);
-  const [showCloseDialog, setShowCloseDialog] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [form, dispatch] = useReducer(formReducer, null, () => initialForm);
   const { noteText, noteAudio, persistNoteContent } = usePointDetailsNote();
@@ -54,8 +53,8 @@ export function usePointDetailsModal({
   const refs = usePointDetailsSectionRefs(form, vencedor, mounted);
 
   const cancelCurrentAction = useCallback(() => {
-    setShowCloseDialog(true);
-  }, []);
+    onCancel();
+  }, [onCancel]);
 
   usePointDetailsKeyboard(mounted, cancelCurrentAction);
 
@@ -73,8 +72,8 @@ export function usePointDetailsModal({
 
   return {
     mounted,
-    showCloseDialog,
-    setShowCloseDialog,
+    showCloseDialog: false,
+    setShowCloseDialog: () => {},
     showNotesModal,
     setShowNotesModal,
     noteText,

@@ -479,19 +479,48 @@ describe("useScoringHandlers - returnToPreviousScreen", () => {
     jest.restoreAllMocks();
   });
 
-  it('deve abrir o modal de undo quando serveStep é "none"', () => {
+  it('deve executar undo diretamente (sem modal) quando serveStep é "none"', () => {
     const open = jest.fn();
+    const setScoreState = jest.fn();
+    const mockEngine = {
+      getState: jest.fn().mockReturnValue({
+        sets: [],
+        currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+        server: "player1",
+        isFinished: false,
+        winner: null,
+        setsWon: { player1: 0, player2: 0 },
+        startedAt: null,
+        secondServe: false,
+      }),
+      undoLastPoint: jest.fn().mockReturnValue({ point: { type: "WINNER" } }),
+      isFinished: jest.fn().mockReturnValue(false),
+      getHistoryLength: jest.fn().mockReturnValue(0),
+    };
 
     const ctx = createMockContext({
       open,
+      setScoreState,
+      engineRef: { current: mockEngine as any },
       onUndoComplete: jest.fn(),
+      pointsHistory: [{
+        pointNumber: 1,
+        server: 'player1',
+        receiver: 'player2',
+        serverScore: '15',
+        receiverScore: '0',
+        gameScore: { player1: 0, player2: 0 },
+        gamesScore: { player1: 0, player2: 0 },
+        winner: 'PLAYER_1',
+      } as any],
     });
 
     const { result } = renderHook(() => useScoringHandlers(ctx));
 
     result.current.returnToPreviousScreen("none");
 
-    expect(open).toHaveBeenCalledWith("undo");
+    expect(open).not.toHaveBeenCalledWith("undo");
+    expect(setScoreState).toHaveBeenCalled();
   });
 
   it('deve resetar o 2º saque diretamente (sem modal) quando serveStep é "second"', () => {

@@ -81,7 +81,7 @@ export function ScoringPagePlayArea({
       onSelectReceiverOverride={state.setDecidingPointReceiverOverride}
       onOpenSetSummary={() => chrome.setSetSummaryModalState({ isOpen: true, setNumber: derived.editScoreCompletedSets?.length || 1 })}
       onPoint={handlers.onPointSelectFromCard}
-      onSwipeUndo={() => state.open('undo')}
+      onSwipeUndo={() => handlers.undoLastPoint()}
       onNavigateReport={onNavigateReport}
       onRegisterAndExit={async () => {
         if (isFinished) {

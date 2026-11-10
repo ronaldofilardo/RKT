@@ -30,7 +30,10 @@ export function PointDetailsModalBlock({
       player2Name={match.player2.name}
       fontScale={state.fontScale}
       onConfirm={handlers.confirmPointDetails}
-      onCancel={state.close}
+      onCancel={() => {
+        state.close();
+        state.toast({ type: 'info', message: 'Ponto não registrado' });
+      }}
       doubles={
         match.matchType === "DOUBLES"
           ? {

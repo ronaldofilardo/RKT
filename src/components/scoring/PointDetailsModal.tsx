@@ -6,7 +6,6 @@ import { WinnerInfo } from './WinnerInfo';
 import { ModalActions } from './ModalActions';
 import { SectionRenderer } from './SectionRenderer';
 import { PointDetailsNotesModal } from './PointDetailsNotesModal';
-import { PointDetailsCloseDialog } from './PointDetailsCloseDialog';
 import { usePointDetailsModal, type PointDetailsDoublesInfo } from './use-point-details-modal';
 
 interface PointDetailsModalProps {
@@ -34,10 +33,10 @@ export function PointDetailsModal({
   doubles,
 }: PointDetailsModalProps) {
   const {
-    mounted, showCloseDialog, setShowCloseDialog, showNotesModal, setShowNotesModal,
+    mounted, showNotesModal, setShowNotesModal,
     noteText, hasNoteAudio, form, dispatch, refs, vencedor, winnerName,
     hitterCandidates, receiverCandidates,
-    cancelCurrentAction, canConfirm, confirmPointDetails, discardChanges, persistNoteContent,
+    cancelCurrentAction, canConfirm, confirmPointDetails, persistNoteContent,
   } = usePointDetailsModal({ winnerPlayerSide, currentServer, player1Name, player2Name, onConfirm, onCancel, doubles });
 
   if (!mounted) return null;
@@ -83,11 +82,6 @@ export function PointDetailsModal({
           onOpenNotes={() => setShowNotesModal(true)}
         />
       </div>
-      <PointDetailsCloseDialog
-        isOpen={showCloseDialog}
-        onClose={() => setShowCloseDialog(false)}
-        onDiscard={discardChanges}
-      />
       <PointDetailsNotesModal
         isOpen={showNotesModal}
         onClose={() => setShowNotesModal(false)}
