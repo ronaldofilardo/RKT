@@ -5,6 +5,7 @@ import { DashboardChrome } from "./components/DashboardChrome";
 import { DashboardViewRouter } from "./components/DashboardViewRouter";
 import { DashboardMatchModals } from "./components/DashboardMatchModals";
 import { ShareSpectateModal } from "@/components/scoring/ShareSpectateModal";
+import { VIEW_TITLES } from "./dashboard-view.logic";
 import { useDashboardPageModel } from "./use-dashboard-page-model";
 import { useDashboardMatchActions } from "./use-dashboard-match-actions";
 import { useDashboardSetSummary } from "./use-dashboard-set-summary";
@@ -44,7 +45,14 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-telemetry-base text-telemetry-text-primary">
-      <DashboardChrome user={model.user} navigateToTarget={model.navigateToTarget} onContextSwitched={model.fetchDashboardData} />
+      <DashboardChrome
+        user={model.user}
+        navigateToTarget={model.navigateToTarget}
+        onContextSwitched={model.fetchDashboardData}
+        title={VIEW_TITLES[model.view] ?? 'Início'}
+        onBack={() => model.navigateToTarget('dashboard')}
+        showBackButton={model.view !== 'dashboard'}
+      />
 
       <main className="max-w-4xl mx-auto px-4 py-6">
         <DashboardViewRouter

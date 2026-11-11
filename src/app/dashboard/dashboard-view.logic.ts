@@ -2,6 +2,15 @@ import { AREA_PREFIXES } from '@/core/access/areas';
 
 export type DashboardPageView = 'dashboard' | 'annotated' | 'live' | 'pending' | 'history' | 'reports';
 
+export const VIEW_TITLES: Record<DashboardPageView, string> = {
+  dashboard: 'Início',
+  history: 'Minhas Partidas',
+  reports: 'Relatórios',
+  annotated: 'Partidas Anotadas',
+  live: 'Partidas Ao Vivo',
+  pending: 'Partidas Aguardando',
+};
+
 /**
  * Normaliza o pathname removendo qualquer prefixo de área conhecido
  * (ex: /clube/treinador/historico -> /historico, /atleta/relatorios -> /relatorios).
@@ -32,4 +41,3 @@ export function resolveDashboardView(pathname: string | null): DashboardPageView
   if (norm.startsWith('/relatorios')) return 'reports';
   return 'dashboard';
 }
-

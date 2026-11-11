@@ -70,3 +70,4 @@ describe('ensureAthleteUserAccount', () => {
     expect(mockPrisma.user.create).not.toHaveBeenCalled();
   });
 });
+

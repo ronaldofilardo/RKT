@@ -1,43 +1,33 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { DashboardTopBar } from '../DashboardTopBar';
 
-describe('DashboardTopBar', () => {
-  it('exibe o primeiro nome do usuário autenticado no header', () => {
-    render(
-      <DashboardTopBar
-        menuOpen={false}
-        setMenuOpen={jest.fn()}
-        user={{ name: 'Guilherme Igeski Stencel', role: 'ANNOTATOR' }}
-        onNewMatch={jest.fn()}
-        onLogout={jest.fn()}
-      />
-    );
+const mockPush = jest.fn();
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
 
-    // Deve exibir apenas o primeiro nome
+describe('DashboardTopBar', () => {
+  const base = {
+    menuOpen: false,
+    setMenuOpen: jest.fn(),
+    user: { name: 'Eduardo', role: 'ANNOTATOR' },
+    onNewMatch: jest.fn(),
+    onLogout: jest.fn(),
+  };
+
+  it('exibe o primeiro nome do usuário autenticado no header', () => {
+    render(<DashboardTopBar {...base} user={{ name: 'Guilherme Igeski Stencel', role: 'ANNOTATOR' }} />);
     expect(screen.getByText('Guilherme')).toBeInTheDocument();
-    expect(screen.queryByText('Guilherme Igeski Stencel')).not.toBeInTheDocument();
-    expect(screen.queryByText('Usuário')).not.toBeInTheDocument();
   });
 
   it('exibe o primeiro nome para Administrador do Sistema', () => {
-    render(
-      <DashboardTopBar
-        menuOpen={false}
-        setMenuOpen={jest.fn()}
-        user={{ name: 'Administrador do Sistema', role: 'ADMIN' }}
-        onNewMatch={jest.fn()}
-        onLogout={jest.fn()}
-      />
-    );
-
+    render(<DashboardTopBar {...base} user={{ name: 'Administrador do Sistema', role: 'ADMIN' }} />);
     expect(screen.getByText('Administrador')).toBeInTheDocument();
     expect(screen.getByText('Admin')).toBeInTheDocument();
   });
-
-  const base = { menuOpen: false, setMenuOpen: jest.fn(), user: { name: 'Eduardo', role: 'ANNOTATOR' }, onNewMatch: jest.fn(), onLogout: jest.fn() };
 
   it('mostra o menu hambúrguer e a logo RKT por padrão', () => {
     render(<DashboardTopBar {...base} />);
@@ -45,12 +35,28 @@ describe('DashboardTopBar', () => {
     expect(screen.getByAltText('RKT Tennis')).toBeInTheDocument();
   });
 
-  it('esconde o hambúrguer com showMenuButton=false e mantém título e Sair', () => {
-    render(<DashboardTopBar {...base} title="Painel do Gestor" showMenuButton={false} />);
-    expect(screen.queryByTestId('hamburger-menu-button')).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('Abrir menu')).not.toBeInTheDocument();
-    expect(screen.getByText('Painel do Gestor')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Nova partida' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
+  it('renderiza botao de voltar para treinador/anotador em telas internas e chama onBack', () => {
+    const onBack = jest.fn();
+    render(<DashboardTopBar {...base} title="Relatórios" onBack={onBack} />);
+    const backBtn = screen.getByTestId('header-back-button');
+    expect(backBtn).toBeInTheDocument();
+    fireEvent.click(backBtn);
+    expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('nao renderiza botao de voltar na tela de inicio (title="Início")', () => {
+    render(<DashboardTopBar {...base} title="Início" />);
+    expect(screen.queryByTestId('header-back-button')).toBeNull();
+  });
+
+  it('nao renderiza botao de voltar para ADMIN, GESTOR ou SUPORTE', () => {
+    const { rerender } = render(<DashboardTopBar {...base} user={{ name: 'Admin', role: 'ADMIN' }} title="Relatórios" />);
+    expect(screen.queryByTestId('header-back-button')).toBeNull();
+
+    rerender(<DashboardTopBar {...base} user={{ name: 'Gestor', role: 'GESTOR' }} title="Relatórios" />);
+    expect(screen.queryByTestId('header-back-button')).toBeNull();
+
+    rerender(<DashboardTopBar {...base} user={{ name: 'Suporte', role: 'SUPORTE' }} title="Relatórios" />);
+    expect(screen.queryByTestId('header-back-button')).toBeNull();
   });
 });

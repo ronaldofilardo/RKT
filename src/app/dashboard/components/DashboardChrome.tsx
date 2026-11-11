@@ -19,13 +19,16 @@ interface DashboardChromeProps {
   title?: string;
   onLogout?: () => void;
   onContextSwitched?: () => void;
-  /** false remove o menu hambúrguer e a barra lateral (ex.: painel do gestor). Padrão: true. */
   showMenu?: boolean;
-  /** false oculta o botão "Sair" do header (ex.: painel do suporte). Padrão: true. */
   showLogout?: boolean;
+  onBack?: () => void;
+  showBackButton?: boolean;
 }
 
-export function DashboardChrome({ user, navigateToTarget, title, onLogout, onContextSwitched, showMenu = true, showLogout = true }: DashboardChromeProps) {
+export function DashboardChrome({
+  user, navigateToTarget, title, onLogout, onContextSwitched,
+  showMenu = true, showLogout = true, onBack, showBackButton,
+}: DashboardChromeProps) {
   const router = useRouter();
   const toAreaPath = useAreaPath();
   const activeArea = useActiveArea();
@@ -46,10 +49,7 @@ export function DashboardChrome({ user, navigateToTarget, title, onLogout, onCon
     return () => { cancelled = true; };
   }, []);
 
-  const internalEndSession = useCallback(() => {
-    logger.info('[DashboardPage] logout click');
-    setLogoutConfirmOpen(true);
-  }, []);
+  const internalEndSession = useCallback(() => { setLogoutConfirmOpen(true); }, []);
   const endSession = onLogout ?? internalEndSession;
 
   const confirmLogout = useCallback(async () => {
@@ -76,10 +76,9 @@ export function DashboardChrome({ user, navigateToTarget, title, onLogout, onCon
     <>
       <DashboardTopBar
         menuOpen={menuOpen} setMenuOpen={setMenuOpen} user={currentUser} title={title}
-        onLogout={endSession}
-        showMenuButton={showMenu} showLogout={showLogout}
+        onLogout={endSession} showMenuButton={showMenu} showLogout={showLogout}
         activeContextId={meData?.activeContextId} availableContexts={meData?.availableContexts}
-        onContextSwitched={refreshMe}
+        onContextSwitched={refreshMe} onBack={onBack} showBackButton={showBackButton}
       />
       {showMenu && <DashboardSidebar menuOpen={menuOpen} setMenuOpen={setMenuOpen} sections={sections} />}
       {!onLogout && (
