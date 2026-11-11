@@ -6,6 +6,7 @@ interface AthleteListTableProps {
   athletes: Athlete[];
   currentUserId?: string | null;
   userRole?: string | null;
+  isClubCoach?: boolean;
   onEditAthlete: (athlete: Athlete) => void;
   onDeleteAthlete: (athlete: Athlete) => void;
   onGenerateLink?: (athlete: Athlete) => void;
@@ -16,6 +17,7 @@ export function AthleteListTable({
   athletes,
   currentUserId,
   userRole,
+  isClubCoach,
   onEditAthlete,
   onDeleteAthlete,
   onGenerateLink,
@@ -52,6 +54,7 @@ export function AthleteListTable({
                 athlete={a}
                 currentUserId={currentUserId}
                 userRole={userRole}
+                isClubCoach={isClubCoach}
                 onEditAthlete={onEditAthlete}
                 onDeleteAthlete={onDeleteAthlete}
                 onGenerateLink={onGenerateLink}

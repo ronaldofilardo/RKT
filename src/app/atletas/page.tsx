@@ -20,8 +20,9 @@ export default function AtletasPage() {
   const { linkData, loadingLinkId, linkError, generateLink, closeLinkModal } = useAthleteLink();
 
   const isTreinador = userRole === 'TREINADOR';
+  const isClubCoach = isTreinador && !ctx.isParticular;
   const headerTitle = isTreinador
-    ? ctx.isParticular ? 'Meus Atletas (Particulares)' : ctx.ctName ? `Meus Atletas · ${ctx.ctName}` : 'Meus Atletas'
+    ? ctx.isParticular ? 'Meus Atletas (Particulares)' : ctx.ctName ? `Atletas · ${ctx.ctName}` : 'Atletas'
     : undefined;
 
   if (loading) {
@@ -54,13 +55,13 @@ export default function AtletasPage() {
         )}
 
         <AthleteListTable
-          athletes={athletes} currentUserId={currentUserId} userRole={userRole}
+          athletes={athletes} currentUserId={currentUserId} userRole={userRole} isClubCoach={isClubCoach}
           onEditAthlete={setEditingAthlete} onDeleteAthlete={setAthleteToDelete}
           onGenerateLink={generateLink} loadingLinkId={loadingLinkId}
         />
       </main>
 
-      <EditAthleteModal athlete={editingAthlete} isOpen={!!editingAthlete} onClose={() => setEditingAthlete(null)} onSave={saveAthleteChanges} />
+      <EditAthleteModal athlete={editingAthlete} isOpen={!!editingAthlete} readOnly={isClubCoach} onClose={() => setEditingAthlete(null)} onSave={saveAthleteChanges} />
       <NewAthleteModal isOpen={showNewAthleteModal} onClose={() => setShowNewAthleteModal(false)} onCreated={() => { setShowNewAthleteModal(false); loadAthletes(); }} myClub={true} ctId={ctx.isParticular ? null : ctx.activeContextId} />
       {athleteToDelete && <DeleteAthleteModal athleteName={athleteToDelete.name} deleting={deleting} onCancel={() => setAthleteToDelete(null)} onConfirm={confirmAthleteDeletion} />}
       {linkData && <LinkCopyModal open={Boolean(linkData)} onOpenChange={(open) => { if (!open) closeLinkModal(); }} title="Link de Primeiro Acesso" recipientName={linkData.recipientName} token={linkData.token} expiresAt={linkData.expiresAt} />}

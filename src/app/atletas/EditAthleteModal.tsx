@@ -8,7 +8,7 @@ import { EditAthleteModalFooter } from './edit-athlete-modal-footer';
 
 export type { EditAthleteSavePayload } from './edit-athlete-modal.types';
 
-export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthleteModalProps) {
+export function EditAthleteModal({ athlete, isOpen, readOnly, onClose, onSave }: EditAthleteModalProps) {
   const {
     form,
     setForm,
@@ -22,6 +22,7 @@ export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthle
   } = useEditAthleteModal({ athlete, onSave });
 
   if (!isOpen || !athlete) return null;
+  const isLocked = saving || Boolean(readOnly);
 
   return (
     <div
@@ -45,7 +46,9 @@ export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthle
       >
         <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-telemetry-elevated">
           <div>
-            <h2 id="edit-athlete-title" className="text-base font-bold text-telemetry-text-primary">Editar Atleta</h2>
+            <h2 id="edit-athlete-title" className="text-base font-bold text-telemetry-text-primary">
+              {readOnly ? 'Ficha do Atleta' : 'Editar Atleta'}
+            </h2>
             <p className="text-xs text-telemetry-text-muted">{athlete.name}</p>
           </div>
           <button
@@ -67,13 +70,13 @@ export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthle
             </div>
           )}
 
-          <EditAthletePersonalFields form={form} setForm={setForm} saving={saving} />
+          <EditAthletePersonalFields form={form} setForm={setForm} saving={isLocked} />
 
           <RankingForm
             form={form}
             rankings={rankings}
             age={age}
-            saving={saving}
+            saving={isLocked}
             onRankingToggle={toggleRankingEntry}
             onRankingFieldChange={updateRankingField}
           />
@@ -82,6 +85,7 @@ export function EditAthleteModal({ athlete, isOpen, onClose, onSave }: EditAthle
         <EditAthleteModalFooter
           saving={saving}
           canSave={Boolean(form.name.trim())}
+          readOnly={readOnly}
           onClose={onClose}
           onSave={saveEditedAthlete}
         />

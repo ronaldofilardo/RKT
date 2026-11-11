@@ -30,10 +30,12 @@ export async function putPlayerResponse(
     const isOwner = user?.id === id || (!!existing.userId && existing.userId === user?.id);
     const isStaff = user?.role === 'ADMIN';
     const isCreator = existing.createdByUserId && user?.id === existing.createdByUserId;
+    const isClubAthlete = Boolean((existing as any).clubId || existing.club);
+    const isClubCoach = (user?.activeArea === 'TREINADOR_CLUBE' || user?.role === 'TREINADOR') && isClubAthlete;
 
-    if (!isOwner && !isStaff && !isCreator) {
+    if (isClubCoach || (!isOwner && !isStaff && !isCreator)) {
       return NextResponse.json(
-        { error: 'FORBIDDEN', message: 'Sem permissão para alterar este atleta' },
+        { error: 'FORBIDDEN', message: isClubCoach ? 'Treinadores de clube não têm permissão para editar atletas do clube' : 'Sem permissão para alterar este atleta' },
         { status: 403 }
       );
     }

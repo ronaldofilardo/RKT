@@ -7,8 +7,16 @@ describe('Characterization — dashboard-shortcuts.logic baseline', () => {
     expect(keys).toEqual(['nova', 'minhas', 'atletas', 'relatorios']);
 
     const atletasShortcut = shortcuts.find((s) => s.key === 'atletas');
-    expect(atletasShortcut?.label).toBe('Meus Atletas');
+    expect(atletasShortcut?.label).toBe('Atletas');
+    expect(atletasShortcut?.sublabel).toBe('Atletas do clube');
     expect(atletasShortcut?.href).toBe('/atletas');
+  });
+
+  it('retorna atalhos com Meus Atletas para TREINADOR_AVULSO', () => {
+    const shortcuts = getShortcuts('TREINADOR_AVULSO');
+    const atletasShortcut = shortcuts.find((s) => s.key === 'atletas');
+    expect(atletasShortcut?.label).toBe('Meus Atletas');
+    expect(atletasShortcut?.sublabel).toBe('Gerenciar atletas');
   });
 
   it('retorna atalhos estáticos para ANOTADOR sem contadores', () => {

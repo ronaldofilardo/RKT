@@ -17,7 +17,7 @@ describe('Characterization — DashboardHomeSection baseline', () => {
 
     expect(screen.getByText(/Silva/)).toBeInTheDocument();
     expect(screen.getByText('Nova Partida')).toBeInTheDocument();
-    expect(screen.getByText('Meus Atletas')).toBeInTheDocument();
+    expect(screen.getByText('Atletas')).toBeInTheDocument();
 
     // Baseline: nenhum badge ou card de aviso/mural renderizado
     expect(container.querySelector('[data-testid="notif-badge"]')).toBeNull();

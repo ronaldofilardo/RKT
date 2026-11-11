@@ -3,6 +3,8 @@ import type { Athlete } from '../atletas.types';
 interface AthleteRowActionsProps {
   athlete: Athlete;
   canDelete: boolean;
+  isClubCoach?: boolean;
+  isUnder18?: boolean;
   onEdit: () => void;
   onDelete: () => void;
   onGenerateLink?: (athlete: Athlete) => void;
@@ -10,20 +12,14 @@ interface AthleteRowActionsProps {
 }
 
 export function AthleteRowActions({
-  athlete,
-  canDelete,
-  onEdit,
-  onDelete,
-  onGenerateLink,
-  loadingLink,
+  athlete, canDelete, isClubCoach, isUnder18,
+  onEdit, onDelete, onGenerateLink, loadingLink,
 }: AthleteRowActionsProps) {
   return (
     <div className="inline-flex items-center gap-1">
       {onGenerateLink && (
         <button
-          type="button"
-          onClick={() => onGenerateLink(athlete)}
-          disabled={loadingLink}
+          type="button" onClick={() => onGenerateLink(athlete)} disabled={loadingLink}
           aria-label={`Link de acesso de ${athlete.name}`}
           className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-telemetry-elevated border border-white/10 text-telemetry-text-primary text-xs sm:text-sm font-medium rounded-lg hover:bg-white/10 transition-colors shadow-sm disabled:opacity-50"
         >
@@ -33,19 +29,36 @@ export function AthleteRowActions({
           <span>Link</span>
         </button>
       )}
-      <button
-        type="button"
-        onClick={onEdit}
-        className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-telemetry-blue text-white text-xs sm:text-sm font-medium rounded-lg hover:opacity-90 transition-colors shadow-sm"
-      >
-        Editar
-      </button>
+      {isClubCoach ? (
+        isUnder18 ? (
+          <button
+            type="button" disabled aria-disabled="true"
+            title="Edição desabilitada para atletas menores de 18 anos"
+            className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-telemetry-elevated/50 border border-white/5 text-telemetry-text-muted/40 text-xs sm:text-sm font-medium rounded-lg cursor-not-allowed opacity-50 shadow-sm"
+          >
+            Editar
+          </button>
+        ) : (
+          <button
+            type="button" onClick={onEdit} aria-label={`Ver ficha de ${athlete.name}`}
+            className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-telemetry-elevated border border-white/10 text-telemetry-text-primary text-xs sm:text-sm font-medium rounded-lg hover:bg-white/10 transition-colors shadow-sm cursor-pointer"
+          >
+            <span aria-hidden="true">👁️</span>
+            <span>Ver Ficha</span>
+          </button>
+        )
+      ) : (
+        <button
+          type="button" onClick={onEdit}
+          className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-telemetry-blue text-white text-xs sm:text-sm font-medium rounded-lg hover:opacity-90 transition-colors shadow-sm cursor-pointer"
+        >
+          Editar
+        </button>
+      )}
       {canDelete && (
         <button
-          type="button"
-          onClick={onDelete}
-          aria-label={`Excluir atleta ${athlete.name}`}
-          className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert text-xs sm:text-sm font-medium rounded-lg hover:bg-telemetry-alert/20 transition-colors"
+          type="button" onClick={onDelete} aria-label={`Excluir atleta ${athlete.name}`}
+          className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert text-xs sm:text-sm font-medium rounded-lg hover:bg-telemetry-alert/20 transition-colors cursor-pointer"
         >
           Excluir
         </button>

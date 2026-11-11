@@ -129,6 +129,19 @@ describe('PUT /api/players/[id]', () => {
     expect(mockUpdatePlayer).toHaveBeenCalled();
   });
 
+  it('deve retornar 403 quando TREINADOR tenta atualizar atleta do clube', async () => {
+    mockGetPlayer.mockResolvedValue({ id: PLAYER_ID, name: 'João', clubId: 'club-1', club: 'Clube Central' } as any);
+    const COACH = makeAuthHeadersSync('coach-user', 'ANNOTATOR', { 'x-active-area': 'TREINADOR_CLUBE' });
+    const res = await PUT(putReq({ name: 'Coach Edit' }, COACH), {
+      params: Promise.resolve({ id: PLAYER_ID }),
+    });
+    expect(res.status).toBe(403);
+    const body = await res.json();
+    expect(body.error).toBe('FORBIDDEN');
+    expect(body.message).toContain('Treinadores de clube não têm permissão para editar atletas do clube');
+    expect(mockUpdatePlayer).not.toHaveBeenCalled();
+  });
+
   it('deve atualizar nome válido', async () => {
     const res = await PUT(putReq({ name: 'João Silva' }), {
       params: Promise.resolve({ id: PLAYER_ID }),

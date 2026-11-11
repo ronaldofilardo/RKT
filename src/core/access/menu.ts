@@ -26,12 +26,16 @@ function dedupeKeepLast(sections: MenuSection[]): MenuSection[] {
   return result;
 }
 
+function coachItems(isClub: boolean): MenuItem[] {
+  return [...TREINADOR.map((i) => (i.key === 'treinador-atletas' && isClub ? { ...i, label: 'Atletas' } : { ...i })), FINANCEIRO];
+}
+
 function buildMenuForArea(ctx: MenuContext, area: string): MenuSection[] {
   const sections: MenuSection[] = [];
   if (area === 'ATLETA' && ctx.athlete) {
     sections.push(section('atleta', 'Atleta', atletaItems(ctx.athlete)));
   } else if ((area === 'TREINADOR_AVULSO' || area === 'TREINADOR_CLUBE') && ctx.coach) {
-    sections.push(section('treinador', 'Treinador', [...TREINADOR, FINANCEIRO]));
+    sections.push(section('treinador', 'Treinador', coachItems(area === 'TREINADOR_CLUBE')));
   } else if (area === 'GESTOR' && ctx.gestor?.ctStatus === 'ACTIVE') {
     sections.push(section('gestao', 'Gestão do Clube', [...GESTAO, TORNEIOS, FINANCEIRO]));
   } else if (area === 'ANOTADOR' && ctx.canOperate) {
@@ -50,7 +54,10 @@ export function buildMenu(ctx: MenuContext): MenuSection[] {
   const sections: MenuSection[] = [];
   if (canSeeOperation(ctx)) sections.push(section('operacao', 'Operação', OPERACAO));
   if (ctx.athlete) sections.push(section('atleta', 'Atleta', atletaItems(ctx.athlete)));
-  if (ctx.coach) sections.push(section('treinador', 'Treinador', [...TREINADOR, FINANCEIRO]));
+  if (ctx.coach) {
+    const isClub = Boolean(ctx.coach.ctIds && ctx.coach.ctIds.length > 0);
+    sections.push(section('treinador', 'Treinador', coachItems(isClub)));
+  }
   if (ctx.gestor?.ctStatus === 'ACTIVE') sections.push(section('gestao', 'Gestão do Clube', [...GESTAO, TORNEIOS, FINANCEIRO]));
   if (ctx.isAdmin) sections.push(section('admin', 'Admin', [ADMIN]));
   sections.push(section('rodape', 'Conta', [DADOS_PESSOAIS, SAIR]));

@@ -19,6 +19,12 @@ export function getShortcuts(activeArea?: string | null): Shortcut[] {
         { key: 'treinador', icon: '🧑‍🏫', label: 'Meu Treinador', sublabel: 'Vínculo ativo', href: '/atleta/treinador', soon: true },
       ];
     case 'TREINADOR_CLUBE':
+      return [
+        { key: 'nova', icon: '🎾', label: 'Nova Partida', sublabel: 'Iniciar anotação', href: '/match/new', highlight: true },
+        { key: 'minhas', icon: '📋', label: 'Minhas Partidas', sublabel: 'Todas as partidas', view: 'history' },
+        { key: 'atletas', icon: '👥', label: 'Atletas', sublabel: 'Atletas do clube', href: '/atletas' },
+        { key: 'relatorios', icon: '📊', label: 'Relatórios', sublabel: 'Timelines finalizadas', view: 'reports' },
+      ];
     case 'TREINADOR_AVULSO':
       return [
         { key: 'nova', icon: '🎾', label: 'Nova Partida', sublabel: 'Iniciar anotação', href: '/match/new', highlight: true },

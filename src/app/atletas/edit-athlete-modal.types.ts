@@ -25,6 +25,7 @@ export interface EditAthleteModalProps {
     rankings?: Record<string, RankingEntry> | null;
   } | null;
   isOpen: boolean;
+  readOnly?: boolean;
   onClose: () => void;
   onSave: (data: EditAthleteSavePayload) => Promise<void>;
 }

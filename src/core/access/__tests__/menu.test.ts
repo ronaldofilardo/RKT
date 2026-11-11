@@ -77,12 +77,12 @@ describe('buildMenu — combinações do plano (§7)', () => {
     }));
   });
 
-  it('7. Treinador de clube: Treinador (sem Operação)', () => {
+  it('7. Treinador de clube: Treinador (sem Operação) com label Atletas', () => {
     const menu = buildMenu(ctx({ coach: { ctIds: ['ct-1'] } }));
     expect(keys(menu)).toEqual(['treinador']);
-    const meusAtletas = find(menu, 'treinador')!.items.find((i) => i.key === 'treinador-atletas');
-    expect(meusAtletas).toEqual(expect.objectContaining({
-      label: 'Meus Atletas',
+    const atletasItem = find(menu, 'treinador')!.items.find((i) => i.key === 'treinador-atletas');
+    expect(atletasItem).toEqual(expect.objectContaining({
+      label: 'Atletas',
       href: '/atletas',
       disabled: false,
     }));
