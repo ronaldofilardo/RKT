@@ -8,6 +8,8 @@ interface AthleteListTableProps {
   userRole?: string | null;
   onEditAthlete: (athlete: Athlete) => void;
   onDeleteAthlete: (athlete: Athlete) => void;
+  onGenerateLink?: (athlete: Athlete) => void;
+  loadingLinkId?: string | null;
 }
 
 export function AthleteListTable({
@@ -16,6 +18,8 @@ export function AthleteListTable({
   userRole,
   onEditAthlete,
   onDeleteAthlete,
+  onGenerateLink,
+  loadingLinkId,
 }: AthleteListTableProps) {
   if (athletes.length === 0) {
     return <AthleteListEmpty />;
@@ -50,6 +54,8 @@ export function AthleteListTable({
                 userRole={userRole}
                 onEditAthlete={onEditAthlete}
                 onDeleteAthlete={onDeleteAthlete}
+                onGenerateLink={onGenerateLink}
+                loadingLinkId={loadingLinkId}
               />
             ))}
           </tbody>

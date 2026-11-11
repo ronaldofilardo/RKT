@@ -1,5 +1,6 @@
 import type { Athlete } from '../atletas.types';
 import { formatRankings } from './athlete-list-table.logic';
+import { AthleteRowActions } from './athlete-row-actions';
 
 interface AthleteTableRowProps {
   athlete: Athlete;
@@ -7,6 +8,8 @@ interface AthleteTableRowProps {
   userRole?: string | null;
   onEditAthlete: (athlete: Athlete) => void;
   onDeleteAthlete: (athlete: Athlete) => void;
+  onGenerateLink?: (athlete: Athlete) => void;
+  loadingLinkId?: string | null;
 }
 
 export function AthleteTableRow({
@@ -15,6 +18,8 @@ export function AthleteTableRow({
   userRole,
   onEditAthlete,
   onDeleteAthlete,
+  onGenerateLink,
+  loadingLinkId,
 }: AthleteTableRowProps) {
   const rankingList = formatRankings(a.rankings);
   const location = [a.city, a.state].filter(Boolean).join(' - ');
@@ -73,23 +78,14 @@ export function AthleteTableRow({
         )}
       </td>
       <td className="px-3 py-2.5 sm:px-4 sm:py-3 text-right">
-        <div className="inline-flex items-center gap-1">
-          <button
-            onClick={() => onEditAthlete(a)}
-            className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-telemetry-blue text-white text-xs sm:text-sm font-medium rounded-lg hover:opacity-90 transition-colors shadow-sm"
-          >
-            Editar
-          </button>
-          {canDelete && (
-            <button
-              onClick={() => onDeleteAthlete(a)}
-              aria-label={`Excluir atleta ${a.name}`}
-              className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert text-xs sm:text-sm font-medium rounded-lg hover:bg-telemetry-alert/20 transition-colors"
-            >
-              Excluir
-            </button>
-          )}
-        </div>
+        <AthleteRowActions
+          athlete={a}
+          canDelete={canDelete}
+          onEdit={() => onEditAthlete(a)}
+          onDelete={() => onDeleteAthlete(a)}
+          onGenerateLink={onGenerateLink}
+          loadingLink={loadingLinkId === a.id}
+        />
       </td>
     </tr>
   );

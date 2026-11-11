@@ -6,6 +6,7 @@ import { hashCpf } from '@/core/athlete/cpf';
 import { generateUniqueAthleteCode } from '@/core/athlete/athlete-code';
 import { normalizeNickname } from '@/core/athlete/nickname';
 import { createPlayerRow } from './player-create-row.logic';
+import { handlePlayerPostCreate } from './player-create-links.logic';
 
 type CreatePlayerActor = 'ATLETA' | 'GESTOR' | 'TREINADOR' | null;
 
@@ -45,7 +46,6 @@ export async function createPlayer(data: {
     return Boolean(existing);
   });
 
-  // Categoria automática (ESTADUAL) a partir da idade calculada
   let rankingsPayload: Record<string, unknown> = data.rankings ? { ...data.rankings } : {};
   if (age !== undefined && age >= 11 && !rankingsPayload.ESTADUAL) {
     const autoCats = getAutoCategoryForAge('ESTADUAL', age);
@@ -79,19 +79,13 @@ export async function createPlayer(data: {
     select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, cpfHash: true, cpfLast2: true, identityStatus: true, athleteCode: true, nickname: true, poolVisible: true, userId: true, createdByUserId: true },
   });
 
-  if (data.myClub && data.actorProfile) {
-    if (data.ctId) {
-      const status = data.actorProfile === 'ATLETA' ? 'PENDING' : 'ACTIVE';
-      await prisma.playerCT.create({
-        data: { playerId: player.id, ctId: data.ctId, status },
-      });
-    } else if (data.actorProfile === 'TREINADOR' && data.createdByUserId) {
-      await prisma.coachAthleteLink.create({
-        data: { coachUserId: data.createdByUserId, playerId: player.id, status: 'ACTIVE' },
-      });
-    }
-  }
+  await handlePlayerPostCreate({
+    player: { ...player, cpf: data.cpf },
+    myClub: data.myClub,
+    ctId: data.ctId,
+    createdByUserId: data.createdByUserId,
+    actorProfile: data.actorProfile,
+  });
 
   return player;
 }
-
