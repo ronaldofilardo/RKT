@@ -44,6 +44,7 @@ export async function ensureAthleteUserAccount(
   }
 
   const userEmail = rawEmail || (normalizedCpf ? `${normalizedCpf}@local` : `${athleteCode || playerId}@atleta.rkt`);
+  const userCpf = normalizedCpf && normalizedCpf.length === 11 ? normalizedCpf : `PROV_${playerId}`;
   const tempPassword = birthDate
     ? birthDate.toISOString().slice(0, 10).replace(/-/g, '')
     : birthYear
@@ -56,7 +57,7 @@ export async function ensureAthleteUserAccount(
     data: {
       name,
       email: userEmail,
-      cpf: normalizedCpf,
+      cpf: userCpf,
       passwordHash,
       role: 'ANNOTATOR',
       canOperate: true,
