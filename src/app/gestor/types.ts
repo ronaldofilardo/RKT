@@ -40,6 +40,8 @@ export interface AthleteItem {
     cpfLast2?: string | null;
     gender: string;
     dominance: string | null;
+    backhand?: string | null;
+    rankings?: Record<string, any> | null;
     user: {
       id: string;
       name: string;

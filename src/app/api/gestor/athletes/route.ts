@@ -29,6 +29,8 @@ export async function GET(request: NextRequest) {
               cpfLast2: true,
               gender: true,
               dominance: true,
+              backhand: true,
+              rankings: true,
               user: { select: { id: true, name: true, cpf: true, email: true, mustChangePassword: true } },
             },
           },

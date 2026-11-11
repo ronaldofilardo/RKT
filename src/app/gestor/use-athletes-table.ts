@@ -26,7 +26,15 @@ export function useAthletesTableHandlers({
     }
   };
 
-  const handleSave = async (data: { name: string; cpf: string; birthDate: string; gender: string; dominance: string }) => {
+  const handleSave = async (data: {
+    name: string;
+    cpf?: string;
+    birthDate?: string;
+    gender?: string;
+    dominance?: string;
+    backhand?: string;
+    rankings?: Record<string, any>;
+  }) => {
     if (!editing) return;
     const res = await fetch(`/api/gestor/athletes/${editing.player.id}`, {
       method: 'PATCH',

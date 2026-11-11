@@ -80,7 +80,10 @@ export function AthletesTable({
             id: editing.player.id, name: editing.player.name,
             cpf: editing.player.user?.cpf || editing.player.cpf || '',
             birthDate: editing.player.birthDate ? String(editing.player.birthDate) : '',
-            gender: normalizeGender(editing.player.gender) ?? 'MALE', dominance: normalizeDominance(editing.player.dominance) ?? 'RIGHT',
+            gender: normalizeGender(editing.player.gender) ?? 'MALE',
+            dominance: normalizeDominance(editing.player.dominance) ?? 'RIGHT',
+            backhand: editing.player.backhand ?? '',
+            rankings: editing.player.rankings ?? {},
           }}
           onSave={handleSave}
         />

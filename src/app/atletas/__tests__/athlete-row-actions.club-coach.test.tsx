@@ -66,3 +66,4 @@ describe('AthleteRowActions — Regras de Treinador de Clube', () => {
     expect(onEdit).toHaveBeenCalledTimes(1);
   });
 });
+

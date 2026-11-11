@@ -75,7 +75,7 @@ describe('toasts de ação na área do gestor', () => {
     renderCoaches();
 
     fireEvent.click(screen.getByRole('button', { name: 'Editar' }));
-    fireEvent.change(screen.getByLabelText('Data de nascimento'), { target: { value: '1985-03-02' } });
+    fireEvent.change(screen.getByLabelText('Nome completo'), { target: { value: 'Técnico Ana Maria' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
 
     await waitFor(() =>
@@ -113,7 +113,7 @@ describe('toasts de ação na área do gestor', () => {
     renderAthletes();
 
     fireEvent.click(screen.getByRole('button', { name: 'Editar' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+    fireEvent.click(screen.getByRole('button', { name: /Salvar/i }));
 
     await waitFor(() =>
       expect(toastMock).toHaveBeenCalledWith({

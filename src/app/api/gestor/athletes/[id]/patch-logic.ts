@@ -31,4 +31,6 @@ export const PatchSchema = z.object({
       }
       return d;
     }),
+  backhand: z.string().nullish(),
+  rankings: z.record(z.any()).nullish(),
 });

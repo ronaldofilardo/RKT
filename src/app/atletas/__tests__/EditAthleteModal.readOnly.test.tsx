@@ -44,3 +44,4 @@ describe('EditAthleteModal — Modo ReadOnly (Ver Ficha)', () => {
     expect(nameInput).toBeDisabled();
   });
 });
+

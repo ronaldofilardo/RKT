@@ -2,6 +2,7 @@ import type { RankingEntry } from './edit-athlete-modal.logic';
 
 export interface EditAthleteSavePayload {
   name: string;
+  cpf?: string;
   gender?: string;
   birthDate?: string;
   dominance?: string;
@@ -17,6 +18,7 @@ export interface EditAthleteModalProps {
   athlete: {
     id: string;
     name: string;
+    cpf?: string | null;
     gender?: string | null;
     age?: number | null;
     birthDate?: string | null;
@@ -26,6 +28,8 @@ export interface EditAthleteModalProps {
   } | null;
   isOpen: boolean;
   readOnly?: boolean;
+  showCpf?: boolean;
+  cpfRequired?: boolean;
   onClose: () => void;
   onSave: (data: EditAthleteSavePayload) => Promise<void>;
 }

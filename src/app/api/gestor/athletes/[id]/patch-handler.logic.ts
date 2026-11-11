@@ -71,6 +71,8 @@ export async function handleAthletePatch(
         name: parsed.data.name,
         gender: parsed.data.gender,
         dominance: parsed.data.dominance,
+        backhand: parsed.data.backhand ?? null,
+        rankings: parsed.data.rankings ?? undefined,
         birthDate: parsed.data.birthDate ? new Date(parsed.data.birthDate) : null,
         ...(birthYear ? { age: new Date().getFullYear() - birthYear } : {}),
         ...cpfData,
