@@ -1,11 +1,17 @@
 import { NextRequest } from 'next/server';
 
 const mockFindFirst = jest.fn();
+const mockNotificationFindMany = jest.fn();
+const mockNotificationUpdateMany = jest.fn();
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     match: {
       findFirst: (...args: any[]) => mockFindFirst(...args),
+    },
+    notification: {
+      findMany: (...args: any[]) => mockNotificationFindMany(...args),
+      updateMany: (...args: any[]) => mockNotificationUpdateMany(...args),
     },
   },
 }));
@@ -40,7 +46,25 @@ describe('POST /api/matches/[id]/finish', () => {
       player2PartnerId: null,
       createdByUserId: 'user-1',
       openForAnnotation: true,
+      sourceMatchId: 'tpl-1',
     });
+    mockNotificationFindMany.mockResolvedValue([
+      {
+        id: 'notif-1',
+        recipientId: 'user-1',
+        type: 'ASSIGNED_TO_ANNOTATE',
+        readAt: null,
+        payload: { matchId: 'tpl-1', templateId: 'tpl-1' },
+      },
+      {
+        id: 'notif-2',
+        recipientId: 'user-1',
+        type: 'ASSIGNED_TO_ANNOTATE',
+        readAt: null,
+        payload: { matchId: 'outro-tpl', templateId: 'outro-tpl' },
+      },
+    ]);
+    mockNotificationUpdateMany.mockResolvedValue({ count: 1 });
   });
 
   it('deve retornar 200 ao finalizar partida com sucesso', async () => {
@@ -131,9 +155,49 @@ describe('POST /api/matches/[id]/finish', () => {
     const res = await POST(finishReq({ reason: 'COMPLETED' }), {
       params: Promise.resolve({ id: 'match-1' }),
     });
+    const body = await res.json();
 
     expect(res.status).toBe(500);
-    const body = await res.json();
     expect(body.error).toBe('INTERNAL_ERROR');
+  });
+
+  it('marca como lidas os avisos de designação vinculados ao match finalizado', async () => {
+    mockFinishMatch.mockResolvedValue({ id: 'match-1', state: 'FINISHED' } as any);
+
+    await POST(finishReq({ reason: 'COMPLETED' }), {
+      params: Promise.resolve({ id: 'match-1' }),
+    });
+
+    expect(mockNotificationFindMany).toHaveBeenCalledWith({
+      where: {
+        recipientId: 'user-1',
+        type: 'ASSIGNED_TO_ANNOTATE',
+        readAt: null,
+      },
+    });
+    expect(mockNotificationUpdateMany).toHaveBeenCalledWith({
+      where: { id: { in: ['notif-1'] } },
+      data: { readAt: expect.any(Date) },
+    });
+  });
+
+  it('não marca avisos quando não há correspondência de matchId/templateId', async () => {
+    mockFindFirst.mockResolvedValue({
+      id: 'match-1',
+      player1Id: 'p1',
+      player2Id: 'p2',
+      player1PartnerId: null,
+      player2PartnerId: null,
+      createdByUserId: 'user-1',
+      openForAnnotation: true,
+      sourceMatchId: null,
+    });
+    mockFinishMatch.mockResolvedValue({ id: 'match-1', state: 'FINISHED' } as any);
+
+    await POST(finishReq({ reason: 'COMPLETED' }), {
+      params: Promise.resolve({ id: 'match-1' }),
+    });
+
+    expect(mockNotificationUpdateMany).not.toHaveBeenCalled();
   });
 });

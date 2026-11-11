@@ -35,6 +35,7 @@ export async function POST(
           player2PartnerId: true,
           createdByUserId: true,
           openForAnnotation: true,
+          sourceMatchId: true,
         },
       });
 
@@ -74,6 +75,31 @@ export async function POST(
       }
 
       emitMatchEvent(id, 'state_changed', { action: 'match_finished', scoreState: parsed.data.scoreState });
+
+      // Avisos de Designação só saem do mural do treinador quando a partida é finalizada.
+      try {
+        const matchIds = [id, match.sourceMatchId].filter(Boolean) as string[];
+        const assigned = await prisma.notification.findMany({
+          where: {
+            recipientId: user.id,
+            type: 'ASSIGNED_TO_ANNOTATE',
+            readAt: null,
+          },
+        });
+        const toMark = assigned.filter(
+          (n) =>
+            matchIds.includes((n.payload as { matchId?: string; templateId?: string })?.matchId ?? '') ||
+            matchIds.includes((n.payload as { matchId?: string; templateId?: string })?.templateId ?? ''),
+        );
+        if (toMark.length > 0) {
+          await prisma.notification.updateMany({
+            where: { id: { in: toMark.map((n) => n.id) } },
+            data: { readAt: new Date() },
+          });
+        }
+      } catch {
+        // Não falha o encerramento da partida por erro ao desmarcar aviso.
+      }
 
       return NextResponse.json(result);
     } catch (error) {

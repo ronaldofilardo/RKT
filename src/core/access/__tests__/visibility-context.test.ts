@@ -62,12 +62,14 @@ describe('Isolamento de Visibilidade por Contexto de Sessão', () => {
   it('treinador no contexto CT A enxerga apenas partidas do CT A', () => {
     expect(canReadMatch(coachActorCtA, matchCtA)).toBe(true);
     expect(canReadMatch(coachActorCtA, matchCtB)).toBe(false);
-    expect(canReadMatch(coachActorCtA, matchParticular)).toBe(false);
+    // Criador/annotador sempre lê a própria partida, independente do contexto.
+    expect(canReadMatch(coachActorCtA, matchParticular)).toBe(true);
   });
 
   it('treinador no contexto Particular enxerga apenas partidas avulsas (ctId null)', () => {
     expect(canReadMatch(coachActorParticular, matchParticular)).toBe(true);
-    expect(canReadMatch(coachActorParticular, matchCtA)).toBe(false);
+    // Criador/annotador sempre lê a própria partida, independente do contexto.
+    expect(canReadMatch(coachActorParticular, matchCtA)).toBe(true);
     expect(canReadMatch(coachActorParticular, matchCtB)).toBe(false);
   });
 

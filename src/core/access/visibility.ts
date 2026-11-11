@@ -33,6 +33,9 @@ export function canReadMatch(actor: Actor | null | undefined, m: MatchAccess): b
     return true;
   }
 
+  // Criador ou anotador da partida sempre pode ler, independentemente do contexto de CT atual.
+  if (isCreatorOrAnnotator(actor, m)) return true;
+
   if (actor.activeContextId) {
     if (actor.activeContextId === 'PARTICULAR') {
       // No modo particular, bloquear partidas de clube apenas quando nenhum
@@ -44,7 +47,7 @@ export function canReadMatch(actor: Actor | null | undefined, m: MatchAccess): b
       return false;
     }
   }
-  if (isCreatorOrAnnotator(actor, m) || isOwnerCtStaff(actor, m)) return true;
+  if (isOwnerCtStaff(actor, m)) return true;
   const ids = m.participantPlayerIds;
   if (actor.athletePlayerId && ids.includes(actor.athletePlayerId)) return true;
   if (actor.followedPlayerIds.some((id) => ids.includes(id))) return true;

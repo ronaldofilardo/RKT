@@ -56,7 +56,7 @@ export async function getMatchesResponse(
     }
 
     const scope = await resolveScope(user, actor);
-    const matches = await listMatches(state, cursor, limit, user.id, user.contextId, followedPlayerIds, scope);
+    const matches = await listMatches(state, cursor, limit, user.id, user.contextId, followedPlayerIds, scope, user.id);
     const nextCursor = matches.length === limit ? matches[matches.length - 1].id : null;
 
     const { normalizeScoreState } = await import('@/core/scoring/score-normalizer');

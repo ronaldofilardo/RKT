@@ -1,6 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useToast } from '@/components/Toast';
 import type { AssignedNotificationItem } from '@/hooks/useAssignedNotifications';
 
 export interface AssignedNotifCardProps {
@@ -10,11 +12,37 @@ export interface AssignedNotifCardProps {
 
 export function AssignedNotifCard({ notification, onDismiss }: AssignedNotifCardProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const { id, payload } = notification;
+  const [viewing, setViewing] = useState(false);
 
-  const handleView = () => {
-    onDismiss(id);
-    router.push(`/partidas-publicas?templateId=${payload.templateId || payload.matchId}`);
+  const templateId = payload.templateId || payload.matchId;
+
+  const handleView = async () => {
+    if (!templateId || viewing) return;
+    setViewing(true);
+    try {
+      const res = await fetch(`/api/matches/pool/${templateId}/annotate`, { method: 'POST' });
+      if (res.status === 201) {
+        const json = await res.json();
+        router.push(`/match/${(json as { matchId?: string }).matchId}/scoring`);
+        return;
+      }
+      if (res.status === 409) {
+        const json = await res.json();
+        const matchId = (json as { details?: { matchId?: string } | null })?.details?.matchId;
+        if (matchId) {
+          router.push(`/match/${matchId}/scoring`);
+          return;
+        }
+      }
+      const json = await res.json().catch(() => ({}));
+      toast({ type: 'error', message: json.message || 'Não foi possível abrir a partida para anotação.' });
+    } catch {
+      toast({ type: 'error', message: 'Não foi possível abrir a partida para anotação.' });
+    } finally {
+      setViewing(false);
+    }
   };
 
   return (
@@ -53,10 +81,11 @@ export function AssignedNotifCard({ notification, onDismiss }: AssignedNotifCard
         </button>
         <button
           type="button"
+          disabled={viewing}
           onClick={handleView}
-          className="px-3 py-1.5 text-xs font-semibold rounded bg-telemetry-blue hover:bg-telemetry-blue/80 text-white shadow-sm transition-colors"
+          className="px-3 py-1.5 text-xs font-semibold rounded bg-telemetry-blue hover:bg-telemetry-blue/80 text-white shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Ver Partida
+          {viewing ? 'Abrindo...' : 'Ver Partida'}
         </button>
       </div>
     </div>

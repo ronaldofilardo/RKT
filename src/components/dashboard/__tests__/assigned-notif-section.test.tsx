@@ -8,6 +8,9 @@ const mockUseAssigned = jest.fn();
 jest.mock('@/hooks/useAssignedNotifications', () => ({
   useAssignedNotifications: () => mockUseAssigned(),
 }));
+jest.mock('@/components/Toast', () => ({
+  useToast: () => ({ toast: jest.fn() }),
+}));
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn() }),

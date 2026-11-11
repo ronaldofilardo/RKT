@@ -1,19 +1,24 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AssignedNotifCard } from '../assigned-notif-card';
 
 const mockPush = jest.fn();
+const mockToast = jest.fn();
+
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
+}));
+jest.mock('@/components/Toast', () => ({
+  useToast: () => ({ toast: mockToast }),
 }));
 
 describe('AssignedNotifCard', () => {
   const notif = {
     id: 'notif-1',
     payload: {
-      matchId: 'm-1',
+      matchId: 'tpl-1',
       templateId: 'tpl-1',
       player1Name: 'Carlos Souza',
       player2Name: 'Rafael Lima',
@@ -25,6 +30,8 @@ describe('AssignedNotifCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPush.mockClear();
+    mockToast.mockClear();
   });
 
   it('renderiza os dados da partida e quem atribuiu', () => {
@@ -45,13 +52,62 @@ describe('AssignedNotifCard', () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it('clique em "Ver Partida" chama onDismiss e redireciona', () => {
+  it('clique em "Ver Partida" não descarta o aviso, cria a anotação e redireciona para o scoring', async () => {
     const onDismiss = jest.fn();
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({ matchId: 'match-derivado-1' }),
+    }) as any;
+
     render(<AssignedNotifCard notification={notif} onDismiss={onDismiss} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Ver Partida' }));
-    expect(onDismiss).toHaveBeenCalledWith('notif-1');
-    expect(mockPush).toHaveBeenCalledWith('/partidas-publicas?templateId=tpl-1');
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/match/match-derivado-1/scoring');
+    });
+
+    expect(onDismiss).not.toHaveBeenCalled();
+    expect(global.fetch).toHaveBeenCalledWith('/api/matches/pool/tpl-1/annotate', { method: 'POST' });
+  });
+
+  it('quando já há anotação (409), redireciona para o scoring da anotação existente sem descartar', async () => {
+    const onDismiss = jest.fn();
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 409,
+      json: async () => ({ details: { matchId: 'match-existente-9' } }),
+    }) as any;
+
+    render(<AssignedNotifCard notification={notif} onDismiss={onDismiss} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ver Partida' }));
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/match/match-existente-9/scoring');
+    });
+
+    expect(onDismiss).not.toHaveBeenCalled();
+  });
+
+  it('em erro na anotação, não redireciona e não descarta o aviso', async () => {
+    const onDismiss = jest.fn();
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ message: 'erro interno' }),
+    }) as any;
+
+    render(<AssignedNotifCard notification={notif} onDismiss={onDismiss} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ver Partida' }));
+
+    await waitFor(() => {
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+
+    expect(onDismiss).not.toHaveBeenCalled();
+    expect(mockToast).toHaveBeenCalled();
   });
 });
-

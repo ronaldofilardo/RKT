@@ -18,6 +18,7 @@ export async function listMatches(
   contextId?: string | null,
   followedPlayerIds?: readonly string[] | null,
   scope?: MatchListScope | null,
+  assignedCoachId?: string | null,
 ) {
   if (!createdByUserId) {
     return [];
@@ -53,16 +54,34 @@ export async function listMatches(
     }
   }
 
-  const where: Record<string, unknown> = {
+  const baseConditions: Record<string, unknown> = {
     deletedAt: null,
-    ...(scope ? { isPublicTemplate: false } : {}),
     ...(state ? { state: state as MatchState } : {}),
   };
 
-  if (orConditions.length === 1) {
-    Object.assign(where, orConditions[0]);
-  } else if (orConditions.length > 1) {
-    where.OR = orConditions;
+  const where: Record<string, unknown> = { ...baseConditions };
+
+  if (assignedCoachId) {
+    // Quando filtrando por coach designado, inclui cartazes do pool (isPublicTemplate)
+    // designados a ele. Partidas não-designadas continuam excluindo templates.
+    const nonTemplateOrConditions = orConditions.map((cond) => ({
+      ...cond,
+      isPublicTemplate: false,
+    }));
+    const allOrConditions = [...nonTemplateOrConditions, { assignedCoachId }];
+
+    if (allOrConditions.length === 1) {
+      Object.assign(where, allOrConditions[0]);
+    } else {
+      where.OR = allOrConditions;
+    }
+  } else {
+    where.isPublicTemplate = false;
+    if (orConditions.length === 1) {
+      Object.assign(where, orConditions[0]);
+    } else if (orConditions.length > 1) {
+      where.OR = orConditions;
+    }
   }
 
   return prisma.match.findMany({
