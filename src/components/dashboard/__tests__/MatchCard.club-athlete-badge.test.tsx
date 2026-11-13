@@ -87,5 +87,41 @@ describe("MatchCard - Badges de Clube e Atleta ('Meu Clube' vs 'Meu Atleta')", (
     expect(screen.getByText("Meu Atleta")).toBeInTheDocument();
     expect(screen.getByText("Outros")).toBeInTheDocument();
   });
+
+  it("exibe badge 'Criada por [nome]' ao lado do adversário quando a partida possui createdByName", () => {
+    const match = {
+      id: "match-with-creator",
+      state: "IN_PROGRESS",
+      format: "BEST_OF_3",
+      ctId: "ct-rkt-id",
+      createdByName: "Carlos Gestor",
+      player1: {
+        id: "p1",
+        name: "João",
+        club: "CT RKT",
+        playerCts: [{ ctId: "ct-rkt-id" }],
+      },
+      player2: {
+        id: "p2",
+        name: "Pedro",
+        club: "Outro Clube",
+        playerCts: [{ ctId: "ct-outro-id" }],
+      },
+      scheduledAt: null,
+      scoreState: {
+        sets: [{ player1: 0, player2: 0, isTiebreak: false, tiebreakScore: null }],
+        currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null },
+        server: "player1",
+        isFinished: false,
+        winner: null,
+        setsWon: { player1: 0, player2: 0 },
+      },
+    };
+
+    render(<MatchCard match={match} ctId="ct-rkt-id" ctName="CT RKT" />);
+
+    expect(screen.getByText("Meu Clube")).toBeInTheDocument();
+    expect(screen.getByText("Criada por Carlos Gestor")).toBeInTheDocument();
+  });
 });
 

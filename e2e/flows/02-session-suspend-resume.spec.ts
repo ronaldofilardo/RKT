@@ -49,10 +49,10 @@ test.describe('TEST-02.2: Suspender sessão → Retomar → Continuar', () => {
     }
   });
 
-  test('criar primeira sessão de anotação como coach', async () => {
+  test('criar primeira sessão de anotação como dono', async () => {
     const res = await ctx.api.post(`/api/matches/${ctx.matchId}/sessions`, {
       data: {},
-      headers: ctx.authHeader(ctx.coach.token),
+      headers: ctx.authHeader(ctx.athlete1.token),
     });
 
     expect(res.ok()).toBeTruthy();
@@ -67,7 +67,7 @@ test.describe('TEST-02.2: Suspender sessão → Retomar → Continuar', () => {
       `/api/matches/${ctx.matchId}/sessions/${ctx.sessionId}/abandon`,
       {
         data: {},
-        headers: ctx.authHeader(ctx.coach.token),
+        headers: ctx.authHeader(ctx.athlete1.token),
       }
     );
 
@@ -83,7 +83,7 @@ test.describe('TEST-02.2: Suspender sessão → Retomar → Continuar', () => {
     // it will reactivate it (set isActive=true, status=IN_PROGRESS)
     const res = await ctx.api.post(`/api/matches/${ctx.matchId}/sessions`, {
       data: {},
-      headers: ctx.authHeader(ctx.coach.token),
+      headers: ctx.authHeader(ctx.athlete1.token),
     });
 
     expect(res.ok()).toBeTruthy();
@@ -95,9 +95,9 @@ test.describe('TEST-02.2: Suspender sessão → Retomar → Continuar', () => {
   });
 
   test('verificar lista de sessões suspensas', async () => {
-    // Only one active session should exist for this coach+match
+    // Only one active session should exist for this annotator+match
     const res = await ctx.api.get(`/api/matches/${ctx.matchId}/sessions`, {
-      headers: ctx.authHeader(ctx.coach.token),
+      headers: ctx.authHeader(ctx.athlete1.token),
     });
 
     expect(res.ok()).toBeTruthy();

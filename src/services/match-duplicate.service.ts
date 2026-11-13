@@ -11,6 +11,7 @@ export async function findDuplicateMatch(
   player1PartnerId?: string | null,
   player2PartnerId?: string | null,
   tx?: TransactionClient,
+  createdByUserId?: string | null,
 ) {
   if (!scheduledAt) return null;
 
@@ -26,6 +27,8 @@ export async function findDuplicateMatch(
       lte: windowEnd,
     },
     state: { not: 'CANCELLED' },
+    isTemplate: false,
+    ...(createdByUserId ? { createdByUserId } : {}),
   };
 
   const client = tx ?? prisma;

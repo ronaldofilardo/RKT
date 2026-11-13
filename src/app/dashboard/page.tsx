@@ -61,6 +61,11 @@ export default function DashboardPage() {
           followedPlayerIds={followedPlayerIds} activeArea={activeArea}
           {...model.filters}
           suspendedFromApi={model.suspendedFromApi}
+          errorMessage={model.errorMessage}
+          onRetry={model.fetchDashboardData}
+          nextCursor={model.nextCursor}
+          onLoadMore={model.loadMore}
+          loadingMore={model.loadingMore}
           navigateToTarget={model.navigateToTarget}
           openMatchDetails={actions.openMatchDetails} openMatchReport={actions.openMatchReport}
           finishMatch={actions.finishMatch} deleteMatch={actions.deleteMatch}

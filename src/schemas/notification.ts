@@ -7,6 +7,7 @@ export const PoolMatchPayloadSchema = z.object({
   player2Name: z.string(),
   tournamentName: z.string().optional(),
   scheduledAt: z.string().optional(),
+  createdByName: z.string().optional(),
 });
 
 export type PoolMatchPayload = z.infer<typeof PoolMatchPayloadSchema>;

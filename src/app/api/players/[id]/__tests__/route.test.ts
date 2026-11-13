@@ -156,6 +156,27 @@ describe('PUT /api/players/[id]', () => {
     );
   });
 
+  it('deve gravar CPF no Player quando o atleta não tem conta de acesso', async () => {
+    const res = await PUT(putReq({ cpf: '529.982.247-25' }), {
+      params: Promise.resolve({ id: PLAYER_ID }),
+    });
+
+    expect(res.status).toBe(200);
+    expect(mockUpdatePlayer).toHaveBeenCalledWith(
+      PLAYER_ID,
+      expect.objectContaining({ cpf: '52998224725', cpfLast2: '25', cpfHash: expect.any(String) }),
+    );
+  });
+
+  it('deve retornar 400 com CPF incompleto', async () => {
+    const res = await PUT(putReq({ cpf: '123' }), {
+      params: Promise.resolve({ id: PLAYER_ID }),
+    });
+
+    expect(res.status).toBe(400);
+    expect(mockUpdatePlayer).not.toHaveBeenCalled();
+  });
+
   it('deve retornar 400 com nome curto', async () => {
     const res = await PUT(putReq({ name: 'A' }), {
       params: Promise.resolve({ id: PLAYER_ID }),

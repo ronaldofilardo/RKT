@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server';
 const mockPrisma = {
   player: { findUnique: jest.fn(), update: jest.fn() },
   membership: { findMany: jest.fn() },
-  user: { findFirst: jest.fn(), create: jest.fn(), update: jest.fn() },
+  user: { findFirst: jest.fn(), findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
   passwordResetRequest: { findFirst: jest.fn(), create: jest.fn(), update: jest.fn() },
   linkInvite: { create: jest.fn() },
   auditLog: { create: jest.fn() },
@@ -76,5 +76,39 @@ describe('POST /api/coach/athletes/[id]/regenerate-link', () => {
     const json = await res.json();
     expect(json.token).toBeDefined();
     expect(json.expiresAt).toBeDefined();
+  });
+
+  // Regressão: sem passar o cpf, o User era criado com placeholder "PROV_<playerId>"
+  // e o login com o CPF real do atleta falhava com USER_NOT_FOUND (401).
+  it('provisiona a conta com o CPF real do atleta quando ainda não há userId', async () => {
+    (mockPrisma.player.findUnique as any)
+      .mockResolvedValueOnce({
+        id: 'p-novo',
+        name: 'Atleta Novo',
+        cpf: '89770402052',
+        email: null,
+        birthDate: new Date('2000-05-01T00:00:00.000Z'),
+        athleteCode: 'ABC123',
+        userId: null,
+        user: null,
+        createdByUserId: 'u-coach-1',
+        playerCts: [],
+        coachAthleteLinks: [],
+      })
+      .mockResolvedValueOnce({ userId: null }); // lookup interno de ensureAthleteUserAccount
+    (mockPrisma.user.findUnique as any).mockResolvedValue(null);
+    (mockPrisma.user.create as any).mockResolvedValue({ id: 'u-novo' });
+    (mockPrisma.player.update as any).mockResolvedValue({});
+
+    const { POST } = await import('../route');
+    const req = new NextRequest('http://localhost:3000/api/coach/athletes/p-novo/regenerate-link', { method: 'POST' });
+    const res = await POST(req, { params: Promise.resolve({ id: 'p-novo' }) });
+    expect(res.status).toBe(200);
+
+    expect(mockPrisma.user.create).toHaveBeenCalledTimes(1);
+    const createdData = (mockPrisma.user.create as any).mock.calls[0][0].data;
+    expect(createdData.cpf).toBe('89770402052');
+    expect(createdData.cpf).not.toMatch(/^PROV_/);
+    expect(createdData.mustChangePassword).toBe(true);
   });
 });

@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { AthleteRowActions } from '../components/athlete-row-actions';
+import { AthleteRowActions } from '@/components/athlete/athlete-row-actions';
 
 describe('AthleteRowActions — Regras de Treinador de Clube', () => {
   const athlete = { id: 'a-1', name: 'Atleta Teste' } as any;

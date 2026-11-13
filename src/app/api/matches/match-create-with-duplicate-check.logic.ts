@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { findDuplicateMatch } from '@/services/match-duplicate.service';
+import { findAvailableTemplateForMatch } from '@/services/match-template-duplicate.logic';
 import { createMatch } from '@/services/matchService';
 import { ConflictError } from '@/lib/errors';
 
@@ -34,6 +35,7 @@ async function createMatchWithDuplicateCheck(
       input.player1PartnerId ?? undefined,
       input.player2PartnerId ?? undefined,
       tx,
+      currentUserId,
     );
 
     if (duplicate) {
@@ -43,6 +45,26 @@ async function createMatchWithDuplicateCheck(
         playerP2: duplicate.player2?.name,
         matchType: duplicate.matchType,
         scheduledAt: duplicate.scheduledAt,
+      });
+    }
+
+    const availableTemplate = await findAvailableTemplateForMatch(
+      input.player1Id,
+      input.player2Id,
+      input.scheduledAt ?? null,
+      input.matchType ?? 'SINGLES',
+      currentUserId,
+    );
+
+    if (availableTemplate) {
+      throw new ConflictError('Cartaz da partida já disponível para você anotar', {
+        code: 'TEMPLATE_AVAILABLE',
+        templateId: availableTemplate.id,
+        id: availableTemplate.id,
+        playerP1: availableTemplate.player1?.name,
+        playerP2: availableTemplate.player2?.name,
+        matchType: availableTemplate.matchType,
+        scheduledAt: availableTemplate.scheduledAt,
       });
     }
 

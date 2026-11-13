@@ -1,6 +1,6 @@
 # 📋 Tarefas do Projeto RKT
 
-> **Última atualização:** 2026-10-26  
+> **Última atualização:** 2026-11-12  
 > **Fonte única de verdade para o backlog do projeto.**
 
 ---
@@ -75,6 +75,61 @@
   3. [x] Fase 2: Geração síncrona dentro da mesma transaction do template público (`POOL_MATCH_WITH_MY_ATHLETE` e `POOL_MATCH_AVAILABLE`).
   4. [x] Fase 4: Endpoints de contagem e leitura: `GET /api/notifications/count`, `PATCH /api/notifications/[id]/read` e `PATCH /api/notifications/read-all`.
   5. [x] Fase 5: Frontend: `useNotificationCount`, `NotifBadge` e badges dinâmicos nos cards "Meus Atletas" e "Nova Partida".
+
+### A0.18. Isolamento de Anotações por Anotador (Partida-Mãe × Anotações Soberanas) ✅
+- **Status:** Implementado (2026-11-11); migration `20261111000000_add_match_event_scope_and_template` pronta para deploy em dev/test (`pnpm db:migrate:deploy` / `pnpm db:test:push`).
+- **Documento:** [`docs/PLANO_ISOLAMENTO_ANOTACOES_POR_ANOTADOR_2026-11-11.md`](file:///c:/apps/RKT/docs/PLANO_ISOLAMENTO_ANOTACOES_POR_ANOTADOR_2026-11-11.md)
+- **Contexto:** múltiplos anotadores na mesma partida real (`[12421]`) sem vazamento de leitura ou escrita cruzada, com visão agregada agrupada no painel do Gestor do clube.
+- **DoD:**
+  1. [x] Fase 0–1: Characterization tests + Schema `MatchEventScope`, `isTemplate`, `eventScope`, `isOfficialClubAnnotation` + migration `20261111000000_add_match_event_scope_and_template` com índice único parcial `(sourceMatchId, createdByUserId)`.
+  2. [x] Fase 2: Núcleo puro (`canDiscoverMatchTemplate` em `match-event-visibility.ts` e isolamento estrito em `visibility.ts` com gancho futuro `allowParticipantOfficialRead`).
+  3. [x] Fase 3: `resolveOrCreateAnnotation`, `createEventTemplate`, `POST /api/matches/[id]/annotate`, `GET /api/matches/available` e anti-duplicidade com `TEMPLATE_AVAILABLE`.
+  4. [x] Fase 4: Fechamento de `listMatches`, `/point`, `/point/[pointId]`, `/state`, `/finish`, `/sessions`, `/matches/[id]` e `/spectate`.
+  5. [x] Fase 5: Painel do Gestor (`GET /api/gestor/matches`, `ClubMatchesTable` agrupada com `ClubMatchGroupHeader`, badge `Designado (Oficial)` e filtro `Somente designado`).
+  6. [x] Fase 6: UI `/match/new` (Privada / Compartilhada no círculo / Pública), aba "Meu Círculo" em `/partidas-publicas` e resolvedor automático de cartaz em `/scoring`.
+  7. [x] Fase 7: Testes unitários/integração verdes e E2E `e2e/flows/09-isolated-multi-annotator.spec.ts` criado.
+
+### A0.19. Correção de Menus, Rotas e Blindagem de Sessão ✅
+- **Status:** Concluído (2026-11-12)
+- **Documento:** [`docs/PLANO_CORRECAO_MENUS_ROTAS_E_SESSAO_2026-11-12.md`](file:///c:/apps/RKT/docs/PLANO_CORRECAO_MENUS_ROTAS_E_SESSAO_2026-11-12.md)
+- **Contexto:** Eliminação de logouts acidentais ao abrir nova aba/PWA ou por oscilações temporárias de banco; alinhamento de rotas de menu (Aguardando para subvisão correta; inclusão de Início e Histórico para Treinador e Atleta; menus de Suporte e Espectador); e correção de URLs duplicadas de Gestor (`/clube/gestor/gestor`).
+- **DoD:**
+  1. [x] Fase 1: Blindagem de sessão (desacoplar `redirectToLogin` de `clearAuthState`/logout; hidratar `sessionStorage` a partir de `/api/auth/me`; diferenciar falha de banco em `loadActor` para evitar falso 401).
+  2. [x] Fase 2: Roteamento de "Aguardando" para subvisão de dashboard e otimização client-side de `isDashboardRoute`.
+  3. [x] Fase 3: Menus completos por perfil (adicionar Início e Histórico para Treinador e Atleta; seções para Suporte e Espectador).
+  4. [x] Fase 4: Normalização de rota do Gestor em `appPath` e correção da seta "Voltar" no TopBar.
+  5. [x] Fase 5: Validação completa (`typecheck`, testes unitários, design tokens e R-03 100% verde).
+
+### A0.20. Melhorias de Gestão, Visibilidade e Dados Pessoais (6 Itens) ✅
+- **Status:** Concluído (2026-11-12)
+- **Contexto:** 6 melhorias planejadas e executadas sob o Modelo Elefante-Peixe Dourado (EGM):
+  1. Notificação/visibilidade de partidas para todos os envolvidos (atletas, treinadores e gestores de clubes afiliados).
+  2. Poderes do Gestor na aba 'Partidas': exclusão de partida própria, anotação de qualquer confronto com atleta do seu clube e acesso às várias timelines de anotações da mesma partida.
+  3. Badge do criador em 'Minhas Partidas' ao lado do adversário (`Criada por [Nome]`).
+  4. Data de agendamento não-hardcoded (usa a data/hora exata registrada na criação, omitindo horas fictícias 00:00:00).
+  5. Ícone 'Informações da Partida' restrito exclusivamente ao criador da partida.
+  6. Edição de dados pessoais para usuários maiores de 18 anos, com CPF estritamente não-editável.
+- **DoD:**
+  1. [x] Item 1: Disparo de notificações para duplas e círculo completo de atletas, treinadores e gestores de CT.
+  2. [x] Item 2: Gestor exclui partidas próprias, anota partidas com atletas de seu clube e visualiza relatórios multi-anotação com `allowParticipantClubGestor`.
+  3. [x] Item 3: Badge contextualizado no lado adversário com o nome do usuário criador.
+  4. [x] Item 4: Formatação dinâmica e resiliente da data e hora agendada.
+  5. [x] Item 5: Condicional `isCreator && !isFinished` no botão de edição de informações do card.
+  6. [x] Item 6: `PATCH /api/users/profile` bloqueando menores (<18 anos) com 403 e formulário reativo com CPF travado.
+  7. [x] Validação: `tsc --noEmit` 0 erros, `scripts/check-r03-line-limit.mjs` 0 violações/regressões, `test:design` 100% verde, 16 suítes / 117 testes unitários passando.
+
+### A0.21. Identificação do Criador, Filiação de Atletas e Feed de Partidas Criadas por Terceiros ✅
+- **Status:** Concluído (2026-11-13)
+- **Contexto:**
+  1. No Painel do Gestor (`/clube/gestor`), exibir claramente o papel do criador (`[Gestor, Treinador, Atleta ou Espectador]`) e a filiação de cada atleta (`Meu clube`, `Clube: ...`, `Treinador: ...` ou `Avulso`).
+  2. Se uma partida foi criada antes de o usuário ter conta ativada, ao ativar a conta já deve visualizar a partida agendada na tela inicial.
+  3. Para usuários não-gestores (Atletas, Treinadores, Responsáveis/Espectadores), fornecer uma área de avisos na tela inicial (`/dashboard`) com a finalidade de listar partidas criadas por outros usuários.
+- **DoD:**
+  1. [x] Item 1: `gestor-match-display.logic.ts` com `resolveCreatorRoleLabel` e `resolvePlayerAffiliation`, e badges exibidos em `ExternalScheduledMatchRow` e `ClubMatchRow`.
+  2. [x] Item 2: `scheduled-matches-feed.logic.ts` consulta dinamicamente partidas agendadas/criadas por outros com base nos atletas do ator, garantindo que contas ativadas pós-criação enxerguem a partida de imediato.
+  3. [x] Item 3: Feed no dashboard (`/api/notifications/scheduled`, `<ScheduledNotifSection />` e `<ScheduledNotifCard />`) exibido para Atletas, Treinadores e Espectadores (com exclusão de Gestores), permitindo dispensar ou anotar.
+  4. [x] Validação: `tsc --noEmit` 0 erros, `node scripts/check-r03-line-limit.mjs` 0 violações/regressões, 29 testes Jest unitários passando e 26 testes de design passando.
+
 
 ### A0.17. Mural do Treinador e Designação pelo Gestor (S4) ✅
 - **Status:** Concluído (2026-11-10)
@@ -373,6 +428,45 @@
 - [ ] Quando recibos/cobrança (Fase 4) entrarem, e-mail transacional provavelmente será exigido.
 - [ ] Transmissão ao vivo adiada: ao implementá-la voltam F10/F11/§11, consentimento `BROADCAST` (`ALTER TYPE "ConsentPurpose" ADD VALUE`), limite de espectadores e o cache/egress do feed.
 - [ ] Áudios como `Bytes` no Postgres são o maior risco do 1 GB do Neon (independe da fundação).
+
+---
+
+### TD-062. Fase D do PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11 — Círculo Completo e Cartazes no Histórico ✅
+- **Prioridade:** Alta
+- **Status:** Concluído (2026-11-12)
+- **Documento:** [`docs/PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md`](file:///c:/apps/RKT/docs/PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md)
+- **Contexto:** O Cartaz pertence ao círculo e é visível a todos os envolvidos (Gestor criador, Treinador designado, Atletas participantes e Treinadores particulares de atletas participantes) em "Minhas Partidas" (`/historico`). As anotações são 100% isoladas e soberanas. Ao clicar em "Anotar minha versão", cria-se a anotação derivada exclusiva do usuário, e o cartaz é substituído por sua anotação no Histórico.
+- **DoD:**
+  1. [x] **D.1 — Descoberta de cartazes por treinador particular:** em `src/core/access/match-event-visibility.ts`, permitir descoberta em `PRIVATE_CLUB`, `PRIVATE_COACH` e `PRIVATE_PLAYERS` quando `actor.followedPlayerIds` contiver participante da partida.
+  2. [x] **D.2 — Cartazes não anotados em `Minhas Partidas`:** em `src/services/match-repository-where.logic.ts` e `match-repository-circle.logic.ts`, listar cartazes do círculo onde o usuário for atleta participante (`athletePlayerId`) ou treinador de atleta participante (`followedPlayerIds`), apenas enquanto não houver anotação derivada ativa do próprio usuário (`annotations.none`).
+  3. [x] **D.3 — Escopo de gestor por área ativa:** em `resolveScope` (`src/app/api/matches/matches-get.logic.ts`), exigir `actor.activeArea === 'GESTOR'` para habilitar `ctMemberUserIds`.
+  4. [x] **D.4 — Metadados do criador da partida:** em `BASE_MATCH_SELECT` e `matches-get.logic.ts`, trazer `createdByUser { id, name }` da `Match` como autor da partida.
+  5. [x] **D.5 — Testes e Regra R-03:** testes unitários e de integração cobrindo os novos escopos e validação `pnpm check:r03` (≤ 100L por arquivo) e `pnpm typecheck` 100% verdes.
+
+---
+
+### TD-064. Mural de Partidas Agendadas / Criadas e Seção 'Partidas agendadas por outros' no Gestor ✅
+- **Prioridade:** Alta
+- **Status:** Concluído (2026-11-12)
+- **Contexto:** Alerta proativo de partidas agendadas/criadas no ecossistema (círculo e público):
+  1. Atletas e Treinadores recebem quadro de aviso na tela inicial (`/dashboard`) com partidas agendadas/criadas envolvendo eles próprios ou seus atletas acompanhados, com ações para dispensar ou anotar sua própria versão.
+  2. Gestor do Clube tem na aba 'Partidas' (`/gestor`), antes de 'Partidas do Clube', a seção dedicada **"Partidas agendadas por outros"** exibindo partidas criadas por treinadores ou clubes externos que envolvam atletas afiliados ao seu clube (`PlayerCT`).
+- **DoD:**
+  1. [x] Disparo de notificações `POOL_MATCH_WITH_MY_ATHLETE` estendido em `notifyPoolMatchCreated` para partidas de círculo (privadas) notificando atletas, treinadores vinculados, guardiões e gestores dos clubes afiliados.
+  2. [x] Endpoint `GET /api/notifications/scheduled` para consumo de notificações de partidas agendadas não lidas.
+  3. [x] Componentes `ScheduledNotifSection` e `ScheduledNotifCard` com design system `telemetry-*` e ações de dispensar e anotar.
+  4. [x] Seção `ExternalScheduledMatchesSection` em `src/app/gestor/` posicionada antes de 'Partidas do Clube' em `ClubMatchesTable`.
+  5. [x] Consulta `loadGestorExternalScheduledMatches` trazendo confrontos agendados por terceiros com atletas do clube.
+  6. [x] Conformidade total com R-03 ($\le 100$ linhas por arquivo), TypeScript (`pnpm typecheck`), Design System (`pnpm test:design`) e suite de testes (`npx jest`).
+
+---
+
+### TD-063. Riscos abertos do fluxo de login com senha provisória ⏳
+- **Prioridade:** Alta (segurança)
+- **Origem:** diagnóstico do login 401 do atleta — correções aplicadas em `docs/MEMORY.md` §2.36 (2026-11-12): `reset-password` limpando `mustChangePassword`/`tempPasswordExpiresAt` e `regenerate-link` passando `cpf` no provisionamento (sem isso a conta nascia com `User.cpf = PROV_<playerId>` e o login com o CPF real falhava com `USER_NOT_FOUND`).
+- [ ] **Backdoor DOB no login:** `src/app/api/auth/login/authenticate.ts:54-61` aceita a data de nascimento do atleta em **DDMMYYYY em todo login**, sem dependência de `mustChangePassword` — CPF é dado público, então qualquer pessoa com o CPF consegue logar enquanto o DOB em arquivo não mudar. Restringir o fallback a contas com `mustChangePassword=true` (ou removê-lo) + teste de contrato.
+- [ ] **`regenerate-link` não restaura a senha provisória:** o fluxo emite novo token e reativa `mustChangePassword`, mas **não** reseta o `passwordHash` para o DOB (`AAAAMMDD`) — se o atleta já trocou a senha, o login com a provisória falha (o próprio link continua funcionando sem login). Decidir produto: resetar o hash ao regenerar (com aviso ao treinador) **ou** documentar que, nesse caso, só o link vale.
+- **DoD:** um dos itens resolvido com teste (ou descartado com justificativa atualizada aqui); para o backdoor, cobertura de contrato garantindo que DOB não autentica conta com senha já definida.
 
 ---
 

@@ -17,6 +17,9 @@ export interface PublicPoolMatch {
   round: string | null;
   ctId: string | null;
   annotationCount: number;
+  eventScope?: string;
+  myAnnotationId?: string | null;
+  myAnnotationState?: string | null;
   player1: PoolPlayerRef;
   player2: PoolPlayerRef;
 }

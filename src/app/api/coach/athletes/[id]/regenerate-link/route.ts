@@ -47,6 +47,7 @@ export async function POST(
       const provisioned = await ensureAthleteUserAccount({
         playerId: player.id,
         name: player.name,
+        cpf: player.cpf,
         email: player.email,
         birthDate: player.birthDate,
         athleteCode: player.athleteCode,

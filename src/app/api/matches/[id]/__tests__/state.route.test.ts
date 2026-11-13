@@ -110,6 +110,8 @@ describe('PATCH /api/matches/[id]/state', () => {
       format: 'BEST_OF_3',
       player1Id: 'p1',
       player2Id: 'p2',
+      createdByUserId: 'user-ath',
+      isTemplate: false,
       initialServerId: 'p1',
     } as any);
 
@@ -143,6 +145,8 @@ describe('PATCH /api/matches/[id]/state', () => {
       format: 'BEST_OF_3',
       player1Id: 'p1',
       player2Id: 'p2',
+      createdByUserId: 'user-ath',
+      isTemplate: false,
     } as any);
 
     mockPrisma.match.update.mockResolvedValue({
@@ -179,6 +183,8 @@ describe('PATCH /api/matches/[id]/state', () => {
       format: 'BEST_OF_3',
       player1Id: 'p1',
       player2Id: 'p2',
+      createdByUserId: 'user-ath',
+      isTemplate: false,
       initialServerId: 'p1',
       scoreState,
     } as any);
@@ -213,6 +219,8 @@ describe('PATCH /api/matches/[id]/state', () => {
       format: 'BEST_OF_3',
       player1Id: 'p1',
       player2Id: 'p2',
+      createdByUserId: 'user-ath',
+      isTemplate: false,
       initialServerId: 'p1',
       scoreState: null,
     } as any);
@@ -243,6 +251,8 @@ describe('PATCH /api/matches/[id]/state', () => {
       format: 'BEST_OF_3',
       player1Id: 'p1',
       player2Id: 'p2',
+      createdByUserId: 'user-ath',
+      isTemplate: false,
       initialServerId: 'p1',
     } as any);
 

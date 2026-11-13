@@ -13,7 +13,8 @@ async function resolveScope(user: RLSUser, actor?: Actor | null): Promise<MatchL
   const isPlatform = memberships.some(
     (m) => m.kind === 'PLATAFORMA' && m.status === 'ACTIVE',
   );
-  const isGestor = memberships.some(
+  const isGestorArea = actor?.activeArea ? actor.activeArea === 'GESTOR' : true;
+  const isGestor = isGestorArea && memberships.some(
     (m) => m.kind === 'GESTOR' && m.status === 'ACTIVE' && !!m.ctId,
   );
 
@@ -56,7 +57,11 @@ export async function getMatchesResponse(
     }
 
     const scope = await resolveScope(user, actor);
-    const matches = await listMatches(state, cursor, limit, user.id, user.contextId, followedPlayerIds, scope, user.id);
+    const resolvedFollowed = actor?.followedPlayerIds?.length ? actor.followedPlayerIds : followedPlayerIds;
+    const matches = await listMatches(
+      state, cursor, limit, user.id, user.contextId, resolvedFollowed, scope,
+      user.id, actor?.athletePlayerId ?? null, actor?.guardianOfPlayerIds ?? null,
+    );
     const nextCursor = matches.length === limit ? matches[matches.length - 1].id : null;
 
     const { normalizeScoreState } = await import('@/core/scoring/score-normalizer');
@@ -68,6 +73,7 @@ export async function getMatchesResponse(
       });
       return {
         ...rest,
+        createdByName: (rest as any).createdByUser?.name ?? null,
         player1: playerWithCreator(rest.player1 as any),
         player2: playerWithCreator(rest.player2 as any),
         player1Partner: rest.player1Partner ? playerWithCreator(rest.player1Partner as any) : null,

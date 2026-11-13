@@ -15,6 +15,14 @@ export function notifyMatchCreated(isScheduled: boolean, toast: ToastFn): void {
   }
 }
 
+/** Cartaz não vira partida anotada: orienta o criador a encontrá-lo no Histórico. */
+export function notifyTemplateCreated(toast: ToastFn): void {
+  toast({
+    type: 'success',
+    message: 'Cartaz publicado! Ele já aparece em Minhas Partidas — use "Anotar minha versão" para registrar a sua versão.',
+  });
+}
+
 export async function createMatchIgnoringWarning(
   state: NewMatchState,
   router: RouterLike,
@@ -28,6 +36,11 @@ export async function createMatchIgnoringWarning(
   try {
     const { response, data: match } = await createMatchRequest(state.pendingPayload, true);
     if (!response.ok) throw new Error(match.message || 'Erro ao criar partida');
+    if (state.pendingPayload.isTemplate === true) {
+      notifyTemplateCreated(toast);
+      router.push('/historico');
+      return;
+    }
     const isScheduled = isMatchScheduledForFuture(state.date, state.time);
     notifyMatchCreated(isScheduled, toast);
     router.push('/dashboard');

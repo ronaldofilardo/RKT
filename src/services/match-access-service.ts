@@ -10,6 +10,8 @@ export async function getMatchAccess(
     return {
       createdByUserId: fallbackMatch.createdByUserId ?? null,
       ctId: fallbackMatch.ctId ?? null,
+      isTemplate: Boolean(fallbackMatch.isTemplate),
+      isOfficialClubAnnotation: Boolean(fallbackMatch.isOfficialClubAnnotation),
       annotatorUserIds: [],
       participantPlayerIds: [
         fallbackMatch.player1Id ?? fallbackMatch.player1?.id,
@@ -28,6 +30,8 @@ export async function getMatchAccess(
       select: {
         createdByUserId: true,
         ctId: true,
+        isTemplate: true,
+        isOfficialClubAnnotation: true,
         player1Id: true,
         player2Id: true,
         player1PartnerId: true,
@@ -44,6 +48,8 @@ export async function getMatchAccess(
     return {
       createdByUserId: row.createdByUserId,
       ctId: row.ctId,
+      isTemplate: row.isTemplate,
+      isOfficialClubAnnotation: row.isOfficialClubAnnotation,
       annotatorUserIds: row.annotationSessions.map(({ annotatorUserId }) => annotatorUserId),
       participantPlayerIds: [
         row.player1Id, row.player2Id, row.player1PartnerId, row.player2PartnerId,

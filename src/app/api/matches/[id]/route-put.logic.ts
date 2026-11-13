@@ -16,7 +16,7 @@ export async function handleMatchPut(
   try {
     const match = await prisma.match.findFirst({
       where: { id },
-      select: { createdByUserId: true, isPublicTemplate: true },
+      select: { createdByUserId: true, isPublicTemplate: true, isTemplate: true },
     });
 
     if (!match) {
@@ -49,7 +49,7 @@ export async function handleMatchPut(
       return NextResponse.json({ error: updated.error }, { status: 400 });
     }
 
-    if (match.isPublicTemplate) {
+    if (match.isPublicTemplate || match.isTemplate) {
       await propagateTemplateUpdate(id, updated as unknown as Record<string, unknown>);
     }
 

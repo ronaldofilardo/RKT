@@ -12,6 +12,7 @@ async function resolveMatchAccess(matchId: string): Promise<MatchAccess | null> 
     select: {
       createdByUserId: true, ctId: true, player1Id: true, player2Id: true,
       player1PartnerId: true, player2PartnerId: true,
+      isTemplate: true, isOfficialClubAnnotation: true,
       annotationSessions: { where: { isActive: true }, select: { annotatorUserId: true } },
       player1: { select: { playerCts: { where: { status: 'ACTIVE' }, select: { ctId: true } } } },
       player2: { select: { playerCts: { where: { status: 'ACTIVE' }, select: { ctId: true } } } },
@@ -27,6 +28,8 @@ async function resolveMatchAccess(matchId: string): Promise<MatchAccess | null> 
 
   return {
     createdByUserId: match.createdByUserId, ctId: match.ctId,
+    isTemplate: Boolean(match.isTemplate),
+    isOfficialClubAnnotation: Boolean(match.isOfficialClubAnnotation),
     annotatorUserIds: match.annotationSessions.map((s) => s.annotatorUserId),
     participantPlayerIds,
     participantCtIds: [match.player1, match.player2, match.player1Partner, match.player2Partner].flatMap(

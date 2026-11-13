@@ -53,13 +53,13 @@ test.describe('Fluxo de Retomada: Dashboard -> Modal -> Scoring', () => {
   test('deve abrir modal de retomada e navegar para scoring após confirmação', async ({ page }) => {
     await ctx.authenticatePage(page, 'coach');
 
-    // 1. Navegação para o Dashboard
-    await page.goto('/dashboard');
+    // 1. Navegação para Minhas Partidas (/historico), onde sessões suspensas são listadas
+    await page.goto('/historico');
     await page.waitForLoadState('networkidle');
 
-    // 2. Localizar partida na seção "Partidas pausadas"
-    const suspendedSection = page.locator('h3:has-text("Partidas pausadas")');
-    await expect(suspendedSection).toBeVisible({ timeout: 15_000 });
+    // 2. Localizar o card da partida suspensa e retomá-la ao clicar
+    const historyHeading = page.locator('#history-heading');
+    await expect(historyHeading).toBeVisible({ timeout: 15_000 });
 
     const suspendedCard = page.locator(`[data-testid="match-card-${matchId}"]`);
     await expect(suspendedCard).toBeVisible({ timeout: 10_000 });

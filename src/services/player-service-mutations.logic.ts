@@ -18,6 +18,9 @@ export async function updatePlayer(id: string, data: {
   ranking?: number;
   rankings?: Rankings;
   nickname?: string | null;
+  cpf?: string;
+  cpfHash?: string;
+  cpfLast2?: string;
 }) {
   try {
     return await prisma.player.update({
@@ -36,6 +39,9 @@ export async function updatePlayer(id: string, data: {
       ...(data.nickname !== undefined && {
         nickname: data.nickname ? normalizeNickname(data.nickname) : null,
       }),
+      ...(data.cpf !== undefined && { cpf: data.cpf }),
+      ...(data.cpfHash !== undefined && { cpfHash: data.cpfHash }),
+      ...(data.cpfLast2 !== undefined && { cpfLast2: data.cpfLast2 }),
       },
       select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, nickname: true },
     });

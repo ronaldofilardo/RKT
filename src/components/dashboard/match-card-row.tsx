@@ -9,17 +9,13 @@ interface MatchCardRowProps {
   name: string;
   club?: string | null;
   createdBy?: string | null;
+  creatorBadge?: string | null;
   isOwnClub?: boolean;
   isOwnAthlete?: boolean;
   isServer: boolean;
   isFinished: boolean;
   isWinner: boolean;
-  displayedSets: Array<{
-    player1: number;
-    player2: number;
-    isTiebreak?: boolean;
-    tiebreakScore?: { player1: number; player2: number } | null;
-  } | undefined>;
+  displayedSets: Array<{ player1: number; player2: number; isTiebreak?: boolean; tiebreakScore?: { player1: number; player2: number } | null } | undefined>;
   currentSetIndex: number;
   isLiveOrSuspended: boolean;
   isCurrentSetMT: boolean;
@@ -31,23 +27,9 @@ interface MatchCardRowProps {
 }
 
 export function MatchCardRow({
-  name,
-  club,
-  createdBy,
-  isOwnClub,
-  isOwnAthlete,
-  isServer,
-  isFinished,
-  isWinner,
-  displayedSets,
-  currentSetIndex,
-  isLiveOrSuspended,
-  isCurrentSetMT,
-  lastSetTiebreakScore,
-  currentGame,
-  getSinglePointDisplay,
-  playerKey,
-  cellClasses,
+  name, club, createdBy, creatorBadge, isOwnClub, isOwnAthlete, isServer, isFinished, isWinner,
+  displayedSets, currentSetIndex, isLiveOrSuspended, isCurrentSetMT, lastSetTiebreakScore,
+  currentGame, getSinglePointDisplay, playerKey, cellClasses,
 }: MatchCardRowProps) {
   const color = computePlayerColor(
     { isFinished, isWinnerP1: playerKey === 'player1' ? isWinner : false, isWinnerP2: playerKey === 'player2' ? isWinner : false, isServerP1: playerKey === 'player1' ? isServer : false, isServerP2: playerKey === 'player2' ? isServer : false },
@@ -62,7 +44,7 @@ export function MatchCardRow({
       >
         <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
           <span className="truncate" title={name}>{name}</span>
-          <ClubBadge club={club} isOwnClub={isOwnClub} isOwnAthlete={isOwnAthlete} createdByName={createdBy} />
+          <ClubBadge club={club} isOwnClub={isOwnClub} isOwnAthlete={isOwnAthlete} createdByName={createdBy} creatorBadge={creatorBadge} />
         </div>
       </td>
       <td className="text-center py-1 bg-telemetry-card border border-telemetry-border/10 text-xs">

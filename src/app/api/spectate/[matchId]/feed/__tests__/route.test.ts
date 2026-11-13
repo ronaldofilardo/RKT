@@ -81,14 +81,14 @@ describe('GET /api/spectate/[matchId]/feed - acesso do gestor', () => {
     expect(mockGetFeed).toHaveBeenCalledTimes(1);
   });
 
-  it('libera o gestor quando match.ctId é nulo mas um atleta da partida pertence ao clube (PlayerCT ativo)', async () => {
+  it('403 quando match.ctId é nulo (anotação avulsa de terceiro, mesmo envolvendo atleta do clube)', async () => {
     mockFindUnique.mockResolvedValue(matchRow({ ctId: null, player1: ctRow(CLUB) }));
-    expect((await call()).status).toBe(200);
+    expect((await call()).status).toBe(403);
   });
 
-  it('libera o gestor quando só o parceiro (duplas) pertence ao clube', async () => {
+  it('403 quando match.ctId é nulo e apenas o parceiro pertence ao clube', async () => {
     mockFindUnique.mockResolvedValue(matchRow({ player2Partner: ctRow(CLUB) }));
-    expect((await call()).status).toBe(200);
+    expect((await call()).status).toBe(403);
   });
 
   it('403 quando a partida e os atletas são de outro clube', async () => {

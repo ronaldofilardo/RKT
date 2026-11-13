@@ -27,6 +27,7 @@ export function useNewMatchState() {
   const [nickname] = useState('');
   const [visibility, setVisibility] = useState('PLAYERS_ONLY');
   const [isPublicTemplate, setIsPublicTemplate] = useState(false);
+  const [eventScope, setEventScope] = useState<'PUBLIC' | 'PRIVATE_CLUB' | 'PRIVATE_COACH' | 'PRIVATE_PLAYERS' | 'PRIVATE_PERSONAL'>('PRIVATE_PERSONAL');
   const [anotadorEmail, setAnotadorEmail] = useState('');
   const [tournamentName, setTournamentName] = useState('');
   const [clubName, setClubName] = useState('');
@@ -43,7 +44,7 @@ export function useNewMatchState() {
   const [startingMatch, setStartingMatch] = useState(false);
   const [pendingPayload, setPendingPayload] = useState<Record<string, unknown> | null>(null);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
-  const [duplicateInfo, setDuplicateInfo] = useState<{ id: string; playerP1?: string; playerP2?: string; matchType?: 'SINGLES' | 'DOUBLES'; scheduledAt?: Date | string | null } | null>(null);
+  const [duplicateInfo, setDuplicateInfo] = useState<{ id: string; playerP1?: string; playerP2?: string; matchType?: 'SINGLES' | 'DOUBLES'; scheduledAt?: Date | string | null; code?: string; templateId?: string } | null>(null);
   const [slotAffiliation, setSlotAffiliation] = useState<SlotAffiliationMap>(initialSlotAffiliation());
   const [ctId, setCtId] = useState(''); const [clubNameMatch, setClubNameMatch] = useState('');
   const [availableCts, setAvailableCts] = useState<CtOption[]>([]);
@@ -82,7 +83,7 @@ export function useNewMatchState() {
     selectedP1, setSelectedP1, selectedP2, setSelectedP2, selectedP1Partner, setSelectedP1Partner,
     selectedP2Partner, setSelectedP2Partner, doublesSetup, setDoublesSetup, format, setFormat,
     courtType, setCourtType, sportType, setSportType, date, setDate, time, setTime, nickname,
-    visibility, setVisibility, isPublicTemplate, setIsPublicTemplate, anotadorEmail, setAnotadorEmail, tournamentName, setTournamentName,
+    visibility, setVisibility, isPublicTemplate, setIsPublicTemplate, eventScope, setEventScope, anotadorEmail, setAnotadorEmail, tournamentName, setTournamentName,
     clubName, setClubName, category, setCategory, roundName, setRoundName, bracketType, venueId, setVenueId,
     publicMatchCode, setPublicMatchCode, temperature, setTemperature, humidity, setHumidity,
     tags, setTags, details, setDetails, openForAnnotation, showTournamentDropdown, setShowTournamentDropdown,

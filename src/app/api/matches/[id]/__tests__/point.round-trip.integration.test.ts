@@ -91,6 +91,8 @@ describe('Round-trip de gravação de ponto (Fase A4)', () => {
       player1Id: p1Id,
       player2Id: p2Id,
       initialServerId: p1Id,
+      createdByUserId: 'user-annotator-1',
+      isTemplate: false,
       version: 1,
       createdAt: new Date(),
       startedAt: new Date(),

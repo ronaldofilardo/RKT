@@ -98,7 +98,8 @@ describe('MatchTimelineView (Doubles)', () => {
       />
     );
 
-    expect(screen.getByText(/Rafael Nadal\/Carlos Alcaraz/)).toBeInTheDocument();
-    expect(screen.getByText(/Roger Federer\/Novak Djokovic/)).toBeInTheDocument();
+    // A legenda menciona o par duas vezes (SAC e Venc), por isso getAllByText.
+    expect(screen.getAllByText(/Rafael Nadal\/Carlos Alcaraz/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Roger Federer\/Novak Djokovic/).length).toBeGreaterThan(0);
   });
 });

@@ -12,11 +12,11 @@ jest.mock('@/lib/access-handler', () => ({
   withAccessHandler: (_req: any, _act: any, _res: any, handler: any) =>
     handler({ user: { id: 'u-gestor-1' } }),
 }));
-jest.mock('../../_logic', () => ({
+jest.mock('../../../_logic', () => ({
   getGestorCtId: jest.fn().mockResolvedValue('ct-1'),
   denyGestor: jest.fn(),
 }));
-jest.mock('../../coaches-logic', () => ({
+jest.mock('../../../coaches-logic', () => ({
   updateCoachPermissions: jest.fn().mockResolvedValue({ id: 'mem-1' }),
 }));
 
@@ -40,7 +40,7 @@ describe('PATCH /api/gestor/coaches/[id]', () => {
 
   it('atualiza permissões quando enviado canInsertAthletes', async () => {
     const { PATCH } = await import('../route');
-    const { updateCoachPermissions } = await import('../../coaches-logic');
+    const { updateCoachPermissions } = await import('../../../coaches-logic');
     const req = new NextRequest('http://localhost:3000/api/gestor/coaches/mem-1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },

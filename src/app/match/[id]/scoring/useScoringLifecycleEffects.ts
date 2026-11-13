@@ -38,17 +38,26 @@ export function useScoringLifecycleEffects({
 
   useInitialScoringFetch({ matchId, viewMode, fetchTimelinePoints, fetchPointLogAudioMeta, fetchComments }, fetchMatch);
 
-  // Uma partida JÁ finalizada não deve abrir o /scoring: redirecionamos para o
-  // relatório na primeira vez em que o estado é conhecido (carga inicial),
-  // exceto quando ?modal=edit-score pede a edição pós-jogo. Roda uma única vez
-  // (initialStateCheckedRef) para NÃO expulsar o usuário quando a partida é
-  // finalizada durante a própria sessão de anotação (o engine marca isFinished
-  // com o banner "PARTIDA FINALIZADA!", mas match.state só vira FINISHED após
-  // um fetchMatch(true), por exemplo ao abrir a timeline para revisão).
+  // Redireciona cartaz para anotação própria, e partida já finalizada para /report (exceto ?modal=edit-score).
   const initialStateCheckedRef = useRef(false);
   useEffect(() => {
     if (initialStateCheckedRef.current || !state.match) return;
     initialStateCheckedRef.current = true;
+
+    const m = state.match as { id: string; state: string; isTemplate?: boolean; isPublicTemplate?: boolean };
+    if (m.isTemplate || m.isPublicTemplate) {
+      fetch(`/api/matches/${m.id}/annotate`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ mode: 'resolve' }),
+      })
+        .then((r) => r.json())
+        .then((json: { matchId?: string }) => {
+          if (json.matchId) state.router.replace(`/match/${json.matchId}/scoring`);
+        })
+        .catch(() => undefined);
+      return;
+    }
 
     const isEditScoreModal =
       typeof window !== "undefined" &&

@@ -1,6 +1,7 @@
 import type { MenuSection, MenuContext } from "@/core/access/menu-types";
 import type { SidebarSection, SidebarItem } from "./DashboardSidebar";
 import type { DashboardView } from "../dashboard.types";
+import { normalizeDashboardPath } from "../dashboard-view.logic";
 
 interface NavigationHandlers {
   navigateToTarget?: (view: DashboardView) => void;
@@ -32,7 +33,8 @@ export function mapMenuSectionsToSidebar(
   handlers: NavigationHandlers,
 ): SidebarSection[] {
   const { navigateToTarget, routerPush, endSession } = handlers;
-  const isDashboardRoute = typeof window !== 'undefined' && window.location.pathname === '/dashboard';
+  const isDashboardRoute =
+    typeof window !== 'undefined' && normalizeDashboardPath(window.location.pathname) === '/dashboard';
 
   return sections.map((sec) => ({
     key: sec.key,

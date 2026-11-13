@@ -166,7 +166,7 @@ category: null,
     expect(data.id).toBe('test-id');
   });
 
-  it('deve retornar partida se usuário é player2 (participante, mesmo não sendo criador)', async () => {
+  it('deve bloquear (403) usuário player2 tentando ler anotação privada de outro anotador', async () => {
     const token = await createToken('user2', 'ANNOTATOR');
     mockPrisma.match.findFirst.mockResolvedValue({
       id: 'test-id',
@@ -185,7 +185,7 @@ category: null,
     });
     const response = await GET(req, { params: Promise.resolve({ id: 'test-id' }) });
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(403);
   });
 
   it('deve retornar partida se usuário é o criador', async () => {

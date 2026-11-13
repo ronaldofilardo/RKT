@@ -65,3 +65,16 @@ export interface Decision {
   allow: boolean;
   reason: DecisionReason;
 }
+
+/** Dados da partida necessários para decidir quem lê (§6.3). */
+export interface MatchAccess {
+  createdByUserId?: string | null;
+  /** CT dono da partida. */
+  ctId?: string | null;
+  annotatorUserIds: readonly string[];
+  participantPlayerIds: readonly string[];
+  /** CTs dos participantes (via PlayerCT). */
+  participantCtIds: readonly string[];
+  isTemplate?: boolean;
+  isOfficialClubAnnotation?: boolean;
+}

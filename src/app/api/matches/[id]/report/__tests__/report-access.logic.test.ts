@@ -10,13 +10,21 @@ const matchAccess = {
 };
 
 describe('checkReportAccess', () => {
-  it('allows a coach to read a followed athlete report', () => {
+  it('denies a coach (even following participant) who is not the annotation owner', () => {
     const coach = actor({
       followedPlayerIds: ['player-1'],
       memberships: [member('TREINADOR', { ctId: CT })],
     });
 
-    expect(checkReportAccess(coach, { state: 'FINISHED' }, matchAccess)).toBeNull();
+    expect(checkReportAccess(coach, { state: 'FINISHED' }, matchAccess)?.status).toBe(403);
+  });
+
+  it('allows the annotation owner and the club gestor', () => {
+    const owner = actor({ userId: 'creator', canOperate: true });
+    const gestor = actor({ memberships: [member('GESTOR', { ctId: CT })] });
+
+    expect(checkReportAccess(owner, { state: 'FINISHED' }, matchAccess)).toBeNull();
+    expect(checkReportAccess(gestor, { state: 'FINISHED' }, matchAccess)).toBeNull();
   });
 
   it('denies a coach without an active follow relationship', () => {

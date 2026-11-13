@@ -27,19 +27,30 @@ describe('Isolamento por Área no Servidor (buildActor & canReadMatch)', () => {
 
     const matchCt = {
       ctId: 'ct-clube-a',
+      createdByUserId: 'other-coach',
       annotatorUserIds: [],
       participantPlayerIds: ['player-ct-a'],
       participantCtIds: ['ct-clube-a'],
     };
     expect(canReadMatch(actor, matchCt)).toBe(false);
 
-    const matchAvulsa = {
+    const matchAvulsaOutroAnotador = {
       ctId: null,
+      createdByUserId: 'other-annotator',
       annotatorUserIds: [],
       participantPlayerIds: ['player-avulso-1'],
       participantCtIds: [],
     };
-    expect(canReadMatch(actor, matchAvulsa)).toBe(true);
+    expect(canReadMatch(actor, matchAvulsaOutroAnotador)).toBe(false);
+
+    const matchAvulsaPropria = {
+      ctId: null,
+      createdByUserId: 'user-coach-1',
+      annotatorUserIds: [],
+      participantPlayerIds: ['player-avulso-1'],
+      participantCtIds: [],
+    };
+    expect(canReadMatch(actor, matchAvulsaPropria)).toBe(true);
   });
 
   it('no contexto TREINADOR_CLUBE isola estritamente o CT ativo', () => {
@@ -50,19 +61,30 @@ describe('Isolamento por Área no Servidor (buildActor & canReadMatch)', () => {
 
     const matchOutroCt = {
       ctId: 'ct-clube-b',
+      createdByUserId: 'other-coach',
       annotatorUserIds: [],
       participantPlayerIds: ['player-ct-b'],
       participantCtIds: ['ct-clube-b'],
     };
     expect(canReadMatch(actor, matchOutroCt)).toBe(false);
 
-    const matchDoCt = {
+    const matchDoCtOutroAnotador = {
       ctId: 'ct-clube-a',
+      createdByUserId: 'other-coach',
       annotatorUserIds: [],
       participantPlayerIds: ['player-ct-a'],
       participantCtIds: ['ct-clube-a'],
     };
-    expect(canReadMatch(actor, matchDoCt)).toBe(true);
+    expect(canReadMatch(actor, matchDoCtOutroAnotador)).toBe(false);
+
+    const matchDoCtPropria = {
+      ctId: 'ct-clube-a',
+      createdByUserId: 'user-coach-1',
+      annotatorUserIds: [],
+      participantPlayerIds: ['player-ct-a'],
+      participantCtIds: ['ct-clube-a'],
+    };
+    expect(canReadMatch(actor, matchDoCtPropria)).toBe(true);
   });
 
   it('no contexto ATLETA exclui vínculos de gestão e treinador', () => {

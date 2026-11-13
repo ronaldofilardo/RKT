@@ -1,74 +1,33 @@
-import { useState, useCallback, useEffect, useRef } from "react";
-import { logger } from "@/lib/logger";
-import { flushPendingAbandons } from "@/hooks/useSessionManager.pending-abandon";
-import type { DashboardMatchPayload } from "@/components/dashboard/MatchCard";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import { checkAuthAndGetToken, fetchMatchesEndpoint } from "./use-dashboard-matches-fetch";
+import type { DashboardPageView } from "../dashboard-view.logic";
 import { useDashboardMatchFilters } from "./use-dashboard-matches-filters";
+import { stateKeyForView } from "./dashboard-matches-page.logic";
+import { useMatchPages } from "./use-dashboard-matches-pages";
 
-export function useDashboardData(router?: AppRouterInstance) {
-  const [matches, setMatches] = useState<DashboardMatchPayload[]>([]);
-  const [suspendedFromApi, setSuspendedFromApi] = useState<DashboardMatchPayload[]>([]);
-  const [loading, setLoading] = useState(true);
-  const fetchedRef = useRef(false);
-  const routerRef = useRef(router ?? null);
-  routerRef.current = router ?? null;
-  const dashboardAbortRef = useRef<AbortController | null>(null);
+/**
+ * Dados do dashboard: cache de página por aba (`stateKey`) para não rebuscar ao
+ * alternar entre subvisões, falha isolada de `/api/matches/suspended-sessions`,
+ * paginação (`nextCursor` + "Carregar mais") e erro explícito de carga.
+ *
+ * `loading` é derivado de `!page.loaded`, então nunca se exibe estado vazio
+ * antes da primeira resposta (nem durante a troca de aba).
+ */
+export function useDashboardData(router?: AppRouterInstance, view?: DashboardPageView) {
+  const { page, suspendedFromApi, loadingMore, refresh, loadMore } = useMatchPages(
+    stateKeyForView(view),
+    router,
+  );
 
-  const performFetch = useCallback(async (abortController: AbortController, isInitial = false) => {
-    const hasAuth = checkAuthAndGetToken(routerRef.current, setLoading);
-    if (!hasAuth) return;
-
-    if (isInitial) {
-      flushPendingAbandons().catch((e) =>
-        logger.warn("[fetchDashboardData] flushPendingAbandons falhou:", e)
-      );
-    }
-
-    const matchPromise = fetchMatchesEndpoint("/api/matches", routerRef.current, setLoading, abortController);
-    const suspendedPromise = fetchMatchesEndpoint("/api/matches/suspended-sessions", routerRef.current, setLoading, abortController);
-
-    try {
-      const [matchList, suspendedList] = await Promise.all([matchPromise, suspendedPromise]);
-      if (matchList === null || suspendedList === null) return;
-
-      const suspendedIds = new Set(suspendedList.map((m: DashboardMatchPayload) => m.id));
-      const dedupedMatches = matchList.filter((m: DashboardMatchPayload) => !suspendedIds.has(m.id));
-      setMatches(dedupedMatches);
-      setSuspendedFromApi(suspendedList);
-    } catch (error: unknown) {
-      if (error instanceof Error && error.name !== "AbortError") {
-        logger.error("[fetchDashboardData] Error:", error);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
-
-    const controller = new AbortController();
-    dashboardAbortRef.current = controller;
-    
-    performFetch(controller, true);
-
-    return () => {
-      controller.abort();
-    };
-  }, [performFetch]);
-
-  const fetchDashboardData = useCallback(() => {
-    fetchedRef.current = false;
-    setLoading(true);
-    dashboardAbortRef.current?.abort();
-    const controller = new AbortController();
-    dashboardAbortRef.current = controller;
-    performFetch(controller, false);
-  }, [performFetch]);
-
-  return { matches, setMatches, suspendedFromApi, setSuspendedFromApi, loading, fetchDashboardData };
+  return {
+    matches: page.matches,
+    suspendedFromApi,
+    loading: !page.loaded,
+    errorMessage: page.errorMessage,
+    nextCursor: page.nextCursor,
+    loadingMore,
+    fetchDashboardData: refresh,
+    loadMore,
+  };
 }
 
 export { useDashboardMatchFilters };

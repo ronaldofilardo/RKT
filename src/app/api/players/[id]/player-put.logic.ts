@@ -5,6 +5,7 @@ import { getRLSUser } from '@/lib/auth';
 import { UpdatePlayerInputSchema, RankingTypeSchema } from '@/schemas/player';
 import { getPlayerById, updatePlayer } from '@/services/playerService';
 import { isRankingCategoryAllowed, isRankingTypeAllowedForProfile } from '@/lib/ranking/rankingConstants';
+import { buildIdentityUpdate } from './player-put-identity.logic';
 
 export async function putPlayerResponse(
   request: NextRequest,
@@ -19,7 +20,7 @@ export async function putPlayerResponse(
         { status: 400 }
       );
     }
-    const { name, gender, birthDate, dominance, backhand, rankings, nickname } = parsedBody.data;
+    const { name, cpf, gender, birthDate, dominance, backhand, rankings, nickname } = parsedBody.data;
 
     const existing = await getPlayerById(id);
     if (!existing) {
@@ -63,6 +64,12 @@ export async function putPlayerResponse(
       }
     }
 
+    const identityData = await buildIdentityUpdate({
+      userId: existing.userId,
+      name: name !== undefined ? name.trim() : undefined,
+      cpf,
+    });
+
     const updateData: Record<string, unknown> = {};
     if (name !== undefined) updateData.name = name.trim();
     if (gender !== undefined) updateData.gender = gender;
@@ -72,6 +79,7 @@ export async function putPlayerResponse(
     if (backhand !== undefined) updateData.backhand = backhand;
     if (rankings !== undefined) updateData.rankings = rankings;
     if (nickname !== undefined) updateData.nickname = nickname;
+    Object.assign(updateData, identityData);
 
     const updated = await updatePlayer(id, updateData as Parameters<typeof updatePlayer>[1]);
     return NextResponse.json(updated);

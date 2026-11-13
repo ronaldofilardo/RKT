@@ -20,6 +20,22 @@ export interface TimelineDoublesConfig {
   player2PartnerId?: string;
 }
 
+/** Props do PointRow (módulo movido para ./timeline-point-row). */
+export interface PointRowProps {
+  point: TimelinePoint;
+  hasGap: boolean;
+  isLast: boolean;
+  matchId: string;
+  /** Quando true, esta linha é o primeiro ponto do game atual. */
+  isFirstPointOfGame: boolean;
+  player1Name: string;
+  player2Name: string;
+  doubles?: TimelineDoublesConfig;
+  isMatchTb?: boolean;
+  /** Bug 7 — games iniciais do set (2 para SHORT_SET_2V2_NO_AD, 0 para os demais). */
+  initialGames?: number;
+}
+
 /**
  * Iniciais do atleta para as colunas "P/" e "SAC":
  * - Nome + sobrenome (2+ palavras): iniciais de cada um, ex. "Rafael Nadal" → "R.N.".

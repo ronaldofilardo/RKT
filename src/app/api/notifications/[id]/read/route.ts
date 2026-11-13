@@ -12,6 +12,20 @@ export async function PATCH(
   return withAccessHandler(request, null, null, async ({ actor }) => {
     try {
       const { id } = await params;
+
+      if (id.startsWith('match-scheduled-')) {
+        const matchId = id.replace('match-scheduled-', '');
+        const created = await prisma.notification.create({
+          data: {
+            recipientId: actor.userId,
+            type: 'POOL_MATCH_WITH_MY_ATHLETE',
+            payload: { matchId },
+            readAt: new Date(),
+          },
+        });
+        return NextResponse.json({ id: created.id, readAt: created.readAt });
+      }
+
       const notif = await prisma.notification.findUnique({ where: { id } });
       if (!notif) {
         throw new NotFoundError('Notification', id);
@@ -32,4 +46,3 @@ export async function PATCH(
     }
   });
 }
-

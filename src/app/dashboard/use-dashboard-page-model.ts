@@ -35,9 +35,13 @@ export function useDashboardPageModel() {
     ensureAuthCookie();
   }, [pathname]);
 
+  const view = resolveDashboardView(pathname);
   const { user } = useUserAuth(router);
   const { navigateToTarget } = useDashboardNavigation(router);
-  const { matches, suspendedFromApi, loading, fetchDashboardData } = useDashboardData(router);
+  const {
+    matches, suspendedFromApi, loading, errorMessage, nextCursor,
+    loadingMore, fetchDashboardData, loadMore,
+  } = useDashboardData(router, view);
   const { matchToDelete, setMatchToDelete, matchToFinish, setMatchToFinish } = useModalState();
 
   const { resumeSuspendedMatch } = useResumeSession({
@@ -75,7 +79,11 @@ export function useDashboardPageModel() {
     resumeSuspendedMatch,
     confirmDeleteMatch,
     confirmFinishMatch,
-    view: resolveDashboardView(pathname),
+    view,
     filters,
+    errorMessage,
+    nextCursor,
+    loadingMore,
+    loadMore,
   };
 }

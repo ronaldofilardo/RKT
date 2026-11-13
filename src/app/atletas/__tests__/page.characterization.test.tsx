@@ -305,9 +305,19 @@ describe('AtletasPage (characterization)', () => {
     });
 
     it('deve mostrar idade quando disponível', async () => {
-      expect(screen.getByText('15 anos')).toBeInTheDocument();
-      expect(screen.getByText('17 anos')).toBeInTheDocument();
-      expect(screen.getByText('13 anos')).toBeInTheDocument();
+      // A idade exibida é calculada a partir da data de nascimento completa
+      // (mesma regra da tabela do gestor); sem birthDate, usa a idade gravada.
+      const ageLabel = (birthDate: string) => {
+        const [y, m, d] = birthDate.split('-').map(Number);
+        const today = new Date();
+        let age = today.getFullYear() - y;
+        const beforeBirthday = today.getMonth() + 1 < m || (today.getMonth() + 1 === m && today.getDate() < d);
+        if (beforeBirthday) age -= 1;
+        return `${age} anos`;
+      };
+      expect(screen.getByText(ageLabel('2010-03-15'))).toBeInTheDocument();
+      expect(screen.getByText(ageLabel('2008-07-22'))).toBeInTheDocument();
+      expect(screen.getByText(ageLabel('2012-01-10'))).toBeInTheDocument();
     });
 
     it('deve formatar rankings com badge sky', async () => {
@@ -316,8 +326,9 @@ describe('AtletasPage (characterization)', () => {
       // Maria: CBT #5 (17-18) e ITF #12 (17-18 A) · JJ #3
       expect(screen.getByText('CBT #5 (17-18)')).toBeInTheDocument();
       expect(screen.getByText((content: string) => content.includes('ITF #12') && content.includes('JJ #3'))).toBeInTheDocument();
-      // João: sem rankings
-      expect(screen.getByText('-')).toBeInTheDocument();
+      // João: sem rankings (coluna Rankings = 7ª, índice 6)
+      const joaoRow = screen.getByText('João').closest('tr') as HTMLElement;
+      expect(joaoRow.querySelectorAll('td')[6]).toHaveTextContent('-');
     });
   });
 

@@ -72,20 +72,14 @@ test.describe('TEST-03.1: Undo/Redo Annotation (regressão crítica de anotaçã
     const undoButton = page.getByTestId('undo-button').first();
     await expect(undoButton).toBeEnabled();
 
-    await undoButton.click();
-
-    // Modal de confirmacao — usa h2 "Desfazer ponto?"
-    const confirmTitle = page.locator('h2:has-text("Desfazer ponto")');
-    await expect(confirmTitle).toBeVisible({ timeout: 5_000 });
-
-    // Captura PATCH /state que virá como efeito do undo persistido.
+    // Captura PATCH /state que virá como efeito direto do clique em Voltar (undo).
     const patchPromise = waitForApiCall(
       { page },
       /\/api\/matches\/.*\/state/,
       15_000
     );
 
-    await page.locator('button:has-text("Desfazer")').click();
+    await undoButton.click();
 
     const response = await patchPromise;
     expect(response.status()).toBe(200);

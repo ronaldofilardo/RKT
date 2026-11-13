@@ -9,8 +9,12 @@ describe('notification-create.logic', () => {
       coachAthleteLink: { findMany: jest.fn().mockResolvedValue([]) },
       guardianLink: { findMany: jest.fn().mockResolvedValue([]) },
       player: { findMany: jest.fn().mockResolvedValue([]) },
+      playerCT: { findMany: jest.fn().mockResolvedValue([]) },
       membership: { findMany: jest.fn().mockResolvedValue([]) },
-      user: { findMany: jest.fn().mockResolvedValue([]) },
+      user: {
+        findMany: jest.fn().mockResolvedValue([]),
+        findUnique: jest.fn().mockResolvedValue({ name: 'Creator User' }),
+      },
       notification: {
         createMany: jest.fn().mockResolvedValue({ count: 0 }),
         create: jest.fn().mockResolvedValue({ id: 'notif-1' }),

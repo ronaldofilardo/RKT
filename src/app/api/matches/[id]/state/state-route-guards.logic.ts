@@ -10,39 +10,16 @@ export async function checkCanModifyMatchState(
     player2PartnerId?: string | null;
     createdByUserId?: string | null;
     openForAnnotation?: boolean | null;
+    isTemplate?: boolean | null;
   },
-  matchId: string,
+  _matchId: string,
   user?: { id?: string; role?: string } | null,
-  athletePlayerId?: string | null,
+  _athletePlayerId?: string | null,
 ): Promise<boolean> {
+  if (match.isTemplate) return false;
   const currentUserId = user?.id;
-  const isStaff = user?.role === 'ADMIN';
-  const isParticipant =
-    match.player1Id === athletePlayerId ||
-    match.player2Id === athletePlayerId ||
-    match.player1PartnerId === athletePlayerId ||
-    match.player2PartnerId === athletePlayerId ||
-    match.createdByUserId === currentUserId;
-
-  if (isStaff || isParticipant) {
-    return true;
-  }
-
-  // Falha fechada: se o modelo de sessão não estiver disponível, nega o acesso.
-  const prismaWithSessions = prisma as unknown as {
-    matchAnnotationSession?: {
-      findFirst: (args: {
-        where: { matchId?: string; isActive: boolean; annotatorUserId?: string };
-      }) => Promise<unknown>;
-    };
-  };
-  const sessionModel = prismaWithSessions.matchAnnotationSession;
-  if (typeof sessionModel?.findFirst !== 'function') return false;
-
-  const activeSession = await sessionModel.findFirst({
-    where: { matchId, isActive: true, annotatorUserId: currentUserId },
-  });
-  return Boolean(activeSession);
+  if (!currentUserId || !match.createdByUserId) return false;
+  return match.createdByUserId === currentUserId;
 }
 
 export async function reportTransitionFailure(

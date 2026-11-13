@@ -3,7 +3,15 @@ export { PERMISSIONS, type Permission } from './permissions';
 export { PROFILE_MATRIX } from './profile-matrix';
 export { getProfiles } from './profiles';
 export { activeCtIds, inScope } from './scope';
-export { canReadMatch, canReadMatchComments, canAnnotateMatch, canWatchMatch, type MatchAccess } from './visibility';
+export {
+  canReadMatch,
+  canReadMatchComments,
+  canAnnotateMatch,
+  canWatchMatch,
+  type MatchAccess,
+  type ReadMatchOptions,
+} from './visibility';
+export { canDiscoverMatchTemplate, type MatchTemplateAccess } from './match-event-visibility';
 export { ADULT_AGE, isMinor, guardianLinkActive, type GuardianLinkState } from './age';
 export { deriveLegacyRole, type LegacyRole } from './legacy-role';
 export type {

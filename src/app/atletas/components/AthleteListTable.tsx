@@ -1,6 +1,9 @@
 import type { Athlete } from '../atletas.types';
+import { AthleteTable } from '@/components/athlete/athlete-table';
+import type { AthleteTableRowData } from '@/components/athlete/athlete-table.types';
+import { computeAthleteAge } from '@/lib/athlete-labels.logic';
 import { AthleteListEmpty } from './athlete-list-table-empty';
-import { AthleteTableRow } from './athlete-list-table-row';
+import { toAthleteListRow } from './athlete-list-row-data';
 
 interface AthleteListTableProps {
   athletes: Athlete[];
@@ -14,56 +17,45 @@ interface AthleteListTableProps {
 }
 
 export function AthleteListTable({
-  athletes,
-  currentUserId,
-  userRole,
-  isClubCoach,
-  onEditAthlete,
-  onDeleteAthlete,
-  onGenerateLink,
-  loadingLinkId,
+  athletes, currentUserId, userRole, isClubCoach,
+  onEditAthlete, onDeleteAthlete, onGenerateLink, loadingLinkId,
 }: AthleteListTableProps) {
   if (athletes.length === 0) {
     return <AthleteListEmpty />;
   }
 
+  const byId = new Map(athletes.map((a) => [a.id, a]));
+
+  const actions = (row: AthleteTableRowData) => {
+    const a = byId.get(row.id);
+    if (!a) return { onEdit: () => {}, onDelete: () => {} };
+
+    const age = computeAthleteAge(a.birthDate, a.age);
+    const isUnder18 = age != null && age < 18;
+    const isCreator = !a.createdByUserId || (currentUserId ? a.createdByUserId === currentUserId : true);
+    const canDelete = !isClubCoach && (isCreator || userRole === 'ADMIN');
+
+    return {
+      onEdit: () => onEditAthlete(a),
+      onDelete: () => onDeleteAthlete(a),
+      onGenerateLink: onGenerateLink ? () => onGenerateLink(a) : undefined,
+      loadingLink: loadingLinkId === a.id,
+      canDelete,
+      isClubCoach,
+      isUnder18,
+      hasAccount: Boolean(a.user),
+    };
+  };
+
   return (
     <div className="bg-telemetry-card rounded-xl shadow-sm border border-white/10 overflow-hidden">
-      <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-white/10 bg-telemetry-elevated flex justify-between items-center">
+      <div className="px-4 py-3 sm:px-6 sm:py-4 bg-telemetry-elevated flex justify-between items-center">
         <h2 className="text-base font-semibold text-telemetry-text-primary">Atletas Cadastrados</h2>
-        <span className="text-xs text-telemetry-text-muted">{athletes.length} atleta{athletes.length !== 1 ? 's' : ''}</span>
+        <span className="text-xs text-telemetry-text-muted">
+          {athletes.length} atleta{athletes.length !== 1 ? 's' : ''}
+        </span>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b border-white/10 bg-telemetry-elevated text-[11px] sm:text-xs font-semibold text-telemetry-text-muted uppercase tracking-wider">
-              <th className="px-3 py-2.5 sm:px-4 sm:py-3">Atleta</th>
-              <th className="px-3 py-2.5 sm:px-4 sm:py-3">Clube</th>
-              <th className="px-3 py-2.5 sm:px-4 sm:py-3">Cidade / UF</th>
-              <th className="px-3 py-2.5 sm:px-4 sm:py-3 text-center">Sexo</th>
-              <th className="px-3 py-2.5 sm:px-4 sm:py-3 text-center">Idade</th>
-              <th className="hidden md:table-cell px-3 py-2.5 sm:px-4 sm:py-3">Perfil</th>
-              <th className="hidden lg:table-cell px-3 py-2.5 sm:px-4 sm:py-3">Rankings</th>
-              <th className="px-3 py-2.5 sm:px-4 sm:py-3 text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5 text-xs sm:text-sm">
-            {athletes.map((a) => (
-              <AthleteTableRow
-                key={a.id}
-                athlete={a}
-                currentUserId={currentUserId}
-                userRole={userRole}
-                isClubCoach={isClubCoach}
-                onEditAthlete={onEditAthlete}
-                onDeleteAthlete={onDeleteAthlete}
-                onGenerateLink={onGenerateLink}
-                loadingLinkId={loadingLinkId}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <AthleteTable athletes={athletes.map(toAthleteListRow)} actions={actions} />
     </div>
   );
 }

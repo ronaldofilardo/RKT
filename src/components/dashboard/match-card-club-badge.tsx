@@ -5,14 +5,18 @@ interface ClubBadgeProps {
   isOwnClub?: boolean;
   isOwnAthlete?: boolean;
   createdByName?: string | null;
+  creatorBadge?: string | null;
 }
 
-/** Badge de clube/atleta próprio — usado nas linhas do MatchCard. */
-export function ClubBadge({ club, isOwnClub, isOwnAthlete, createdByName }: ClubBadgeProps) {
+/** Badge de clube/atleta próprio ou criador da partida — usado nas linhas do MatchCard. */
+export function ClubBadge({ club, isOwnClub, isOwnAthlete, createdByName, creatorBadge }: ClubBadgeProps) {
   let label = 'Outros';
   let isHighlight = false;
 
-  if (isOwnClub) {
+  if (creatorBadge) {
+    label = creatorBadge;
+    isHighlight = true;
+  } else if (isOwnClub) {
     label = 'Meu Clube';
     isHighlight = true;
   } else if (isOwnAthlete) {
@@ -24,6 +28,8 @@ export function ClubBadge({ club, isOwnClub, isOwnAthlete, createdByName }: Club
     label = `Por: ${createdByName}`;
   }
 
+  const maxWidthClass = creatorBadge ? 'max-w-[130px] sm:max-w-[170px]' : 'max-w-[70px] sm:max-w-[105px]';
+
   return (
     <span
       className={`inline-flex shrink-0 items-center justify-center px-1 sm:px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-semibold border ${
@@ -33,7 +39,7 @@ export function ClubBadge({ club, isOwnClub, isOwnAthlete, createdByName }: Club
       }`}
       title={label}
     >
-      <span className="truncate max-w-[70px] sm:max-w-[105px]">{label}</span>
+      <span className={`truncate ${maxWidthClass}`}>{label}</span>
     </span>
   );
 }

@@ -1,5 +1,5 @@
 import type { CreateMatchInput, MatchFormat } from '@/schemas/contracts';
-import type { Prisma } from '@prisma/client';
+import type { Prisma, MatchEventScope } from '@prisma/client';
 import { getInitialGames } from '@/core/scoring/format-rules';
 
 function buildCreateFormatFields(data: CreateMatchInput) {
@@ -12,6 +12,9 @@ function buildCreateFormatFields(data: CreateMatchInput) {
     visibility: data.visibility || 'PUBLIC',
     openForAnnotation: data.openForAnnotation || false,
     isPublicTemplate: data.isPublicTemplate ?? false,
+    isTemplate: data.isTemplate ?? false,
+    eventScope: (data.eventScope || 'PRIVATE_PERSONAL') as MatchEventScope,
+    isOfficialClubAnnotation: data.isOfficialClubAnnotation ?? false,
     sourceMatchId: data.sourceMatchId ?? null,
   };
 }

@@ -121,6 +121,11 @@ describe('DashboardPage - view "Relatórios"', () => {
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /Relatórios/i })).toBeInTheDocument();
     });
+    // A lista é carregada de forma assíncrona: esperar o card antes de asserir
+    // os nomes evita correr contra o estado de carregamento.
+    await waitFor(() => {
+      expect(screen.getByTestId('match-card')).toBeInTheDocument();
+    });
     expect(screen.getByText(/Guga Kuerten/)).toBeInTheDocument();
     expect(screen.getByText(/Roger Federer/)).toBeInTheDocument();
   });

@@ -1,11 +1,14 @@
 'use client';
 
+import { formatMatchScheduleDate } from './match-schedule-format.logic';
+
 interface MatchCardScheduledFooterProps {
   match: { scheduledAt?: string | null; state?: string };
 }
 
 export function MatchCardScheduledFooter({ match }: MatchCardScheduledFooterProps) {
-  if (!match.scheduledAt) return null;
+  const formatted = formatMatchScheduleDate(match.scheduledAt);
+  if (!formatted) return null;
 
   const isScheduled = match.state === 'SCHEDULED';
 
@@ -14,7 +17,7 @@ export function MatchCardScheduledFooter({ match }: MatchCardScheduledFooterProp
       <span aria-hidden="true" className={isScheduled ? 'text-purple-400' : 'text-telemetry-text-primary/70'}>
         {isScheduled ? '⏰' : '📅'}
       </span>
-      <span>{new Date(match.scheduledAt).toLocaleString('pt-BR')}</span>
+      <span>{formatted}</span>
     </div>
   );
 }

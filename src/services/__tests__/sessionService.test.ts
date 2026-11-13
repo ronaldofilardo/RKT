@@ -252,7 +252,16 @@ describe('sessionService', () => {
 
       expect(mockPrisma.match.findUnique).toHaveBeenCalledWith({
         where: { id: 'm1' },
-        select: { state: true, openForAnnotation: true, version: true, scoreState: true, _count: { select: { pointLog: true } } },
+        select: {
+          state: true,
+          openForAnnotation: true,
+          version: true,
+          scoreState: true,
+          createdByUserId: true,
+          ctId: true,
+          isTemplate: true,
+          _count: { select: { pointLog: true } },
+        },
       });
     });
   });

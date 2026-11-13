@@ -29,6 +29,9 @@ describe('appPath.logic.ts', () => {
 
     expect(appPath('TREINADOR_CLUBE', '/historico')).toBe('/clube/treinador/historico');
     expect(appPath('GESTOR', '/dashboard')).toBe('/clube/gestor');
+    expect(appPath('GESTOR', '/gestor')).toBe('/clube/gestor');
+    expect(appPath('GESTOR', '/gestor?tab=coaches')).toBe('/clube/gestor?tab=coaches');
+    expect(appPath('GESTOR', '/gestor?tab=athletes')).toBe('/clube/gestor?tab=athletes');
   });
 
   it('substitui prefixo de outra área pelo prefixo da área ativa', () => {

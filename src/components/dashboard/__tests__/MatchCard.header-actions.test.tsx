@@ -84,6 +84,18 @@ describe('MatchCard - Botões de Ação no Header (Editar Placar, Retomar Partid
     expect(onCardSelect).not.toHaveBeenCalled();
   });
 
+  it('não deve exibir o botão Info para usuários que não são o criador da partida', () => {
+    const match = { ...baseMatch, createdByUserId: 'creator-user-1' };
+    render(
+      <MatchCard
+        match={match}
+        userId="other-user-2"
+        onEditInfo={jest.fn()}
+      />
+    );
+    expect(screen.queryByTestId('match-card-edit-info-match-test-123')).not.toBeInTheDocument();
+  });
+
   it('não deve exibir os botões de ação e Info em partidas FINISHED', () => {
     const finishedMatch = {
       ...baseMatch,

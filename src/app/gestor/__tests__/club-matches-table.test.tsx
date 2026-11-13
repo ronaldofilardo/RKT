@@ -110,4 +110,34 @@ describe('ClubMatchesTable — Ver Partida', () => {
     render(<ClubMatchesTable matches={[m]} />);
     expect(screen.getByText('Treinador Roberto')).toBeInTheDocument();
   });
+
+  it('exibe botão de exclusão apenas quando criada pelo próprio usuário', () => {
+    const onDelete = jest.fn();
+    const ownMatch = { ...match('m-own', 'SCHEDULED'), createdByUserId: 'gestor-1' };
+    const otherMatch = { ...match('m-other', 'SCHEDULED'), createdByUserId: 'other-user' };
+
+    const { rerender } = render(
+      <ClubMatchesTable matches={[ownMatch]} currentUserId="gestor-1" onDeleteMatch={onDelete} />
+    );
+    const deleteBtn = screen.getByTitle('Excluir partida');
+    expect(deleteBtn).toBeInTheDocument();
+    fireEvent.click(deleteBtn);
+    expect(onDelete).toHaveBeenCalledWith(ownMatch);
+
+    rerender(
+      <ClubMatchesTable matches={[otherMatch]} currentUserId="gestor-1" onDeleteMatch={onDelete} />
+    );
+    expect(screen.queryByTitle('Excluir partida')).not.toBeInTheDocument();
+  });
+
+  it('exibe botão Anotar e aciona onAnnotateMatch', () => {
+    const onAnnotate = jest.fn();
+    const m = match('m-annotate', 'SCHEDULED');
+    render(<ClubMatchesTable matches={[m]} onAnnotateMatch={onAnnotate} />);
+
+    const btn = screen.getByRole('button', { name: 'Anotar' });
+    expect(btn).toBeInTheDocument();
+    fireEvent.click(btn);
+    expect(onAnnotate).toHaveBeenCalledWith(m);
+  });
 });

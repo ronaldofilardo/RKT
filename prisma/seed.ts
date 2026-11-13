@@ -36,12 +36,14 @@ async function main() {
       passwordHash,
       cpf: '04703084945',
       role: 'ANNOTATOR',
+      canOperate: true,
     },
     create: {
       name: 'Anotador Oficial',
       email: 'anotador@rkt.com',
       cpf: '04703084945',
       role: 'ANNOTATOR',
+      canOperate: true,
       passwordHash,
       club: 'Clube Central',
     },
@@ -84,12 +86,14 @@ async function main() {
     update: {
       passwordHash: e2ePasswordHash,
       role: 'ANNOTATOR',
+      canOperate: true,
     },
     create: {
       name: 'Jogador Atleta',
       email: 'play@email.com',
       cpf: '11111111111',
       role: 'ANNOTATOR',
+      canOperate: true,
       passwordHash: e2ePasswordHash,
       club: 'Clube E2E',
     },
@@ -97,9 +101,10 @@ async function main() {
 
   await prisma.player.upsert({
     where: { id: athlete1.id },
-    update: { name: athlete1.name },
+    update: { name: athlete1.name, userId: athlete1.id },
     create: {
       id: athlete1.id,
+      userId: athlete1.id,
       name: athlete1.name,
       dominance: 'RIGHT_HANDED',
       backhand: 'TWO_HANDED',
@@ -114,12 +119,14 @@ async function main() {
     update: {
       passwordHash: e2ePasswordHash,
       role: 'ANNOTATOR',
+      canOperate: true,
     },
     create: {
       name: 'Segundo Jogador',
       email: 'player2@email.com',
       cpf: '22222222222',
       role: 'ANNOTATOR',
+      canOperate: true,
       passwordHash: e2ePasswordHash,
       club: 'Clube E2E',
     },
@@ -127,9 +134,10 @@ async function main() {
 
   await prisma.player.upsert({
     where: { id: athlete2.id },
-    update: { name: athlete2.name },
+    update: { name: athlete2.name, userId: athlete2.id },
     create: {
       id: athlete2.id,
+      userId: athlete2.id,
       name: athlete2.name,
       dominance: 'RIGHT_HANDED',
       backhand: 'TWO_HANDED',
@@ -144,16 +152,27 @@ async function main() {
     update: {
       passwordHash: e2ePasswordHash,
       role: 'ANNOTATOR',
+      canOperate: true,
     },
     create: {
       name: 'Técnico',
       email: 'coach@email.com',
       cpf: '33333333333',
       role: 'ANNOTATOR',
+      canOperate: true,
       passwordHash: e2ePasswordHash,
       club: 'Clube E2E',
     },
   });
+
+  const coachMembership = await prisma.membership.findFirst({
+    where: { userId: coach.id, kind: 'TREINADOR', ctId: null },
+  });
+  if (!coachMembership) {
+    await prisma.membership.create({
+      data: { userId: coach.id, kind: 'TREINADOR', ctId: null, status: 'ACTIVE' },
+    });
+  }
 
   const adminE2E = await prisma.user.upsert({
     where: { email: 'admin@email.com' },

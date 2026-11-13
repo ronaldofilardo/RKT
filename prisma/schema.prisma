@@ -142,6 +142,13 @@ model Match {
   /// true = este registro é um template de partida pública (pool).
   /// Nunca tem PointLog próprio. Apenas metadados.
   isPublicTemplate   Boolean                  @default(false)
+  /// true = este registro é um cartaz (template) de qualquer escopo (público ou privado).
+  /// Nunca tem PointLog próprio. Apenas metadados.
+  isTemplate         Boolean                  @default(false)
+  /// Escopo de visibilidade do cartaz: PUBLIC, PRIVATE_CLUB, PRIVATE_COACH, PRIVATE_PLAYERS, PRIVATE_PERSONAL.
+  eventScope         MatchEventScope         @default(PRIVATE_PERSONAL)
+  /// true = esta anotação derivada foi feita pelo treinador designado pelo clube (assignedCoachId).
+  isOfficialClubAnnotation Boolean              @default(false)
   /// FK para o template quando esta Match é uma anotação derivada.
   /// null = partida privada normal.
   sourceMatchId      String?
@@ -197,6 +204,8 @@ model Match {
   @@index([isPublicTemplate], name: "Match_isPublicTemplate_idx")
   @@index([sourceMatchId], name: "Match_sourceMatchId_idx")
   @@index([assignedCoachId], name: "Match_assignedCoachId_idx")
+  @@index([isTemplate, eventScope])
+  @@index([createdByUserId, sourceMatchId])
 }
 
 model PointLog {
@@ -376,6 +385,11 @@ enum MatchFormat {
   PRO_SET_8
 }
 
+enum MatchType {
+  SINGLES
+  DOUBLES
+}
+
 enum PointType {
   ACE
   WINNER
@@ -392,9 +406,12 @@ enum AnnotationSessionStatus {
   ABANDONED
 }
 
-enum MatchType {
-  SINGLES
-  DOUBLES
+enum MatchEventScope {
+  PUBLIC           // Pool público global (qualquer usuário autenticado pode anotar)
+  PRIVATE_CLUB     // Privada do clube: gestor, treinadores do CT e atletas envolvidos (+ responsáveis)
+  PRIVATE_COACH    // Privada do treinador particular: treinador criador e seus atletas envolvidos (+ responsáveis)
+  PRIVATE_PLAYERS  // Privada entre atletas: atletas diretamente envolvidos (+ responsáveis)
+  PRIVATE_PERSONAL // Estritamente individual ("Só Eu") — sem compartilhamento de cartaz
 }
 
 // ─── Fundação de acesso (PLANO_FUNDACAO_PERFIS_v2) ──────────────────────────

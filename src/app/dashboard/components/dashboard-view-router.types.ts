@@ -19,6 +19,14 @@ export interface DashboardViewRouterProps {
   historyMatches: DashboardMatchPayload[];
   visibleMatches: DashboardMatchPayload[];
   suspendedFromApi: DashboardMatchPayload[];
+  /** Mensagem de falha da carga da página atual (null/undefined = sem falha). */
+  errorMessage?: string | null;
+  /** Recarrega a página da subvisão ativa. */
+  onRetry?: () => void;
+  /** Cursor da próxima página (`null` = sem mais páginas). */
+  nextCursor?: string | null;
+  onLoadMore?: () => void;
+  loadingMore?: boolean;
   navigateToTarget: (v: DashboardView) => void;
   openMatchDetails: (m: DashboardMatchPayload) => void;
   openMatchReport: (m: DashboardMatchPayload, tab?: string) => void;

@@ -4,6 +4,10 @@ describe('Characterization — menu-items baseline', () => {
   it('menu TREINADOR contém apenas itens canônicos e não contém Avisos nem Mural', () => {
     const labels = TREINADOR.map((i) => i.label);
     expect(labels).toEqual([
+      'Início',
+      'Histórico',
+      'Partidas Anotadas',
+      'Ao Vivo',
       'Meus Atletas',
       'Solicitações',
       'Relatórios',

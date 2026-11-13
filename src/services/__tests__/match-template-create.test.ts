@@ -1,11 +1,20 @@
-jest.mock('@/lib/prisma', () => ({
-  prisma: {
-    player: { findFirst: jest.fn() },
+jest.mock('@/lib/prisma', () => {
+  // O mock é usado também como client da transação: createPublicTemplate chama
+  // prisma.$transaction(tx => ...) e notifyPoolMatchCreated acessa tx.<model>.
+  const prismaMock: Record<string, any> = {
+    player: { findFirst: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
     consentRecord: { findFirst: jest.fn() },
     match: { findFirst: jest.fn(), create: jest.fn() },
     auditLog: { create: jest.fn() },
-  },
-}));
+    coachAthleteLink: { findMany: jest.fn().mockResolvedValue([]) },
+    guardianLink: { findMany: jest.fn().mockResolvedValue([]) },
+    membership: { findMany: jest.fn().mockResolvedValue([]) },
+    user: { findMany: jest.fn().mockResolvedValue([]) },
+    notification: { create: jest.fn(), createMany: jest.fn() },
+  };
+  prismaMock.$transaction = jest.fn(async (fn: (tx: Record<string, any>) => unknown) => fn(prismaMock));
+  return { prisma: prismaMock };
+});
 
 import { prisma } from '@/lib/prisma';
 import { ApiError } from '@/lib/errors';

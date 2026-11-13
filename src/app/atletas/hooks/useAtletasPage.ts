@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { logger } from '@/lib/logger';
+import { ensureSessionHydrated } from '@/lib/auth-client';
 import { playersClient } from '@/services/playersClient';
 import type { EditAthleteSavePayload } from '../EditAthleteModal';
 import type { Athlete } from '../atletas.types';
@@ -39,14 +40,20 @@ export function useAtletasPage() {
   }, []);
 
   useEffect(() => {
-    // A autenticação real é o cookie httpOnly `rkt_access_token` (middleware/API); o sessionStorage
-    // guarda apenas user_id/user_role — exigir `access_token` aqui mandava sempre de volta ao /login.
-    const userRole = sessionStorage.getItem('user_role');
-    if (!userRole) {
-      router.push('/login');
-      return;
-    }
-    loadAthletes().finally(() => setLoading(false));
+    let active = true;
+    void (async () => {
+      const userRole = typeof window !== 'undefined' ? sessionStorage.getItem('user_role') : null;
+      if (!userRole) {
+        router.push('/login');
+        return;
+      }
+      const isOk = await ensureSessionHydrated(router);
+      if (!isOk || !active) return;
+      loadAthletes().finally(() => {
+        if (active) setLoading(false);
+      });
+    })();
+    return () => { active = false; };
   }, [router, loadAthletes]);
 
   const saveAthleteChanges = async (data: EditAthleteSavePayload) => {

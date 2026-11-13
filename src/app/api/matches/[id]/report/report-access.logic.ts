@@ -26,7 +26,7 @@ export function checkReportAccess(
     return NextResponse.json({ error: 'MATCH_NOT_FOUND' }, { status: 404 });
   }
 
-  if (!can(actor, 'report:view').allow || !canReadMatch(actor, matchAccess)) {
+  if (!can(actor, 'report:view').allow || !canReadMatch(actor, matchAccess, { allowParticipantClubGestor: true })) {
     return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
   }
 

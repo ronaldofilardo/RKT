@@ -53,6 +53,15 @@ export const SetScoreSchema = z.object({
 export const MatchTypeSchema = z.enum(["SINGLES", "DOUBLES"]);
 export type MatchType = z.infer<typeof MatchTypeSchema>;
 
+export const MatchEventScopeSchema = z.enum([
+  "PUBLIC",
+  "PRIVATE_CLUB",
+  "PRIVATE_COACH",
+  "PRIVATE_PLAYERS",
+  "PRIVATE_PERSONAL",
+]);
+export type MatchEventScope = z.infer<typeof MatchEventScopeSchema>;
+
 export const DoublesArrangementSchema = z.object({
   serveOrder: z.object({
     player1: z.tuple([z.string(), z.string()]),
@@ -223,6 +232,12 @@ export const CreateMatchInputSchema = z
     details: z.string().nullish(),
     /** true = este registro é um template de partida pública (cartaz no pool). */
     isPublicTemplate: z.boolean().optional().default(false),
+    /** true = este registro é um cartaz (template) de qualquer escopo. */
+    isTemplate: z.boolean().optional().default(false),
+    /** Escopo de visibilidade do cartaz. */
+    eventScope: MatchEventScopeSchema.optional().default("PRIVATE_PERSONAL"),
+    /** true = esta anotação derivada foi feita pelo treinador designado pelo clube. */
+    isOfficialClubAnnotation: z.boolean().optional().default(false),
     /** ID do template público quando este registro é uma anotação derivada. */
     sourceMatchId: z.string().min(1).optional(),
   })
@@ -243,11 +258,11 @@ export const CreateMatchInputSchema = z
     path: ["player2PartnerId"],
   })
   .superRefine((data, ctx) => {
-    if (data.isPublicTemplate && data.sourceMatchId) {
+    if ((data.isPublicTemplate || data.isTemplate) && data.sourceMatchId) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["sourceMatchId"],
-        message: "Um template público não pode ser derivado de outro template",
+        message: "Um cartaz (template) não pode ser derivado de outro template",
       });
     }
   });

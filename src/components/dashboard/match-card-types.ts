@@ -39,6 +39,13 @@ export interface DashboardMatchPayload {
   details?: string | null;
   clubName?: string | null;
   version?: number;
+  createdByUserId?: string | null;
+  createdByName?: string | null;
+  createdByUser?: { name?: string | null } | null;
+  /** true quando o registro é um cartaz (template) e não uma anotação. */
+  isTemplate?: boolean;
+  isPublicTemplate?: boolean;
+  sourceMatchId?: string | null;
 }
 
 export interface MatchCardProps {

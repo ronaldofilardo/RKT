@@ -2,6 +2,8 @@ import type { Actor } from '@/core/access';
 import { prisma } from '@/lib/prisma';
 import { SESSION_CACHE_TTL_MS, invalidateSessionCache } from '@/lib/session-version.logic';
 import { buildActor } from './access-actor.logic';
+import { ACTOR_USER_SELECT } from './access-select.logic';
+import { isDatabaseConnectionError, DatabaseConnectionError } from './access-error.logic';
 
 interface CacheEntry {
   actor: Actor | null;
@@ -25,39 +27,13 @@ async function loadActor(
   try {
     const row = await prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        id: true, role: true, isActive: true, canOperate: true,
-        memberships: {
-          where: { status: 'ACTIVE' },
-          select: { kind: true, preset: true, ctId: true, status: true },
-        },
-        athleteProfile: { select: { id: true, playerCts: { select: { ctId: true } } } },
-        guardianLinks: {
-          where: { revokedAt: null, confirmedAt: { not: null } },
-          select: {
-            confirmedAt: true, revokedAt: true,
-            player: { select: { id: true, birthDate: true } },
-          },
-        },
-        coachAthleteLinks: {
-          where: { status: 'ACTIVE' },
-          select: {
-            playerId: true,
-            player: {
-              select: { playerCts: { where: { status: 'ACTIVE' }, select: { ctId: true, status: true } } },
-            },
-          },
-        },
-        createdPlayers: {
-          select: {
-            id: true,
-            playerCts: { where: { status: 'ACTIVE' }, select: { ctId: true, status: true } },
-          },
-        },
-      },
+      select: ACTOR_USER_SELECT,
     });
     return row ? buildActor(row as any, now, contextId, activeArea) : null;
-  } catch {
+  } catch (err) {
+    if (isDatabaseConnectionError(err)) {
+      throw new DatabaseConnectionError('Falha transitória ao consultar autorização no banco', err);
+    }
     return null;
   }
 }

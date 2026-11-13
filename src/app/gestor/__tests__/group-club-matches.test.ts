@@ -35,6 +35,22 @@ describe('groupClubMatches', () => {
     expect(groups[1].matches.map((m) => m.id)).toEqual(['priv-1']);
   });
 
+  it('inclui cartazes sem anotações e filtra somente designado', () => {
+    const matches = [
+      item({ id: 'tpl-empty', isTemplate: true, eventScope: 'PRIVATE_CLUB', assignedCoach: { id: 'c1', name: 'Carlos' } }),
+      item({ id: 'ann-1', sourceMatchId: 'tpl-empty', createdByUserId: 'c1', isDesignatedAnnotator: true }),
+      item({ id: 'ann-2', sourceMatchId: 'tpl-empty', createdByUserId: 'u2', isDesignatedAnnotator: false }),
+    ];
+
+    const groups = groupClubMatches(matches);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].key).toBe('tpl-empty');
+    expect(groups[0].template?.id).toBe('tpl-empty');
+    expect(groups[0].matches.map((m) => m.id)).toEqual(['ann-1', 'ann-2']);
+
+    expect(filterByAnnotator(matches, null, true).map((m) => m.id)).toEqual(['ann-1']);
+  });
+
   it('retorna grupo vazio sem partidas', () => {
     expect(groupClubMatches([])).toEqual([]);
   });

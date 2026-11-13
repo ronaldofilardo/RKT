@@ -62,7 +62,7 @@ describe('matchService', () => {
         expect.objectContaining({
           take: 20,
           select: BASE_MATCH_SELECT,
-          orderBy: { createdAt: 'desc' },
+          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         }),
       );
     });
@@ -79,7 +79,15 @@ describe('matchService', () => {
           take: 10,
           skip: 1,
           cursor: { id: 'cursor-abc' },
-          where: { deletedAt: null, createdByUserId: 'user-1', state: 'IN_PROGRESS' },
+          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+          where: {
+            deletedAt: null,
+            state: 'IN_PROGRESS',
+            OR: [
+              { createdByUserId: 'user-1', isPublicTemplate: false, isTemplate: false },
+              { isTemplate: true, createdByUserId: 'user-1' },
+            ],
+          },
         }),
       );
     });
@@ -288,7 +296,7 @@ describe('matchService', () => {
           status: 'ABANDONED',
           matchStateSnapshot: { not: null },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       });
       expect(result).toBeTruthy();
     });

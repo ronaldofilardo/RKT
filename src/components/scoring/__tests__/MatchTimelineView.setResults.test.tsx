@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import React from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import {
   MatchTimelineView,
   getSetResults,
@@ -130,7 +130,7 @@ describe('MatchTimelineView — Resultado ao final da tabela', () => {
     ]);
   });
 
-  it('renderiza no DOM a linha de Resultado mostrando 3x6 e 3x6 (nunca 3x5)', () => {
+  it('renderiza no DOM a linha de Resultado Final mostrando 3x6 e 3x6 (nunca 3x5)', () => {
     const points: TimelinePoint[] = [
       makePoint({ pointNumber: 1, setNumber: 1, gamesScore: { player1: 0, player2: 0 } }),
       makePoint({
@@ -154,15 +154,11 @@ describe('MatchTimelineView — Resultado ao final da tabela', () => {
 
     render(<MatchTimelineView {...defaultProps} points={points} />);
 
-    const resultadoHeader = screen.getByText('Resultado');
-    expect(resultadoHeader).toBeInTheDocument();
+    const resultadoRow = screen.getByText('Resultado Final').closest('tr')!;
+    // Devem aparecer os dois sets finalizados em 3/6 dentro da linha de Resultado Final
+    expect(resultadoRow).toHaveTextContent('3/6 - 3/6');
 
-    const resultadoRow = resultadoHeader.closest('tr')!;
-    // Devem aparecer os dois sets finalizados em 3x6 dentro da linha de Resultado
-    const setScoresInResultado = within(resultadoRow).getAllByText('3x6');
-    expect(setScoresInResultado).toHaveLength(2);
-
-    // Não deve conter 3x5 dentro da linha de Resultado
-    expect(within(resultadoRow).queryByText('3x5')).not.toBeInTheDocument();
+    // Não deve conter 3/5 dentro da linha de Resultado Final
+    expect(resultadoRow).not.toHaveTextContent('3/5');
   });
 });

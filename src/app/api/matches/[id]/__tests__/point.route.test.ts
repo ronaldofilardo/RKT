@@ -116,6 +116,8 @@ describe('POST /api/matches/[id]/point', () => {
     player1Id: 'p1',
     player2Id: 'p2',
     initialServerId: 'p1',
+    createdByUserId: 'user-ath',
+    isTemplate: false,
     version: 1,
     player1: { id: 'p1', name: 'Player 1' },
     player2: { id: 'p2', name: 'Player 2' },

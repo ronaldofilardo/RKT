@@ -48,10 +48,13 @@ describe('Isolamento de Partidas e Perfis (Admin vs Anotador)', () => {
 
       expect(mockPrisma.match.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: expect.objectContaining({
-            createdByUserId: 'anotador-1',
+          where: {
             deletedAt: null,
-          }),
+            OR: [
+              { createdByUserId: 'anotador-1', isPublicTemplate: false, isTemplate: false },
+              { isTemplate: true, createdByUserId: 'anotador-1' },
+            ],
+          },
         })
       );
       expect(result).toHaveLength(1);

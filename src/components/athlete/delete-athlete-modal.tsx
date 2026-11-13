@@ -1,17 +1,24 @@
 'use client';
 
+import type { ReactNode } from 'react';
+
 interface DeleteAthleteModalProps {
   athleteName: string;
   deleting: boolean;
   onCancel: () => void;
   onConfirm: () => void;
+  title?: string;
+  /** Parágrafo principal do aviso. */
+  description?: ReactNode;
+  /** Nota secundária (ex.: bloqueio por partidas). Oculta quando ausente. */
+  note?: ReactNode;
 }
 
 export function DeleteAthleteModal({
-  athleteName,
-  deleting,
-  onCancel,
-  onConfirm,
+  athleteName, deleting, onCancel, onConfirm,
+  title = 'Excluir Atleta',
+  description,
+  note,
 }: DeleteAthleteModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -28,13 +35,17 @@ export function DeleteAthleteModal({
         }}
       />
       <div className="relative bg-telemetry-card border border-white/10 rounded-2xl shadow-2xl w-full max-w-md p-6">
-        <h3 className="text-lg font-bold text-telemetry-text-primary mb-2">Excluir Atleta</h3>
+        <h3 className="text-lg font-bold text-telemetry-text-primary mb-2">{title}</h3>
         <p className="text-sm text-telemetry-text-muted mb-4">
-          Tem certeza que deseja excluir <span className="font-semibold text-telemetry-text-primary">{athleteName}</span>? Esta ação não pode ser desfeita.
+          {description ?? (
+            <>
+              Tem certeza que deseja excluir{' '}
+              <span className="font-semibold text-telemetry-text-primary">{athleteName}</span>?
+              Esta ação não pode ser desfeita.
+            </>
+          )}
         </p>
-        <p className="text-xs text-telemetry-text-muted/70 mb-6">
-          Caso o atleta possua partidas em andamento ou finalizadas, a exclusão será bloqueada para não afetar essas partidas.
-        </p>
+        {note && <p className="text-xs text-telemetry-text-muted/70 mb-6">{note}</p>}
         <div className="flex gap-3">
           <button
             type="button"

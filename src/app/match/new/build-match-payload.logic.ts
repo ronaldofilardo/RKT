@@ -1,7 +1,8 @@
 type MatchPayloadFields = {
   sportType: string; format: string; courtType: string; player1Id?: string; player2Id?: string;
   matchType?: 'SINGLES' | 'DOUBLES'; player1PartnerId?: string; player2PartnerId?: string; doublesSetup?: unknown;
-  nickname: string; visibility: string; isPublicTemplate?: boolean; openForAnnotation: boolean; anotadorEmail: string; date: string; time: string;
+  nickname: string; visibility: string; isPublicTemplate?: boolean; eventScope?: string;
+  openForAnnotation: boolean; anotadorEmail: string; date: string; time: string;
   venueId: string; publicMatchCode: string; tournamentName: string; clubName: string; category: string; roundName: string;
   bracketType: string; temperature: string; humidity: string; tags: string; details: string;
   ctId: string; clubNameMatch: string;
@@ -16,6 +17,10 @@ const scheduledAt = (date: string, time: string) => {
 };
 
 export function buildMatchPayload(fields: MatchPayloadFields, overrides?: Record<string, unknown>) {
+  const scope = fields.eventScope || (fields.isPublicTemplate ? 'PUBLIC' : 'PRIVATE_PERSONAL');
+  const isCircle = scope === 'PRIVATE_CLUB' || scope === 'PRIVATE_COACH' || scope === 'PRIVATE_PLAYERS';
+  const isTemplate = Boolean(fields.isPublicTemplate || scope === 'PUBLIC' || isCircle);
+
   return {
     sportType: fields.sportType,
     format: fields.format,
@@ -27,8 +32,10 @@ export function buildMatchPayload(fields: MatchPayloadFields, overrides?: Record
     player2PartnerId: fields.matchType === 'DOUBLES' ? fields.player2PartnerId : null,
     doublesSetup: fields.matchType === 'DOUBLES' ? fields.doublesSetup : null,
     nickname: optionalText(fields.nickname),
-    visibility: fields.visibility || 'PLAYERS_ONLY',
-    isPublicTemplate: fields.isPublicTemplate ?? false,
+    visibility: fields.visibility === 'CIRCLE' ? 'PLAYERS_ONLY' : (fields.visibility || 'PLAYERS_ONLY'),
+    isPublicTemplate: Boolean(fields.isPublicTemplate ?? scope === 'PUBLIC'),
+    isTemplate,
+    eventScope: scope,
     openForAnnotation: fields.openForAnnotation,
     anotadorEmail: optionalText(fields.anotadorEmail),
     scheduledAt: scheduledAt(fields.date, fields.time),

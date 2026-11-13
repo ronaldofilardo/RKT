@@ -2,6 +2,7 @@
 
 import { DashboardChrome } from '@/app/dashboard/components/DashboardChrome';
 import { useProfilePublic } from './useProfilePublic';
+import { PersonalDataSection } from './personal-data-section';
 import { PublicProfileSection } from './public-profile-section';
 
 export default function DadosPessoaisPage() {
@@ -13,6 +14,14 @@ export default function DadosPessoaisPage() {
 
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-4">
         <h1 className="text-2xl font-bold">Dados Pessoais</h1>
+        <PersonalDataSection
+          name={profile.name}
+          cpf={profile.cpf}
+          birthDate={profile.birthDate}
+          minor={profile.minor}
+          saving={profile.saving}
+          onSaveName={profile.savePersonalData}
+        />
         <PublicProfileSection
           playerId={profile.playerId}
           nickname={profile.nickname}

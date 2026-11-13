@@ -79,15 +79,28 @@ describe('Padrão visual do /suporte (regressão do bug de baixo contraste)', ()
   });
 
   it('AvulsosSection: cards no padrão do /gestor (rounded-xl + shadow + borda translúcida)', () => {
-    const { container } = render(<AvulsosSection />);
+    const { container } = render(
+      <AvulsosSection
+        athletes={[]}
+        clubs={[]}
+        totalAthletes={0}
+        totalClubs={0}
+        users={[]}
+        memberships={[]}
+      />,
+    );
 
     expectNoGlobalOpacity(container);
-    const cards = container.querySelectorAll('.bg-telemetry-card');
+    // Escopar ao grupo de filtros: a tabela listada abaixo também usa o card padrão.
+    const group = container.querySelector('[role="group"]')!;
+    const cards = group.querySelectorAll('button');
     expect(cards).toHaveLength(3);
     cards.forEach((card) => {
       expect(card.className).toContain('rounded-xl');
       expect(card.className).toContain('shadow');
-      expect(card.className).toContain('border-telemetry-border/20');
+      expect(card.className).toContain('bg-telemetry-card');
+      // Ativo usa borda azul; os inativos mantêm a borda translúcida do /gestor.
+      expect(card.className).toMatch(/border-telemetry-blue|border-telemetry-border\/20/);
     });
   });
 });

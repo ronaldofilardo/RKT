@@ -94,6 +94,8 @@ describe('POST /api/matches/[id]/point - Client timestamp validation (D3)', () =
       initialServerId: P1_ID,
       player1Id: P1_ID,
       player2Id: P2_ID,
+      createdByUserId: 'user-ath',
+      isTemplate: false,
       player1: { id: P1_ID },
       player2: { id: P2_ID },
       version: 1,

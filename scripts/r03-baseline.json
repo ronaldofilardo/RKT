@@ -1,5 +1,4 @@
 {
-  "src/components/dashboard/match-card-score-grid.tsx": 140,
-  "src/components/dashboard/MatchCard.tsx": 144,
+  "src/components/dashboard/MatchCard.tsx": 117,
   "src/lib/db/db-target.ts": 102
 }

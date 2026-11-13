@@ -34,7 +34,14 @@ export const BASE_MATCH_SELECT = {
   player2Partner: { select: { id: true, name: true, club: true, clubId: true, createdByUserId: true, playerCts: { select: { ctId: true } }, createdByUser: { select: { name: true } } } },
   doublesSetup: true,
   createdByUserId: true,
+  createdByUser: { select: { id: true, name: true } },
   ctId: true,
+  ct: { select: { id: true, name: true } },
+  isTemplate: true,
+  isPublicTemplate: true,
+  eventScope: true,
+  isOfficialClubAnnotation: true,
+  sourceMatchId: true,
 } as const;
 
 // getMatch inclui os campos de encerramento não expostos na listagem.

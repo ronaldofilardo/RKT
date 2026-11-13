@@ -51,7 +51,7 @@ function renderCoaches(canInsertAthletes = false) {
   );
 }
 
-function renderAthletes() {
+function renderAthletes(onRefresh: () => void = jest.fn()) {
   return render(
     <AthletesTable
       athletes={[athlete]}
@@ -59,7 +59,7 @@ function renderAthletes() {
       onSelectChange={jest.fn()}
       onSelectAll={jest.fn()}
       onCreateAthlete={jest.fn()}
-      onRefresh={jest.fn()}
+      onRefresh={onRefresh}
     />,
   );
 }
@@ -113,8 +113,29 @@ describe('toasts de ação na área do gestor', () => {
     renderAthletes();
 
     fireEvent.click(screen.getByRole('button', { name: 'Editar' }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Salvar/i }));
 
+    await waitFor(() =>
+      expect(toastMock).toHaveBeenCalledWith({
+        type: 'success',
+        message: 'Atleta atualizado com sucesso!',
+      }),
+    );
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
+  it('fecha o modal do atleta mesmo quando o refresh da lista fica pendurado', async () => {
+    (global as { fetch?: unknown }).fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
+    // Nunca resolve: simula a lista demorando/hang para garantir que o modal
+    // não fique preso esperando o refresh após a gravação.
+    renderAthletes(() => new Promise<void>(() => {}));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Editar' }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Salvar/i }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await waitFor(() =>
       expect(toastMock).toHaveBeenCalledWith({
         type: 'success',

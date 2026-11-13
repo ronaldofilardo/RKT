@@ -18,7 +18,7 @@ export async function assignCoachToTemplate(
   const ctId = gestorMembership.ctId;
 
   const template = await prisma.match.findFirst({
-    where: { id: templateId, isPublicTemplate: true, deletedAt: null },
+    where: { id: templateId, deletedAt: null, OR: [{ isPublicTemplate: true }, { isTemplate: true }] },
     include: { player1: true, player2: true },
   });
   if (!template) {
@@ -46,6 +46,17 @@ export async function assignCoachToTemplate(
       where: { id: templateId },
       data: { assignedCoachId: coachUserId },
     });
+
+    if (typeof tx.match.updateMany === 'function') {
+      await tx.match.updateMany({
+        where: { sourceMatchId: templateId, deletedAt: null },
+        data: { isOfficialClubAnnotation: false },
+      });
+      await tx.match.updateMany({
+        where: { sourceMatchId: templateId, createdByUserId: coachUserId, deletedAt: null },
+        data: { isOfficialClubAnnotation: true },
+      });
+    }
 
     await tx.auditLog.create({
       data: {

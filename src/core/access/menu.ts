@@ -1,5 +1,5 @@
 import {
-  ADMIN, DADOS_PESSOAIS, FINANCEIRO, GESTAO, OPERACAO, SAIR, TORNEIOS, TREINADOR,
+  ADMIN, DADOS_PESSOAIS, ESPECTADOR, FINANCEIRO, GESTAO, OPERACAO, SAIR, SUPORTE, TORNEIOS, TREINADOR,
   atletaItems,
 } from './menu-items';
 import type { MenuContext, MenuItem, MenuSection, MenuSectionKey } from './menu-types';
@@ -10,6 +10,24 @@ function section(key: MenuSectionKey, title: string, items: readonly MenuItem[])
 
 function canSeeOperation(ctx: MenuContext): boolean {
   return ctx.canOperate && !ctx.coach && !(ctx.gestor?.ctStatus === 'ACTIVE') && !ctx.isAdmin && !ctx.isSuporte;
+}
+
+/** Áreas administrativas/gestão não exibem "Dados Pessoais" no menu. */
+const AREAS_WITHOUT_PERSONAL_DATA = new Set<string>([
+  'ADMIN', 'SUPORTE', 'GESTOR', 'TREINADOR_CLUBE',
+]);
+
+function canSeePersonalData(ctx: MenuContext, area?: string | null): boolean {
+  if (area) return !AREAS_WITHOUT_PERSONAL_DATA.has(area);
+  if (ctx.isAdmin || ctx.isSuporte || ctx.gestor) return false;
+  return !(ctx.coach && ctx.coach.ctIds.length > 0);
+}
+
+function footerItems(ctx: MenuContext, area?: string | null): MenuItem[] {
+  const items: MenuItem[] = [];
+  if (canSeePersonalData(ctx, area)) items.push(DADOS_PESSOAIS);
+  items.push(SAIR);
+  return items;
 }
 
 function dedupeKeepLast(sections: MenuSection[]): MenuSection[] {
@@ -42,8 +60,12 @@ function buildMenuForArea(ctx: MenuContext, area: string): MenuSection[] {
     sections.push(section('operacao', 'Operação', OPERACAO));
   } else if (area === 'ADMIN' && ctx.isAdmin) {
     sections.push(section('admin', 'Admin', [ADMIN]));
+  } else if (area === 'SUPORTE' && ctx.isSuporte) {
+    sections.push(section('suporte', 'Suporte', SUPORTE));
+  } else if (area === 'ESPECTADOR') {
+    sections.push(section('operacao', 'Partidas', ESPECTADOR));
   }
-  sections.push(section('rodape', 'Conta', [DADOS_PESSOAIS, SAIR]));
+  sections.push(section('rodape', 'Conta', footerItems(ctx, area)));
   return dedupeKeepLast(sections);
 }
 
@@ -60,7 +82,7 @@ export function buildMenu(ctx: MenuContext): MenuSection[] {
   }
   if (ctx.gestor?.ctStatus === 'ACTIVE') sections.push(section('gestao', 'Gestão do Clube', [...GESTAO, TORNEIOS, FINANCEIRO]));
   if (ctx.isAdmin) sections.push(section('admin', 'Admin', [ADMIN]));
-  sections.push(section('rodape', 'Conta', [DADOS_PESSOAIS, SAIR]));
+  sections.push(section('rodape', 'Conta', footerItems(ctx)));
 
   return dedupeKeepLast(sections);
 }

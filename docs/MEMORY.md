@@ -3,8 +3,57 @@
 > Diário de bordo técnico · Metodologia RE-DOC (Fase 4 — Auditoria de Qualidade e Histórico)
 > **Este é um dos 6 arquivos-canônico do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
 
-**Última Atualização:** 2026-11-10
+**Última Atualização:** 2026-11-12
 **Analisado por:** engenharia reversa e implementação sobre `main`
+
+---
+
+## 2.35 Fase D dos Filtros de Partidas — Círculo Completo e Cartazes no Histórico (TD-062) — 2026-11-12
+- **Contexto & Demanda:**
+  - Plano: [`docs/PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md`](./PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md) e [`docs/TASKS.md`](./TASKS.md) (item TD-062).
+  - Metodologia: **Elephant-Goldfish Model (EGM)**.
+  - Problema analisado: confronto criado pelo Gestor do Clube A com escopo "Compartilhada no círculo" entre Atleta X (do Clube A) e Atleta Y (do Treinador Particular B), com Treinador C designado para anotar. O Gestor A via a partida, mas Atleta X, Atleta Y e Treinador B não viam em "Minhas Partidas" (`/historico`).
+  - Decisão consolidada: **O Cartaz pertence ao círculo e é visível a todos os envolvidos** em *Minhas Partidas*. As anotações são 100% isoladas. Ao clicar em *"Anotar minha versão"*, cria-se a anotação derivada exclusiva do usuário, e o cartaz é substituído por sua anotação no Histórico sem duplicidade.
+- **Implementação & Conclusão:**
+  - **D.1 (Descoberta por Treinador Particular):** em `src/core/access/match-event-visibility.ts`, `isParticipantOrRelated` inclui `actor.followedPlayerIds?.some(...)`, permitindo que treinadores particulares de atletas participantes descubram cartazes em `PRIVATE_CLUB`, `PRIVATE_COACH` e `PRIVATE_PLAYERS`.
+  - **D.2 (Cartazes do Círculo em Minhas Partidas):** criado `src/services/match-repository-circle.logic.ts` com `buildCircleTemplateCondition` e integrado em `src/services/match-repository-where.logic.ts`. Traz cartazes (`isTemplate: true`) onde o usuário é atleta participante (`athletePlayerId`), treinador de participante (`followedPlayerIds`) ou responsável legal (`guardianOfPlayerIds`), com salvaguarda `annotations: { none: { createdByUserId: user.id, deletedAt: null, state: { not: 'CANCELLED' } } }`.
+  - **D.3 (Escopo de Gestor por Área Ativa):** em `src/app/api/matches/matches-get.logic.ts`, `resolveScope` agora exige `actor.activeArea === 'GESTOR'` para carregar `ctMemberUserIds`, impedindo poluição do histórico pessoal do gestor quando atua como treinador ou em área pessoal.
+  - **D.4 (Metadados do Criador da Partida):** em `src/services/match-repository-select.data.ts` (`BASE_MATCH_SELECT`), adicionados `createdByUser { id, name }` e `ct { id, name }`, e exposto `createdByName` da partida em `matches-get.logic.ts`.
+  - **D.5 (Qualidade & Regra R-03):** `pnpm check:r03` aprovado com 0 regressões (todos os arquivos novos/editados $\le 100$ linhas); `pnpm typecheck` (tsc) com 0 erros; `pnpm test:design` 100% verde (26/26); suítes de repositório e visibilidade atualizadas e 100% verdes.
+
+---
+
+## 2.34 Revisão de Menus, Rotas e Blindagem de Sessão (A0.19) — 2026-11-12
+- **Contexto & Demanda:**
+  - Plano: [`docs/PLANO_CORRECAO_MENUS_ROTAS_E_SESSAO_2026-11-12.md`](./PLANO_CORRECAO_MENUS_ROTAS_E_SESSAO_2026-11-12.md).
+  - Metodologia: **Elephant-Goldfish Model (EGM)** com separação entre planejamento de contexto longo (The Elephant) e auditoria cega de riscos/regressões (The Goldfish).
+- **Implementação & Conclusão (Fases 1 a 5):**
+  - **Fase 1 (Blindagem de Sessão):** `redirectToLogin` desacoplado de logout destrutivo e remoção de `exit=1` (`auth-client-storage.ts`). Módulo puro de hidratação `auth-session-hydration.logic.ts` com chamada a `/api/auth/me` para repovoar `sessionStorage` em novas abas/PWA. `accessService.ts` modularizado (`ACTOR_USER_SELECT` em `access-select.logic.ts`) e captura de falhas de conexão em `access-error.logic.ts` + `withAccessHandler` retornando 503 com `Retry-After`, eliminando falso 401. `useDashboardState`, `use-dashboard-matches-fetch`, `useAtletasPage` e `useAdminPage` atualizados.
+  - **Fase 2 (Correção de "Aguardando"):** `src/app/aguardandoanotador/page.tsx` renderiza `<DashboardPage />` quando `!matchId`, ativando nativamente a subvisão `pending` sem loops ou redirects. `isDashboardRoute` normalizado com `normalizeDashboardPath` em `dashboard-menu.logic.ts` suportando todas as áreas ativas.
+  - **Fase 3 (Menus Completos):** Início, Histórico, Partidas Anotadas e Ao Vivo adicionados para Treinador e Atleta (`menu-items.ts` fatiado com `menu-factory.logic.ts`). Adicionados atalhos para Suporte e Espectador em `menu.ts`.
+  - **Fase 4 (Normalização de URLs de Gestor & UI TopBar):** `appPath` trata caminhos `/gestor` e query params sem duplicar rota. `DashboardTopBar.tsx` integrado com `dashboard-topbar.logic.ts`, ocultando a seta voltar para Gestor e Suporte via `effectiveArea`.
+  - **Fase 5 (Validação):** `check:r03` aprovado com 0 regressões; `typecheck` (tsc) com 0 erros; `test:design` 100% verde (26/26 testes); suíte de testes unitários de menu, rotas e autenticação 100% verde (94/94 testes).
+
+---
+
+## 2.33 Isolamento de Anotações por Anotador (A0.18) — 2026-11-11
+- **Contexto & Demanda:**
+  - Plano: `docs/PLANO_ISOLAMENTO_ANOTACOES_POR_ANOTADOR_2026-11-11.md`.
+  - Uma mesma partida (`[12421]`) pode receber N anotadores independentes (ex.: treinador designado vai até o fim; pai do atleta 2 sai antes do término), com isolamento absoluto de leitura e escrita entre anotadores e visão consolidada agrupada para o Gestor do clube.
+- **Modelagem & Banco:**
+  - `enum MatchEventScope` (`PUBLIC`, `PRIVATE_CLUB`, `PRIVATE_COACH`, `PRIVATE_PLAYERS`, `PRIVATE_PERSONAL`) + `Match.isTemplate`, `Match.eventScope`, `Match.isOfficialClubAnnotation`.
+  - Migration `20261111000000_add_match_event_scope_and_template` com backfill legado e índice único parcial `Match_unique_active_annotation_per_user_idx`.
+- **Domínio & Backend:**
+  - `src/core/access/match-event-visibility.ts` (`canDiscoverMatchTemplate`) separa descoberta do cartaz (público ou círculo privado: clube, treinador particular, atletas envolvidos e responsáveis legais de menores) da leitura/escrita da anotação.
+  - `src/core/access/visibility.ts`: `canReadMatch`, `canAnnotateMatch`, `canReadMatchComments` e `canWatchMatch` fechados ao dono (`createdByUserId`) e ao Gestor ativo do CT (com gancho `allowParticipantOfficialRead` preparado para atletas no futuro).
+  - `src/services/match-resolve-annotation.logic.ts`, `match-template-create.logic.ts`, `match-available.logic.ts`, `POST /api/matches/[id]/annotate` e `GET /api/matches/available`.
+  - Fechamento de `listMatches` (`match-repository-where.logic.ts`), `point-route-permission.logic.ts`, `point/[pointId]/point-ownership.logic.ts`, `state-route-guards.logic.ts`, `finish/route.ts`, `sessions/route.ts`, `matches/[id]/route.ts` e `spectate/[matchId]/feed/route.ts`.
+  - Anti-duplicidade por usuário (`findDuplicateMatch`) + detecção de cartaz disponível (`TEMPLATE_AVAILABLE`).
+- **Painel do Gestor & Frontend:**
+  - `GET /api/gestor/matches` (`gestor-matches.logic.ts`) retorna todas as anotações por partida-mãe com `pointCount` e `isDesignatedAnnotator`; designação sempre atua no cartaz (`sourceMatchId ?? matchId`).
+  - `ClubMatchesTable` + `ClubMatchGroupHeader` + `ClubMatchRow` exibem grupos expansíveis por partida, badge `Designado (Oficial)`, contador de pontos e filtro `Somente designado`.
+  - `/match/new` (`MatchVisibilityField`) com 3 opções (`Privada`, `Compartilhada no círculo`, `Pública`), `/partidas-publicas` com aba `Meu Círculo`, e `/scoring` (`useScoringLifecycleEffects`) com resolvedor automático de cartaz.
+- **Pendência operacional:** executar `pnpm db:migrate:deploy` e `pnpm db:test:push` fora do sandbox para aplicar a migration no PostgreSQL local (`localhost:5432`).
 
 ---
 
@@ -933,3 +982,53 @@ Leitura completa: `docs/TASKS.md` — **Anexo A** (dívida técnica, 50 entradas
 - **Fase 4 – Card do dashboard (A):** regra do sobrescrito de tiebreak unificada e corrigida em `renderSetScore` (scoring) e `formatCompactSetScore` (dashboard): vencedor mostra só games, perdedor mostra games + pontos do TB em sobrescrito; Match Tiebreak mostra só o placar do TB sem sobrescrito; `getColumnTitles` para `BEST_OF_5` retorna Set 1 a 4 e TB; `MatchCard` reescrito usando a estrutura de tabela do `ScoreboardCard` com cores de quadra, suspenso, nomes de dupla abreviados e sem pontos do game; arquivos específicos do MatchCard (`MatchCardScore`, `MatchCardScoreTable`, etc.) deixados em desuso.
 - **Fase 5 – Estatísticas avançadas (D3, D4, D8, D9, D10):** `BaselineStats` expõe `shortRallyWon/Total`, `mediumRallyWon/Total`, `longRallyWon/Total` (ganhos e total por faixa); `BaselineSection` mostra "Aproveitamento/Total (x/y)" e rótulos Curtos (1-4), Médios (5-8), Longos (9+); `advanced-stats-rally-section.tsx` e `advanced-stats-shot-section.tsx` com rótulos corrigidos; `stroke-matrix-classify.logic.ts` separa `approach_fh`/`approach_bh` (antes `aproachs`); `stroke-matrix-stats.logic.ts` com ordem Sq, FH, BH, VFH, VBH, SVFH, SVBH, Sm, Drop, Lob, Bate Pronto, Aproach FH, Aproach BH; `MomentumStats` com `streakCountP1/P2` (len2, len3, len4Plus); `advanced-stats-momentum.tsx` tabela de sequências exatas por jogador; `SetBreakdownSection` com linha de tempo total do jogo (`totalDurationMinutes`).
 - **Validação:** `pnpm typecheck` 0 erros · `pnpm spec:validate` sem drift · `pnpm test:design` 3/3 (26/26) · `pnpm test` 397/397 suítes e 3904/3904 testes verdes.
+
+---
+
+## 2.37 Executado: Mural de Partidas Agendadas / Criadas e Seção no Gestor — 2026-11-12
+- **Mural na Tela Inicial (`/dashboard`):** Atletas e Treinadores contam agora com `<ScheduledNotifSection />` e `<ScheduledNotifCard />` para partidas criadas/agendadas (`POOL_MATCH_WITH_MY_ATHLETE`), análogo ao "Avisos de Designação" dos treinadores. Exibe confronto, data agendada, criador/origem e botões para dispensar ou anotar a própria versão (`/api/matches/pool/[templateId]/annotate`).
+- **Disparo de Notificações Círculo/Privadas:** `notifyPoolMatchCreated` estendido para qualquer template de partida (`isTemplate`), notificando os atletas envolvidos, seus treinadores particulares (`CoachAthleteLink`), responsáveis (`GuardianLink`) e os gestores dos clubes afiliados (`PlayerCT` -> `Membership` com `kind: GESTOR`).
+- **Painel do Gestor (`/gestor`):** Adicionada a seção **"Partidas agendadas por outros"** (`<ExternalScheduledMatchesSection />`), posicionada rigorosamente **antes** da seção "Partidas do Clube", alimentada por `loadGestorExternalScheduledMatches`. Lista confrontos agendados por terceiros envolvendo atletas do clube com opção para o gestor indicar um anotador do seu clube.
+- **Validação:** `pnpm check:r03` (0 regressões, todos $\le 100$ linhas) · `pnpm typecheck` (0 erros) · `pnpm test:design` (26/26) · Testes unitários de rotas, services e componentes 100% verdes.
+
+
+---
+
+## 2.38 Executado: Melhorias de Gestão, Visibilidade e Dados Pessoais (6 Itens) — 2026-11-12
+- **Item 1 (Notificação / Visibilidade para Todos os Envolvidos):**
+  - `src/services/notification-recipients.logic.ts` e `src/services/notification-create.logic.ts` estendidos para duplas (`player1PartnerId`, `player2PartnerId`), notificando todos os atletas envolvidos, seus treinadores particulares (`CoachAthleteLink`), responsáveis (`GuardianLink`) e os gestores dos clubes afiliados (`PlayerCT` -> `Membership` com `kind: GESTOR`).
+- **Item 2 (Poderes do Gestor na aba 'Partidas'):**
+  - **Exclusão:** Botão de exclusão (lixeira) em `src/app/gestor/club-match-row.tsx` exibido exclusivamente quando a partida foi criada pelo próprio gestor logado (`currentUserId === match.createdByUserId`), disparando `requestDeleteMatch` em `gestor-match-actions.logic.ts`.
+  - **Anotação:** Botão "Anotar" adicionado em `ClubMatchRow` e `ExternalScheduledMatchesSection`, permitindo ao gestor anotar qualquer partida que envolva atleta de seu clube via `/api/matches/pool/[templateId]/annotate`.
+  - **Multi-timeline de Partidas do Clube:** `src/core/access/visibility.ts` atualizado com `allowParticipantClubGestor: true` em `canReadMatch`, permitindo aos gestores inspecionar a timeline e relatórios (`/report`) de quaisquer anotações feitas por diferentes anotadores para partidas de seus atletas.
+- **Item 3 (Badge do Criador em 'Minhas Partidas'):**
+  - `src/components/dashboard/match-card-creator-badge.logic.ts` resolve o badge ao lado do nome do adversário do atleta (`Criada por [Nome]`).
+  - `src/components/dashboard/match-card-club-badge.tsx`, `match-card-row.tsx` e `match-card-score-grid.tsx` renderizam a badge contextualizada no lado adversário.
+- **Item 4 (Data de Agendamento Dinâmica):**
+  - `src/components/dashboard/match-schedule-format.logic.ts` formata dinamicamente `scheduledAt` registrado na criação da partida, sem dados hardcoded e omitindo o horário caso venha zerado (00:00:00).
+- **Item 5 (Ícone 'Informações da Partida' Exclusivo do Criador):**
+  - `src/components/dashboard/match-card-header.tsx` recebe `isCreator` e condiciona o botão de edição de informações (`edit-info`) estritamente a `!isFinished && isCreator && onEditInfo`.
+- **Item 6 (Edição de Dados Pessoais para Maiores de 18 Anos):**
+  - `src/app/api/users/profile/route.ts` implementa `PATCH` com autenticação, validação de maioridade (bloqueia menores de 18 anos com 403) e atualização de nome.
+  - `src/app/dados-pessoais/personal-data-section.tsx` renderiza formulário reativo com edição para $\ge 18$ anos, mantendo o CPF rigorosamente travado como não-editável.
+- **Validação:**
+  - `node scripts/check-r03-line-limit.mjs`: 100% conforme (0 violações, 0 regressões, todos $\le 100$ linhas).
+  - TypeScript typecheck: 0 erros.
+  - Testes: 16 suítes / 117 testes unitários e de integração verdes; 3 suítes / 26 testes de design verdes.
+
+---
+
+## 2.39 Executado: Papel do Criador, Filiação de Atletas e Feed Dinâmico de Partidas Criadas por Terceiros — 2026-11-13
+- **Item 1 (Painel do Gestor - Papel do Criador e Filiação de Atletas):**
+  - Implementado `src/app/gestor/gestor-match-display.logic.ts` com funções puras `resolveCreatorRoleLabel` (resolvendo `Gestor (CT)`, `Treinador (CT)`, `Treinador Pessoal`, `Atleta` ou `Espectador`), `formatCreatorWithRole` e `resolvePlayerAffiliation` (indicando `Meu clube`, `Clube: [Nome]`, `Treinador: [Nome]` ou `Avulso`).
+  - Atualizado `src/app/api/gestor/matches/gestor-matches-select.ts`, `gestor-matches.logic.ts` e `gestor-external-matches.logic.ts` incluindo dados completos de perfil e vínculos do criador e atletas.
+  - Atualizado `ExternalScheduledMatchRow` e `ClubMatchRow` para renderizar os badges de papel do criador e filiação dos atletas tanto em "Partidas agendadas por outros" quanto em "Partidas do Clube".
+- **Item 2 (Ativação Pós-Criação de Conta):**
+  - Em `src/app/api/notifications/scheduled/scheduled-matches-feed.logic.ts`, a consulta de partidas agendadas/criadas por outros busca dinamicamente partidas envolvendo os atletas do usuário logado (`actor.athletePlayerId`, `actor.followedPlayerIds`, `actor.guardianOfPlayerIds`), garantindo que usuários que ativarem suas contas após a criação da partida tenham suas partidas agendadas exibidas imediatamente na tela inicial sem depender de notificações estáticas preexistentes.
+- **Item 3 (Área de Aviso / Feed na Tela Inicial para Não-Gestores):**
+  - O endpoint `/api/notifications/scheduled` e os componentes `<ScheduledNotifSection />` e `<ScheduledNotifCard />` na tela inicial (`/dashboard`) agora exibem "Partidas Criadas por Outros Usuários" para atletas, treinadores e responsáveis/espectadores (com exclusão estrita de gestores, que possuem seção própria em `/clube/gestor`). Permite dispensar (salvando a dispensa) ou anotar a própria partida.
+- **Validação:**
+  - `node scripts/check-r03-line-limit.mjs`: 100% conforme (0 violações, 0 regressões, todos $\le 100$ linhas).
+  - TypeScript typecheck: 0 erros (`node ./node_modules/typescript/bin/tsc --noEmit`).
+  - Testes: 29 testes Jest dedicados 100% verdes + 26 testes de design 100% verdes.
+

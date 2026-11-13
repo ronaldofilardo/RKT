@@ -35,6 +35,7 @@ export async function patchMatchState(
         player2PartnerId: true,
         createdByUserId: true,
         openForAnnotation: true,
+        isTemplate: true,
         state: true,
       },
     });

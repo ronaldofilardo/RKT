@@ -6,6 +6,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { ContextSwitcher } from "@/components/ui/context-switcher";
 import type { SessionContextOption } from "@/lib/auth-client-login";
+import { resolveUserEffectiveArea, isAreaExcludedFromBack, resolveHomeHref } from "./dashboard-topbar.logic";
 
 interface DashboardTopBarProps {
   menuOpen: boolean;
@@ -30,9 +31,9 @@ export function DashboardTopBar({
 }: DashboardTopBarProps) {
   const router = useRouter();
   const firstName = user?.name ? user.name.trim().split(/\s+/)[0] : '';
-  const homeHref = user?.role === 'GESTOR' ? '/gestor' : '/dashboard';
-  const userRole = user?.role || (typeof window !== 'undefined' ? sessionStorage.getItem('user_role') : null);
-  const isExcluded = userRole === 'ADMIN' || userRole === 'SUPORTE' || userRole === 'GESTOR';
+  const effectiveArea = resolveUserEffectiveArea(user?.role);
+  const homeHref = resolveHomeHref(effectiveArea);
+  const isExcluded = isAreaExcludedFromBack(effectiveArea);
   const shouldShowBack = !isExcluded && (showBackButton ?? Boolean(title && title !== 'Início'));
 
   const handleBack = () => { if (onBack) onBack(); else router.push(homeHref as any); };

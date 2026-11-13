@@ -24,11 +24,11 @@ describe('Isolamento de Visibilidade por Contexto de Sessão', () => {
     activeContextId: 'PARTICULAR',
   };
 
-  const adminActor: Actor = {
-    userId: 'admin-1',
+  const gestorActorCtA: Actor = {
+    userId: 'gestor-1',
     isActive: true,
     canOperate: true,
-    memberships: [{ kind: 'PLATAFORMA', preset: 'ADMIN', ctId: null, status: 'ACTIVE' }],
+    memberships: [{ kind: 'GESTOR', ctId: 'ct-A', status: 'ACTIVE' }],
     athleteCtIds: [],
     guardianOfPlayerIds: [],
     followedPlayerIds: [],
@@ -38,6 +38,14 @@ describe('Isolamento de Visibilidade por Contexto de Sessão', () => {
   const matchCtA = {
     ctId: 'ct-A',
     createdByUserId: 'coach-1',
+    annotatorUserIds: [],
+    participantPlayerIds: ['p-1'],
+    participantCtIds: ['ct-A'],
+  };
+
+  const matchCtAOtherCoach = {
+    ctId: 'ct-A',
+    createdByUserId: 'coach-2',
     annotatorUserIds: [],
     participantPlayerIds: ['p-1'],
     participantCtIds: ['ct-A'],
@@ -59,29 +67,31 @@ describe('Isolamento de Visibilidade por Contexto de Sessão', () => {
     participantCtIds: [],
   };
 
-  it('treinador no contexto CT A enxerga apenas partidas do CT A', () => {
+  it('treinador enxerga apenas as próprias anotações (nunca as de outro treinador do mesmo CT)', () => {
     expect(canReadMatch(coachActorCtA, matchCtA)).toBe(true);
+    expect(canReadMatch(coachActorCtA, matchCtAOtherCoach)).toBe(false);
     expect(canReadMatch(coachActorCtA, matchCtB)).toBe(false);
-    // Criador/annotador sempre lê a própria partida, independente do contexto.
     expect(canReadMatch(coachActorCtA, matchParticular)).toBe(true);
   });
 
-  it('treinador no contexto Particular enxerga apenas partidas avulsas (ctId null)', () => {
+  it('treinador no contexto Particular lê apenas suas próprias anotações', () => {
     expect(canReadMatch(coachActorParticular, matchParticular)).toBe(true);
-    // Criador/annotador sempre lê a própria partida, independente do contexto.
     expect(canReadMatch(coachActorParticular, matchCtA)).toBe(true);
     expect(canReadMatch(coachActorParticular, matchCtB)).toBe(false);
   });
 
-  it('administrador de plataforma mantém visão de partidas mesmo com activeContextId', () => {
-    expect(canReadMatch(adminActor, matchCtA)).toBe(true);
+  it('gestor do CT A lê todas as anotações vinculadas ao CT A, mas não de outros CTs nem no modo Particular', () => {
+    expect(canReadMatch(gestorActorCtA, matchCtA)).toBe(true);
+    expect(canReadMatch(gestorActorCtA, matchCtAOtherCoach)).toBe(true);
+    expect(canReadMatch(gestorActorCtA, matchCtB)).toBe(false);
+    expect(canReadMatch({ ...gestorActorCtA, activeContextId: 'PARTICULAR' }, matchCtAOtherCoach)).toBe(false);
   });
 
-  it('anotação respeita o contexto ativo impedindo cross-CT', () => {
+  it('anotação respeita autoria e contexto ativo impedindo cross-CT e escrita alheia', () => {
     expect(canAnnotateMatch(coachActorCtA, matchCtA)).toBe(true);
+    expect(canAnnotateMatch(coachActorCtA, matchCtAOtherCoach)).toBe(false);
     expect(canAnnotateMatch(coachActorCtA, matchCtB)).toBe(false);
     expect(canAnnotateMatch(coachActorParticular, matchCtA)).toBe(false);
     expect(canAnnotateMatch(coachActorParticular, matchParticular)).toBe(true);
   });
 });
-

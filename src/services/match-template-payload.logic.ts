@@ -20,11 +20,13 @@ export interface TemplateLike {
   temperature: number | null;
   humidity: number | null;
   details: string | null;
+  eventScope: 'PUBLIC' | 'PRIVATE_CLUB' | 'PRIVATE_COACH' | 'PRIVATE_PLAYERS' | 'PRIVATE_PERSONAL';
+  isOfficialClubAnnotation: boolean;
 }
 
 /**
- * Converte o cartaz público em input de criação da anotação. A derivada é
- * sempre privada (PLAYERS_ONLY) e soberana: copia apenas metadados.
+ * Converte o cartaz (template) em input de criação da anotação soberana.
+ * A derivada é sempre privada do anotador: copia apenas metadados do confronto.
  */
 export function buildAnnotationInput(template: TemplateLike): CreateMatchInput {
   return {
@@ -49,5 +51,8 @@ export function buildAnnotationInput(template: TemplateLike): CreateMatchInput {
     humidity: template.humidity,
     details: template.details,
     isPublicTemplate: false,
+    isTemplate: false,
+    eventScope: 'PRIVATE_PERSONAL',
+    isOfficialClubAnnotation: template.isOfficialClubAnnotation,
   };
 }

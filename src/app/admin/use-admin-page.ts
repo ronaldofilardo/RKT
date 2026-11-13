@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { adminClient, type AdminUser } from '@/services/adminClient';
-import { redirectToLogin } from '@/lib/auth-client';
+import { ensureSessionHydrated, performLogout, redirectToLogin } from '@/lib/auth-client';
 
 /** Estado e ações da página de administração de usuários. */
 export function useAdminPage() {
@@ -22,23 +22,24 @@ export function useAdminPage() {
   const token = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
 
   useEffect(() => {
-    // O token real vive no cookie httpOnly `rkt_access_token` (middleware/API);
-    // o sessionStorage guarda só user_id/user_role. Exigir `access_token` aqui
-    // redirecionava para /login mesmo com sessão válida.
-    const userRole = sessionStorage.getItem('user_role');
-
-    if (!userRole) { router.push('/login'); return; }
-    if (userRole !== 'ADMIN') { router.push('/dashboard'); return; }
-
-    setUser({ role: userRole });
-    setLoading(false);
+    let active = true;
+    void (async () => {
+      const isOk = await ensureSessionHydrated(router);
+      if (!isOk || !active) return;
+      const userRole = sessionStorage.getItem('user_role');
+      if (!userRole) { router.push('/login'); return; }
+      if (userRole !== 'ADMIN') { router.push('/dashboard'); return; }
+      setUser({ role: userRole });
+      setLoading(false);
+    })();
+    return () => { active = false; };
   }, [router]);
 
   const endSession = () => setLogoutConfirmOpen(true);
 
-  const confirmLogout = () => {
+  const confirmLogout = async () => {
     setLogoutConfirmOpen(false);
-    sessionStorage.clear();
+    await performLogout();
     redirectToLogin();
   };
 

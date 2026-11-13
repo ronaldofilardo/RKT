@@ -11,12 +11,22 @@ export interface VisibilityResponse {
   message?: string;
 }
 
-/** ID do Player ligado à conta autenticada (null se a conta não é atleta). */
-export async function fetchCurrentPlayerId(): Promise<string | null> {
+export interface CurrentIdentity {
+  playerId: string | null;
+  name: string;
+  cpf: string;
+}
+
+/** Dados cadastrais da conta autenticada e ID do Player ligado a ela (se atleta). */
+export async function fetchCurrentIdentity(): Promise<CurrentIdentity | null> {
   const res = await fetch('/api/auth/me');
   if (!res.ok) return null;
   const me = await res.json();
-  return me?.athlete?.playerId ?? me?.athletePlayerId ?? null;
+  return {
+    playerId: me?.athlete?.playerId ?? me?.athletePlayerId ?? null,
+    name: me?.user?.name ?? '',
+    cpf: me?.user?.cpf ?? '',
+  };
 }
 
 export async function fetchPlayerProfile(playerId: string): Promise<PlayerProfileResponse | null> {
@@ -31,6 +41,16 @@ export async function requestNicknameSave(playerId: string, nickname: string) {
     body: JSON.stringify({ nickname: nickname || null }),
   });
   const body = (await res.json().catch(() => ({}))) as PlayerProfileResponse;
+  return { status: res.status, body };
+}
+
+export async function requestPersonalDataSave(name: string) {
+  const res = await fetch('/api/users/profile', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  const body = (await res.json().catch(() => ({}))) as { success?: boolean; name?: string; message?: string };
   return { status: res.status, body };
 }
 

@@ -8,7 +8,7 @@ import { saveOfflineIfNeeded } from './offline-match.logic';
 import { submitOnlineMatch } from './online-match-submit.logic';
 import { isMatchScheduledForFuture } from './schedule-check.logic';
 import { getMissingFields } from './new-match-validate-fields.logic';
-import { createMatchIgnoringWarning, notifyMatchCreated } from './new-match-ignore-warning.logic';
+import { createMatchIgnoringWarning, notifyMatchCreated, notifyTemplateCreated } from './new-match-ignore-warning.logic';
 import { useAreaPath } from '@/hooks/use-area-path';
 
 export function useNewMatchSubmissionActions(
@@ -24,7 +24,7 @@ export function useNewMatchSubmissionActions(
     player1PartnerId: state.selectedP1Partner?.id, player2PartnerId: state.selectedP2Partner?.id,
     doublesSetup: state.doublesSetup,
     nickname: state.nickname, visibility: state.visibility, isPublicTemplate: state.isPublicTemplate,
-    openForAnnotation: state.openForAnnotation,
+    eventScope: state.eventScope, openForAnnotation: state.openForAnnotation,
     anotadorEmail: state.anotadorEmail, date: state.date, time: state.time, venueId: state.venueId,
     ctId: state.ctId, clubNameMatch: state.clubNameMatch,
     publicMatchCode: state.publicMatchCode, tournamentName: state.tournamentName, clubName: state.clubName,
@@ -59,6 +59,11 @@ export function useNewMatchSubmissionActions(
         state.setDuplicateInfo(result.data.details ?? null);
         state.setPendingPayload(payload);
         state.setShowDuplicateModal(true);
+        return;
+      }
+      if (payload.isTemplate) {
+        notifyTemplateCreated(toast);
+        router.push(toAreaPath('/historico') as any);
         return;
       }
       notifyMatchCreated(isMatchScheduledForFuture(state.date, state.time), toast);

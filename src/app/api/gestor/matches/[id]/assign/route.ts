@@ -38,24 +38,36 @@ export async function POST(
       if (!coachMembership) throw new ApiError('FORBIDDEN', { message: 'Treinador não pertence ao seu CT' }, 403);
 
       const updated = await prisma.$transaction(async (tx) => {
+        const targetId = match.sourceMatchId ?? matchId;
         const res = await tx.match.update({
-          where: { id: matchId },
+          where: { id: targetId },
           data: { assignedCoachId: coachUserId },
         });
+
+        if (typeof tx.match.updateMany === 'function') {
+          await tx.match.updateMany({
+            where: { sourceMatchId: targetId, deletedAt: null },
+            data: { isOfficialClubAnnotation: false },
+          });
+          await tx.match.updateMany({
+            where: { sourceMatchId: targetId, createdByUserId: coachUserId, deletedAt: null },
+            data: { isOfficialClubAnnotation: true },
+          });
+        }
 
         await tx.auditLog.create({
           data: {
             actorUserId: actor.userId,
             action: 'MATCH_COACH_ASSIGNED',
             resourceType: 'Match',
-            resourceId: matchId,
+            resourceId: targetId,
             ctId,
             meta: { coachUserId },
           },
         });
 
         const actorName = (user as any)?.name || 'Gestor';
-        await notifyCoachAssigned(match, coachUserId, actorName, tx);
+        await notifyCoachAssigned({ ...match, id: targetId }, coachUserId, actorName, tx);
 
         return res;
       });

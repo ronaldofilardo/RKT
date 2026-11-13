@@ -2,8 +2,10 @@ import type { ClubMatchItem } from './types';
 
 export interface ClubMatchGroup {
   key: string;
-  /** Cartaz público de origem; null para partidas privadas/avulsas. */
+  /** Cartaz de origem (resumo); null para partidas privadas avulsas. */
   source: ClubMatchItem['sourceMatch'] | null;
+  /** Registro completo do cartaz quando presente no feed do gestor. */
+  template: ClubMatchItem | null;
   matches: ClubMatchItem[];
 }
 
@@ -12,11 +14,39 @@ export interface ClubAnnotatorOption {
   name: string;
 }
 
-/** Agrupa as anotações derivadas por template; privadas ficam no grupo final. */
+function templateToSource(m: ClubMatchItem): NonNullable<ClubMatchItem['sourceMatch']> {
+  return {
+    id: m.id,
+    scheduledAt: null,
+    format: m.format,
+    eventScope: m.eventScope,
+    assignedCoachId: m.assignedCoachId,
+    assignedCoach: m.assignedCoach,
+    player1: { name: m.player1.name },
+    player2: { name: m.player2.name },
+  };
+}
+
+/** Agrupa todas as anotações derivadas por cartaz/partida-mãe; avulsas ficam no grupo final. */
 export function groupClubMatches(matches: readonly ClubMatchItem[]): ClubMatchGroup[] {
+  const templates = new Map<string, ClubMatchItem>();
+  const annotations: ClubMatchItem[] = [];
+
+  for (const m of matches) {
+    if (m.isTemplate || m.isPublicTemplate) {
+      templates.set(m.id, m);
+    } else {
+      annotations.push(m);
+    }
+  }
+
   const byTemplate = new Map<string, ClubMatchGroup>();
 
-  for (const match of matches) {
+  for (const [id, tpl] of templates.entries()) {
+    byTemplate.set(id, { key: id, source: templateToSource(tpl), template: tpl, matches: [] });
+  }
+
+  for (const match of annotations) {
     const key = match.sourceMatchId ?? 'private';
     const existing = byTemplate.get(key);
     if (existing) {
@@ -26,6 +56,7 @@ export function groupClubMatches(matches: readonly ClubMatchItem[]): ClubMatchGr
     byTemplate.set(key, {
       key,
       source: match.sourceMatch ?? null,
+      template: null,
       matches: [match],
     });
   }
@@ -37,11 +68,10 @@ export function groupClubMatches(matches: readonly ClubMatchItem[]): ClubMatchGr
   });
 }
 
-/** Opções de filtro "membro anotador" (somente quem criou alguma partida). */
 export function listAnnotators(matches: readonly ClubMatchItem[]): ClubAnnotatorOption[] {
   const seen = new Map<string, string>();
   for (const match of matches) {
-    if (!match.createdByUserId) continue;
+    if (match.isTemplate || match.isPublicTemplate || !match.createdByUserId) continue;
     seen.set(match.createdByUserId, match.createdByUser?.name ?? 'Anotador');
   }
   return [...seen.entries()]
@@ -52,7 +82,12 @@ export function listAnnotators(matches: readonly ClubMatchItem[]): ClubAnnotator
 export function filterByAnnotator(
   matches: readonly ClubMatchItem[],
   annotatorUserId: string | null,
+  onlyDesignated = false,
 ): ClubMatchItem[] {
-  if (!annotatorUserId) return [...matches];
-  return matches.filter((match) => match.createdByUserId === annotatorUserId);
+  return matches.filter((match) => {
+    if (match.isTemplate || match.isPublicTemplate) return !annotatorUserId && !onlyDesignated;
+    if (annotatorUserId && match.createdByUserId !== annotatorUserId) return false;
+    if (onlyDesignated && !match.isDesignatedAnnotator && !match.isOfficialClubAnnotation) return false;
+    return true;
+  });
 }

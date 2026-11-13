@@ -96,7 +96,7 @@ describe('GET /api/matches', () => {
     expect(mockPrisma.match.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         select: BASE_MATCH_SELECT,
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       })
     );
   });

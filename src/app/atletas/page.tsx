@@ -5,7 +5,7 @@ import { LinkCopyModal } from '@/app/gestor/link-copy-modal';
 import { EditAthleteModal } from './EditAthleteModal';
 import { AthleteSearchHeader } from './components/AthleteSearchHeader';
 import { AthleteListTable } from './components/AthleteListTable';
-import { DeleteAthleteModal } from './components/DeleteAthleteModal';
+import { DeleteAthleteModal } from '@/components/athlete/delete-athlete-modal';
 import { useAtletasPage } from './hooks/useAtletasPage';
 import { useAtletasContext } from './hooks/use-atletas-context';
 import { useAthleteLink } from './hooks/use-athlete-link';
@@ -63,7 +63,15 @@ export default function AtletasPage() {
 
       <EditAthleteModal athlete={editingAthlete} isOpen={!!editingAthlete} readOnly={isClubCoach} onClose={() => setEditingAthlete(null)} onSave={saveAthleteChanges} />
       <NewAthleteModal isOpen={showNewAthleteModal} onClose={() => setShowNewAthleteModal(false)} onCreated={() => { setShowNewAthleteModal(false); loadAthletes(); }} myClub={true} ctId={ctx.isParticular ? null : ctx.activeContextId} />
-      {athleteToDelete && <DeleteAthleteModal athleteName={athleteToDelete.name} deleting={deleting} onCancel={() => setAthleteToDelete(null)} onConfirm={confirmAthleteDeletion} />}
+      {athleteToDelete && (
+        <DeleteAthleteModal
+          athleteName={athleteToDelete.name}
+          deleting={deleting}
+          onCancel={() => setAthleteToDelete(null)}
+          onConfirm={confirmAthleteDeletion}
+          note="Caso o atleta possua partidas em andamento ou finalizadas, a exclusão será bloqueada para não afetar essas partidas."
+        />
+      )}
       {linkData && <LinkCopyModal open={Boolean(linkData)} onOpenChange={(open) => { if (!open) closeLinkModal(); }} title="Link de Primeiro Acesso" recipientName={linkData.recipientName} token={linkData.token} expiresAt={linkData.expiresAt} />}
     </div>
   );

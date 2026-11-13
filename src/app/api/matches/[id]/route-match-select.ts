@@ -39,5 +39,10 @@ export const MATCH_SELECT = {
   doublesSetup: true,
   createdByUserId: true,
   ctId: true,
+  isTemplate: true,
+  isPublicTemplate: true,
+  eventScope: true,
+  isOfficialClubAnnotation: true,
+  sourceMatchId: true,
   _count: { select: { pointLog: { where: { voidedAt: null } } } },
 } as const;

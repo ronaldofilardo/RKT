@@ -12,7 +12,6 @@ export function SuporteTabNav({ module, onModuleChange }: SuporteTabNavProps) {
     { key: 'clubes', label: 'Clubes e CTs' },
     { key: 'gestores', label: 'Gestores' },
     { key: 'avulsos', label: 'Contas Avulsas' },
-    { key: 'externos', label: 'Externos' },
   ];
 
   return (

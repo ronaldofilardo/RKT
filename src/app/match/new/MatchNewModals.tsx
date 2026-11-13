@@ -29,7 +29,7 @@ interface MatchNewModalsProps {
   selectDoublesServingSetup?: (initialServerId: string, setup: DoublesSetup) => void;
   showDuplicateModal: boolean;
   setShowDuplicateModal: (v: boolean) => void;
-  duplicateInfo: { id: string; playerP1?: string; playerP2?: string } | null;
+  duplicateInfo: { id: string; playerP1?: string; playerP2?: string; code?: string; templateId?: string } | null;
   createMatchIgnoringWarning: () => void;
   slotAffiliation: SlotAffiliationMap;
   newAthleteFor: SlotId | null;

@@ -40,7 +40,7 @@ function renderTable() {
   );
 }
 
-describe('AthletesTable - botão "Link Senha"', () => {
+describe('AthletesTable - botão "Link"', () => {
   beforeEach(() => {
     toastMock.mockClear();
   });
@@ -57,7 +57,7 @@ describe('AthletesTable - botão "Link Senha"', () => {
     (global as { fetch?: unknown }).fetch = fetchMock;
 
     renderTable();
-    fireEvent.click(screen.getByRole('button', { name: 'Link Senha' }));
+    fireEvent.click(screen.getByRole('button', { name: /Link de acesso de/ }));
 
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith('/api/gestor/athletes/p-2/regenerate-link', { method: 'POST' }),
@@ -75,7 +75,7 @@ describe('AthletesTable - botão "Link Senha"', () => {
     (global as { fetch?: unknown }).fetch = fetchMock;
 
     renderTable();
-    fireEvent.click(screen.getByRole('button', { name: 'Link Senha' }));
+    fireEvent.click(screen.getByRole('button', { name: /Link de acesso de/ }));
 
     await waitFor(() => expect(toastMock).toHaveBeenCalledTimes(1));
     expect(toastMock).toHaveBeenCalledWith(

@@ -18,6 +18,10 @@ jest.mock('next/navigation', () => ({
 const mockRedirectToLogin = jest.fn();
 jest.mock('@/lib/auth-client', () => ({
   redirectToLogin: () => mockRedirectToLogin(),
+  ensureSessionHydrated: jest.fn(async () => true),
+  performLogout: jest.fn(async () => {
+    sessionStorage.removeItem('access_token');
+  }),
 }));
 
 const USERS = [
@@ -88,10 +92,12 @@ describe('AdminPage — confirmações com alertdialog (sem confirm() nativo)', 
 
       fireEvent.click(within(dialog).getByRole('button', { name: 'Sair' }));
 
-      expect(mockRedirectToLogin).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockRedirectToLogin).toHaveBeenCalled();
+        expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+      });
       expect(mockPush).not.toHaveBeenCalledWith('/login');
       expect(sessionStorage.getItem('access_token')).toBeNull();
-      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     });
 
     it('Cancelar fecha o diálogo sem sair', async () => {

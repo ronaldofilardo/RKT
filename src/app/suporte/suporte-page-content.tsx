@@ -6,7 +6,6 @@ import { SuporteHeader } from './suporte-header';
 import { ClubesSection } from './clubes-section';
 import { GestoresSection } from './gestores-section';
 import { AvulsosSection } from './avulsos-section';
-import { ExternosSection } from './externos-section';
 import { EditarClubeModal } from './editar-clube-modal';
 import { patchUser, patchTrainingCenter } from './suporte-mutations';
 import { DashboardChrome } from '@/app/dashboard/components/DashboardChrome';
@@ -27,8 +26,10 @@ function SuportePageContent({ data, loading, error, setError, onRetry }: Suporte
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const q = new URLSearchParams(window.location.search).get('module') as SuporteModule;
-      if (q && ['clubes', 'gestores', 'avulsos', 'externos'].includes(q)) setModule(q);
+      const raw = new URLSearchParams(window.location.search).get('module');
+      // Legado: a antiga aba "Externos" passou a fazer parte de "Contas Avulsas".
+      const q = (raw === 'externos' ? 'avulsos' : raw) as SuporteModule;
+      if (q && ['clubes', 'gestores', 'avulsos'].includes(q)) setModule(q);
     }
   }, []);
 
@@ -74,8 +75,16 @@ function SuportePageContent({ data, loading, error, setError, onRetry }: Suporte
         <div className="space-y-6">
           {module === 'clubes' && <ClubesSection clubs={clubs} filter={ctFilter} onFilterChange={setCtFilter} onApprove={handleApprove} onSuspend={handleSuspend} onReactivate={handleApprove} onEditClub={(ct) => { setSelectedClub(ct); setEditClubOpen(true); }} />}
           {module === 'gestores' && <GestoresSection memberships={memberships} users={users} clubs={clubs} onEdit={handleEditUser} onRefresh={onRetry} />}
-          {module === 'avulsos' && <AvulsosSection />}
-          {module === 'externos' && <ExternosSection data={data?.externos ?? null} loading={loading} error={error} onRetry={onRetry} />}
+          {module === 'avulsos' && (
+            <AvulsosSection
+              athletes={data?.externos?.athletes ?? []}
+              clubs={data?.externos?.clubs ?? []}
+              totalAthletes={data?.externos?.totalAthletes ?? 0}
+              totalClubs={data?.externos?.totalClubs ?? 0}
+              users={users}
+              memberships={memberships}
+            />
+          )}
         </div>
         {editClubOpen && selectedClub && <EditarClubeModal open={editClubOpen} onOpenChange={setEditClubOpen} ct={selectedClub} onSave={(val) => handleEditClub(selectedClub!.id, val)} key={selectedClub.id} />}
       </div>

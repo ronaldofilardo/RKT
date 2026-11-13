@@ -159,6 +159,38 @@ describe('buildMenu — regras gerais', () => {
     expect(rodape.items[1].href).toBeUndefined();
   });
 
+  it.each([
+    ['admin', { isAdmin: true }],
+    ['suporte', { isSuporte: true }],
+    ['gestor', { gestor: gestorActive }],
+    ['treinador de clube', { coach: { ctIds: ['ct-1'] } }],
+  ] as const)('rodapé sem Dados Pessoais para %s', (_label, over) => {
+    const rodape = find(buildMenu(ctx(over as Partial<MenuContext>)), 'rodape')!;
+    expect(rodape.items.map((i) => i.key)).toEqual(['sair']);
+  });
+
+  it.each(['ATLETA', 'TREINADOR_AVULSO', 'ANOTADOR'])(
+    'rodapé com Dados Pessoais na área %s',
+    (activeArea) => {
+      const rodape = find(
+        buildMenu(ctx({ canOperate: true, coach: { ctIds: [] }, athlete: adult, activeArea })),
+        'rodape',
+      )!;
+      expect(rodape.items.map((i) => i.key)).toEqual(['dados-pessoais', 'sair']);
+    },
+  );
+
+  it.each(['ADMIN', 'SUPORTE', 'GESTOR', 'TREINADOR_CLUBE'])(
+    'rodapé sem Dados Pessoais na área %s',
+    (activeArea) => {
+      const rodape = find(
+        buildMenu(ctx({ isAdmin: true, isSuporte: true, gestor: gestorActive, coach: { ctIds: ['ct-1'] }, activeArea })),
+        'rodape',
+      )!;
+      expect(rodape.items.map((i) => i.key)).toEqual(['sair']);
+    },
+  );
+
   it('itens desabilitados não têm rota e exibem "Em breve"', () => {
     const menu = buildMenu(ctx({ gestor: gestorActive, isSuporte: true }));
     const disabled = menu.flatMap((s) => s.items).filter((i) => i.disabled);
@@ -167,6 +199,22 @@ describe('buildMenu — regras gerais', () => {
       expect(item.href).toBeUndefined();
       expect(item.badge).toBe('Em breve');
     }
+  });
+
+  it('gera seção de suporte quando activeArea é SUPORTE', () => {
+    const menu = buildMenu(ctx({ isSuporte: true, activeArea: 'SUPORTE' }));
+    expect(keys(menu)).toEqual(['suporte']);
+    expect(find(menu, 'suporte')!.items.map((i) => i.key)).toEqual([
+      'suporte-clubes', 'suporte-gestores', 'suporte-avulsos', 'suporte-externos',
+    ]);
+  });
+
+  it('gera seção de espectador quando activeArea é ESPECTADOR', () => {
+    const menu = buildMenu(ctx({ activeArea: 'ESPECTADOR' }));
+    expect(keys(menu)).toEqual(['operacao']);
+    expect(find(menu, 'operacao')!.items.map((i) => i.key)).toEqual([
+      'espectador-publicas', 'espectador-aovivo',
+    ]);
   });
 
   it('chamadas independentes não compartilham objetos (sem mutação cruzada)', () => {

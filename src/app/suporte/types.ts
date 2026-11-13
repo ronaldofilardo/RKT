@@ -27,6 +27,10 @@ export interface UserItem {
   canOperate: boolean;
   isActive: boolean;
   createdAt: string;
+  /** Possui Player vinculado (conta de atleta). */
+  hasPlayer?: boolean;
+  /** Player vinculado possui registro em algum clube (PlayerCT). */
+  hasPlayerCt?: boolean;
 }
 
 export interface MembershipItem {
@@ -38,7 +42,7 @@ export interface MembershipItem {
   createdAt: string;
 }
 
-export type SuporteModule = 'clubes' | 'gestores' | 'avulsos' | 'externos';
+export type SuporteModule = 'clubes' | 'gestores' | 'avulsos';
 
 export type CtStatusFilter = 'ACTIVE' | 'SUSPENDED' | 'ALL';
 

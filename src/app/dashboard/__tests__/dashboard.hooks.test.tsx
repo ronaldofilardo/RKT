@@ -146,15 +146,17 @@ describe('useDashboardData - parsing de response (TD-046 + jose ESM blocker)', (
       value: { pathname: '/dashboard', assign: jest.fn(), replace: jest.fn() },
       writable: true,
     });
-    global.fetch = jest.fn(() => Promise.resolve({} as any)) as any;
+    global.fetch = jest.fn((url: string) => {
+      if (url === '/api/auth/me') return Promise.resolve({ ok: false, status: 401 } as any);
+      return Promise.resolve({ ok: true, json: async () => ({}) } as any);
+    }) as any;
 
     const { result } = renderHook(() => useDashboardData());
 
     await waitFor(() => expect(result.current.loading).toBe(false));
-    // Sem sessão válida: a única requisição é o POST de logout (nenhuma busca de partidas)
-    expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(global.fetch).toHaveBeenCalledWith('/api/auth/logout', { method: 'POST' });
-    await waitFor(() => expect(window.location.replace).toHaveBeenCalledWith('/login?exit=1'));
+    // Sem sessão válida: consulta /api/auth/me para hidratação e redireciona (nenhuma busca de partidas)
+    expect(global.fetch).toHaveBeenCalledWith('/api/auth/me', expect.any(Object));
+    await waitFor(() => expect(window.location.replace).toHaveBeenCalledWith('/login'));
     expect(result.current.matches).toEqual([]);
   });
 });

@@ -61,7 +61,11 @@ export function PublicMatchCard({ match, annotating, onAnnotate }: PublicMatchCa
         disabled={annotating}
         className="w-full rounded-lg bg-telemetry-volt px-4 py-2 font-semibold text-telemetry-base disabled:opacity-60"
       >
-        {annotating ? 'Preparando anotação...' : 'Anotar esta partida'}
+        {annotating
+          ? 'Preparando anotação...'
+          : match.myAnnotationId
+            ? 'Continuar minha anotação'
+            : 'Anotar esta partida'}
       </button>
     </article>
   );

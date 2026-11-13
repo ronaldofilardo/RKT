@@ -62,6 +62,13 @@ export async function switchUserArea(
   const matching = areas.find((a) => a.code === targetArea && (!targetCtId || a.ctId === targetCtId));
   if (!matching) return { success: false, error: 'AREA_NOT_ALLOWED' };
 
+  // Fase C: o JWT precisa carregar o CT da área — sem isso o token sai sem `ctId`
+  // e criação/listagem caem em escopo inconsistente com a área ativa.
+  const resolvedCtId = matching.ctId ?? targetCtId ?? undefined;
+  if ((targetArea === 'TREINADOR_CLUBE' || targetArea === 'GESTOR') && !resolvedCtId) {
+    return { success: false, error: 'CT_REQUIRED' };
+  }
+
   const availableAreaCodes = Array.from(new Set(areas.map((a) => a.code)));
   const accessToken = await generateLoginToken(
     user.id,
@@ -70,9 +77,9 @@ export async function switchUserArea(
     user.mustChangePassword,
     undefined,
     undefined,
-    targetCtId ?? undefined,
+    resolvedCtId,
     targetArea,
-    targetCtId ?? undefined,
+    resolvedCtId,
     availableAreaCodes,
   );
 

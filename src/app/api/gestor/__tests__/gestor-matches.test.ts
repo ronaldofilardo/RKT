@@ -70,8 +70,7 @@ describe('GET /api/gestor/matches', () => {
           OR: expect.arrayContaining([
             { ctId: 'ct-123' },
             { createdByUserId: { in: expect.arrayContaining(['u-coach-1', 'u-athlete-1']) } },
-            { player1Id: { in: ['player-1'] } },
-            { player2Id: { in: ['player-1'] } },
+            { sourceMatch: { ctId: 'ct-123', eventScope: 'PRIVATE_CLUB' } },
           ]),
         }),
       }),

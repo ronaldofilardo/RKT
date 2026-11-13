@@ -37,8 +37,7 @@ export function formatBirthDate(value: string | null | undefined): string | null
 /**
  * Idade para exibição: prioriza a data de nascimento completa (idade real);
  * sem ela, usa a idade gravada (calculada pelo ano de nascimento).
- */
-export function computeAthleteAge(
+ */export function computeAthleteAge(
   birthDate: string | null | undefined,
   storedAge: number | null | undefined,
   today: Date = new Date(),
@@ -52,4 +51,17 @@ export function computeAthleteAge(
     return age >= 0 ? age : null;
   }
   return typeof storedAge === 'number' && storedAge >= 0 ? storedAge : null;
+}
+
+/**
+ * CPF para exibição: 11 dígitos viram `000.000.000-00`; atleta legado que só
+ * tem os 2 últimos dígitos fica mascarado; sem nada, hífen.
+ */
+export function formatAthleteCpf(
+  cpf?: string | null,
+  cpfLast2?: string | null,
+): string {
+  if (cpf) return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  if (cpfLast2) return `***.***.***-${cpfLast2}`;
+  return '-';
 }

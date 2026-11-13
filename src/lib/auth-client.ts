@@ -17,3 +17,4 @@ export {
 
 export { loginRequest, type LoginResponse, type SessionContextOption } from './auth-client-login';
 export { performLogout } from './auth-client-logout';
+export { hydrateSessionFromMe, ensureSessionHydrated, type HydrateResult } from './auth-session-hydration.logic';

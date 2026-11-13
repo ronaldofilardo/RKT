@@ -2,11 +2,11 @@
 
 import { useMemo } from 'react';
 import type { AthleteItem } from './types';
-import { EditarAtletaModal } from './editar-atleta-modal';
-import { LinkCopyModal } from './link-copy-modal';
-import { AthleteRow } from './athlete-row';
+import type { AthleteTableRowData } from '@/components/athlete/athlete-table.types';
+import { AthleteTable } from '@/components/athlete/athlete-table';
+import { AthletesTableModals } from './athletes-table-modals';
+import { toAthleteTableRow } from './athlete-row-data';
 import { useAthletesTableHandlers } from './use-athletes-table';
-import { normalizeDominance, normalizeGender } from '@/lib/athlete-labels.logic';
 
 interface AthletesTableProps {
   athletes: AthleteItem[];
@@ -21,24 +21,31 @@ export function AthletesTable({
   athletes, selectedIds, onSelectChange, onSelectAll, onCreateAthlete, onRefresh,
 }: AthletesTableProps) {
   const {
-    editing, setEditing, linkData, setLinkData,
-    handleGenerateLink, handleSave,
+    editing, setEditing, athleteToDelete, setAthleteToDelete, deleting,
+    linkData, setLinkData, handleGenerateLink, handleSave, handleDelete,
   } = useAthletesTableHandlers({ onRefresh });
 
-  const allSelected = useMemo(
-    () => athletes.length > 0 && athletes.every((a) => selectedIds.includes(a.player.id)),
-    [athletes, selectedIds],
-  );
+  const rows = useMemo(() => athletes.map(toAthleteTableRow), [athletes]);
+  const itemById = useMemo(() => new Map(athletes.map((a) => [a.player.id, a])), [athletes]);
+
+  const actions = (row: AthleteTableRowData) => {
+    const item = itemById.get(row.id);
+    return {
+      onEdit: () => { if (item) setEditing(item); },
+      onDelete: () => { if (item) setAthleteToDelete(item); },
+      onGenerateLink: () => { void handleGenerateLink(row.id, row.name); },
+      canDelete: true,
+      hasAccount: Boolean(item?.player.user),
+    };
+  };
 
   return (
     <div className="p-0 sm:p-6 space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-lg font-semibold text-telemetry-text-primary">Atletas do Clube</h2>
-        <div className="flex gap-2">
-          <button onClick={onCreateAthlete} className="bg-telemetry-volt text-black font-bold py-2 px-4 rounded-lg hover:bg-telemetry-volt/90 active:scale-95 transition-all text-sm">
-            Novo Atleta
-          </button>
-        </div>
+        <button onClick={onCreateAthlete} className="bg-telemetry-volt text-black font-bold py-2 px-4 rounded-lg hover:bg-telemetry-volt/90 active:scale-95 transition-all text-sm">
+          Novo Atleta
+        </button>
       </div>
 
       {athletes.length === 0 ? (
@@ -46,49 +53,29 @@ export function AthletesTable({
           <p className="text-telemetry-text-muted text-sm">Nenhum atleta cadastrado no clube.</p>
         </div>
       ) : (
-        <div className="bg-telemetry-card rounded-xl shadow border border-telemetry-border/20 overflow-x-auto">
-          <table className="w-full min-w-[900px] text-left border-collapse">
-            <thead>
-              <tr className="border-b border-telemetry-border/40 text-sm font-semibold text-telemetry-text-primary">
-                <th className="px-3 pb-4 pt-4 w-10">
-                  <input id="atletas-select-all" type="checkbox" aria-label="Selecionar todos" checked={allSelected} onChange={(e) => onSelectAll(e.target.checked)} className="w-4 h-4 text-telemetry-blue border-telemetry-border rounded" />
-                </th>
-                <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Nome</th>
-                <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Nickname</th>
-                <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">CPF</th>
-                <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Gênero</th>
-                <th className="px-3 pb-4 pt-4 text-sm font-bold text-telemetry-volt">Data de nascimento</th>
-                <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Idade</th>
-                <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Status</th>
-                <th className="px-3 pb-4 pt-4 text-right text-sm font-medium text-telemetry-text-primary">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-telemetry-border/20">
-              {athletes.map((a) => (
-                <AthleteRow key={a.player.id} athlete={a} selected={selectedIds.includes(a.player.id)} onSelect={(chk) => onSelectChange(a.player.id, chk)} onEdit={() => setEditing(a)} onGenerateLink={() => handleGenerateLink(a)} />
-              ))}
-            </tbody>
-          </table>
+        <div className="bg-telemetry-card rounded-xl shadow border border-telemetry-border/20">
+          <AthleteTable
+            athletes={rows}
+            actions={actions}
+            selectable
+            selectedIds={selectedIds}
+            onSelectChange={onSelectChange}
+            onSelectAll={onSelectAll}
+          />
         </div>
       )}
-      {editing && (
-        <EditarAtletaModal
-          open={Boolean(editing)}
-          cpfRequired={Boolean(editing.player.user)}
-          onOpenChange={(op) => !op && setEditing(null)}
-          atleta={{
-            id: editing.player.id, name: editing.player.name,
-            cpf: editing.player.user?.cpf || editing.player.cpf || '',
-            birthDate: editing.player.birthDate ? String(editing.player.birthDate) : '',
-            gender: normalizeGender(editing.player.gender) ?? 'MALE',
-            dominance: normalizeDominance(editing.player.dominance) ?? 'RIGHT',
-            backhand: editing.player.backhand ?? '',
-            rankings: editing.player.rankings ?? {},
-          }}
-          onSave={handleSave}
-        />
-      )}
-      <LinkCopyModal open={linkData.open} onOpenChange={(op) => setLinkData((prev) => ({ ...prev, open: op }))} title="Link de Redefinição de Senha" recipientName={linkData.name} token={linkData.token} expiresAt={linkData.expiresAt} />
+
+      <AthletesTableModals
+        editing={editing}
+        onEditingChange={setEditing}
+        onSave={handleSave}
+        athleteToDelete={athleteToDelete}
+        onDeleteChange={setAthleteToDelete}
+        deleting={deleting}
+        onConfirmDelete={handleDelete}
+        linkData={linkData}
+        onLinkOpenChange={(open) => setLinkData((prev) => ({ ...prev, open }))}
+      />
     </div>
   );
 }

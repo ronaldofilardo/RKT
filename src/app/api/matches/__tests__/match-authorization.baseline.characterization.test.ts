@@ -173,7 +173,7 @@ describe('Match Authorization Specification Tests', () => {
       expect(match.id).toBe('match-private');
     });
 
-    it('ANNOTATOR player1 (participante) recebe 200 em partida PRIVATE', async () => {
+    it('ANNOTATOR player1 (participante não-criador) recebe 403 ao tentar ler anotação privada de outro anotador', async () => {
       const p1Token = await createToken('athlete-1', 'ANNOTATOR');
       mockGetActor.mockResolvedValue({
         userId: 'athlete-1',
@@ -192,9 +192,7 @@ describe('Match Authorization Specification Tests', () => {
       });
 
       const response = await GET(req, { params: Promise.resolve({ id: 'match-private' }) });
-      expect(response.status).toBe(200);
-      const match = await response.json();
-      expect(match.id).toBe('match-private');
+      expect(response.status).toBe(403);
     });
   });
 });

@@ -3,14 +3,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { isMinor } from '@/core/access/age';
 import {
-  fetchCurrentPlayerId,
-  fetchPlayerProfile,
-  requestNicknameSave,
-  requestPoolVisibility,
+  fetchCurrentIdentity, fetchPlayerProfile, requestNicknameSave, requestPoolVisibility, requestPersonalDataSave,
 } from './profile-public.api';
 
 export function useProfilePublic() {
   const [playerId, setPlayerId] = useState<string | null>(null);
+  const [name, setName] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [birthDate, setBirthDate] = useState<string | null>(null);
   const [nickname, setNickname] = useState('');
   const [poolVisible, setPoolVisible] = useState(false);
   const [minor, setMinor] = useState(false);
@@ -21,14 +21,17 @@ export function useProfilePublic() {
 
   useEffect(() => {
     let cancelled = false;
-
     (async () => {
       try {
-        const id = await fetchCurrentPlayerId();
-        if (!id || cancelled) return;
-        setPlayerId(id);
-        const player = await fetchPlayerProfile(id);
+        const identity = await fetchCurrentIdentity();
+        if (!identity || cancelled) return;
+        setName(identity.name);
+        setCpf(identity.cpf);
+        if (!identity.playerId) return;
+        setPlayerId(identity.playerId);
+        const player = await fetchPlayerProfile(identity.playerId);
         if (!player || cancelled) return;
+        setBirthDate(player.birthDate ?? null);
         setNickname(player.nickname ?? '');
         setPoolVisible(Boolean(player.poolVisible));
         setMinor(isMinor(player.birthDate ? new Date(player.birthDate) : null, new Date()));
@@ -36,8 +39,20 @@ export function useProfilePublic() {
         if (!cancelled) setLoading(false);
       }
     })();
-
     return () => { cancelled = true; };
+  }, []);
+
+  const savePersonalData = useCallback(async (newName: string) => {
+    setSaving(true); setError(null); setMessage(null);
+    try {
+      const { status, body } = await requestPersonalDataSave(newName.trim());
+      if (status >= 400) setError(body.message ?? 'Não foi possível salvar os dados pessoais.');
+      else { setName(body.name ?? newName.trim()); setMessage('Dados pessoais atualizados com sucesso.'); }
+    } catch {
+      setError('Erro ao salvar os dados pessoais.');
+    } finally {
+      setSaving(false);
+    }
   }, []);
 
   const saveNickname = useCallback(async (value: string) => {
@@ -74,7 +89,7 @@ export function useProfilePublic() {
   }, [playerId]);
 
   return {
-    playerId, nickname, poolVisible, minor, loading, saving, message, error,
-    saveNickname, toggleVisibility,
+    playerId, name, cpf, birthDate, nickname, poolVisible, minor, loading, saving, message, error,
+    savePersonalData, saveNickname, toggleVisibility,
   };
 }

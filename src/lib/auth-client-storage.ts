@@ -66,19 +66,13 @@ export function clearAuthState(): void {
   document.cookie = 'user_role=; path=/; max-age=0; SameSite=Lax';
 }
 
-export function redirectToLogin(_router?: unknown): void {
+export function redirectToLogin(_router?: unknown, query?: string): void {
   if (typeof window === 'undefined') return;
   if (window.location.pathname === '/login') return;
   if (sessionStorage.getItem(REDIRECTING_KEY) === '1') return;
   sessionStorage.setItem(REDIRECTING_KEY, '1');
-  clearAuthState();
-  try {
-    fetch('/api/auth/logout', { method: 'POST' }).finally(() => {
-      window.location.replace('/login?exit=1');
-    });
-  } catch {
-    window.location.replace('/login?exit=1');
-  }
+  const path = query ? `/login?${query}` : '/login';
+  window.location.replace(path);
 }
 
 export function clearRedirectingFlag(): void {

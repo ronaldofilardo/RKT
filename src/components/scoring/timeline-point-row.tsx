@@ -1,27 +1,14 @@
 'use client';
 
-import type { TimelinePoint } from '@/core/scoring/types';
 import { usePlayerColors } from '@/components/ui/player-color.context';
 import { direcaoLabel, efeitoLabel } from './timeline.logic';
-import { type TimelineDoublesConfig } from './timeline-row.logic';
+import type { PointRowProps } from './timeline-row.logic';
 import { resolveServerInitials, resolveWinnerInitials } from './timeline-row-initials.logic';
 import { IdentityCells, NoteCell, RallyDetailCells, ServeOutcomeCells } from './timeline-row-cells';
 import { GapCell, PointRowWithInsert, SegmentBreakCell } from './timeline-row-inserts';
 
-export interface PointRowProps {
-  point: TimelinePoint;
-  hasGap: boolean;
-  isLast: boolean;
-  matchId: string;
-  /** Quando true, esta linha é o primeiro ponto do game atual. */
-  isFirstPointOfGame: boolean;
-  player1Name: string;
-  player2Name: string;
-  doubles?: TimelineDoublesConfig;
-  isMatchTb?: boolean;
-  /** Bug 7 — games iniciais do set (2 para SHORT_SET_2V2_NO_AD, 0 para os demais). */
-  initialGames?: number;
-}
+// Re-export de compatibilidade (interface movida para ./timeline-row.logic).
+export type { PointRowProps } from './timeline-row.logic';
 
 export function PointRow({ point: p, hasGap, isLast: _isLast, matchId, isFirstPointOfGame, player1Name, player2Name, doubles, isMatchTb, initialGames = 0 }: PointRowProps) {
   const colors = usePlayerColors();

@@ -73,17 +73,17 @@ test.describe('TEST-02.1: Fluxo completo — Criar partida → Pontuar → Sess�
     expect(pontoCount).toBeGreaterThanOrEqual(10);
   });
 
-  test('criar sessão de anotação como coach', async () => {
+  test('criar sessão de anotação como dono da anotação', async () => {
     const res = await ctx.api.post(`/api/matches/${ctx.matchId}/sessions`, {
       data: { autoStarted: false },
-      headers: ctx.authHeader(ctx.coach.token),
+      headers: ctx.authHeader(ctx.athlete1.token),
     });
 
     expect(res.ok()).toBeTruthy();
     const session = await res.json();
     expect(session.id).toBeDefined();
     expect(session.matchId).toBe(ctx.matchId);
-    expect(session.annotatorUserId).toBe(ctx.coach.userId);
+    expect(session.annotatorUserId).toBe(ctx.athlete1.userId);
     expect(session.isActive).toBe(true);
     expect(session.status).toBe('IN_PROGRESS');
 
@@ -95,7 +95,7 @@ test.describe('TEST-02.1: Fluxo completo — Criar partida → Pontuar → Sess�
       `/api/matches/${ctx.matchId}/sessions/${ctx.sessionId}/abandon`,
       {
         data: {},
-        headers: ctx.authHeader(ctx.coach.token),
+        headers: ctx.authHeader(ctx.athlete1.token),
       }
     );
 

@@ -27,25 +27,33 @@ export function appPath(area: AreaCode | string | null | undefined, path: string
   const prefix = prefixForArea(area as AreaCode);
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
 
-  if (cleanPath === '/' || cleanPath === '/dashboard') {
-    return prefix;
+  const queryIndex = cleanPath.indexOf('?');
+  const pathname = queryIndex >= 0 ? cleanPath.slice(0, queryIndex) : cleanPath;
+  const search = queryIndex >= 0 ? cleanPath.slice(queryIndex) : '';
+
+  if (pathname === '/' || pathname === '/dashboard') {
+    return `${prefix}${search}`;
+  }
+
+  if (area === 'GESTOR' && pathname === '/gestor') {
+    return `${prefix}${search}`;
   }
 
   // Se o caminho já inicia com o prefixo exato da área
-  if (cleanPath === prefix || cleanPath.startsWith(`${prefix}/`)) {
-    return cleanPath;
+  if (pathname === prefix || pathname.startsWith(`${prefix}/`)) {
+    return `${pathname}${search}`;
   }
 
   // Se o caminho inicia com o prefixo de outra área, substitui pelo prefixo da área atual
   for (const otherPrefix of Object.values(AREA_PREFIXES)) {
-    if (cleanPath === otherPrefix) {
-      return prefix;
+    if (pathname === otherPrefix) {
+      return `${prefix}${search}`;
     }
-    if (cleanPath.startsWith(`${otherPrefix}/`)) {
-      const rest = cleanPath.slice(otherPrefix.length);
-      return `${prefix}${rest}`;
+    if (pathname.startsWith(`${otherPrefix}/`)) {
+      const rest = pathname.slice(otherPrefix.length);
+      return `${prefix}${rest}${search}`;
     }
   }
 
-  return `${prefix}${cleanPath}`;
+  return `${prefix}${pathname}${search}`;
 }

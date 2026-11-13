@@ -153,18 +153,18 @@ describe('GET /api/matches/[id]/report — autorização (regressão: anotador �
     mockGetMatchScoreEdits.mockResolvedValue([]);
   });
 
-  it('permite acesso quando usuário é player1', async () => {
+  it('bloqueia (403) quando usuário é player1 mas não é o criador da anotação', async () => {
     mockGetMatch.mockResolvedValue(mockMatch({ player1: { id: 'current-user', name: 'P1' } }) as any);
 
     const res = await GET(makeReq(), { params: Promise.resolve({ id: 'match-1' }) });
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(403);
   });
 
-  it('permite acesso quando usuário é player2', async () => {
+  it('bloqueia (403) quando usuário é player2 mas não é o criador da anotação', async () => {
     mockGetMatch.mockResolvedValue(mockMatch({ player2: { id: 'current-user', name: 'P2' } }) as any);
 
     const res = await GET(makeReq(), { params: Promise.resolve({ id: 'match-1' }) });
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(403);
   });
 
   it('permite acesso quando usuário é o CRIADOR da partida (regressão do bug 403 em Partidas Anotadas)', async () => {
@@ -241,6 +241,7 @@ describe('GET /api/matches/[id]/report — regressão: PointLog como fonte de ve
     (prisma.pointLog.findMany as jest.Mock).mockResolvedValue(pointLogs);
 
     mockGetMatch.mockResolvedValue(mockMatch({
+      createdByUserId: 'p1',
       player1: { id: 'p1', name: 'Player 1' },
       player2: { id: 'p2', name: 'Player 2' },
     }) as any);
@@ -338,6 +339,7 @@ describe('GET /api/matches/[id]/report — segmentos separados por MatchScoreEdi
     // Estado atual da partida contínua: 1 game já no 2o set, pontos 15x0.
     // (Reaproveitado como scoreState final do segmento posterior.)
     mockGetMatch.mockResolvedValue(mockMatch({
+      createdByUserId: 'p1',
       player1: { id: 'p1', name: 'Player 1' },
       player2: { id: 'p2', name: 'Player 2' },
       scoreState: newScoreState,
@@ -437,6 +439,7 @@ describe('GET /api/matches/[id]/report — segmentos separados por MatchScoreEdi
     ]);
 
     mockGetMatch.mockResolvedValue(mockMatch({
+      createdByUserId: 'p1',
       player1: { id: 'p1', name: 'Player 1' },
       player2: { id: 'p2', name: 'Player 2' },
       scoreState: snap,
@@ -490,6 +493,7 @@ describe('GET /api/matches/[id]/report — segmentos separados por MatchScoreEdi
     ]);
     mockGetMatchScoreEdits.mockResolvedValue([]);
     mockGetMatch.mockResolvedValue(mockMatch({
+      createdByUserId: 'p1',
       player1: { id: 'p1', name: 'Player 1' },
       player2: { id: 'p2', name: 'Player 2' },
     }) as any);

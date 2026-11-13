@@ -3,6 +3,7 @@
 import { getShortcuts, getGreeting } from './dashboard-shortcuts.logic';
 import { ShortcutCard } from './dashboard-shortcut-card';
 import { AssignedNotifSection } from '@/components/dashboard/assigned-notif-section';
+import { ScheduledNotifSection } from '@/components/dashboard/scheduled-notif-section';
 import { useNotificationCount } from '@/hooks/useNotificationCount';
 import type { DashboardView } from '../dashboard.types';
 
@@ -65,6 +66,7 @@ export function DashboardHomeSection({
 
       {/* ── Mural do Treinador ── */}
       {isCoach && <AssignedNotifSection />}
+      <ScheduledNotifSection />
 
       {/* ── Atalhos ── */}
       <div>

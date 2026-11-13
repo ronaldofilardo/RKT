@@ -14,6 +14,7 @@ import { DashboardHeader } from './dashboard-header';
 import { NewAthleteModal } from '@/app/match/new/components/NewAthleteModal';
 import { IndicarAnotadorModal } from './indicar-anotador-modal';
 import { DashboardChrome } from '@/app/dashboard/components/DashboardChrome';
+import { requestDeleteMatch, requestAnnotateMatch } from './gestor-match-actions.logic';
 
 interface GestorDashboardProps {
   me: MeResponse;
@@ -27,6 +28,7 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
   const [coaches, setCoaches] = useState<CoachItem[]>([]);
   const [athletes, setAthletes] = useState<AthleteItem[]>([]);
   const [matches, setMatches] = useState<ClubMatchItem[]>([]);
+  const [externalMatches, setExternalMatches] = useState<ClubMatchItem[]>([]);
   const [coachSelected, setCoachSelected] = useState<string[]>([]);
   const [athleteSelected, setAthleteSelected] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,15 +49,19 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
 
   const fetchAthletesData = useCallback(async () => {
     try {
-      const res = await fetch('/api/gestor/athletes');
+      const res = await fetch('/api/gestor/athletes', { cache: 'no-store' });
       if (res.ok) { const d = await res.json(); setAthletes(d.items || []); }
     } catch {}
   }, []);
 
   const fetchMatchesData = useCallback(async () => {
     try {
-      const res = await fetch('/api/gestor/matches');
-      if (res.ok) { const d = await res.json(); setMatches(d.items || []); }
+      const res = await fetch('/api/gestor/matches', { cache: 'no-store' });
+      if (res.ok) {
+        const d = await res.json();
+        setMatches(d.items || []);
+        setExternalMatches(d.externalItems || []);
+      }
     } catch {}
   }, []);
 
@@ -72,17 +78,14 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
         <DashboardHeader me={me} />
         <TabNav tab={tab} onTabChange={setTab} coachesCount={coaches.length} athletesCount={athletes.length} matchesCount={matches.length} />
         <div className="space-y-6">
-          {tab === 'coaches' && (
-            <CoachesTable coaches={coaches} selectedIds={coachSelected} onSelectChange={(id, chk) => setCoachSelected((p) => chk ? [...p, id] : p.filter((x) => x !== id))} onSelectAll={(chk) => setCoachSelected(chk ? coaches.map((c) => c.user.id) : [])} onCreateCoach={() => { setCadastroType('TREINADOR'); setCadastroOpen(true); }} onRefresh={fetchCoachesData} />
-          )}
-          {tab === 'athletes' && (
-            <AthletesTable athletes={athletes} selectedIds={athleteSelected} onSelectChange={(id, chk) => setAthleteSelected((p) => chk ? [...p, id] : p.filter((x) => x !== id))} onSelectAll={(chk) => setAthleteSelected(chk ? athletes.map((a) => a.player.id) : [])} onCreateAthlete={() => setNewAthleteOpen(true)} onRefresh={fetchAthletesData} />
-          )}
+          {tab === 'coaches' && <CoachesTable coaches={coaches} selectedIds={coachSelected} onSelectChange={(id, chk) => setCoachSelected((p) => chk ? [...p, id] : p.filter((x) => x !== id))} onSelectAll={(chk) => setCoachSelected(chk ? coaches.map((c) => c.user.id) : [])} onCreateCoach={() => { setCadastroType('TREINADOR'); setCadastroOpen(true); }} onRefresh={fetchCoachesData} />}
+          {tab === 'athletes' && <AthletesTable athletes={athletes} selectedIds={athleteSelected} onSelectChange={(id, chk) => setAthleteSelected((p) => chk ? [...p, id] : p.filter((x) => x !== id))} onSelectAll={(chk) => setAthleteSelected(chk ? athletes.map((a) => a.player.id) : [])} onCreateAthlete={() => setNewAthleteOpen(true)} onRefresh={fetchAthletesData} />}
           {tab === 'matches' && (
             <ClubMatchesTable
-              matches={matches}
-              onCreateMatch={() => router.push(toAreaPath('/match/new') as any)}
-              onAssignCoach={setMatchToAssign}
+              matches={matches} externalMatches={externalMatches} currentUserId={me.user.id}
+              onCreateMatch={() => router.push(toAreaPath('/match/new') as any)} onAssignCoach={setMatchToAssign}
+              onDeleteMatch={async (m) => { const ok = await requestDeleteMatch(m); if (ok) fetchMatchesData(); }}
+              onAnnotateMatch={(m) => requestAnnotateMatch(m, (path) => router.push(toAreaPath(path) as any))}
             />
           )}
           {tab === 'club' && <ClubInfo />}

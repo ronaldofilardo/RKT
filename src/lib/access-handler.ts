@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { can, type Actor, type Permission, type Resource } from '@/core/access';
 import { getActor } from '@/services/accessService';
+import { isDatabaseConnectionError } from '@/services/access-error.logic';
 import { getAccessUserFromRequest } from './auth-credentials.logic';
 import { logger } from './logger';
 import { runWithRLS, type RLSUser } from './rls-context';
@@ -29,7 +30,19 @@ export async function withAccessHandler<T extends Response = NextResponse>(
   const user = await getAccessUserFromRequest(request);
   if (!user) return deny(401, 'Token de acesso requerido');
 
-  const actor = await getActor(user.id, user.contextId, undefined, user.activeArea);
+  let actor: Actor | null = null;
+  try {
+    actor = await getActor(user.id, user.contextId, undefined, user.activeArea);
+  } catch (err) {
+    if (isDatabaseConnectionError(err)) {
+      logger.error('[ACCESS] Falha de infraestrutura ao carregar ator:', err);
+      return NextResponse.json(
+        { error: 'SERVICE_UNAVAILABLE', message: 'Serviço temporariamente indisponível. Tente novamente.' },
+        { status: 503, headers: { 'Retry-After': '5' } },
+      );
+    }
+    throw err;
+  }
   if (!actor) return deny(401, 'Token de acesso requerido');
 
   const resource = resolveResource ? await resolveResource(user) : undefined;

@@ -8,6 +8,8 @@ interface DuplicateMatchModalProps {
     playerP2?: string;
     matchType?: 'SINGLES' | 'DOUBLES';
     scheduledAt?: Date | string | null;
+    code?: string;
+    templateId?: string;
   } | null;
   onGoToMatch: (id: string) => void;
   onForceCreate: () => void;
@@ -23,6 +25,7 @@ export function DuplicateMatchModal({
 }: DuplicateMatchModalProps) {
   if (!isOpen || !existingMatch) return null;
 
+  const isTemplateAvailable = existingMatch.code === 'TEMPLATE_AVAILABLE';
   const matchTypeLabel = existingMatch.matchType === 'DOUBLES' ? 'duplas' : 'simples';
   const scheduledAt = existingMatch.scheduledAt
     ? new Date(existingMatch.scheduledAt).toLocaleDateString('pt-BR')
@@ -44,9 +47,11 @@ export function DuplicateMatchModal({
       />
       <div className="relative bg-telemetry-elevated rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 text-center">
         <div className="text-5xl mb-4">🤝</div>
-        <h2 className="text-xl font-bold text-telemetry-text-primary mb-2">Partida já existe</h2>
+        <h2 className="text-xl font-bold text-telemetry-text-primary mb-2">
+          {isTemplateAvailable ? 'Partida disponível para anotar' : 'Partida já existe'}
+        </h2>
         <p className="text-sm text-telemetry-text-muted mb-1">
-          Já existe uma partida de <strong>{matchTypeLabel}</strong> entre{' '}
+          Já existe {isTemplateAvailable ? 'um cartaz' : 'uma partida'} de <strong>{matchTypeLabel}</strong> entre{' '}
           <strong>{existingMatch.playerP1 ?? 'Jogador 1'}</strong> e{' '}
           <strong>{existingMatch.playerP2 ?? 'Jogador 2'}</strong>{' '}
           no mesmo dia ({scheduledAt}).
@@ -60,10 +65,10 @@ export function DuplicateMatchModal({
         <div className="flex flex-col gap-2">
           <button
             type="button"
-            onClick={() => onGoToMatch(existingMatch.id)}
+            onClick={() => onGoToMatch(existingMatch.templateId ?? existingMatch.id)}
             className="w-full py-3 bg-telemetry-active hover:bg-sky-700 text-white font-semibold rounded-xl transition-all active:scale-95"
           >
-            Ver partida existente
+            {isTemplateAvailable ? 'Anotar minha versão' : 'Ver partida existente'}
           </button>
           <button
             type="button"

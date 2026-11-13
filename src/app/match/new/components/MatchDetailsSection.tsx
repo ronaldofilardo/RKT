@@ -6,6 +6,9 @@ import { WeatherFields } from './match-details-section-weather';
 
 interface MatchDetailsSectionProps {
   visibility: string;
+  eventScope?: 'PUBLIC' | 'PRIVATE_CLUB' | 'PRIVATE_COACH' | 'PRIVATE_PLAYERS' | 'PRIVATE_PERSONAL';
+  ctId?: string;
+  isParticular?: boolean;
   anotadorEmail: string;
   venueId: string;
   publicMatchCode: string;
@@ -15,6 +18,7 @@ interface MatchDetailsSectionProps {
   details: string;
   onVisibilityChange: (value: string) => void;
   onPublicTemplateChange?: (value: boolean) => void;
+  onEventScopeChange?: (scope: 'PUBLIC' | 'PRIVATE_CLUB' | 'PRIVATE_COACH' | 'PRIVATE_PLAYERS' | 'PRIVATE_PERSONAL') => void;
   onAnotadorChange: (value: string) => void;
   onVenueChange: (value: string) => void;
   onPublicCodeChange: (value: string) => void;
@@ -26,6 +30,9 @@ interface MatchDetailsSectionProps {
 
 export function MatchDetailsSection({
   visibility,
+  eventScope,
+  ctId,
+  isParticular,
   anotadorEmail,
   venueId,
   publicMatchCode,
@@ -35,6 +42,7 @@ export function MatchDetailsSection({
   details,
   onVisibilityChange,
   onPublicTemplateChange,
+  onEventScopeChange,
   onAnotadorChange,
   onVenueChange,
   onPublicCodeChange,
@@ -48,8 +56,12 @@ export function MatchDetailsSection({
       <DetailsField title="Visibilidade" align="start">
         <MatchVisibilityField
           visibility={visibility}
+          eventScope={eventScope}
+          ctId={ctId}
+          isParticular={isParticular}
           onVisibilityChange={onVisibilityChange}
           onPublicTemplateChange={onPublicTemplateChange}
+          onEventScopeChange={onEventScopeChange}
         />
       </DetailsField>
 

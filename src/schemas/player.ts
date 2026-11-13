@@ -70,6 +70,10 @@ export type CreatePlayerInput = z.infer<typeof CreatePlayerInputSchema>;
 
 export const UpdatePlayerInputSchema = z.object({
   name: z.string().min(2, 'Nome é obrigatório (mín 2 chars)').optional(),
+  cpf: z
+    .string()
+    .refine((v) => v === '' || v.replace(/\D/g, '').length === 11, 'CPF inválido')
+    .optional(),
   gender: z.enum(['MALE', 'FEMALE']).nullish(),
   birthDate: z.coerce.date({ errorMap: () => ({ message: 'Data de nascimento inválida' }) }).nullish(),
   dominance: z.enum(['LEFT', 'RIGHT']).nullish(),

@@ -49,6 +49,9 @@ export async function checkMatchExists(matchId: string) {
     select: {
       state: true,
       openForAnnotation: true,
+      isTemplate: true,
+      createdByUserId: true,
+      ctId: true,
       version: true,
       scoreState: true,
       _count: {
