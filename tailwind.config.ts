@@ -144,6 +144,16 @@ const config: Config = {
             primary: 'rgb(var(--telemetry-text-primary) / <alpha-value>)',
             muted: 'rgb(var(--telemetry-text-muted) / <alpha-value>)',
           },
+          /**
+           * SCORE DIGITS (WCAG AAA 7:1) — Pilar 2 do plano outdoor.
+           * Tokens em globals.css (--telemetry-score-*).
+           * Guard: src/__tests__/tailwind-utilities.guard.test.ts
+           */
+          score: {
+            main: 'rgb(var(--telemetry-score-main) / <alpha-value>)',
+            secondary: 'rgb(var(--telemetry-score-secondary) / <alpha-value>)',
+            accent: 'rgb(var(--telemetry-score-accent) / <alpha-value>)',
+          },
           court: {
             clay: 'rgb(var(--telemetry-court-clay) / <alpha-value>)',
             grass: 'rgb(var(--telemetry-court-grass) / <alpha-value>)',
