@@ -15,7 +15,6 @@ export function AssignedNotifCard({ notification, onDismiss }: AssignedNotifCard
   const { toast } = useToast();
   const { id, payload } = notification;
   const [viewing, setViewing] = useState(false);
-
   const templateId = payload.templateId || payload.matchId;
 
   const handleView = async () => {
@@ -23,18 +22,15 @@ export function AssignedNotifCard({ notification, onDismiss }: AssignedNotifCard
     setViewing(true);
     try {
       const res = await fetch(`/api/matches/pool/${templateId}/annotate`, { method: 'POST' });
-      if (res.status === 201) {
+      if (res.status === 201 || res.status === 200) {
         const json = await res.json();
-        router.push(`/match/${(json as { matchId?: string }).matchId}/scoring`);
-        return;
+        const targetId = (json as { matchId?: string }).matchId;
+        if (targetId) return router.push(`/match/${targetId}/scoring`);
       }
       if (res.status === 409) {
         const json = await res.json();
         const matchId = (json as { details?: { matchId?: string } | null })?.details?.matchId;
-        if (matchId) {
-          router.push(`/match/${matchId}/scoring`);
-          return;
-        }
+        if (matchId) return router.push(`/match/${matchId}/scoring`);
       }
       const json = await res.json().catch(() => ({}));
       toast({ type: 'error', message: json.message || 'Não foi possível abrir a partida para anotação.' });
@@ -46,21 +42,14 @@ export function AssignedNotifCard({ notification, onDismiss }: AssignedNotifCard
   };
 
   return (
-    <div
-      data-testid="assigned-notif-card"
-      className="p-4 rounded-lg border border-telemetry-blue/40 bg-telemetry-card relative space-y-2 shadow-sm"
-    >
+    <div data-testid="assigned-notif-card" className="p-4 rounded-lg border border-telemetry-blue/40 bg-telemetry-card relative space-y-2 shadow-sm">
       <div className="flex items-center gap-2">
         <span className="text-lg leading-none" aria-hidden="true">🎾</span>
-        <span className="text-xs font-bold uppercase tracking-wider text-telemetry-blue-light">
-          Você foi designado para anotar
-        </span>
+        <span className="text-xs font-bold uppercase tracking-wider text-telemetry-blue-light">Você foi designado para anotar</span>
       </div>
 
       <div className="space-y-0.5">
-        <p className="text-sm font-semibold text-telemetry-text-primary">
-          {payload.player1Name} × {payload.player2Name}
-        </p>
+        <p className="text-sm font-semibold text-telemetry-text-primary">{payload.player1Name} × {payload.player2Name}</p>
         {payload.scheduledAt && (
           <p className="text-xs text-telemetry-text-muted">
             Agendado para: {new Date(payload.scheduledAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}
@@ -72,23 +61,13 @@ export function AssignedNotifCard({ notification, onDismiss }: AssignedNotifCard
       </div>
 
       <div className="flex items-center justify-end gap-2 pt-1">
-        <button
-          type="button"
-          onClick={() => onDismiss(id)}
-          className="px-3 py-1.5 text-xs font-medium rounded text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/5 transition-colors"
-        >
+        <button type="button" onClick={() => onDismiss(id)} className="px-3 py-1.5 text-xs font-medium rounded text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/5 transition-colors">
           Dispensar
         </button>
-        <button
-          type="button"
-          disabled={viewing}
-          onClick={handleView}
-          className="px-3 py-1.5 text-xs font-semibold rounded bg-telemetry-blue hover:bg-telemetry-blue/80 text-white shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        <button type="button" disabled={viewing} onClick={handleView} className="px-3 py-1.5 text-xs font-semibold rounded bg-telemetry-blue hover:bg-telemetry-blue/80 text-white shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           {viewing ? 'Abrindo...' : 'Ver Partida'}
         </button>
       </div>
     </div>
   );
 }
-

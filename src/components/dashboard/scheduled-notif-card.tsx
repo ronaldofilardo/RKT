@@ -22,18 +22,15 @@ export function ScheduledNotifCard({ notification, onDismiss }: ScheduledNotifCa
     setViewing(true);
     try {
       const res = await fetch(`/api/matches/pool/${templateId}/annotate`, { method: 'POST' });
-      if (res.status === 201) {
+      if (res.status === 201 || res.status === 200) {
         const json = await res.json();
-        router.push(`/match/${(json as { matchId?: string }).matchId}/scoring`);
-        return;
+        const targetId = (json as { matchId?: string }).matchId;
+        if (targetId) return router.push(`/match/${targetId}/scoring`);
       }
       if (res.status === 409) {
         const json = await res.json();
         const matchId = (json as { details?: { matchId?: string } | null })?.details?.matchId;
-        if (matchId) {
-          router.push(`/match/${matchId}/scoring`);
-          return;
-        }
+        if (matchId) return router.push(`/match/${matchId}/scoring`);
       }
       const json = await res.json().catch(() => ({}));
       toast({ type: 'error', message: json.message || 'Não foi possível abrir a partida.' });
@@ -45,10 +42,7 @@ export function ScheduledNotifCard({ notification, onDismiss }: ScheduledNotifCa
   };
 
   return (
-    <div
-      data-testid="scheduled-notif-card"
-      className="p-4 rounded-lg border border-telemetry-volt/30 bg-telemetry-card relative space-y-2 shadow-sm"
-    >
+    <div data-testid="scheduled-notif-card" className="p-4 rounded-lg border border-telemetry-volt/30 bg-telemetry-card relative space-y-2 shadow-sm">
       <div className="flex items-center gap-2">
         <span className="text-lg leading-none" aria-hidden="true">🎾</span>
         <span className="text-xs font-bold uppercase tracking-wider text-telemetry-volt">Partida Criada por Outro Usuário</span>

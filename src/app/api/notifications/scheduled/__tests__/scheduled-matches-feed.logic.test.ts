@@ -38,6 +38,7 @@ describe('loadScheduledMatchesFeed', () => {
 
   it('retorna notificações dinâmicas para atleta mesmo sem registro prévio na tabela Notification', async () => {
     mockPrisma.notification.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+    // 1ª chamada de match.findMany: candidatas do feed · 2ª: anotações derivadas finalizadas do usuário
     mockPrisma.match.findMany.mockResolvedValueOnce([
       {
         id: 'match-100',
@@ -57,7 +58,7 @@ describe('loadScheduledMatchesFeed', () => {
           athleteProfile: null,
         },
       },
-    ]);
+    ]).mockResolvedValueOnce([]);
 
     const feed = await loadScheduledMatchesFeed(baseActor);
     expect(feed).toHaveLength(1);

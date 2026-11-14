@@ -3,6 +3,7 @@ import { withAccessHandler } from '@/lib/access-handler';
 import { prisma } from '@/lib/prisma';
 import { reportApiError } from '@/lib/api.logic';
 import { logger } from '@/lib/logger';
+import { filterActiveAssignedNotifications } from './assigned-filter.logic';
 
 export async function GET(request: NextRequest) {
   return withAccessHandler(request, null, null, async ({ actor }) => {
@@ -17,11 +18,11 @@ export async function GET(request: NextRequest) {
         take: 20,
       });
 
-      return NextResponse.json(notifications);
+      const activeNotifications = await filterActiveAssignedNotifications(notifications, actor.userId);
+      return NextResponse.json(activeNotifications);
     } catch (error) {
       logger.error('[NOTIFICATIONS ASSIGNED GET]', error);
       return reportApiError(error);
     }
   });
 }
-

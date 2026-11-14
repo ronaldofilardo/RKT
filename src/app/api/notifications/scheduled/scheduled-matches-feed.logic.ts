@@ -1,16 +1,13 @@
 import { prisma } from '@/lib/prisma';
 import type { Actor } from '@/core/access';
 import { resolveCreatorRoleLabel } from '@/app/gestor/gestor-match-display.logic';
-import {
-  buildDismissedKeys,
-  isMatchDismissed,
-  deduplicateFeedItems,
-} from './scheduled-matches-dedup.logic';
+import { buildDismissedKeys, isMatchDismissed, deduplicateFeedItems } from './scheduled-matches-dedup.logic';
+import { filterActiveExistingScheduledNotifs, findUserFinishedDerivedMatchIds } from './scheduled-active-filter.logic';
 
 export async function loadScheduledMatchesFeed(actor: Actor) {
   if (actor.activeArea === 'GESTOR') return [];
 
-  const [existingNotifs, dismissed] = await Promise.all([
+  const [rawExisting, dismissed] = await Promise.all([
     prisma.notification.findMany({
       where: { recipientId: actor.userId, type: 'POOL_MATCH_WITH_MY_ATHLETE', readAt: null },
       orderBy: { createdAt: 'desc' },
@@ -22,13 +19,10 @@ export async function loadScheduledMatchesFeed(actor: Actor) {
     }),
   ]);
 
+  const existingNotifs = await filterActiveExistingScheduledNotifs(rawExisting, actor.userId);
   const dismissedKeys = buildDismissedKeys(dismissed);
-  const rawDismissedIds = Array.from(
-    new Set(dismissed.map((n) => (n.payload as Record<string, any>)?.matchId).filter(Boolean)),
-  );
-  const coveredMatchIds = new Set(
-    existingNotifs.map((n) => (n.payload as Record<string, any>)?.matchId).filter(Boolean),
-  );
+  const rawDismissedIds = Array.from(new Set(dismissed.map((n) => (n.payload as Record<string, any>)?.matchId).filter(Boolean)));
+  const coveredMatchIds = new Set(existingNotifs.map((n) => (n.payload as Record<string, any>)?.matchId).filter(Boolean));
 
   const relevantPlayerIds = Array.from(new Set([
     actor.athletePlayerId,
@@ -68,8 +62,11 @@ export async function loadScheduledMatchesFeed(actor: Actor) {
     take: 20,
   });
 
+  const candidateIds = matches.map((m) => m.id);
+  const userFinishedIds = await findUserFinishedDerivedMatchIds(candidateIds, actor.userId);
+
   const dynamicItems = matches
-    .filter((m) => !coveredMatchIds.has(m.id) && !isMatchDismissed(m, dismissedKeys))
+    .filter((m) => !coveredMatchIds.has(m.id) && !userFinishedIds.has(m.id) && !isMatchDismissed(m, dismissedKeys))
     .map((m) => ({
       id: `match-scheduled-${m.id}`,
       recipientId: actor.userId,
