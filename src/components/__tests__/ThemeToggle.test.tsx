@@ -23,7 +23,7 @@ describe('ThemeToggle & ThemeContext', () => {
     document.documentElement.removeAttribute('data-theme');
   });
 
-  it('renderiza somente os 2 botoes de tema: claro e escuro (sem o botao de sistema)', () => {
+  it('renderiza os 3 botoes de tema: claro, escuro e outdoor (sem o botao de sistema)', () => {
     render(
       <ThemeProvider>
         <ThemeToggle />
@@ -32,7 +32,26 @@ describe('ThemeToggle & ThemeContext', () => {
 
     expect(screen.getByTestId('theme-toggle-light')).toBeInTheDocument();
     expect(screen.getByTestId('theme-toggle-dark')).toBeInTheDocument();
+    expect(screen.getByTestId('theme-toggle-outdoor')).toBeInTheDocument();
     expect(screen.queryByTestId('theme-toggle-system')).toBeNull();
+  });
+
+  it('permite selecionar o modo outdoor e aplica data-theme=outdoor com a classe light', () => {
+    render(
+      <ThemeProvider>
+        <ThemeToggle />
+        <TestConsumer />
+      </ThemeProvider>
+    );
+
+    fireEvent.click(screen.getByTestId('theme-toggle-outdoor'));
+
+    expect(screen.getByTestId('current-theme').textContent).toBe('outdoor');
+    expect(screen.getByTestId('resolved-theme').textContent).toBe('light');
+    expect(document.documentElement.classList.contains('light')).toBe(true);
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
+    expect(document.documentElement.getAttribute('data-theme')).toBe('outdoor');
+    expect(localStorage.getItem('rkt_theme_preference')).toBe('outdoor');
   });
 
   it('permite selecionar tema claro e aplica classes no documento', () => {

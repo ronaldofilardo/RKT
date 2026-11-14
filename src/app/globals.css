@@ -48,6 +48,10 @@
   /* Court badge opacity (Pilar 3: Micro-Toques de Piso) */
   --court-badge-bg-opacity: 0.20;   /* Dark: 20% background opacity */
   --court-badge-text-opacity: 1;    /* Dark: 100% text opacity */
+  /* Court pill text (Pilar 3.2): cor do piso com brilho sutil (>=4.5:1 no bg 20%) */
+  --court-pill-clay-text: #D08161;
+  --court-pill-grass-text: #62A76E;
+  --court-pill-hard-text: #7894B0;
 
   --body-bg: #0A0F1D;
   --body-fg: #F8FAFC;
@@ -96,6 +100,10 @@
     /* Court badge opacity (Pilar 3: Micro-Toques de Piso) */
     --court-badge-bg-opacity: 0.12;   /* Light: 12% background opacity */
     --court-badge-text-opacity: 1;    /* Light: 100% text opacity (color darkened via luminance) */
+    /* Court pill text (Pilar 3.2): cor do piso escurecida (OKLCH L=0.35, >=4.5:1 no bg 12%) */
+    --court-pill-clay-text: #701100;
+    --court-pill-grass-text: #004C00;
+    --court-pill-hard-text: #0A3C68;
 
     --body-bg: #F2EFE9;
     --body-fg: #0F172A;
@@ -138,6 +146,10 @@
   /* Court badge opacity (Pilar 3: Micro-Toques de Piso) */
   --court-badge-bg-opacity: 0.20;   /* Dark: 20% background opacity */
   --court-badge-text-opacity: 1;    /* Dark: 100% text opacity */
+  /* Court pill text (Pilar 3.2): cor do piso com brilho sutil (>=4.5:1 no bg 20%) */
+  --court-pill-clay-text: #D08161;
+  --court-pill-grass-text: #62A76E;
+  --court-pill-hard-text: #7894B0;
 
   --body-bg: #0A0F1D;
   --body-fg: #F8FAFC;
@@ -182,9 +194,59 @@
   /* Court badge opacity (Pilar 3: Micro-Toques de Piso) */
   --court-badge-bg-opacity: 0.12;   /* Light: 12% background opacity */
   --court-badge-text-opacity: 1;    /* Light: 100% text opacity */
+  /* Court pill text (Pilar 3.2): cor do piso escurecida (OKLCH L=0.35, >=4.5:1 no bg 12%) */
+  --court-pill-clay-text: #701100;
+  --court-pill-grass-text: #004C00;
+  --court-pill-hard-text: #0A3C68;
 
   --body-bg: #F2EFE9;
   --body-fg: #0F172A;
+}
+
+/* 5. Modo Outdoor (alto contraste sob sol forte — TD-066 resíduo 2).
+   <html> recebe a classe .light + data-theme="outdoor". O seletor tem a mesma
+   especificidade do bloco prefers-color-scheme (0,3,0) e vem depois — vence por
+   ordem na cascata. Tokens: branco puro, texto preto, bordas visíveis. */
+:root[data-theme='outdoor']:not(.dark) {
+  color-scheme: light;
+
+  --telemetry-base: 255 255 255;        /* Branco puro — reflexo máximo sob sol */
+  --telemetry-card: 255 255 255;
+  --telemetry-border: 100 116 139;      /* #64748B — borda visível com glare */
+  --telemetry-text-primary: 0 0 0;      /* Preto puro (21:1) */
+  --telemetry-text-muted: 51 65 85;     /* #334155 (10.3:1 em branco) */
+  --telemetry-score-main: 0 0 0;        /* AAA 21:1 */
+  --telemetry-score-secondary: 15 23 42; /* #0F172A AAA 17.8:1 */
+  --telemetry-score-accent: 0 77 0;     /* #004D00 AAA 10.2:1 */
+  --telemetry-volt: 0 77 0;
+
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255;
+
+  --body-bg: #FFFFFF;
+  --body-fg: #000000;
+}
+
+/* Court pill (Pilar 3.2 — TD-066 resíduo 3): badge de tipo de piso com
+   acabamento tátil. Consome --court-badge-bg-opacity/--court-badge-text-opacity
+   (tokens antes órfãos) e os tokens --court-pill-*-text por tema. */
+.court-pill {
+  background-color: rgb(var(--court-pill-color) / var(--court-badge-bg-opacity));
+  color: rgb(var(--court-pill-text, var(--telemetry-text-primary)) / var(--court-badge-text-opacity));
+  border: 1px solid rgb(var(--court-pill-color, currentColor) / 0.35);
+}
+.court-pill[data-court='clay'] {
+  --court-pill-color: var(--telemetry-court-clay);
+  --court-pill-text: var(--court-pill-clay-text);
+}
+.court-pill[data-court='grass'] {
+  --court-pill-color: var(--telemetry-court-grass);
+  --court-pill-text: var(--court-pill-grass-text);
+}
+.court-pill[data-court='hard'] {
+  --court-pill-color: var(--telemetry-court-hard);
+  --court-pill-text: var(--court-pill-hard-text);
 }
 
 body {

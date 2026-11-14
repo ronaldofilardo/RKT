@@ -1,6 +1,7 @@
 'use client';
 
 import { useTheme } from '@/contexts/ThemeContext';
+import { THEME_OPTIONS } from './theme-toggle-options';
 
 interface ThemeToggleProps {
   fullWidth?: boolean;
@@ -9,57 +10,6 @@ interface ThemeToggleProps {
 
 export function ThemeToggle({ fullWidth = false, className = '' }: ThemeToggleProps) {
   const { theme, resolvedTheme, setTheme } = useTheme();
-
-  const options: Array<{
-    id: 'light' | 'dark';
-    label: string;
-    ariaLabel: string;
-    icon: React.ReactNode;
-  }> = [
-    {
-      id: 'light',
-      label: 'Claro',
-      ariaLabel: 'Tema Claro',
-      icon: (
-        <svg
-          className="w-3.5 h-3.5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-          />
-        </svg>
-      ),
-    },
-    {
-      id: 'dark',
-      label: 'Escuro',
-      ariaLabel: 'Tema Escuro',
-      icon: (
-        <svg
-          className="w-3.5 h-3.5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-          />
-        </svg>
-      ),
-    },
-  ];
-
   const currentTheme = theme === 'system' ? resolvedTheme : theme;
 
   return (
@@ -70,7 +20,7 @@ export function ThemeToggle({ fullWidth = false, className = '' }: ThemeTogglePr
         fullWidth ? 'w-full justify-between' : ''
       } ${className}`}
     >
-      {options.map((opt) => {
+      {THEME_OPTIONS.map((opt) => {
         const isActive = currentTheme === opt.id;
         return (
           <button

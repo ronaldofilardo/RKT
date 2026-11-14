@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { logger } from '@/lib/logger';
 
-export type ThemePreference = 'light' | 'dark' | 'system';
+export type ThemePreference = 'light' | 'dark' | 'system' | 'outdoor';
 
 export const THEME_STORAGE_KEY = 'rkt_theme_preference';
 
@@ -15,7 +15,7 @@ export function useThemeProviderState() {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(THEME_STORAGE_KEY) as ThemePreference | null;
-      if (saved === 'light' || saved === 'dark') {
+      if (saved === 'light' || saved === 'dark' || saved === 'outdoor') {
         setThemeState(saved);
       } else {
         setThemeState('dark');
@@ -30,7 +30,8 @@ export function useThemeProviderState() {
     if (typeof window === 'undefined') return;
 
     const root = document.documentElement;
-    const effectiveTheme: 'light' | 'dark' = theme === 'light' ? 'light' : 'dark';
+    // 'outdoor' resolve para claro (alto contraste) — ver bloco 5 do globals.css
+    const effectiveTheme: 'light' | 'dark' = theme === 'dark' ? 'dark' : 'light';
 
     setResolvedTheme(effectiveTheme);
 
@@ -41,12 +42,13 @@ export function useThemeProviderState() {
     } else {
       root.classList.add('light');
       root.classList.remove('dark');
-      root.setAttribute('data-theme', 'light');
+      root.setAttribute('data-theme', theme === 'outdoor' ? 'outdoor' : 'light');
     }
   }, [theme]);
 
   const setTheme = (newTheme: ThemePreference) => {
-    const target = newTheme === 'light' ? 'light' : 'dark';
+    // 'system' colapsa em 'dark' (comportamento histórico); 'outdoor' é gravado como está
+    const target: ThemePreference = newTheme === 'system' ? 'dark' : newTheme;
     setThemeState(target);
     try {
       localStorage.setItem(THEME_STORAGE_KEY, target);

@@ -8,6 +8,11 @@ import { describe, it, expect } from '@jest/globals';
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const clean = hex.replace('#', '');
+  // Guarda: rgba()/nomes viram NaN → NaN & 255 = 0 (preto silencioso).
+  // Todos os pares devem ser hex #RRGGBB já compostos sobre a superfície real.
+  if (!/^[0-9a-fA-F]{6}$/.test(clean)) {
+    throw new Error(`Cor inválida (esperado hex #RRGGBB): "${hex}"`);
+  }
   const bigint = parseInt(clean, 16);
   return {
     r: (bigint >> 16) & 255,
@@ -176,51 +181,91 @@ const testCases: ContrastTestCase[] = [
     description: 'Winner cell text on blue background (AAA)',
   },
 
-  // Court badge tests (Pilar 3)
-  // Light: 12% opacity background, dark text
+  // Court badge tests (Pilar 3 — pill real, TD-066 resíduo 3)
+  // bg = cor do piso em 12%/20% já composta sobre a superfície do tema
+  // (o rgba() antigo era parseado como preto e mascarava a medição).
+  // Light: 12% sobre #FFFFFF, texto escurecido (OKLCH L=0.35)
   {
     name: 'Light: Court Clay badge text on badge background',
-    foreground: '#C4623A', // --telemetry-court-clay
-    background: 'rgba(196, 98, 58, 0.12)', // 12% opacity on white-ish
+    foreground: '#701100', // --court-pill-clay-text (L0.35)
+    background: '#F8ECE7', // clay 12% sobre #FFFFFF
     minRatio: 4.5,
     description: 'Clay court badge text on light background (AA)',
   },
   {
     name: 'Light: Court Grass badge text on badge background',
-    foreground: '#2D8A3E', // --telemetry-court-grass
-    background: 'rgba(45, 138, 62, 0.12)',
+    foreground: '#004C00', // --court-pill-grass-text (L0.35)
+    background: '#E6F1E8', // grass 12% sobre #FFFFFF
     minRatio: 4.5,
     description: 'Grass court badge text on light background (AA)',
   },
   {
     name: 'Light: Court Hard badge text on badge background',
-    foreground: '#BFDBFE', // Lighter blue for badge text (--telemetry-blue-light)
-    background: 'rgba(30, 77, 123, 0.12)',
+    foreground: '#0A3C68', // --court-pill-hard-text (L0.35)
+    background: '#E4EAEF', // hard 12% sobre #FFFFFF
     minRatio: 4.5,
     description: 'Hard court badge text on light background (AA)',
   },
 
-  // Dark: 20% opacity background, bright text
+  // Dark: 20% sobre #111827, texto com brilho sutil
   {
     name: 'Dark: Court Clay badge text on badge background',
-    foreground: '#C4623A', // --telemetry-court-clay
-    background: 'rgba(196, 98, 58, 0.20)', // 20% opacity on dark
+    foreground: '#D08161', // --court-pill-clay-text (dark, brilho)
+    background: '#35272B', // clay 20% sobre #111827
     minRatio: 4.5,
     description: 'Clay court badge text on dark background (AA)',
   },
   {
     name: 'Dark: Court Grass badge text on badge background',
-    foreground: '#2D8A3E', // --telemetry-court-grass
-    background: 'rgba(45, 138, 62, 0.20)',
+    foreground: '#62A76E', // --court-pill-grass-text (dark, brilho)
+    background: '#172F2C', // grass 20% sobre #111827
     minRatio: 4.5,
     description: 'Grass court badge text on dark background (AA)',
   },
-{
+  {
     name: 'Dark: Court Hard badge text on badge background',
-    foreground: '#BFDBFE', // Lighter blue for badge text (--telemetry-blue-light)
-    background: 'rgba(30, 77, 123, 0.20)',
+    foreground: '#7894B0', // --court-pill-hard-text (dark, brilho)
+    background: '#142338', // hard 20% sobre #111827
     minRatio: 4.5,
     description: 'Hard court badge text on dark background (AA)',
+  },
+
+  // ===== MODO OUTDOOR (alto contraste — TD-066 resíduo 2) =====
+  // Branco puro + preto puro em src/app/globals.css bloco [data-theme='outdoor']
+  {
+    name: 'Outdoor: telemetry-score-main on white',
+    foreground: '#000000', // --telemetry-score-main (outdoor)
+    background: '#FFFFFF',
+    minRatio: 7,
+    description: 'Outdoor main score digits on white (AAA)',
+  },
+  {
+    name: 'Outdoor: telemetry-score-secondary on white',
+    foreground: '#0F172A', // --telemetry-score-secondary (outdoor)
+    background: '#FFFFFF',
+    minRatio: 7,
+    description: 'Outdoor past set scores on white (AAA)',
+  },
+  {
+    name: 'Outdoor: telemetry-score-accent on white',
+    foreground: '#004D00', // --telemetry-score-accent (outdoor)
+    background: '#FFFFFF',
+    minRatio: 7,
+    description: 'Outdoor current game accent on white (AAA)',
+  },
+  {
+    name: 'Outdoor: telemetry-text-primary on white',
+    foreground: '#000000', // --telemetry-text-primary (outdoor)
+    background: '#FFFFFF',
+    minRatio: 7,
+    description: 'Outdoor primary text on white (AAA)',
+  },
+  {
+    name: 'Outdoor: telemetry-text-muted on white',
+    foreground: '#334155', // --telemetry-text-muted (outdoor)
+    background: '#FFFFFF',
+    minRatio: 7,
+    description: 'Outdoor muted text on white (AAA)',
   },
 ];
 
