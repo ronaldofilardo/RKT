@@ -26,6 +26,8 @@ interface PlayAreaPlayersProps {
   onSwipeUndo: () => void;
   onChangeServer?: () => void;
   canChangeServer?: boolean;
+  /** Fase 3 da anotação: o clique no card define o vencedor do ponto. */
+  awaitingWinnerSelection?: boolean;
 }
 
 /** Coluna de um jogador: card (encolhe primeiro) + controles de saque opcionais abaixo. */
@@ -41,14 +43,11 @@ function PlayerColumn({ controls, children }: { controls?: ReactNode; children: 
 export function PlayAreaPlayers({
   player1, player2, player1Partner, player2Partner, activeServerId, activeReceiverId, scoreState,
   p1IsServing, p2IsServing, isSetPoint, isBreakPoint, winner, isFinished, serverControls, onPoint, onSwipeUndo,
-  onChangeServer, canChangeServer = true,
+  onChangeServer, canChangeServer = true, awaitingWinnerSelection = false,
 }: PlayAreaPlayersProps) {
   const isZeroZeroGame = Boolean(
-    scoreState?.currentGame &&
-    scoreState.currentGame.player1 === 0 &&
-    scoreState.currentGame.player2 === 0 &&
-    !scoreState.currentGame.secondServe &&
-    !isFinished
+    scoreState?.currentGame && scoreState.currentGame.player1 === 0 &&
+    scoreState.currentGame.player2 === 0 && !scoreState.currentGame.secondServe && !isFinished
   );
 
   const shared = {
@@ -58,14 +57,17 @@ export function PlayAreaPlayers({
     isSetPoint,
     isBreakPoint,
     onSwipeDown: onSwipeUndo,
-    disabled: isFinished,
+    disabled: isFinished || !awaitingWinnerSelection,
     onChangeServer,
     canChangeServer,
   };
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 relative z-10 gap-1">
-      <div className="flex items-stretch gap-1 sm:gap-2 flex-1 min-h-0">
+    <div
+      className="flex flex-col flex-1 min-h-0 relative z-10 gap-1"
+      data-awaiting-winner={awaitingWinnerSelection ? 'true' : undefined}
+    >
+      <div className={`flex items-stretch gap-1 sm:gap-2 flex-1 min-h-0 rounded-2xl transition-all ${awaitingWinnerSelection ? 'ring-2 ring-telemetry-volt/70 p-0.5' : ''}`}>
         <PlayerColumn controls={p1IsServing ? serverControls : null}>
           <PlayerCard {...shared} player={player1} partner={player1Partner} side="player1" isServing={p1IsServing} isWinner={winner === 'player1'} onPoint={() => onPoint('player1')} />
         </PlayerColumn>
@@ -77,7 +79,7 @@ export function PlayAreaPlayers({
         </PlayerColumn>
       </div>
 
-      {isZeroZeroGame && canChangeServer && onChangeServer && (
+      {isZeroZeroGame && canChangeServer && onChangeServer && !awaitingWinnerSelection && (
         <div className="flex justify-center -mt-0.5">
           <button
             type="button"

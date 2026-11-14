@@ -2,9 +2,8 @@
 
 import React from "react";
 import CourtBackground from "@/components/scoring/CourtBackground";
-import { ScoreboardCard } from "@/components/scoring/ScoreboardCard";
+import { ScoringHeader } from "@/components/scoring/ScoringHeader";
 import { ContextBadges } from "@/components/scoring/ContextBadges";
-import { LiveCountersBar } from "@/components/scoring/LiveCountersBar";
 import { TacticalInsightBanner } from "@/components/scoring/TacticalInsightBanner";
 import type { ScoringPlayAreaProps } from "./scoring-play-area.types";
 import { PlayAreaPlayers } from "./scoring-play-area-players";
@@ -21,6 +20,7 @@ export function ScoringPlayArea({
   p1IsServing, p2IsServing, activeServerId, activeReceiverId, isSetPoint, isBreakPoint, isMatchPoint,
   isTiebreak, isSuperTiebreak, winner, pointsHistory, scoreState, isFinished,
   serverControls, isServePanelOpen = false,
+  annotationBars, awaitingWinnerSelection = false,
   onOpenSetSummary, onPoint, onSwipeUndo, onNavigateReport, onRegisterAndExit,
   onChangeServer,
   onSelectReceiverOverride,
@@ -43,17 +43,26 @@ export function ScoringPlayArea({
         <CourtBackground courtType={match.courtType} />
       </div>
 
+      {/* Header de 3 colunas: Placar (esq), Formato/Torneio/Fase (centro), Stats (dir) */}
       <div className="my-0.5 sm:my-2 flex-shrink-0">
-        <ScoreboardCard player1={match.player1} player2={match.player2} player1Partner={match.player1Partner ?? undefined} player2Partner={match.player2Partner ?? undefined} scoreState={effectiveScoreState} isSuspended={!!suspendedSession} format={match.format as string} />
+        <ScoringHeader
+          match={match}
+          effectiveScoreState={effectiveScoreState}
+          isSuspended={!!suspendedSession}
+          liveCounters={liveCounters}
+          completedSetsCount={completedSetsCount}
+          p1IsServing={p1IsServing}
+          p2IsServing={p2IsServing}
+          onOpenSetSummary={onOpenSetSummary}
+        />
       </div>
 
-      {/* Boxes de Estatísticas ao Vivo e Insight Tático */}
-      <div className="flex flex-col gap-1 flex-shrink-0" data-serve-collapse="stats">
-        <LiveCountersBar counters={liveCounters} player1Name={match.player1.name} player2Name={match.player2.name}
-          completedSetsCount={completedSetsCount} onOpenSetSummary={onOpenSetSummary}
-          p1IsServing={p1IsServing} p2IsServing={p2IsServing} />
-        {!isServePanelOpen && <TacticalInsightBanner insights={tacticalInsights} />}
-      </div>
+      {/* Insight Tático */}
+      {!isServePanelOpen && (
+        <div className="flex-shrink-0" data-serve-collapse="stats">
+          <TacticalInsightBanner insights={tacticalInsights} />
+        </div>
+      )}
 
       {isDecidingPoint && match.matchType === 'DOUBLES' && receivingTeam.length === 2 && (
         <DecidingPointBanner
@@ -63,6 +72,8 @@ export function ScoringPlayArea({
         />
       )}
 
+      {annotationBars}
+
       <PlayAreaPlayers
         player1={match.player1} player2={match.player2}
         player1Partner={match.player1Partner ?? undefined} player2Partner={match.player2Partner ?? undefined}
@@ -71,6 +82,7 @@ export function ScoringPlayArea({
         isSetPoint={isSetPoint} isBreakPoint={isBreakPoint} winner={winner} isFinished={isFinished}
         serverControls={serverControls} onPoint={onPoint} onSwipeUndo={onSwipeUndo}
         onChangeServer={onChangeServer} canChangeServer={canChangeServer}
+        awaitingWinnerSelection={awaitingWinnerSelection}
       />
 
       <div data-serve-collapse="extras" className="contents">

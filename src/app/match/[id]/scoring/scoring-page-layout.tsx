@@ -5,6 +5,7 @@ import { MatchHeader } from '@/components/scoring/MatchHeader';
 import { ScoringModals } from './ScoringModals';
 import { ScoringPageControls } from './scoring-page-controls';
 import { useServeInlineControls } from './use-serve-inline-controls';
+import { useScoringAnnotationFlow } from './use-scoring-annotation-flow';
 import { ScoringPagePlayArea } from './scoring-page-play-area';
 import { SyncStatusBanner, TimelineLoadingOverlay } from './scoring-page-screens';
 import {
@@ -36,6 +37,10 @@ export function ScoringPageLayout({
   const { isFinished } = derived;
 
   const serve = useServeInlineControls(state, handlers, derived);
+  const annotation = useScoringAnnotationFlow(state, handlers, derived, {
+    onServeAction: serve.controls.onAction,
+    dfDetailsEnabled: serve.options.dfDetailsEnabled,
+  });
   const navigateReport = () => router.push(`/match/${matchId}/report`);
   const navigateDashboard = () => router.push(homeForProfileString(sessionStorage.getItem('user_role')) as any);
 
@@ -62,6 +67,7 @@ export function ScoringPageLayout({
         <ScoringPagePlayArea
           state={state} handlers={handlers} derived={derived} chrome={chrome}
           match={match} matchId={matchId} serveControls={serve.controls}
+          annotation={annotation}
           onNavigateReport={navigateReport} onNavigateDashboard={navigateDashboard}
         />
 
@@ -69,6 +75,7 @@ export function ScoringPageLayout({
 
         <ScoringModals
           state={state} handlers={handlers} derived={derived} match={match} matchId={matchId}
+          annotation={annotation}
           cameFromDashboard={cameFromDashboard} setSummaryModalState={chrome.setSummaryModalState}
           onCloseSetSummary={() => chrome.setSetSummaryModalState((prev) => ({ ...prev, isOpen: false }))}
           isShareModalOpen={chrome.isShareModalOpen}

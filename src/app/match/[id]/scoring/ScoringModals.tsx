@@ -6,6 +6,7 @@ import type { ScoringPageDerived } from "./useScoringPageDerived";
 import { ScoringEditScoreModal } from "./scoring-edit-score-modal";
 import { ScoringSessionModals } from "./scoring-session-modals";
 import { PointDetailsModalBlock } from "./scoring-point-modals";
+import type { ScoringAnnotationFlow } from "./use-scoring-annotation-flow";
 import { ShareSpectateModal } from "@/components/scoring/ShareSpectateModal";
 import { ChangeServerModal } from "@/components/scoring/ChangeServerModal";
 
@@ -15,6 +16,7 @@ interface ScoringModalsProps {
   derived: ScoringPageDerived;
   match: NonNullable<ScoringPageState["match"]>;
   matchId: string;
+  annotation: ScoringAnnotationFlow;
   cameFromDashboard: boolean;
   setSummaryModalState: { isOpen: boolean; setNumber: number };
   onCloseSetSummary: () => void;
@@ -25,18 +27,9 @@ interface ScoringModalsProps {
 }
 
 export function ScoringModals({
-  state,
-  handlers,
-  derived,
-  match,
-  matchId,
-  cameFromDashboard,
-  setSummaryModalState,
-  onCloseSetSummary,
-  onNavigateDashboard,
-  onNavigateReport,
-  isShareModalOpen,
-  onCloseShareModal,
+  state, handlers, derived, match, matchId, annotation, cameFromDashboard,
+  setSummaryModalState, onCloseSetSummary, onNavigateDashboard, onNavigateReport,
+  isShareModalOpen, onCloseShareModal,
 }: ScoringModalsProps) {
   return (
     <>
@@ -49,7 +42,6 @@ export function ScoringModals({
         onCloseSetSummary={onCloseSetSummary}
         onNavigateReport={onNavigateReport}
       />
-
       <ScoringEditScoreModal
         state={state}
         handlers={handlers}
@@ -58,11 +50,15 @@ export function ScoringModals({
         cameFromDashboard={cameFromDashboard}
         onNavigateDashboard={onNavigateDashboard}
       />
-
       {state.activeModal === "point-details" && (
-        <PointDetailsModalBlock state={state} handlers={handlers} derived={derived} match={match} />
+        <PointDetailsModalBlock
+          state={state}
+          handlers={handlers}
+          derived={derived}
+          match={match}
+          annotation={annotation}
+        />
       )}
-
       {state.activeModal === "change-server" && (
         <ChangeServerModal
           isOpen={true}
@@ -79,7 +75,6 @@ export function ScoringModals({
           }}
         />
       )}
-
       {isShareModalOpen && (
         <ShareSpectateModal
           matchId={matchId}

@@ -32,14 +32,18 @@ export function usePointDetailsModal({
 }: UsePointDetailsModalOptions) {
   const [mounted, setMounted] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState(false);
-  const [form, dispatch] = useReducer(formReducer, null, () => initialForm);
+  const [form, dispatch] = useReducer(formReducer, null, () => ({
+    ...initialForm,
+    situacao: whereWinner ?? null,
+    tipo: howEnded ?? null,
+  }));
   const { noteText, noteAudio, persistNoteContent } = usePointDetailsNote();
 
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
-    if (whereWinner && !form.situacao) dispatch({ type: 'SET_SITUACAO', value: whereWinner });
-    if (howEnded && !form.tipo) dispatch({ type: 'SET_TIPO', value: howEnded });
+    if (whereWinner && form.situacao !== whereWinner) dispatch({ type: 'SET_SITUACAO', value: whereWinner });
+    if (howEnded && form.tipo !== howEnded) dispatch({ type: 'SET_TIPO', value: howEnded });
   }, [whereWinner, howEnded, form.situacao, form.tipo]);
 
   const { vencedor, winnerName } = getPointWinnerDetails(

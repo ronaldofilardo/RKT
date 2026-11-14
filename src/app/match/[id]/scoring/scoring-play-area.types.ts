@@ -29,6 +29,10 @@ export interface ScoringPlayAreaProps {
   serverControls?: React.ReactNode;
   /** Painel de detalhes aberto: libera altura recolhendo blocos secundários. */
   isServePanelOpen?: boolean;
+  /** Barras das fases 1 e 2 da anotação, empilhadas acima dos cards. */
+  annotationBars?: React.ReactNode;
+  /** Fase 3: o clique no card escolhe o vencedor, então ele ganha destaque. */
+  awaitingWinnerSelection?: boolean;
   onOpenSetSummary: () => void;
   onPoint: (side: "player1" | "player2") => void;
   onSwipeUndo: () => void;

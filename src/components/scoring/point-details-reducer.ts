@@ -17,7 +17,18 @@ export const initialForm: PointDetailsForm = {
 export function formReducer(state: PointDetailsForm, action: Action): PointDetailsForm {
   switch (action.type) {
     case 'SET_SITUACAO':
-      return { ...state, situacao: action.value };
+      return {
+        ...state,
+        situacao: action.value,
+        tipo: null,
+        golpe: null,
+        subtipo1: null,
+        subtipo2: null,
+        efeito: null,
+        duracao: null,
+        direcao: null,
+        golpeEsp: null,
+      };
     case 'SET_TIPO':
       return { ...state, tipo: action.value, golpe: null, subtipo1: null, subtipo2: null, efeito: null, duracao: null, direcao: null, golpeEsp: null };
     case 'SET_GOLPE':

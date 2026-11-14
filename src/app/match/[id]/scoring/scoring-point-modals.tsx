@@ -1,9 +1,10 @@
 "use client";
 
-import { PointAnnotationFlowContainer } from "@/components/scoring/PointAnnotationFlowContainer";
+import { PointDetailsModal } from "@/components/scoring/PointDetailsModal";
 import type { ScoringPageState } from "./useScoringPageState";
 import type { ScoringPageHandlers } from "./useScoringPageEffects";
 import type { ScoringPageDerived } from "./useScoringPageDerived";
+import type { ScoringAnnotationFlow } from "./use-scoring-annotation-flow";
 import { isNoAdDecidingPoint } from "@/core/scoring/doubles";
 import type { TennisFormat } from "@/core/scoring/types";
 
@@ -12,6 +13,7 @@ interface PointDetailsModalBlockProps {
   handlers: ScoringPageHandlers;
   derived: ScoringPageDerived;
   match: NonNullable<ScoringPageState["match"]>;
+  annotation: ScoringAnnotationFlow;
 }
 
 export function PointDetailsModalBlock({
@@ -19,18 +21,20 @@ export function PointDetailsModalBlock({
   handlers,
   derived,
   match,
+  annotation,
 }: PointDetailsModalBlockProps) {
+  const winner = (annotation?.flow?.winner ?? (state.modalParams as any)?.winner ?? 'player1') as 'player1' | 'player2';
+
   return (
-    <PointAnnotationFlowContainer
-      winnerPlayerSide={
-        (state.modalParams.winner as "player1" | "player2") ?? "player1"
-      }
+    <PointDetailsModal
+      winnerPlayerSide={winner}
       currentServer={derived.effectiveScoreState?.server ?? "player1"}
       player1Name={match.player1.name}
       player2Name={match.player2.name}
       fontScale={state.fontScale}
       onConfirm={handlers.confirmPointDetails}
       onCancel={() => {
+        annotation?.cancelAnnotation?.();
         state.close();
         state.toast({ type: 'info', message: 'Ponto não registrado' });
       }}
@@ -49,11 +53,8 @@ export function PointDetailsModalBlock({
             }
           : undefined
       }
-      recordAceDirectly={handlers.recordAceDirectly}
-      confirmServerEffect={handlers.confirmServerEffect}
-      recordDirectServeError={handlers.recordDirectServeError}
-      hasFirstServeError={Boolean(state.serveErrorState?.firstServeError)}
-      serveStep={state.serveErrorState?.serveStep ?? 'none'}
+      howEnded={annotation?.tipo}
+      whereWinner={annotation?.situacao}
     />
   );
 }

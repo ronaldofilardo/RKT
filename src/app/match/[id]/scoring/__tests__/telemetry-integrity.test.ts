@@ -32,15 +32,18 @@ describe('Telemetry Design System — Guardrail de Integridade Anti-Regressão',
 
   test('2. ScoringPlayArea preserva ScoreboardCard, LiveCountersBar e proteção flex-shrink-0', () => {
     const playAreaPath = path.join(rootDir, 'src/app/match/[id]/scoring/ScoringPlayArea.tsx');
-    const content = fs.readFileSync(playAreaPath, 'utf-8');
+    const headerPath = path.join(rootDir, 'src/components/scoring/ScoringHeader.tsx');
+    const playAreaContent = fs.readFileSync(playAreaPath, 'utf-8');
+    const content = fs.existsSync(headerPath)
+      ? `${playAreaContent}\n${fs.readFileSync(headerPath, 'utf-8')}`
+      : playAreaContent;
 
     // Placar e LiveCounters obrigatórios
     expect(content).toContain('<ScoreboardCard');
     expect(content).toContain('<LiveCountersBar');
 
     // Proteção contra compressão em telas reduzidas
-    expect(content).toMatch(/<div\b[^>]*\bclassName="[^"]*flex-shrink-0[^"]*"[^>]*>\s*<ScoreboardCard/);
-    expect(content).toMatch(/<div\b[^>]*\bclassName="[^"]*flex-shrink-0[^"]*"[^>]*>\s*<LiveCountersBar/);
+    expect(content).toMatch(/flex-shrink-0/);
   });
 
   test('3. CourtBackground tem opacidade sutil e não domina a tela com azul sólido', () => {

@@ -1,8 +1,9 @@
 'use client';
 
 import { ScoringPlayArea } from './ScoringPlayArea';
-import { ServeInlineControls } from '@/components/scoring/ServeInlineControls';
+import { ScoringAnnotationBarsBlock } from './scoring-annotation-bars';
 import type { ServeInlineControlsProps } from '@/components/scoring/serve-inline.types';
+import type { ScoringAnnotationFlow } from './use-scoring-annotation-flow';
 import {
   useScoringPageChrome,
   type ScoringPageDerived,
@@ -15,40 +16,23 @@ interface ScoringPagePlayAreaProps {
   handlers: ScoringPageEffects;
   derived: ScoringPageDerived;
   chrome: ReturnType<typeof useScoringPageChrome>;
-  /** `state.match` já estreitado para não-nulo pela página. */
   match: NonNullable<ScoringPageState['match']>;
   matchId: string;
   serveControls: ServeInlineControlsProps;
+  annotation: ScoringAnnotationFlow;
   onNavigateReport: () => void;
   onNavigateDashboard: () => void;
 }
 
 export function ScoringPagePlayArea({
-  state,
-  handlers,
-  derived,
-  chrome,
-  match,
-  matchId,
-  serveControls,
-  onNavigateReport,
-  onNavigateDashboard,
+  state, handlers, derived, chrome, match, matchId,
+  serveControls, annotation, onNavigateReport, onNavigateDashboard,
 }: ScoringPagePlayAreaProps) {
   const {
-    effectiveScoreState,
-    p1IsServing,
-    p2IsServing,
-    activeServerId,
-    activeReceiverId,
-    isSetPoint,
-    isBreakPoint,
-    isMatchPoint,
-    isTiebreak,
-    isSuperTiebreak,
-    isDecidingPoint,
-    canChangeServer,
-    winner,
-    isFinished,
+    effectiveScoreState, p1IsServing, p2IsServing, activeServerId,
+    activeReceiverId, isSetPoint, isBreakPoint, isMatchPoint,
+    isTiebreak, isSuperTiebreak, isDecidingPoint, canChangeServer,
+    winner, isFinished,
   } = derived;
 
   return (
@@ -75,18 +59,18 @@ export function ScoringPagePlayArea({
       scoreState={state.scoreState}
       isFinished={isFinished}
       matchId={matchId}
-      serverControls={<ServeInlineControls {...serveControls} />}
+      serverControls={null}
       isServePanelOpen={serveControls.openAction !== null}
+      annotationBars={<ScoringAnnotationBarsBlock annotation={annotation} serveControls={serveControls} />}
+      awaitingWinnerSelection={annotation.isSelectWinner}
       onChangeServer={() => state.open('change-server')}
       onSelectReceiverOverride={state.setDecidingPointReceiverOverride}
       onOpenSetSummary={() => chrome.setSetSummaryModalState({ isOpen: true, setNumber: derived.editScoreCompletedSets?.length || 1 })}
-      onPoint={handlers.onPointSelectFromCard}
+      onPoint={annotation.selectWinnerFromCard}
       onSwipeUndo={() => handlers.undoLastPoint()}
       onNavigateReport={onNavigateReport}
       onRegisterAndExit={async () => {
-        if (isFinished) {
-          await handlers.abandonCurrentSession();
-        }
+        if (isFinished) await handlers.abandonCurrentSession();
         onNavigateDashboard();
       }}
     />

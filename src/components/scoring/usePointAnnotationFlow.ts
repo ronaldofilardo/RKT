@@ -4,61 +4,69 @@ import { useCallback, useState } from 'react';
 
 export type HowPointEnded = 'ACE' | 'SERVE_FAULT' | 'WINNER' | 'ERRO_FORCADO' | 'ERRO_NAO_FORCADO';
 export type WhereWinner = 'devolvendo' | 'fundo' | 'voleio' | 'passando';
-export type AnnotationStep = 'how-ended' | 'ace-details' | 'where-winner' | 'select-winner';
+
+export type AnnotationStep =
+  | 'how-ended'
+  | 'ace-details'
+  | 'serve-fault'
+  | 'where-winner'
+  | 'select-winner'
+  | 'details';
 
 export interface PointAnnotationFlowState {
   step: AnnotationStep;
   howEnded: HowPointEnded | null;
   whereWinner: WhereWinner | null;
-  winner: 'player1' | 'player2' | null;
+  winner: 'player1' | 'player2';
 }
 
-const initialFlow: PointAnnotationFlowState = {
+const initialState = (winner: 'player1' | 'player2'): PointAnnotationFlowState => ({
   step: 'how-ended',
   howEnded: null,
   whereWinner: null,
-  winner: null,
-};
+  winner,
+});
 
 export function usePointAnnotationFlow(defaultWinner: 'player1' | 'player2') {
-  const [flow, setFlow] = useState<PointAnnotationFlowState>(() => ({
-    ...initialFlow,
-    winner: defaultWinner,
-  }));
+  const [flow, setFlow] = useState<PointAnnotationFlowState>(() => initialState(defaultWinner));
 
-  const selectHowEnded = useCallback((option: HowPointEnded) => {
-    if (option === 'ACE') {
-      setFlow((prev) => ({ ...prev, howEnded: option, step: 'ace-details' }));
-      return;
-    }
-    if (option === 'SERVE_FAULT') {
-      setFlow((prev) => ({ ...prev, howEnded: option, step: null as never }));
-      return;
-    }
-    setFlow((prev) => ({ ...prev, howEnded: option, step: 'where-winner' }));
+  const setStep = useCallback((step: AnnotationStep) => {
+    setFlow((prev) => ({ ...prev, step }));
   }, []);
 
-  const selectWhereWinner = useCallback((option: WhereWinner) => {
-    setFlow((prev) => ({ ...prev, whereWinner: option, step: 'select-winner' }));
+  const setHowEnded = useCallback((howEnded: HowPointEnded | null) => {
+    setFlow((prev) => ({ ...prev, howEnded }));
   }, []);
 
-  const selectWinner = useCallback((winner: 'player1' | 'player2') => {
+  const setWhereWinner = useCallback((whereWinner: WhereWinner) => {
+    setFlow((prev) => ({ ...prev, whereWinner }));
+  }, []);
+
+  const setWinner = useCallback((winner: 'player1' | 'player2') => {
     setFlow((prev) => ({ ...prev, winner }));
   }, []);
 
   const backToHowEnded = useCallback(() => {
-    setFlow((prev) => ({ ...initialFlow, winner: prev.winner }));
+    setFlow((prev) => initialState(prev.winner));
+  }, []);
+
+  const reset = useCallback((winner: 'player1' | 'player2') => {
+    setFlow(initialState(winner));
   }, []);
 
   return {
     flow,
-    selectHowEnded,
-    selectWhereWinner,
-    selectWinner,
+    setStep,
+    setHowEnded,
+    setWhereWinner,
+    setWinner,
     backToHowEnded,
+    reset,
     isHowEnded: flow.step === 'how-ended',
     isAceDetails: flow.step === 'ace-details',
+    isServeFault: flow.step === 'serve-fault',
     isWhereWinner: flow.step === 'where-winner',
     isSelectWinner: flow.step === 'select-winner',
+    isDetails: flow.step === 'details',
   };
 }

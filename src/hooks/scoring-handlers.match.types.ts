@@ -20,4 +20,7 @@ export interface MatchData {
   version?: number;
   _count?: { pointLog: number };
   recentWinnerIds?: string[];
+  tournamentName?: string | null;
+  category?: string | null;
+  round?: number | null;
 }
