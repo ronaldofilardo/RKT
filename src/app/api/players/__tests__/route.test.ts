@@ -432,6 +432,25 @@ describe('POST /api/players', () => {
       );
     });
 
+    it('aceita ctId explicitamente nulo no payload sem erro de validação (treinador avulso)', async () => {
+      mockCreatePlayer.mockResolvedValue({ id: 'p1', name: 'Test', cpfHash: null, cpfLast2: null, identityStatus: 'PROVISIONAL', athleteCode: 'ABC12345' });
+
+      const req = new NextRequest('http://localhost:3000/api/players', {
+        method: 'POST',
+        body: JSON.stringify({ name: 'Test', ctId: null, myClub: false }),
+        headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
+      });
+      const mod = await import('@/app/api/players/route');
+      const res = await mod.POST(req);
+      expect(res.status).toBe(201);
+      expect(mockCreatePlayer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Test',
+          ctId: null,
+        }),
+      );
+    });
+
     it('deve gerar athleteCode e identityStatus PROVISIONAL quando sem createdByUserId', async () => {
       mockCreatePlayer.mockResolvedValue({ id: 'p1', name: 'Test', cpfHash: null, cpfLast2: null, identityStatus: 'PROVISIONAL', athleteCode: 'ABC12345' });
 

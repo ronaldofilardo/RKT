@@ -72,7 +72,7 @@ export default function AtletasPage() {
           await playersClient.create({
             ...payload,
             myClub: true,
-            ctId: ctx.isParticular ? null : ctx.activeContextId,
+            ctId: ctx.isParticular ? undefined : (ctx.activeContextId || undefined),
           }, token);
           setShowNewAthleteModal(false);
           await loadAthletes();

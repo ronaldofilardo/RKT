@@ -56,12 +56,12 @@ export const CreatePlayerInputSchema = z.object({
   city: z.string().trim().max(100).optional(),
   state: z.enum(BRAZILIAN_UFS).optional(),
   isExternalClub: z.boolean().optional().default(false),
-  cpf: z.string().optional().refine(
+  cpf: z.string().nullish().refine(
     (cpf) => !cpf || isValidCpf(cpf),
     { message: 'CPF inválido' },
   ),
   myClub: z.boolean().optional().default(false),
-  ctId: z.string().optional(),
+  ctId: z.string().nullish(),
   createdByUserId: z.string().optional(),
   nickname: NicknameSchema.optional(),
   poolVisible: z.boolean().optional(),
