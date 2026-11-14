@@ -24,7 +24,7 @@ export function ExternalScheduledMatchRow({
   return (
     <tr className="hover:bg-white/[0.02] transition-colors">
       <td className="px-4 py-3 text-xs text-telemetry-text-muted whitespace-nowrap">{formattedDate}</td>
-      <td className="px-4 py-3 text-xs">
+      <td className="px-4 py-3 text-xs" aria-label={`Confronto: ${m.player1.name} vs ${m.player2.name}`}>
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-semibold text-telemetry-text-primary">{m.player1.name}</span>
