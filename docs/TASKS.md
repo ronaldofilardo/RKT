@@ -472,25 +472,26 @@
 
 ### TD-065. Fase E do PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11 (Fases A-D concluídas) 🟡
 - **Prioridade:** Média
-- **Status:** **Em aberto (só a Fase E)** — Fases A, B, C e D concluídas (D via TD-062 em 2026-11-12; A, B e C verificadas no código em 2026-11-14 — C ainda no working tree, commit pendente).
+- **Status:** **Em aberto (só a Fase E)** — Fases A, B, C e D concluídas (D via TD-062 em 2026-11-12; A, B e C verificadas e commitadas em 2026-11-14 — C no commit `9334796`).
 - **Documento:** [`docs/archive/PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md`](file:///c:/apps/RKT/docs/archive/PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md) (arquivado em 2026-11-14)
 - **Pendências:**
   - [x] **Fase A** — Paginação com cursor (`nextCursor` + "Carregar mais" em `src/app/dashboard/hooks/useDashboardMatches.ts`), resultado discriminado `{ ok: true, matches, nextCursor } | { ok: false, errorMessage }` em `use-dashboard-matches-fetch.ts` (erro deixa de virar `[]`).
   - [x] **Fase B** — Cartazes do criador visíveis em "Minhas Partidas": `ownTemplates` (`isTemplate: true`) em `src/services/match-repository-where.logic.ts` + cartazes do círculo em `match-repository-circle.logic.ts`.
-  - [x] **Fase C** — Consistência estrita de `ctId`: `resolveDerivedCtId` com `if (explicitCtId !== undefined) return explicitCtId;` (null = PARTICULAR nunca herda o CT do cartaz) em `src/services/match-resolve-payload.logic.ts` — **alteração no working tree, commit pendente**; verificar `switchUserArea`/`resolveMatchCtId` no momento do commit.
+  - [x] **Fase C** — Consistência estrita de `ctId`: `resolveDerivedCtId` com `if (explicitCtId !== undefined) return explicitCtId;` (null = PARTICULAR nunca herda o CT do cartaz) em `src/services/match-resolve-payload.logic.ts` — commitada em `9334796` (2026-11-14), junto com `switchUserArea` (`resolvedCtId`) e `resolveMatchCtId` unificado já presentes no HEAD.
   - [ ] **Fase E** — Diagnóstico em banco, saneamento e testes.
 - **DoD:** Fase E entregue com `pnpm typecheck`, `pnpm check:r03` e `pnpm test:design` 100% verdes.
 
 ---
 
-### TD-066. Resíduos do PLANO_USABILIDADE_OUTDOOR_E_CORES_PERCEPTUAIS_2026-11-03 (arquivado) 🔴
+### TD-066. Resíduos do PLANO_USABILIDADE_OUTDOOR_E_CORES_PERCEPTUAIS_2026-11-03 (arquivado) ✅
 - **Prioridade:** Alta (contraste/acessibilidade)
+- **Status:** **Resolvido em 2026-11-14** — os 3 resíduos corrigidos e validados (MEMORY §2.42 e §2.44).
 - **Documento:** [`docs/archive/PLANO_USABILIDADE_OUTDOOR_E_CORES_PERCEPTUAIS_2026-11-03.md`](file:///c:/apps/RKT/docs/archive/PLANO_USABILIDADE_OUTDOOR_E_CORES_PERCEPTUAIS_2026-11-03.md)
 - **Contexto:** Tokens OKLCH (`--telemetry-score-*` em `globals.css`), acentos de quadra e o teste `src/__tests__/contrast-wcag.test.ts` foram entregues, mas havia 3 lacunas verificadas no código em 2026-11-14:
 - [x] ~~**`text-telemetry-score-*` não gera CSS:**~~ **CORRIGIDO (2026-11-14):** chave `score` adicionada em `tailwind.config.ts` (`main`/`secondary`/`accent` apontando para `--telemetry-score-*`) e criado o guard `src/__tests__/tailwind-utilities.guard.test.ts`, que compila o Tailwind com os arquivos consumidores (`scoreboard-card-cells.tsx`, `ScoreboardCard.tsx`, `match-card-set-cells.tsx`, `match-card-score-grid.tsx`, `match-card-live-points.tsx`) e falha se alguma classe `text-telemetry-*` usada não gerar regra CSS. Validação: guard 3/3, `test:design` 29/29 (4 suítes, incluindo o guard), `contrast-wcag` 23/23, `typecheck` 0 erros, `check:r03` 0 violações.
-- [ ] **Modo outdoor/high-contrast inexistente:** `ThemePreference` é apenas `'light' | 'dark' | 'system'` (`src/contexts/use-theme-provider-state.ts:6`); nenhuma implementação de "sol forte".
-- [ ] **Badge/pill de superfície sem consumidor:** `--court-badge-bg-opacity` (0.12/0.20) definido em `globals.css` mas não usado por nenhum componente.
-- **DoD:** classe gerando CSS com contraste ≥7:1 comprovado + decisão registrada (implementar modo outdoor ou descartar com justificativa) + pill de superfície implementada ou removida do token.
+- [x] ~~**Modo outdoor/high-contrast inexistente:**~~ **CORRIGIDO (2026-11-14):** `ThemePreference` agora inclui `'outdoor'` (`src/contexts/use-theme-provider-state.ts`, resolve para claro), com botão em `src/components/theme-toggle-options.tsx` (opções extraídas do `ThemeToggle.tsx` por R-03), bloco `:root[data-theme='outdoor']:not(.dark)` em `globals.css` (branco puro, texto preto 21:1, score AAA, bordas `#64748B`) e restauração sem flash no script inline de `layout.tsx`. Testes: `outdoor-theme.test.ts` 5/5 + 5 casos outdoor no `contrast-wcag` (≥7:1).
+- [x] ~~**Badge/pill de superfície sem consumidor:**~~ **CORRIGIDO (2026-11-14):** classe `.court-pill` em `globals.css` consome `--court-badge-bg-opacity`/`--court-badge-text-opacity` (tokens antes órfãos) com `--court-pill-*-text` por tema (claro escurecido OKLCH L=0.35, escuro com brilho sutil); `src/components/dashboard/format-label.tsx` usa `court-pill[data-court]` no lugar de `bg-amber/emerald/sky` genéricos. Testes: `court-pill.test.ts` 4/4 + 6 casos reais no `contrast-wcag` (≥4.5:1) — os antigos mediam contra preto silencioso (rgba parseado como NaN).
+- **DoD atendido (2026-11-14):** classe gerando CSS com contraste ≥7:1 comprovado, modo outdoor implementado com decisão registrada, pill implementada consumindo os tokens. Validação final: suíte completa **581/581 suites e 4893/4893 testes**, `contrast-wcag` 28/28, `test:design` 29/29, `typecheck` 0 erros, `check:r03` 0 violações.
 
 ---
 
