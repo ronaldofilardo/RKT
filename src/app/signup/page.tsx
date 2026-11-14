@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { BrandLogo } from '@/components/ui/brand-logo';
 import { SignupFormFields } from './signup-form-fields';
 import { GestorOnboardingModal } from './gestor-onboarding-modal';
@@ -15,8 +15,17 @@ function resolvePerfil(raw: string | null): SignupRole {
 }
 
 export default function SignupPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const form = useSignupForm(resolvePerfil(searchParams.get('perfil')));
+
+  const handleGestorSuccess = () => {
+    form.setShowGestorModal(false);
+    router.push('/login');
+    if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
+      window.location.href = '/login';
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-telemetry-base p-4">
@@ -38,7 +47,11 @@ export default function SignupPage() {
             Já tem conta? <Link href="/login" className="text-telemetry-blue hover:text-telemetry-blue-light font-semibold hover:underline">Entrar</Link>
           </div>
         </form>
-        <GestorOnboardingModal open={form.showGestorModal} onOpenChange={form.setShowGestorModal} />
+        <GestorOnboardingModal
+          open={form.showGestorModal}
+          onOpenChange={form.setShowGestorModal}
+          onSuccess={handleGestorSuccess}
+        />
       </div>
     </div>
   );

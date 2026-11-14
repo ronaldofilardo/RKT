@@ -10,9 +10,10 @@ import { GestorOnboardingStep2 } from './gestor-onboarding-step2';
 interface GestorOnboardingModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
-export function GestorOnboardingModal({ open, onOpenChange }: GestorOnboardingModalProps) {
+export function GestorOnboardingModal({ open, onOpenChange, onSuccess }: GestorOnboardingModalProps) {
   const router = useRouter();
   const {
     step, setStep, form, handleChange, handleAddressChange,
@@ -55,8 +56,15 @@ export function GestorOnboardingModal({ open, onOpenChange }: GestorOnboardingMo
         return;
       }
       setSubmitting(false);
-      onOpenChange(false);
       router.push('/login');
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        onOpenChange(false);
+        if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
+          window.location.href = '/login';
+        }
+      }
     } catch {
       setError('Sem conexão. Verifique sua internet e tente novamente.');
       setSubmitting(false);

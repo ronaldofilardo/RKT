@@ -22,52 +22,30 @@ export function useSignupForm(initialRole: SignupRole) {
   const [showGestorModal, setShowGestorModal] = useState(false);
 
   const values: Record<SignupField, string> = { name, identifier, password };
+  const setFieldError = (field: SignupField, msg: string | null) => setFieldErrors((p) => ({ ...p, [field]: msg ?? undefined }));
 
-  function setFieldError(field: SignupField, message: string | null) {
-    setFieldErrors((prev) => ({ ...prev, [field]: message ?? undefined }));
-  }
+  const handleBlur = (f: SignupField) => {
+    setTouched((p) => ({ ...p, [f]: true }));
+    setFieldError(f, validateSignupField(f, values[f]));
+  };
 
-  function handleBlur(field: SignupField) {
-    setTouched((prev) => ({ ...prev, [field]: true }));
-    setFieldError(field, validateSignupField(field, values[field]));
-  }
-
-  function handleNameChange(value: string) {
-    setName(value);
-    if (touched.name) setFieldError('name', validateSignupField('name', value));
-  }
-
-  function handleIdentifierChange(value: string) {
-    const next = formatIdentifierInput(value);
-    setIdentifier(next);
-    if (touched.identifier) setFieldError('identifier', validateSignupField('identifier', next));
-  }
-
-  function handlePasswordChange(value: string) {
-    setPassword(value);
-    if (touched.password) setFieldError('password', validateSignupField('password', value));
-  }
+  const handleNameChange = (val: string) => { setName(val); if (touched.name) setFieldError('name', validateSignupField('name', val)); };
+  const handleIdentifierChange = (val: string) => { const n = formatIdentifierInput(val); setIdentifier(n); if (touched.identifier) setFieldError('identifier', validateSignupField('identifier', n)); };
+  const handlePasswordChange = (val: string) => { setPassword(val); if (touched.password) setFieldError('password', validateSignupField('password', val)); };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-
-    if (!termsAccepted) {
-      setError('Aceite os Termos de Uso e a Política de Privacidade para continuar');
-      return;
-    }
-    if (role === 'GESTOR') {
-      setShowGestorModal(true);
-      return;
-    }
+    if (!termsAccepted) return setError('Aceite os Termos de Uso e a Política de Privacidade para continuar');
+    if (role === 'GESTOR') return setShowGestorModal(true);
 
     const nextErrors: Partial<Record<SignupField, string>> = {};
-    const nameError = validateSignupField('name', name);
-    const identifierError = validateSignupField('identifier', identifier);
-    const passwordError = validateSignupField('password', password);
-    if (nameError) nextErrors.name = nameError;
-    if (identifierError) nextErrors.identifier = identifierError;
-    if (passwordError) nextErrors.password = passwordError;
+    const nErr = validateSignupField('name', name);
+    const iErr = validateSignupField('identifier', identifier);
+    const pErr = validateSignupField('password', password);
+    if (nErr) nextErrors.name = nErr;
+    if (iErr) nextErrors.identifier = iErr;
+    if (pErr) nextErrors.password = pErr;
 
     setTouched({ name: true, identifier: true, password: true });
     setFieldErrors(nextErrors);
@@ -81,8 +59,12 @@ export function useSignupForm(initialRole: SignupRole) {
         body: JSON.stringify({ name, identifier, password, role, origem }),
       });
       const data = await res.json();
-      if (!res.ok) setError(data.message || data.error || 'Erro ao criar conta');
-      else router.push('/login');
+      if (!res.ok) {
+        setError(data.message || data.error || 'Erro ao criar conta');
+      } else {
+        router.push('/login');
+        if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') window.location.href = '/login';
+      }
     } catch {
       setError('Sem conexão. Verifique sua internet e tente novamente.');
     } finally {
