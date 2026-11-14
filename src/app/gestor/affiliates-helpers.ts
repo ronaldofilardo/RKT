@@ -33,12 +33,14 @@ export function formatLocation(city?: string | null, state?: string | null): str
 
 function formatSingleRanking(org: string, val: any): string | null {
   const label = org.toUpperCase();
-  if (typeof val === 'number' || typeof val === 'string') {
-    return `${label}: #${val}`;
-  }
+  if (typeof val === 'number' || typeof val === 'string') return `${label}: #${val}`;
   if (typeof val === 'object' && val !== null) {
-    const pos = val.position ?? val.pos ?? val.ranking ?? null;
-    const cat = val.category ?? val.class ?? null;
+    const rawPos = val.position ?? val.pos ?? val.ranking ?? null;
+    const pos = typeof rawPos === 'number' || typeof rawPos === 'string' ? rawPos : null;
+    const rawCat = val.category ?? val.class ?? null;
+    const cat = typeof rawCat === 'string'
+      ? rawCat
+      : (typeof rawCat === 'object' && rawCat !== null ? (rawCat.name || rawCat.label || null) : null);
     if (pos && cat) return `${label}: #${pos} (${cat})`;
     if (pos) return `${label}: #${pos}`;
     if (cat) return `${label} (${cat})`;

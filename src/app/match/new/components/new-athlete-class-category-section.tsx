@@ -36,8 +36,8 @@ export function NewAthleteClassCategorySection({
       <div className="col-span-3">
         <div className="bg-telemetry-blue/10 border border-telemetry-blue/20 rounded-xl p-4 h-full">
         <h3 className="text-sm font-semibold text-telemetry-text-primary mb-2">Categoria por idade</h3>
-        {age === null || !form.gender ? (
-          <p className="text-xs text-telemetry-text-muted italic">Preencha sexo e data de nascimento para identificar a categoria.</p>
+        {age === null ? (
+          <p className="text-xs text-telemetry-text-muted italic">Preencha a data de nascimento para identificar a categoria.</p>
         ) : age < 11 || age > 90 ? (
           <p className="text-xs text-telemetry-text-muted italic">Sem categoria etária disponível para a idade atual ({age} anos).</p>
         ) : (

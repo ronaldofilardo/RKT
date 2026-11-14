@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
+import { reportApiError } from '@/lib/api.logic';
 import { CreatePlayerInputSchema } from '@/schemas/player';
 import { createPlayer } from '@/services/playerService';
 import { getActor } from '@/services/accessService';
@@ -85,6 +86,6 @@ export async function handlePlayersPost(
     return NextResponse.json({ data: player }, { status: 201 });
   } catch (error) {
     logger.error('[PLAYERS POST]', error);
-    return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });
+    return reportApiError(error);
   }
 }

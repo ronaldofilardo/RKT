@@ -1,6 +1,5 @@
 'use client';
 
-import { NewAthleteModal } from '@/app/match/new/components/NewAthleteModal';
 import { LinkCopyModal } from '@/app/gestor/link-copy-modal';
 import { EditAthleteModal } from './EditAthleteModal';
 import { AthleteSearchHeader } from './components/AthleteSearchHeader';
@@ -9,6 +8,7 @@ import { DeleteAthleteModal } from '@/components/athlete/delete-athlete-modal';
 import { useAtletasPage } from './hooks/useAtletasPage';
 import { useAtletasContext } from './hooks/use-atletas-context';
 import { useAthleteLink } from './hooks/use-athlete-link';
+import { playersClient } from '@/services/playersClient';
 
 export default function AtletasPage() {
   const {
@@ -62,7 +62,22 @@ export default function AtletasPage() {
       </main>
 
       <EditAthleteModal athlete={editingAthlete} isOpen={!!editingAthlete} readOnly={isClubCoach} onClose={() => setEditingAthlete(null)} onSave={saveAthleteChanges} />
-      <NewAthleteModal isOpen={showNewAthleteModal} onClose={() => setShowNewAthleteModal(false)} onCreated={() => { setShowNewAthleteModal(false); loadAthletes(); }} myClub={true} ctId={ctx.isParticular ? null : ctx.activeContextId} />
+      <EditAthleteModal
+        isOpen={showNewAthleteModal}
+        athlete={null}
+        showCpf={true}
+        onClose={() => setShowNewAthleteModal(false)}
+        onSave={async (payload) => {
+          const token = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
+          await playersClient.create({
+            ...payload,
+            myClub: true,
+            ctId: ctx.isParticular ? null : ctx.activeContextId,
+          }, token);
+          setShowNewAthleteModal(false);
+          await loadAthletes();
+        }}
+      />
       {athleteToDelete && (
         <DeleteAthleteModal
           athleteName={athleteToDelete.name}

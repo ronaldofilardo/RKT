@@ -2,7 +2,6 @@ import { useEffect, useState, useMemo } from 'react';
 import type { RankingType } from '@/lib/ranking/rankingConstants';
 import { EMPTY_ATHLETE_FORM, type AthleteForm } from './types';
 import {
-  createEmptyRankingState,
   athleteToRankingsState,
   type RankingState,
 } from './edit-athlete-modal.logic';
@@ -11,33 +10,32 @@ import { buildFormFromAthlete, buildSavePayload } from './edit-athlete-modal.sub
 import { calculateEffectiveAge, syncRankingsWithAgeAndGender } from './ranking-sync.logic';
 
 interface UseEditAthleteModalParams {
-  athlete: EditAthleteModalProps['athlete'];
+  athlete?: EditAthleteModalProps['athlete'];
+  isOpen?: boolean;
   onSave: (data: EditAthleteSavePayload) => Promise<void>;
 }
 
-export function useEditAthleteModal({ athlete, onSave }: UseEditAthleteModalParams) {
+export function useEditAthleteModal({ athlete, isOpen, onSave }: UseEditAthleteModalParams) {
   const [form, setForm] = useState<AthleteForm>(EMPTY_ATHLETE_FORM);
-  const [rankings, setRankings] = useState<Record<RankingType, RankingState>>({
-    ESTADUAL: createEmptyRankingState(),
-    CBT: createEmptyRankingState(),
-    COSAT: createEmptyRankingState(),
-    ITF: createEmptyRankingState(),
-    ITF_Juniors: createEmptyRankingState(),
-    ATP: createEmptyRankingState(),
-    WTA: createEmptyRankingState(),
-  });
+  const [rankings, setRankings] = useState<Record<RankingType, RankingState>>(athleteToRankingsState(null));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!athlete) return;
+    if (isOpen === false) return;
+    if (!athlete) {
+      setForm(EMPTY_ATHLETE_FORM);
+      setRankings(athleteToRankingsState(null));
+      setError(null);
+      return;
+    }
     const initialForm = buildFormFromAthlete(athlete);
     setForm(initialForm);
     const initialAge = calculateEffectiveAge(initialForm.birthYear, athlete.age);
     const initialRankings = athleteToRankingsState(athlete.rankings);
     setRankings(syncRankingsWithAgeAndGender(initialRankings, initialAge, initialForm.gender));
     setError(null);
-  }, [athlete]);
+  }, [athlete, isOpen]);
 
   const age = useMemo(
     () => calculateEffectiveAge(form.birthYear, athlete?.age),
@@ -67,11 +65,12 @@ export function useEditAthleteModal({ athlete, onSave }: UseEditAthleteModalPara
   };
 
   const saveEditedAthlete = async () => {
-    if (!athlete || !form.name.trim()) return;
+    if (!form.name.trim()) return;
     setSaving(true);
     setError(null);
     try {
       await onSave(buildSavePayload(form, rankings));
+      if (!athlete) setForm(EMPTY_ATHLETE_FORM);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao salvar');
     } finally {

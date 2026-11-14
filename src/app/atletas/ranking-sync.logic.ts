@@ -35,19 +35,19 @@ export function syncRankingsWithAgeAndGender(
     return updated;
   }
 
+  const allowedCats = getAllowedCategoriesForAge('ESTADUAL', age);
+  let category = updated.ESTADUAL.category;
+  let juvenilePosition = updated.ESTADUAL.juvenilePosition;
+
+  if (allowedCats.length === 0) {
+    category = '';
+    juvenilePosition = '';
+  } else if (!allowedCats.includes(category)) {
+    const autoCats = getAutoCategoryForAge('ESTADUAL', age);
+    category = autoCats[0] ?? allowedCats[0] ?? '';
+  }
+
   if (updated.ESTADUAL.enabled) {
-    const allowedCats = getAllowedCategoriesForAge('ESTADUAL', age);
-    let category = updated.ESTADUAL.category;
-    let juvenilePosition = updated.ESTADUAL.juvenilePosition;
-
-    if (allowedCats.length === 0) {
-      category = '';
-      juvenilePosition = '';
-    } else if (!allowedCats.includes(category)) {
-      const autoCats = getAutoCategoryForAge('ESTADUAL', age);
-      category = autoCats[0] ?? allowedCats[0] ?? '';
-    }
-
     const validClasses = computeClassesForType(category, gender, age);
     let currentClass = updated.ESTADUAL.class;
     if (validClasses.length > 0) {
@@ -65,6 +65,11 @@ export function syncRankingsWithAgeAndGender(
       category,
       class: currentClass,
       juvenilePosition,
+    };
+  } else {
+    updated.ESTADUAL = {
+      ...updated.ESTADUAL,
+      category,
     };
   }
 

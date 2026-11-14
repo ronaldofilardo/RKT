@@ -7,6 +7,7 @@ import { generateUniqueAthleteCode } from '@/core/athlete/athlete-code';
 import { normalizeNickname } from '@/core/athlete/nickname';
 import { createPlayerRow } from './player-create-row.logic';
 import { handlePlayerPostCreate } from './player-create-links.logic';
+import { tryResolveExistingPlayer } from './player-create-existing.logic';
 
 type CreatePlayerActor = 'ATLETA' | 'GESTOR' | 'TREINADOR' | null;
 
@@ -41,11 +42,6 @@ export async function createPlayer(data: {
         ? currentYear - data.birthYear
         : undefined);
 
-  const athleteCode = await generateUniqueAthleteCode(async (code) => {
-    const existing = await prisma.player.findFirst({ where: { athleteCode: code }, select: { id: true } });
-    return Boolean(existing);
-  });
-
   let rankingsPayload: Record<string, unknown> = data.rankings ? { ...data.rankings } : {};
   if (age !== undefined && age >= 11 && !rankingsPayload.ESTADUAL) {
     const autoCats = getAutoCategoryForAge('ESTADUAL', age);
@@ -55,6 +51,15 @@ export async function createPlayer(data: {
   }
 
   const nickname = data.nickname ? normalizeNickname(data.nickname) : null;
+  if (nickname) {
+    const resolved = await tryResolveExistingPlayer({ nickname, data: { ...data, rankingsPayload, cpfHash, cpfLast2 } });
+    if (resolved) return resolved;
+  }
+
+  const athleteCode = await generateUniqueAthleteCode(async (code) => {
+    const existing = await prisma.player.findFirst({ where: { athleteCode: code }, select: { id: true } });
+    return Boolean(existing);
+  });
 
   const player = await createPlayerRow({
     data: {

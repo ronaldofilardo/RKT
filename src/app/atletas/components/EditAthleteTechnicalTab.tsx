@@ -3,6 +3,7 @@ import type { RankingType } from '@/lib/ranking/rankingConstants';
 import type { AthleteForm } from '../types';
 import type { RankingState } from '../edit-athlete-modal.logic';
 import { RankingForm } from '../RankingForm';
+import { EditAthleteClassCategorySection } from './EditAthleteClassCategorySection';
 
 interface EditAthleteTechnicalTabProps {
   form: AthleteForm;
@@ -25,6 +26,14 @@ export function EditAthleteTechnicalTab({
 }: EditAthleteTechnicalTabProps) {
   return (
     <div className="space-y-4">
+      <EditAthleteClassCategorySection
+        rankings={rankings}
+        form={form}
+        age={age}
+        saving={saving}
+        onRankingFieldChange={onRankingFieldChange}
+      />
+
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label htmlFor="edit-athlete-dominance" className="block text-xs font-medium text-telemetry-text-primary mb-1">

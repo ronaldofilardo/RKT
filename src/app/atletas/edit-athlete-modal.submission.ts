@@ -5,6 +5,7 @@ import type { EditAthleteSavePayload } from './edit-athlete-modal.types';
 
 interface AthleteLike {
   name: string;
+  nickname?: string | null;
   cpf?: string | null;
   gender?: string | null;
   birthDate?: string | null;
@@ -20,6 +21,7 @@ export function buildFormFromAthlete(athlete: AthleteLike): AthleteForm {
   const birthDate = athlete.birthDate ? new Date(athlete.birthDate) : null;
   return {
     name: athlete.name || '',
+    nickname: athlete.nickname || '',
     cpf: athlete.cpf || '',
     gender: athlete.gender || '',
     birthDay: birthDate ? String(birthDate.getUTCDate()).padStart(2, '0') : '',
@@ -43,6 +45,7 @@ export function buildSavePayload(
     : undefined;
   return {
     name: form.name.trim(),
+    nickname: form.nickname?.trim() || undefined,
     cpf: form.cpf ? form.cpf.trim() : undefined,
     gender: form.gender || undefined,
     birthDate,

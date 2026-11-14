@@ -4,12 +4,13 @@ interface EditAthleteModalFooterProps {
   saving: boolean;
   canSave: boolean;
   readOnly?: boolean;
+  saveLabel?: string;
   onClose: () => void;
   onSave: () => void;
 }
 
 export function EditAthleteModalFooter({
-  saving, canSave, readOnly, onClose, onSave,
+  saving, canSave, readOnly, saveLabel, onClose, onSave,
 }: EditAthleteModalFooterProps) {
   if (readOnly) {
     return (
@@ -36,7 +37,7 @@ export function EditAthleteModalFooter({
         type="button" onClick={onSave} disabled={saving || !canSave}
         className="flex-1 px-4 py-2.5 bg-telemetry-blue text-white font-medium rounded-lg hover:opacity-90 disabled:opacity-50 transition-colors shadow-sm shadow-telemetry-blue/20"
       >
-        {saving ? 'Salvando...' : 'Salvar Alterações'}
+        {saving ? 'Salvando...' : (saveLabel || 'Salvar Alterações')}
       </button>
     </div>
   );

@@ -2,6 +2,7 @@ import type { RankingEntry } from './edit-athlete-modal.logic';
 
 export interface EditAthleteSavePayload {
   name: string;
+  nickname?: string;
   cpf?: string;
   gender?: string;
   birthDate?: string;
@@ -15,9 +16,10 @@ export interface EditAthleteSavePayload {
 }
 
 export interface EditAthleteModalProps {
-  athlete: {
-    id: string;
+  athlete?: {
+    id?: string;
     name: string;
+    nickname?: string | null;
     cpf?: string | null;
     gender?: string | null;
     age?: number | null;
@@ -27,6 +29,8 @@ export interface EditAthleteModalProps {
     rankings?: Record<string, RankingEntry> | null;
   } | null;
   isOpen: boolean;
+  title?: string;
+  saveLabel?: string;
   readOnly?: boolean;
   showCpf?: boolean;
   cpfRequired?: boolean;

@@ -1,6 +1,7 @@
 /** Estado do formulário de cadastro/edição de atleta. */
 export interface AthleteForm {
   name: string;
+  nickname?: string;
   cpf?: string;
   gender: string;
   birthDay: string;
@@ -16,6 +17,7 @@ export interface AthleteForm {
 /** Estado inicial do formulário de atleta. */
 export const EMPTY_ATHLETE_FORM: AthleteForm = {
   name: "",
+  nickname: "",
   cpf: "",
   gender: "",
   birthDay: "",
