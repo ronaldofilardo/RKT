@@ -1,6 +1,11 @@
 import { prisma } from '@/lib/prisma';
 import type { Actor } from '@/core/access';
 import { resolveCreatorRoleLabel } from '@/app/gestor/gestor-match-display.logic';
+import {
+  buildDismissedKeys,
+  isMatchDismissed,
+  deduplicateFeedItems,
+} from './scheduled-matches-dedup.logic';
 
 export async function loadScheduledMatchesFeed(actor: Actor) {
   if (actor.activeArea === 'GESTOR') return [];
@@ -17,8 +22,9 @@ export async function loadScheduledMatchesFeed(actor: Actor) {
     }),
   ]);
 
-  const dismissedMatchIds = new Set(
-    dismissed.map((n) => (n.payload as Record<string, any>)?.matchId).filter(Boolean),
+  const dismissedKeys = buildDismissedKeys(dismissed);
+  const rawDismissedIds = Array.from(
+    new Set(dismissed.map((n) => (n.payload as Record<string, any>)?.matchId).filter(Boolean)),
   );
   const coveredMatchIds = new Set(
     existingNotifs.map((n) => (n.payload as Record<string, any>)?.matchId).filter(Boolean),
@@ -30,14 +36,14 @@ export async function loadScheduledMatchesFeed(actor: Actor) {
     ...(actor.guardianOfPlayerIds || []),
   ].filter(Boolean))) as string[];
 
-  if (relevantPlayerIds.length === 0) return existingNotifs;
+  if (relevantPlayerIds.length === 0) return deduplicateFeedItems(existingNotifs);
 
   const matches = await prisma.match.findMany({
     where: {
       deletedAt: null,
       state: { in: ['SCHEDULED', 'IN_PROGRESS'] },
       createdByUserId: { not: actor.userId },
-      id: { notIn: Array.from(dismissedMatchIds) },
+      id: { notIn: rawDismissedIds },
       OR: [
         { player1Id: { in: relevantPlayerIds } },
         { player2Id: { in: relevantPlayerIds } },
@@ -63,7 +69,7 @@ export async function loadScheduledMatchesFeed(actor: Actor) {
   });
 
   const dynamicItems = matches
-    .filter((m) => !coveredMatchIds.has(m.id))
+    .filter((m) => !coveredMatchIds.has(m.id) && !isMatchDismissed(m, dismissedKeys))
     .map((m) => ({
       id: `match-scheduled-${m.id}`,
       recipientId: actor.userId,
@@ -83,8 +89,5 @@ export async function loadScheduledMatchesFeed(actor: Actor) {
       expiresAt: null,
     }));
 
-  return [...existingNotifs, ...dynamicItems]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 20);
+  return deduplicateFeedItems([...existingNotifs, ...dynamicItems]).slice(0, 20);
 }
-

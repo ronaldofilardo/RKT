@@ -8,6 +8,7 @@ interface TabNavProps {
   matchesCount?: number;
   coachesCount?: number;
   athletesCount?: number;
+  affiliatesCount?: number;
 }
 
 export function TabNav({
@@ -16,10 +17,12 @@ export function TabNav({
   matchesCount,
   coachesCount,
   athletesCount,
+  affiliatesCount,
 }: TabNavProps) {
   const tabs: Array<{ key: GestorTab; label: string; badge?: number }> = [
     { key: 'coaches', label: 'Treinadores', badge: coachesCount },
     { key: 'athletes', label: 'Atletas', badge: athletesCount },
+    { key: 'affiliates', label: 'Afiliados', badge: affiliatesCount },
     { key: 'matches', label: 'Partidas', badge: matchesCount },
     { key: 'club', label: 'Clube' },
   ];
@@ -30,10 +33,11 @@ export function TabNav({
         <button
           key={t.key}
           onClick={() => onTabChange(t.key)}
-          className={`px-3 py-2 text-sm font-medium border-b-2 flex items-center gap-1.5 whitespace-nowrap transition-colors ${tab === t.key
+          className={`px-3 py-2 text-sm font-medium border-b-2 flex items-center gap-1.5 whitespace-nowrap transition-colors ${
+            tab === t.key
               ? 'border-telemetry-blue text-telemetry-blue font-semibold'
               : 'border-transparent text-telemetry-text-muted hover:text-telemetry-text-primary'
-            }`}
+          }`}
         >
           {t.label}
           {typeof t.badge === 'number' && t.badge >= 0 && (

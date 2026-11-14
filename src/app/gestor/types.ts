@@ -90,5 +90,5 @@ export interface ClubMatchItem {
   } | null;
 }
 
-export type GestorTab = 'coaches' | 'athletes' | 'matches' | 'club';
+export type GestorTab = 'coaches' | 'athletes' | 'affiliates' | 'matches' | 'club';
 export type MemberType = 'TREINADOR' | 'ATLETA';

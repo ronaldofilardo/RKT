@@ -14,12 +14,14 @@ describe('TabNav - Painel do Gestor', () => {
         onTabChange={handleTabChange}
         coachesCount={1}
         athletesCount={4}
+        affiliatesCount={10}
         matchesCount={6}
       />
     );
 
     expect(screen.getByRole('button', { name: /Treinadores 1/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Atletas 4/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Afiliados 10/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Partidas 6/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Clube/i })).toBeInTheDocument();
   });
@@ -32,13 +34,13 @@ describe('TabNav - Painel do Gestor', () => {
         onTabChange={handleTabChange}
         coachesCount={2}
         athletesCount={5}
+        affiliatesCount={7}
         matchesCount={3}
       />
     );
 
-    const athletesBtn = screen.getByRole('button', { name: /Atletas 5/i });
-    fireEvent.click(athletesBtn);
-    expect(handleTabChange).toHaveBeenCalledWith('athletes');
+    const affiliatesBtn = screen.getByRole('button', { name: /Afiliados 7/i });
+    fireEvent.click(affiliatesBtn);
+    expect(handleTabChange).toHaveBeenCalledWith('affiliates');
   });
 });
-

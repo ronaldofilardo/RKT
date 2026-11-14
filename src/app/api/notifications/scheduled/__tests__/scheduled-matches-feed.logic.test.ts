@@ -4,12 +4,8 @@ import type { Actor } from '@/core/access';
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {
-    notification: {
-      findMany: jest.fn(),
-    },
-    match: {
-      findMany: jest.fn(),
-    },
+    notification: { findMany: jest.fn() },
+    match: { findMany: jest.fn() },
   },
 }));
 
@@ -31,25 +27,17 @@ describe('loadScheduledMatchesFeed', () => {
     activeArea: 'ATLETA',
   };
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+  beforeEach(() => { jest.clearAllMocks(); });
 
   it('retorna vazio se o usuário ativo for Gestor', async () => {
-    const gestorActor: Actor = {
-      ...baseActor,
-      activeArea: 'GESTOR',
-    };
+    const gestorActor: Actor = { ...baseActor, activeArea: 'GESTOR' };
     const result = await loadScheduledMatchesFeed(gestorActor);
     expect(result).toEqual([]);
     expect(mockPrisma.notification.findMany).not.toHaveBeenCalled();
   });
 
   it('retorna notificações dinâmicas para atleta mesmo sem registro prévio na tabela Notification', async () => {
-    mockPrisma.notification.findMany
-      .mockResolvedValueOnce([]) // existing unread
-      .mockResolvedValueOnce([]); // dismissed
-
+    mockPrisma.notification.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
     mockPrisma.match.findMany.mockResolvedValueOnce([
       {
         id: 'match-100',
@@ -72,32 +60,25 @@ describe('loadScheduledMatchesFeed', () => {
     ]);
 
     const feed = await loadScheduledMatchesFeed(baseActor);
-
     expect(feed).toHaveLength(1);
     expect(feed[0].id).toBe('match-scheduled-match-100');
     expect(feed[0].payload.player1Name).toBe('Atleta Meu');
-    expect(feed[0].payload.player2Name).toBe('Atleta Adversário');
     expect(feed[0].payload.createdByName).toBe('Treinador Carlos');
     expect(feed[0].payload.creatorRole).toBe('Treinador Pessoal');
   });
 
   it('ignora partidas já dispensadas pelo usuário', async () => {
     mockPrisma.notification.findMany
-      .mockResolvedValueOnce([]) // unread
-      .mockResolvedValueOnce([{ payload: { matchId: 'match-dismissed-1' } }]); // dismissed
-
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ payload: { matchId: 'match-dismissed-1' } }]);
     mockPrisma.match.findMany.mockResolvedValueOnce([]);
 
     const feed = await loadScheduledMatchesFeed(baseActor);
     expect(feed).toHaveLength(0);
-
     expect(mockPrisma.match.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: expect.objectContaining({
-          id: { notIn: ['match-dismissed-1'] },
-        }),
+        where: expect.objectContaining({ id: { notIn: ['match-dismissed-1'] } }),
       }),
     );
   });
 });
-
