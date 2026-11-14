@@ -54,3 +54,42 @@ describe('TrocarSenhaForm - Escape Hatch', () => {
     expect(mockOnCancel).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('TrocarSenhaPage - submissão com token e sem token', () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+    jest.clearAllMocks();
+  });
+
+  it('envia Authorization Bearer quando autenticado via sessionStorage', async () => {
+    sessionStorage.setItem('access_token', 'jwt-token-xyz');
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ message: 'Senha alterada com sucesso.' }),
+    } as any);
+
+    const { default: TrocarSenhaPage } = await import('../page');
+    render(<TrocarSenhaPage />);
+
+    const currentInput = screen.getByPlaceholderText('Senha atual');
+    const newInput = screen.getByPlaceholderText('Nova senha (mínimo 8 caracteres)');
+    const confirmInput = screen.getByPlaceholderText('Confirmar nova senha');
+    const submitBtn = screen.getByRole('button', { name: /^trocar senha$/i });
+
+    fireEvent.change(currentInput, { target: { value: '01012001' } });
+    fireEvent.change(newInput, { target: { value: '02022002' } });
+    fireEvent.change(confirmInput, { target: { value: '02022002' } });
+    fireEvent.click(submitBtn);
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/auth/change-password',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          Authorization: 'Bearer jwt-token-xyz',
+          'Content-Type': 'application/json',
+        }),
+      }),
+    );
+  });
+});

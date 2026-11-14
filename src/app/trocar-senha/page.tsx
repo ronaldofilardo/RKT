@@ -23,9 +23,19 @@ function TrocarSenhaContent() {
     try {
       const endpoint = token ? '/api/auth/reset-password' : '/api/auth/change-password';
       const payload = token ? { token, password: newPassword } : { currentPassword, newPassword, confirmPassword };
+      const authToken = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
+      if (!token && !authToken) {
+        setError('Sessão expirada. Faça login novamente para trocar a senha.');
+        setLoading(false);
+        return;
+      }
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      };
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(payload),
       });
       const data = await res.json();

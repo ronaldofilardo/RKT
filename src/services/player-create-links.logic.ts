@@ -12,9 +12,9 @@ export interface HandlePlayerPostCreateInput {
     athleteCode?: string | null;
     email?: string | null;
   };
-  myClub?: boolean;
+  myClub?: boolean | null;
   ctId?: string | null;
-  createdByUserId?: string;
+  createdByUserId?: string | null;
   actorProfile?: 'ATLETA' | 'GESTOR' | 'TREINADOR' | null;
 }
 

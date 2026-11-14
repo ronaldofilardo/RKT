@@ -7,17 +7,17 @@ export interface ResolveExistingPlayerInput {
   nickname: string;
   data: {
     name: string;
-    gender?: string;
-    birthDate?: Date;
-    dominance?: string;
-    backhand?: string;
+    gender?: string | null;
+    birthDate?: Date | null;
+    dominance?: string | null;
+    backhand?: string | null;
     rankingsPayload: Record<string, unknown>;
     cpf?: string | null;
     cpfHash: string | null;
     cpfLast2: string | null;
-    myClub?: boolean;
+    myClub?: boolean | null;
     ctId?: string | null;
-    createdByUserId?: string;
+    createdByUserId?: string | null;
     actorProfile?: 'ATLETA' | 'GESTOR' | 'TREINADOR' | null;
   };
 }

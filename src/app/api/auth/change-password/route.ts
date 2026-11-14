@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { reportApiError } from '@/lib/api.logic';
-import { getUserFromRequestScoped } from '@/lib/auth';
+import { getAccessUserFromRequest } from '@/lib/auth-credentials.logic';
 import { bumpSessionVersion } from '@/services/accessService';
 
 const ChangePasswordSchema = z.object({
@@ -14,7 +14,7 @@ const ChangePasswordSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getUserFromRequestScoped(request);
+    const user = await getAccessUserFromRequest(request);
     if (!user) {
       return NextResponse.json(
         { error: 'UNAUTHORIZED', message: 'Token de acesso requerido' },
