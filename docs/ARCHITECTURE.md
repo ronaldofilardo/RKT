@@ -274,7 +274,7 @@ As decisões arquiteturais estruturantes do projeto foram consolidadas diretamen
   - **CPF em Hash no Player:** `Player` guarda `cpfHash` gerado via HMAC-SHA256(`cleanCpf(cpf)`, `CPF_HASH_PEPPER`) e `cpfLast2` (últimos 2 dígitos para exibição mascarada `***.***.**9-12`). O CPF em texto pleno reside exclusivamente em `User.cpf`.
   - **Índice Único Parcial:** `@unique` parcial em `Player.cpfHash` (`WHERE cpfHash IS NOT NULL`), garantindo unicidade de atletas identificados no pool.
   - **Giro de Pepper:** A rotação de `CPF_HASH_PEPPER` invalida os hashes existentes; o segredo deve ser tratado como chave mestra criptográfica irreversível.
-- **Plano:** `docs/PLANO_POOL_BUSCA_CADASTRO_ATLETAS_E_CLAIM_2026-10-27.md`.
+- **Plano:** `docs/archive/PLANO_POOL_BUSCA_CADASTRO_ATLETAS_E_CLAIM_2026-10-27.md`.
 
 ### ADR-0011 — Claim Imediato por CPF + Data de Nascimento (Riscos Aceitos) (2026-10-27)
 - **Problema:** Atletas criados provisoriamente por terceiros precisam assumir o controle do seu histórico esportivo ao criar conta sem fricção burocrática e sem sobrecarregar a equipe de suporte.
@@ -283,7 +283,7 @@ As decisões arquiteturais estruturantes do projeto foram consolidadas diretamen
   - **Proteção a Menores:** Menores de 18 anos nunca são reivindicados automaticamente; exigem vínculo de responsabilidade (`GuardianLink`) e registro de consentimento (`ConsentRecord`).
   - **Riscos Aceitos e Mitigações:**
     - *Apropriação por conhecimento de dados alheios:* Mitigado por validação estrita de dígitos mod 11, rate limit no signup, mensagens genéricas sem confirmação prévia de existência, registro em `AuditLog` e reversão administrativa via Suporte da Plataforma.
-- **Plano:** `docs/PLANO_POOL_BUSCA_CADASTRO_ATLETAS_E_CLAIM_2026-10-27.md`.
+- **Plano:** `docs/archive/PLANO_POOL_BUSCA_CADASTRO_ATLETAS_E_CLAIM_2026-10-27.md`.
 
 ### ADR-0012 — Pool de Partidas Públicas e Nickname de Atleta (2026-11-09)
 - **Problema:** a mesma partida real pode ser anotada por vários usuários; hoje cada anotação é privada e não há como um treinador do CT-A encontrar a partida do CT-B. Atletas também não têm um identificador legível (o `athleteCode` é opaco) nem controle sobre aparecer em buscas.
@@ -296,7 +296,7 @@ As decisões arquiteturais estruturantes do projeto foram consolidadas diretamen
   - **Visibilidade da listagem por perfil:** Admin/Suporte irrestrito; Gestor vê o CT e as derivadas anotadas por membros ativos; demais veem apenas o que criaram. Templates ficam fora de `GET /api/matches` (têm `GET /api/matches/pool`).
   - **Nickname é identidade escolhida:** `Player.nickname` é único globalmente e normalizado (minúsculas). `poolVisible` é opt-in (`false` por padrão) e só pode ser ligado por menor com `ConsentRecord` `POOL_VISIBILITY` ativo. O nickname só é exposto no pool com opt-in e nunca para menores.
 - **Consequência:** nenhuma tabela nova; duas colunas em `Match`, três em `Player` e um valor de enum. Templates e derivadas compartilham os mesmos contratos de leitura, diferenciados por `isPublicTemplate`/`sourceMatchId`.
-- **Plano:** `docs/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md`.
+- **Plano:** `docs/archive/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md`.
 
 ---
 

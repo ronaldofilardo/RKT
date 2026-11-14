@@ -1,6 +1,6 @@
 # 📋 Tarefas do Projeto RKT
 
-> **Última atualização:** 2026-11-12  
+> **Última atualização:** 2026-11-14  
 > **Fonte única de verdade para o backlog do projeto.**
 
 ---
@@ -26,21 +26,21 @@
 
 ## 2. Funcionalidades Ausentes (MVP Incompleto)
 
-### A0.12. Cadastro de Atleta de Outro Clube (UF, Cidade e Clube) 📋
-- **Status:** Planejada / Pronta para Execução (2026-11-01)
-- **Documento:** [`docs/PLANO_CADASTRO_ATLETA_OUTRO_CLUBE_UF_CIDADE_2026-11-01.md`](file:///c:/apps/RKT/docs/PLANO_CADASTRO_ATLETA_OUTRO_CLUBE_UF_CIDADE_2026-11-01.md)
+### A0.12. Cadastro de Atleta de Outro Clube (UF, Cidade e Clube) ⏳
+- **Status:** **Concluído com resíduos** — Fases 1 a 4 entregues (2026-11-01/09, `docs/MEMORY.md` §2.3, verificado no código em 2026-11-14) e **plano arquivado em 2026-11-14**; resíduos = itens 5 e 6 do DoD abaixo.
+- **Documento:** [`docs/archive/PLANO_CADASTRO_ATLETA_OUTRO_CLUBE_UF_CIDADE_2026-11-01.md`](file:///c:/apps/RKT/docs/archive/PLANO_CADASTRO_ATLETA_OUTRO_CLUBE_UF_CIDADE_2026-11-01.md)
 - **Contexto:** Permitir cadastro de atletas de outros clubes ou avulsos/independentes nas 4 situações do sistema (Gestor, Treinador de Clube, Treinador Avulso e Modal Novo Atleta em `/match/new`), com UF padronizada (27 UFs), cidade livre e clube livre, preservando a regra de não vincular indevidamente via `PlayerCT`.
 - **DoD:**
-  1. [ ] Módulo puro `brazilian-states.ts` com validação de 27 UFs.
-  2. [ ] Componente reutilizável `AthleteOriginSection.tsx` (R-03 $\le 100$ linhas).
-  3. [ ] Schemas Zod atualizados (`CreatePlayerInputSchema`, `UpdatePlayerInputSchema`).
-  4. [ ] Integração no modal Novo Atleta (`/match/new`), Treinador Avulso, Treinador de Clube e Gestor de CT.
+  1. [x] Módulo puro `brazilian-states.ts` com validação de 27 UFs (`src/core/athlete/brazilian-states.ts`).
+  2. [x] Componente reutilizável `AthleteOriginSection.tsx` (R-03 $\le 100$ linhas — 88 linhas).
+  3. [x] Schemas Zod atualizados (`CreatePlayerInputSchema`, `UpdatePlayerInputSchema` com `club`/`city`/`state`/`isExternalClub`).
+  4. [x] Integração no modal Novo Atleta (`/match/new`), Treinador Avulso, Treinador de Clube e Gestor de CT (`NewAthleteModalForm.tsx`).
   5. [ ] Exibição broadcast da procedência em placares e relatórios.
   6. [ ] Linha de base 100% verde (`tsc`, `next lint`, testes Jest).
 
 ### A0.13. Pool de Partidas Públicas (S1) ⏳
-- **Status:** Backend e frontend implementados (2026-11-09); migrations prontas, aguardando execução local (`pnpm db:migrate`).
-- **Documento:** [`docs/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md`](file:///c:/apps/RKT/docs/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md)
+- **Status:** **Concluído com resíduos** — backend e frontend entregues (2026-11-09, `docs/MEMORY.md` §2.31) e **plano arquivado em 2026-11-14**; resíduos = E2E `08-public-match-pool.spec.ts` (item 9) e execução local das migrations (`pnpm db:migrate:deploy`).
+- **Documento:** [`docs/archive/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md`](file:///c:/apps/RKT/docs/archive/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md)
 - **Contexto:** múltiplos anotadores para a mesma partida real. O template (`Match.isPublicTemplate = true`) é apenas um cartaz no pool, sem `PointLog`; cada usuário gera sua própria anotação derivada (`sourceMatchId`), isolada e soberana.
 - **DoD:**
   1. [x] Schema: `isPublicTemplate`, `sourceMatchId` (auto-relação `MatchAnnotations`), índices e migration `20261109000000_add_public_match_template`.
@@ -54,8 +54,8 @@
   9. [ ] E2E `08-public-match-pool.spec.ts`.
 
 ### A0.14. Nickname de Atleta no Pool (S2) ⏳
-- **Status:** Fluxo de maiores de idade implementado (2026-11-09); fluxo de menores depende de A0.8.
-- **Documento:** [`docs/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md`](file:///c:/apps/RKT/docs/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md)
+- **Status:** **Concluído com resíduos** — fluxo de maiores de idade entregue (2026-11-09, `docs/MEMORY.md` §2.31) e **plano arquivado em 2026-11-14**; resíduo = fluxo de consentimento de menores (item 7), bloqueado por A0.8.
+- **Documento:** [`docs/archive/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md`](file:///c:/apps/RKT/docs/archive/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md)
 - **Contexto:** apelido legível e único (`@unique`), escolhido pelo atleta, distinto do `athleteCode`. Visibilidade no pool é opt-in (`poolVisible: false` por padrão).
 - **DoD:**
   1. [x] Schema: `Player.nickname`, `poolVisible`, `poolVisibleSince`, enum `ConsentPurpose.POOL_VISIBILITY` e migration `20261109010000_add_player_nickname_pool`.
@@ -78,7 +78,7 @@
 
 ### A0.18. Isolamento de Anotações por Anotador (Partida-Mãe × Anotações Soberanas) ✅
 - **Status:** Implementado (2026-11-11); migration `20261111000000_add_match_event_scope_and_template` pronta para deploy em dev/test (`pnpm db:migrate:deploy` / `pnpm db:test:push`).
-- **Documento:** [`docs/PLANO_ISOLAMENTO_ANOTACOES_POR_ANOTADOR_2026-11-11.md`](file:///c:/apps/RKT/docs/PLANO_ISOLAMENTO_ANOTACOES_POR_ANOTADOR_2026-11-11.md)
+- **Documento:** [`docs/archive/PLANO_ISOLAMENTO_ANOTACOES_POR_ANOTADOR_2026-11-11.md`](file:///c:/apps/RKT/docs/archive/PLANO_ISOLAMENTO_ANOTACOES_POR_ANOTADOR_2026-11-11.md)
 - **Contexto:** múltiplos anotadores na mesma partida real (`[12421]`) sem vazamento de leitura ou escrita cruzada, com visão agregada agrupada no painel do Gestor do clube.
 - **DoD:**
   1. [x] Fase 0–1: Characterization tests + Schema `MatchEventScope`, `isTemplate`, `eventScope`, `isOfficialClubAnnotation` + migration `20261111000000_add_match_event_scope_and_template` com índice único parcial `(sourceMatchId, createdByUserId)`.
@@ -91,7 +91,7 @@
 
 ### A0.19. Correção de Menus, Rotas e Blindagem de Sessão ✅
 - **Status:** Concluído (2026-11-12)
-- **Documento:** [`docs/PLANO_CORRECAO_MENUS_ROTAS_E_SESSAO_2026-11-12.md`](file:///c:/apps/RKT/docs/PLANO_CORRECAO_MENUS_ROTAS_E_SESSAO_2026-11-12.md)
+- **Documento:** [`docs/archive/PLANO_CORRECAO_MENUS_ROTAS_E_SESSAO_2026-11-12.md`](file:///c:/apps/RKT/docs/archive/PLANO_CORRECAO_MENUS_ROTAS_E_SESSAO_2026-11-12.md)
 - **Contexto:** Eliminação de logouts acidentais ao abrir nova aba/PWA ou por oscilações temporárias de banco; alinhamento de rotas de menu (Aguardando para subvisão correta; inclusão de Início e Histórico para Treinador e Atleta; menus de Suporte e Espectador); e correção de URLs duplicadas de Gestor (`/clube/gestor/gestor`).
 - **DoD:**
   1. [x] Fase 1: Blindagem de sessão (desacoplar `redirectToLogin` de `clearAuthState`/logout; hidratar `sessionStorage` a partir de `/api/auth/me`; diferenciar falha de banco em `loadActor` para evitar falso 401).
@@ -167,7 +167,7 @@
 
 ### A0.9. Área Ativa e URLs por Área (Roteamento Semântico e Contexto) ✅
 - **Status:** Concluída (2026-11-01)
-- **Documento:** [`docs/PLANO_AREAS_ATIVAS_E_URLS_POR_AREA_2026-11-01.md`](docs/PLANO_AREAS_ATIVAS_E_URLS_POR_AREA_2026-11-01.md)
+- **Documento:** [`docs/archive/PLANO_AREAS_ATIVAS_E_URLS_POR_AREA_2026-11-01.md`](docs/archive/PLANO_AREAS_ATIVAS_E_URLS_POR_AREA_2026-11-01.md)
 - **DoD:** Implementação do roteamento por área ativa em 8 fases (Fase 0 a Fase 7):
   1. *Fase 0 (Spike):* [x] Prova de compatibilidade de reescrita no Next.js 15.3 (`usePathname`, `<Link>`, modal stack) documentada em [`docs/SPIKE_NEXTJS_URL_REWRITE.md`](docs/SPIKE_NEXTJS_URL_REWRITE.md).
   2. *Fase 1 (Token & Claims):* [x] Correção de `/api/auth/refresh` com preservação integral de claims, novos claims `ax`, `ct`, `ars`, `POST /api/auth/area` e feature flag `AREA_URLS`.
@@ -191,7 +191,7 @@
 
 ### A0.7. Acompanhamento de Partidas ao Vivo (Transmissão Espectador) ✅
 - **Status:** Concluída (2026-10-29)
-- **Documento:** `docs/PLANO_ACOMPANHAMENTO_PARTIDAS_AO_VIVO_2026-10-29.md`
+- **Documento:** `docs/archive/PLANO_ACOMPANHAMENTO_PARTIDAS_AO_VIVO_2026-10-29.md`
 - **DoD:** Implementação completa da transmissão de partidas ao vivo para convidados e espectadores em 6 fases:
   1. *Domínio Puro:* `signal-status.ts` com cálculo de status do feed (`NOT_STARTED`, `LIVE`, `NO_SIGNAL`, `PAUSED`, `FINISHED`), threshold de 30s de heartbeat, e `rhythm-status.ts` (Opção B adaptativa por ritmo de rali/game/set/pausa).
   2. *Banco de Dados e Prisma:* Modelos `MatchShareLink` e `MatchSpectator` com migration `20261029090000_add_match_spectating`.
@@ -315,7 +315,7 @@
 
 ### A0.5. Pool de Busca, Cadastro de Atletas e Reivindicação de Identidade ✅
 - **Status:** Concluído (2026-10-27)
-- **Documento:** `docs/PLANO_POOL_BUSCA_CADASTRO_ATLETAS_E_CLAIM_2026-10-27.md`
+- **Documento:** `docs/archive/PLANO_POOL_BUSCA_CADASTRO_ATLETAS_E_CLAIM_2026-10-27.md`
 - **DoD:**
   - **Fase 0:** Testes de Caracterização para travar comportamento de signup, players e claims. ✅
   - **Fase 1:** Correção Imediata de Segurança: proteger `POST /api/athlete-claims` (P1) e corrigir `User.cpf` corrompido com e-mail em `/signup` (P6) + sanitização. ✅
@@ -339,7 +339,7 @@
 
 ### A0.7. Acompanhamento de Partidas ao Vivo (Transmissão de Partidas) ✅
 - **Status:** Concluído (2026-10-29)
-- **Documento:** `docs/PLANO_ACOMPANHAMENTO_PARTIDAS_AO_VIVO_2026-10-29.md`
+- **Documento:** `docs/archive/PLANO_ACOMPANHAMENTO_PARTIDAS_AO_VIVO_2026-10-29.md`
 - **DoD:**
   - **Domínio Puro (`src/core/spectate/`):** Cálculo determinístico de status de sinal (`signal-status.ts`), ritmo de jogo e polling adaptativo (`rhythm-status.ts`), detecção transparente de desfazimentos de pontos e ajustes manuais (`correction-diff.ts`), e projeção de lista-branca com mascaramento de menores de idade (`spectator-projection.ts`). ✅
   - **Banco de Dados (Prisma):** Migração aditiva `20261029090000_add_match_spectating` criando `MatchShareLink` (token hash SHA-256), `MatchSpectator` (concessão de acompanhante por partida), `PointLog.receivedAt`, `PointLog.updatedAt`, `MatchAnnotationSession.lastHeartbeatAt` e enum `ConsentPurpose.BROADCAST`. ✅
@@ -434,7 +434,7 @@
 ### TD-062. Fase D do PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11 — Círculo Completo e Cartazes no Histórico ✅
 - **Prioridade:** Alta
 - **Status:** Concluído (2026-11-12)
-- **Documento:** [`docs/PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md`](file:///c:/apps/RKT/docs/PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md)
+- **Documento:** [`docs/archive/PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md`](file:///c:/apps/RKT/docs/archive/PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md)
 - **Contexto:** O Cartaz pertence ao círculo e é visível a todos os envolvidos (Gestor criador, Treinador designado, Atletas participantes e Treinadores particulares de atletas participantes) em "Minhas Partidas" (`/historico`). As anotações são 100% isoladas e soberanas. Ao clicar em "Anotar minha versão", cria-se a anotação derivada exclusiva do usuário, e o cartaz é substituído por sua anotação no Histórico.
 - **DoD:**
   1. [x] **D.1 — Descoberta de cartazes por treinador particular:** em `src/core/access/match-event-visibility.ts`, permitir descoberta em `PRIVATE_CLUB`, `PRIVATE_COACH` e `PRIVATE_PLAYERS` quando `actor.followedPlayerIds` contiver participante da partida.
@@ -467,6 +467,39 @@
 - [ ] **Backdoor DOB no login:** `src/app/api/auth/login/authenticate.ts:54-61` aceita a data de nascimento do atleta em **DDMMYYYY em todo login**, sem dependência de `mustChangePassword` — CPF é dado público, então qualquer pessoa com o CPF consegue logar enquanto o DOB em arquivo não mudar. Restringir o fallback a contas com `mustChangePassword=true` (ou removê-lo) + teste de contrato.
 - [ ] **`regenerate-link` não restaura a senha provisória:** o fluxo emite novo token e reativa `mustChangePassword`, mas **não** reseta o `passwordHash` para o DOB (`AAAAMMDD`) — se o atleta já trocou a senha, o login com a provisória falha (o próprio link continua funcionando sem login). Decidir produto: resetar o hash ao regenerar (com aviso ao treinador) **ou** documentar que, nesse caso, só o link vale.
 - **DoD:** um dos itens resolvido com teste (ou descartado com justificativa atualizada aqui); para o backdoor, cobertura de contrato garantindo que DOB não autentica conta com senha já definida.
+
+---
+
+### TD-065. Fase E do PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11 (Fases A-D concluídas) 🟡
+- **Prioridade:** Média
+- **Status:** **Em aberto (só a Fase E)** — Fases A, B, C e D concluídas (D via TD-062 em 2026-11-12; A, B e C verificadas no código em 2026-11-14 — C ainda no working tree, commit pendente).
+- **Documento:** [`docs/archive/PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md`](file:///c:/apps/RKT/docs/archive/PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md) (arquivado em 2026-11-14)
+- **Pendências:**
+  - [x] **Fase A** — Paginação com cursor (`nextCursor` + "Carregar mais" em `src/app/dashboard/hooks/useDashboardMatches.ts`), resultado discriminado `{ ok: true, matches, nextCursor } | { ok: false, errorMessage }` em `use-dashboard-matches-fetch.ts` (erro deixa de virar `[]`).
+  - [x] **Fase B** — Cartazes do criador visíveis em "Minhas Partidas": `ownTemplates` (`isTemplate: true`) em `src/services/match-repository-where.logic.ts` + cartazes do círculo em `match-repository-circle.logic.ts`.
+  - [x] **Fase C** — Consistência estrita de `ctId`: `resolveDerivedCtId` com `if (explicitCtId !== undefined) return explicitCtId;` (null = PARTICULAR nunca herda o CT do cartaz) em `src/services/match-resolve-payload.logic.ts` — **alteração no working tree, commit pendente**; verificar `switchUserArea`/`resolveMatchCtId` no momento do commit.
+  - [ ] **Fase E** — Diagnóstico em banco, saneamento e testes.
+- **DoD:** Fase E entregue com `pnpm typecheck`, `pnpm check:r03` e `pnpm test:design` 100% verdes.
+
+---
+
+### TD-066. Resíduos do PLANO_USABILIDADE_OUTDOOR_E_CORES_PERCEPTUAIS_2026-11-03 (arquivado) 🔴
+- **Prioridade:** Alta (contraste/acessibilidade)
+- **Documento:** [`docs/archive/PLANO_USABILIDADE_OUTDOOR_E_CORES_PERCEPTUAIS_2026-11-03.md`](file:///c:/apps/RKT/docs/archive/PLANO_USABILIDADE_OUTDOOR_E_CORES_PERCEPTUAIS_2026-11-03.md)
+- **Contexto:** Tokens OKLCH (`--telemetry-score-*` em `globals.css`), acentos de quadra e o teste `src/__tests__/contrast-wcag.test.ts` foram entregues, mas havia 3 lacunas verificadas no código em 2026-11-14:
+- [x] ~~**`text-telemetry-score-*` não gera CSS:**~~ **CORRIGIDO (2026-11-14):** chave `score` adicionada em `tailwind.config.ts` (`main`/`secondary`/`accent` apontando para `--telemetry-score-*`) e criado o guard `src/__tests__/tailwind-utilities.guard.test.ts`, que compila o Tailwind com os arquivos consumidores (`scoreboard-card-cells.tsx`, `ScoreboardCard.tsx`, `match-card-set-cells.tsx`, `match-card-score-grid.tsx`, `match-card-live-points.tsx`) e falha se alguma classe `text-telemetry-*` usada não gerar regra CSS. Validação: guard 3/3, `test:design` 29/29 (4 suítes, incluindo o guard), `contrast-wcag` 23/23, `typecheck` 0 erros, `check:r03` 0 violações.
+- [ ] **Modo outdoor/high-contrast inexistente:** `ThemePreference` é apenas `'light' | 'dark' | 'system'` (`src/contexts/use-theme-provider-state.ts:6`); nenhuma implementação de "sol forte".
+- [ ] **Badge/pill de superfície sem consumidor:** `--court-badge-bg-opacity` (0.12/0.20) definido em `globals.css` mas não usado por nenhum componente.
+- **DoD:** classe gerando CSS com contraste ≥7:1 comprovado + decisão registrada (implementar modo outdoor ou descartar com justificativa) + pill de superfície implementada ou removida do token.
+
+---
+
+### TD-067. Resíduo do PLANO_ONBOARDING_UX_FEEDBACK_2026-11-07 — §3.4 Modal do Gestor (arquivado) 🟡
+- **Prioridade:** Média
+- **Documento:** [`docs/archive/PLANO_ONBOARDING_UX_FEEDBACK_2026-11-07.md`](file:///c:/apps/RKT/docs/archive/PLANO_ONBOARDING_UX_FEEDBACK_2026-11-07.md)
+- **Contexto:** Frentes 1, 3, 4 e 5 e a validação inline de `/login`, `/signup` e `/trocar-senha` foram entregues (toast, empty states, `/onboarding` com gate e E2E `e2e/flows/07-onboarding-first-login.spec.ts`). Falta o item §3.4:
+- [ ] `src/app/signup/gestor-onboarding-modal.tsx`: barra de progresso por etapa (`modal-header.tsx` hoje exibe apenas texto do passo) e validação `onBlur` de CNPJ, CEP e telefone (hoje `onBlur` só existe em `signup-form-fields.tsx`).
+- **DoD:** barra de progresso visível nas 3 etapas + `onBlur` validado nos 3 campos + testes de componente atualizados.
 
 ---
 

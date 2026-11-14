@@ -3,14 +3,14 @@
 > Diário de bordo técnico · Metodologia RE-DOC (Fase 4 — Auditoria de Qualidade e Histórico)
 > **Este é um dos 6 arquivos-canônico do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
 
-**Última Atualização:** 2026-11-12
+**Última Atualização:** 2026-11-14
 **Analisado por:** engenharia reversa e implementação sobre `main`
 
 ---
 
 ## 2.35 Fase D dos Filtros de Partidas — Círculo Completo e Cartazes no Histórico (TD-062) — 2026-11-12
 - **Contexto & Demanda:**
-  - Plano: [`docs/PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md`](./PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md) e [`docs/TASKS.md`](./TASKS.md) (item TD-062).
+  - Plano: [`docs/archive/PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md`](./archive/PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md) e [`docs/TASKS.md`](./TASKS.md) (item TD-062).
   - Metodologia: **Elephant-Goldfish Model (EGM)**.
   - Problema analisado: confronto criado pelo Gestor do Clube A com escopo "Compartilhada no círculo" entre Atleta X (do Clube A) e Atleta Y (do Treinador Particular B), com Treinador C designado para anotar. O Gestor A via a partida, mas Atleta X, Atleta Y e Treinador B não viam em "Minhas Partidas" (`/historico`).
   - Decisão consolidada: **O Cartaz pertence ao círculo e é visível a todos os envolvidos** em *Minhas Partidas*. As anotações são 100% isoladas. Ao clicar em *"Anotar minha versão"*, cria-se a anotação derivada exclusiva do usuário, e o cartaz é substituído por sua anotação no Histórico sem duplicidade.
@@ -25,7 +25,7 @@
 
 ## 2.34 Revisão de Menus, Rotas e Blindagem de Sessão (A0.19) — 2026-11-12
 - **Contexto & Demanda:**
-  - Plano: [`docs/PLANO_CORRECAO_MENUS_ROTAS_E_SESSAO_2026-11-12.md`](./PLANO_CORRECAO_MENUS_ROTAS_E_SESSAO_2026-11-12.md).
+  - Plano: [`docs/archive/PLANO_CORRECAO_MENUS_ROTAS_E_SESSAO_2026-11-12.md`](./archive/PLANO_CORRECAO_MENUS_ROTAS_E_SESSAO_2026-11-12.md).
   - Metodologia: **Elephant-Goldfish Model (EGM)** com separação entre planejamento de contexto longo (The Elephant) e auditoria cega de riscos/regressões (The Goldfish).
 - **Implementação & Conclusão (Fases 1 a 5):**
   - **Fase 1 (Blindagem de Sessão):** `redirectToLogin` desacoplado de logout destrutivo e remoção de `exit=1` (`auth-client-storage.ts`). Módulo puro de hidratação `auth-session-hydration.logic.ts` com chamada a `/api/auth/me` para repovoar `sessionStorage` em novas abas/PWA. `accessService.ts` modularizado (`ACTOR_USER_SELECT` em `access-select.logic.ts`) e captura de falhas de conexão em `access-error.logic.ts` + `withAccessHandler` retornando 503 com `Retry-After`, eliminando falso 401. `useDashboardState`, `use-dashboard-matches-fetch`, `useAtletasPage` e `useAdminPage` atualizados.
@@ -38,7 +38,7 @@
 
 ## 2.33 Isolamento de Anotações por Anotador (A0.18) — 2026-11-11
 - **Contexto & Demanda:**
-  - Plano: `docs/PLANO_ISOLAMENTO_ANOTACOES_POR_ANOTADOR_2026-11-11.md`.
+  - Plano: `docs/archive/PLANO_ISOLAMENTO_ANOTACOES_POR_ANOTADOR_2026-11-11.md`.
   - Uma mesma partida (`[12421]`) pode receber N anotadores independentes (ex.: treinador designado vai até o fim; pai do atleta 2 sai antes do término), com isolamento absoluto de leitura e escrita entre anotadores e visão consolidada agrupada para o Gestor do clube.
 - **Modelagem & Banco:**
   - `enum MatchEventScope` (`PUBLIC`, `PRIVATE_CLUB`, `PRIVATE_COACH`, `PRIVATE_PLAYERS`, `PRIVATE_PERSONAL`) + `Match.isTemplate`, `Match.eventScope`, `Match.isOfficialClubAnnotation`.
@@ -88,7 +88,7 @@
 - **Contexto & Demanda:**
   - S1: a mesma partida real é anotada por vários usuários; faltava um cartaz público compartilhável sem compartilhar `PointLog`.
   - S2: atletas não tinham apelido legível nem controle de exposição em buscas (o `athleteCode` é opaco).
-  - Plano: `docs/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md`.
+  - Plano: `docs/archive/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md`.
 - **Modelagem (sem tabela nova):**
   - `Match.isPublicTemplate` + `Match.sourceMatchId` (auto-relação `MatchAnnotations`, `onDelete: SetNull`), índices `Match_isPublicTemplate_idx` e `Match_sourceMatchId_idx`.
   - `Player.nickname @unique`, `Player.poolVisible` (default `false`), `Player.poolVisibleSince`; `ConsentPurpose.POOL_VISIBILITY`.
@@ -196,7 +196,7 @@
 
 ## 2.27 UI da Transmissão Compartilhada e do Gestor (Visual) — 2026-11-07
 - **Contexto & Demanda:**
-  - Plano: `docs/PLANO_UI_TRANSMISSAO_COMPARTILHADA_E_GESTOR_2026-11-07.md`.
+  - Plano: `docs/archive/PLANO_UI_TRANSMISSAO_COMPARTILHADA_E_GESTOR_2026-11-07.md`.
   - Objetivo: melhorar clareza e hierarquia visual da tela de transmissão (link compartilhado e popup Gestor → Partidas → Ver Partida), aproximando da referência visual da landing page (RKT-LP `MatchReplay`), sem alterar dados, payloads, feed, regras ou estados funcionais.
 - **Mudança exclusivamente visual (sem alteração de dados/regras):**
   1. **Header (`SpectatorHeader`):** título centralizado (lado 1 × lado 2 com destaque volt), formato do jogo, badges de status harmonizados com tokens Telemetry (ao vivo/sem sinal/pausada/encerrada/aguardando) com indicador pulsante, botão “Voltar” compacto; `hideBack` para superfícies embutidas.
@@ -456,7 +456,7 @@
 ---
 
 ## 2.12 Área Ativa e Roteamento Semântico por URLs (Fases 0 a 7 Concluídas) — 2026-11-01
-- **Origem:** Plano [`docs/PLANO_AREAS_ATIVAS_E_URLS_POR_AREA_2026-11-01.md`](docs/PLANO_AREAS_ATIVAS_E_URLS_POR_AREA_2026-11-01.md).
+- **Origem:** Plano [`docs/archive/PLANO_AREAS_ATIVAS_E_URLS_POR_AREA_2026-11-01.md`](docs/archive/PLANO_AREAS_ATIVAS_E_URLS_POR_AREA_2026-11-01.md).
 - **Fase 0 (Spike de Compatibilidade App Router Next.js 15.3):**
   - Documentado em [`docs/SPIKE_NEXTJS_URL_REWRITE.md`](docs/SPIKE_NEXTJS_URL_REWRITE.md).
   - Comprovada a preservação da URL externa visível via `usePathname()`, integridade da navegação SPA com `<Link>` e funcionamento transparente da pilha de modais (`useRouterModalStack`).
@@ -580,7 +580,7 @@
 ---
 
 ## 2.7 Acompanhamento de Partidas ao Vivo (Transmissão Espectador) — 2026-10-29
-- **Origem:** Plano `docs/PLANO_ACOMPANHAMENTO_PARTIDAS_AO_VIVO_2026-10-29.md`.
+- **Origem:** Plano `docs/archive/PLANO_ACOMPANHAMENTO_PARTIDAS_AO_VIVO_2026-10-29.md`.
 - **Fase 1 (Núcleo Puro):**
   - Módulos em `src/core/spectate/`: `signal-status.ts`, `rhythm-status.ts` (Opção B adaptativa por ritmo do jogo), `correction-diff.ts`, `spectator-projection.ts`.
 - **Fase 2 (Banco de Dados e Prisma):**
@@ -696,7 +696,7 @@
 ---
 
 ## 2.3 Pool de Busca, Cadastro de Atletas e Reivindicação de Identidade — 2026-10-27
-- **Início dos Trabalhos:** Plano aprovado em `docs/PLANO_POOL_BUSCA_CADASTRO_ATLETAS_E_CLAIM_2026-10-27.md` e registrado em `docs/TASKS.md` (A0.5).
+- **Início dos Trabalhos:** Plano aprovado em `docs/archive/PLANO_POOL_BUSCA_CADASTRO_ATLETAS_E_CLAIM_2026-10-27.md` e registrado em `docs/TASKS.md` (A0.5).
 - **Fase 0 (Characterization-First):** Criação de testes de caracterização para travar o comportamento prévio de `/api/auth/signup`, `/api/players` e `/api/athlete-claims`. ✅
 - **Fase 1 (Segurança Imediata e Sanitização de Dados):** ✅
   - Correção de vulnerabilidade crítica P1 em `POST /api/athlete-claims` (exigência de autenticação e atribuição mandatória de `userId` a partir da sessão ativa).
@@ -745,7 +745,7 @@
 
 ## 2.3 Cadastro de Atleta de Outro Clube (UF, Cidade e Clube) — 2026-11-01
 
-Plano `docs/PLANO_CADASTRO_ATLETA_OUTRO_CLUBE_UF_CIDADE_2026-11-01.md` executado:
+Plano `docs/archive/PLANO_CADASTRO_ATLETA_OUTRO_CLUBE_UF_CIDADE_2026-11-01.md` executado:
 
 - **Fase 1 (Módulo Central de UFs e Validações):** ✅
   - `src/core/athlete/brazilian-states.ts` — `BRAZILIAN_UFS` (27 UFs), `BrazilianUF` type, `isBrazilianUF` validator.
@@ -1031,4 +1031,51 @@ Leitura completa: `docs/TASKS.md` — **Anexo A** (dívida técnica, 50 entradas
   - `node scripts/check-r03-line-limit.mjs`: 100% conforme (0 violações, 0 regressões, todos $\le 100$ linhas).
   - TypeScript typecheck: 0 erros (`node ./node_modules/typescript/bin/tsc --noEmit`).
   - Testes: 29 testes Jest dedicados 100% verdes + 26 testes de design 100% verdes.
+
+---
+
+## 2.42 Executado: Usabilidade Outdoor e Cores Perceptuais (com resíduos) — 2026-11-14
+- **Plano:** [`docs/archive/PLANO_USABILIDADE_OUTDOOR_E_CORES_PERCEPTUAIS_2026-11-03.md`](./archive/PLANO_USABILIDADE_OUTDOOR_E_CORES_PERCEPTUAIS_2026-11-03.md) (arquivado nesta data).
+- **Entregue:**
+  - **Pilar 1 — Calibragem OKLCH do tema claro:** `src/app/globals.css` com comentários de calibragem (`OKLCH-calibrated warm court ground (L:94% C:0.010 H:80) -> #F2EFE9`), `--telemetry-base`, `--telemetry-elevated` e os tokens `--telemetry-score-main/secondary/accent` (bloco repetido no tema claro forçado).
+  - **Pilar 2 — Contraste dos dígitos (WCAG AAA 7:1):** classes `text-telemetry-score-*` aplicadas em `src/components/scoring/scoreboard-card-cells.tsx`, `ScoreboardCard.tsx`, `src/components/dashboard/match-card-set-cells.tsx`, `match-card-score-grid.tsx` e `match-card-live-points.tsx`; suíte `src/__tests__/contrast-wcag.test.ts` com fórmula WCAG e casos `minRatio: 7`.
+  - **Pilar 3 — Superfícies temáticas (Clay/Hard/Grass):** `courtBorderClass` em `MatchCard.tsx`, mapa `COURT_COLORS` em `use-match-card-data.ts`, micro-gradiente em `CourtBackground.tsx` e tokens `telemetry.court.*` no `tailwind.config.ts`.
+- **Resíduos abertos:** registrados em `docs/TASKS.md` **TD-066** — (2) modo outdoor/high-contrast inexistente (`ThemePreference` = light|dark|system) e (3) `--court-badge-bg-opacity` sem consumidor. O resíduo (1) — `text-telemetry-score-*` sem CSS por falta da chave `score` no `tailwind.config.ts` — **foi corrigido em 2026-11-14** (chave `score` adicionada + guard `src/__tests__/tailwind-utilities.guard.test.ts` que falha se classe usada não gerar regra CSS); validação: guard 3/3, `test:design` 29/29 (4 suítes, incluindo o guard), `contrast-wcag` 23/23, `typecheck` 0 erros, `check:r03` 0 violações.
+- **Registro:** arquivado como executado com resíduos por decisão do mantenedor em 2026-11-14; a evidência de execução é o código acima, não o campo `**Status:**` interno do plano (que permanece defasado como "Planejamento Aprovado").
+
+---
+
+## 2.41 Executado: Revisão de UX Writing (Baby Steps) — 2026-11-14
+- **Plano:** [`docs/archive/PLANO_REVISAO_UX_WRITING_2026-11-05.md`](./archive/PLANO_REVISAO_UX_WRITING_2026-11-05.md) (arquivado nesta data).
+- **Evidência (5 fases verificadas no código em 2026-11-14):**
+  - **Fase 1 (Auth):** `login/page.tsx` ("Entre com e-mail ou CPF", "Novo no RKT?"), `login-context-selector.tsx` ("Com qual perfil você quer entrar?"), `forgot/page.tsx`, `signup/page.tsx` ("Crie sua conta", "Avançar: cadastrar clube"), `signup-role-and-terms.tsx`, `escolher-area/page.tsx`.
+  - **Fase 2 (Dashboard/aguardando):** `aguardandoanotador/page.tsx` com a string canônica "Não foi possível verificar o status. Tentando novamente..." + "Esperando há mm:ss".
+  - **Fase 3 (match/new e scoring):** `MatchNewErrorBanner.tsx` ("Falta preencher algo"), `DuplicateMatchModal.tsx` ("Detalhes técnicos"), `scoring-deciding-point-banner.tsx` ("Ponto decisivo — No-Ad"), `scoring-finished-banner.tsx` ("Partida encerrada!") — as strings antigas (`Erro ao verificar partida`, `PARTIDA FINALIZADA!`, `Anotações Suspensas`) **não existem mais** em `src/`.
+  - **Fase 4 (Gestor):** `tab-nav.tsx` ("Partidas"/"Clube"), `cadastrar-membro-modal.tsx`, `cadastrar-membro-link-prompt.tsx`, `link-copy-modal.tsx` ("Copiado!") e `status-pages.tsx` ("Acesso suspenso"); o componente de status "Pendente de aprovação" foi **removido** (não renomeado).
+  - **Fase 5 (Transversal):** mensagens padronizadas "Sem conexão. Verifique sua internet e tente novamente." (forgot, trocar-senha, signup, gestor-onboarding-modal) e "Não foi possível salvar. Tente novamente." (suporte/gestor modais).
+- **Ressalva:** o título "Partidas pausadas" saiu do render (cards suspensos agora aparecem em "Minhas Partidas"), em vez de ser renomeado conforme o plano.
+- **Validação:** testes de `login`, `signup`, `trocar-senha`, `gestor` e `scoring` cobrindo as novas strings.
+
+---
+
+## 2.40 Executado: Onboarding e UX de Feedback (com resíduo) — 2026-11-14
+- **Plano:** [`docs/archive/PLANO_ONBOARDING_UX_FEEDBACK_2026-11-07.md`](./archive/PLANO_ONBOARDING_UX_FEEDBACK_2026-11-07.md) (arquivado nesta data).
+- **Frente 1 — Toast:** contrato em `src/components/toast-types.ts` (`ToastType`, `key` p/ desduplicação, `persistent`, `action`, `durationMs`), `Toast.tsx` mobile-first, `toast-item.tsx` com spinner/ação/`aria-label`, `use-toast-queue.ts` (loading não auto-dismiss) e `src/components/__tests__/Toast.test.tsx`.
+- **Frente 2 — Validação inline:** `login-errors.logic.ts` + `login-alerts.tsx`, `signup-form-fields.tsx` (`onBlur`, `aria-describedby`, `PasswordStrengthMeter`) e `signup-field-feedback.tsx`, `trocar-senha/components.tsx` ("As senhas não coincidem").
+- **Frente 3 — Empty states:** `dashboard-empty-state.tsx` + `dashboard-empty-state.logic.ts` com copy e CTAs por perfil (ATHLETE/COACH/MANAGER/SPECTATOR) e resolução de href por área ativa; testes `dashboard-empty-state.test.tsx` e `.wiring.test.tsx`.
+- **Frente 4 — Módulo `/onboarding`:** rota com `OnboardingStepper` (3 etapas, `aria-current="step"`), conteúdo por perfil (`onboarding-content.*`), persistência `src/lib/onboarding.ts` (`rkt_onboarded_*`), gate no primeiro login (`login-onboarding-gate.test.ts`) e E2E `e2e/flows/07-onboarding-first-login.spec.ts`.
+- **Frente 5 — Feedback do Gestor:** `link-copy-modal.logic.ts` com validade de 7 dias, `use-athletes-table.ts` e `use-coaches-table.ts` com toasts de resultado; teste `table-action-toasts.test.tsx`.
+- **Resíduo aberto:** registrado em `docs/TASKS.md` **TD-067** — §3.4 do plano (`gestor-onboarding-modal.tsx`): barra de progresso e `onBlur` de CNPJ/CEP/telefone.
+- **Registro:** arquivado como executado com resíduo por decisão do mantenedor em 2026-11-14.
+
+---
+
+## 2.43 Arquivamento da 2ª leva de planos executados (raiz de `docs/` só com LGPD) — 2026-11-14
+- **Ação:** `git mv` de 3 planos para `docs/archive/` (2ª leva, após os 6 da §2.40-§2.42 e leva anterior), com atualização de todos os links em `MEMORY.md`, `TASKS.md`, `ARCHITECTURE.md` e nos próprios planos arquivados. A raiz de `docs/` passou a conter **apenas** `PLANO_LGPD_PROTECAO_MENORES_E_GOVERNANCA_2026-10-31.md` (A0.8, não iniciada).
+- **Evidências verificadas no código antes do arquivamento (2026-11-14):**
+  - **`PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11`:** Fase A concluída (`nextCursor` + "Carregar mais" em `src/app/dashboard/hooks/useDashboardMatches.ts`; resultado discriminado `{ ok, matches, nextCursor } | { ok: false, errorMessage }` em `use-dashboard-matches-fetch.ts`); Fase B concluída (`ownTemplates`/`isTemplate: true` em `src/services/match-repository-where.logic.ts` + cartazes do círculo em `match-repository-circle.logic.ts`); Fase C concluída no working tree (`explicitCtId !== undefined` em `match-resolve-payload.logic.ts` — commit pendente); Fase D via TD-062. **Resíduo:** Fase E (diagnóstico em banco/saneamento) — rastreada em `TASKS.md` **TD-065**.
+  - **`PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09`:** entregue conforme §2.31 (9/9 DoD de A0.13 exceto E2E; 6/7 de A0.14). **Resíduos:** E2E `e2e/flows/08-public-match-pool.spec.ts` (inexistente) e consentimento de menores bloqueado por A0.8 — itens 9 e 7 seguem abertos em `TASKS.md`.
+  - **`PLANO_CADASTRO_ATLETA_OUTRO_CLUBE_UF_CIDADE_2026-11-01`:** entregue conforme §2.3 (`brazilian-states.ts`, `AthleteOriginSection.tsx`, schemas com `state/city/isExternalClub`, `NewAthleteModalForm.tsx`). **Resíduos:** DoD itens 5 (broadcast da procedência em placares/relatórios) e 6 (baseline 100% verde).
+- **Correção de links legados:** 4 referências quebradas pré-existentes a `docs/PLANO_POOL_BUSCA_CADASTRO_ATLETAS_E_CLAIM_2026-10-27.md` (já em `archive/`) corrigidas em `ARCHITECTURE.md`, `MEMORY.md` e `TASKS.md`.
+- **Status resultante em `TASKS.md`:** A0.12, A0.13 e A0.14 marcados como "Concluído com resíduos"; TD-065 reduzido à Fase E.
 

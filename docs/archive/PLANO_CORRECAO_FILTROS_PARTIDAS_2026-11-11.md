@@ -1,7 +1,7 @@
 # PLANO DE ANÁLISE E CORREÇÃO DOS FILTROS DE PARTIDAS (RKT)
 
 > **Data:** 2026-11-11  
-> **Origem:** Análise crítica do plano externo *"bkpRKT — Plano de correção dos filtros de partidas"* confrontada linha a linha com a base real de `c:\apps\RKT` e com o modelo vigente em [PLANO_ISOLAMENTO_ANOTACOES_POR_ANOTADOR_2026-11-11.md](./PLANO_ISOLAMENTO_ANOTACOES_POR_ANOTADOR_2026-11-11.md).  
+> **Origem:** Análise crítica do plano externo *"bkpRKT — Plano de correção dos filtros de partidas"* confrontada linha a linha com a base real de `c:\apps\RKT` e com o modelo vigente em [docs/archive/PLANO_ISOLAMENTO_ANOTACOES_POR_ANOTADOR_2026-11-11.md](./archive/PLANO_ISOLAMENTO_ANOTACOES_POR_ANOTADOR_2026-11-11.md).  
 > **Status:** Analisado e salvo para revisão/decisão antes da execução (nenhuma alteração de código foi aplicada nesta etapa).
 
 ---
@@ -56,7 +56,7 @@ Esta é a maior discrepância entre o plano proposto e o estado atual do `RKT`:
    - Em `src/app/api/matches/[id]/route-get-access.logic.ts` e `src/app/api/matches/[id]/report/report-access.logic.ts`, clicar em qualquer partida listada exige `canReadMatch(...) === true`.
    - Portanto, se a Fase 4 ampliar `buildMatchListWhere` para que **Treinador** e **Atleta** vejam em seu Histórico **anotações de terceiros** (`createdByUserId !== user.id`):
      - **Cenário A (mantendo `canReadMatch` estrito):** a partida aparece no card do Histórico, mas clicar nela resulta em **`403 FORBIDDEN`** na tela de pontuação/relatório.
-     - **Cenário B (relaxando `canReadMatch`):** o Pai B ou outro treinador/atleta volta a ler marcações parciais e privadas de outro anotador — **revertendo o requisito central de isolamento por anotador** definido em `PLANO_ISOLAMENTO_ANOTACOES_POR_ANOTADOR_2026-11-11.md`.
+     - **Cenário B (relaxando `canReadMatch`):** o Pai B ou outro treinador/atleta volta a ler marcações parciais e privadas de outro anotador — **revertendo o requisito central de isolamento por anotador** definido em `docs/archive/PLANO_ISOLAMENTO_ANOTACOES_POR_ANOTADOR_2026-11-11.md`.
 2. **Qual é a conciliação correta entre os dois planos?**
    - **Para anotações comuns (não oficiais):** manter **isolamento absoluto** — cada usuário vê e lê apenas as **suas próprias** anotações (exceto `GESTOR` no painel do clube / escopo `GESTOR`).
    - **Para descoberta de confrontos criados por terceiros (gestor, treinador ou atleta):** exibir como **Cartaz (`isTemplate: true`)** ou via aba **Meu Círculo** (`/partidas-publicas`), com ação **"Anotar minha versão"** (não misturar marcação privada de terceiros na lista pessoal).

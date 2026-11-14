@@ -1,6 +1,6 @@
 # 📋 Plano Executivo: Cadastro de Atleta de Outro Clube (UF, Cidade e Clube)
 
-> **Documento:** `docs/PLANO_CADASTRO_ATLETA_OUTRO_CLUBE_UF_CIDADE_2026-11-01.md`  
+> **Documento:** `docs/archive/PLANO_CADASTRO_ATLETA_OUTRO_CLUBE_UF_CIDADE_2026-11-01.md`  
 > **Status:** Pronto para Execução  
 > **Data:** 01/11/2026  
 > **Metodologia:** STE-DEV (ASD-STE100 aplicada a software), R-03 ($\le 100$ linhas por arquivo), Telemetry Design System, Dual-Theme.

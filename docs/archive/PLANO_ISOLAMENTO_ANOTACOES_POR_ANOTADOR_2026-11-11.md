@@ -3,7 +3,7 @@
 **Data:** 2026-11-11  
 **Status:** Planejamento Detalhado (Aguardando Aprovação para Execução)  
 **Metodologia / Regras:** `AGENTS.md` · `docs/RULES.md` (Characterization-First, R-03 ≤ 100 linhas/arquivo, `pnpm typecheck`, `pnpm lint`, `pnpm test:strict`, `pnpm test:design`, `pnpm check:r03`)  
-**Arquivos canônicos relacionados:** `docs/PRD.md` · `docs/ARCHITECTURE.md` · `docs/TASKS.md` · `docs/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md`
+**Arquivos canônicos relacionados:** `docs/PRD.md` · `docs/ARCHITECTURE.md` · `docs/TASKS.md` · `docs/archive/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md`
 
 ---
 
