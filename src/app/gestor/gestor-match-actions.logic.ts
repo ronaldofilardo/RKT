@@ -20,7 +20,7 @@ export async function requestAnnotateMatch(
   const targetId = match.sourceMatchId ?? match.id;
   try {
     const res = await fetch(`/api/matches/pool/${targetId}/annotate`, { method: 'POST' });
-    if (res.status === 201) {
+    if (res.ok) {
       const json = await res.json();
       const matchId = (json as { matchId?: string }).matchId;
       if (matchId) onNavigate(`/match/${matchId}/scoring`);

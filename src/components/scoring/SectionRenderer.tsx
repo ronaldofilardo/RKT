@@ -24,9 +24,10 @@ interface SectionRendererProps {
   };
   hitterCandidates?: { id: string; name: string }[];
   receiverCandidates?: { id: string; name: string }[];
+  startSection?: number;
 }
 
-export function SectionRenderer({ form, vencedor, dispatch, refs, hitterCandidates, receiverCandidates }: SectionRendererProps) {
+export function SectionRenderer({ form, vencedor, dispatch, refs, hitterCandidates, receiverCandidates, startSection = 1 }: SectionRendererProps) {
   const computed = computeSectionRenderer(form, vencedor);
 
   return (
@@ -42,16 +43,18 @@ export function SectionRenderer({ form, vencedor, dispatch, refs, hitterCandidat
         </Section>
       )}
 
-      <Section num="1" label="Situação do Ponto">
-        <Pills
-          options={SITUACAO_OPTIONS.map(o => o.value)}
-          selected={form.situacao}
-          onChange={v => dispatch({ type: 'SET_SITUACAO', value: v })}
-          labelMap={toLabelMap(SITUACAO_OPTIONS)}
-        />
-      </Section>
+      {startSection <= 1 && (
+        <Section num="1" label="Situação do Ponto">
+          <Pills
+            options={SITUACAO_OPTIONS.map(o => o.value)}
+            selected={form.situacao}
+            onChange={v => dispatch({ type: 'SET_SITUACAO', value: v })}
+            labelMap={toLabelMap(SITUACAO_OPTIONS)}
+          />
+        </Section>
+      )}
 
-      {form.situacao && (
+      {form.situacao && startSection <= 2 && (
         <Section num="2" label="Resultado do Ponto" ref={refs.tipoRef}>
           <Pills
             options={getTipoOptions(vencedor, form.situacao)}

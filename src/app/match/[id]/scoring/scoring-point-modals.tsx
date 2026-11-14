@@ -1,6 +1,6 @@
 "use client";
 
-import { PointDetailsModal } from "@/components/scoring/PointDetailsModal";
+import { PointAnnotationFlowContainer } from "@/components/scoring/PointAnnotationFlowContainer";
 import type { ScoringPageState } from "./useScoringPageState";
 import type { ScoringPageHandlers } from "./useScoringPageEffects";
 import type { ScoringPageDerived } from "./useScoringPageDerived";
@@ -21,7 +21,7 @@ export function PointDetailsModalBlock({
   match,
 }: PointDetailsModalBlockProps) {
   return (
-    <PointDetailsModal
+    <PointAnnotationFlowContainer
       winnerPlayerSide={
         (state.modalParams.winner as "player1" | "player2") ?? "player1"
       }
@@ -49,6 +49,11 @@ export function PointDetailsModalBlock({
             }
           : undefined
       }
+      recordAceDirectly={handlers.recordAceDirectly}
+      confirmServerEffect={handlers.confirmServerEffect}
+      recordDirectServeError={handlers.recordDirectServeError}
+      hasFirstServeError={Boolean(state.serveErrorState?.firstServeError)}
+      serveStep={state.serveErrorState?.serveStep ?? 'none'}
     />
   );
 }

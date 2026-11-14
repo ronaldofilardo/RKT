@@ -13,10 +13,15 @@ export async function POST(
   return withAccessHandler(request, 'match:create', null, async ({ user, actor }) => {
     try {
       const { templateId } = await params;
+      const rawBody = await request.json().catch(() => ({}));
+      const mode = rawBody?.mode === 'create' ? 'create' : 'resolve';
       // `PARTICULAR` → null (corrige gravação indevida do CT do cartaz); sem contexto → inferência restrita a membros.
       const ctId = resolveAnnotationCtId(user);
-      const result = await resolveOrCreateAnnotation(templateId, actor, 'create', ctId);
-      return NextResponse.json({ matchId: result.matchId }, { status: 201 });
+      const result = await resolveOrCreateAnnotation(templateId, actor, mode, ctId);
+      return NextResponse.json(
+        { matchId: result.matchId, created: result.created, state: result.state },
+        { status: result.created ? 201 : 200 },
+      );
     } catch (error) {
       logger.error('[MATCH POOL ANNOTATE POST]', error);
       return reportApiError(error);

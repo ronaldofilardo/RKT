@@ -27,21 +27,23 @@ export function usePointDetailsModal({
   onConfirm,
   onCancel,
   doubles,
+  howEnded,
+  whereWinner,
 }: UsePointDetailsModalOptions) {
   const [mounted, setMounted] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [form, dispatch] = useReducer(formReducer, null, () => initialForm);
   const { noteText, noteAudio, persistNoteContent } = usePointDetailsNote();
 
+  useEffect(() => { setMounted(true); }, []);
+
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (whereWinner && !form.situacao) dispatch({ type: 'SET_SITUACAO', value: whereWinner });
+    if (howEnded && !form.tipo) dispatch({ type: 'SET_TIPO', value: howEnded });
+  }, [whereWinner, howEnded, form.situacao, form.tipo]);
 
   const { vencedor, winnerName } = getPointWinnerDetails(
-    winnerPlayerSide,
-    currentServer,
-    player1Name,
-    player2Name
+    winnerPlayerSide, currentServer, player1Name, player2Name
   );
 
   const hitterCandidates = useHitterCandidates(doubles, form, winnerPlayerSide);
@@ -51,11 +53,7 @@ export function usePointDetailsModal({
   useDoublesHitterDefault(doubles, form, hitterCandidates, dispatch);
 
   const refs = usePointDetailsSectionRefs(form, vencedor, mounted);
-
-  const cancelCurrentAction = useCallback(() => {
-    onCancel();
-  }, [onCancel]);
-
+  const cancelCurrentAction = useCallback(() => { onCancel(); }, [onCancel]);
   usePointDetailsKeyboard(mounted, cancelCurrentAction);
 
   const canConfirm = Boolean(form.situacao && form.tipo && form.golpe);
@@ -66,9 +64,7 @@ export function usePointDetailsModal({
     onConfirm(details, noteAudio);
   }, [form, onConfirm, vencedor, noteText, noteAudio]);
 
-  const discardChanges = useCallback(() => {
-    onCancel();
-  }, [onCancel]);
+  const discardChanges = useCallback(() => { onCancel(); }, [onCancel]);
 
   return {
     mounted,

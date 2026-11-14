@@ -20,6 +20,8 @@ interface PointDetailsModalProps {
   ) => void;
   onCancel: () => void;
   doubles?: PointDetailsDoublesInfo;
+  howEnded?: import('@/core/scoring/rally.types').RallyTipo;
+  whereWinner?: import('@/core/scoring/rally.types').RallySituacao;
 }
 
 export function PointDetailsModal({
@@ -31,13 +33,15 @@ export function PointDetailsModal({
   onConfirm,
   onCancel,
   doubles,
+  howEnded,
+  whereWinner,
 }: PointDetailsModalProps) {
   const {
     mounted, showNotesModal, setShowNotesModal,
     noteText, hasNoteAudio, form, dispatch, refs, vencedor, winnerName,
     hitterCandidates, receiverCandidates,
     cancelCurrentAction, canConfirm, confirmPointDetails, persistNoteContent,
-  } = usePointDetailsModal({ winnerPlayerSide, currentServer, player1Name, player2Name, onConfirm, onCancel, doubles });
+  } = usePointDetailsModal({ winnerPlayerSide, currentServer, player1Name, player2Name, onConfirm, onCancel, doubles, howEnded, whereWinner });
 
   if (!mounted) return null;
 
@@ -72,6 +76,7 @@ export function PointDetailsModal({
           refs={refs}
           hitterCandidates={hitterCandidates}
           receiverCandidates={receiverCandidates}
+          startSection={howEnded && whereWinner ? 3 : 1}
         />
         <ModalActions
           canConfirm={canConfirm}

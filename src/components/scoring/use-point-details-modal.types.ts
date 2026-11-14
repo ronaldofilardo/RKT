@@ -1,4 +1,5 @@
 import type { RallyDetailsWithAttribution } from '@/core/scoring/types';
+import type { RallySituacao, RallyTipo } from '@/core/scoring/rally.types';
 
 export interface PointDetailsDoublesInfo {
   player1: { id: string; name: string };
@@ -21,4 +22,6 @@ export interface UsePointDetailsModalOptions {
   ) => void;
   onCancel: () => void;
   doubles?: PointDetailsDoublesInfo;
+  howEnded?: RallyTipo;
+  whereWinner?: RallySituacao;
 }

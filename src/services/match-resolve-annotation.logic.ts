@@ -46,7 +46,8 @@ export async function resolveOrCreateAnnotation(
   })) as TemplateRecord | null;
 
   if (!template) throw new NotFoundError('MatchTemplate', templateId);
-  if (!canResolveTargetMatch(template, actor)) {
+  const canResolve = await canResolveTargetMatch(template, actor);
+  if (!canResolve) {
     throw new ForbiddenError('MATCH_TEMPLATE_ACCESS');
   }
 

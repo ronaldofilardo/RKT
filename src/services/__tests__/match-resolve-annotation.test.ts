@@ -4,6 +4,9 @@ jest.mock('@/lib/prisma', () => ({
       findFirst: jest.fn(),
       create: jest.fn(),
     },
+    playerCT: {
+      findFirst: jest.fn(),
+    },
     auditLog: {
       create: jest.fn(),
     },
@@ -198,6 +201,65 @@ describe('resolveOrCreateAnnotation (isolamento por anotador)', () => {
       status: 403,
       code: 'FORBIDDEN',
     });
+  });
+
+  it('permite Gestor do clube de atleta participante criar/resolver anotação em partida externa agendada', async () => {
+    const mockPlayerCTFindFirst = prisma.playerCT.findFirst as jest.MockedFunction<any>;
+    mockFindFirst.mockResolvedValueOnce({
+      ...baseTemplate,
+      id: 'external-match-1',
+      state: 'SCHEDULED',
+      sourceMatchId: null,
+      isTemplate: false,
+      isPublicTemplate: false,
+      eventScope: 'PRIVATE_PLAYERS' as const,
+      ctId: 'other-ct',
+      player1Id: 'p1',
+      player2Id: 'p2',
+      assignedCoachId: null,
+    }).mockResolvedValueOnce(null);
+    mockPlayerCTFindFirst.mockResolvedValueOnce({ id: 'pct-1' });
+    mockCreate.mockResolvedValueOnce({ id: 'ann-gestor-1', state: 'SCHEDULED' });
+
+    const gestorClub = makeActor({
+      userId: 'gestor-club-1',
+      memberships: [{ kind: 'GESTOR', ctId: 'my-ct', status: 'ACTIVE' }],
+    });
+
+    const res = await resolveOrCreateAnnotation('external-match-1', gestorClub, 'resolve', 'my-ct');
+    expect(res).toMatchObject({ matchId: 'ann-gestor-1', created: true });
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          sourceMatchId: 'external-match-1',
+          createdByUserId: 'gestor-club-1',
+          ctId: 'my-ct',
+        }),
+      }),
+    );
+  });
+
+  it('permite Admin da plataforma anotar qualquer partida', async () => {
+    mockFindFirst.mockResolvedValueOnce({
+      ...baseTemplate,
+      id: 'any-match',
+      state: 'SCHEDULED',
+      sourceMatchId: null,
+      isTemplate: false,
+      isPublicTemplate: false,
+      eventScope: 'PRIVATE_PERSONAL' as const,
+      ctId: null,
+      assignedCoachId: null,
+    }).mockResolvedValueOnce(null);
+    mockCreate.mockResolvedValueOnce({ id: 'ann-admin', state: 'SCHEDULED' });
+
+    const admin = makeActor({
+      userId: 'admin-user',
+      memberships: [{ kind: 'PLATAFORMA', preset: 'ADMIN', ctId: null, status: 'ACTIVE' }],
+    });
+
+    const res = await resolveOrCreateAnnotation('any-match', admin, 'resolve');
+    expect(res).toMatchObject({ matchId: 'ann-admin', created: true });
   });
 });
 
