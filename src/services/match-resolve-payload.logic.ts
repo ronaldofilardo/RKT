@@ -1,9 +1,4 @@
-import { prisma } from '@/lib/prisma';
 import type { Actor } from '@/core/access/types';
-import {
-  canDiscoverMatchTemplate,
-  type MatchTemplateAccess,
-} from '@/core/access/match-event-visibility';
 import { buildCreateMatchData } from './match-create-build.logic';
 import { buildAnnotationInput, type TemplateLike } from './match-template-payload.logic';
 
@@ -18,35 +13,7 @@ export interface TemplateRecord extends TemplateLike {
   ctId: string | null;
 }
 
-export async function canResolveTargetMatch(target: TemplateRecord, actor: Actor): Promise<boolean> {
-  if (actor.memberships.some((m) => m.kind === 'PLATAFORMA' && m.preset === 'ADMIN' && m.status === 'ACTIVE')) return true;
-  if (target.createdByUserId === actor.userId || target.assignedCoachId === actor.userId) return true;
-  const staffCts = actor.memberships.filter((m) => m.status === 'ACTIVE' && (m.kind === 'GESTOR' || m.kind === 'TREINADOR') && m.ctId).map((m) => m.ctId as string);
-  if (target.ctId && staffCts.includes(target.ctId)) return true;
-  if (canDiscoverMatchTemplate(actor, toTemplateAccess(target))) return true;
-  if (staffCts.length > 0 && prisma?.playerCT?.findFirst) {
-    const pIds = [target.player1Id, target.player2Id, target.player1PartnerId, target.player2PartnerId].filter((v): v is string => !!v);
-    const aff = await prisma.playerCT.findFirst({ where: { playerId: { in: pIds }, ctId: { in: staffCts }, status: 'ACTIVE' }, select: { id: true } });
-    if (aff) return true;
-  }
-  return false;
-}
-
-export function toTemplateAccess(template: TemplateRecord): MatchTemplateAccess {
-  const participantPlayerIds = [
-    template.player1Id,
-    template.player2Id,
-    template.player1PartnerId,
-    template.player2PartnerId,
-  ].filter((v): v is string => !!v);
-
-  return {
-    eventScope: template.eventScope,
-    createdByUserId: template.createdByUserId,
-    ctId: template.ctId,
-    participantPlayerIds,
-  };
-}
+export { canResolveTargetMatch, toTemplateAccess } from './match-resolve-access.logic';
 
 export function resolveDerivedCtId(
   template: TemplateRecord,
@@ -86,4 +53,3 @@ export function buildDerivedAnnotationData(
     },
   };
 }
-
