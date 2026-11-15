@@ -1095,3 +1095,19 @@ Leitura completa: `docs/TASKS.md` — **Anexo A** (dívida técnica, 50 entradas
 - **Validação:** suíte completa **581/581 suites · 4893/4893 testes**, `contrast-wcag` **28/28**, `test:design` **29/29**, `typecheck` **0 erros**, `check:r03` **0 violações**.
 - **TD-066** ficou ✅ (3/3 resíduos); em `TASKS.md` restam como resíduos abertos: A0.12 (5-6), A0.13 (E2E 08 + migrations), A0.14 (menores/A0.8), TD-065 (Fase E) e TD-067 (§3.4).
 
+---
+
+## 2.45 Resíduos A0.12 (5-6) e TD-067 resolvidos; linha de base 100% verde — 2026-11-14
+- **Commits:**
+  1. `ddaf9cb` `feat(signup)`: **TD-067** — barra de progresso acessível no `modal-header.tsx` (`role="progressbar"`, 50% na Etapa 1 e 100% na Etapa 2, conforme §3.4 do plano; a DoD do `TASKS.md` dizia "3 etapas", mas o modal tem 2 — redação corrigida) + teste novo `src/app/signup/__tests__/gestor-onboarding-progress.test.tsx` 6/6 (2 de progresso, 3 de `onBlur` de CNPJ/Telefone/CEP e 1 de ausência de erros pré-blur). **Descoberta:** o `onBlur` já existia via `FormField.validate` + `handleBlur` — a afirmação do `TASKS.md` estava defasada; ficou coberto por teste.
+  2. `03b4b02` `feat(provenance)`: **A0.12 item 5** — broadcast da procedência (Fase 7 do plano):
+     - Helper puro `src/core/athlete/provenance.ts` (`formatProvenance(club, state)` → `"Clube - UF"`) + suite `core/athlete/__tests__/provenance.test.ts` 5/5.
+     - **Dados:** `state: true` nos 4 selects de player de `match-repository-select.data.ts` e `club`/`state` nos 4 de `MATCH_SELECT` (rota `GET /api/matches/[id]`); `MatchPlayerPayload`, `MatchData`, `ScoringHeader` e `Player` (scoreboard) ganham `club`/`state` opcionais (o fetch do scoring já passa o payload cru).
+     - **Cards (`/dashboard` e `/relatorios`, que apenas re-renderiza o `DashboardPage`):** `useMatchCardData` expõe `p1Origin`/`p2Origin` e o badge do card exibe "Pinheiros - SP" (`MatchCard.tsx` foi de 117 → 115 linhas para não crescer no R-03; `p1Club`/`p2Club` do score-grid agora recebem a procedência formatada).
+     - **Placar (cabeçalho da partida):** `scoreboard-player-row.tsx` mostra a procedência em fonte menor após o nome e no `title` do `td`.
+     - **`/atletas`:** coluna **"Origem"** condicional (só aparece quando alguma linha tem procedência) em `AthleteTable`/`AthleteTableRow` + campo `origin` em `AthleteTableRowData` preenchido por `toAthleteListRow`. A tabela do gestor permanece com 9 colunas (sem `origin` → sem coluna).
+- **A0.12 item 6:** `pnpm lint` (`next lint`) = **0 warnings/erros** — junto com `typecheck` 0, suíte completa e `check:r03` 0, a linha de base 100% verde está confirmada → **A0.12 ✅ completo**.
+- **Testes novos/atualizados:** `provenance` 5, `gestor-onboarding-progress` 6, `athlete-table` +1 (coluna Origem), `ScoreboardCard` +2 (procedência presente/ausente), `MatchCard.characterization` +1 (badge "Pinheiros - SP").
+- **Validação final:** suíte completa **583/583 suites · 4908/4908 testes**, `typecheck` 0 erros, `lint` 0, `check:r03` 0 violações.
+- **Backlog resultante (`TASKS.md`):** A0.12 ✅ e TD-067 ✅; restam como resíduos abertos: **A0.13** (E2E `08-public-match-pool.spec.ts` + migrations), **A0.14** (menores, depende do A0.8/LGPD) e **TD-065** (Fase E — diagnóstico/saneamento em banco, exige PostgreSQL local).
+

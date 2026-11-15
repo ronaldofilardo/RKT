@@ -26,8 +26,8 @@
 
 ## 2. Funcionalidades Ausentes (MVP Incompleto)
 
-### A0.12. Cadastro de Atleta de Outro Clube (UF, Cidade e Clube) ⏳
-- **Status:** **Concluído com resíduos** — Fases 1 a 4 entregues (2026-11-01/09, `docs/MEMORY.md` §2.3, verificado no código em 2026-11-14) e **plano arquivado em 2026-11-14**; resíduos = itens 5 e 6 do DoD abaixo.
+### A0.12. Cadastro de Atleta de Outro Clube (UF, Cidade e Clube) ✅
+- **Status:** **Concluído** — Fases 1 a 4 entregues (2026-11-01/09, `docs/MEMORY.md` §2.3, verificado no código em 2026-11-14), **plano arquivado em 2026-11-14** e resíduos dos itens 5 e 6 do DoD resolvidos em 2026-11-14 (MEMORY §2.45).
 - **Documento:** [`docs/archive/PLANO_CADASTRO_ATLETA_OUTRO_CLUBE_UF_CIDADE_2026-11-01.md`](file:///c:/apps/RKT/docs/archive/PLANO_CADASTRO_ATLETA_OUTRO_CLUBE_UF_CIDADE_2026-11-01.md)
 - **Contexto:** Permitir cadastro de atletas de outros clubes ou avulsos/independentes nas 4 situações do sistema (Gestor, Treinador de Clube, Treinador Avulso e Modal Novo Atleta em `/match/new`), com UF padronizada (27 UFs), cidade livre e clube livre, preservando a regra de não vincular indevidamente via `PlayerCT`.
 - **DoD:**
@@ -35,8 +35,8 @@
   2. [x] Componente reutilizável `AthleteOriginSection.tsx` (R-03 $\le 100$ linhas — 88 linhas).
   3. [x] Schemas Zod atualizados (`CreatePlayerInputSchema`, `UpdatePlayerInputSchema` com `club`/`city`/`state`/`isExternalClub`).
   4. [x] Integração no modal Novo Atleta (`/match/new`), Treinador Avulso, Treinador de Clube e Gestor de CT (`NewAthleteModalForm.tsx`).
-  5. [ ] Exibição broadcast da procedência em placares e relatórios.
-  6. [ ] Linha de base 100% verde (`tsc`, `next lint`, testes Jest).
+  5. [x] Exibição broadcast da procedência em placares e relatórios — **RESOLVIDO (2026-11-14, MEMORY §2.45):** helper `src/core/athlete/provenance.ts` (`formatProvenance` → "Clube - UF"), `state`/`club` nos selects de player (`match-repository-select.data.ts` + `MATCH_SELECT`), badge do card exibindo "Pinheiros - SP" (`useMatchCardData.p1Origin`/`p2Origin`), procedência no nome da linha do placar (`scoreboard-player-row.tsx`) e coluna condicional "Origem" em `/atletas` (`AthleteTable` + `toAthleteListRow`). Testes: `provenance` 5, `athlete-table` +1, `ScoreboardCard` +2, `MatchCard` characterization +1.
+  6. [x] Linha de base 100% verde (`tsc`, `next lint`, testes Jest) — **CONFIRMADO (2026-11-14):** `pnpm typecheck` 0 erros, `pnpm lint` 0 warnings/erros, suíte completa **583/583 suites · 4908/4908 testes**, `pnpm check:r03` 0 violações.
 
 ### A0.13. Pool de Partidas Públicas (S1) ⏳
 - **Status:** **Concluído com resíduos** — backend e frontend entregues (2026-11-09, `docs/MEMORY.md` §2.31) e **plano arquivado em 2026-11-14**; resíduos = E2E `08-public-match-pool.spec.ts` (item 9) e execução local das migrations (`pnpm db:migrate:deploy`).
@@ -495,12 +495,13 @@
 
 ---
 
-### TD-067. Resíduo do PLANO_ONBOARDING_UX_FEEDBACK_2026-11-07 — §3.4 Modal do Gestor (arquivado) 🟡
+### TD-067. Resíduo do PLANO_ONBOARDING_UX_FEEDBACK_2026-11-07 — §3.4 Modal do Gestor (arquivado) ✅
 - **Prioridade:** Média
+- **Status:** **Resolvido em 2026-11-14** (MEMORY §2.45) — commit `ddaf9cb`.
 - **Documento:** [`docs/archive/PLANO_ONBOARDING_UX_FEEDBACK_2026-11-07.md`](file:///c:/apps/RKT/docs/archive/PLANO_ONBOARDING_UX_FEEDBACK_2026-11-07.md)
 - **Contexto:** Frentes 1, 3, 4 e 5 e a validação inline de `/login`, `/signup` e `/trocar-senha` foram entregues (toast, empty states, `/onboarding` com gate e E2E `e2e/flows/07-onboarding-first-login.spec.ts`). Falta o item §3.4:
-- [ ] `src/app/signup/gestor-onboarding-modal.tsx`: barra de progresso por etapa (`modal-header.tsx` hoje exibe apenas texto do passo) e validação `onBlur` de CNPJ, CEP e telefone (hoje `onBlur` só existe em `signup-form-fields.tsx`).
-- **DoD:** barra de progresso visível nas 3 etapas + `onBlur` validado nos 3 campos + testes de componente atualizados.
+- [x] ~~`src/app/signup/gestor-onboarding-modal.tsx`: barra de progresso por etapa e validação `onBlur` de CNPJ, CEP e telefone.~~ **RESOLVIDO (2026-11-14):** barra de progresso com `role="progressbar"` no `modal-header.tsx` (Etapa 1 = 50%, Etapa 2 = 100%, conforme §3.4 do plano — a DoD abaixo dizia "3 etapas", mas o modal tem 2); a validação `onBlur` de CNPJ/Telefone/CEP **já existia** via `FormField.validate` + `handleBlur` (afirmação do TASKS defasada — hoje `signup-form-fields.tsx` e as seções do step1 usam `FormField`).
+- **DoD (2026-11-14):** barra de progresso visível nas **2 etapas do modal** (50%/100%) + `onBlur` validado nos 3 campos (coberto por teste) + teste de componente novo `src/app/signup/__tests__/gestor-onboarding-progress.test.tsx` 6/6.
 
 ---
 
