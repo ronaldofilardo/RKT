@@ -38,8 +38,8 @@
   5. [x] Exibição broadcast da procedência em placares e relatórios — **RESOLVIDO (2026-11-14, MEMORY §2.45):** helper `src/core/athlete/provenance.ts` (`formatProvenance` → "Clube - UF"), `state`/`club` nos selects de player (`match-repository-select.data.ts` + `MATCH_SELECT`), badge do card exibindo "Pinheiros - SP" (`useMatchCardData.p1Origin`/`p2Origin`), procedência no nome da linha do placar (`scoreboard-player-row.tsx`) e coluna condicional "Origem" em `/atletas` (`AthleteTable` + `toAthleteListRow`). Testes: `provenance` 5, `athlete-table` +1, `ScoreboardCard` +2, `MatchCard` characterization +1.
   6. [x] Linha de base 100% verde (`tsc`, `next lint`, testes Jest) — **CONFIRMADO (2026-11-14):** `pnpm typecheck` 0 erros, `pnpm lint` 0 warnings/erros, suíte completa **583/583 suites · 4908/4908 testes**, `pnpm check:r03` 0 violações.
 
-### A0.13. Pool de Partidas Públicas (S1) ⏳
-- **Status:** **Concluído com resíduos** — backend e frontend entregues (2026-11-09, `docs/MEMORY.md` §2.31) e **plano arquivado em 2026-11-14**; resíduos = E2E `08-public-match-pool.spec.ts` (item 9) e execução local das migrations (`pnpm db:migrate:deploy`).
+### A0.13. Pool de Partidas Públicas (S1) ✅
+- **Status:** **Concluído** — backend e frontend entregues (2026-11-09, `docs/MEMORY.md` §2.31), **plano arquivado em 2026-11-14** e resíduos (E2E `08` + migrations) resolvidos em 2026-11-14 (MEMORY §2.46).
 - **Documento:** [`docs/archive/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md`](file:///c:/apps/RKT/docs/archive/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md)
 - **Contexto:** múltiplos anotadores para a mesma partida real. O template (`Match.isPublicTemplate = true`) é apenas um cartaz no pool, sem `PointLog`; cada usuário gera sua própria anotação derivada (`sourceMatchId`), isolada e soberana.
 - **DoD:**
@@ -51,7 +51,7 @@
   6. [x] Visibilidade por perfil em `GET /api/matches` (Admin/Suporte irrestrito; Gestor vê derivadas de membros do CT).
   7. [x] Frontend: toggle Privada/Pública no formulário, tela `/partidas-publicas`, card com "Anotar esta partida", menu e middleware.
   8. [x] Painel do Gestor agrupado por template + filtro por membro anotador.
-  9. [ ] E2E `08-public-match-pool.spec.ts`.
+  9. [x] E2E `08-public-match-pool.spec.ts` — **RESOLVIDO (2026-11-14, MEMORY §2.46):** spec com 5 testes (criação de cartaz público + listagem no pool com `annotationCount`, paginação `limit=1` → `nextCursor`, `annotate` resolve 201→200 idempotente, `mode: create` → 409 `ALREADY_ANNOTATING` com `details.matchId` e UI autenticada em `/partidas-publicas` → "Anotar esta partida" → `/match/[id]/scoring`), commit `a36fe42`, **31/31 na suíte E2E**. Migrations: `pnpm db:migrate:status`/`db:migrate:deploy` confirmados em 2026-11-14 — 34 migrations, **nenhuma pendente**.
 
 ### A0.14. Nickname de Atleta no Pool (S2) ⏳
 - **Status:** **Concluído com resíduos** — fluxo de maiores de idade entregue (2026-11-09, `docs/MEMORY.md` §2.31) e **plano arquivado em 2026-11-14**; resíduo = fluxo de consentimento de menores (item 7), bloqueado por A0.8.
@@ -470,16 +470,16 @@
 
 ---
 
-### TD-065. Fase E do PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11 (Fases A-D concluídas) 🟡
+### TD-065. Fase E do PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11 (Fases A-D concluídas) ✅
 - **Prioridade:** Média
-- **Status:** **Em aberto (só a Fase E)** — Fases A, B, C e D concluídas (D via TD-062 em 2026-11-12; A, B e C verificadas e commitadas em 2026-11-14 — C no commit `9334796`).
+- **Status:** **Resolvido em 2026-11-14** — Fases A, B, C e D concluídas (D via TD-062 em 2026-11-12; A, B e C verificadas e commitadas em 2026-11-14 - C no commit `9334796`) e **Fase E entregue em 2026-11-14** (MEMORY §2.46, commit `6ba508c`).
 - **Documento:** [`docs/archive/PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md`](file:///c:/apps/RKT/docs/archive/PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md) (arquivado em 2026-11-14)
 - **Pendências:**
   - [x] **Fase A** — Paginação com cursor (`nextCursor` + "Carregar mais" em `src/app/dashboard/hooks/useDashboardMatches.ts`), resultado discriminado `{ ok: true, matches, nextCursor } | { ok: false, errorMessage }` em `use-dashboard-matches-fetch.ts` (erro deixa de virar `[]`).
   - [x] **Fase B** — Cartazes do criador visíveis em "Minhas Partidas": `ownTemplates` (`isTemplate: true`) em `src/services/match-repository-where.logic.ts` + cartazes do círculo em `match-repository-circle.logic.ts`.
   - [x] **Fase C** — Consistência estrita de `ctId`: `resolveDerivedCtId` com `if (explicitCtId !== undefined) return explicitCtId;` (null = PARTICULAR nunca herda o CT do cartaz) em `src/services/match-resolve-payload.logic.ts` — commitada em `9334796` (2026-11-14), junto com `switchUserArea` (`resolvedCtId`) e `resolveMatchCtId` unificado já presentes no HEAD.
-  - [ ] **Fase E** — Diagnóstico em banco, saneamento e testes.
-- **DoD:** Fase E entregue com `pnpm typecheck`, `pnpm check:r03` e `pnpm test:design` 100% verdes.
+  - [x] **Fase E** - Diagnóstico em banco, saneamento e testes — **RESOLVIDO (2026-11-14, MEMORY §2.46):** diagnóstico read-only em `racket_mvp` (11 partidas vivas, 0 deletadas, 5 anotações com herança de `ctId` — todas com vínculo ativo do criador, 1 com o CT próprio do anotador via contexto ativo, 2 `PARTICULAR`; RLS habilitada em `Match`/`Player` sem `FORCE`) → **0 divergências comprovadas**. Script idempotente `scripts/sanitize-match-ctid.ts` (dry-run por padrão, `--apply`; só corrige anotação que gravou o `ctId` do cartaz cujo criador nunca teve vínculo algum — membership em qualquer status ou `player_cts`), entrada `pnpm db:sanitize:ctid` no `package.json`; dry-run + apply + re-apply = `divergentes=0`. Testes: `matchRepository.scope.test.ts` +3 casos (contexto `PARTICULAR`, contexto de CT sem escopo de gestor e gestor em contexto `PARTICULAR`) — 24/24. `useDashboardMatches.test.tsx` (500, timeout, `nextCursor` + "Carregar mais", independência de `suspended-sessions`) e `match-resolve-payload.test.ts` (`resolveDerivedCtId` com `explicitCtId = null` em cartaz de CT) já cobriam o pedido.
+- **DoD:** Fase E entregue com `pnpm typecheck`, `pnpm check:r03` e `pnpm test:design` 100% verdes — **CONFIRMADO (2026-11-14):** `typecheck` 0, `check:r03` 0, `test:design` 29/29, suíte completa **583/583 suites · 4911/4911 testes** e suíte E2E **31/31**.
 
 ---
 

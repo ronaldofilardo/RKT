@@ -43,8 +43,8 @@ Um documento vai para `archive/` quando:
 | `PLANO_ONBOARDING_UX_FEEDBACK_2026-11-07.md` | Toast, validação inline, empty states e `/onboarding` | Concluído (2026-11-14, MEMORY §2.40/§2.45) | 4,5 frentes entregues; resíduo §3.4 (progresso + onBlur) resolvido em 2026-11-14 no `TASKS.md` TD-067 |
 | `PLANO_USABILIDADE_OUTDOOR_E_CORES_PERCEPTUAIS_2026-11-03.md` | Cores OKLCH outdoor e contraste AAA | Concluído (2026-11-14, MEMORY §2.42/§2.44) | Tokens, acentos de quadra e suíte WCAG entregues; os 3 resíduos do TD-066 corrigidos em 2026-11-14 (wiring `score`, modo outdoor e court-pill) |
 | `PLANO_CADASTRO_ATLETA_OUTRO_CLUBE_UF_CIDADE_2026-11-01.md` | Cadastro de atleta de outro clube (UF/cidade/clube) | Concluído (2026-11-01/09, MEMORY §2.3/§2.43/§2.45) | Fases 1-7 entregues; resíduos DoD 5 e 6 resolvidos em 2026-11-14 (`TASKS.md` A0.12) |
-| `PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md` | Correção dos filtros de partidas | Concluído com resíduo (2026-11-14, MEMORY §2.43) | Fases A-D entregues; Fase E em aberto em `TASKS.md` TD-065 |
-| `PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md` | Pool de partidas públicas + nickname | Concluído com resíduos (2026-11-09, MEMORY §2.31/§2.43) | 15 itens de DoD entregues; E2E `08` e consentimento de menores (A0.8) em aberto em `TASKS.md` |
+| `PLANO_CORRECAO_FILTROS_PARTIDAS_2026-11-11.md` | Correção dos filtros de partidas | Concluído (2026-11-14, MEMORY §2.43/§2.46) | Fases A-E entregues; Fase E (diagnóstico, saneamento e testes) resolvida em 2026-11-14 (`TASKS.md` TD-065) |
+| `PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md` | Pool de partidas públicas + nickname | Concluído com resíduo (2026-11-09, MEMORY §2.31/§2.43/§2.46) | 15 itens de DoD entregues; E2E `08` + migrations resolvidos em 2026-11-14 (A0.13); consentimento de menores (A0.14) segue aberto, bloqueado por A0.8 |
 
 ## Estrutura da raiz de `docs/`
 
@@ -66,7 +66,7 @@ A raiz da pasta `docs/` permanece rigorosamente limpa e higienizada, contendo ap
 ### Planos de Execução (`PLANO_*.md`) — apenas os NÃO concluídos
 A raiz mantém somente planos com execução em aberto (status "Pronto para Execução"/"Planejado" **e** item correspondente não concluído em `TASKS.md`). Desde 2026-11-14 há **apenas um**: `PLANO_LGPD_PROTECAO_MENORES_E_GOVERNANCA_2026-10-31.md` (A0.8, não iniciada).
 
-> Planos **arquivados com resíduos** seguem com seus itens abertos rastreados em `docs/TASKS.md`: A0.13 (E2E `08` + migrations), A0.14 (menores/A0.8) e TD-065 (Fase E dos filtros) — o TD-066 (outdoor), o A0.12 (DoD 5 e 6) e o TD-067 (onboarding §3.4) foram resolvidos em 2026-11-14. O arquivo pode ir para `archive/` mesmo com resíduo, contanto que o resíduo tenha ID próprio no backlog — o que preserva o critério de auditoria acima.
+> Planos **arquivados com resíduos** seguem com seus itens abertos rastreados em `docs/TASKS.md`: resta apenas **A0.14** (consentimento de menores, bloqueado pelo A0.8/LGPD) — o TD-066 (outdoor), o A0.12 (DoD 5 e 6), o TD-067 (onboarding §3.4), o A0.13 (E2E `08` + migrations) e o TD-065 (Fase E) foram resolvidos em 2026-11-14. O arquivo pode ir para `archive/` mesmo com resíduo, contanto que o resíduo tenha ID próprio no backlog — o que preserva o critério de auditoria acima.
 
 ### Subdiretórios
 - `golden/` — Snapshots dourados de regressão

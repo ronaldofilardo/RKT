@@ -1111,3 +1111,22 @@ Leitura completa: `docs/TASKS.md` — **Anexo A** (dívida técnica, 50 entradas
 - **Validação final:** suíte completa **583/583 suites · 4908/4908 testes**, `typecheck` 0 erros, `lint` 0, `check:r03` 0 violações.
 - **Backlog resultante (`TASKS.md`):** A0.12 ✅ e TD-067 ✅; restam como resíduos abertos: **A0.13** (E2E `08-public-match-pool.spec.ts` + migrations), **A0.14** (menores, depende do A0.8/LGPD) e **TD-065** (Fase E — diagnóstico/saneamento em banco, exige PostgreSQL local).
 
+---
+
+## 2.46 A0.13 concluído (E2E 08 + migrations) e TD-065 Fase E concluída — 2026-11-14
+- **Commits:**
+  1. `a36fe42` `test(e2e)`: **A0.13 item 9** — novo `e2e/flows/08-public-match-pool.spec.ts` (5 testes, padrão `TestContext` do spec 09):
+     - cria cartaz público via `POST /api/matches` (`isPublicTemplate`/`isTemplate`/`eventScope: 'PUBLIC'` + `tournamentName` marcador único) e `GET /api/matches/pool?limit=50` → item presente com `annotationCount: 0`;
+     - paginação `limit=1` → `nextCursor` string e a página seguinte não repete o item;
+     - `annotate mode: 'resolve'` → **201** na 1ª vez, **200** na 2ª com `matchId` igual e `created: false`, e o pool passa a `annotationCount: 1`;
+     - `annotate mode: 'create'` repetido → **409** `{ error: 'CONFLICT', details: { code: 'ALREADY_ANNOTATING', matchId } }` (shape confirmado em `reportApiError` + `ConflictError`);
+     - UI autenticada (`ctx.authenticatePage(page, 'athlete2')`): `/partidas-publicas` → card filtrado pelo marcador → botão "Anotar esta partida" → `waitForURL(/\/match\/.+\/scoring/)` com margem de 30s (a 1ª execução falhou em 15s por compilação inicial/Fast Refresh da página de scoring no dev server).
+     - Ajuste: o `h1` da topbar e o da página têm o mesmo nome acessível → uso de `.first()`.
+  2. `6ba508c` `feat(db)`: **TD-065 Fase E** — diagnóstico + saneamento + testes:
+     - **Diagnóstico read-only (`psql` em `racket_mvp`):** 11 partidas vivas (7 `IN_PROGRESS PRIVATE_PERSONAL`, 2 cartazes `PRIVATE_CLUB`, 2 `SCHEDULED`), 0 deletadas, 0 templates públicos fora de `PUBLIC`; 5 anotações herdaram o `ctId` do cartaz (**todas com vínculo ativo** do criador em `memberships`/`player_cts`), 1 com o CT próprio do anotador (contexto ativo do JWT — comportamento projetado por `resolveAnnotationCtId`), 2 `PARTICULAR` sem `ctId`; **RLS habilitada** em `Match`/`Player` sem `FORCE` (owner `postgres` não é afetado). **0 divergências comprovadas.**
+     - **Saneamento:** novo `scripts/sanitize-match-ctid.ts` (dry-run por padrão, `--apply`) que só corrige anotação que gravou o `ctId` do cartaz **e** cujo criador nunca teve vínculo algum (membership em qualquer status ou `player_cts`) com aquele CT; entrada `pnpm db:sanitize:ctid` no `package.json`. Execuções: dry-run, apply e re-apply → `divergentes=0 corrigidos=0` (idempotente).
+     - **Testes:** `matchRepository.scope.test.ts` **+3** (contexto `PARTICULAR` → só próprias sem CT; contexto de CT sem escopo de gestor → próprias do CT + cartazes do CT; gestor em contexto `PARTICULAR` → próprias + derivadas dos membros, sem ramo de CT) → 24/24. `useDashboardMatches.test.tsx` e `match-resolve-payload.test.ts` já cobriam o restante do pedido da Fase E.
+- **Migrations (A0.13):** `pnpm db:migrate:status` e `pnpm db:migrate:deploy` contra `racket_mvp` → **34 migrations, "No pending migrations to apply"**.
+- **Validação (gates da Fase E):** `typecheck` 0, `check:r03` 0, `test:design` 29/29, suíte completa **583/583 suites · 4911/4911 testes** (+3 novos) e **suíte E2E completa 31/31** (porta 3000 com servidor `next` leftover encerrado antes — o P-01 proíbe reaproveitar servidor sem `DB_TARGET=test`).
+- **Backlog resultante (`TASKS.md`):** A0.12 ✅, A0.13 ✅, TD-065 ✅ (Fase E) e TD-067 ✅; **resta apenas A0.14** (consentimento de menores, bloqueado pelo A0.8/LGPD — decisão do usuário de não iniciar).
+
