@@ -1130,3 +1130,17 @@ Leitura completa: `docs/TASKS.md` — **Anexo A** (dívida técnica, 50 entradas
 - **Validação (gates da Fase E):** `typecheck` 0, `check:r03` 0, `test:design` 29/29, suíte completa **583/583 suites · 4911/4911 testes** (+3 novos) e **suíte E2E completa 31/31** (porta 3000 com servidor `next` leftover encerrado antes — o P-01 proíbe reaproveitar servidor sem `DB_TARGET=test`).
 - **Backlog resultante (`TASKS.md`):** A0.12 ✅, A0.13 ✅, TD-065 ✅ (Fase E) e TD-067 ✅; **resta apenas A0.14** (consentimento de menores, bloqueado pelo A0.8/LGPD — decisão do usuário de não iniciar).
 
+---
+
+## 2.47 Refatoração dos 7 maiores arquivos de teste em suítes por contexto — 2026-11-15
+- **Contexto:** fila externa de testes grandes (LOC · arquivo · categoria · justificativa) — **1127** `hooks/__tests__/useScoringHandlers.test.ts` (Unitário), **984** `components/dashboard/__tests__/MatchCard.test.tsx` (Componente), **943** `services/__tests__/matchService.test.ts` (Integração), **813** `app/api/players/__tests__/route.test.ts` (Integração), **452** `app/api/matches/__tests__/route.characterization.test.ts` (Integração), **381** `app/match/new/__tests__/NewAthleteModal.characterization.test.tsx` (Componente) e **513** `components/scoring/__tests__/editScoreHelpers.characterization.test.ts` (Unitário). A tabela não vive em doc do repo — este registro é a referência canônica. **Os 7 foram divididos e o original deletado** em cada commit (substituições íntegras, nenhuma cobertura perdida).
+- **Commits (ordem):**
+  1. `1d858da` `test(scoring)`: `useScoringHandlers.test.ts` → **10 arquivos** por contexto + kit `scoringHandlersTestKit`.
+  2. `f291162` `test(dashboard)`: `MatchCard.test.tsx` → **10 arquivos** por contexto.
+  3. `7ee2a51` `test(services)`: `matchService.test.ts` → **9 arquivos** + kit `matchServiceTestKit`.
+  4. `af2f235` `test(api/players)`: `route.test.ts` → **7 arquivos** + kit `playersRouteTestKit`.
+  5. `8d8abff` `test`: `route.characterization.test.ts` → **5 arquivos** + kit `matchesRouteTestKit` e `NewAthleteModal.characterization.test.tsx` → **7 arquivos** + kit `newAthleteModalTestKit`.
+  6. `67c5ed3` `test`: `editScoreHelpers.characterization.test.ts` → **12 arquivos** + kit `editScoreHelpersTestKit`.
+- **Método comum:** cada arquivo ≤ 80L raw (Unitário ≤ 50L quando aplicável); AAA linear com Arrange delegado a `*TestKit` (fora da coleta do Jest, `testMatch` não pega); asserções 1:1 com o original; **zero** `if/for/while/switch/try` nos `.test.*`; gates idênticos por tarefa — contagem raw, grep de controle de fluxo, ESLint 0 erros, `check:r03` 0 regressões, **paridade de statements/funções** (`coverage-final.json` antes × depois) e suíte completa verde antes de apagar o original; commits pequenos, **sem push**.
+- **Validação final (estado `67c5ed3`):** suíte completa **636/636 suites · 4918/4918 testes** (delta por tarefa sempre conferido: −N originais +N splitados), `check:r03` 0 regressões, branch `master` **ahead 6** de `origin/master` (`1d858da` … `67c5ed3`), sem push.
+
