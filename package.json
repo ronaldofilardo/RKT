@@ -29,6 +29,7 @@
     "db:migrate:deploy": "tsx scripts/db/preflight.ts --mode=development -- prisma migrate deploy",
     "db:migrate:status": "tsx scripts/db/preflight.ts --mode=development -- prisma migrate status",
     "db:seed": "tsx scripts/db/preflight.ts --mode=development -- tsx prisma/seed.ts",
+    "db:sanitize:ctid": "tsx scripts/db/preflight.ts --mode=development -- tsx scripts/sanitize-match-ctid.ts",
     "spec:validate": "node scripts/validate-spec-drift.mjs",
     "typecheck": "tsc --noEmit",
     "test:setup": "tsx scripts/db/preflight.ts --mode=test -- node scripts/test-setup.js",

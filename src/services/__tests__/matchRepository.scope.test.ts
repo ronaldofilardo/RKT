@@ -77,6 +77,56 @@ describe('listMatches — escopo por perfil', () => {
     });
   });
 
+  it('contexto PARTICULAR lista só as próprias sem CT (não puxa cartaz de clube)', async () => {
+    mockFindMany.mockResolvedValue([]);
+
+    await listMatches(null, null, 20, 'user-1', 'PARTICULAR');
+
+    expect(lastWhere()).toEqual({
+      deletedAt: null,
+      OR: [
+        { ctId: null, createdByUserId: 'user-1', isPublicTemplate: false, isTemplate: false },
+        { isTemplate: true, createdByUserId: 'user-1', ctId: null },
+      ],
+    });
+  });
+
+  it('contexto de CT (sem escopo de gestor) restringe às próprias daquele CT + cartazes do CT', async () => {
+    mockFindMany.mockResolvedValue([]);
+
+    await listMatches(null, null, 20, 'coach-1', 'ct-1');
+
+    expect(lastWhere()).toEqual({
+      deletedAt: null,
+      OR: [
+        { ctId: 'ct-1', createdByUserId: 'coach-1', isPublicTemplate: false, isTemplate: false },
+        { isTemplate: true, createdByUserId: 'coach-1', ctId: 'ct-1' },
+      ],
+    });
+  });
+
+  it('gestor em contexto PARTICULAR vê as próprias + derivadas dos membros (sem ramo de CT)', async () => {
+    mockFindMany.mockResolvedValue([]);
+
+    await listMatches(null, null, 20, 'gestor-1', 'PARTICULAR', null, {
+      ctMemberUserIds: ['u-athlete'],
+    });
+
+    expect(lastWhere()).toEqual({
+      deletedAt: null,
+      OR: [
+        { createdByUserId: 'gestor-1', isPublicTemplate: false, isTemplate: false },
+        {
+          sourceMatchId: { not: null },
+          createdByUserId: { in: ['u-athlete'] },
+          isPublicTemplate: false,
+          isTemplate: false,
+        },
+        { isTemplate: true, createdByUserId: 'gestor-1', ctId: null },
+      ],
+    });
+  });
+
   it('nenhuma condição do OR pode listar partida de anotador alheio', async () => {
     mockFindMany.mockResolvedValue([]);
 
