@@ -5,23 +5,45 @@ interface ModalHeaderProps {
   onClose: () => void;
 }
 
+/** Progresso por etapa (§3.4 do plano): Etapa 1 = 50%, Etapa 2 = 100%. */
+const PROGRESS_BY_STEP: Record<1 | 2, number> = { 1: 50, 2: 100 };
+
 export function ModalHeader({ step, onClose }: ModalHeaderProps) {
+  const progress = PROGRESS_BY_STEP[step];
+
   return (
-    <div className="flex justify-between items-start mb-6">
-      <div>
-        <h2 id="gestor-modal-title" className="text-xl font-bold text-gray-900">
-          Cadastro de Clube / CT
-        </h2>
-        <p className="text-sm text-gray-500">
-          {step === 1 ? 'Dados da Pessoa Jurídica' : 'Conta do Responsável'}
-        </p>
+    <div className="mb-6">
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 id="gestor-modal-title" className="text-xl font-bold text-gray-900">
+            Cadastro de Clube / CT
+          </h2>
+          <p className="text-sm text-gray-500">
+            {step === 1 ? 'Dados da Pessoa Jurídica' : 'Conta do Responsável'}
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className="text-gray-400 hover:text-gray-600"
+        >
+          ✕
+        </button>
       </div>
-      <button
-        onClick={onClose}
-        className="text-gray-400 hover:text-gray-600"
+      <div
+        role="progressbar"
+        aria-label="Progresso do cadastro"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={progress}
+        data-testid="gestor-onboarding-progress"
+        className="mt-3 h-1.5 w-full bg-gray-200 rounded-full overflow-hidden"
       >
-        ✕
-      </button>
+        <div
+          data-testid="gestor-onboarding-progress-fill"
+          className="h-full bg-sky-600 rounded-full transition-all"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
     </div>
   );
 }
