@@ -31,6 +31,28 @@ describe('ScoreboardCard', () => {
     expect(screen.getByText('P. Two')).toBeInTheDocument();
   });
 
+  it('exibe a procedência (Clube - UF) ao lado do nome quando informada (A0.12 Fase 7)', () => {
+    render(
+      <ScoreboardCard
+        player1={{ id: '1', name: 'P. One', club: 'Pinheiros', state: 'SP' }}
+        player2={mockPlayer2}
+        scoreState={mockScoreState}
+      />
+    );
+    expect(screen.getByText('(Pinheiros - SP)')).toBeInTheDocument();
+  });
+
+  it('não exibe procedência quando clube/UF não foram informados', () => {
+    render(
+      <ScoreboardCard
+        player1={mockPlayer1}
+        player2={mockPlayer2}
+        scoreState={mockScoreState}
+      />
+    );
+    expect(screen.queryByText(/\([^)]+\)/)).not.toBeInTheDocument();
+  });
+
   it('renders completed set scores correctly', () => {
     render(
       <ScoreboardCard

@@ -44,6 +44,17 @@ describe('AthleteTable — colunas padrão (gestor e treinador)', () => {
     ]);
   });
 
+  it('renderiza a coluna Origem com a procedência quando informada (A0.12 Fase 7)', () => {
+    renderTable({ origin: 'Pinheiros - SP' });
+    const headers = Array.from(document.querySelectorAll('thead th')).map((th) => th.textContent);
+
+    expect(headers).toEqual([
+      'Nome', 'Origem', 'Nickname', 'CPF', 'Gênero', 'Data de nascimento',
+      'Idade', 'Rankings', 'Status', 'Ações',
+    ]);
+    expect(screen.getByText('Pinheiros - SP')).toBeInTheDocument();
+  });
+
   it('não rende a coluna de seleção quando não é selecionável', () => {
     renderTable();
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();

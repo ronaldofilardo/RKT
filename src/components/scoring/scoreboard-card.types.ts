@@ -1,6 +1,9 @@
 export interface Player {
   id: string;
   name: string;
+  /** Procedência (A0.12 Fase 7): exibida como "Clube - UF" no placar. */
+  club?: string | null;
+  state?: string | null;
 }
 
 /** Forma mínima de set lida pelo card. */

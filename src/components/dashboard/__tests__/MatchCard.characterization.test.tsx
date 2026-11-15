@@ -20,6 +20,19 @@ describe('MatchCard Characterization', () => {
     expect(screen.getByText('J. Sinner')).toBeInTheDocument();
   });
 
+  it('exibe a procedência do atleta no badge do card (Clube - UF) (A0.12 Fase 7)', () => {
+    render(
+      <MatchCard
+        match={{
+          ...matchMock,
+          player1: { name: 'Lucas Silva', club: 'Pinheiros', state: 'SP' },
+        }}
+      />
+    );
+
+    expect(screen.getByText('Pinheiros - SP')).toBeInTheDocument();
+  });
+
   it('triggers onClick callback when clicked', () => {
     const onPrimaryClick = jest.fn();
     render(<MatchCard match={matchMock} onClick={onPrimaryClick} />);

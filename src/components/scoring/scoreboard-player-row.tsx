@@ -5,6 +5,7 @@ import type { TennisFormat } from '@/lib/matchConfig';
 import type { Player, ScoreboardSet } from './scoreboard-card.types';
 import { getSetCellStyle, renderSetScore } from './scoreboard-card-cells';
 import { abbreviateDoublesName } from './doubles-name-abbreviation.logic';
+import { formatProvenance } from '@/core/athlete/provenance';
 
 interface ScoreboardPlayerRowProps {
   player: Player;
@@ -47,14 +48,18 @@ export function ScoreboardPlayerRow({
   const nameBorder = isLastRow ? '' : ' border-b border-telemetry-border/10';
   const statusBorder = isLastRow ? 'border-l border-telemetry-border/10' : 'border-l border-b border-telemetry-border/10';
   const displayNameValue = displayName ?? abbreviateDoublesName(player.name, partner?.name ?? undefined);
+  const provenance = formatProvenance(player.club, player.state);
 
   return (
     <tr className="text-xs">
       <td
-        title={displayNameValue}
+        title={provenance ? `${displayNameValue} (${provenance})` : displayNameValue}
         className={`text-left py-1 px-2 font-bold tracking-wide truncate max-w-full${nameBorder} ${nameBg}`}
       >
         {displayNameValue}
+        {provenance && (
+          <span className="ml-1 text-[10px] font-normal opacity-75">({provenance})</span>
+        )}
       </td>
       <td className={`text-center py-1 bg-telemetry-card ${statusBorder} text-xs`}>
         {isWinner ? (

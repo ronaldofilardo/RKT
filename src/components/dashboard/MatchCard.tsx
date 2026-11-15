@@ -26,8 +26,6 @@ export function MatchCard({
 
   const p1Name = abbreviateDoublesName(match.player1.name, match.player1Partner?.name ?? undefined);
   const p2Name = abbreviateDoublesName(match.player2.name, match.player2Partner?.name ?? undefined);
-  const p1Club = match.player1.club ?? null;
-  const p2Club = match.player2.club ?? null;
 
   const isP1OwnClub = checkPlayerOwnClub(match.player1, match.player1Partner, ctId, ctName, match.ctId);
   const isP2OwnClub = checkPlayerOwnClub(match.player2, match.player2Partner, ctId, ctName, match.ctId);
@@ -88,8 +86,8 @@ export function MatchCard({
         columnTitles={columnTitles}
         p1Name={p1Name}
         p2Name={p2Name}
-        p1Club={p1Club}
-        p2Club={p2Club}
+        p1Club={d.p1Origin}
+        p2Club={d.p2Origin}
         p1CreatedBy={match.player1.createdByName ?? null}
         p2CreatedBy={match.player2.createdByName ?? null}
         p1CreatorBadge={p1CreatorBadge}

@@ -2,6 +2,7 @@ export interface MatchPlayerPayload {
   name: string;
   id?: string;
   club?: string | null;
+  state?: string | null;
   clubId?: string | null;
   createdByUserId?: string | null;
   createdByName?: string | null;

@@ -14,6 +14,8 @@ export interface AthleteTableRowData {
   birthDate?: string | null;
   age?: number | null;
   rankings?: Record<string, RankingEntryLike> | null;
+  /** Procedência (A0.12 Fase 7): "Clube - UF" quando informados. */
+  origin?: string | null;
   status: AthleteStatus;
 }
 

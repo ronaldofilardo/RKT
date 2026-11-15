@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { getMaxSetsForFormat } from '@/components/scoring/scoreboard-card-logic';
 import { normalizeScoreState, isMatchTiebreakFormat, isCurrentSetMatchTiebreak, type TennisFormat, type NormalizedScoreState, type SetCellScore } from './match-card.logic';
 import type { DashboardMatchPayload } from './match-card-types';
+import { formatProvenance } from '@/core/athlete/provenance';
 
 const COURT_COLORS: Record<string, { bar: string; score: string }> = {
   CLAY:  { bar: 'rgb(var(--telemetry-court-clay, 196 98 58))', score: 'rgb(var(--telemetry-court-clay, 196 98 58) / 0.7)' },
@@ -86,5 +87,8 @@ export function useMatchCardData(match: DashboardMatchPayload) {
     scoreBg: isSuspendedAnnotation ? 'rgb(var(--telemetry-alert, 217 119 6) / 0.7)' : courtColors.score,
     setsWonP1: scoreState?.setsWon?.player1 ?? 0, setsWonP2: scoreState?.setsWon?.player2 ?? 0,
     currentGame: scoreState?.currentGame ?? null, paddedSets,
+    // Procedência broadcast (A0.12 Fase 7): "Clube - UF" quando informados
+    p1Origin: formatProvenance(match.player1.club, match.player1.state),
+    p2Origin: formatProvenance(match.player2.club, match.player2.state),
   };
 }

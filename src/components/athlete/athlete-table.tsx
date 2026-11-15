@@ -18,6 +18,8 @@ export function AthleteTable({
   athletes, actions, selectable, selectedIds = [], onSelectChange, onSelectAll,
 }: AthleteTableProps) {
   const allSelected = athletes.length > 0 && athletes.every((a) => selectedIds.includes(a.id));
+  // Coluna Origem só aparece quando há procedência a exibir (A0.12 Fase 7)
+  const showOrigin = athletes.some((a) => Boolean(a.origin));
 
   return (
     <div className="overflow-x-auto">
@@ -37,6 +39,9 @@ export function AthleteTable({
               </th>
             )}
             <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Nome</th>
+            {showOrigin && (
+              <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Origem</th>
+            )}
             <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Nickname</th>
             <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">CPF</th>
             <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Gênero</th>
@@ -54,6 +59,7 @@ export function AthleteTable({
               athlete={row}
               actions={actions(row)}
               selectable={selectable}
+              showOrigin={showOrigin}
               selected={selectedIds.includes(row.id)}
               onSelect={(checked) => onSelectChange?.(row.id, checked)}
             />

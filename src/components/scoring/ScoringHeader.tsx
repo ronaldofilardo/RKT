@@ -8,8 +8,8 @@ import type { LiveMatchCounters } from '@/core/scoring/live-tactical-insights';
 
 interface ScoringHeaderProps {
   match: {
-    player1: { id: string; name: string };
-    player2: { id: string; name: string };
+    player1: { id: string; name: string; club?: string | null; state?: string | null };
+    player2: { id: string; name: string; club?: string | null; state?: string | null };
     player1Partner?: { id: string; name: string } | null;
     player2Partner?: { id: string; name: string } | null;
     format: string;

@@ -8,12 +8,14 @@ interface AthleteTableRowProps {
   athlete: AthleteTableRowData;
   actions: AthleteTableRowActions;
   selectable?: boolean;
+  /** Exibe a coluna Origem (procedência "Clube - UF") quando há dado. */
+  showOrigin?: boolean;
   selected?: boolean;
   onSelect?: (checked: boolean) => void;
 }
 
 export function AthleteTableRow({
-  athlete: a, actions, selectable, selected, onSelect,
+  athlete: a, actions, selectable, showOrigin, selected, onSelect,
 }: AthleteTableRowProps) {
   const birthDateLabel = formatBirthDate(a.birthDate);
   const age = computeAthleteAge(a.birthDate, a.age);
@@ -34,6 +36,10 @@ export function AthleteTableRow({
       )}
 
       <td className="px-3 py-3 text-sm text-telemetry-text-primary font-medium">{a.name}</td>
+
+      {showOrigin && (
+        <td className="px-3 py-3 text-sm text-telemetry-text-muted">{a.origin ?? '-'}</td>
+      )}
 
       <td className="px-3 py-3 text-sm font-mono text-xs">
         {a.nickname ? (
