@@ -129,6 +129,14 @@ describe('buildMenu — combinações do plano (§7)', () => {
   it('14. Conta inativa: sem menu', () => {
     expect(buildMenu(ctx({ canOperate: true, isActive: false }))).toEqual([]);
   });
+
+  it('15. Responsável legal: seção responsavel com links para /responsavel e /historico', () => {
+    const menu = buildMenu(ctx({ isGuardian: true }));
+    expect(keys(menu)).toContain('responsavel');
+    const resp = find(menu, 'responsavel')!;
+    expect(resp.items.map((i) => i.label)).toEqual(['Meus Dependentes', 'Partidas dos Dependentes']);
+    expect(resp.items.map((i) => i.href)).toEqual(['/responsavel', '/historico']);
+  });
 });
 
 describe('buildMenu — regras gerais', () => {

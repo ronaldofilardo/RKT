@@ -10,7 +10,8 @@ const BodySchema = z.object({
   playerId: z.string().min(1),
   purpose: z.enum(['DATA', 'BROADCAST', 'STATS']),
   action: z.enum(['grant', 'revoke']),
-  termsVersion: z.string().min(1).optional(),
+  termsVersion: z.string().min(1).default('2.0'),
+  contentHash: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'VALIDATION_ERROR', details: parsed.error.flatten() }, { status: 400 });
       }
 
-      const { playerId, purpose, action, termsVersion } = parsed.data;
+      const { playerId, purpose, action, termsVersion, contentHash } = parsed.data;
 
       // O responsável deve ter vínculo ativo confirmado com o atleta
       const link = await prisma.guardianLink.findFirst({
@@ -57,11 +58,11 @@ export async function POST(request: NextRequest) {
         if (existing) {
           await prisma.consentRecord.update({
             where: { id: existing.id },
-            data: { revokedAt: null, grantedAt: new Date(), termsVersion: termsVersion ?? '1.0', ipHash },
+            data: { revokedAt: null, grantedAt: new Date(), termsVersion: termsVersion ?? '2.0', ipHash },
           });
         } else {
           await prisma.consentRecord.create({
-            data: { guardianUserId: user.id, playerId, purpose, termsVersion: termsVersion ?? '1.0', grantedAt: new Date(), ipHash },
+            data: { guardianUserId: user.id, playerId, purpose, termsVersion: termsVersion ?? '2.0', grantedAt: new Date(), ipHash },
           });
         }
       }
@@ -69,14 +70,15 @@ export async function POST(request: NextRequest) {
       await prisma.consentEvent.create({
         data: {
           playerId, guardianUserId: user.id, purpose,
-          action: action === 'grant' ? 'GRANT' : 'REVOKE', termsVersion: termsVersion ?? '1.0', ipHash,
+          action: action === 'grant' ? 'GRANT' : 'REVOKE', termsVersion: termsVersion ?? '2.0',
+          contentHash, ipHash,
         },
       });
 
       await prisma.auditLog.create({
         data: {
           actorUserId: user.id, action: action === 'grant' ? 'CONSENT_GRANTED' : 'CONSENT_REVOKED',
-          resourceType: 'ConsentRecord', resourceId: playerId, meta: { purpose, termsVersion }, ipHash,
+          resourceType: 'ConsentRecord', resourceId: playerId, meta: { purpose, termsVersion, contentHash }, ipHash,
         },
       });
 

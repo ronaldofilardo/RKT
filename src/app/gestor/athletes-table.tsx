@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { AthleteItem } from './types';
 import type { AthleteTableRowData } from '@/components/athlete/athlete-table.types';
 import { AthleteTable } from '@/components/athlete/athlete-table';
@@ -20,9 +20,10 @@ interface AthletesTableProps {
 export function AthletesTable({
   athletes, selectedIds, onSelectChange, onSelectAll, onCreateAthlete, onRefresh,
 }: AthletesTableProps) {
+  const [viewing, setViewing] = useState<AthleteItem | null>(null);
   const {
     editing, setEditing, athleteToDelete, setAthleteToDelete, deleting,
-    linkData, setLinkData, handleGenerateLink, handleSimulateConsent, handleSave, handleDelete,
+    linkData, setLinkData, handleGenerateLink, handleSave, handleDelete,
   } = useAthletesTableHandlers({ onRefresh });
 
   const rows = useMemo(() => athletes.map(toAthleteTableRow), [athletes]);
@@ -32,6 +33,7 @@ export function AthletesTable({
     const item = itemById.get(row.id);
     const isUnder18 = Boolean(row.isMinor);
     return {
+      onView: () => { if (item) setViewing(item); },
       onEdit: () => { if (item) setEditing(item); },
       onDelete: () => { if (item) setAthleteToDelete(item); },
       onGenerateLink: () => { void handleGenerateLink(row.id, row.name, 'LINK'); },
@@ -59,27 +61,17 @@ export function AthletesTable({
       ) : (
         <div className="bg-telemetry-card rounded-xl shadow border border-telemetry-border/20">
           <AthleteTable
-            athletes={rows}
-            actions={actions}
-            selectable
-            selectedIds={selectedIds}
-            onSelectChange={onSelectChange}
-            onSelectAll={onSelectAll}
+            athletes={rows} actions={actions} selectable selectedIds={selectedIds}
+            onSelectChange={onSelectChange} onSelectAll={onSelectAll}
           />
         </div>
       )}
 
       <AthletesTableModals
-        editing={editing}
-        onEditingChange={setEditing}
-        onSave={handleSave}
-        athleteToDelete={athleteToDelete}
-        onDeleteChange={setAthleteToDelete}
-        deleting={deleting}
-        onConfirmDelete={handleDelete}
-        linkData={linkData}
+        editing={editing} onEditingChange={setEditing} viewing={viewing} onViewingChange={setViewing}
+        onSave={handleSave} athleteToDelete={athleteToDelete} onDeleteChange={setAthleteToDelete}
+        deleting={deleting} onConfirmDelete={handleDelete} linkData={linkData}
         onLinkOpenChange={(open) => setLinkData((prev) => ({ ...prev, open }))}
-        onSimulateConsent={handleSimulateConsent}
       />
     </div>
   );

@@ -22,8 +22,9 @@ export async function switchUserContext(userId: string, targetContextId: string)
   }
 
   const actor = await getActor(userId, targetContextId);
+  const isGuardian = Boolean(actor?.guardianOfPlayerIds?.length), isAthlete = Boolean(actor?.athletePlayerId);
   const { effectiveRole, platformPreset, membershipKind } =
-    computeLoginProfile(actor?.memberships as readonly ActorMembership[] | null | undefined, user.role);
+    computeLoginProfile(actor?.memberships as readonly ActorMembership[] | null | undefined, user.role, { isGuardian, isAthlete });
 
   const areaForContext = (() => {
     if (match.type === 'PARTICULAR') return 'TREINADOR_AVULSO';

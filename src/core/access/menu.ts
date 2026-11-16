@@ -1,5 +1,5 @@
 import {
-  ADMIN, DADOS_PESSOAIS, ESPECTADOR, FINANCEIRO, GESTAO, OPERACAO, SAIR, SUPORTE, TORNEIOS, TREINADOR,
+  ADMIN, DADOS_PESSOAIS, ESPECTADOR, FINANCEIRO, GESTAO, OPERACAO, RESPONSAVEL_ITEMS, SAIR, SUPORTE, TORNEIOS, TREINADOR,
   atletaItems,
 } from './menu-items';
 import type { MenuContext, MenuItem, MenuSection, MenuSectionKey } from './menu-types';
@@ -62,6 +62,8 @@ function buildMenuForArea(ctx: MenuContext, area: string): MenuSection[] {
     sections.push(section('admin', 'Admin', [ADMIN]));
   } else if (area === 'SUPORTE' && ctx.isSuporte) {
     sections.push(section('suporte', 'Suporte', SUPORTE));
+  } else if (area === 'RESPONSAVEL' && ctx.isGuardian) {
+    sections.push(section('responsavel', 'Responsável Legal', RESPONSAVEL_ITEMS));
   } else if (area === 'ESPECTADOR') {
     sections.push(section('operacao', 'Partidas', ESPECTADOR));
   }
@@ -81,6 +83,7 @@ export function buildMenu(ctx: MenuContext): MenuSection[] {
     sections.push(section('treinador', 'Treinador', coachItems(isClub)));
   }
   if (ctx.gestor?.ctStatus === 'ACTIVE') sections.push(section('gestao', 'Gestão do Clube', [...GESTAO, TORNEIOS, FINANCEIRO]));
+  if (ctx.isGuardian) sections.push(section('responsavel', 'Responsável Legal', RESPONSAVEL_ITEMS));
   if (ctx.isAdmin) sections.push(section('admin', 'Admin', [ADMIN]));
   sections.push(section('rodape', 'Conta', footerItems(ctx)));
 

@@ -14,5 +14,6 @@ export function computeAvailableAreas(userRole: string, actor: Actor | null): Ar
         status: membership.status,
       })) ?? [],
     athlete: actor?.athletePlayerId ? { playerId: actor.athletePlayerId } : null,
+    isGuardian: Boolean(actor?.guardianOfPlayerIds?.length),
   });
 }

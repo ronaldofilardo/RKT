@@ -7,6 +7,12 @@ jest.mock('@/lib/prisma', () => ({
     matchShareLink: {
       findUnique: jest.fn(),
     },
+    match: {
+      findUnique: jest.fn(),
+    },
+    consentRecord: {
+      findMany: jest.fn(),
+    },
   },
 }));
 
@@ -44,7 +50,7 @@ describe('spectator-preview.service', () => {
     expect(res.error).toBe('ACCESS_EXPIRED');
   });
 
-  it('returns preview data with formatted names and court info', async () => {
+  it('returns preview data with anonymized codes for minors when broadcast consented', async () => {
     mockFindUnique.mockResolvedValue({
       id: 'l1',
       tokenHash: hashSpectateToken('valid-token'),
@@ -56,18 +62,54 @@ describe('spectator-preview.service', () => {
         state: 'IN_PROGRESS',
         courtType: '2',
         scoreState: { sets: [{ player1: 6, player2: 4 }] },
-        player1: { name: 'Ana Souza', birthDate: new Date('2015-01-01') }, // minor -> Ana S.
-        player2: { name: 'Bia Lima', birthDate: new Date('2015-01-01') },  // minor -> Bia L.
+        player1: { id: 'p1', name: 'Ana Souza', birthDate: new Date('2015-01-01') },
+        player2: { id: 'p2', name: 'Bia Lima', birthDate: new Date('2015-01-01') },
       },
     });
+
+    (prisma.match.findUnique as jest.Mock).mockResolvedValue({
+      player1: { id: 'p1', birthDate: new Date('2015-01-01') },
+      player2: { id: 'p2', birthDate: new Date('2015-01-01') },
+    });
+    (prisma.consentRecord.findMany as jest.Mock).mockResolvedValue([
+      { playerId: 'p1' },
+      { playerId: 'p2' },
+    ]);
 
     const res = await getInvitePreview('valid-token');
     expect(res.ok).toBe(true);
     if (res.ok) {
       expect(res.inviterName).toBe('Marcos');
-      expect(res.matchTitle).toBe('Ana S. × Bia L.');
+      expect(res.matchTitle).toMatch(/^Atleta #[0-9A-F]{6} × Atleta #[0-9A-F]{6}$/);
       expect(res.courtAndSet).toBe('Quadra 2 · 2º set');
       expect(res.status).toBe('Ao vivo');
+    }
+  });
+
+  it('bloqueia preview (403) quando menor não possui consentimento BROADCAST', async () => {
+    mockFindUnique.mockResolvedValue({
+      id: 'l1',
+      tokenHash: hashSpectateToken('valid-token'),
+      matchId: 'm1',
+      match: {
+        id: 'm1',
+        state: 'IN_PROGRESS',
+        player1: { id: 'p1', name: 'Ana Souza', birthDate: new Date('2015-01-01') },
+        player2: { id: 'p2', name: 'Bia Lima', birthDate: new Date('2015-01-01') },
+      },
+    });
+
+    (prisma.match.findUnique as jest.Mock).mockResolvedValue({
+      player1: { id: 'p1', birthDate: new Date('2015-01-01') },
+      player2: { id: 'p2', birthDate: new Date('2015-01-01') },
+    });
+    (prisma.consentRecord.findMany as jest.Mock).mockResolvedValue([]); // sem consentimento
+
+    const res = await getInvitePreview('valid-token');
+    expect(res.ok).toBe(false);
+    expect(res.error).toBe('MINOR_BROADCAST_NOT_CONSENTED');
+    if (!res.ok) {
+      expect(res.status).toBe(403);
     }
   });
 });

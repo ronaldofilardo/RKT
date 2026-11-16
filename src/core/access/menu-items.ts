@@ -47,6 +47,11 @@ export const ESPECTADOR: readonly MenuItem[] = [
   link('espectador-aovivo', 'Ao Vivo', '/partidasaovivo', '🔴'),
 ];
 
+export const RESPONSAVEL_ITEMS: readonly MenuItem[] = [
+  link('responsavel-dependentes', 'Meus Dependentes', '/responsavel', '👪'),
+  link('responsavel-historico', 'Partidas dos Dependentes', '/historico', '📜'),
+];
+
 export const ADMIN: MenuItem = link('admin', 'Admin', '/admin', '⚙️');
 export const DADOS_PESSOAIS: MenuItem = link('dados-pessoais', 'Dados Pessoais', '/dados-pessoais', '👤');
 export const SAIR: MenuItem = { key: 'sair', label: 'Sair', icon: '🚪', action: 'logout' };

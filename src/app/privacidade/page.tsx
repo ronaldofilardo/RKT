@@ -32,18 +32,18 @@ export default function PrivacidadePage() {
             (endere&ccedil;o IP, logs de acesso, dispositivos).
           </p>
 
-          <h2 className="text-lg font-semibold mt-6 mb-2">2. Dados de Menores</h2>
+          <h2 className="text-lg font-semibold mt-6 mb-2">2. Dados de Menores e ECA Digital</h2>
           <p className="mb-4">
-            Dados de menores de 18 anos s&atilde;o coletados apenas com consentimento do respons&aacute;vel
-            legal. Nomes de menores s&atilde;o mascarados em exibi&ccedil;&otilde;es p&uacute;blicas salvo consentimento
-            expl&iacute;cito para transmiss&atilde;o (&lt;code&gt;BROADCAST&lt;/code&gt;).
+            Dados de menores de 18 anos s&atilde;o tratados sob o princ&iacute;pio da monotutela estrita com consentimento
+            do respons&aacute;vel legal. Em exibi&ccedil;&otilde;es externas e links de transmiss&atilde;o autorizados,
+            os nomes de atletas menores s&atilde;o obrigatoriamente anonimizados (ex.: &quot;Atleta #8F2A7B&quot;).
           </p>
 
-          <h2 className="text-lg font-semibold mt-6 mb-2">3. Finalidades</h2>
+          <h2 className="text-lg font-semibold mt-6 mb-2">3. Finalidades e Pool de Estat&iacute;sticas</h2>
           <p className="mb-4">
-            Os dados s&atilde;o utilizados para: (i) cria&ccedil;&atilde;o e gest&atilde;o de conta; (ii) agendamento e
-            anota&ccedil;&atilde;o de partidas; (iii) acompanhamento ao vivo com consentimento; (iv)
-            suporte e comunica&ccedil;&atilde;o com o usu&aacute;rio.
+            Os dados s&atilde;o utilizados para: (i) cria&ccedil;&atilde;o e gest&atilde;o de perfil esportivo; (ii) agendamento e
+            anota&ccedil;&atilde;o de partidas pelo gestor e treinador anotador; (iii) acompanhamento ao vivo autorizado; (iv)
+            pool de estat&iacute;sticas agregadas com corte m&iacute;nimo de seguran&ccedil;a (10 jogos/atletas) sem identifica&ccedil;&atilde;o pessoal.
           </p>
 
           <h2 className="text-lg font-semibold mt-6 mb-2">4. Compartilhamento</h2>

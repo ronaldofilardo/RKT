@@ -25,6 +25,7 @@ export interface AthleteTableRowData {
 export interface AthleteTableRowActions {
   onEdit: () => void;
   onDelete: () => void;
+  onView?: () => void;
   onGenerateLink?: () => void;
   onEcaConsent?: () => void;
   loadingLink?: boolean;

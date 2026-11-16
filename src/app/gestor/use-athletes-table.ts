@@ -31,20 +31,6 @@ export function useAthletesTableHandlers({ onRefresh }: AthletesTableHandlersPar
     }
   };
 
-  const handleSimulateConsent = async () => {
-    if (!linkData.playerId) return;
-    try {
-      const res = await fetch(`/api/gestor/athletes/${linkData.playerId}/simulate-consent`, { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Erro ao simular consentimento');
-      setLinkData((prev) => ({ ...prev, isConsented: true }));
-      toast({ type: 'success', message: 'Consentimento simulado com sucesso!' });
-      void Promise.resolve(onRefresh?.()).catch(() => {});
-    } catch (err) {
-      toast({ type: 'error', message: extractErrorMessage(err, 'Falha ao simular consentimento') });
-    }
-  };
-
   const handleSave = async (data: {
     name: string; cpf?: string; birthDate?: string; gender?: string;
     dominance?: string; backhand?: string; rankings?: Record<string, any>;
@@ -81,6 +67,6 @@ export function useAthletesTableHandlers({ onRefresh }: AthletesTableHandlersPar
 
   return {
     editing, setEditing, athleteToDelete, setAthleteToDelete, deleting,
-    linkData, setLinkData, handleGenerateLink, handleSimulateConsent, handleSave, handleDelete,
+    linkData, setLinkData, handleGenerateLink, handleSave, handleDelete,
   };
 }

@@ -12,6 +12,7 @@ describe('middleware-area.logic.ts', () => {
     expect(resolveUserActiveArea({ sub: '3', role: 'USER', mk: 'GESTOR' })).toBe('GESTOR');
     expect(resolveUserActiveArea({ sub: '4', role: 'USER', mk: 'TREINADOR', cx: 'PARTICULAR' })).toBe('TREINADOR_AVULSO');
     expect(resolveUserActiveArea({ sub: '5', role: 'USER', ax: 'ATLETA' })).toBe('ATLETA');
+    expect(resolveUserActiveArea({ sub: '6', role: 'RESPONSAVEL' })).toBe('RESPONSAVEL');
   });
 
   it('mapeia prefixo da área para a rota interna correspondente', () => {
@@ -20,6 +21,7 @@ describe('middleware-area.logic.ts', () => {
     expect(mapPrefixedToInternalRoute('/atleta/match/new', 'ATLETA')).toBe('/match/new');
     expect(mapPrefixedToInternalRoute('/clube/gestor', 'GESTOR')).toBe('/gestor');
     expect(mapPrefixedToInternalRoute('/admin', 'ADMIN')).toBe('/admin');
+    expect(mapPrefixedToInternalRoute('/responsavel', 'RESPONSAVEL')).toBe('/responsavel');
   });
 
   it('redireciona rota legada /dashboard via 307 para o prefixo da área', () => {

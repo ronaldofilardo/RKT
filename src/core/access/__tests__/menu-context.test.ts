@@ -17,8 +17,14 @@ describe('menuContextFromMe', () => {
       gestor: null,
       coach: null,
       athlete: null,
+      isGuardian: false,
       activeArea: null,
     });
+  });
+
+  it('reconhece isGuardian quando informado no /me ou via guardianOfPlayerIds', () => {
+    expect(menuContextFromMe({ ...base, isGuardian: true }).isGuardian).toBe(true);
+    expect(menuContextFromMe({ ...base, guardianOfPlayerIds: ['p1'] }).isGuardian).toBe(true);
   });
 
   it('role legado ADMIN vale como admin quando isAdmin não veio', () => {

@@ -11,7 +11,7 @@ import { EditAthleteTechnicalTab } from './components/EditAthleteTechnicalTab';
 export type { EditAthleteSavePayload } from './edit-athlete-modal.types';
 
 export function EditAthleteModal({
-  athlete, isOpen, title, saveLabel, readOnly, showCpf, cpfRequired, onClose, onSave,
+  athlete, isOpen, title, saveLabel, readOnly, showCpf, cpfRequired, guardianImmutable, onClose, onSave,
 }: EditAthleteModalProps) {
   const [activeTab, setActiveTab] = useState<AthleteEditTab>('pessoais');
   const {
@@ -46,7 +46,10 @@ export function EditAthleteModal({
           {error && <div role="alert" className="p-2 bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert rounded-lg text-sm">{error}</div>}
 
           <div id="panel-dados-pessoais" role="tabpanel" aria-labelledby="tab-dados-pessoais" className={activeTab === 'pessoais' ? 'block' : 'hidden'}>
-            <EditAthletePersonalTab form={form} setForm={setForm} saving={isLocked} age={age} showCpf={showCpf} cpfRequired={cpfRequired} />
+            <EditAthletePersonalTab
+              form={form} setForm={setForm} saving={isLocked} age={age}
+              showCpf={showCpf} cpfRequired={cpfRequired} guardianImmutable={guardianImmutable}
+            />
           </div>
 
           <div id="panel-dados-tecnicos" role="tabpanel" aria-labelledby="tab-dados-tecnicos" className={activeTab === 'tecnicos' ? 'block' : 'hidden'}>

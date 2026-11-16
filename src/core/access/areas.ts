@@ -6,7 +6,8 @@ export type AreaCode =
   | 'TREINADOR_AVULSO'
   | 'ATLETA'
   | 'ANOTADOR'
-  | 'ESPECTADOR';
+  | 'ESPECTADOR'
+  | 'RESPONSAVEL';
 
 export interface AreaOption {
   code: AreaCode;
@@ -31,6 +32,7 @@ export interface UserAreaDiscoveryInput {
   }> | null;
   athlete?: { playerId: string } | null;
   hasParticularCoach?: boolean;
+  isGuardian?: boolean;
 }
 
 export const AREA_PREFIXES: Record<AreaCode, string> = {
@@ -42,6 +44,7 @@ export const AREA_PREFIXES: Record<AreaCode, string> = {
   ATLETA: '/atleta',
   ANOTADOR: '/anotador',
   ESPECTADOR: '/espectador',
+  RESPONSAVEL: '/responsavel',
 };
 
 export const prefixForArea = (code: AreaCode): string => AREA_PREFIXES[code] || '/dashboard';
@@ -74,6 +77,7 @@ export function listAreas(input: UserAreaDiscoveryInput): AreaOption[] {
     areas.push(createOption('TREINADOR_AVULSO', 'Treinador Particular'));
   }
   if (input.athlete) areas.push(createOption('ATLETA', 'Painel do Atleta'));
+  if (input.isGuardian) areas.push(createOption('RESPONSAVEL', 'Responsável Legal'));
   if (input.canOperate) areas.push(createOption('ANOTADOR', 'Anotador de Partidas'));
   if (areas.length === 0) areas.push(createOption('ESPECTADOR', 'Espectador'));
 

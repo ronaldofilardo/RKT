@@ -1,9 +1,9 @@
 import { randomizeMinorPlayerName, DEFAULT_SPECTATOR_SALT } from '../minor-name-randomizer';
 
 describe('randomizeMinorPlayerName', () => {
-  it('gera formato estável "Atleta #XXXX" com 4 caracteres hexadecimais em maiúsculas', () => {
+  it('gera formato estável "Atleta #XXXXXX" com 6 caracteres hexadecimais em maiúsculas', () => {
     const name = randomizeMinorPlayerName('match-1', 'player-minor-1');
-    expect(name).toMatch(/^Atleta #[0-9A-F]{4}$/);
+    expect(name).toMatch(/^Atleta #[0-9A-F]{6}$/);
   });
 
   it('é determinístico para o mesmo matchId e playerId', () => {

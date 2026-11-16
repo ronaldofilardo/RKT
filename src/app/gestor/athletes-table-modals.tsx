@@ -7,11 +7,13 @@ import { DeleteAthleteModal } from '@/components/athlete/delete-athlete-modal';
 import { EditarAtletaModal } from './editar-atleta-modal';
 import { LinkCopyModal } from './link-copy-modal';
 import { AthletesMinorLinksModal } from './athletes-minor-links-modal';
-import { normalizeDominance, normalizeGender } from '@/lib/athlete-labels.logic';
+import { toAtletaFormData } from './athlete-modal-adapter';
 
 interface AthletesTableModalsProps {
   editing: AthleteItem | null;
   onEditingChange: (athlete: AthleteItem | null) => void;
+  viewing?: AthleteItem | null;
+  onViewingChange?: (athlete: AthleteItem | null) => void;
   onSave: (data: AtletaFormData) => Promise<void> | void;
   athleteToDelete: AthleteItem | null;
   onDeleteChange: (athlete: AthleteItem | null) => void;
@@ -19,13 +21,12 @@ interface AthletesTableModalsProps {
   onConfirmDelete: () => void;
   linkData: AthleteLinkModalState;
   onLinkOpenChange: (open: boolean) => void;
-  onSimulateConsent?: () => Promise<void>;
 }
 
 export function AthletesTableModals({
-  editing, onEditingChange, onSave,
+  editing, onEditingChange, viewing, onViewingChange, onSave,
   athleteToDelete, onDeleteChange, deleting, onConfirmDelete,
-  linkData, onLinkOpenChange, onSimulateConsent,
+  linkData, onLinkOpenChange,
 }: AthletesTableModalsProps) {
   const isMinorDoubleLink = Boolean(linkData.isMinor && linkData.guardianNoticeToken);
 
@@ -35,17 +36,20 @@ export function AthletesTableModals({
         <EditarAtletaModal
           open
           cpfRequired={Boolean(editing.player.user)}
+          guardianImmutable={Boolean(editing.player.isConsented)}
           onOpenChange={(open) => { if (!open) onEditingChange(null); }}
-          atleta={{
-            id: editing.player.id, name: editing.player.name,
-            cpf: editing.player.user?.cpf || editing.player.cpf || '',
-            birthDate: editing.player.birthDate ? String(editing.player.birthDate) : '',
-            gender: normalizeGender(editing.player.gender) ?? 'MALE',
-            dominance: normalizeDominance(editing.player.dominance) ?? 'RIGHT',
-            backhand: editing.player.backhand ?? '',
-            rankings: editing.player.rankings ?? {},
-          }}
+          atleta={toAtletaFormData(editing)}
           onSave={onSave}
+        />
+      )}
+
+      {viewing && (
+        <EditarAtletaModal
+          open
+          readOnly
+          guardianImmutable
+          onOpenChange={(open) => { if (!open) onViewingChange?.(null); }}
+          atleta={toAtletaFormData(viewing)}
         />
       )}
 
@@ -73,7 +77,6 @@ export function AthletesTableModals({
           expiresAt={linkData.expiresAt}
           isConsented={linkData.isConsented}
           mode={linkData.mode}
-          onSimulateConsent={onSimulateConsent}
         />
       ) : (
         <LinkCopyModal

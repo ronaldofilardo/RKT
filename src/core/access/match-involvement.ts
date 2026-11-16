@@ -43,5 +43,18 @@ export function isDirectlyInvolvedInMatch(
     return true;
   }
 
+  // 5. Treinador de CT envolvido que anotou esta partida específica
+  const isAnnotator =
+    (match.createdByUserId && match.createdByUserId === actor.userId) ||
+    (match.annotatorUserIds && match.annotatorUserIds.includes(actor.userId));
+  if (isAnnotator) {
+    const coachCts = activeCtIds(actor, 'TREINADOR');
+    if (coachCts.length > 0) {
+      if (match.ctId && coachCts.includes(match.ctId)) return true;
+      const participantCts = match.participantCtIds ?? [];
+      if (participantCts.some((ct) => coachCts.includes(ct))) return true;
+    }
+  }
+
   return false;
 }

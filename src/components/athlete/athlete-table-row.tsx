@@ -31,7 +31,20 @@ export function AthleteTableRow({
           />
         </td>
       )}
-      <td className="px-3 py-3 text-sm text-telemetry-text-primary font-medium">{a.name}</td>
+      <td className="px-3 py-3 text-sm font-medium">
+        {actions.onView ? (
+          <button
+            type="button"
+            onClick={actions.onView}
+            className="text-left font-medium text-telemetry-text-primary hover:text-telemetry-volt hover:underline focus:outline-none cursor-pointer transition-colors"
+            title={`Visualizar ficha de ${a.name}`}
+          >
+            {a.name}
+          </button>
+        ) : (
+          <span className="text-telemetry-text-primary">{a.name}</span>
+        )}
+      </td>
       {showOrigin && <td className="px-3 py-3 text-sm text-telemetry-text-muted">{a.origin ?? '-'}</td>}
       <td className="px-3 py-3 text-sm font-mono text-xs">
         {a.nickname ? <span className="text-telemetry-volt font-medium">@{a.nickname}</span> : <span className="text-telemetry-text-muted">-</span>}

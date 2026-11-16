@@ -2,8 +2,14 @@ import type { NextResponse } from 'next/server';
 import type { SessionContextOption } from './login-contexts.logic';
 
 // Área efetiva do contexto escolhido no login (usada no claim JWT `ax`).
-export function resolveLoginArea(chosenContext: SessionContextOption | undefined): string | undefined {
-  if (!chosenContext) return undefined;
+export function resolveLoginArea(
+  chosenContext: SessionContextOption | undefined,
+  extra?: { isGuardian?: boolean; isAthlete?: boolean; userRole?: string },
+): string | undefined {
+  if (!chosenContext) {
+    if (extra?.userRole === 'RESPONSAVEL' || (extra?.isGuardian && !extra?.isAthlete)) return 'RESPONSAVEL';
+    return undefined;
+  }
   if (chosenContext.type === 'PARTICULAR') return 'TREINADOR_AVULSO';
   if (chosenContext.type === 'CT') {
     if (chosenContext.role === 'GESTOR') return 'GESTOR';

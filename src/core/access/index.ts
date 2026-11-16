@@ -43,3 +43,8 @@ export type {
   MenuSection,
   MenuSectionKey,
 } from './menu-types';
+export {
+  CURRENT_TERMS_VERSION,
+  GUARDIAN_TERMS_VERSION,
+  computeTermsContentHash,
+} from './terms-constants';

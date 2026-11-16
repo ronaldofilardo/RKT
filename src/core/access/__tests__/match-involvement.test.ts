@@ -56,6 +56,22 @@ describe('isDirectlyInvolvedInMatch', () => {
     expect(isDirectlyInvolvedInMatch(actor, baseMatch)).toBe(true);
   });
 
+  it('retorna true para treinador do CT que anotou a partida', () => {
+    const actor: Actor = {
+      ...baseActor,
+      userId: 'coach-1',
+      memberships: [{ kind: 'TREINADOR', ctId: 'ct-1', status: 'ACTIVE' }],
+    };
+    const match: MatchAccess = { ...baseMatch, createdByUserId: 'coach-1' };
+    expect(isDirectlyInvolvedInMatch(actor, match)).toBe(true);
+  });
+
+  it('retorna false para anotador externo que não é treinador do CT nem possui vínculo direto', () => {
+    const actor: Actor = { ...baseActor, userId: 'external-annotator' };
+    const match: MatchAccess = { ...baseMatch, createdByUserId: 'external-annotator' };
+    expect(isDirectlyInvolvedInMatch(actor, match)).toBe(false);
+  });
+
   it('retorna false quando o usuário é terceiro externo sem vínculo direto', () => {
     const outsider: Actor = {
       ...baseActor,

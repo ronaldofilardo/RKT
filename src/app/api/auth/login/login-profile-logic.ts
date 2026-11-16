@@ -10,6 +10,7 @@ export interface LoginProfileResult {
 export function computeLoginProfile(
   actor: ReadonlyArray<ActorMembership> | null | undefined,
   userRole: string,
+  extra?: { isGuardian?: boolean; isAthlete?: boolean },
 ): LoginProfileResult {
   const { platformPreset, membershipKind } = extractJwtProfileClaims(actor);
 
@@ -18,10 +19,11 @@ export function computeLoginProfile(
   else if (platformPreset === 'ADMIN') effectiveProfile = 'ADMIN';
   else if (membershipKind === 'GESTOR') effectiveProfile = 'GESTOR';
   else if (membershipKind === 'TREINADOR') effectiveProfile = 'TREINADOR';
+  else if (userRole === 'RESPONSAVEL' || (extra?.isGuardian && !extra?.isAthlete)) effectiveProfile = 'RESPONSAVEL';
   else effectiveProfile = userRole;
 
   const legacyRole = extractLegacyRole(actor);
-  const effectiveRole = legacyRole !== 'NONE' ? legacyRole : userRole;
+  const effectiveRole = userRole === 'RESPONSAVEL' ? 'RESPONSAVEL' : (legacyRole !== 'NONE' ? legacyRole : userRole);
 
   return { effectiveRole, effectiveProfile, platformPreset, membershipKind };
 }

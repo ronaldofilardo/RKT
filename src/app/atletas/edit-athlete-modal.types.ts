@@ -31,6 +31,10 @@ export interface EditAthleteModalProps {
     dominance?: string | null;
     backhand?: string | null;
     rankings?: Record<string, RankingEntry> | null;
+    guardianName?: string | null;
+    guardianCpf?: string | null;
+    guardianPhone?: string | null;
+    guardianContact?: string | null;
   } | null;
   isOpen: boolean;
   title?: string;
@@ -38,6 +42,7 @@ export interface EditAthleteModalProps {
   readOnly?: boolean;
   showCpf?: boolean;
   cpfRequired?: boolean;
+  guardianImmutable?: boolean;
   onClose: () => void;
   onSave: (data: EditAthleteSavePayload) => Promise<void>;
 }

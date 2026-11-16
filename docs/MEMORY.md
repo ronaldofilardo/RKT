@@ -8,6 +8,71 @@
 
 ---
 
+## 2.39 Segregação de Perfis de Responsável (Acompanhante vs. Espectador/Anotador) — 2026-11-16
+- **Contexto & Demanda:**
+  - O login do responsável não pode cair com perfil nem na tela de atleta (`/dashboard`), pois o responsável possui funções de acompanhamento e fiscalização totalmente distintas de um atleta.
+  - A Conta Básica de Acompanhamento é desenhada do zero para que o responsável apenas acompanhe quais partidas foram criadas/anotadas do menor e por quem (sem ver placar ou funções esportivas), com botão permanente de upgrade.
+  - A Conta de Espectador & Anotador habilita a criação e anotação de partidas próprias e compartilhamento de links.
+- **Implementação & Conclusão:**
+  1. **Resolução de Perfil no Login (`login-profile-logic.ts`, `login-response.logic.ts`, `login/route.ts`):**
+     - Usuários com `guardianOfPlayerIds` e sem perfil próprio de atleta/treinador recebem `effectiveProfile = 'RESPONSAVEL'` e área `'RESPONSAVEL'`.
+     - `homeForProfileString('RESPONSAVEL')` e `homeForArea('RESPONSAVEL')` redirecionam exclusivamente para `/responsavel`, eliminando o fallback indevido para `/dashboard`.
+  2. **Áreas e Matriz de Acesso (`areas.ts`, `login-available-areas.logic.ts`, `me/route.ts`):**
+     - Adicionada a área canônica `'RESPONSAVEL'` em `AreaCode` e mapeada para o prefixo `'/responsavel'`.
+     - `listAreas` passa a receber `isGuardian` e disponibilizar a área de Responsável Legal.
+  3. **Nova API de Partidas dos Dependentes (`GET /api/guardians/me/matches`):**
+     - Criados `matches-read.logic.ts` e `route.ts` que buscam partidas onde os dependentes do responsável participam (`player1` ou `player2`).
+     - Retorna apenas metadados de acompanhamento: quem criou (`createdByName`), quem é o anotador (`annotatorName`), formato, data/hora e status, sem expor placares ou anotações detalhadas para o acompanhante básico.
+  4. **Componente de Acompanhamento de Partidas (`dependent-matches-list.tsx`, `use-guardian-matches.ts`, `/responsavel`):**
+     - Criado componente dedicado para a listagem das partidas do menor, com badges de status e identificação dos treinadores/anotadores responsáveis.
+     - Integrado à página `/responsavel` com hook isolado `useGuardianMatches`.
+  5. **Qualidade & Regra R-03:**
+     - Novos testes criados em `login-guardian-profile.test.ts`, `matches-read.logic.test.ts` e `matches/route.test.ts` (100% aprovados).
+     - `pnpm typecheck` com 0 erros. Suíte de testes `jest` aprovada com 387 testes verdes.
+
+## 2.38 Gestor — Pré-preenchimento, Imutabilidade do Responsável e Visualização da Ficha do Atleta — 2026-11-16
+- **Contexto & Demanda:**
+  - 1. No modal de edição de atleta pelo gestor (`EditarAtletaModal` / `EditAthleteModal`), os dados do responsável legal (`guardianName`, `guardianCpf`, `guardianPhone`, `guardianContact`) devem vir pré-preenchidos.
+  - 2. Se o responsável já tiver dado consentimento ativo (`isConsented: true`), os dados do responsável devem ser imutáveis (campos desabilitados e selo de certificação ECA Digital / LGPD exibido).
+  - 3. Na aba de atletas do gestor, ao clicar no nome do atleta, deve abrir o modal de visualização de dados (reaproveitando `EditAthleteModal` em modo `readOnly`, exibindo a ficha completa sem permissão de alteração).
+- **Implementação & Conclusão:**
+  1. **API de Atletas do Gestor (`athletes-get.logic.ts`):** Enriquecida a query para incluir dados de `guardianLinks` (vínculo ativo e confirmado) e `guardianInvites` (dados pré-cadastrados), retornando `isConsented`, `guardianName`, `guardianCpf`, `guardianPhone` e `guardianRelationship`.
+  2. **Imutabilidade e Selo de Consentimento (`EditAthleteGuardianFields.tsx`):**
+     - Adicionada prop `immutable?: boolean`.
+     - Quando `immutable: true`, os campos do responsável tornam-se desabilitados e é renderizado o selo: `🔒 Consentimento Confirmado (Imutável)` acompanhado da mensagem explicativa de certificação sob ECA Digital e LGPD.
+     - Repassado `guardianImmutable` através de `EditAthletePersonalTab` e `EditAthleteModal`.
+  3. **Adaptação e Tipos no Gestor (`athlete-modal-adapter.ts`, `types.ts`, `editar-atleta-modal.tsx`):**
+     - Criado helper `toAtletaFormData` para normalizar dados do `AthleteItem` com os dados do responsável.
+     - `EditarAtletaModal` passa a aceitar `readOnly` e `guardianImmutable`, repassando para `EditAthleteModal`.
+  4. **Clique no Nome e Modal de Visualização (`athlete-table-row.tsx`, `athletes-table.tsx`, `athletes-table-modals.tsx`):**
+     - Em `AthleteTableRowData`/`AthleteTableRowActions`, adicionado callback `onView?: () => void`. Na coluna 'Nome', o nome é renderizado como botão interativo com transição de cor e sublinhado ao passar o cursor.
+     - Em `AthletesTable`, adicionado estado `viewing: AthleteItem | null`, setado ao clicar no nome do atleta.
+     - Em `AthletesTableModals`, quando `viewing` está ativo, renderiza `EditarAtletaModal` com `readOnly={true}` e `guardianImmutable={true}` ('Ficha do Atleta').
+  5. **Qualidade & Regra R-03:**
+     - Modularizado `ClubMatchItem` em `types-matches.ts`, mantendo `types.ts` com 58 linhas.
+     - 100% de conformidade R-03 (0 regressões em 1.417 arquivos).
+     - Testes novos criados em `athlete-view-and-immutable.test.tsx` (3/3 passando). Suíte completa de `src/app/gestor` verde (76/76 testes aprovados).
+     - `pnpm typecheck` limpo com 0 erros.
+
+## 2.37 Termo de Consentimento v2.0 e Ajustes de Governança, Transmissão e Anonimização — 2026-11-16
+- **Contexto & Demanda:**
+  - Resolução dos 8 achados técnicos e alinhamento do código com a minuta v2.0 do Termo de Consentimento do Responsável Legal (ECA Digital e LGPD).
+  - Metodologia: STE-DEV (arquivos <= 100 linhas, tipagem estrita, suíte verde).
+- **Implementação & Conclusão:**
+  1. **Constante Global e Prova de Consentimento:** Criado `src/core/access/terms-constants.ts` com `CURRENT_TERMS_VERSION = '2.0'`, `GUARDIAN_TERMS_VERSION = '2.0'` e função `computeTermsContentHash`.
+  2. **Anonimização Fortalecida (6 Dígitos e Sal Dinâmico):** Atualizado `src/core/access/minor-name-randomizer.ts` para ler `process.env.SPECTATOR_SALT || DEFAULT_SPECTATOR_SALT` e produzir código anonimizado de 6 caracteres (`Atleta #XXXXXX`).
+  3. **Unificação Total de Projeção Pública:** Atualizado `src/services/spectator-preview.service.ts` para utilizar `randomizeMinorPlayerName`, eliminando máscaras legadas (`A***` / `A. S.`) no card de convite e unificando com o feed ao vivo.
+  4. **Regras Estritas de Envolvimento de Treinadores:** Em `src/core/access/match-involvement.ts`, treinador de CT envolvido que anotou a partida é tratado como envolvido direto; treinadores externos sem vínculo de CT ou de acompanhamento visualizam atletas menores sob nome anonimizado.
+  5. **Acompanhamento Parental de Partidas:** Em `src/core/access/visibility.ts` (`canWatchMatch`), o responsável legal com vínculo ativo de dependente participante tem autorização garantida para assistir a todas as partidas do menor.
+  6. **Trava de Compartilhamento sem BROADCAST:** Criado `src/services/spectator-share-minor-gate.logic.ts` integrado a `createShareLink` e `getInvitePreview`: se a partida envolve atleta menor sem consentimento ativo de `BROADCAST`, a emissão e visualização de links de compartilhamento são bloqueadas (`MINOR_BROADCAST_NOT_CONSENTED`).
+  7. **Interface e Rota de Aceite sem Pré-marcação:** `src/app/responsavel/convite/[token]/page.tsx` e `convite-consent-boxes.tsx` agora iniciam com checkboxes desmarcadas (`useState(false)`), exigem declaração legal de tutela civil e enviam `termsVersion: '2.0'` e `contentHash`. As rotas `/api/guardians/invites/[token]/accept` e `/api/guardians/consent` persistem esses dados em `ConsentRecord`, `ConsentEvent` e `AuditLog`.
+  8. **Textos Públicos Alinhados:** Páginas `/termos` (§5) e `/privacidade` (§2 e §3) atualizadas para a nomenclatura canônica 'Nome Anonimizado (Atleta #XXXXXX)'.
+  9. **Painel do Responsável e Jornada Completa de UI/UX:**
+     - Criada API `GET /api/guardians/me/dependents` (`dependents-read.logic.ts`) listando atletas sob tutela com status dos consentimentos `DATA`, `BROADCAST` e `STATS`.
+     - Criada página `/responsavel` (`page.tsx`, `dependent-card.tsx`, `use-guardian-dependents.ts`) com switches reativos chamando `POST /api/guardians/consent` para revogação/concessão em tempo real e atalho para `/historico`.
+     - Integrado o perfil `RESPONSAVEL` no menu da aplicação (`buildMenu`, `menu-items.ts`, `menu-types.ts`, `menu-context.ts`) e rota canônica `/responsavel` em `homeForProfile` e `homeForProfileString`.
+  10. **Qualidade:** 100% dos testes aprovados (40 novos testes em suítes de menu, home e dependentes, 27 testes de `/me` verdes), typecheck limpo e `pnpm check:r03` aprovado com 0 regressões em 1.402 arquivos.
+
 ## 2.36 Governança, Tutela e Privacidade de Menores de Idade em Partidas — ECA Digital & LGPD — 2026-11-15
 - **Contexto & Demanda:**
   - Plano: [\docs/PLANO_PRIVACIDADE_VISIBILIDADE_MENORES_PARTIDAS_2026-11-15.md\](./PLANO_PRIVACIDADE_VISIBILIDADE_MENORES_PARTIDAS_2026-11-15.md).
@@ -1172,4 +1237,56 @@ Leitura completa: `docs/TASKS.md` — **Anexo A** (dívida técnica, 50 entradas
   6. `67c5ed3` `test`: `editScoreHelpers.characterization.test.ts` → **12 arquivos** + kit `editScoreHelpersTestKit`.
 - **Método comum:** cada arquivo ≤ 80L raw (Unitário ≤ 50L quando aplicável); AAA linear com Arrange delegado a `*TestKit` (fora da coleta do Jest, `testMatch` não pega); asserções 1:1 com o original; **zero** `if/for/while/switch/try` nos `.test.*`; gates idênticos por tarefa — contagem raw, grep de controle de fluxo, ESLint 0 erros, `check:r03` 0 regressões, **paridade de statements/funções** (`coverage-final.json` antes × depois) e suíte completa verde antes de apagar o original; commits pequenos, **sem push**.
 - **Validação final (estado `67c5ed3`):** suíte completa **636/636 suites · 4918/4918 testes** (delta por tarefa sempre conferido: −N originais +N splitados), `check:r03` 0 regressões, branch `master` **ahead 6** de `origin/master` (`1d858da` … `67c5ed3`), sem push.
+
+---
+
+## 2.48 Perfil e UI do Responsável Legal (Conta de Acompanhamento em /responsavel) — 2026-11-16
+- **Contexto & Demanda:**
+  - Garantir que a "Conta Básica de Acompanhamento" em `/responsavel` permita **exclusivamente** acompanhar quais partidas o menor sob sua tutela está envolvido (quem criou, quem está anotando, data/hora, status), com histórico sempre presente na tela inicial.
+  - Remover completamente o menu hambúrguer (`☰`) para a conta de acompanhamento do responsável.
+  - Corrigir reescrita e redirecionamento do Next.js middleware que estava direcionando `/responsavel` para o painel de atleta (`/dashboard`).
+- **Resoluções Implementadas:**
+  - `src/middleware-area.logic.ts`:
+    - Adicionado suporte a `RESPONSAVEL` em `resolveUserActiveArea` para claims `ax`, `role`, `pp` e `mk`.
+    - Ajustado `mapPrefixedToInternalRoute` para que `areaCode === 'RESPONSAVEL'` retorne `pathname` (`/responsavel`), impedindo reescrita para `/dashboard`.
+  - `src/app/responsavel/guardian-topbar.tsx`:
+    - Novo componente topbar dedicado (≤ 55 linhas, R-03 compliant) contendo BrandLogo, título ("Acompanhamento do Menor"), badge discreto "Acompanhante", seletor de tema (`ThemeToggle`) e botão "Sair" com limpeza de sessão segura. **Sem botão de menu hambúrguer**.
+  - `src/app/responsavel/page.tsx`:
+    - Integração de `GuardianTopBar`, `DependentCard`, `GuardianUpgradeBanner` e `DependentMatchesList` diretamente na tela inicial.
+  - `src/app/api/auth/login/`:
+    - Ajustado `login-profile-logic.ts` e `login-response.logic.ts` para propagar `effectiveProfile` e `areaForContext = 'RESPONSAVEL'`.
+- **Validação:**
+  - Testes do middleware de área (`src/__tests__/middleware-area.test.ts`) 100% passando.
+  - 28 testes de `middleware-area`, `api/guardians` e `responsavel` verdes (0 falhas).
+  - TypeScript `tsc --noEmit` 0 erros.
+  - `node scripts/check-r03-line-limit.mjs` 0 violações (1422 arquivos em conformidade).
+
+---
+
+## 2.49 Correção de Sequestro de Tutela de Menores por Sessão Ativa — 2026-11-16
+- **Contexto & Demanda:**
+  - Usuário identificou que ao acessar a conta do responsável em `/responsavel`, estavam sendo listados múltiplos menores de famílias diferentes (`john piper` e `Lucas Luke`).
+  - No modal "Editar Atleta" de `john piper`, os dados do responsável exibiam indevidamente `Johns father` (CPF `33897624001`) em vez do verdadeiro pai cadastrado pelo clube (`DAD JON`, CPF `56335306085`).
+- **Causa Raiz Identificada:**
+  - Em `src/app/api/guardians/invites/[token]/accept/accept-validation.logic.ts`:
+    A função `resolveGuardianUser` continha `if (sessionUser) return sessionUser;` logo no início.
+  - Se um usuário no navegador estivesse com qualquer cookie de sessão ativo (ex: o pai de Lucas Luke ou o gestor do CT) ao abrir o link de consentimento do menor `john piper`:
+    O sistema ignorava totalmente o CPF informado no formulário de aceite e o `preGuardianCpf` do convite (`56335306085`), associando o menor à conta do usuário logado na sessão (`sessionUser`).
+  - Como resultado, os dois menores foram gravados em `guardianLink` apontando para o mesmo `guardianUserId` (`cmwjjmnhb000i112hdgcsfdm3`), misturando tutelas de menores distintos na mesma conta e corrompendo a exibição no modal do gestor.
+- **Resolução Implementada:**
+  - `src/app/api/guardians/invites/[token]/accept/accept-validation.logic.ts`:
+    - `resolveGuardianUser` agora prioriza estritamente o `cleanedCpf` informado/validado. O usuário do responsável é SEMPRE consultado ou criado com base no CPF do responsável.
+    - `sessionUser` só é utilizado como fallback se nenhum CPF foi informado e o convite não possuir pré-cadastro de CPF.
+  - `src/app/api/guardians/invites/[token]/accept/route.ts`:
+    - Resolução de usuário garantida usando `targetCpf = crossCheck.cleanedCpf || invite.preGuardianCpf`.
+  - **Saneamento do Banco de Dados:**
+    - Criado e executado o usuário legítimo `DAD JON` (CPF `56335306085`) para `john piper`.
+    - `GuardianLink`, `GuardianInvite`, `ConsentRecord` e `ConsentEvent` de `john piper` foram reatribuídos para o usuário `DAD JON`.
+    - A conta de `Johns father` (`33897624001`) agora possui exclusivamente o seu filho menor `Lucas Luke`.
+- **Validação:**
+  - Suíte de testes `resolve-guardian-user.test.ts` criada e 100% verde (4/4 testes).
+  - 27 testes de `src/app/api/guardians/` passando (0 falhas).
+  - `tsc --noEmit` 0 erros; `check-r03-line-limit` 0 violações.
+
+
 

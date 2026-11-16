@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     match: { findUnique: jest.fn() },
+    consentRecord: { findMany: jest.fn() },
     matchAnnotationSession: { findFirst: jest.fn() },
     matchShareLink: { create: jest.fn(), findMany: jest.fn(), updateMany: jest.fn() },
     matchSpectator: { findMany: jest.fn(), updateMany: jest.fn() },
@@ -17,7 +18,11 @@ describe('spectator-share.service', () => {
   });
 
   it('permite que o criador da partida gere um link de convite', async () => {
-    (prisma.match.findUnique as jest.Mock).mockResolvedValue({ createdByUserId: 'user-creator' });
+    (prisma.match.findUnique as jest.Mock).mockResolvedValue({
+      createdByUserId: 'user-creator',
+      player1: { id: 'p1', birthDate: new Date('1990-01-01') },
+      player2: { id: 'p2', birthDate: new Date('1990-01-01') },
+    });
     (prisma.matchShareLink.create as jest.Mock).mockResolvedValue({
       id: 'link-1',
       label: 'Pai do João',
@@ -36,6 +41,26 @@ describe('spectator-share.service', () => {
       expect(res.linkId).toBe('link-1');
       expect(res.url).toContain('https://rkt.app/matches/convite/');
       expect(res.label).toBe('Pai do João');
+    }
+  });
+
+  it('bloqueia geração de link quando partida envolve menor sem consentimento BROADCAST', async () => {
+    (prisma.match.findUnique as jest.Mock).mockResolvedValue({
+      createdByUserId: 'user-creator',
+      player1: { id: 'p-minor', birthDate: new Date('2015-01-01') },
+      player2: { id: 'p-adult', birthDate: new Date('1990-01-01') },
+    });
+    (prisma.consentRecord.findMany as jest.Mock).mockResolvedValue([]); // sem BROADCAST
+
+    const res = await createShareLink({
+      matchId: 'm1',
+      userId: 'user-creator',
+      origin: 'https://rkt.app',
+    });
+
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.error).toBe('MINOR_BROADCAST_NOT_CONSENTED');
     }
   });
 

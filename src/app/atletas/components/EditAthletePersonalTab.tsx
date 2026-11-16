@@ -10,10 +10,11 @@ interface EditAthletePersonalTabProps {
   age?: number | null;
   showCpf?: boolean;
   cpfRequired?: boolean;
+  guardianImmutable?: boolean;
 }
 
 export function EditAthletePersonalTab({
-  form, setForm, saving, age, showCpf = true, cpfRequired = false,
+  form, setForm, saving, age, showCpf = true, cpfRequired = false, guardianImmutable = false,
 }: EditAthletePersonalTabProps) {
   const isMinorAthlete = age != null && age < 18;
 
@@ -70,7 +71,11 @@ export function EditAthletePersonalTab({
         <EditAthleteBirthDateField form={form} setForm={setForm} saving={saving} age={age} />
       </div>
 
-      {isMinorAthlete && <EditAthleteGuardianFields form={form} setForm={setForm} saving={saving} />}
+      {isMinorAthlete && (
+        <EditAthleteGuardianFields
+          form={form} setForm={setForm} saving={saving} immutable={guardianImmutable}
+        />
+      )}
     </div>
   );
 }

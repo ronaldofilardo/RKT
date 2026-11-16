@@ -41,4 +41,8 @@ export const ME_USER_SELECT = {
       playerCts: { where: { status: 'ACTIVE' }, select: { ctId: true } },
     },
   },
+  guardianLinks: {
+    where: { status: 'ACTIVE', revokedAt: null },
+    select: { playerId: true },
+  },
 } satisfies Prisma.UserSelect;

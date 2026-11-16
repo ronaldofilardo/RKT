@@ -106,6 +106,9 @@ describe('POST /api/guardians/invites/[token]/accept', () => {
       expect.objectContaining({ data: expect.objectContaining({ verificationLevel: 'N2_PRE_VALIDADO' }) })
     );
     expect(txMock.consentRecord.create).toHaveBeenCalledTimes(3);
+    expect(txMock.consentRecord.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ termsVersion: '2.0' }) })
+    );
     expect(txMock.consentEvent.create).toHaveBeenCalledTimes(3);
   });
 });

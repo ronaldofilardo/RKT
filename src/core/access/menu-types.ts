@@ -7,6 +7,7 @@ export type MenuSectionKey =
   | 'gestao'
   | 'suporte'
   | 'admin'
+  | 'responsavel'
   | 'rodape';
 
 export interface MenuItem {
@@ -64,5 +65,6 @@ export interface MenuContext {
   gestor: GestorContext | null;
   coach: CoachContext | null;
   athlete: AthleteContext | null;
+  isGuardian?: boolean;
   activeArea?: string | null;
 }

@@ -14,6 +14,10 @@ interface AthleteLike {
   uf?: string | null;
   city?: string | null;
   club?: string | null;
+  guardianName?: string | null;
+  guardianCpf?: string | null;
+  guardianPhone?: string | null;
+  guardianContact?: string | null;
 }
 
 /** Hidrata o formulário de edição a partir dos dados do atleta. */
@@ -32,6 +36,10 @@ export function buildFormFromAthlete(athlete: AthleteLike): AthleteForm {
     uf: athlete.uf || '',
     city: athlete.city || '',
     club: athlete.club || '',
+    guardianName: athlete.guardianName || '',
+    guardianCpf: athlete.guardianCpf || '',
+    guardianPhone: athlete.guardianPhone || '',
+    guardianContact: athlete.guardianContact || '',
   };
 }
 

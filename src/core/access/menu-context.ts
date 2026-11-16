@@ -5,6 +5,8 @@ export interface MeResponseLike extends Partial<MeAccess> {
   memberships: { kind: string; ctId: string | null; status: string }[];
   ctStatus: CtStatus | null;
   activeArea?: string | null;
+  isGuardian?: boolean;
+  guardianOfPlayerIds?: string[];
 }
 
 export function menuContextFromMe(
@@ -25,6 +27,7 @@ export function menuContextFromMe(
     gestor: gestorCtIds.length ? { ctIds: gestorCtIds, ctStatus: me?.ctStatus ?? null } : null,
     coach: me?.coach ?? null,
     athlete: me?.athlete ?? null,
+    isGuardian: Boolean(me?.isGuardian || (me?.guardianOfPlayerIds && me.guardianOfPlayerIds.length > 0)),
     activeArea: activeArea ?? me?.activeArea ?? null,
   };
 }

@@ -23,6 +23,7 @@ export function resolveUserActiveArea(decoded: DecodedJwt): AreaCode {
   if (decoded.role === 'ADMIN' || decoded.pp === 'ADMIN') return 'ADMIN';
   if (decoded.pp === 'SUPORTE') return 'SUPORTE';
   if (decoded.mk === 'GESTOR') return 'GESTOR';
+  if (decoded.role === 'RESPONSAVEL' || decoded.pp === 'RESPONSAVEL' || decoded.mk === 'RESPONSAVEL') return 'RESPONSAVEL';
   if (decoded.mk === 'TREINADOR') {
     return decoded.cx === 'PARTICULAR' ? 'TREINADOR_AVULSO' : 'TREINADOR_CLUBE';
   }
@@ -33,12 +34,12 @@ export function mapPrefixedToInternalRoute(pathname: string, areaCode: AreaCode)
   const prefix = prefixForArea(areaCode);
   if (pathname === prefix) {
     if (areaCode === 'GESTOR') return '/gestor';
-    if (areaCode === 'ADMIN' || areaCode === 'SUPORTE') return pathname;
+    if (areaCode === 'ADMIN' || areaCode === 'SUPORTE' || areaCode === 'RESPONSAVEL') return pathname;
     return '/dashboard';
   }
   if (pathname.startsWith(`${prefix}/`)) {
     const subpath = pathname.slice(prefix.length);
-    if (areaCode === 'ADMIN' || areaCode === 'SUPORTE') return pathname;
+    if (areaCode === 'ADMIN' || areaCode === 'SUPORTE' || areaCode === 'RESPONSAVEL') return pathname;
     return subpath;
   }
   return null;

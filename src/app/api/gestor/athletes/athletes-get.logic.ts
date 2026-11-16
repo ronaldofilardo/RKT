@@ -20,13 +20,26 @@ export async function getGestorAthletesList(ctId: string) {
           rankings: true,
           guardianGate: true,
           guardianLinks: {
-            where: { status: 'ACTIVE', revokedAt: null, confirmedAt: { not: null } },
-            select: { id: true },
+            where: { status: 'ACTIVE', revokedAt: null },
+            select: {
+              id: true,
+              relation: true,
+              confirmedAt: true,
+              guardian: { select: { name: true, cpf: true, email: true } },
+            },
             take: 1,
           },
           guardianInvites: {
-            where: { usedAt: { not: null } },
-            select: { id: true },
+            select: {
+              id: true,
+              usedAt: true,
+              preGuardianName: true,
+              preGuardianCpf: true,
+              preGuardianPhone: true,
+              preGuardianContact: true,
+              guardianUser: { select: { name: true, cpf: true, email: true } },
+            },
+            orderBy: { createdAt: 'desc' },
             take: 1,
           },
           consentRecords: { select: { id: true }, take: 1 },
@@ -39,17 +52,27 @@ export async function getGestorAthletesList(ctId: string) {
 
   return playerCts.map((pct) => {
     const p = pct.player;
+    const activeLink = p.guardianLinks?.[0];
+    const invite = p.guardianInvites?.[0];
     const isConsented = Boolean(
-      (p.guardianLinks && p.guardianLinks.length > 0) ||
-      (p.guardianInvites && p.guardianInvites.length > 0) ||
+      (activeLink && activeLink.confirmedAt) ||
+      (invite && invite.usedAt) ||
       (p.consentRecords && p.consentRecords.length > 0),
     );
+    const guardianName = activeLink?.guardian?.name || invite?.guardianUser?.name || invite?.preGuardianName || null;
+    const guardianCpf = activeLink?.guardian?.cpf || invite?.guardianUser?.cpf || invite?.preGuardianCpf || null;
+    const guardianPhone = invite?.preGuardianPhone || invite?.preGuardianContact || null;
+    const guardianRelationship = activeLink?.relation || invite?.preGuardianContact || null;
 
     return {
       ...pct,
       player: {
         ...p,
         isConsented,
+        guardianName,
+        guardianCpf,
+        guardianPhone,
+        guardianRelationship,
         guardianLinks: undefined,
         guardianInvites: undefined,
         consentRecords: undefined,

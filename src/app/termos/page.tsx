@@ -53,12 +53,12 @@ export default function TermosPage() {
             atrav&eacute;s dos canais previstos na Pol&iacute;tica de Privacidade.
           </p>
 
-          <h2 className="text-lg font-semibold mt-6 mb-2">5. Transmiss&atilde;o ao Vivo de Menores</h2>
+          <h2 className="text-lg font-semibold mt-6 mb-2">5. Transmiss&atilde;o ao Vivo e Prote&ccedil;&atilde;o de Menores (ECA Digital)</h2>
           <p className="mb-4">
-            Nomes de atletas menores de 18 anos s&oacute; ser&atilde;o exibidos em transmiss&otilde;es ao vivo
-            com consentimento expresso do respons&aacute;vel legal para a finalidade
-            <code>BROADCAST</code>. Sem esse consentimento, o nome ser&aacute; mascarado
-            (ex.: &quot;A. S&quot;.).
+            Em conformidade com o ECA Digital (Lei 15.211/2025) e a LGPD, partidas com atletas menores
+            de 18 anos exibem o atleta obrigatoriamente sob nome anonimizado (ex.: &quot;Atleta #8F2A7B&quot;) para
+            espectadores e links p&uacute;blicos mediante autoriza&ccedil;&atilde;o do respons&aacute;vel legal.
+            Sem essa autoriza&ccedil;&atilde;o, o compartilhamento externo com terceiros &eacute; bloqueado.
           </p>
 
           <h2 className="text-lg font-semibold mt-6 mb-2">6. Modifica&ccedil&otilde;es dos Termos</h2>

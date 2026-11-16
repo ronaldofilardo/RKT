@@ -13,12 +13,11 @@ interface AthletesMinorLinksModalProps {
   expiresAt?: string;
   isConsented?: boolean;
   mode?: 'LINK' | 'ECA';
-  onSimulateConsent?: () => Promise<void>;
 }
 
 export function AthletesMinorLinksModal({
   open, onOpenChange, minorName, token, guardianNoticeToken,
-  guardianName, expiresAt, isConsented = false, mode = 'LINK', onSimulateConsent,
+  guardianName, expiresAt, isConsented = false, mode = 'LINK',
 }: AthletesMinorLinksModalProps) {
   if (!open) return null;
   const showActiveLinks = isConsented && mode !== 'ECA';
@@ -57,7 +56,6 @@ export function AthletesMinorLinksModal({
             guardianName={guardianName}
             guardianNoticeToken={guardianNoticeToken}
             expiresAt={expiresAt}
-            onSimulateConsent={onSimulateConsent || (async () => {})}
             onClose={() => onOpenChange(false)}
           />
         )}

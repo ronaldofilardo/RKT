@@ -51,7 +51,7 @@ describe('toSpectatorView (projeção segura e proteção a menores)', () => {
       nowDate: new Date('2026-10-29'),
     });
 
-    expect(view.match.sides[1].members[0].name).toMatch(/^Atleta #[0-9A-F]{4}$/);
+    expect(view.match.sides[1].members[0].name).toMatch(/^Atleta #[0-9A-F]{6}$/);
     expect(view.match.sides[1].members[0].name).not.toBe('Gabriel Silva');
   });
 

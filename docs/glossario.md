@@ -37,6 +37,14 @@
 | **AnnotationEndorsement** | `annotation_endorsements` | Endosso de um anotador sobre o trabalho de outro em uma sessão. |
 | **MatchShareLink** | `match_share_links` | Convite revogável de acompanhamento com token aleatório de 32 bytes armazenado exclusivamente em formato hash SHA-256. |
 | **MatchSpectator** | `match_spectators` | Concessão temporária por partida permitindo leitura em tempo real do placar e timeline. |
+| **GuardianLink** | `guardian_links` | Vínculo de tutela legal entre um responsável (`guardianUserId`) e um atleta menor (`playerId`), sob princípio de monotutela estrita. |
+| **GuardianInvite** | `guardian_invites` | Convite revogável de tutela (72h) com dados pré-cadastrados para validação cruzada (`preGuardianCpfHash`, telefone) e invalidação atômica (`usedAt`). |
+| **ConsentRecord** | `consent_records` | Registro imutável de consentimento legal (LGPD Art. 14 / ECA Digital) vinculado a uma finalidade (`purpose`), versão de termos e `ipHash`, protegido por `onDelete: Restrict`. |
+| **ConsentEvent** | `consent_events` | Rastro cronológico de auditoria de eventos de consentimento (`GRANT`/`REVOKE`) com trilha de prova jurídica (`ipHash`, `contentHash`, `userAgent`). |
+| **AuditLog** | `audit_logs` | Registro imutável de ações operacionais e de segurança, sanitizado sem dados pessoais (PII) sensíveis em texto puro (`meta`). |
+| **TrainingCenter** | `training_centers` | Centro de Treinamento, titular/dono dos dados operacionais e tenant esportivo. |
+| **PlayerCT** | `player_cts` | Vínculo associativo entre um atleta (`Player`) e um Centro de Treinamento (`TrainingCenter`). |
+| **Membership** | `memberships` | Vínculo de papel e permissões de um usuário em um escopo (CT ou Plataforma). |
 
 ### Estados e formatos de partida
 
@@ -46,6 +54,17 @@
 | **MatchFinishReason** | `COMPLETED`, `ABANDONED`, `WALKOVER`, `INJURY`, `OUTRO` |
 | **MatchFormat** | `BEST_OF_3`, `BEST_OF_5`, `BEST_OF_3_MATCH_TB`, `BEST_OF_3_NO_AD`, `SHORT_SET_2V2_NO_AD`, `MATCH_TB_10`, `PRO_SET_8` |
 | **AnnotationSessionStatus** | `IN_PROGRESS`, `COMPLETED`, `ABANDONED` |
+
+### Estados de tutela, consentimento e conformidade
+
+| Enum | Valores |
+|---|---|
+| **GuardianLinkStatus** | `INVITED`, `ACTIVE`, `REVOKED`, `EMANCIPATED`, `DORMANT` |
+| **GuardianGateStatus** | `AGUARDANDO_RESPONSAVEL`, `LIBERADO`, `RESTRITO`, `LIBERADO_MAIOR` |
+| **GuardianInviteStatus** | `PENDING`, `USED`, `EXPIRED`, `REVOKED`, `SUPERSEDED` |
+| **ConsentPurpose** | `DATA` (operação esportiva), `BROADCAST` (transmissão/visibilidade do nome civil real), `POOL_VISIBILITY` (visibilidade do nickname no pool), `STATS` (estatísticas agregadas) |
+| **ConsentAction** | `GRANT`, `REVOKE` |
+| **InviteCreatorKind** | `GESTOR`, `MENOR` |
 
 ---
 
@@ -167,6 +186,30 @@ Anotação tática detalhada de como o ponto terminou.
 | **CT (`TrainingCenter`)** | Centro de Treinamento, dono dos dados (tenant). |
 | **Clube (`Club`)** | Apenas referência (adversário de fora, local da partida). |
 | **Pool de atletas** | Cadastro global de `Player`, com `athleteCode` (código curto público que não dá acesso a dados). |
-| **Responsável (`GuardianLink`)** | Ligado a um atleta menor; o vínculo fica dormente aos 18 anos. |
+| **Responsável (`GuardianLink`)** | Usuário vinculado a um atleta menor sob monotutela estrita (`status: ACTIVE`). O vínculo passa a `EMANCIPATED` aos 18 anos exatos (ver Seção 9). |
 | **`sessionVersion` / claim `sv`** | Contador por conta; incrementar encerra todas as sessões. O guarda confere o `sv` do token com cache de 60 s. |
 | **Claim legado derivado** | `ADMIN`, `ANNOTATOR` ou `NONE` calculado dos vínculos para as rotas antigas (`deriveLegacyRole`). |
+
+---
+
+## 9. Proteção de Menores, Governança e LGPD / ECA Digital
+
+Regras canônicas e conceitos jurídicos-técnicos implementados para conformidade estrita com a LGPD (Lei 13.709/2018, Art. 14) e o ECA Digital (Lei 15.211/2025).
+
+| Termo | Definição |
+|---|---|
+| **Monotutela Estrita** | Princípio pelo qual cada atleta menor possui exatamente 1 único responsável legal ativo (`GuardianLink.status = ACTIVE`) na plataforma. Impede múltiplos responsáveis concorrentes e conflitos de autorização. |
+| **Círculo Restrito de Acesso ao Nome Real** | Escopo exclusivo de atores autorizados a visualizar o nome civil de atletas menores: Gestor do CT da partida, Treinadores vinculados com autorização ativa (`CoachAthleteLink`), Atletas participantes na quadra e o Responsável Legal ativo. |
+| **Randomização Obrigatória de Menor** | Substituição mandatória do nome civil real de menor por pseudônimo aleatório e estável por partida (ex.: `Atleta #8B2E` via `minor-name-randomizer.ts`) em links públicos (`MatchShareLink`), QR codes e feeds de espectadores ao vivo quando não houver consentimento `BROADCAST`. |
+| **Pseudônimo Estável por Partida** | Código alfanumérico derivado de HMAC-SHA256 (`matchId:playerId`), consistente durante todo o jogo para permitir acompanhamento de games/sets, mas independente entre partidas para evitar correlação longitudinal. |
+| **Emancipação Atômica aos 18 Anos** | Transição de tutela que ocorre no instante em que o atleta completa 18 anos (`isMinor = false`): o `GuardianLink` passa a `EMANCIPATED`, a tutela parental cessa e, no próximo login, o jovem é redirecionado para assinar seus próprios termos e consentimentos. |
+| **Continuidade Atômica da Partida** | Regra de preservação esportiva: se o responsável revogar o consentimento `DATA` durante uma partida em andamento, os pontos continuam sendo computados pelo `ScoringEngine` até o fim para integridade do adversário, mas a projeção pública torna-se imediatamente randomizada e partidas futuras ficam bloqueadas (`MINOR_GATE_BLOCKED`). |
+| **Trava de Autocadastro (`guardianGate`)** | Bloqueio sistêmico aplicado quando um menor se cadastra diretamente (`/signup`): seu perfil entra como `AGUARDANDO_RESPONSAVEL` com acesso restrito a `/aguardando-responsavel` até que o convite único de tutela seja aceito pelo responsável. |
+| **Link 1: Ativação de Conta do Menor** | Link emitido pelo Gestor (`/ativar-conta/[token]`) permitindo ao atleta menor criar sua credencial com senha segura de alta entropia. Exige previamente `GuardianLink ACTIVE` e consentimento `DATA`. |
+| **Link 2: Ativação e Escolha de Perfil do Responsável** | Link emitido ao responsável legal (`/responsavel/aviso-ativacao/[token]`) após confirmação do consentimento prévio. Permite definir a senha de acesso e escolher entre a **Conta Básica de Acompanhamento** ou a **Conta de Espectador & Anotador**. |
+| **Conta Básica de Acompanhamento Parental** | Perfil do responsável legal (`canOperate = false`) voltado estritamente à segurança e supervisão parental. Permite acompanhar quais partidas foram criadas/anotadas para o menor e por quem (treinador/anotador), sem exibição de placares detalhados, estatísticas táticas ou permissão de criar/anotar jogos. |
+| **Conta de Espectador & Anotador** | Perfil pleno do responsável (`canOperate = true`) que autoriza o acompanhamento com transmissão ao vivo ponto a ponto e placar do menor, além de conceder a capacidade operacional de criar e anotar partidas próprias e compartilhar links de acompanhamento. |
+| **Upgrade de Acompanhamento Parental** | Ação disponibilizada na interface do responsável no modo básico (`POST /api/guardians/me/upgrade`), permitindo transicionar a qualquer momento para a Conta de Espectador & Anotador de forma imediata e sem atrito. |
+| **Cruzamento Cadastral de Tutela** | Validação de segurança em que os dados informados pelo gestor (`preGuardianCpfHash` via HMAC-SHA256) são confrontados com o CPF digitado pelo responsável no momento do aceite do convite de tutela. |
+| **Anonimização de Titular (LGPD Art. 18)** | Rotina de direito ao esquecimento (`user-anonymize.logic.ts`) que desassocia e ofusca dados pessoais de `User` e `Player` (`Atleta Anonimizado`, remoção de CPF e data de nascimento), preservando a integridade estatística das partidas para os adversários. |
+| **Sanitização de Logs de Auditoria** | Higienização de `AuditLog.meta`, substituindo dados pessoais e CPFs em texto puro por referências opacas (`resourceId`), garantindo imutabilidade sem violar a minimização de dados. |

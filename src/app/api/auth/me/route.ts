@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
     }));
 
     const followedPlayerIds = filterFollowedPlayers(dbUser as any, user.contextId, user.activeArea);
+    const guardianOfPlayerIds = ((dbUser as any).guardianLinks ?? []).map((l: any) => l.playerId);
 
     let ctStatus: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | null = null;
     const gestorMembership = memberships.find((m) => m.kind === 'GESTOR' && m.ctId);
@@ -46,6 +47,7 @@ export async function GET(request: NextRequest) {
       canOperate: dbUser.canOperate,
       memberships: dbUser.memberships,
       athlete: dbUser.athleteProfile ? { playerId: dbUser.athleteProfile.id } : null,
+      isGuardian: guardianOfPlayerIds.length > 0,
     });
 
     return NextResponse.json({
@@ -62,6 +64,8 @@ export async function GET(request: NextRequest) {
       activeContextId: user.contextId ?? null,
       activeArea: user.activeArea ?? null,
       followedPlayerIds,
+      guardianOfPlayerIds,
+      isGuardian: guardianOfPlayerIds.length > 0,
       availableContexts,
       availableAreas,
       ...buildMeAccess(dbUser, new Date(), user.contextId),

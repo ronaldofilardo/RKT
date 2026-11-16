@@ -10,15 +10,20 @@ export interface AtletaFormData {
   dominance: string;
   backhand?: string;
   rankings?: Record<string, any>;
+  guardianName?: string;
+  guardianCpf?: string;
+  guardianPhone?: string;
+  guardianContact?: string;
 }
 
 interface EditarAtletaModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   atleta?: { id: string } & AtletaFormData;
-  /** false para atleta sem conta de acesso (CPF opcional). Padrão: true. */
   cpfRequired?: boolean;
-  onSave: (data: AtletaFormData) => Promise<void> | void;
+  guardianImmutable?: boolean;
+  readOnly?: boolean;
+  onSave?: (data: AtletaFormData) => Promise<void> | void;
 }
 
 export function EditarAtletaModal({
@@ -27,10 +32,13 @@ export function EditarAtletaModal({
   atleta,
   onSave,
   cpfRequired = true,
+  guardianImmutable = false,
+  readOnly = false,
 }: EditarAtletaModalProps) {
   if (!open || !atleta) return null;
 
   const handleSave = async (payload: EditAthleteSavePayload) => {
+    if (!onSave) return;
     await onSave({
       name: payload.name,
       cpf: payload.cpf,
@@ -39,12 +47,18 @@ export function EditarAtletaModal({
       dominance: payload.dominance || 'RIGHT',
       backhand: payload.backhand,
       rankings: payload.rankings,
+      guardianName: payload.guardianName,
+      guardianCpf: payload.guardianCpf,
+      guardianPhone: payload.guardianPhone,
+      guardianContact: payload.guardianContact,
     });
   };
 
   return (
     <EditAthleteModal
       isOpen={open}
+      readOnly={readOnly}
+      guardianImmutable={guardianImmutable}
       athlete={{
         id: atleta.id,
         name: atleta.name,
@@ -54,6 +68,10 @@ export function EditarAtletaModal({
         dominance: atleta.dominance,
         backhand: atleta.backhand,
         rankings: atleta.rankings,
+        guardianName: atleta.guardianName,
+        guardianCpf: atleta.guardianCpf,
+        guardianPhone: atleta.guardianPhone,
+        guardianContact: atleta.guardianContact,
       }}
       showCpf={true}
       cpfRequired={cpfRequired}

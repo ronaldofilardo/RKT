@@ -8,15 +8,13 @@ interface AthletesMinorConsentPendingProps {
   guardianName?: string;
   guardianNoticeToken: string;
   expiresAt?: string;
-  onSimulateConsent: () => Promise<void>;
   onClose: () => void;
 }
 
 export function AthletesMinorConsentPending({
-  guardianName, guardianNoticeToken, expiresAt, onSimulateConsent, onClose,
+  guardianName, guardianNoticeToken, expiresAt, onClose,
 }: AthletesMinorConsentPendingProps) {
   const [copied, setCopied] = useState(false);
-  const [simulating, setSimulating] = useState(false);
 
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const inviteLink = `${origin}/responsavel/convite/${guardianNoticeToken}`;
@@ -27,15 +25,6 @@ export function AthletesMinorConsentPending({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {}
-  };
-
-  const handleSimulate = async () => {
-    setSimulating(true);
-    try {
-      await onSimulateConsent();
-    } finally {
-      setSimulating(false);
-    }
   };
 
   return (
@@ -58,17 +47,6 @@ export function AthletesMinorConsentPending({
             {copied ? <CheckIcon /> : <CopyIcon />} {copied ? 'Copiado' : 'Copiar'}
           </button>
         </div>
-      </div>
-
-      <div className="border border-dashed border-telemetry-border/40 rounded-xl p-3 bg-telemetry-elevated/20 text-center space-y-2">
-        <div className="text-[11px] text-telemetry-text-muted">Ambiente de Demonstração / Homologação:</div>
-        <button
-          onClick={handleSimulate}
-          disabled={simulating}
-          className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg text-xs transition-colors flex items-center justify-center gap-2"
-        >
-          {simulating ? 'Simulando Consentimento...' : '⚡ Simular Consentimento do Responsável (Placeholder)'}
-        </button>
       </div>
 
       <div className="text-[11px] text-telemetry-text-muted bg-telemetry-elevated/30 p-2.5 rounded-lg border border-telemetry-border/20">

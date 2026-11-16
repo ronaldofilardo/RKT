@@ -3,17 +3,18 @@ import { createHmac } from 'crypto';
 export const DEFAULT_SPECTATOR_SALT = 'RKT_SPECTATOR_SALT';
 
 /**
- * Gera um pseudônimo estável para um atleta menor dentro do contexto de uma partida.
- * Exemplo de retorno: "Atleta #8F2A"
+ * Gera um identificador anonimizado estável para um atleta menor dentro do contexto de uma partida.
+ * Exemplo de retorno: "Atleta #8F2A7B" (código de 6 caracteres hexadecimais).
  */
 export function randomizeMinorPlayerName(
   matchId: string,
   playerId: string,
-  salt = DEFAULT_SPECTATOR_SALT,
+  salt?: string,
 ): string {
-  const hash = createHmac('sha256', salt)
+  const activeSalt = salt ?? process.env.SPECTATOR_SALT ?? DEFAULT_SPECTATOR_SALT;
+  const hash = createHmac('sha256', activeSalt)
     .update(`${matchId}:${playerId}`)
     .digest('hex');
-  const code = hash.slice(0, 4).toUpperCase();
+  const code = hash.slice(0, 6).toUpperCase();
   return `Atleta #${code}`;
 }

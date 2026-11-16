@@ -15,9 +15,7 @@ import { computeAvailableAreas } from './login-available-areas.logic';
 export async function POST(request: NextRequest) {
   try {
     const payload = await validatedRequest(request, LoginPayloadSchema);
-    const identifier = (payload.identifier || payload.email || '').trim();
-    const ip = request.headers.get('x-forwarded-for') || 'unknown';
-
+    const identifier = (payload.identifier || payload.email || '').trim(), ip = request.headers.get('x-forwarded-for') || 'unknown';
     await checkLoginRateLimit(ip);
 
     const authRes = typeof (authModule as any).authenticateUserDetailed === 'function'
@@ -55,11 +53,13 @@ export async function POST(request: NextRequest) {
     }
 
     const actor = await getActor(user.id, chosenContextId).catch(() => null);
+    const isGuardian = Boolean(actor?.guardianOfPlayerIds?.length);
+    const isAthlete = Boolean(actor?.athletePlayerId);
     const { effectiveRole, effectiveProfile, platformPreset, membershipKind } =
-      computeLoginProfile(actor?.memberships as readonly ActorMembership[] | null | undefined, user.role);
+      computeLoginProfile(actor?.memberships as readonly ActorMembership[] | null | undefined, user.role, { isGuardian, isAthlete });
 
     const chosenContext = availableContexts.find((c) => c.id === chosenContextId);
-    const areaForContext = resolveLoginArea(chosenContext);
+    const areaForContext = resolveLoginArea(chosenContext, { isGuardian, isAthlete, userRole: user.role });
     const availableAreas = computeAvailableAreas(user.role, actor);
 
     const accessToken = await generateLoginToken(

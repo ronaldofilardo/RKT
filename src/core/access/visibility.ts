@@ -85,5 +85,6 @@ export function canWatchMatch(
 ): boolean {
   if (!actor || !actor.isActive || m.isTemplate) return false;
   if (hasExplicitShareGrant) return true;
+  if (actor.guardianOfPlayerIds?.some((id) => m.participantPlayerIds.includes(id))) return true;
   return canReadMatch(actor, m);
 }

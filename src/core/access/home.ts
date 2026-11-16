@@ -12,6 +12,7 @@ export function homeForProfile(actor: Actor | null | undefined): string {
   if (profiles.includes('ADMIN')) return '/admin';
   if (profiles.includes('SUPORTE')) return '/suporte';
   if (profiles.includes('GESTOR')) return '/gestor';
+  if (profiles.includes('RESPONSAVEL') && !profiles.includes('TREINADOR') && !profiles.includes('ATLETA')) return '/responsavel';
   if (profiles.includes('TREINADOR')) return '/dashboard';
   if (profiles.includes('ATLETA')) return '/dashboard';
   return '/dashboard';
@@ -26,6 +27,8 @@ export function homeForProfileString(profile?: string | null): string {
       return '/suporte';
     case 'GESTOR':
       return '/gestor';
+    case 'RESPONSAVEL':
+      return '/responsavel';
     case 'TREINADOR':
     case 'ATLETA':
     default:

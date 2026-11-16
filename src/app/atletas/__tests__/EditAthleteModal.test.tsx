@@ -14,6 +14,8 @@ describe('EditAthleteModal - remoção de rankings', () => {
     name: 'Eduardo',
     gender: 'MALE',
     birthDate: `${new Date().getFullYear() - 15}-03-15`,
+    guardianName: 'Maria Silva',
+    guardianCpf: '12345678901',
     dominance: 'RIGHT',
     backhand: 'ONE_HANDED',
     rankings: { ESTADUAL: { category: '15-16', class: '4ªMA', position: 3 } },

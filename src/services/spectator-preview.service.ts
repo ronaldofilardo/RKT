@@ -1,15 +1,20 @@
 import { prisma } from '@/lib/prisma';
 import { hashSpectateToken } from '@/lib/spectate-token';
 import { isMinor } from '@/core/access/age';
-import { maskNameForMinor } from '@/core/access/pool';
+import { randomizeMinorPlayerName } from '@/core/access/minor-name-randomizer';
+import { canShareMatchWithMinors } from './spectator-share-minor-gate.logic';
 
 const ACCESS_WINDOW_DAYS = 7;
 
-function getDisplayName(name: string, birthDate?: Date | string | null, now = new Date()): string {
+function getDisplayName(
+  matchId: string,
+  playerId: string,
+  name: string,
+  birthDate?: Date | string | null,
+  now = new Date(),
+): string {
   if (isMinor(birthDate ? new Date(birthDate) : null, now)) {
-    const parts = name.trim().split(/\s+/);
-    if (parts.length > 1) return `${parts[0]} ${parts[parts.length - 1][0]}.`;
-    return maskNameForMinor(name);
+    return randomizeMinorPlayerName(matchId, playerId);
   }
   return name;
 }
@@ -40,6 +45,11 @@ export async function getInvitePreview(token: string) {
     return { ok: false as const, error: 'INVITE_INVALID', status: 404 };
   }
 
+  const canShare = await canShareMatchWithMinors(link.matchId);
+  if (!canShare) {
+    return { ok: false as const, error: 'MINOR_BROADCAST_NOT_CONSENTED', status: 403 };
+  }
+
   if (link.match.state === 'FINISHED' && link.match.finishedAt) {
     const expiresAt = new Date(link.match.finishedAt).getTime() + ACCESS_WINDOW_DAYS * 86_400_000;
     if (Date.now() > expiresAt) {
@@ -48,8 +58,8 @@ export async function getInvitePreview(token: string) {
   }
 
   const now = new Date();
-  const p1Name = getDisplayName(link.match.player1.name, link.match.player1.birthDate, now);
-  const p2Name = getDisplayName(link.match.player2.name, link.match.player2.birthDate, now);
+  const p1Name = getDisplayName(link.match.id, link.match.player1.id, link.match.player1.name, link.match.player1.birthDate, now);
+  const p2Name = getDisplayName(link.match.id, link.match.player2.id, link.match.player2.name, link.match.player2.birthDate, now);
   const matchTitle = `${p1Name} × ${p2Name}`;
 
   const score = (link.match.scoreState as any) || {};

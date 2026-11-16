@@ -22,7 +22,7 @@ describe('resolvePlayerDisplayName', () => {
       isDirectlyInvolved: false,
       now,
     });
-    expect(name).toMatch(/^Atleta #[0-9A-F]{4}$/);
+    expect(name).toMatch(/^Atleta #[0-9A-F]{6}$/);
   });
 
   it('retorna nome real para atleta menor quando visualizador é diretamente envolvido', () => {
@@ -35,14 +35,14 @@ describe('resolvePlayerDisplayName', () => {
     expect(name).toBe('Lucas Menor');
   });
 
-  it('retorna nome randomizado "Atleta #XXXX" para atleta menor quando visualizador NÃO é envolvido', () => {
+  it('retorna nome randomizado "Atleta #XXXXXX" para atleta menor quando visualizador NÃO é envolvido', () => {
     const name = resolvePlayerDisplayName({
       player: { id: 'p-minor', name: 'Lucas Menor', birthDate: minorBirth },
       matchId: 'match-1',
       isDirectlyInvolved: false,
       now,
     });
-    expect(name).toMatch(/^Atleta #[0-9A-F]{4}$/);
+    expect(name).toMatch(/^Atleta #[0-9A-F]{6}$/);
     expect(name).not.toBe('Lucas Menor');
   });
 
