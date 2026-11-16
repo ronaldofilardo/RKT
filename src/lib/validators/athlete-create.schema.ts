@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { isValidCpf } from './cpf.validator';
+import { isMinor } from '@/core/access/age';
 
 export const AthleteCreateSchema = z.object({
   name: z.string().min(2, 'Nome completo deve ter pelo menos 2 caracteres').max(120),
@@ -11,6 +12,28 @@ export const AthleteCreateSchema = z.object({
   gender: z.enum(['MASCULINO', 'FEMININO', 'OUTRO']),
   laterality: z.enum(['DESTRO', 'CANHOTO', 'AMBIDEXTRO']),
   linkExisting: z.boolean().optional(),
+  guardianName: z.string().optional(),
+  guardianCpf: z.string().optional(),
+  guardianPhone: z.string().optional(),
+  guardianContact: z.string().optional(),
+}).superRefine((data, ctx) => {
+  const birth = new Date(data.birthDate);
+  if (!Number.isNaN(birth.getTime()) && isMinor(birth, new Date())) {
+    if (!data.guardianName || data.guardianName.trim().length < 2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Nome do responsável legal é obrigatório para atletas menores',
+        path: ['guardianName'],
+      });
+    }
+    if (!data.guardianCpf || !isValidCpf(data.guardianCpf)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'CPF válido do responsável legal é obrigatório para atletas menores',
+        path: ['guardianCpf'],
+      });
+    }
+  }
 });
 
 export type AthleteCreateInput = z.infer<typeof AthleteCreateSchema>;

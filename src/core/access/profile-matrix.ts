@@ -27,7 +27,6 @@ export const PROFILE_MATRIX: Record<Profile, Row> = {
     'support:account:assist': ['P'],
     'platform:player:merge': ['P'],
     'audit:read': ['P'],
-    'guardian:link': ['ANY'],
   },
   GESTOR: {
     ...OPERATE,
@@ -43,7 +42,6 @@ export const PROFILE_MATRIX: Record<Profile, Row> = {
     ...OPERATE,
     'report:view': ['ANY'],
     'athlete:update': ['CT', 'PROP'],
-    'guardian:link': ['CT'],
     'coach:athlete:follow': ['ANY'],
     'coach:athlete:list': ['ANY'],
     'coach:athlete:view': ['FOLLOW'],

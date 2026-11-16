@@ -20,11 +20,7 @@ export async function POST(request: NextRequest) {
       }
 
       const isConfirmedGuardian = actor.guardianOfPlayerIds.includes(parsed.data.playerId);
-      const isSupport = actor.memberships.some(
-        (m) => m.kind === 'PLATAFORMA' && m.status === 'ACTIVE'
-      );
-
-      if (!isConfirmedGuardian && !isSupport) {
+      if (!isConfirmedGuardian) {
         return NextResponse.json({ error: 'FORBIDDEN', message: 'Usuário não é responsável confirmado deste atleta' }, { status: 403 });
       }
 

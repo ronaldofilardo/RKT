@@ -17,6 +17,8 @@ export interface AthleteTableRowData {
   /** Procedência (A0.12 Fase 7): "Clube - UF" quando informados. */
   origin?: string | null;
   status: AthleteStatus;
+  isMinor?: boolean;
+  isConsented?: boolean;
 }
 
 /** Callbacks de ação aplicadas a cada linha da tabela. */
@@ -24,6 +26,7 @@ export interface AthleteTableRowActions {
   onEdit: () => void;
   onDelete: () => void;
   onGenerateLink?: () => void;
+  onEcaConsent?: () => void;
   loadingLink?: boolean;
   /** Rótulo do botão de edição: "Editar" ou "Ver Ficha" (treinador de clube). */
   editLabel?: string;
@@ -32,6 +35,7 @@ export interface AthleteTableRowActions {
   canDelete?: boolean;
   isClubCoach?: boolean;
   isUnder18?: boolean;
+  isMinorConsented?: boolean;
   /** Define o tooltip do botão Link (conta já criada vs. pendente de criação). */
   hasAccount?: boolean;
 }

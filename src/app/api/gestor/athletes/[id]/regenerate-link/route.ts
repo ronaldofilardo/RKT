@@ -5,7 +5,12 @@ import { reportApiError } from '@/lib/api.logic';
 import { withAccessHandler } from '@/lib/access-handler';
 import { getGestorCtId, denyGestor } from '../../../_logic';
 import { provisionAthleteAccount } from '../../../athletes-provision.logic';
-import { issueAthleteLink } from './regenerate-link-issue.logic';
+import { isMinor } from '@/core/access/age';
+import {
+  issueAthleteLink,
+  issueGuardianNoticeForMinor,
+  checkMinorConsentStatus,
+} from './regenerate-link-issue.logic';
 
 export async function POST(
   request: NextRequest,
@@ -54,11 +59,30 @@ export async function POST(
         }
 
         const { token, expiresAt } = await issueAthleteLink({ ctId, userId, userEmail });
+        const minor = isMinor(playerCt.player.birthDate, new Date());
+        let guardianNoticeToken: string | undefined;
+        let guardianName: string | null | undefined;
+        let isConsented = true;
+
+        if (minor) {
+          isConsented = await checkMinorConsentStatus(playerCt.player.id);
+          const notice = await issueGuardianNoticeForMinor({
+            ctId, playerId: playerCt.player.id, issuedByUserId: user.id, expiresAt,
+          });
+          guardianNoticeToken = notice.guardianNoticeToken;
+          guardianName = notice.guardianName;
+        }
 
         return NextResponse.json({
           message: 'Link de acesso regenerado.',
           token,
           expiresAt,
+          isMinor: minor,
+          isConsented,
+          guardianNoticeToken,
+          guardianName,
+          minorName: playerCt.player.name,
+          playerId: playerCt.player.id,
         });
       } catch (error) {
         logger.error('[ATHLETE REGENERATE LINK]', error);

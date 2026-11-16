@@ -17,7 +17,7 @@ describe('toSpectatorView (projeção segura e proteção a menores)', () => {
   const minorPlayer = {
     id: 'p-minor',
     name: 'Gabriel Silva',
-    birthDate: new Date('2015-05-10'), // Menor de idade
+    birthDate: new Date('2015-05-10'),
   };
 
   const score = {
@@ -40,28 +40,29 @@ describe('toSpectatorView (projeção segura e proteção a menores)', () => {
     expect(view.match.sides[1].members[0].name).toBe('Rafael Souza');
   });
 
-  it('mascara o nome do atleta menor para acompanhantes gerais (sem vínculo legal)', () => {
+  it('randomiza nome do atleta menor para terceiros/espectadores não envolvidos', () => {
     const view = toSpectatorView({
       match: baseMatch,
       player1: adultPlayer,
       player2: minorPlayer,
       score,
       points: [],
-      guardianPlayerIds: [], // Espectador NÃO é responsável legal
+      isViewerDirectlyInvolved: false,
       nowDate: new Date('2026-10-29'),
     });
 
-    expect(view.match.sides[1].members[0].name).toBe('G***');
+    expect(view.match.sides[1].members[0].name).toMatch(/^Atleta #[0-9A-F]{4}$/);
+    expect(view.match.sides[1].members[0].name).not.toBe('Gabriel Silva');
   });
 
-  it('não mascara o nome do atleta menor para seu responsável legal', () => {
+  it('exibe nome real do menor para usuário diretamente envolvido ou responsável', () => {
     const view = toSpectatorView({
       match: baseMatch,
       player1: adultPlayer,
       player2: minorPlayer,
       score,
       points: [],
-      guardianPlayerIds: ['p-minor'], // Espectador É responsável legal
+      isViewerDirectlyInvolved: true,
       nowDate: new Date('2026-10-29'),
     });
 

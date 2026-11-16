@@ -2,17 +2,12 @@
 
 import type { AthleteItem } from './types';
 import type { AtletaFormData } from './editar-atleta-modal';
+import type { AthleteLinkModalState } from './athletes-link-modal.types';
 import { DeleteAthleteModal } from '@/components/athlete/delete-athlete-modal';
 import { EditarAtletaModal } from './editar-atleta-modal';
 import { LinkCopyModal } from './link-copy-modal';
+import { AthletesMinorLinksModal } from './athletes-minor-links-modal';
 import { normalizeDominance, normalizeGender } from '@/lib/athlete-labels.logic';
-
-interface LinkData {
-  open: boolean;
-  name: string;
-  token: string;
-  expiresAt?: string;
-}
 
 interface AthletesTableModalsProps {
   editing: AthleteItem | null;
@@ -22,16 +17,18 @@ interface AthletesTableModalsProps {
   onDeleteChange: (athlete: AthleteItem | null) => void;
   deleting: boolean;
   onConfirmDelete: () => void;
-  linkData: LinkData;
+  linkData: AthleteLinkModalState;
   onLinkOpenChange: (open: boolean) => void;
+  onSimulateConsent?: () => Promise<void>;
 }
 
-/** Modais da aba Atletas do gestor: edição, remoção do elenco e link de senha. */
 export function AthletesTableModals({
   editing, onEditingChange, onSave,
   athleteToDelete, onDeleteChange, deleting, onConfirmDelete,
-  linkData, onLinkOpenChange,
+  linkData, onLinkOpenChange, onSimulateConsent,
 }: AthletesTableModalsProps) {
+  const isMinorDoubleLink = Boolean(linkData.isMinor && linkData.guardianNoticeToken);
+
   return (
     <>
       {editing && (
@@ -60,23 +57,34 @@ export function AthletesTableModals({
           onConfirm={onConfirmDelete}
           title="Remover do Elenco"
           description={(
-            <>
-              Tem certeza que deseja remover{' '}
-              <span className="font-semibold text-telemetry-text-primary">{athleteToDelete.player.name}</span>{' '}
-              do elenco do clube? O cadastro e a conta de acesso serão preservados.
-            </>
+            <>Tem certeza que deseja remover <span className="font-semibold text-telemetry-text-primary">{athleteToDelete.player.name}</span> do elenco do clube? O cadastro e a conta serão preservados.</>
           )}
         />
       )}
 
-      <LinkCopyModal
-        open={linkData.open}
-        onOpenChange={onLinkOpenChange}
-        title="Link de Redefinição de Senha"
-        recipientName={linkData.name}
-        token={linkData.token}
-        expiresAt={linkData.expiresAt}
-      />
+      {isMinorDoubleLink ? (
+        <AthletesMinorLinksModal
+          open={linkData.open}
+          onOpenChange={onLinkOpenChange}
+          minorName={linkData.name}
+          token={linkData.token}
+          guardianNoticeToken={linkData.guardianNoticeToken!}
+          guardianName={linkData.guardianName}
+          expiresAt={linkData.expiresAt}
+          isConsented={linkData.isConsented}
+          mode={linkData.mode}
+          onSimulateConsent={onSimulateConsent}
+        />
+      ) : (
+        <LinkCopyModal
+          open={linkData.open}
+          onOpenChange={onLinkOpenChange}
+          title="Link de Redefinição de Senha"
+          recipientName={linkData.name}
+          token={linkData.token}
+          expiresAt={linkData.expiresAt}
+        />
+      )}
     </>
   );
 }

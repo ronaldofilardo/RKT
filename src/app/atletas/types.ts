@@ -12,6 +12,10 @@ export interface AthleteForm {
   uf: string;
   city: string;
   club: string;
+  guardianName?: string;
+  guardianCpf?: string;
+  guardianPhone?: string;
+  guardianContact?: string;
 }
 
 /** Estado inicial do formulário de atleta. */
@@ -28,4 +32,8 @@ export const EMPTY_ATHLETE_FORM: AthleteForm = {
   uf: "",
   city: "",
   club: "",
+  guardianName: "",
+  guardianCpf: "",
+  guardianPhone: "",
+  guardianContact: "",
 };

@@ -4,12 +4,14 @@ export const ADULT_AGE = 18;
  * Menor de idade, avaliado na leitura (sem cron). Sem data de nascimento
  * ou data inválida → tratado como menor, para fins de proteção (§10.1).
  */
-export function isMinor(birthDate: Date | null | undefined, now: Date): boolean {
-  if (!birthDate || Number.isNaN(birthDate.getTime())) return true;
+export function isMinor(birthDate: Date | string | null | undefined, now: Date = new Date()): boolean {
+  if (!birthDate) return true;
+  const d = typeof birthDate === 'string' ? new Date(birthDate) : birthDate;
+  if (Number.isNaN(d.getTime())) return true;
   const adultOn = Date.UTC(
-    birthDate.getUTCFullYear() + ADULT_AGE,
-    birthDate.getUTCMonth(),
-    birthDate.getUTCDate(),
+    d.getUTCFullYear() + ADULT_AGE,
+    d.getUTCMonth(),
+    d.getUTCDate(),
   );
   return now.getTime() < adultOn;
 }

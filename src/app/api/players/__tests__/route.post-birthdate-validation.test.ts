@@ -40,4 +40,19 @@ describe('POST /api/players - birthDate validation - regras', () => {
     // Route accepts birthDate as-is, validation happens at schema level
     expect(res.status).toBe(201);
   });
+
+  it('deve retornar 403 se um treinador tentar cadastrar um atleta menor de 18 anos', async () => {
+    mockGetActor.mockResolvedValue({
+      ...defaultActor,
+      memberships: [{ kind: 'TREINADOR', status: 'ACTIVE', ctId: 'ct-1' }],
+    });
+    const minorDate = new Date();
+    minorDate.setFullYear(minorDate.getFullYear() - 14);
+
+    const res = await postPlayers({ name: 'Menor Atleta', birthDate: minorDate.toISOString().split('T')[0] });
+    expect(res.status).toBe(403);
+    const data = await res.json();
+    expect(data.error).toBe('FORBIDDEN');
+    expect(data.message).toContain('Treinadores não podem cadastrar atletas menores de 18 anos');
+  });
 });

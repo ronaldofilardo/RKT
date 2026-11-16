@@ -8,7 +8,7 @@ import { isMinor } from '@/core/access/age';
 
 const BodySchema = z.object({
   playerId: z.string().min(1),
-  purpose: z.enum(['DATA', 'BROADCAST']),
+  purpose: z.enum(['DATA', 'BROADCAST', 'STATS']),
   action: z.enum(['grant', 'revoke']),
   termsVersion: z.string().min(1).optional(),
 });
@@ -57,35 +57,26 @@ export async function POST(request: NextRequest) {
         if (existing) {
           await prisma.consentRecord.update({
             where: { id: existing.id },
-            data: {
-              revokedAt: null,
-              grantedAt: new Date(),
-              termsVersion: termsVersion ?? '1.0',
-              ipHash,
-            },
+            data: { revokedAt: null, grantedAt: new Date(), termsVersion: termsVersion ?? '1.0', ipHash },
           });
         } else {
           await prisma.consentRecord.create({
-            data: {
-              guardianUserId: user.id,
-              playerId,
-              purpose,
-              termsVersion: termsVersion ?? '1.0',
-              grantedAt: new Date(),
-              ipHash,
-            },
+            data: { guardianUserId: user.id, playerId, purpose, termsVersion: termsVersion ?? '1.0', grantedAt: new Date(), ipHash },
           });
         }
       }
 
+      await prisma.consentEvent.create({
+        data: {
+          playerId, guardianUserId: user.id, purpose,
+          action: action === 'grant' ? 'GRANT' : 'REVOKE', termsVersion: termsVersion ?? '1.0', ipHash,
+        },
+      });
+
       await prisma.auditLog.create({
         data: {
-          actorUserId: user.id,
-          action: action === 'grant' ? 'CONSENT_GRANTED' : 'CONSENT_REVOKED',
-          resourceType: 'ConsentRecord',
-          resourceId: playerId,
-          meta: { purpose, termsVersion },
-          ipHash,
+          actorUserId: user.id, action: action === 'grant' ? 'CONSENT_GRANTED' : 'CONSENT_REVOKED',
+          resourceType: 'ConsentRecord', resourceId: playerId, meta: { purpose, termsVersion }, ipHash,
         },
       });
 

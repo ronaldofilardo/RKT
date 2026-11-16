@@ -9,7 +9,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  return withAccessHandler(request, 'report:view', null, async ({ user, actor }) => {
+  return withAccessHandler(request, null, null, async ({ user }) => {
     try {
       const link = await prisma.guardianLink.findUnique({
         where: { id },
@@ -19,13 +19,12 @@ export async function POST(
         return NextResponse.json({ error: 'NOT_FOUND', message: 'Vínculo não encontrado' }, { status: 404 });
       }
 
-      const isPlayerSelf = link.player.userId === user.id;
-      const isPlatformStaff = actor.memberships.some(
-        (m) => m.kind === 'PLATAFORMA' && m.status === 'ACTIVE'
-      );
+      if (link.player.userId && link.player.userId === user.id) {
+        return NextResponse.json({ error: 'FORBIDDEN', message: 'O atleta não pode confirmar o próprio vínculo' }, { status: 403 });
+      }
 
-      if (!isPlayerSelf && !isPlatformStaff) {
-        return NextResponse.json({ error: 'FORBIDDEN', message: 'Apenas o próprio atleta ou suporte pode confirmar' }, { status: 403 });
+      if (link.guardianUserId !== user.id) {
+        return NextResponse.json({ error: 'FORBIDDEN', message: 'Apenas o responsável indicado pode confirmar' }, { status: 403 });
       }
 
       const updated = await prisma.guardianLink.update({

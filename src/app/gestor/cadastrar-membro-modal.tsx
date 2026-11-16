@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CadastrarMembroConfirmModal, type MemberType, type CadastroResult } from './cadastrar-membro-confirm-modal';
 import { CadastrarMembroForm, type MembroFormData } from './cadastrar-membro-form';
 import { CadastrarMembroLinkPrompt } from './cadastrar-membro-link-prompt';
@@ -13,9 +13,7 @@ interface CadastrarMembroModalProps {
   fixedType?: MemberType;
 }
 
-const initialForm: MembroFormData = {
-  name: '', cpf: '', birthDate: '', email: '', gender: 'MASCULINO', dominance: 'DESTRO',
-};
+const initialForm: MembroFormData = { name: '', cpf: '', birthDate: '', email: '', gender: 'MASCULINO', dominance: 'DESTRO' };
 
 export function CadastrarMembroModal({ open, onOpenChange, onSave, initialType = 'TREINADOR', fixedType }: CadastrarMembroModalProps) {
   const [submitting, setSubmitting] = useState(false);
@@ -25,6 +23,10 @@ export function CadastrarMembroModal({ open, onOpenChange, onSave, initialType =
   const [existingToLink, setExistingToLink] = useState<{ name: string } | null>(null);
   const [type, setType] = useState<MemberType>(fixedType ?? initialType);
   const [formData, setFormData] = useState<MembroFormData>(initialForm);
+
+  useEffect(() => {
+    if (fixedType) setType(fixedType);
+  }, [fixedType]);
 
   async function submitMember(linkExisting = false) {
     setError(null);
@@ -40,26 +42,20 @@ export function CadastrarMembroModal({ open, onOpenChange, onSave, initialType =
       if (type === 'TREINADOR') {
         body.email = formData.email;
       } else {
-        body.email = formData.email || undefined;
-        body.gender = formData.gender;
-        body.laterality = formData.dominance;
+        const { gender, dominance: laterality, guardianName, guardianCpf, guardianPhone, guardianContact } = formData;
+        Object.assign(body, { email: formData.email || undefined, gender, laterality, guardianName, guardianCpf, guardianPhone, guardianContact });
       }
-      // Conta já existente no RKT (treinador ou atleta): vincula em vez de duplicar cadastro.
       if (linkExisting) body.linkExisting = true;
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+      const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const data = await res.json();
       if (!res.ok) {
-        if (data.canLinkExisting) {
-          setExistingToLink({ name: data.existingUserName || formData.name });
-          return;
-        }
+        if (data.canLinkExisting) { setExistingToLink({ name: data.existingUserName || formData.name }); return; }
         throw new Error(data.message || 'Falha ao cadastrar membro');
       }
-      const result = { userId: data.userId, tempPassword: data.tempPassword, linkExpiresAt: data.linkExpiresAt, type, isExistingUser: data.isExistingUser };
+      const result = {
+        userId: data.userId, tempPassword: data.tempPassword, linkExpiresAt: data.linkExpiresAt,
+        type, isExistingUser: data.isExistingUser, isMinor: data.isMinor, guardianName: data.guardianName,
+      };
       setConfirmResult(result);
       onSave(result);
       setFormData(initialForm);
@@ -88,7 +84,10 @@ export function CadastrarMembroModal({ open, onOpenChange, onSave, initialType =
             {existingToLink ? (
               <CadastrarMembroLinkPrompt name={existingToLink.name} type={type} submitting={submitting} onCancel={() => setExistingToLink(null)} onConfirm={() => submitMember(true)} />
             ) : (
-              <CadastrarMembroForm type={type} fixedType={fixedType} setType={setType} formData={formData} setFormData={setFormData} submitting={submitting} fieldError={fieldError} onCancel={() => onOpenChange(false)} onSubmit={(e) => { e.preventDefault(); submitMember(false); }} />
+              <CadastrarMembroForm
+                type={type} fixedType={fixedType} setType={setType} formData={formData} setFormData={setFormData}
+                submitting={submitting} fieldError={fieldError} onCancel={() => onOpenChange(false)} onSubmit={(e) => { e.preventDefault(); submitMember(false); }}
+              />
             )}
           </div>
         </div>

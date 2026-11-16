@@ -4,12 +4,13 @@ import { NextRequest } from 'next/server';
 const mockPrisma = {
   playerCT: { findFirst: jest.fn(), create: jest.fn(), update: jest.fn() },
   user: { findFirst: jest.fn(), create: jest.fn(), update: jest.fn() },
-  player: { findFirst: jest.fn(), create: jest.fn(), update: jest.fn() },
+  player: { findFirst: jest.fn(), findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
   membership: { findMany: jest.fn() },
   coachAthleteLink: { createMany: jest.fn() },
   auditLog: { create: jest.fn() },
   linkInvite: { create: jest.fn() },
   passwordResetRequest: { findFirst: jest.fn(), create: jest.fn(), update: jest.fn() },
+  guardianInvite: { findFirst: jest.fn(), create: jest.fn(), update: jest.fn() },
   $transaction: jest.fn(),
 };
 
@@ -239,5 +240,46 @@ describe('POST /api/gestor/athletes/[id]/regenerate-link', () => {
     expect(data.error).toBe('CONFLICT');
     expect(data.message).toContain('outra conta');
     expect(mockPrisma.user.create).not.toHaveBeenCalled();
+  });
+
+  it('gera dois links (ativação e ciência do responsável) quando o atleta é menor de 18 anos', async () => {
+    mockExistingAccount();
+    (mockPrisma.playerCT.findFirst as any).mockResolvedValue({
+      id: 'pct-minor',
+      playerId: 'p-minor',
+      ctId: 'ct-1',
+      player: {
+        id: 'p-minor',
+        name: 'Atleta Menor',
+        cpf: '52998224725',
+        email: null,
+        birthDate: new Date('2012-05-10T00:00:00.000Z'),
+        userId: 'u-minor',
+        user: { id: 'u-minor', email: 'menor@local' },
+      },
+    });
+    (mockPrisma.guardianInvite.findFirst as any).mockResolvedValue({
+      id: 'gi-1',
+      preGuardianName: 'Maria Silva (Mãe)',
+    });
+    (mockPrisma.player.findUnique as any).mockResolvedValue({
+      id: 'p-minor',
+      guardianLinks: [],
+      guardianInvites: [],
+      consentRecords: [],
+    });
+    (mockPrisma.guardianInvite.update as any).mockResolvedValue({});
+
+    const { POST } = await import('../regenerate-link/route');
+    const res = await POST(makeRequest(), { params: Promise.resolve({ id: 'p-minor' }) });
+
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.isMinor).toBe(true);
+    expect(data.isConsented).toBe(false);
+    expect(data.token).toEqual(expect.any(String));
+    expect(data.guardianNoticeToken).toEqual(expect.any(String));
+    expect(data.guardianName).toBe('Maria Silva (Mãe)');
+    expect(mockPrisma.guardianInvite.update).toHaveBeenCalled();
   });
 });

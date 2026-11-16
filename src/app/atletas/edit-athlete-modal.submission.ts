@@ -56,5 +56,9 @@ export function buildSavePayload(
     city: form.city || undefined,
     state: form.uf || undefined,
     isExternalClub: !form.club ? undefined : true,
+    guardianName: form.guardianName?.trim() || undefined,
+    guardianCpf: form.guardianCpf ? form.guardianCpf.replace(/\D/g, '') : undefined,
+    guardianPhone: form.guardianPhone?.trim() || undefined,
+    guardianContact: form.guardianContact?.trim() || undefined,
   };
 }

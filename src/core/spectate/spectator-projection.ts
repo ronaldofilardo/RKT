@@ -1,5 +1,4 @@
-import { maskNameForMinor } from '../access/pool';
-import { isMinor } from '../access/age';
+import { resolvePlayerDisplayName } from '../access/minor-name-resolver';
 import type { SpectatorView, SpectatorPoint, SpectatorMarker, SpectatorScore } from './types';
 
 export interface RawPlayerInput {
@@ -29,41 +28,33 @@ export interface ToSpectatorViewParams {
   points: SpectatorPoint[];
   markers?: SpectatorMarker[];
   annotatorName?: string | null;
-  /** IDs dos atletas menores com consentimento ativo de BROADCAST (nomes reais podem ser exibidos). */
   broadcastConsentPlayerIds?: string[];
   guardianPlayerIds?: string[];
+  isViewerDirectlyInvolved?: boolean;
   nowDate?: Date;
-}
-
-function resolvePlayerName(player: RawPlayerInput, broadcastConsentIds: string[], now: Date): string {
-  const isPlayerMinor = isMinor(player.birthDate ? new Date(player.birthDate) : null, now);
-  if (isPlayerMinor && !broadcastConsentIds.includes(player.id)) {
-    return maskNameForMinor(player.name);
-  }
-  return player.name;
 }
 
 /**
  * Converte dados brutos de partida em SpectatorView estritamente lista-branca.
- * Remove comentários, notas privadas, áudios e mascara nomes de menores sem
- * consentimento ativo de BROADCAST (ECA Digital / LGPD).
+ * Remove comentários, notas privadas, áudios e anonimiza nomes de menores
+ * para terceiros/espectadores não diretamente envolvidos (ECA Digital / LGPD).
  */
 export function toSpectatorView(params: ToSpectatorViewParams): SpectatorView {
-  const { match, player1, player2, player1Partner, player2Partner, score, points, markers = [], annotatorName, broadcastConsentPlayerIds, guardianPlayerIds, nowDate = new Date() } = params;
-  const consentIds = broadcastConsentPlayerIds ?? guardianPlayerIds ?? [];
+  const {
+    match, player1, player2, player1Partner, player2Partner, score, points,
+    markers = [], annotatorName, guardianPlayerIds = [],
+    isViewerDirectlyInvolved = false, nowDate = new Date(),
+  } = params;
 
-  const p1Name = resolvePlayerName(player1, consentIds, nowDate);
-  const p2Name = resolvePlayerName(player2, consentIds, nowDate);
+  const isInvolved = (pId: string) => isViewerDirectlyInvolved || guardianPlayerIds.includes(pId);
+  const getPlayerName = (p: RawPlayerInput) =>
+    resolvePlayerDisplayName({ player: p, matchId: match.id, isDirectlyInvolved: isInvolved(p.id), now: nowDate });
 
-  const side1Members = [{ id: player1.id, name: p1Name }];
-  if (player1Partner) {
-    side1Members.push({ id: player1Partner.id, name: resolvePlayerName(player1Partner, consentIds, nowDate) });
-  }
+  const side1Members = [{ id: player1.id, name: getPlayerName(player1) }];
+  if (player1Partner) side1Members.push({ id: player1Partner.id, name: getPlayerName(player1Partner) });
 
-  const side2Members = [{ id: player2.id, name: p2Name }];
-  if (player2Partner) {
-    side2Members.push({ id: player2Partner.id, name: resolvePlayerName(player2Partner, consentIds, nowDate) });
-  }
+  const side2Members = [{ id: player2.id, name: getPlayerName(player2) }];
+  if (player2Partner) side2Members.push({ id: player2Partner.id, name: getPlayerName(player2Partner) });
 
   return {
     match: {
@@ -88,4 +79,3 @@ export function toSpectatorView(params: ToSpectatorViewParams): SpectatorView {
     markers,
   };
 }
-

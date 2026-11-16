@@ -66,6 +66,12 @@ export function useEditAthleteModal({ athlete, isOpen, onSave }: UseEditAthleteM
 
   const saveEditedAthlete = async () => {
     if (!form.name.trim()) return;
+    if (age != null && age < 18) {
+      if (!form.guardianName?.trim() || !form.guardianCpf?.trim()) {
+        setError('Para menores de 18 anos, preencha os dados do responsável legal (Nome e CPF).');
+        return;
+      }
+    }
     setSaving(true);
     setError(null);
     try {

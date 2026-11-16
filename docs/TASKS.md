@@ -1,6 +1,6 @@
 # 📋 Tarefas do Projeto RKT
 
-> **Última atualização:** 2026-11-14  
+> **Última atualização:** 2026-11-15  
 > **Fonte única de verdade para o backlog do projeto.**
 
 ---
@@ -25,6 +25,20 @@
 ---
 
 ## 2. Funcionalidades Ausentes (MVP Incompleto)
+
+### A0.20. Governança, Tutela e Privacidade de Menores de Idade em Partidas — ECA Digital & LGPD ✅
+- **Status:** **Concluído** (2026-11-15, MEMORY §2.36)
+- **Documento:** [\docs/PLANO_PRIVACIDADE_VISIBILIDADE_MENORES_PARTIDAS_2026-11-15.md\](./PLANO_PRIVACIDADE_VISIBILIDADE_MENORES_PARTIDAS_2026-11-15.md)
+- **Contexto:** Garantir conformidade rigorosa com ECA Digital e LGPD na exibição de partidas e fluxos de cadastro de menores de 18 anos.
+- **DoD:**
+  1. [x] **Círculo Restrito de Visibilidade:** Menores têm nomes reais visíveis apenas aos usuários diretamente envolvidos (gestor do CT, treinador vinculado, atletas em quadra, responsável legal ativo).
+  2. [x] **Anonimização Estável e Determinística:** Para terceiros, links públicos e espectadores gerais, nome é randomizado deterministicamente via \HMAC-SHA256(matchId + playerId)\ -> \Atleta #XXXX\.
+  3. [x] **Monotutela Estrita:** Exatamente um responsável legal ativo por menor de idade.
+  4. [x] **Treinador Particular:** Bloqueado por desenho de cadastrar menores (403 FORBIDDEN).
+  5. [x] **Gestor de CT:** Coleta dados do responsável (\preGuardian*\) e gera Duplo Link na aba Atletas (Link 1: Ativação da conta do menor; Link 2: Aviso informativo de ciência ao responsável).
+  6. [x] **Autocadastro do Menor:** Retido em \/aguardando-responsavel\ com aviso de monotutela e geração de convite único (\POST /api/minors/me/guardian-invite\, máx 3/dia).
+  7. [x] **Aceite do Responsável:** Página e API pública de aceite e vinculação em \/responsavel/convite/[token]\.
+  8. [x] **Qualidade & Linha de Base:** \check:r03\ 0 violações (todos os arquivos <= 100 linhas), \	ypecheck\ 0 erros, testes 100% aprovados.
 
 ### A0.12. Cadastro de Atleta de Outro Clube (UF, Cidade e Clube) ✅
 - **Status:** **Concluído** — Fases 1 a 4 entregues (2026-11-01/09, `docs/MEMORY.md` §2.3, verificado no código em 2026-11-14), **plano arquivado em 2026-11-14** e resíduos dos itens 5 e 6 do DoD resolvidos em 2026-11-14 (MEMORY §2.45).

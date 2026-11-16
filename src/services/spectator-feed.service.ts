@@ -7,11 +7,12 @@ export interface GetSpectatorFeedParams {
   clientRev?: string;
   /** IDs dos atletas menores com consentimento ativo de BROADCAST (nomes reais podem ser exibidos). */
   broadcastConsentPlayerIds?: readonly string[];
+  isViewerDirectlyInvolved?: boolean;
   nowMs?: number;
 }
 
 export async function getSpectatorFeed(params: GetSpectatorFeedParams) {
-  const { matchId, clientRev, broadcastConsentPlayerIds, nowMs = Date.now() } = params;
+  const { matchId, clientRev, broadcastConsentPlayerIds, isViewerDirectlyInvolved, nowMs = Date.now() } = params;
 
   // 1. Passo 0: Agregação barata de escalares (< 150 bytes no banco)
   const agg = await getFeedAggregation(matchId);
@@ -53,6 +54,7 @@ export async function getSpectatorFeed(params: GetSpectatorFeedParams) {
     matchId,
     annotatorName: agg.annotatorName,
     broadcastConsentPlayerIds,
+    isViewerDirectlyInvolved,
   });
 
   return {

@@ -5,49 +5,37 @@ import { getAutoCategoryForAge } from '@/lib/ranking/rankingConstants';
 import { hashCpf } from '@/core/athlete/cpf';
 import { generateUniqueAthleteCode } from '@/core/athlete/athlete-code';
 import { normalizeNickname } from '@/core/athlete/nickname';
+import { isMinor } from '@/core/access/age';
 import { createPlayerRow } from './player-create-row.logic';
 import { handlePlayerPostCreate } from './player-create-links.logic';
 import { tryResolveExistingPlayer } from './player-create-existing.logic';
 
 type CreatePlayerActor = 'ATLETA' | 'GESTOR' | 'TREINADOR' | null;
 
-export async function createPlayer(data: {
+export interface CreatePlayerData {
   name: string;
-  email?: string | null;
-  club?: string | null;
-  gender?: string | null;
-  age?: number | null;
-  birthDate?: Date | null;
-  birthYear?: number | null;
-  dominance?: string | null;
-  backhand?: string | null;
-  ranking?: number | null;
-  rankings?: Rankings | null;
-  createdByUserId?: string | null;
-  cpf?: string | null;
-  myClub?: boolean | null;
-  ctId?: string | null;
-  nickname?: string | null;
+  email?: string | null; club?: string | null; gender?: string | null;
+  age?: number | null; birthDate?: Date | null; birthYear?: number | null;
+  dominance?: string | null; backhand?: string | null; ranking?: number | null;
+  rankings?: Rankings | null; createdByUserId?: string | null; cpf?: string | null;
+  myClub?: boolean | null; ctId?: string | null; nickname?: string | null;
   actorProfile?: CreatePlayerActor;
-}) {
+  guardianName?: string | null; guardianCpf?: string | null;
+  guardianPhone?: string | null; guardianContact?: string | null;
+}
+
+export async function createPlayer(data: CreatePlayerData) {
   const pepper = process.env.CPF_HASH_PEPPER ?? '';
   const cpfHash = data.cpf ? hashCpf(data.cpf, pepper) : null;
   const cpfLast2 = data.cpf ? data.cpf.replace(/\D/g, '').slice(-2) : null;
 
   const currentYear = new Date().getFullYear();
-  const age = data.age
-    ?? (data.birthDate
-      ? currentYear - data.birthDate.getFullYear()
-      : data.birthYear
-        ? currentYear - data.birthYear
-        : undefined);
+  const age = data.age ?? (data.birthDate ? currentYear - data.birthDate.getFullYear() : data.birthYear ? currentYear - data.birthYear : undefined);
 
   let rankingsPayload: Record<string, unknown> = data.rankings ? { ...data.rankings } : {};
   if (age !== undefined && age >= 11 && !rankingsPayload.ESTADUAL) {
     const autoCats = getAutoCategoryForAge('ESTADUAL', age);
-    if (autoCats.length > 0) {
-      rankingsPayload.ESTADUAL = { category: autoCats[0] };
-    }
+    if (autoCats.length > 0) rankingsPayload.ESTADUAL = { category: autoCats[0] };
   }
 
   const nickname = data.nickname ? normalizeNickname(data.nickname) : null;
@@ -60,6 +48,9 @@ export async function createPlayer(data: {
     const existing = await prisma.player.findFirst({ where: { athleteCode: code }, select: { id: true } });
     return Boolean(existing);
   });
+
+  const under18 = isMinor(data.birthDate, new Date()) || (age !== undefined && age < 18);
+  const guardianGate = under18 ? 'AGUARDANDO_RESPONSAVEL' : 'LIBERADO_MAIOR';
 
   const player = await createPlayerRow({
     data: {
@@ -80,6 +71,7 @@ export async function createPlayer(data: {
       identityStatus: data.createdByUserId ? 'CONFIRMED' : 'PROVISIONAL',
       athleteCode,
       nickname,
+      guardianGate,
     },
     select: { id: true, name: true, gender: true, age: true, birthDate: true, dominance: true, backhand: true, ranking: true, rankings: true, club: true, cpfHash: true, cpfLast2: true, identityStatus: true, athleteCode: true, nickname: true, poolVisible: true, userId: true, createdByUserId: true },
   });
@@ -90,6 +82,10 @@ export async function createPlayer(data: {
     ctId: data.ctId,
     createdByUserId: data.createdByUserId,
     actorProfile: data.actorProfile,
+    guardianName: data.guardianName,
+    guardianCpf: data.guardianCpf,
+    guardianPhone: data.guardianPhone,
+    guardianContact: data.guardianContact,
   });
 
   return player;

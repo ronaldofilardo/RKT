@@ -12,6 +12,9 @@ export {
   type ReadMatchOptions,
 } from './visibility';
 export { canDiscoverMatchTemplate, type MatchTemplateAccess } from './match-event-visibility';
+export { isDirectlyInvolvedInMatch } from './match-involvement';
+export { randomizeMinorPlayerName, DEFAULT_SPECTATOR_SALT } from './minor-name-randomizer';
+export { resolvePlayerDisplayName, type ResolvePlayerDisplayNameParams } from './minor-name-resolver';
 export { ADULT_AGE, isMinor, guardianLinkActive, type GuardianLinkState } from './age';
 export { deriveLegacyRole, type LegacyRole } from './legacy-role';
 export type {

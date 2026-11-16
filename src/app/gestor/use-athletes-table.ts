@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { AthleteItem } from './types';
+import type { AthleteLinkModalState } from './athletes-link-modal.types';
 import { useToast } from '@/components/Toast';
 import { extractErrorMessage } from '@/lib/error-parser';
 
@@ -11,31 +12,42 @@ export function useAthletesTableHandlers({ onRefresh }: AthletesTableHandlersPar
   const [editing, setEditing] = useState<AthleteItem | null>(null);
   const [athleteToDelete, setAthleteToDelete] = useState<AthleteItem | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [linkData, setLinkData] = useState<{ open: boolean; name: string; token: string; expiresAt?: string }>({
-    open: false, name: '', token: '',
-  });
+  const [linkData, setLinkData] = useState<AthleteLinkModalState>({ open: false, name: '', token: '' });
   const { toast } = useToast();
 
-  const handleGenerateLink = async (playerId: string, name: string) => {
+  const handleGenerateLink = async (playerId: string, name: string, mode: 'LINK' | 'ECA' = 'LINK') => {
     try {
       const res = await fetch(`/api/gestor/athletes/${playerId}/regenerate-link`, { method: 'POST' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Erro ao gerar link');
-      setLinkData({ open: true, name, token: data.token, expiresAt: data.expiresAt });
+      setLinkData({
+        open: true, name, token: data.token, playerId, expiresAt: data.expiresAt,
+        isMinor: data.isMinor, isConsented: data.isConsented, mode,
+        guardianNoticeToken: data.guardianNoticeToken, guardianName: data.guardianName,
+      });
       await onRefresh?.();
     } catch (err) {
       toast({ type: 'error', message: extractErrorMessage(err, 'Erro ao gerar link') });
     }
   };
 
+  const handleSimulateConsent = async () => {
+    if (!linkData.playerId) return;
+    try {
+      const res = await fetch(`/api/gestor/athletes/${linkData.playerId}/simulate-consent`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Erro ao simular consentimento');
+      setLinkData((prev) => ({ ...prev, isConsented: true }));
+      toast({ type: 'success', message: 'Consentimento simulado com sucesso!' });
+      void Promise.resolve(onRefresh?.()).catch(() => {});
+    } catch (err) {
+      toast({ type: 'error', message: extractErrorMessage(err, 'Falha ao simular consentimento') });
+    }
+  };
+
   const handleSave = async (data: {
-    name: string;
-    cpf?: string;
-    birthDate?: string;
-    gender?: string;
-    dominance?: string;
-    backhand?: string;
-    rankings?: Record<string, any>;
+    name: string; cpf?: string; birthDate?: string; gender?: string;
+    dominance?: string; backhand?: string; rankings?: Record<string, any>;
   }) => {
     if (!editing) return;
     const res = await fetch(`/api/gestor/athletes/${editing.player.id}`, {
@@ -45,14 +57,11 @@ export function useAthletesTableHandlers({ onRefresh }: AthletesTableHandlersPar
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || result.error || 'Falha ao atualizar atleta');
-    // Fecha o modal antes de aguardar o refresh: um refresh lento/pendurado
-    // não pode manter o modal aberto após a gravação bem-sucedida.
     setEditing(null);
     toast({ type: 'success', message: 'Atleta atualizado com sucesso!' });
     void Promise.resolve(onRefresh?.()).catch(() => {});
   };
 
-  /** Remove o atleta apenas do elenco do clube (cadastro e conta preservados). */
   const handleDelete = async () => {
     if (!athleteToDelete) return;
     setDeleting(true);
@@ -71,15 +80,7 @@ export function useAthletesTableHandlers({ onRefresh }: AthletesTableHandlersPar
   };
 
   return {
-    editing,
-    setEditing,
-    athleteToDelete,
-    setAthleteToDelete,
-    deleting,
-    linkData,
-    setLinkData,
-    handleGenerateLink,
-    handleSave,
-    handleDelete,
+    editing, setEditing, athleteToDelete, setAthleteToDelete, deleting,
+    linkData, setLinkData, handleGenerateLink, handleSimulateConsent, handleSave, handleDelete,
   };
 }

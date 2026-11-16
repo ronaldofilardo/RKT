@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { canWatchMatch, type MatchAccess } from '@/core/access';
+import { canWatchMatch, isDirectlyInvolvedInMatch, type MatchAccess } from '@/core/access';
 import { prisma } from '@/lib/prisma';
 import { getAccessUserFromRequest } from '@/lib/auth-credentials.logic';
 import { getActor } from '@/services/accessService';
@@ -46,7 +46,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   if (guestToken) {
     const isGuestAuthorized = await isGuestSpectatorAuthorized(matchId, guestToken);
     if (isGuestAuthorized) {
-      const feed = await getSpectatorFeed({ matchId, clientRev, broadcastConsentPlayerIds: [] });
+      const feed = await getSpectatorFeed({
+        matchId, clientRev, broadcastConsentPlayerIds: [], isViewerDirectlyInvolved: false,
+      });
       if (!feed.ok) return NextResponse.json({ error: feed.error }, { status: feed.status });
       return NextResponse.json(feed, { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } });
     }
@@ -71,7 +73,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     : [];
   const broadcastConsentPlayerIds = broadcastConsents.map((c) => c.playerId);
 
-  const feed = await getSpectatorFeed({ matchId, clientRev, broadcastConsentPlayerIds: actor ? [...broadcastConsentPlayerIds] : [] });
+  const isDirectlyInvolved = actor ? isDirectlyInvolvedInMatch(actor, matchAccess) : false;
+  const feed = await getSpectatorFeed({
+    matchId, clientRev,
+    broadcastConsentPlayerIds: actor ? [...broadcastConsentPlayerIds] : [],
+    isViewerDirectlyInvolved: isDirectlyInvolved,
+  });
   if (!feed.ok) return NextResponse.json({ error: feed.error }, { status: feed.status });
   return NextResponse.json(feed, { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } });
 }

@@ -42,6 +42,8 @@ export interface AthleteItem {
     dominance: string | null;
     backhand?: string | null;
     rankings?: Record<string, any> | null;
+    guardianGate?: string | null;
+    isConsented?: boolean;
     user: { id: string; name: string; cpf: string; email: string; mustChangePassword: boolean } | null;
   };
 }

@@ -13,6 +13,10 @@ export interface EditAthleteSavePayload {
   city?: string;
   state?: string;
   isExternalClub?: boolean;
+  guardianName?: string;
+  guardianCpf?: string;
+  guardianPhone?: string;
+  guardianContact?: string;
 }
 
 export interface EditAthleteModalProps {

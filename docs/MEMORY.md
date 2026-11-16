@@ -3,8 +3,37 @@
 > Diário de bordo técnico · Metodologia RE-DOC (Fase 4 — Auditoria de Qualidade e Histórico)
 > **Este é um dos 6 arquivos-canônico do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
 
-**Última Atualização:** 2026-11-14
+**Última Atualização:** 2026-11-15
 **Analisado por:** engenharia reversa e implementação sobre `main`
+
+---
+
+## 2.36 Governança, Tutela e Privacidade de Menores de Idade em Partidas — ECA Digital & LGPD — 2026-11-15
+- **Contexto & Demanda:**
+  - Plano: [\docs/PLANO_PRIVACIDADE_VISIBILIDADE_MENORES_PARTIDAS_2026-11-15.md\](./PLANO_PRIVACIDADE_VISIBILIDADE_MENORES_PARTIDAS_2026-11-15.md).
+  - Metodologia: **Elephant-Goldfish Model (EGM)** e STE-DEV (<= 100 linhas por arquivo).
+  - Regra central de negócio:
+    1. **Círculo Restrito de Visibilidade:** Nomes de atletas menores de 18 anos só são visíveis a usuários diretamente envolvidos na partida (gestor do CT, treinador vinculado, atletas em quadra e o responsável legal ativo).
+    2. **Anonimização Estável e Determinística:** Se a partida for compartilhada com terceiros não envolvidos ou via links públicos (\MatchShareLink\, \/matches/convite/[token]\, espectador), os nomes de atletas menores são randomizados de forma determinística (\HMAC-SHA256(matchId + playerId)\ -> \Atleta #XXXX\).
+    3. **Monotutela Estrita:** Apenas um responsável legal ativo por menor de idade.
+    4. **Fluxos de Cadastro por Ator:**
+       - **Treinador Particular:** Proibido por desenho de cadastrar menores (retorna 403 contextual).
+       - **Gestor do Clube (\/gestor\):** Formulário coleta dados prévios do responsável (\preGuardianName\, \preGuardianCpf\, \preGuardianPhone\, \preGuardianContact\) e gera dois links ao clicar no botão:
+         - *Link 1:* Ativação da conta do atleta menor (\/trocar-senha?token=...\).
+         - *Link 2:* Notificação de ciência do responsável legal (\/responsavel/aviso-ativacao/[token]\) como recibo informativo somente-leitura.
+       - **Menor Autocadastro:** Retido em \/aguardando-responsavel\ com aviso explícito de Monotutela Estrita e geração de convite único (\POST /api/minors/me/guardian-invite\, máx 3/dia) para aceite pelo pai/mãe/tutor em \/responsavel/convite/[token]\.
+- **Implementação & Conclusão (Fases 0 a 5):**
+  - **Fase 0 (Fechamento de Acessos & Permissões):** Removido \guardian:link\ de \TREINADOR\ e \SUPORTE\ em \profile-matrix.ts\. Bloqueada criação de menor por treinador (403). Eliminado auto-vínculo e bypass de suporte em \guardians/link\, \guardians/link/[id]/confirm\, \consents\ e \consents/[id]\.
+  - **Fase 1 (Banco de Dados & Middleware):** Adicionados modelos \GuardianInvite\, \ConsentEvent\ e enums no \schema.prisma\. Atualizados \GuardianLink\ e \ConsentRecord\ com \onDelete: Restrict\ contra destruição de provas legais LGPD. Registradas rotas públicas e matcher no \middleware.ts\. Higienizados metadados de auditoria em \patch-handler.logic.ts\ e \udit/route.ts\.
+  - **Fase 2 (Anonimização Determinística & Integração com Espectador):** Criados \minor-name-randomizer.ts\, \match-involvement.ts\ (\isDirectlyInvolvedInMatch\), \minor-name-resolver.ts\ (esolvePlayerDisplayName\) e integrados em \spectator-projection.ts\, \spectator-feed.builder.ts\, \spectator-feed.service.ts\ e \/api/spectate/[matchId]/feed/route.ts\.
+  - **Fase 3 & 4 (Cadastro pelo Gestor & Modal de Duplo Link):** Criado \cadastrar-menor-responsavel-fields.tsx\ e integrado em \cadastrar-membro-form.tsx\ e \cadastrar-membro-modal.tsx\. Atualizados \AthleteCreateSchema\ (validação de CPF do responsável para menores), \thletes-create-transaction.logic.ts\ e \thletes-logic.ts\. Criado \thletes-minor-links-modal.tsx\ e tela informativa pública \src/app/responsavel/aviso-ativacao/[token]/page.tsx\.
+  - **Fase 5 (Autocadastro do Menor & Monotutela):** Criada API \POST /api/minors/me/guardian-invite\ (com rate limit e revogação de pendências anteriores), página \src/app/aguardando-responsavel/page.tsx\, rota de aceite \POST /api/guardians/invites/[token]/accept\ e página \src/app/responsavel/convite/[token]/page.tsx\.
+  - **Validação de Qualidade:** \pnpm check:r03\ aprovado com 0 regressões; \pnpm typecheck\ (tsc) com 0 erros; 15/15 suítes de testes de \/gestor\ passaram 100% (73/73 testes).
+  - **Ajuste de Fluxo (Gestor Atletas & Duplo Link):**
+    - Corrigido botão "Novo Atleta" no Dashboard do Gestor (`dashboard.tsx`) para invocar `CadastrarMembroModal` com tipo `ATLETA`.
+    - Ao informar data de nascimento indicando menor de 18 anos (`isMinor`), o formulário abre os campos obrigatórios do responsável legal (`preGuardianName`, `preGuardianCpf`, `preGuardianPhone`, `preGuardianContact`), persistindo no banco (`GuardianInvite`) para validação cruzada.
+    - Na tabela de atletas (`athlete-table-row.tsx`), adicionado badge visual explicativo `Menor (Tutela)` na coluna de idade.
+    - Ao clicar no botão "Link" na linha do menor, abre-se o modal com duplo link: Link 1 (ativação da conta do menor) e Link 2 (aviso de ciência ao responsável legal em tela pública informativa somente-leitura).
 
 ---
 

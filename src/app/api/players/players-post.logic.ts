@@ -5,6 +5,7 @@ import { CreatePlayerInputSchema } from '@/schemas/player';
 import { createPlayer } from '@/services/playerService';
 import { getActor } from '@/services/accessService';
 import { actorCtIds } from '@/core/access/pool';
+import { isMinor } from '@/core/access/age';
 import type { Actor } from '@/core/access';
 
 type CreatingProfile = 'ATLETA' | 'GESTOR' | 'TREINADOR';
@@ -50,11 +51,14 @@ export async function handlePlayersPost(
     }
 
     const creatingProfile = actorCreatingProfile(actor);
+    if (creatingProfile === 'TREINADOR' && isMinor(playerData.birthDate, new Date())) {
+      return NextResponse.json(
+        { error: 'FORBIDDEN', message: 'Treinadores não podem cadastrar atletas menores de 18 anos. O cadastro deve ser feito pelo jovem ou pelo gestor.' },
+        { status: 403 },
+      );
+    }
     const cts = actorCtIds(actor);
     const isAvulsoCoach = creatingProfile === 'TREINADOR' && cts.length === 0;
-    // Vincula somente quando o cadastro declara explicitamente "Meu clube" (myClub=true).
-    // Staff (GESTOR/TREINADOR) NÃO vincula automaticamente: permite cadastrar adversários
-    // de outros clube sem criar vínculo indevido com o CT do ator.
     const shouldLink = Boolean(myClub);
 
     let resolvedCtId: string | null = null;

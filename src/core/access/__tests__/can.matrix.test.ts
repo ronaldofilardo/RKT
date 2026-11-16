@@ -30,7 +30,6 @@ const EXPECTED: Record<Profile, Partial<Record<Permission, Allowed>>> = {
     'support:account:assist': { ok: undefined },
     'platform:player:merge': { ok: undefined },
     'audit:read': { ok: undefined },
-    'guardian:link': { ok: undefined },
   },
   GESTOR: {
     'report:view': { ok: undefined },
@@ -52,7 +51,6 @@ const EXPECTED: Record<Profile, Partial<Record<Permission, Allowed>>> = {
     'athlete:update': { ok: CT_IN, ko: { ctId: OTHER_CT, ownerUserId: 'u-9' } },
     'match:create': { ok: undefined },
     'match:annotate': { ok: undefined },
-    'guardian:link': { ok: CT_IN, ko: CT_OUT },
     'coach:athlete:follow': { ok: undefined },
     'coach:athlete:view': { ok: { playerId: 'p-1' }, ko: { playerId: 'p-other' } },
     'coach:athlete:list': { ok: undefined },

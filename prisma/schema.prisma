@@ -36,6 +36,9 @@ model User {
   athleteProfile         Player?                  @relation("PlayerAccount")
   guardianLinks          GuardianLink[]           @relation("GuardianUser")
   consentRecords         ConsentRecord[]          @relation("GuardianConsent")
+  guardianConsentEvents  ConsentEvent[]           @relation("GuardianConsentEvents")
+  guardianInvitesCreated GuardianInvite[]         @relation("GuardianInvitesCreated")
+  guardianInvitesAccepted GuardianInvite[]        @relation("GuardianInvitesAccepted")
   athleteClaims          AthleteClaim[]           @relation("ClaimUser")
   passwordResets         PasswordResetRequest[]   @relation("ResetUser")
   createdMatches         Match[]                  @relation("CreatedMatches")
@@ -108,7 +111,10 @@ model Player {
   mergedFrom        Player[]           @relation("PlayerMerge")
   playerCts         PlayerCT[]
   guardianLinks     GuardianLink[]
+  guardianInvites   GuardianInvite[]
   consentRecords    ConsentRecord[]
+  consentEvents     ConsentEvent[]
+  guardianGate      GuardianGateStatus @default(LIBERADO)
   athleteClaims     AthleteClaim[]
   coachAthleteLinks CoachAthleteLink[]
 
@@ -445,6 +451,7 @@ model TrainingCenter {
   memberships     Membership[]
   playerCts       PlayerCT[]
   linkInvites     LinkInvite[]
+  guardianInvites GuardianInvite[]
   matches         Match[]      @relation("CtMatches")
   tournaments     Tournament[]
   clubs           Club[]       @relation("ClubCt")
@@ -493,6 +500,7 @@ model Membership {
   preset          PlatformPreset?
   ctId            String?
   status          MembershipStatus @default(ACTIVE)
+  canInsertAthletes Boolean          @default(true)
   createdByUserId String?
   createdAt       DateTime       @default(now())
   endedAt         DateTime?
@@ -522,18 +530,22 @@ model PlayerCT {
 }
 
 model GuardianLink {
-  id             String    @id @default(cuid())
-  guardianUserId String
-  playerId       String
-  relation       String?
-  confirmedAt    DateTime?
-  revokedAt      DateTime?
-  createdAt      DateTime  @default(now())
-  guardian       User      @relation("GuardianUser", fields: [guardianUserId], references: [id], onDelete: Cascade)
-  player         Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  id                String             @id @default(cuid())
+  guardianUserId    String
+  playerId          String
+  relation          String?
+  status            GuardianLinkStatus @default(ACTIVE)
+  verificationLevel String?            @default("N1_CONVITE")
+  confirmedAt       DateTime?
+  revokedAt         DateTime?
+  emancipatedAt     DateTime?
+  createdAt         DateTime           @default(now())
+  guardian          User               @relation("GuardianUser", fields: [guardianUserId], references: [id], onDelete: Restrict)
+  player            Player             @relation(fields: [playerId], references: [id], onDelete: Restrict)
 
   @@index([guardianUserId])
   @@index([playerId])
+  @@index([playerId, status])
   @@map("guardian_links")
 }
 
@@ -546,11 +558,69 @@ model ConsentRecord {
   grantedAt      DateTime       @default(now())
   revokedAt      DateTime?
   ipHash         String?
-  guardian       User           @relation("GuardianConsent", fields: [guardianUserId], references: [id], onDelete: Cascade)
-  player         Player         @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  guardian       User           @relation("GuardianConsent", fields: [guardianUserId], references: [id], onDelete: Restrict)
+  player         Player         @relation(fields: [playerId], references: [id], onDelete: Restrict)
 
   @@index([playerId])
   @@map("consent_records")
+}
+
+model GuardianInvite {
+  id                    String            @id @default(cuid())
+  playerId              String
+  ctId                  String?
+  createdByUserId       String
+  createdByKind         InviteCreatorKind
+  
+  preGuardianName       String?
+  preGuardianCpf        String?
+  preGuardianCpfHash    String?
+  preGuardianPhone      String?
+  preGuardianContact    String?
+  
+  tokenHash             String            @unique
+  codeHash              String
+  expiresAt             DateTime
+  verificationHoldUntil DateTime?
+  usedAt                DateTime?
+  revokedAt             DateTime?
+  guardianUserId        String?
+  createdAt             DateTime          @default(now())
+
+  player                Player            @relation(fields: [playerId], references: [id], onDelete: Restrict)
+  ct                    TrainingCenter?   @relation(fields: [ctId], references: [id], onDelete: Restrict)
+  createdByUser         User              @relation("GuardianInvitesCreated", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  guardianUser          User?             @relation("GuardianInvitesAccepted", fields: [guardianUserId], references: [id], onDelete: SetNull)
+  consentEvents         ConsentEvent[]
+
+  @@index([playerId])
+  @@index([ctId])
+  @@index([preGuardianCpfHash])
+  @@map("guardian_invites")
+}
+
+model ConsentEvent {
+  id                String         @id @default(cuid())
+  playerId          String
+  guardianUserId    String
+  purpose           ConsentPurpose
+  action            ConsentAction
+  termsVersion      String
+  contentHash       String?
+  ipHash            String?
+  userAgent         String?
+  authMethod        String?        @default("PASSWORD")
+  verificationLevel String?        @default("N1_CONVITE")
+  inviteId          String?
+  createdAt         DateTime       @default(now())
+
+  player            Player         @relation(fields: [playerId], references: [id], onDelete: Restrict)
+  guardian          User           @relation("GuardianConsentEvents", fields: [guardianUserId], references: [id], onDelete: Restrict)
+  invite            GuardianInvite? @relation(fields: [inviteId], references: [id], onDelete: SetNull)
+
+  @@index([playerId])
+  @@index([guardianUserId])
+  @@map("consent_events")
 }
 
 model AthleteClaim {
@@ -693,11 +763,45 @@ enum ResetStatus {
   REJECTED
 }
 
-/// BROADCAST entra junto com a transmissão ao vivo.
+/// BROADCAST entra junto com a transmissão ao vivo; STATS para estatísticas agregadas.
 enum ConsentPurpose {
   DATA
   BROADCAST
   POOL_VISIBILITY
+  STATS
+}
+
+enum InviteCreatorKind {
+  GESTOR
+  MENOR
+}
+
+enum GuardianInviteStatus {
+  PENDING
+  USED
+  EXPIRED
+  REVOKED
+  SUPERSEDED
+}
+
+enum GuardianLinkStatus {
+  INVITED
+  ACTIVE
+  REVOKED
+  EMANCIPATED
+  DORMANT
+}
+
+enum ConsentAction {
+  GRANT
+  REVOKE
+}
+
+enum GuardianGateStatus {
+  AGUARDANDO_RESPONSAVEL
+  LIBERADO
+  RESTRITO
+  LIBERADO_MAIOR
 }
 
 enum InviteKind {

@@ -20,21 +20,23 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'VALIDATION_ERROR', details: parsed.error.flatten() }, { status: 400 });
       }
 
-      const isStaffOrSupport = actor.memberships.some(
-        (m) => (m.kind === 'PLATAFORMA' || m.kind === 'GESTOR') && m.status === 'ACTIVE'
+      const isGestor = actor.memberships.some(
+        (m) => m.kind === 'GESTOR' && m.status === 'ACTIVE'
       );
-      const guardianUserId = isStaffOrSupport && parsed.data.guardianUserId ? parsed.data.guardianUserId : user.id;
+      const guardianUserId = isGestor && parsed.data.guardianUserId ? parsed.data.guardianUserId : user.id;
 
-      // Auto-confirma se o próprio atleta titular estiver indicando seu responsável
       const player = await prisma.player.findUnique({ where: { id: parsed.data.playerId }, select: { userId: true } });
-      const confirmedAt = player?.userId === user.id ? new Date() : null;
+      if (player?.userId && player.userId === guardianUserId) {
+        return NextResponse.json({ error: 'FORBIDDEN', message: 'O atleta não pode ser responsável por si mesmo' }, { status: 403 });
+      }
 
+      // Vínculo nasce sempre pendente de confirmação pelo responsável legal
       const link = await prisma.guardianLink.create({
         data: {
           guardianUserId,
           playerId: parsed.data.playerId,
           relation: parsed.data.relation ?? null,
-          confirmedAt,
+          confirmedAt: null,
         },
       });
 

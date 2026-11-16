@@ -22,7 +22,7 @@ export function AthletesTable({
 }: AthletesTableProps) {
   const {
     editing, setEditing, athleteToDelete, setAthleteToDelete, deleting,
-    linkData, setLinkData, handleGenerateLink, handleSave, handleDelete,
+    linkData, setLinkData, handleGenerateLink, handleSimulateConsent, handleSave, handleDelete,
   } = useAthletesTableHandlers({ onRefresh });
 
   const rows = useMemo(() => athletes.map(toAthleteTableRow), [athletes]);
@@ -30,12 +30,16 @@ export function AthletesTable({
 
   const actions = (row: AthleteTableRowData) => {
     const item = itemById.get(row.id);
+    const isUnder18 = Boolean(row.isMinor);
     return {
       onEdit: () => { if (item) setEditing(item); },
       onDelete: () => { if (item) setAthleteToDelete(item); },
-      onGenerateLink: () => { void handleGenerateLink(row.id, row.name); },
+      onGenerateLink: () => { void handleGenerateLink(row.id, row.name, 'LINK'); },
+      onEcaConsent: isUnder18 ? () => { void handleGenerateLink(row.id, row.name, 'ECA'); } : undefined,
       canDelete: true,
       hasAccount: Boolean(item?.player.user),
+      isUnder18,
+      isMinorConsented: Boolean(row.isConsented),
     };
   };
 
@@ -75,6 +79,7 @@ export function AthletesTable({
         onConfirmDelete={handleDelete}
         linkData={linkData}
         onLinkOpenChange={(open) => setLinkData((prev) => ({ ...prev, open }))}
+        onSimulateConsent={handleSimulateConsent}
       />
     </div>
   );

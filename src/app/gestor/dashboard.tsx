@@ -11,9 +11,9 @@ import { AffiliatesTable } from './affiliates-table';
 import { ClubMatchesTable } from './club-matches-table';
 import { ClubInfo } from './club-info';
 import { CadastrarMembroModal } from './cadastrar-membro-modal';
-import { DashboardHeader } from './dashboard-header';
 import { EditAthleteModal } from '@/app/atletas/EditAthleteModal';
 import { playersClient } from '@/services/playersClient';
+import { DashboardHeader } from './dashboard-header';
 import { IndicarAnotadorModal } from './indicar-anotador-modal';
 import { DashboardChrome } from '@/app/dashboard/components/DashboardChrome';
 import { requestDeleteMatch, requestAnnotateMatch } from './gestor-match-actions.logic';
@@ -74,10 +74,7 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
         </div>
         <CadastrarMembroModal open={cadastroOpen} onOpenChange={setCadastroOpen} initialType={cadastroType} fixedType={cadastroType} onSave={() => { fetchCoachesData(); fetchAthletesData(); }} />
         <EditAthleteModal
-          isOpen={newAthleteOpen}
-          athlete={null}
-          showCpf={true}
-          onClose={() => setNewAthleteOpen(false)}
+          isOpen={newAthleteOpen} athlete={null} showCpf={true} onClose={() => setNewAthleteOpen(false)}
           onSave={async (payload) => {
             const token = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
             await playersClient.create({ ...payload, myClub: true, ctId: gestorCtId }, token);

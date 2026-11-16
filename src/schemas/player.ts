@@ -45,26 +45,22 @@ export const CreatePlayerInputSchema = z.object({
   backhand: z.enum(['ONE_HANDED', 'TWO_HANDED']).optional(),
   rankings: z.record(
     z.enum(['ESTADUAL', 'CBT', 'COSAT', 'ITF', 'ITF_Juniors', 'ATP', 'WTA']),
-    z.object({
-      position: z.number().min(1),
-      category: z.string().optional(),
-      class: z.string().optional(),
-      juvenilePosition: z.number().min(1).optional(),
-    })
+    z.object({ position: z.number().min(1), category: z.string().optional(), class: z.string().optional(), juvenilePosition: z.number().min(1).optional() }),
   ).optional(),
   club: z.string().trim().max(100).optional(),
   city: z.string().trim().max(100).optional(),
   state: z.enum(BRAZILIAN_UFS).optional(),
   isExternalClub: z.boolean().optional().default(false),
-  cpf: z.string().nullish().refine(
-    (cpf) => !cpf || isValidCpf(cpf),
-    { message: 'CPF inválido' },
-  ),
+  cpf: z.string().nullish().refine((cpf) => !cpf || isValidCpf(cpf), { message: 'CPF inválido' }),
   myClub: z.boolean().optional().default(false),
   ctId: z.string().nullish(),
   createdByUserId: z.string().optional(),
   nickname: NicknameSchema.optional(),
   poolVisible: z.boolean().optional(),
+  guardianName: z.string().trim().max(120).optional(),
+  guardianCpf: z.string().nullish().refine((cpf) => !cpf || isValidCpf(cpf), { message: 'CPF do responsável inválido' }),
+  guardianPhone: z.string().trim().max(30).optional(),
+  guardianContact: z.string().trim().max(120).optional(),
 });
 export type CreatePlayerInput = z.infer<typeof CreatePlayerInputSchema>;
 

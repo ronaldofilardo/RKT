@@ -1,7 +1,9 @@
 'use client';
 
 import { maskCpf } from '@/lib/validators/masks';
+import { isMinor } from '@/core/access/age';
 import type { MemberType } from './cadastrar-membro-confirm-modal';
+import { CadastrarMenorResponsavelFields } from './cadastrar-menor-responsavel-fields';
 
 export interface MembroFormData {
   name: string;
@@ -10,6 +12,10 @@ export interface MembroFormData {
   email: string;
   gender: 'MASCULINO' | 'FEMININO' | 'OUTRO';
   dominance: 'DESTRO' | 'CANHOTO' | 'AMBIDEXTRO';
+  guardianName?: string;
+  guardianCpf?: string;
+  guardianPhone?: string;
+  guardianContact?: string;
 }
 
 interface CadastrarMembroFormProps {
@@ -28,12 +34,12 @@ export function CadastrarMembroForm({
   type, fixedType, setType, formData, setFormData, submitting, fieldError, onCancel, onSubmit,
 }: CadastrarMembroFormProps) {
   const handleChange = (key: keyof MembroFormData, value: string) => setFormData((p) => ({ ...p, [key]: value }));
-
-  const showTypeSelector = !fixedType;
+  const birthDateObj = formData.birthDate ? new Date(formData.birthDate) : null;
+  const isAthleteMinor = type === 'ATLETA' && birthDateObj && !Number.isNaN(birthDateObj.getTime()) && isMinor(birthDateObj, new Date());
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      {showTypeSelector && (
+      {!fixedType && (
         <div className="grid grid-cols-2 gap-2 pb-2 border-b border-telemetry-border/20">
           {(['TREINADOR', 'ATLETA'] as MemberType[]).map((t) => (
             <button key={t} type="button" onClick={() => setType(t)} className={`py-2 text-xs font-semibold rounded-lg border transition-colors ${type === t ? 'bg-telemetry-blue/20 border-telemetry-blue text-telemetry-blue' : 'bg-telemetry-elevated border-telemetry-border/20 text-telemetry-text-muted hover:text-telemetry-text-primary'}`}>{t === 'TREINADOR' ? 'Treinador' : 'Atleta'}</button>
@@ -54,6 +60,7 @@ export function CadastrarMembroForm({
           <input id="membro-nascimento" type="date" required value={formData.birthDate} onChange={(e) => handleChange('birthDate', e.target.value)} className={`w-full bg-telemetry-base border border-telemetry-border/30 text-telemetry-text-primary rounded-lg p-2.5 text-sm focus:border-telemetry-blue focus:outline-none ${fieldError === 'birthDate' ? 'border-telemetry-error' : ''}`} />
         </div>
       </div>
+      {isAthleteMinor && <CadastrarMenorResponsavelFields formData={formData} setFormData={setFormData} fieldError={fieldError} />}
       <div>
         <label htmlFor="membro-email" className="text-xs font-medium text-telemetry-text-muted block mb-1">E-mail {type === 'ATLETA' && '(opcional)'}</label>
         <input id="membro-email" type="email" required={type === 'TREINADOR'} value={formData.email} onChange={(e) => handleChange('email', e.target.value)} className={`w-full bg-telemetry-base border border-telemetry-border/30 text-telemetry-text-primary rounded-lg p-2.5 text-sm focus:border-telemetry-blue focus:outline-none ${fieldError === 'email' ? 'border-telemetry-error' : ''}`} />
@@ -81,4 +88,3 @@ export function CadastrarMembroForm({
     </form>
   );
 }
-

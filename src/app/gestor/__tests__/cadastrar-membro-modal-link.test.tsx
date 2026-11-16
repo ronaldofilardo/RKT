@@ -46,7 +46,7 @@ describe('CadastrarMembroModal - vínculo de atleta com conta existente', () => 
 
     fireEvent.change(screen.getByLabelText('Nome completo'), { target: { value: 'Marcos' } });
     fireEvent.change(screen.getByLabelText('CPF'), { target: { value: '63983014046' } });
-    fireEvent.change(screen.getByLabelText('Data de nascimento'), { target: { value: '2015-01-01' } });
+    fireEvent.change(screen.getByLabelText('Data de nascimento'), { target: { value: '1995-01-01' } });
     fireEvent.click(screen.getByRole('button', { name: 'Adicionar Atleta' }));
 
     // Prompt com copy própria de atleta ("elenco do clube", não "equipe técnica").

@@ -86,7 +86,7 @@ export async function handleAthletePatch(
         resourceType: 'Player',
         resourceId: playerCT.player.id,
         ctId,
-        meta: { name: parsed.data.name, cpf: parsed.data.cpf, gender: parsed.data.gender },
+        meta: { sanitized: true, fieldsUpdated: Object.keys(parsed.data) },
       },
     });
 

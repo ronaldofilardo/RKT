@@ -11,8 +11,9 @@ export async function buildFullSpectatorView(params: {
   matchId: string;
   annotatorName?: string | null;
   broadcastConsentPlayerIds?: readonly string[];
+  isViewerDirectlyInvolved?: boolean;
 }): Promise<SpectatorView | null> {
-  const { matchId, annotatorName, broadcastConsentPlayerIds } = params;
+  const { matchId, annotatorName, broadcastConsentPlayerIds, isViewerDirectlyInvolved } = params;
   const match = await prisma.match.findUnique({
     where: { id: matchId },
     include: {
@@ -61,5 +62,6 @@ export async function buildFullSpectatorView(params: {
     score: { sets, currentGame, serverSide: server === 'player1' ? 'side1' : server === 'player2' ? 'side2' : null, isTiebreak: Boolean(liveTiebreak) },
     points: spectatorPoints, markers, annotatorName,
     broadcastConsentPlayerIds: broadcastConsentPlayerIds ? [...broadcastConsentPlayerIds] : [],
+    isViewerDirectlyInvolved,
   });
 }
