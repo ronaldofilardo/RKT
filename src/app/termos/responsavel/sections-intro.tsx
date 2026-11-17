@@ -6,7 +6,7 @@ export function TermosIntroSections() {
       <section id="controladoria" className="mb-6 border-b border-telemetry-border/20 pb-5">
         <h2 className="text-base font-bold text-telemetry-text-primary mb-2">1. Controladoria Conjunta e Partes</h2>
         <p className="text-xs text-telemetry-text-muted leading-relaxed mb-2">
-          1.1. O tratamento de dados no ecossistema RKT é realizado em regime de <strong>controladoria conjunta</strong> entre a <strong>Plataforma RKT</strong> (infraestrutura técnica e pool de estatísticas) e o <strong>Centro de Treinamento (CT)</strong> (gestão esportiva local, cadastro e conferência presencial de documentos).
+          1.1. O tratamento de dados no ecossistema RKT é realizado em regime de <strong>controladoria conjunta</strong> entre a <strong>Plataforma RKT</strong> (operada por BE SMART LTDA, CNPJ 55.405.487/0001-84, Curitiba/PR, provedora de infraestrutura técnica e pool de estatísticas) e o <strong>Centro de Treinamento (CT)</strong> (gestão esportiva local, cadastro e conferência presencial de documentos).
         </p>
         <p className="text-xs text-telemetry-text-muted leading-relaxed mb-2">
           1.2. Este termo aplica-se a atletas com menos de 18 anos (&quot;Atleta&quot;) e é celebrado pelo pai, pela mãe ou pelo tutor legal (&quot;Responsável&quot;).

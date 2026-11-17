@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import { CURRENT_TERMS_VERSION } from '@/core/access';
 import { ensureAthletePlayer } from './signup-athlete.logic';
 
 export type SignupInput = {
@@ -48,7 +49,7 @@ export async function handleSignupPost(input: SignupInput): Promise<NextResponse
       action: 'TERMS_ACCEPTED',
       resourceType: 'User',
       resourceId: user.id,
-      meta: { termsVersion: '1.0', origem },
+      meta: { termsVersion: CURRENT_TERMS_VERSION, origem },
     },
   });
 

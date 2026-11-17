@@ -6,7 +6,7 @@ export function TermosLegalSections() {
       <section id="direitos-titular" className="mb-6 border-b border-telemetry-border/20 pb-5">
         <h2 className="text-base font-bold text-telemetry-text-primary mb-2">6. Direitos do Titular (LGPD Art. 18)</h2>
         <p className="text-xs text-telemetry-text-muted leading-relaxed">
-          Você pode revogar ou alterar as autorizações BROADCAST e STATS a qualquer momento no Painel do Responsável, ou solicitar confirmação, correção, exportação de dados ou anonimização completa pelo canal <code>privacidade@rkt.app</code>.
+          Você pode revogar ou alterar as autorizações BROADCAST e STATS a qualquer momento no Painel do Responsável, ou solicitar confirmação, correção, exportação de dados ou anonimização completa pelo canal <code>suporte@omni-sistemas.com</code>.
         </p>
       </section>
 

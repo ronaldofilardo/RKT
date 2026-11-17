@@ -20,8 +20,9 @@ export default function TermosPage() {
 
         <article className="prose prose-sm max-w-none">
           <p className="mb-4">
-            Estes Termos de Uso regulam o acesso e a utiliza&ccedil;&atilde;o da plataforma RKT Tennis
-            (doravante &quot;RKT&quot;), aplicativos, sites e servi&ccedil;os relacionados.
+            Estes Termos de Uso regulam o acesso e a utiliza&ccedil;&atilde;o da plataforma RKT,
+            operada por BE SMART LTDA (CNPJ 55.405.487/0001-84, Curitiba/PR), seus
+            aplicativos, sites e servi&ccedil;os relacionados.
           </p>
 
           <h2 className="text-lg font-semibold mt-6 mb-2">1. Aceite dos Termos</h2>
@@ -74,7 +75,7 @@ export default function TermosPage() {
           </p>
 
           <p className="mt-8 text-sm text-telemetry-text-muted">
-            Vers&atilde;o dos termos: 1.0 &bull; Atualizado em: 31/10/2026
+            Vers&atilde;o dos termos: 2.0 &bull; Atualizado em: 17/11/2026
           </p>
         </article>
 

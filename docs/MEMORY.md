@@ -8,26 +8,37 @@
 
 ---
 
-## 2.40 Governança Canônica — Políticas de Privacidade Oficializadas na Estrutura do Sistema — 2026-11-17
+## 2.40 Governança Canônica — Suíte Jurídica e de Privacidade Oficializada na Estrutura do Sistema — 2026-11-17
 - **Contexto & Demanda:**
-  - Oficialização das Políticas de Privacidade e Proteção de Menores como parte integrante da estrutura e governança do sistema RKT.
-  - Correção das minutas legadas para adequação estrita à LGPD (Lei nº 13.709/2018), ao ECA Digital (Lei nº 15.211/2025) e às decisões de arquitetura técnica do produto.
+  - Oficialização da Suíte Canônica de Governança e Privacidade (Termos de Uso, Política de Privacidade Geral, Política de Privacidade para Menores e Termo de Consentimento do Responsável Legal) como parte integrante da estrutura de documentação do sistema RKT.
+  - Correção das minutas legadas para adequação estrita ao CDC, à LGPD (Lei nº 13.709/2018), ao ECA Digital (Lei nº 15.211/2025) e às decisões de arquitetura técnica do produto.
 - **Implementação & Conclusão:**
-  1. **Política de Privacidade Geral (`docs/POLITICA_DE_PRIVACIDADE.md`):**
+  1. **Termo de Uso da Plataforma (`docs/TERMOS_DE_USO.md`):**
+     - Operação formal por BE SMART LTDA (CNPJ 55.405.487/0001-84, Curitiba/PR).
+     - Delimitação de papéis e responsabilidade civil e desportiva entre CTs, treinadores autônomos e a Plataforma.
+     - Bloqueio por design para treinadores particulares (proibição de cadastro de menores de 18 anos).
+     - Proteção rigorosa de menores com pseudonimização compulsória (`Atleta #XXXXXX`), exclusão pontual de áudio e pool de atletas por opt-in estrito (`poolVisible`).
+     - Alinhamento da versão canônica `2.0` (`CURRENT_TERMS_VERSION = '2.0'`).
+  2. **Política de Privacidade Geral (`docs/POLITICA_DE_PRIVACIDADE.md`):**
      - Operação formal por BE SMART LTDA (CNPJ 55.405.487/0001-84, Curitiba/PR).
      - Canal oficial do DPO/Encarregado: `suporte@omni-sistemas.com`.
      - Delimitação dos papéis: CT como Controlador; RKT como Operador (gestão de CT) e Controlador (contas, segurança e estatísticas agregadas/anonimizadas com $N \ge 10$).
      - Atualização para a versão canônica `2.0`, alinhada à constante `CURRENT_TERMS_VERSION = '2.0'` em `terms-constants.ts`.
-  2. **Política de Privacidade para Menores (`docs/POLITICA_DE_PRIVACIDADE_MENORES.md`):**
+  3. **Política de Privacidade para Menores (`docs/POLITICA_DE_PRIVACIDADE_MENORES.md`):**
      - Estrutura bifásica: Parte 1 em linguagem simples para o atleta menor de 18 anos; Parte 2 técnica e detalhada para pais e responsáveis.
      - Bloqueio por design para treinadores autônomos (proibição de cadastro direto de menores por profissionais sem CT).
      - Tríade de consentimentos formalizada: `DATA` (gestão desportiva obrigatória), `BROADCAST` (transmissão externa opcional com anonimização mandatória) e `STATS` (pool analítico com salvaguarda $N \ge 10$).
      - Mascaramento por iniciais substituído compulsoriamente por **pseudonimização dinâmica estável** (`Atleta #XXXXXX`), eliminando risco de reidentificação por cruzamento com federações.
      - Transparência sobre captura de notas de áudio, preservação do histórico esportivo do adversário e direito à exclusão pontual de áudio (`clearAudioNote`).
      - Emancipação automática aos 18 anos (`EMANCIPATED`) com passagem de alçada civil direta ao titular.
-  3. **Registro na Estrutura Canônica:**
-     - `AGENTS.md` e `docs/MEMORY.md` atualizados para reconhecer `POLITICA_DE_PRIVACIDADE.md` e `POLITICA_DE_PRIVACIDADE_MENORES.md` como documentos oficiais de governança do sistema.
-     - Rota `/privacidade` sincronizada com a versão `2.0` e `signup-post.logic.ts` auditando `termsVersion: CURRENT_TERMS_VERSION`.
+  4. **Termo de Consentimento do Responsável Legal (`docs/TERMO_DE_CONSENTIMENTO_RESPONSAVEL.md`):**
+     - Formalização do consentimento parental (Art. 14, § 1º LGPD e ECA Digital) operando em controladoria conjunta entre BE SMART LTDA e o CT.
+     - Estruturação granular em 3 autorizações independentes: `DATA` (obrigatória para operar no CT), `BROADCAST` (opcional com pseudonimização `Atleta #XXXXXX`) e `STATS` (opcional com corte mínimo $N \ge 10$).
+     - Inclusão mandatória de Telefone / WhatsApp do responsável, declaração formal de tutela sob as penas da lei e direito à exclusão pontual de áudios e comentários (`clearAudioNote`).
+     - Alinhamento da versão canônica `2.0` (`GUARDIAN_TERMS_VERSION = '2.0'`).
+  5. **Registro na Estrutura Canônica:**
+     - `AGENTS.md` e `docs/MEMORY.md` atualizados para reconhecer os quatro documentos como a Suíte Oficial de Governança do sistema.
+     - Rotas `/termos`, `/privacidade` e `/termos/responsavel` sincronizadas com a versão `2.0` e `signup-post.logic.ts` auditando `termsVersion: CURRENT_TERMS_VERSION`.
 
 ## 2.39 Segregação de Perfis de Responsável (Acompanhante vs. Espectador/Anotador) — 2026-11-16
 - **Contexto & Demanda:**

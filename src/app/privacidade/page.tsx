@@ -20,9 +20,10 @@ export default function PrivacidadePage() {
 
         <article className="prose prose-sm max-w-none">
           <p className="mb-4">
-            Esta Pol&iacute;tica de Privacidade explica como o RKT coleta, usa, armazena e
-            protege os dados pessoais de seus usu&aacute;rios, em conformidade com a LGPD
-            (Lei 13.709/2018) e a ECA Digital (Lei 15.211/2025).
+            Esta Pol&iacute;tica de Privacidade explica como o RKT, operado por BE SMART LTDA
+            (CNPJ 55.405.487/0001-84, Curitiba/PR), coleta, usa, armazena e protege os dados
+            pessoais de seus usu&aacute;rios, em conformidade com a LGPD (Lei 13.709/2018) e a
+            ECA Digital (Lei 15.211/2025). Canal do Encarregado (DPO): suporte@omni-sistemas.com.
           </p>
 
           <h2 className="text-lg font-semibold mt-6 mb-2">1. Dados Coletados</h2>
@@ -74,7 +75,7 @@ export default function PrivacidadePage() {
           </p>
 
           <p className="mt-8 text-sm text-telemetry-text-muted">
-            Vers&atilde;o da pol&iacute;tica: 1.0 &bull; Atualizado em: 31/10/2026
+            Vers&atilde;o da pol&iacute;tica: 2.0 &bull; Atualizado em: 17/11/2026
           </p>
         </article>
 
