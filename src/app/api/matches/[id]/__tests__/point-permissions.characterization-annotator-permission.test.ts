@@ -1,32 +1,10 @@
-/**
- * CONTRATO PÓS-FASE 4 — Permissões de ponto, estado e sessões
- *
- * Valida que apenas o anotador dono da anotação (`createdByUserId === currentUserId`)
- * e nunca em cartazes (`isTemplate: true`) pode registrar pontos ou modificar estado.
- */
+jest.mock('@/lib/prisma', () => mockPrismaModule());
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-
-const mockPrisma = {
-  matchAnnotationSession: {
-    findFirst: jest.fn(),
-  },
-};
-
-jest.mock('@/lib/prisma', () => ({
-  prisma: mockPrisma,
-}));
+import { baseMatch, mockPrismaModule } from './pointPermissionsCharacterizationTestKit';
 
 describe('validateMatchAnnotatorPermission (isolamento estrito pós-Fase 4)', () => {
-  const match = {
-    player1Id: 'p1',
-    player2Id: 'p2',
-    player1PartnerId: null,
-    player2PartnerId: null,
-    createdByUserId: 'creator',
-    openForAnnotation: false,
-    isTemplate: false,
-  };
+  const match = baseMatch;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -60,26 +38,5 @@ describe('validateMatchAnnotatorPermission (isolamento estrito pós-Fase 4)', ()
     await expect(
       validateMatchAnnotatorPermission({ ...match, createdByUserId: undefined }, 'match-1', undefined, 'ANNOTATOR', undefined, null),
     ).rejects.toThrow(/Apenas o anotador dono/);
-  });
-});
-
-describe('checkCanModifyMatchState (isolamento estrito pós-Fase 4)', () => {
-  const match = {
-    player1Id: 'p1',
-    player2Id: 'p2',
-    player1PartnerId: null,
-    player2PartnerId: null,
-    createdByUserId: 'creator',
-    openForAnnotation: false,
-    isTemplate: false,
-  };
-
-  it('apenas o criador dono modifica estado (nunca cartaz, admin, participante ou terceiro)', async () => {
-    const { checkCanModifyMatchState } = await import('@/app/api/matches/[id]/state/state-route-guards.logic');
-    await expect(checkCanModifyMatchState(match, 'match-1', { id: 'creator', role: 'ANNOTATOR' }, null)).resolves.toBe(true);
-    await expect(checkCanModifyMatchState({ ...match, isTemplate: true }, 'match-1', { id: 'creator', role: 'ANNOTATOR' }, null)).resolves.toBe(false);
-    await expect(checkCanModifyMatchState(match, 'match-1', { id: 'staff', role: 'ADMIN' }, null)).resolves.toBe(false);
-    await expect(checkCanModifyMatchState(match, 'match-1', { id: 'qualquer', role: 'ANNOTATOR' }, null)).resolves.toBe(false);
-    await expect(checkCanModifyMatchState(match, 'match-1', { id: 'p1-user', role: 'ANNOTATOR' }, 'p1')).resolves.toBe(false);
   });
 });
