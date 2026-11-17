@@ -1,6 +1,6 @@
 jest.mock('@/lib/prisma', () => mockPrismaModule());
 
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { getPrismaMock, mockPrismaModule } from './matchRepositoryCharacterizationTestKit';
 
 const mockPrisma = getPrismaMock();

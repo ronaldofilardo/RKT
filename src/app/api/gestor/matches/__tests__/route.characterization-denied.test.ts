@@ -2,7 +2,7 @@ jest.mock('@/lib/prisma', () => mockPrismaModule());
 jest.mock('../../_logic', () => mockLogicModule());
 jest.mock('@/lib/access-handler', () => mockAccessHandlerModule());
 
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import {
   mockAccessHandlerModule,
   mockLogicModule,

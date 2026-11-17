@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 
 const mockPrisma = {
   player: { findUnique: jest.fn(), update: jest.fn() },

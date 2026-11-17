@@ -7,7 +7,7 @@
  * 5. Autenticação via e-mail e CPF
  */
 
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 
 const mockPrisma = {
   match: {

@@ -1,6 +1,6 @@
 jest.mock('@/lib/prisma', () => mockPrismaModule());
 
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { baseMatch, mockPrismaModule } from './pointPermissionsCharacterizationTestKit';
 
 describe('validateMatchAnnotatorPermission (isolamento estrito pós-Fase 4)', () => {

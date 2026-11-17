@@ -1,6 +1,5 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
 
 let mockActorContext: any = {
   user: { id: 'user-1' },
