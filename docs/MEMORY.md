@@ -3,10 +3,31 @@
 > Diário de bordo técnico · Metodologia RE-DOC (Fase 4 — Auditoria de Qualidade e Histórico)
 > **Este é um dos 6 arquivos-canônico do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
 
-**Última Atualização:** 2026-11-15
+**Última Atualização:** 2026-11-17
 **Analisado por:** engenharia reversa e implementação sobre `main`
 
 ---
+
+## 2.40 Governança Canônica — Políticas de Privacidade Oficializadas na Estrutura do Sistema — 2026-11-17
+- **Contexto & Demanda:**
+  - Oficialização das Políticas de Privacidade e Proteção de Menores como parte integrante da estrutura e governança do sistema RKT.
+  - Correção das minutas legadas para adequação estrita à LGPD (Lei nº 13.709/2018), ao ECA Digital (Lei nº 15.211/2025) e às decisões de arquitetura técnica do produto.
+- **Implementação & Conclusão:**
+  1. **Política de Privacidade Geral (`docs/POLITICA_DE_PRIVACIDADE.md`):**
+     - Operação formal por BE SMART LTDA (CNPJ 55.405.487/0001-84, Curitiba/PR).
+     - Canal oficial do DPO/Encarregado: `suporte@omni-sistemas.com`.
+     - Delimitação dos papéis: CT como Controlador; RKT como Operador (gestão de CT) e Controlador (contas, segurança e estatísticas agregadas/anonimizadas com $N \ge 10$).
+     - Atualização para a versão canônica `2.0`, alinhada à constante `CURRENT_TERMS_VERSION = '2.0'` em `terms-constants.ts`.
+  2. **Política de Privacidade para Menores (`docs/POLITICA_DE_PRIVACIDADE_MENORES.md`):**
+     - Estrutura bifásica: Parte 1 em linguagem simples para o atleta menor de 18 anos; Parte 2 técnica e detalhada para pais e responsáveis.
+     - Bloqueio por design para treinadores autônomos (proibição de cadastro direto de menores por profissionais sem CT).
+     - Tríade de consentimentos formalizada: `DATA` (gestão desportiva obrigatória), `BROADCAST` (transmissão externa opcional com anonimização mandatória) e `STATS` (pool analítico com salvaguarda $N \ge 10$).
+     - Mascaramento por iniciais substituído compulsoriamente por **pseudonimização dinâmica estável** (`Atleta #XXXXXX`), eliminando risco de reidentificação por cruzamento com federações.
+     - Transparência sobre captura de notas de áudio, preservação do histórico esportivo do adversário e direito à exclusão pontual de áudio (`clearAudioNote`).
+     - Emancipação automática aos 18 anos (`EMANCIPATED`) com passagem de alçada civil direta ao titular.
+  3. **Registro na Estrutura Canônica:**
+     - `AGENTS.md` e `docs/MEMORY.md` atualizados para reconhecer `POLITICA_DE_PRIVACIDADE.md` e `POLITICA_DE_PRIVACIDADE_MENORES.md` como documentos oficiais de governança do sistema.
+     - Rota `/privacidade` sincronizada com a versão `2.0` e `signup-post.logic.ts` auditando `termsVersion: CURRENT_TERMS_VERSION`.
 
 ## 2.39 Segregação de Perfis de Responsável (Acompanhante vs. Espectador/Anotador) — 2026-11-16
 - **Contexto & Demanda:**
@@ -1361,9 +1382,19 @@ Leitura completa: `docs/TASKS.md` — **Anexo A** (dívida técnica, 50 entradas
   - visibility.characterization → **3 suites por função** (`read`, `annotate`, `comments-watch`) + kit (`actor`/`member`/`match` `MatchAccess`).
   - point-permissions.characterization → **2 suites por guarda** (`annotator-permission`, `modify-state`) + kit (`mockPrismaModule`/`baseMatch`).
 - **Armadilha registrada (NOVA e importante):** `import { jest } from '@jest/globals'` **desativa o hoisting do `jest.mock`** (SWC do next/jest): com `jest` como binding importado, os `require()` dos imports são emitidos antes da chamada `jest.mock(...)`, então um **import estático do módulo mockado** (`import { prisma } from '@/lib/prisma'`) captura o cliente **real** — sintoma: `TypeError: ...mockResolvedValue is not a function` (5 suítes/8 testes falharam). Os originais passavam porque **nunca** importavam o módulo mockado estaticamente (mock em `const` local + `require` lazy no corpo do teste). Correção sem remover o import `@jest/globals`: **singleton no kit** (`getPrismaMock()` + factory `mockPrismaModule()` devolvendo a MESMA instância) e nos testes `const mockPrisma = getPrismaMock()`, sem importar `@/lib/prisma`. Diagnóstico feito com 2 arquivos `zz-mock-debug*.test.ts` (removidos em seguida).
-- **Detalhes de caminho:** `route.characterization.test.ts` **não é nome único** (6 homônimos no repo: auth/login, auth/me, auth/refresh, gestor/matches, matches/suspended-sessions, matches/[id]/point/[pointId]/audio) → padrão de coverage enumerado com o segmento `gestor[/\\]matches[/\\]__tests__`; irmandades `matchRepository.context/scope`, `visibility.test/visibility-context`, `route.test` não foram tocadas. Paths com `[id]` exigem `Get-Content -LiteralPath`/`Select-String -LiteralPath` (PowerShell trata `[id]` como wildcard) e pathspec `:(literal)` no `git add`.
+- **Detalhes de caminho:** `route.characterization.test.ts` **não é nome único** — **6 homônimos no momento do lote** (auth/login, auth/me, auth/refresh, gestor/matches, matches/suspended-sessions, matches/[id]/point/[pointId]/audio); o de `gestor/matches` era justamente um dos originais apagados, restando **5** após a tarefa → padrão de coverage enumerado com o segmento `gestor[/\\]matches[/\\]__tests__`; irmandades `matchRepository.context/scope`, `visibility.test/visibility-context`, `route.test` não foram tocadas. Paths com `[id]` exigem `Get-Content -LiteralPath`/`Select-String -LiteralPath`/`Test-Path -LiteralPath` (PowerShell trata `[id]` como wildcard — confirmado em 2.57: `-Path` retorna False onde `-LiteralPath` retorna True); no **git**, pathspec **plain** casa `[id]` literalmente (`git ls-files` e `git add -n` com exit 0) — `:(literal)` é precaução válida, **não obrigatória** (verificado em 2.57).
 - **Gates (todos PASSARAM):** paridade de statements/funções antes × depois = **PARIDADE TOTAL** (1414 arquivos, driver `sp-parity.js`; padrões enumerados dos 16 splits); ESLint **0 erros** (16 testes + 5 kits); `check:r03` exit 0; grep de fluxo **0 hits** (0 também nos kits); over80 = 0 (máx. 63L); suíte completa **809/809 suites · 4991/4991 testes** (798 − 5 + 16).
 - **Estado:** branch `master` **ahead 36** de `origin/master`, **sem push**; originais removidos nos próprios commits.
+
+## 2.57 Auditoria pós-lotes: originais removidos, armadilhas corrigidas e nota de caminhos higienizada — 2026-11-17
+- **Frente 1 (todos os originais removidos):** **27 commits de refactor** no histórico (23 `test: refatora` + 4 `test(...): dividir…`: `af2f235`, `7ee2a51`, `f291162`, `1d858da`) cobrem **32 caminhos originais**, todos com status `D` ou `R` no próprio commit e **0 existindo no disco** (28 verificados via `Test-Path -LiteralPath` + 4 dos "dividir"). `src/app/api/players/[id]/__tests__/route.test.ts` (419L) **não** é original refatorado (histórico apenas de feature commits; `player-put-identity.test.ts`/`route.real.test.ts` nasceram em commits feat) — segue como item da fila. Restam **321** arquivos `.test.*` >80L (fila nunca refatorada).
+- **Frente 2 (armadilhas corrigidas):** varredura dos **809** arquivos `.test.ts(x)` com fecho transitivo de imports estáticos (`import type` excluído):
+  - **Armadilha do `jest.mock` (registrada na 2.56):** **1 quebra real** — `src/app/api/users/profile/__tests__/profile.test.ts` importava `jest` de `@jest/globals` **e** `@/lib/prisma` estaticamente (import sem uso) com `jest.mock('@/lib/prisma')`; **+24 latentes** (import de `jest` + `jest.mock`, mas alvo fora do fecho — verdes hoje, quebrariam ao adicionar um import estático). Correção: removido `jest` do import nos **25** arquivos (padrão dos demais **249** com `jest.mock`; **207** deles já tinham o alvo do mock no fecho estático → prova empírica de que o hoist funciona com o `jest` global) e saiu também o import morto de `@/lib/prisma` do `profile.test.ts`.
+  - **Armadilha do `@jest-environment` (registrada na 2.54):** **0 ocorrências** — 263 diretivas, todas em forma de linha única (228 ` * @jest-environment jsdom` + 35 `/** @jest-environment jsdom */`), nenhuma com texto sobrando na linha.
+  - **Guard criado:** `scripts/check-test-mock-traps.mjs` (`pnpm check:mock-traps`, integrado ao `test:strict`) falha nas duas armadilhas — auto-testado com probe temporário (exit 1 nas 2 regras) e repo limpo (exit 0); documentado em `docs/RULES.md` (seções 5, 8 e 12). Commits `89d1ddc` (25 testes) e `c28b361` (script + package.json + RULES).
+- **Frente 3 (nota de caminhos da 2.56 higienizada — verificação empírica):** (a) homônimos de `route.characterization.test.ts`: **6 no momento do lote**, **5 hoje** (o 6º era o próprio original do gestor, apagado no lote) — nota corrigida; (b) PowerShell: `Test-Path -Path` = False vs `-LiteralPath` = True com `[id]` → **`-LiteralPath` é obrigatório** (claim confirmada); (c) git: pathspec **plain** casa `[id]` literalmente (`git ls-files`, `git add -n`, exit 0) → **`:(literal)` não era obrigatório**, era precaução (claim corrigida na nota da 2.56). Os nomes novos `route.characterization-denied/designated.test.ts` são únicos no repo.
+- **Gates:** typecheck ok; ESLint **0 erros**; `pnpm check:mock-traps` exit 0 (809 arquivos); suíte completa **809/809 suites · 4991/4991 testes**.
+- **Estado:** branch `master` **ahead 39** de `origin/master`, **sem push**; alterações próprias restritas a testes/docs/scripts — `src/app/api/auth/signup/signup-post.logic.ts` e `src/app/privacidade/page.tsx` (alterações do usuário na working tree) ficaram **intocados e fora dos commits**.
 
 
 
