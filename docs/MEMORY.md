@@ -1300,5 +1300,17 @@ Leitura completa: `docs/TASKS.md` — **Anexo A** (dívida técnica, 50 entradas
 - **Gates (todos PASSARAM):** paridade de statements/funções `coverage-final.json` antes × depois = **PARIDADE TOTAL** (1414 arquivos); ESLint **0 erros** (27 testes + 3 kits); `check:r03` 0 regressões; grep de controle de fluxo limpo; over80 = 0; suíte completa **705/705 suites · 4991/4991 testes** (681 + 27 − 3).
 - **Estado:** branch `master` **ahead 12** de `origin/master`, **sem push**; originais removidos no próprio commit.
 
+---
+
+## 2.51 Refatoração de engine.characterization, engine.flow.characterization e engine-edge-cases em suítes por contexto — 2026-11-17
+- **Contexto:** fila de testes grandes (LOC · categoria): **610** `src/core/scoring/__tests__/engine.characterization.test.ts` (Unitário), **740** `src/core/scoring/__tests__/engine.flow.characterization.test.ts` (Integração) e **489** `src/core/scoring/__tests__/engine-edge-cases.test.ts` (Unitário) — 1839L / 141 `it` / 308 `expect` no total. Os 7 `engine*` pré-existentes fora do escopo não foram tocados.
+- **Commits `test:`** (um por arquivo, cada um já verde):
+  - `e45fbf9` — characterization → **9 suites** (`constructor`, `validation`, `faults`, `points`, `deuce`, `completion`, `server-undo`, `history`, `state-ops`) + kit `engineCharacterizationTestKit.ts` (`scoringState`/`createConfig`/`makeEngine`/`winPoints`/`winGame`/`winSet60`/`winSet64`/`toDeuce`/`reachTiebreak`).
+  - `0db47aa` — flow characterization → **10 suites** (`regular-points`, `match-tiebreak`, `game-won`, `set-completion`, `tiebreak-points`, `should-start-tiebreak`, `should-start-mt`, `is-set-complete`, `format-rules`, `mt-active`) + kit `engineFlowTestKit.ts` (`stateWithSets`/`playRegular`/`toDeuce`/`playMatchTiebreak`/`playTiebreak`/`playTiebreakSequence`).
+  - `40b6862` — edge-cases → **10 suites** (`match-tb10`, `pro-set-8`, `short-set`, `best-of-3-match-tb`, `undo`, `serialization`, `server`, `load-clear`, `reconcile`, `tiebreak-advanced`) + kit `engineEdgeTestKit.ts` (`makeConfig`/`createEngine`/`makePoint`/`winPoints`/`winGame`/`winGames`/`winGamesPair`/`serversAfter`).
+- **Método (idêntico à 2.47/2.50):** ≤80L raw por arquivo, AAA linear com Arrange delegado a `*TestKit` (fora da coleta do Jest, não limitados a 80L), asserções 1:1 (48/88 + 67/133 + 26/87 preservadas), **zero** `if/for/while/switch/try/do` nos `.test.*`. Código morto dos originais (`winSet` e `createGameScore`, só definição) não reproduzido; o único loop com `expect` do edge (sequência de sacadores) virou helper `serversAfter` + 2 expects estáticos.
+- **Gates (todos PASSARAM):** paridade de statements/funções `coverage-final.json` antes × depois = **PARIDADE TOTAL** (1414 arquivos de produção, driver `eng-parity.js` ignorando `__tests__`); ESLint **0 erros** (29 testes + 3 kits); `check:r03` exit 0; grep de controle de fluxo **0 hits**; over80 = 0; suíte completa **731/731 suites · 4991/4991 testes** (705 + 29 − 3).
+- **Estado:** branch `master` **ahead 16** de `origin/master`, **sem push**; originais removidos nos próprios commits.
+
 
 
