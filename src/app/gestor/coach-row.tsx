@@ -1,6 +1,7 @@
 'use client';
 
 import type { CoachItem } from './types';
+import { LinkIcon } from '@/components/athlete/athlete-row-icons';
 
 interface CoachRowProps {
   coach: CoachItem;
@@ -51,24 +52,27 @@ export function CoachRow({ coach: c, selected, onSelect, onEdit, onGenerateLink,
         </label>
       </td>
       <td className="px-3 py-3 text-sm whitespace-nowrap text-right">
-        <div className="flex items-center justify-end gap-2">
+        <div className="inline-flex items-center gap-1">
           <button
+            type="button"
             onClick={onGenerateLink}
-            className="text-xs text-telemetry-alert hover:underline mr-2 font-medium"
+            className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-telemetry-elevated border border-white/10 text-telemetry-text-primary text-xs sm:text-sm font-medium rounded-lg hover:bg-white/10 transition-colors shadow-sm cursor-pointer"
             title="Gerar link de redefinição de senha"
           >
-            Link Senha
+            <LinkIcon /><span>Link Senha</span>
           </button>
           <button
+            type="button"
             onClick={onEdit}
-            className="text-xs text-telemetry-blue hover:underline font-medium"
+            className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-telemetry-blue text-white text-xs sm:text-sm font-medium rounded-lg hover:opacity-90 transition-colors shadow-sm cursor-pointer"
           >
             Editar
           </button>
           {onDelete && (
             <button
+              type="button"
               onClick={onDelete}
-              className="text-xs text-telemetry-error hover:underline font-medium"
+              className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert text-xs sm:text-sm font-medium rounded-lg hover:bg-telemetry-alert/20 transition-colors cursor-pointer"
               title="Excluir treinador"
             >
               Excluir

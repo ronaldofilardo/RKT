@@ -1,4 +1,5 @@
 import type { AffiliateAthleteItem } from './affiliates.types';
+import { formatRankingDate } from '@/lib/ranking/format-rankings';
 
 export function formatDominance(dominance?: string | null): string {
   const v = (dominance ?? '').trim().toUpperCase();
@@ -41,9 +42,15 @@ function formatSingleRanking(org: string, val: any): string | null {
     const cat = typeof rawCat === 'string'
       ? rawCat
       : (typeof rawCat === 'object' && rawCat !== null ? (rawCat.name || rawCat.label || null) : null);
-    if (pos && cat) return `${label}: #${pos} (${cat})`;
-    if (pos) return `${label}: #${pos}`;
-    if (cat) return `${label} (${cat})`;
+    const rawDate = val.rankingDate ?? val.date ?? null;
+    let suffix = '';
+    if (typeof rawDate === 'string' && rawDate) {
+      const dt = formatRankingDate(rawDate);
+      if (dt) suffix = ` em ${dt}`;
+    }
+    if (pos && cat) return `${label}: #${pos} (${cat})${suffix}`;
+    if (pos) return `${label}: #${pos}${suffix}`;
+    if (cat) return `${label} (${cat})${suffix}`;
   }
   return null;
 }

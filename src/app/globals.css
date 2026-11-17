@@ -22,7 +22,7 @@
   --telemetry-text-muted: 148 163 184;  /* #94A3B8 */
   --telemetry-volt: 204 255 0;          /* #CCFF00 - Neon volt broadcast */
   --telemetry-blue: 37 99 235;          /* #2563EB */
-  --telemetry-blue-light: 59 130 246;   /* #3B82F6 */
+  --telemetry-blue-light: 147 197 253;  /* #93C5FD - Light blue for high contrast text */
   --telemetry-orange: 234 88 12;        /* #EA580C */
   --telemetry-orange-light: 226 88 34;  /* #E25822 */
   --telemetry-error: 239 68 68;         /* #EF4444 */

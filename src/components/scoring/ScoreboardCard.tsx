@@ -35,11 +35,11 @@ export function ScoreboardCard({ player1, player2, player1Partner, player2Partne
     ) : undefined;
 
   return (
-    <div className={`rounded-xl border overflow-hidden ${className ?? 'mx-4 sm:mx-auto max-w-md'} ${isSuspended ? 'border-telemetry-alert' : 'border-telemetry-border/10 shadow-md bg-telemetry-card'}`}>
+    <div className={`rounded-xl border overflow-hidden ${className ?? 'mx-1 sm:mx-auto max-w-md'} ${isSuspended ? 'border-telemetry-alert' : 'border-telemetry-border/10 shadow-md bg-telemetry-card'}`}>
       <table className="w-full table-fixed border-collapse">
         <thead>
           <tr className="text-[10px] font-space-grotesk">
-            <th scope="col" aria-label="Jogador" className="text-left py-0.5 px-2 w-[110px] sm:w-[120px] bg-telemetry-elevated border-b border-telemetry-border/10"></th>
+            <th scope="col" aria-label="Jogador" className="text-left py-0.5 px-1.5 sm:px-2 w-[90px] sm:w-[120px] bg-telemetry-elevated border-b border-telemetry-border/10"></th>
             <th scope="col" aria-label="Vencedor" className="w-5 sm:w-6 bg-telemetry-elevated border-l border-b border-telemetry-border/10"></th>
             {Array.from({ length: numSets }).map((_, i) => {
               const title = columnTitles[i] ?? `Set ${i + 1}`;
@@ -50,7 +50,7 @@ export function ScoreboardCard({ player1, player2, player1Partner, player2Partne
                   key={i}
                   scope="col"
                   aria-label={title}
-                  className={`text-center px-1 py-0.5 w-8 sm:w-12 bg-telemetry-elevated border-l border-b border-telemetry-border/10 ${
+                  className={`text-center px-0.5 sm:px-1 py-0.5 w-7 sm:w-12 bg-telemetry-elevated border-l border-b border-telemetry-border/10 ${
                     isCurrent ? 'font-bold text-telemetry-score-accent' : 'text-telemetry-score-secondary'
                   }`}
                 >
@@ -62,7 +62,7 @@ export function ScoreboardCard({ player1, player2, player1Partner, player2Partne
               <th
                 scope="col"
                 aria-label="Game em andamento"
-                className="text-center px-1 py-0.5 w-10 sm:w-12 bg-telemetry-elevated border-l border-b border-telemetry-border/10 font-bold text-telemetry-score-accent"
+                className="text-center px-0.5 sm:px-1 py-0.5 w-9 sm:w-12 bg-telemetry-elevated border-l border-b border-telemetry-border/10 font-bold text-telemetry-score-accent"
               >
                 {gamePoints.title ?? 'Pts'}
               </th>

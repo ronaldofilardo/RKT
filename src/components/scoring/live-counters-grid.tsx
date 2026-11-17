@@ -50,23 +50,47 @@ export function LiveCountersGrid({
   const p1Class = p1IsServing ? 'text-telemetry-volt' : 'text-telemetry-text-primary';
   const p2Class = p2IsServing ? 'text-telemetry-volt' : 'text-telemetry-text-primary';
 
-  return (
-    <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center mt-0.5 pt-0.5 border-t border-white/5">
+  const hasAces = counters.aces.p1 > 0 || counters.aces.p2 > 0;
+  const hasDf = counters.doubleFaults.p1 > 0 || counters.doubleFaults.p2 > 0;
+  const hasBp = counters.breakPoints.p1.total > 0 || counters.breakPoints.p2.total > 0;
+  const hasErrors =
+    counters.forcedErrors.p1 > 0 ||
+    counters.forcedErrors.p2 > 0 ||
+    counters.unforcedErrors.p1 > 0 ||
+    counters.unforcedErrors.p2 > 0;
+
+  const statItems: React.ReactNode[] = [];
+
+  if (hasAces) {
+    statItems.push(
       <StatCell
+        key="aces"
         label="Aces"
         p1Class={p1Class}
         p2Class={p2Class}
         p1={{ value: counters.aces.p1, title: `${p1Short}: ${counters.aces.p1}` }}
         p2={{ value: counters.aces.p2, title: `${p2Short}: ${counters.aces.p2}` }}
-      />
+      />,
+    );
+  }
+
+  if (hasDf) {
+    statItems.push(
       <StatCell
+        key="df"
         label="Duplas Faltas"
         p1Class={p1Class}
         p2Class={p2Class}
         p1={{ value: counters.doubleFaults.p1, title: `${p1Short}: ${counters.doubleFaults.p1}` }}
         p2={{ value: counters.doubleFaults.p2, title: `${p2Short}: ${counters.doubleFaults.p2}` }}
-      />
+      />,
+    );
+  }
+
+  if (hasBp) {
+    statItems.push(
       <StatCell
+        key="bp"
         label="Break Points"
         p1Class={p1Class}
         p2Class={p2Class}
@@ -78,8 +102,14 @@ export function LiveCountersGrid({
           value: `${counters.breakPoints.p2.converted}/${counters.breakPoints.p2.total}`,
           title: `${p2Short}: ${counters.breakPoints.p2.converted}/${counters.breakPoints.p2.total}`,
         }}
-      />
+      />,
+    );
+  }
+
+  if (hasErrors) {
+    statItems.push(
       <StatCell
+        key="errors"
         label="EF / ENF"
         p1Class={p1Class}
         p2Class={p2Class}
@@ -91,7 +121,18 @@ export function LiveCountersGrid({
           value: `${counters.forcedErrors.p2}/${counters.unforcedErrors.p2}`,
           title: `${p2Short}: ${counters.forcedErrors.p2} EF / ${counters.unforcedErrors.p2} ENF`,
         }}
-      />
+      />,
+    );
+  }
+
+  if (statItems.length === 0) return null;
+
+  return (
+    <div
+      className="grid gap-1 sm:gap-2 text-center mt-0.5 pt-0.5 border-t border-white/5"
+      style={{ gridTemplateColumns: `repeat(${statItems.length}, minmax(0, 1fr))` }}
+    >
+      {statItems}
     </div>
   );
 }

@@ -8,24 +8,24 @@ interface ServeSectionProps {
 }
 
 const checkboxLabel =
-  'flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm text-telemetry-text-muted cursor-pointer select-none py-1';
-const checkboxInput = 'h-4 w-4 accent-telemetry-volt bg-telemetry-card cursor-pointer';
+  'flex items-center gap-1 sm:gap-1.5 whitespace-nowrap text-[11px] sm:text-xs text-telemetry-text-muted cursor-pointer select-none py-0.5';
+const checkboxInput = 'h-3.5 w-3.5 sm:h-4 sm:w-4 accent-telemetry-volt bg-telemetry-card cursor-pointer rounded';
 
 /**
- * Rodapé: opções de detalhe. O selo do 2º saque fica inline sob o card do sacador.
+ * Rodapé: opções de detalhe inline entre Voltar e ações secundárias.
  */
 export function ServeSection({
   aceDetailsEnabled, onAceDetailsToggle, dfDetailsEnabled, onDfDetailsToggle, disabled,
 }: ServeSectionProps) {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:gap-x-4">
+    <div className="flex items-center justify-center gap-x-2.5 sm:gap-x-4 flex-wrap">
       <label className={checkboxLabel}>
         <input type="checkbox" checked={aceDetailsEnabled} onChange={onAceDetailsToggle} disabled={disabled} className={checkboxInput} />
-        Detalhes do ACE
+        <span>Detalhes do ACE</span>
       </label>
       <label className={checkboxLabel}>
         <input type="checkbox" checked={dfDetailsEnabled} onChange={onDfDetailsToggle} disabled={disabled} className={checkboxInput} />
-        Detalhes da DF
+        <span>Detalhes da DF</span>
       </label>
     </div>
   );

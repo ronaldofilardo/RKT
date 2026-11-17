@@ -7,12 +7,14 @@ interface ExternalScheduledMatchesSectionProps {
   externalMatches: ClubMatchItem[];
   onAssignCoach?: (match: ClubMatchItem) => void;
   onAnnotate?: (match: ClubMatchItem) => void;
+  onEditInfo?: (match: ClubMatchItem) => void;
 }
 
 export function ExternalScheduledMatchesSection({
   externalMatches,
   onAssignCoach,
   onAnnotate,
+  onEditInfo,
 }: ExternalScheduledMatchesSectionProps) {
   if (!externalMatches || externalMatches.length === 0) return null;
 
@@ -39,7 +41,7 @@ export function ExternalScheduledMatchesSection({
               <th className="px-4 py-3">Confronto</th>
               <th className="px-4 py-3">Criado por</th>
               <th className="px-4 py-3">Formato</th>
-              <th className="px-4 py-3 text-right">Ação</th>
+              <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-telemetry-border/20 text-sm">
@@ -49,6 +51,7 @@ export function ExternalScheduledMatchesSection({
                 match={m}
                 onAssignCoach={onAssignCoach}
                 onAnnotate={onAnnotate}
+                onEditInfo={onEditInfo}
               />
             ))}
           </tbody>

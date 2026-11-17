@@ -5,6 +5,7 @@ export interface RankingEntry {
   class?: string;
   position: number;
   juvenilePosition?: number;
+  rankingDate?: string;
 }
 
 export interface RankingState {
@@ -13,10 +14,11 @@ export interface RankingState {
   class: string;
   position: string;
   juvenilePosition: string;
+  rankingDate?: string;
 }
 
 export function createEmptyRankingState(): RankingState {
-  return { enabled: false, category: '', class: '', position: '', juvenilePosition: '' };
+  return { enabled: false, category: '', class: '', position: '', juvenilePosition: '', rankingDate: '' };
 }
 
 export function athleteToRankingsState(rankings: Record<string, RankingEntry> | null | undefined): Record<RankingType, RankingState> {
@@ -38,6 +40,7 @@ export function athleteToRankingsState(rankings: Record<string, RankingEntry> | 
         class: entry.class || '',
         position: String(entry.position || ''),
         juvenilePosition: entry.juvenilePosition ? String(entry.juvenilePosition) : '',
+        rankingDate: entry.rankingDate || '',
       };
     }
   }
@@ -52,6 +55,7 @@ export function rankingsStateToPayload(state: Record<RankingType, RankingState>)
       if (s.category) entry.category = s.category;
       if (s.class) entry.class = s.class;
       if (s.juvenilePosition) entry.juvenilePosition = parseInt(s.juvenilePosition);
+      if (s.rankingDate) entry.rankingDate = s.rankingDate;
       payload[type] = entry;
     }
   }

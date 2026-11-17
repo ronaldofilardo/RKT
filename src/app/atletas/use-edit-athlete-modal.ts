@@ -49,7 +49,7 @@ export function useEditAthleteModal({ athlete, isOpen, onSave }: UseEditAthleteM
   const toggleRankingEntry = (type: RankingType) => {
     setRankings((prev) => ({
       ...prev,
-      [type]: { ...prev[type], enabled: !prev[type].enabled, category: '', class: '', position: '', juvenilePosition: '' },
+      [type]: { ...prev[type], enabled: !prev[type].enabled, category: '', class: '', position: '', juvenilePosition: '', rankingDate: '' },
     }));
   };
 

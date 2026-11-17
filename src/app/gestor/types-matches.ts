@@ -11,15 +11,30 @@ export interface ClubMatchItem {
   startedAt: string | null;
   finishedAt: string | null;
   tournamentName?: string | null;
+  category?: string | null;
+  round?: string | null;
+  bracketType?: string | null;
+  courtType?: string | null;
+  visibility?: string | null;
+  temperature?: number | null;
+  humidity?: number | null;
+  details?: string | null;
+  clubName?: string | null;
+  version?: number;
+  ctId?: string | null;
   createdByUserId: string | null;
   assignedCoachId?: string | null;
   assignedCoach?: { id: string; name: string; email?: string } | null;
+  assignedCoaches?: Array<{ coach: { id: string; name: string; email?: string } }> | null;
   isPublicTemplate?: boolean;
   isTemplate?: boolean;
   eventScope?: string;
   isOfficialClubAnnotation?: boolean;
   isDesignatedAnnotator?: boolean;
   pointCount?: number;
+  matchType?: 'SINGLES' | 'DOUBLES';
+  player1PartnerId?: string | null;
+  player2PartnerId?: string | null;
   player1: {
     id: string;
     name: string;
@@ -34,6 +49,20 @@ export interface ClubMatchItem {
     isClubAthlete?: boolean;
     coachAthleteLinks?: Array<{ coach: { name: string } }> | null;
   };
+  player1Partner?: {
+    id: string;
+    name: string;
+    club?: string | null;
+    isClubAthlete?: boolean;
+    coachAthleteLinks?: Array<{ coach: { name: string } }> | null;
+  } | null;
+  player2Partner?: {
+    id: string;
+    name: string;
+    club?: string | null;
+    isClubAthlete?: boolean;
+    coachAthleteLinks?: Array<{ coach: { name: string } }> | null;
+  } | null;
   createdByUser: {
     id: string;
     name: string;
@@ -51,9 +80,13 @@ export interface ClubMatchItem {
     scheduledAt: string | null;
     format: string;
     eventScope?: string;
+    matchType?: 'SINGLES' | 'DOUBLES';
     assignedCoachId?: string | null;
     assignedCoach?: { id: string; name: string; email?: string } | null;
+    assignedCoaches?: Array<{ coach: { id: string; name: string; email?: string } }> | null;
     player1: { name: string };
     player2: { name: string };
+    player1Partner?: { name: string } | null;
+    player2Partner?: { name: string } | null;
   } | null;
 }

@@ -1,4 +1,5 @@
 import { ThemeToggleButton } from '@/components/ThemeToggleButton';
+import { ServeSection } from './action-bar-serve-section';
 
 export function ActionFooter({
   canUndo,
@@ -13,6 +14,10 @@ export function ActionFooter({
   fontScale: _fontScale,
   disabled,
   processing,
+  aceDetailsEnabled,
+  onAceDetailsToggle,
+  dfDetailsEnabled,
+  onDfDetailsToggle,
 }: {
   canUndo: boolean;
   canEdit: boolean;
@@ -26,30 +31,47 @@ export function ActionFooter({
   fontScale?: number;
   disabled: boolean;
   processing?: boolean;
+  aceDetailsEnabled?: boolean;
+  onAceDetailsToggle?: () => void;
+  dfDetailsEnabled?: boolean;
+  onDfDetailsToggle?: () => void;
 }) {
   const commentDisabled = Boolean(disabled);
   return (
-    <div className="flex items-center justify-between gap-2 text-telemetry-text-primary pt-0.5">
+    <div className="flex items-center justify-between gap-1.5 sm:gap-3 text-telemetry-text-primary">
       {/* Flanco Esquerdo: Isolamento Ergonômico de Voltar / Desfazer */}
-      <div className="flex items-center">
+      <div className="flex items-center flex-shrink-0">
         <button
           data-testid="undo-button"
           onClick={() => onVoltar(serveStep)}
           disabled={!canUndo || disabled}
-          className="text-xs sm:text-sm font-semibold bg-telemetry-elevated border border-white/15 px-3 sm:px-3.5 py-2 rounded-xl hover:bg-telemetry-active active:scale-[0.97] disabled:opacity-40 min-h-[44px] flex items-center gap-1.5 transition-all shadow-sm select-none"
+          className="text-xs sm:text-sm font-semibold bg-telemetry-elevated border border-white/15 px-2.5 sm:px-3.5 py-2 rounded-xl hover:bg-telemetry-active active:scale-[0.97] disabled:opacity-40 min-h-[40px] sm:min-h-[44px] flex items-center gap-1 sm:gap-1.5 transition-all shadow-sm select-none whitespace-nowrap"
         >
           {processing ? '⏳' : '↩'} Voltar
         </button>
       </div>
 
+      {/* Centro: Checkboxes de Detalhes do ACE e Detalhes da DF na mesma linha */}
+      {onAceDetailsToggle && onDfDetailsToggle && (
+        <div className="flex-1 flex justify-center px-1">
+          <ServeSection
+            aceDetailsEnabled={Boolean(aceDetailsEnabled)}
+            onAceDetailsToggle={onAceDetailsToggle}
+            dfDetailsEnabled={Boolean(dfDetailsEnabled)}
+            onDfDetailsToggle={onDfDetailsToggle}
+            disabled={disabled}
+          />
+        </div>
+      )}
+
       {/* Flanco Direito: Controles Secundários Agrupados */}
-      <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/10">
+      <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/10 flex-shrink-0">
         <ThemeToggleButton />
         {onComment && (
           <button
             onClick={onComment}
             disabled={commentDisabled}
-            className="min-h-[40px] min-w-[40px] flex items-center justify-center bg-telemetry-elevated border border-white/10 p-2 rounded-lg hover:bg-telemetry-active active:scale-[0.97] disabled:opacity-40 transition-all"
+            className="min-h-[38px] min-w-[38px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center bg-telemetry-elevated border border-white/10 p-1.5 sm:p-2 rounded-lg hover:bg-telemetry-active active:scale-[0.97] disabled:opacity-40 transition-all text-sm"
             aria-label="Adicionar comentário"
           >
             💬
@@ -66,7 +88,7 @@ export function ActionFooter({
                 ? 'Finalize a anotação do 2º saque antes de editar o placar'
                 : 'Corrigir placar'
             }
-            className="min-h-[40px] min-w-[40px] flex items-center justify-center bg-telemetry-elevated border border-white/10 p-2 rounded-lg hover:bg-telemetry-active active:scale-[0.97] disabled:opacity-40 transition-all"
+            className="min-h-[38px] min-w-[38px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center bg-telemetry-elevated border border-white/10 p-1.5 sm:p-2 rounded-lg hover:bg-telemetry-active active:scale-[0.97] disabled:opacity-40 transition-all text-sm"
           >
             ✏️<span className="sr-only">Corrigir</span>
           </button>
@@ -74,7 +96,7 @@ export function ActionFooter({
         {onStats && (
           <button
             onClick={onStats}
-            className="min-h-[40px] min-w-[40px] flex items-center justify-center bg-telemetry-elevated border border-white/10 p-2 rounded-lg hover:bg-telemetry-active active:scale-[0.97] transition-all"
+            className="min-h-[38px] min-w-[38px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center bg-telemetry-elevated border border-white/10 p-1.5 sm:p-2 rounded-lg hover:bg-telemetry-active active:scale-[0.97] transition-all text-sm"
             aria-label="Ver estatísticas"
           >
             📊

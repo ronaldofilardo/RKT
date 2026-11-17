@@ -5,13 +5,14 @@ import type {
 import type { Vencedor } from './point-details.types';
 
 export function getTipoOptions(vencedor: Vencedor, situacao: RallySituacao): RallyTipo[] {
+  if (situacao === 'saque') return ['erro_nao_forcado', 'erro_forcado'];
   if (vencedor === 'sacador' && situacao === 'devolucao') return ['erro_nao_forcado', 'erro_forcado'];
   if (vencedor === 'devolvedor' && situacao === 'devolucao') return ['winner'];
   return ['erro_nao_forcado', 'erro_forcado', 'winner'];
 }
 
 export function getGolpeOptions(_vencedor: Vencedor, situacao: RallySituacao, tipo: RallyTipo): RallyGolpe[] {
-  if (situacao === 'fundo' || situacao === 'devolucao') return ['fh', 'bh'];
+  if (situacao === 'fundo' || situacao === 'devolucao' || situacao === 'saque') return ['fh', 'bh'];
   if (situacao === 'passada') {
     if (tipo === 'winner') return ['fh', 'bh'];
     return ['vfh', 'vbh', 'smash', 'approach_fh', 'approach_bh'];
@@ -86,6 +87,7 @@ export function getGolpeEspOptions(
     }
   }
   if (efeito === 'topspin') {
+    if (situacao === 'saque') return ['lob'];
     if (vencedor === 'devolvedor' && situacao === 'fundo') return [];
     if (tipo === 'winner') return ['lob'];
     if (vencedor === 'sacador' && situacao === 'rede') return ['lob'];

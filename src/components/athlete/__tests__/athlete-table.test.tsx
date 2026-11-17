@@ -39,7 +39,7 @@ describe('AthleteTable — colunas padrão (gestor e treinador)', () => {
     const headers = Array.from(document.querySelectorAll('thead th')).map((th) => th.textContent);
 
     expect(headers).toEqual([
-      'Nome', 'Nickname', 'CPF', 'Gênero', 'Data de nascimento',
+      'Nome', 'Nickname', 'CPF', 'Gênero', 'Datas',
       'Idade', 'Rankings', 'Status', 'Ações',
     ]);
   });
@@ -49,7 +49,7 @@ describe('AthleteTable — colunas padrão (gestor e treinador)', () => {
     const headers = Array.from(document.querySelectorAll('thead th')).map((th) => th.textContent);
 
     expect(headers).toEqual([
-      'Nome', 'Origem', 'Nickname', 'CPF', 'Gênero', 'Data de nascimento',
+      'Nome', 'Origem', 'Nickname', 'CPF', 'Gênero', 'Datas',
       'Idade', 'Rankings', 'Status', 'Ações',
     ]);
     expect(screen.getByText('Pinheiros - SP')).toBeInTheDocument();
@@ -85,5 +85,13 @@ describe('AthleteTable — colunas padrão (gestor e treinador)', () => {
 
     expect(screen.getByText('CBT #5 (17-18)')).toBeInTheDocument();
     expect(screen.getByText('Ativo')).toBeInTheDocument();
+  });
+
+  it('renderiza os rótulos nascimento e cadastro na coluna Datas', () => {
+    renderTable({ createdAt: '2026-11-17T10:00:00Z' });
+    expect(screen.getByText('nascimento')).toBeInTheDocument();
+    expect(screen.getByText('01/10/2009')).toBeInTheDocument();
+    expect(screen.getByText('cadastro')).toBeInTheDocument();
+    expect(screen.getByText('17/11/2026')).toBeInTheDocument();
   });
 });

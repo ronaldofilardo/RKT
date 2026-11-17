@@ -13,6 +13,7 @@ export function rankingsStateToPayload(
       if (s.category) entry.category = s.category;
       if (s.class) entry.class = s.class;
       if (s.juvenilePosition) entry.juvenilePosition = parseInt(s.juvenilePosition);
+      if (s.rankingDate) entry.rankingDate = s.rankingDate;
       payload[type] = entry;
     }
   }

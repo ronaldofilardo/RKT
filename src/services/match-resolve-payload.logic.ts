@@ -10,6 +10,7 @@ export interface TemplateRecord extends TemplateLike {
   isPublicTemplate: boolean;
   createdByUserId: string | null;
   assignedCoachId: string | null;
+  assignedCoaches?: Array<{ coachId: string }> | null;
   ctId: string | null;
 }
 
@@ -35,7 +36,10 @@ export function buildDerivedAnnotationData(
   actor: Actor,
   ctId?: string | null,
 ) {
-  const isOfficial = Boolean(template.assignedCoachId && template.assignedCoachId === actor.userId);
+  const isOfficial = Boolean(
+    (template.assignedCoachId && template.assignedCoachId === actor.userId) ||
+    (Array.isArray(template.assignedCoaches) && template.assignedCoaches.some((ac) => ac.coachId === actor.userId))
+  );
   const payload = buildAnnotationInput({
     ...template,
     isOfficialClubAnnotation: isOfficial,

@@ -20,10 +20,14 @@ function templateToSource(m: ClubMatchItem): NonNullable<ClubMatchItem['sourceMa
     scheduledAt: null,
     format: m.format,
     eventScope: m.eventScope,
+    matchType: m.matchType,
     assignedCoachId: m.assignedCoachId,
     assignedCoach: m.assignedCoach,
+    assignedCoaches: m.assignedCoaches,
     player1: { name: m.player1.name },
     player2: { name: m.player2.name },
+    player1Partner: m.player1Partner ? { name: m.player1Partner.name } : null,
+    player2Partner: m.player2Partner ? { name: m.player2Partner.name } : null,
   };
 }
 

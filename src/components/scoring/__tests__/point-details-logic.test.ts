@@ -304,9 +304,9 @@ describe('point-details-logic', () => {
   });
 
   describe('labels e options', () => {
-    it('SITUACAO_OPTIONS deve ter 4 opcoes', () => {
-      expect(SITUACAO_OPTIONS).toHaveLength(4);
-      expect(SITUACAO_OPTIONS.map(o => o.value)).toEqual(['devolucao', 'fundo', 'passada', 'rede']);
+    it('SITUACAO_OPTIONS deve conter opcoes incluindo saque', () => {
+      expect(SITUACAO_OPTIONS).toHaveLength(5);
+      expect(SITUACAO_OPTIONS.map(o => o.value)).toEqual(['saque', 'devolucao', 'fundo', 'passada', 'rede']);
     });
 
     it('TIPO_LABELS deve mapear todos os tipos', () => {
@@ -354,6 +354,26 @@ describe('point-details-logic', () => {
       expect(GOLPE_ESP_LABELS.drop_shot).toBe('Drop Shot');
       expect(GOLPE_ESP_LABELS.bate_pronto).toBe('Bate-pronto');
       expect(GOLPE_ESP_LABELS.swing_volley).toBe('Swing Volley');
+    });
+  });
+
+  describe('situacao saque (vencedor sacando / erro do devolvedor)', () => {
+    it('getTipoOptions retorna apenas erros', () => {
+      expect(getTipoOptions('sacador', 'saque')).toEqual(['erro_nao_forcado', 'erro_forcado']);
+    });
+
+    it('getGolpeOptions retorna fh e bh', () => {
+      expect(getGolpeOptions('sacador', 'saque', 'erro_forcado')).toEqual(['fh', 'bh']);
+      expect(getGolpeOptions('sacador', 'saque', 'erro_nao_forcado')).toEqual(['fh', 'bh']);
+    });
+
+    it('shouldShowDuracao retorna false', () => {
+      expect(shouldShowDuracao('saque', 'fh')).toBe(false);
+      expect(shouldShowDuracao('saque', 'bh')).toBe(false);
+    });
+
+    it('getGolpeEspOptions suprime bate_pronto em topspin', () => {
+      expect(getGolpeEspOptions('fh', 'topspin', 'sacador', 'saque', 'erro_forcado', null, 'cruzada')).toEqual(['lob']);
     });
   });
 });

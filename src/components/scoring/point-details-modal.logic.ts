@@ -33,6 +33,7 @@ export function buildRallyDetails(
     return null;
   }
   const isDevolucao = form.situacao === "devolucao";
+  const isSaque = form.situacao === "saque";
   const trimmed = noteText.trim();
   const textNote = trimmed || undefined;
   const options = toCleanRallyOptions(form);
@@ -43,7 +44,8 @@ export function buildRallyDetails(
     tipo: form.tipo,
     golpe: form.golpe,
     ...options,
-    previewBalls: isDevolucao ? 2 : 1,
+    ...(isSaque ? { duracao: 'opcao_1' as const } : {}),
+    previewBalls: isSaque ? 1 : (isDevolucao ? 2 : 1),
     note: textNote,
     ...(form.hitterId ? { hitterId: form.hitterId } : {}),
     ...(form.receiverId ? { receiverId: form.receiverId } : {}),

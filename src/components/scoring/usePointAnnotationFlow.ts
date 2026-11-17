@@ -3,7 +3,7 @@
 import { useCallback, useState } from 'react';
 
 export type HowPointEnded = 'ACE' | 'SERVE_FAULT' | 'WINNER' | 'ERRO_FORCADO' | 'ERRO_NAO_FORCADO';
-export type WhereWinner = 'devolvendo' | 'fundo' | 'voleio' | 'passando';
+export type WhereWinner = 'devolvendo' | 'sacando' | 'fundo' | 'voleio' | 'passando';
 
 export type AnnotationStep =
   | 'how-ended'

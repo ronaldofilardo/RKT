@@ -15,8 +15,9 @@ import { EditAthleteModal } from '@/app/atletas/EditAthleteModal';
 import { playersClient } from '@/services/playersClient';
 import { DashboardHeader } from './dashboard-header';
 import { IndicarAnotadorModal } from './indicar-anotador-modal';
+import { EditMatchInfoModal } from '@/components/dashboard/EditMatchInfoModal';
 import { DashboardChrome } from '@/app/dashboard/components/DashboardChrome';
-import { requestDeleteMatch, requestAnnotateMatch } from './gestor-match-actions.logic';
+import { requestDeleteMatch, requestAnnotateMatch, clubMatchToDashboardPayload } from './gestor-match-actions.logic';
 import { useGestorDashboardData } from './use-gestor-dashboard-data';
 
 interface GestorDashboardProps {
@@ -39,6 +40,7 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
   const [cadastroType, setCadastroType] = useState<MemberType>('TREINADOR');
   const [newAthleteOpen, setNewAthleteOpen] = useState(false);
   const [matchToAssign, setMatchToAssign] = useState<ClubMatchItem | null>(null);
+  const [matchToEdit, setMatchToEdit] = useState<ClubMatchItem | null>(null);
 
   const gestorCtId = me.memberships.find((m) => m.kind === 'GESTOR' && m.status === 'ACTIVE')?.ctId
     ?? me.memberships.find((m) => m.kind === 'GESTOR')?.ctId ?? null;
@@ -56,7 +58,7 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
           coachesCount={coaches.length}
           athletesCount={athletes.length}
           affiliatesCount={affiliates.length}
-          matchesCount={matches.length}
+          matchesCount={matches.length + externalMatches.length}
         />
         <div className="space-y-6">
           {tab === 'coaches' && <CoachesTable coaches={coaches} selectedIds={coachSelected} onSelectChange={(id, chk) => setCoachSelected((p) => chk ? [...p, id] : p.filter((x) => x !== id))} onSelectAll={(chk) => setCoachSelected(chk ? coaches.map((c) => c.user.id) : [])} onCreateCoach={() => { setCadastroType('TREINADOR'); setCadastroOpen(true); }} onRefresh={fetchCoachesData} />}
@@ -65,9 +67,10 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
           {tab === 'matches' && (
             <ClubMatchesTable
               matches={matches} externalMatches={externalMatches} currentUserId={me.user.id}
-              onCreateMatch={() => router.push(toAreaPath('/match/new') as any)} onAssignCoach={setMatchToAssign}
+              onCreateMatch={() => router.push(toAreaPath('/match/new?from=gestor') as any)} onAssignCoach={setMatchToAssign}
               onDeleteMatch={async (m) => { const ok = await requestDeleteMatch(m); if (ok) fetchMatchesData(); }}
               onAnnotateMatch={(m) => requestAnnotateMatch(m, (path) => router.push(toAreaPath(path) as any))}
+              onEditMatchInfo={setMatchToEdit}
             />
           )}
           {tab === 'club' && <ClubInfo />}
@@ -83,6 +86,16 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
           }}
         />
         <IndicarAnotadorModal open={Boolean(matchToAssign)} onOpenChange={(op) => !op && setMatchToAssign(null)} match={matchToAssign} coaches={coaches} onSuccess={fetchMatchesData} />
+        {matchToEdit && (
+          <EditMatchInfoModal
+            match={clubMatchToDashboardPayload(matchToEdit)}
+            onClose={() => setMatchToEdit(null)}
+            onSuccess={() => {
+              setMatchToEdit(null);
+              fetchMatchesData();
+            }}
+          />
+        )}
       </div>
     </div>
   );

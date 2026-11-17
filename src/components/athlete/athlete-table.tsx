@@ -45,7 +45,7 @@ export function AthleteTable({
             <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Nickname</th>
             <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">CPF</th>
             <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Gênero</th>
-            <th className="px-3 pb-4 pt-4 text-sm font-bold text-telemetry-volt">Data de nascimento</th>
+            <th className="px-3 pb-4 pt-4 text-sm font-bold text-telemetry-volt">Datas</th>
             <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Idade</th>
             <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Rankings</th>
             <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Status</th>

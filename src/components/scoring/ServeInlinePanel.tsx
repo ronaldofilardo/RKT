@@ -17,7 +17,7 @@ function confirmLabel(action: ServeAction, step: ServeStepName): string {
   return step === 'first' ? 'Registrar e Continuar' : 'Registrar Dupla Falta';
 }
 
-const actionBtn = 'rounded-xl font-bold text-[clamp(11px,1.7dvh,14px)] leading-tight px-1 min-h-[clamp(34px,5.4dvh,48px)] transition-all disabled:opacity-40';
+const actionBtn = 'rounded-xl font-bold text-[clamp(10px,1.4dvh,13px)] leading-tight px-1 min-h-[clamp(28px,4.2dvh,40px)] transition-all disabled:opacity-40';
 
 /** Substitui o antigo ServerEffectModal: expande no lugar, dentro da coluna do sacador. */
 export function ServeInlinePanel({ action, step, disabled, onConfirm, onCancel }: ServeInlinePanelProps) {
@@ -30,7 +30,7 @@ export function ServeInlinePanel({ action, step, disabled, onConfirm, onCancel }
     <div
       role="group"
       aria-label={isFault ? 'Detalhes do erro de saque' : 'Detalhes do ace'}
-      className="flex-shrink-0 flex flex-col gap-[clamp(4px,1dvh,10px)] p-[clamp(6px,1.2dvh,12px)] rounded-xl bg-telemetry-card border border-white/10 border-t-4 animate-[fadeInSlideUp_0.2s_ease-out]"
+      className="flex-shrink-0 flex flex-col gap-[clamp(3px,0.8dvh,8px)] p-[clamp(5px,1dvh,10px)] max-h-[48dvh] overflow-y-auto rounded-xl bg-telemetry-card border border-white/10 border-t-4 animate-[fadeInSlideUp_0.2s_ease-out]"
       style={{ borderTopColor: accent }}
     >
       <Section label={`Efeito${suffix}`}>

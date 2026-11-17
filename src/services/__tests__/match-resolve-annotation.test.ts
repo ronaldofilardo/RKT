@@ -261,5 +261,66 @@ describe('resolveOrCreateAnnotation (isolamento por anotador)', () => {
     const res = await resolveOrCreateAnnotation('any-match', admin, 'resolve');
     expect(res).toMatchObject({ matchId: 'ann-admin', created: true });
   });
+
+  it('dois treinadores designados para o mesmo template criam anotações oficiais distintas e soberanas (timelines isoladas)', async () => {
+    const multiCoachTemplate = {
+      ...baseTemplate,
+      id: 'template-multi-coach',
+      assignedCoachId: 'coach-1',
+      assignedCoaches: [
+        { coachId: 'coach-1', coach: { id: 'coach-1', name: 'Treinador Um', email: 'c1@x.com' } },
+        { coachId: 'coach-2', coach: { id: 'coach-2', name: 'Treinador Dois', email: 'c2@x.com' } },
+      ],
+    };
+
+    // Coach 1 anota
+    mockFindFirst
+      .mockResolvedValueOnce(multiCoachTemplate) // find template
+      .mockResolvedValueOnce(null);              // find existing annotation by coach-1
+    mockCreate.mockResolvedValueOnce({ id: 'ann-coach-1', state: 'IN_PROGRESS' });
+
+    const coach1 = makeActor({
+      userId: 'coach-1',
+      memberships: [{ kind: 'TREINADOR', ctId: 'ct-1', status: 'ACTIVE' }],
+    });
+
+    const res1 = await resolveOrCreateAnnotation('template-multi-coach', coach1, 'resolve', 'ct-1');
+    expect(res1).toMatchObject({ matchId: 'ann-coach-1', created: true });
+    expect(mockCreate).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          sourceMatchId: 'template-multi-coach',
+          createdByUserId: 'coach-1',
+          isOfficialClubAnnotation: true,
+        }),
+      }),
+    );
+
+    // Coach 2 anota o mesmo template (linha do tempo separada)
+    mockFindFirst
+      .mockResolvedValueOnce(multiCoachTemplate) // find template
+      .mockResolvedValueOnce(null);              // find existing annotation by coach-2
+    mockCreate.mockResolvedValueOnce({ id: 'ann-coach-2', state: 'SCHEDULED' });
+
+    const coach2 = makeActor({
+      userId: 'coach-2',
+      memberships: [{ kind: 'TREINADOR', ctId: 'ct-1', status: 'ACTIVE' }],
+    });
+
+    const res2 = await resolveOrCreateAnnotation('template-multi-coach', coach2, 'resolve', 'ct-1');
+    expect(res2).toMatchObject({ matchId: 'ann-coach-2', created: true });
+    expect(mockCreate).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          sourceMatchId: 'template-multi-coach',
+          createdByUserId: 'coach-2',
+          isOfficialClubAnnotation: true,
+        }),
+      }),
+    );
+
+    // As duas anotações têm IDs distintos (ann-coach-1 !== ann-coach-2), garantindo pontuação e timeline 100% independentes
+    expect(res1.matchId).not.toBe(res2.matchId);
+  });
 });
 

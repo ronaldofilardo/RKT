@@ -28,9 +28,12 @@ async function queryClubMatches(ctId: string, clubUserIds: string[], clubPlayerI
     creatorRoleLabel: resolveCreatorRoleLabel(m.createdByUser),
     player1: m.player1 ? { ...m.player1, isClubAthlete: clubPlayerIds.includes(m.player1.id) } : m.player1,
     player2: m.player2 ? { ...m.player2, isClubAthlete: clubPlayerIds.includes(m.player2.id) } : m.player2,
+    player1Partner: m.player1Partner ? { ...m.player1Partner, isClubAthlete: clubPlayerIds.includes(m.player1Partner.id) } : (m.player1Partner ?? null),
+    player2Partner: m.player2Partner ? { ...m.player2Partner, isClubAthlete: clubPlayerIds.includes(m.player2Partner.id) } : (m.player2Partner ?? null),
     isDesignatedAnnotator: Boolean(
       m.isOfficialClubAnnotation ||
-      (m.sourceMatch?.assignedCoachId && m.createdByUserId === m.sourceMatch.assignedCoachId),
+      (m.sourceMatch?.assignedCoachId && m.createdByUserId === m.sourceMatch.assignedCoachId) ||
+      (Array.isArray((m.sourceMatch as any)?.assignedCoaches) && (m.sourceMatch as any).assignedCoaches.some((ac: any) => ac.coach?.id === m.createdByUserId)),
     ),
   }));
 }

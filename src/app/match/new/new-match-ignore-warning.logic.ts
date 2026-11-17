@@ -23,6 +23,29 @@ export function notifyTemplateCreated(toast: ToastFn): void {
   });
 }
 
+export function resolvePostMatchRedirect(
+  toAreaPath?: ((path: string) => string) | null,
+  isTemplate = false,
+): string {
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    const isFromGestor =
+      params.get('from') === 'gestor' ||
+      sessionStorage.getItem('user_role') === 'GESTOR' ||
+      document.cookie.includes('user_role=GESTOR');
+
+    if (isFromGestor) {
+      return '/gestor?tab=matches';
+    }
+  }
+
+  if (isTemplate) {
+    return toAreaPath ? toAreaPath('/historico') : '/historico';
+  }
+
+  return toAreaPath ? toAreaPath('/dashboard') : '/dashboard';
+}
+
 export async function createMatchIgnoringWarning(
   state: NewMatchState,
   router: RouterLike,
@@ -38,12 +61,12 @@ export async function createMatchIgnoringWarning(
     if (!response.ok) throw new Error(match.message || 'Erro ao criar partida');
     if (state.pendingPayload.isTemplate === true) {
       notifyTemplateCreated(toast);
-      router.push('/historico');
+      router.push(resolvePostMatchRedirect(null, true));
       return;
     }
     const isScheduled = isMatchScheduledForFuture(state.date, state.time);
     notifyMatchCreated(isScheduled, toast);
-    router.push('/dashboard');
+    router.push(resolvePostMatchRedirect(null, false));
   } catch (err) {
     logger.error('[createMatchIgnoringWarning] Error:', err);
     state.setError('Erro ao criar partida');

@@ -13,6 +13,7 @@ export function toAthleteListRow(a: Athlete): AthleteTableRowData {
     cpfLast2: a.cpfLast2,
     gender: a.gender,
     birthDate: a.birthDate,
+    createdAt: a.createdAt,
     age: a.age,
     rankings: a.rankings,
     origin: formatProvenance(a.club, a.state),

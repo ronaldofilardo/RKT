@@ -62,6 +62,7 @@ export function PointAnnotationBars({
       <WhereWinnerBar
         selected={whereWinner}
         disabled={whereWinnerDisabled}
+        howEnded={howEnded}
         onSelect={onSelectWhereWinner}
         onBack={onBack}
       />

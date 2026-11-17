@@ -54,14 +54,14 @@ export function ScoreboardPlayerRow({
     <tr className="text-xs">
       <td
         title={provenance ? `${displayNameValue} (${provenance})` : displayNameValue}
-        className={`text-left py-1 px-2 font-bold tracking-wide truncate max-w-full${nameBorder} ${nameBg}`}
+        className={`text-left py-0.5 px-1.5 sm:px-2 font-bold tracking-wide truncate max-w-full${nameBorder} ${nameBg}`}
       >
         {displayNameValue}
         {provenance && (
           <span className="ml-1 text-[10px] font-normal opacity-75">({provenance})</span>
         )}
       </td>
-      <td className={`text-center py-1 bg-telemetry-card ${statusBorder} text-xs`}>
+      <td className={`text-center py-0.5 bg-telemetry-card ${statusBorder} text-xs`}>
         {isWinner ? (
           <span className="text-telemetry-volt font-bold text-sm">✓</span>
         ) : isServing ? (
@@ -76,7 +76,7 @@ export function ScoreboardPlayerRow({
         return (
           <td
             key={i}
-            className={`text-center px-1 py-1 text-sm font-space-grotesk font-semibold border-l border-b border-telemetry-border/10 ${style}`}
+            className={`text-center px-0.5 sm:px-1 py-0.5 text-sm font-space-grotesk font-semibold border-l border-b border-telemetry-border/10 ${style}`}
           >
             {renderSetScore(set, side)}
           </td>

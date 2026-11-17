@@ -12,7 +12,7 @@ jest.mock('@/lib/prisma', () => {
   return {
     prisma: {
       match: { findUnique: jest.fn() },
-      membership: { findFirst: jest.fn() },
+      membership: { findFirst: jest.fn(), findMany: jest.fn() },
       $transaction: jest.fn((cb: any) => cb(txMock)),
       __txMock: txMock,
     },
@@ -54,6 +54,7 @@ describe('POST /api/gestor/matches/[id]/assign', () => {
       ctId: 'ct-1',
       status: 'ACTIVE',
     });
+    mockPrisma.membership.findMany.mockResolvedValue([{ userId: 'coach-1' }]);
     txMock.match.update.mockResolvedValue({
       id: 'm-1',
       assignedCoachId: 'coach-1',
@@ -69,7 +70,7 @@ describe('POST /api/gestor/matches/[id]/assign', () => {
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(json).toEqual({ matchId: 'm-1', assignedCoachId: 'coach-1' });
+    expect(json).toMatchObject({ matchId: 'm-1', assignedCoachId: 'coach-1' });
     expect(txMock.match.update).toHaveBeenCalledWith({
       where: { id: 'm-1' },
       data: { assignedCoachId: 'coach-1' },
@@ -95,6 +96,7 @@ describe('POST /api/gestor/matches/[id]/assign', () => {
       ctId: 'ct-1',
     });
     mockPrisma.membership.findFirst.mockResolvedValue(null);
+    mockPrisma.membership.findMany.mockResolvedValue([]);
 
     const req = new NextRequest('http://localhost:3000/api/gestor/matches/m-1/assign', {
       method: 'POST',

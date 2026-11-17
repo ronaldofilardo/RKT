@@ -23,7 +23,11 @@ export async function canResolveTargetMatch(target: TemplateRecord, actor: Actor
   if (actor.memberships.some((m) => m.kind === 'PLATAFORMA' && m.preset === 'ADMIN' && m.status === 'ACTIVE')) {
     return true;
   }
-  if (target.createdByUserId === actor.userId || target.assignedCoachId === actor.userId) {
+  if (
+    target.createdByUserId === actor.userId ||
+    target.assignedCoachId === actor.userId ||
+    (Array.isArray(target.assignedCoaches) && target.assignedCoaches.some((ac) => ac.coachId === actor.userId))
+  ) {
     return true;
   }
 

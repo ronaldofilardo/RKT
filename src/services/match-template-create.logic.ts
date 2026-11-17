@@ -63,6 +63,9 @@ export async function createAnnotationFromTemplate(
 ) {
   const template = await prisma.match.findFirst({
     where: { id: templateId, deletedAt: null, OR: [{ isPublicTemplate: true }, { isTemplate: true }] },
+    include: {
+      assignedCoaches: { select: { coachId: true } },
+    },
   });
   if (!template) throw new NotFoundError('MatchTemplate', templateId);
 
@@ -74,7 +77,10 @@ export async function createAnnotationFromTemplate(
     throw new ConflictError('Você já está anotando esta partida', { code: 'ALREADY_ANNOTATING', matchId: existing.id });
   }
 
-  const isOfficial = Boolean(template.assignedCoachId && template.assignedCoachId === actorUserId);
+  const isOfficial = Boolean(
+    (template.assignedCoachId && template.assignedCoachId === actorUserId) ||
+    ((template as any).assignedCoaches?.some((ac: any) => ac.coachId === actorUserId))
+  );
   const payload = buildAnnotationInput({
     ...template,
     eventScope: template.eventScope ?? 'PUBLIC',

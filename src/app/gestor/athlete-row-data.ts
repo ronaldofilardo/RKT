@@ -14,6 +14,7 @@ export function toAthleteTableRow(item: AthleteItem): AthleteTableRowData {
     cpfLast2: p.cpfLast2,
     gender: p.gender,
     birthDate: p.birthDate,
+    createdAt: p.createdAt ? (typeof p.createdAt === 'string' ? p.createdAt : new Date(p.createdAt).toISOString()) : null,
     age: p.age,
     rankings: p.rankings,
     status: athleteStatusOf(p.user),

@@ -19,6 +19,7 @@ export async function getGestorAthletesList(ctId: string) {
           backhand: true,
           rankings: true,
           guardianGate: true,
+          createdAt: true,
           guardianLinks: {
             where: { status: 'ACTIVE', revokedAt: null },
             select: {

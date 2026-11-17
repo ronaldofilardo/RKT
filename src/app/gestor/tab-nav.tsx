@@ -29,24 +29,33 @@ export function TabNav({
 
   return (
     <div className="flex gap-2 mb-4 border-b border-telemetry-border/20 pb-2 overflow-x-auto">
-      {tabs.map((t) => (
-        <button
-          key={t.key}
-          onClick={() => onTabChange(t.key)}
-          className={`px-3 py-2 text-sm font-medium border-b-2 flex items-center gap-1.5 whitespace-nowrap transition-colors ${
-            tab === t.key
-              ? 'border-telemetry-blue text-telemetry-blue font-semibold'
-              : 'border-transparent text-telemetry-text-muted hover:text-telemetry-text-primary'
-          }`}
-        >
-          {t.label}
-          {typeof t.badge === 'number' && t.badge >= 0 && (
-            <span className="bg-telemetry-blue/20 text-telemetry-blue text-xs px-1.5 py-0.5 rounded-full font-bold">
-              {t.badge}
-            </span>
-          )}
-        </button>
-      ))}
+      {tabs.map((t) => {
+        const isActive = tab === t.key;
+        return (
+          <button
+            key={t.key}
+            onClick={() => onTabChange(t.key)}
+            className={`px-3 py-2 text-sm font-medium border-b-2 flex items-center gap-1.5 whitespace-nowrap transition-colors ${
+              isActive
+                ? 'border-telemetry-blue-light text-white font-semibold'
+                : 'border-transparent text-telemetry-text-muted hover:text-telemetry-text-primary'
+            }`}
+          >
+            {t.label}
+            {typeof t.badge === 'number' && t.badge >= 0 && (
+              <span
+                className={`text-xs px-1.5 py-0.5 rounded-full font-bold transition-colors ${
+                  isActive
+                    ? 'bg-telemetry-blue/40 text-telemetry-blue-light border border-telemetry-blue-light/30'
+                    : 'bg-telemetry-border/10 text-telemetry-text-muted'
+                }`}
+              >
+                {t.badge}
+              </span>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }

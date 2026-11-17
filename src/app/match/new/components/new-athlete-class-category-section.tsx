@@ -1,5 +1,5 @@
 import { computeClassesForType } from '@/app/atletas/rankingLogic';
-import { getMatchCategoriesForAge, MATCH_CATEGORY_LABELS, MATCH_CATEGORY_AGE_LABELS } from '@/lib/ranking/rankingConstants';
+import { getOfficialCategoryForAge } from '@/lib/ranking/rankingConstants';
 import { fieldIds, type NewAthleteModalFormProps } from './new-athlete-modal-form.types';
 
 type NewAthleteClassCategorySectionProps = Pick<
@@ -38,19 +38,20 @@ export function NewAthleteClassCategorySection({
         <h3 className="text-sm font-semibold text-telemetry-text-primary mb-2">Categoria por idade</h3>
         {age === null ? (
           <p className="text-xs text-telemetry-text-muted italic">Preencha a data de nascimento para identificar a categoria.</p>
-        ) : age < 11 || age > 90 ? (
+        ) : !getOfficialCategoryForAge(age) ? (
           <p className="text-xs text-telemetry-text-muted italic">Sem categoria etária disponível para a idade atual ({age} anos).</p>
-        ) : (
-          <div className="space-y-1.5">
-            {getMatchCategoriesForAge(age).map((category) => (
-              <div key={category} className="flex items-center text-sm">
-                <span className="font-medium text-telemetry-text-primary">{MATCH_CATEGORY_LABELS[category]}</span>
+        ) : (() => {
+          const cat = getOfficialCategoryForAge(age)!;
+          return (
+            <div className="space-y-1.5">
+              <div className="flex items-center text-sm">
+                <span className="font-medium text-telemetry-text-primary">{cat.label}</span>
                 <span className="text-telemetry-blue px-2">·</span>
-                <span className="text-telemetry-text-primary">{MATCH_CATEGORY_AGE_LABELS[category]}</span>
+                <span className="text-telemetry-text-primary">{cat.ageLabel}</span>
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          );
+        })()}
         </div>
       </div>
     </div>

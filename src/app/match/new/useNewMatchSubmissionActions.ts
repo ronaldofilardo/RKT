@@ -8,7 +8,7 @@ import { saveOfflineIfNeeded } from './offline-match.logic';
 import { submitOnlineMatch } from './online-match-submit.logic';
 import { isMatchScheduledForFuture } from './schedule-check.logic';
 import { getMissingFields } from './new-match-validate-fields.logic';
-import { createMatchIgnoringWarning, notifyMatchCreated, notifyTemplateCreated } from './new-match-ignore-warning.logic';
+import { createMatchIgnoringWarning, notifyMatchCreated, notifyTemplateCreated, resolvePostMatchRedirect } from './new-match-ignore-warning.logic';
 import { useAreaPath } from '@/hooks/use-area-path';
 
 export function useNewMatchSubmissionActions(
@@ -49,7 +49,7 @@ export function useNewMatchSubmissionActions(
     const payload = buildPayload();
     if (await saveOfflineIfNeeded(navigator.onLine, payload)) {
       toast({ type: 'success', message: 'Partida salva localmente. Será enviada ao reconectar.' });
-      router.push(toAreaPath('/dashboard') as any);
+      router.push(resolvePostMatchRedirect(toAreaPath, false) as any);
       return;
     }
     state.setLoading(true);
@@ -63,11 +63,11 @@ export function useNewMatchSubmissionActions(
       }
       if (payload.isTemplate) {
         notifyTemplateCreated(toast);
-        router.push(toAreaPath('/historico') as any);
+        router.push(resolvePostMatchRedirect(toAreaPath, true) as any);
         return;
       }
       notifyMatchCreated(isMatchScheduledForFuture(state.date, state.time), toast);
-      router.push(toAreaPath('/dashboard') as any);
+      router.push(resolvePostMatchRedirect(toAreaPath, false) as any);
     } catch {
       state.setError('Erro ao criar partida');
       toast({ type: 'error', message: 'Erro ao criar partida' });

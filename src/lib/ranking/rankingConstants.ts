@@ -11,7 +11,7 @@ export { RANKING_TYPES, RANKING_TYPE_LABELS } from './ranking-types';
 export type { RankingType } from './ranking-types';
 export { YOUTH_CATEGORIES, isYouthCategory, hasCategories, hasClasses, getCategoriesForAge, getAllowedCategoriesForAge, getAutoCategoryForAge } from './ranking-category-logic';
 
-export { MATCH_CATEGORY_LABELS, MATCH_CATEGORY_AGE_LABELS, getMatchCategoriesForAge, isRankingTypeAllowedForProfile, isRankingCategoryAllowed, getAvailableRankingTypes } from './ranking-eligibility-logic';
+export { MATCH_CATEGORY_LABELS, MATCH_CATEGORY_AGE_LABELS, getMatchCategoriesForAge, getOfficialCategoryForAge, type OfficialCategoryInfo, isRankingTypeAllowedForProfile, isRankingCategoryAllowed, getAvailableRankingTypes } from './ranking-eligibility-logic';
 
 export { getClassesForSelection } from './ranking-class-logic';
 

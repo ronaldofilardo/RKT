@@ -79,7 +79,7 @@ describe('RankingForm — regressões reais de layout e interação', () => {
     expect(onRankingFieldChange).toHaveBeenNthCalledWith(2, 'ESTADUAL', 'position', '35');
   });
 
-  it('adulto sem categoria: Classe + Posição juntas na linha 1 e sem linha 2', () => {
+  it('adulto sem categoria: Classe + Posição juntas na linha 1 e Data do Ranking na linha 2', () => {
     const rankings = createRankings();
     rankings.ESTADUAL.enabled = true;
 
@@ -96,14 +96,15 @@ describe('RankingForm — regressões reais de layout e interação', () => {
     );
 
     const rows = container.querySelectorAll('.grid.grid-cols-2');
-    expect(rows).toHaveLength(1);
+    expect(rows).toHaveLength(2);
     expect(rows[0]).toContainElement(screen.getByLabelText('Classe'));
     expect(rows[0]).toContainElement(screen.getByLabelText('Posição'));
+    expect(rows[1]).toContainElement(screen.getByLabelText('Data do Ranking'));
     expect(screen.queryByLabelText('Categoria')).not.toBeInTheDocument();
     expect(container.querySelector('.overflow-x-auto')).not.toBeInTheDocument();
   });
 
-  it('exibe Categoria+Posição na linha 1 e Classe+Posição Ranking Juvenil na linha 2 para atleta juvenil de 17 anos', () => {
+  it('exibe Categoria+Posição na linha 1, Classe+Data na linha 2 e Posição Ranking Juvenil na linha 3 para atleta juvenil de 17 anos', () => {
     const rankings = createRankings();
     rankings.ESTADUAL.enabled = true;
     rankings.ESTADUAL.category = '17-18';
@@ -124,26 +125,31 @@ describe('RankingForm — regressões reais de layout e interação', () => {
 
     const categorySelect = screen.getByLabelText('Categoria');
     const positionInput = screen.getByLabelText('Posição');
+    const dateInput = screen.getByLabelText('Data do Ranking');
     const juvenilePositionInput = screen.getByLabelText('Posição Ranking Juvenil');
     const removerButton = screen.getByRole('button', { name: 'Remover' });
 
     expect(categorySelect).toBeInTheDocument();
     expect(positionInput).toBeInTheDocument();
+    expect(dateInput).toBeInTheDocument();
     expect(juvenilePositionInput).toBeInTheDocument();
     expect(removerButton).toBeInTheDocument();
 
-    // Layout em 2 linhas (sem scroll horizontal): Categoria+Posição / Classe+Posição Juvenil.
     const rows = container.querySelectorAll('.grid.grid-cols-2');
-    expect(rows).toHaveLength(2);
+    expect(rows).toHaveLength(3);
     expect(rows[0]).toContainElement(categorySelect);
     expect(rows[0]).toContainElement(positionInput);
     expect(rows[1]).toContainElement(screen.getByLabelText('Classe'));
-    expect(rows[1]).toContainElement(juvenilePositionInput);
+    expect(rows[1]).toContainElement(dateInput);
+    expect(rows[2]).toContainElement(juvenilePositionInput);
     expect(container.querySelector('.overflow-x-auto')).not.toBeInTheDocument();
 
     // Interações de alteração dos campos
     fireEvent.change(positionInput, { target: { value: '115' } });
     expect(onRankingFieldChange).toHaveBeenCalledWith('ESTADUAL', 'position', '115');
+
+    fireEvent.change(dateInput, { target: { value: '2026-11-17' } });
+    expect(onRankingFieldChange).toHaveBeenCalledWith('ESTADUAL', 'rankingDate', '2026-11-17');
 
     fireEvent.change(juvenilePositionInput, { target: { value: '42' } });
     expect(onRankingFieldChange).toHaveBeenCalledWith('ESTADUAL', 'juvenilePosition', '42');

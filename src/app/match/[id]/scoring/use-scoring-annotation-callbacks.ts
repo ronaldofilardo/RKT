@@ -13,6 +13,7 @@ export function useScoringAnnotationCallbacks(
   disabled: boolean,
   serveStep: 'first' | 'second',
   onServeAction?: (action: 'ace' | 'out' | 'net') => void,
+  currentServer: 'player1' | 'player2' = 'player1',
 ) {
   const { flow, setStep, setHowEnded, setWhereWinner, setWinner, reset } = flowControls;
 
@@ -63,8 +64,22 @@ export function useScoringAnnotationCallbacks(
 
   const selectWhereWinner = useCallback((where: WhereWinner) => {
     setWhereWinner(where);
+    if (where === 'devolvendo') {
+      const receiver = currentServer === 'player1' ? 'player2' : 'player1';
+      setWinner(receiver);
+      setStep('details');
+      state.open('point-details', { winner: receiver });
+      return;
+    }
+    if (where === 'sacando') {
+      const server = currentServer;
+      setWinner(server);
+      setStep('details');
+      state.open('point-details', { winner: server });
+      return;
+    }
     setStep('select-winner');
-  }, [setStep, setWhereWinner]);
+  }, [currentServer, setStep, setWhereWinner, setWinner, state]);
 
   const selectWinnerFromCard = useCallback((side: 'player1' | 'player2') => {
     if (disabled || flow.step !== 'select-winner') return;

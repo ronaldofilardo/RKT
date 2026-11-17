@@ -20,11 +20,10 @@ export function SuporteTabNav({ module, onModuleChange }: SuporteTabNavProps) {
         <button
           key={t.key}
           onClick={() => onModuleChange(t.key)}
-          className={`px-3 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
-            module === t.key
-              ? 'border-telemetry-blue text-telemetry-blue font-semibold'
+          className={`px-3 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${module === t.key
+              ? 'border-telemetry-blue-light text-white font-semibold'
               : 'border-transparent text-telemetry-text-muted hover:text-telemetry-text-primary'
-          }`}
+            }`}
         >
           {t.label}
         </button>

@@ -41,6 +41,7 @@ export function useScoringAnnotationFlow(
     disabled,
     serveStep,
     options?.onServeAction,
+    derived.effectiveScoreState?.server,
   );
 
   return {

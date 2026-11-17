@@ -33,8 +33,8 @@ interface PlayAreaPlayersProps {
 /** Coluna de um jogador: card (encolhe primeiro) + controles de saque opcionais abaixo. */
 function PlayerColumn({ controls, children }: { controls?: ReactNode; children: ReactNode }) {
   return (
-    <div className="flex-1 min-w-0 min-h-0 flex flex-col gap-1">
-      <div className="flex-1 min-h-[96px] max-h-[180px] flex">{children}</div>
+    <div className="flex-1 min-w-0 min-h-0 flex flex-col gap-0.5 sm:gap-1">
+      <div className="flex-1 min-h-[64px] sm:min-h-[96px] max-h-[180px] flex">{children}</div>
       {controls}
     </div>
   );

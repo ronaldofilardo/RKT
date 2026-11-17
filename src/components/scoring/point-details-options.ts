@@ -10,6 +10,7 @@ import type {
 } from '@/core/scoring/types';
 
 export const SITUACAO_OPTIONS: { value: RallySituacao; label: string }[] = [
+  { value: 'saque', label: 'Saque' },
   { value: 'devolucao', label: 'Devolução de Saque' },
   { value: 'fundo', label: 'Fundo de Quadra' },
   { value: 'passada', label: 'Passada' },

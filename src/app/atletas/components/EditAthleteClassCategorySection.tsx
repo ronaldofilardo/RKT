@@ -1,9 +1,7 @@
 import React from 'react';
 import type { RankingType } from '@/lib/ranking/rankingConstants';
 import {
-  getMatchCategoriesForAge,
-  MATCH_CATEGORY_LABELS,
-  MATCH_CATEGORY_AGE_LABELS,
+  getOfficialCategoryForAge,
 } from '@/lib/ranking/rankingConstants';
 import { computeClassesForType } from '../rankingLogic';
 import type { AthleteForm } from '../types';
@@ -60,21 +58,22 @@ export function EditAthleteClassCategorySection({
             <p className="text-xs text-telemetry-text-muted italic">
               Preencha a data de nascimento para identificar a categoria.
             </p>
-          ) : age < 11 || age > 90 ? (
+          ) : !getOfficialCategoryForAge(age) ? (
             <p className="text-xs text-telemetry-text-muted italic">
               Sem categoria etária disponível para a idade atual ({age} anos).
             </p>
-          ) : (
-            <div className="space-y-1">
-              {getMatchCategoriesForAge(age).map((category) => (
-                <div key={category} className="flex items-center text-xs">
-                  <span className="font-medium text-telemetry-text-primary">{MATCH_CATEGORY_LABELS[category]}</span>
+          ) : (() => {
+            const cat = getOfficialCategoryForAge(age)!;
+            return (
+              <div className="space-y-1">
+                <div className="flex items-center text-xs">
+                  <span className="font-medium text-telemetry-text-primary">{cat.label}</span>
                   <span className="text-telemetry-blue px-2">·</span>
-                  <span className="text-telemetry-text-primary">{MATCH_CATEGORY_AGE_LABELS[category]}</span>
+                  <span className="text-telemetry-text-primary">{cat.ageLabel}</span>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>

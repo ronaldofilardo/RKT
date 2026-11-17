@@ -36,6 +36,7 @@ export interface AthleteItem {
     cpf: string;
     email: string | null;
     birthDate: string | null;
+    createdAt?: string | Date | null;
     age?: number | null;
     cpfLast2?: string | null;
     gender: string;

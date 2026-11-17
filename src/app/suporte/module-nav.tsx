@@ -22,7 +22,7 @@ export function ModuleNav({ module, onModuleChange }: ModuleNavProps) {
           onClick={() => onModuleChange(m.key)}
           className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
             module === m.key
-              ? 'border-telemetry-blue text-telemetry-blue font-semibold'
+              ? 'border-telemetry-blue-light text-white font-semibold'
               : 'border-transparent text-telemetry-text-muted hover:text-telemetry-text-primary'
           }`}
         >

@@ -18,6 +18,7 @@ export function AthleteTableRow({
   athlete: a, actions, selectable, showOrigin, selected, onSelect,
 }: AthleteTableRowProps) {
   const birthDateLabel = formatBirthDate(a.birthDate);
+  const createdDateLabel = formatBirthDate(a.createdAt);
   const age = computeAthleteAge(a.birthDate, a.age);
 
   return (
@@ -51,12 +52,22 @@ export function AthleteTableRow({
       </td>
       <td className="px-3 py-3 text-sm text-telemetry-text-primary font-mono text-xs">{formatAthleteCpf(a.cpf, a.cpfLast2)}</td>
       <td className="px-3 py-3 text-sm text-telemetry-text-primary">{genderLabel(a.gender)}</td>
-      <td className="px-3 py-3 text-sm">
-        {birthDateLabel ? <span className="text-telemetry-text-primary">{birthDateLabel}</span> : (
-          <span title="Data de nascimento não informada" className="px-2 py-0.5 rounded text-xs font-bold bg-telemetry-alert/20 text-telemetry-alert border border-telemetry-alert/40 whitespace-nowrap">
-            Informar data
-          </span>
-        )}
+      <td className="px-3 py-3 text-xs">
+        <div className="grid grid-cols-[auto_auto] gap-x-2.5 gap-y-1 text-xs items-center whitespace-nowrap">
+          <span className="text-[11px] text-telemetry-text-muted">nascimento</span>
+          {birthDateLabel ? (
+            <span className="text-telemetry-text-primary font-mono">{birthDateLabel}</span>
+          ) : (
+            <span
+              title="Data de nascimento não informada"
+              className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-telemetry-alert/20 text-telemetry-alert border border-telemetry-alert/40"
+            >
+              Informar data
+            </span>
+          )}
+          <span className="text-[11px] text-telemetry-text-muted">cadastro</span>
+          <span className="text-telemetry-text-primary font-mono">{createdDateLabel || '-'}</span>
+        </div>
       </td>
       <td className="px-3 py-3 text-sm">
         <div className="flex flex-col items-start gap-0.5">

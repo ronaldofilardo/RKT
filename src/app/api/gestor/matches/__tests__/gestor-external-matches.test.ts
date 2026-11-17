@@ -42,7 +42,12 @@ describe('loadGestorExternalScheduledMatches', () => {
         where: expect.objectContaining({
           deletedAt: null,
           sourceMatchId: null,
-          OR: [{ player1Id: { in: ['athlete-x'] } }, { player2Id: { in: ['athlete-x'] } }],
+          OR: [
+            { player1Id: { in: ['athlete-x'] } },
+            { player2Id: { in: ['athlete-x'] } },
+            { player1PartnerId: { in: ['athlete-x'] } },
+            { player2PartnerId: { in: ['athlete-x'] } },
+          ],
           AND: expect.arrayContaining([
             { OR: [{ ctId: null }, { ctId: { not: 'club-a' } }] },
             { createdByUserId: { notIn: ['coach-1', 'gestor-1'] } },

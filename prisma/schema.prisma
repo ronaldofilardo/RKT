@@ -50,6 +50,7 @@ model User {
   createdShareLinks      MatchShareLink[]         @relation("CreatedShareLinks")
   spectatingMatches      MatchSpectator[]         @relation("UserSpectators")
   assignedMatches        Match[]                  @relation("MatchAssignedCoach")
+  matchDesignations      MatchAssignedCoach[]
   notifications          Notification[]
 
   @@map("users")
@@ -189,6 +190,7 @@ model Match {
   createdByUser      User?                    @relation("CreatedMatches", fields: [createdByUserId], references: [id], onDelete: SetNull)
   assignedCoachId    String?
   assignedCoach      User?                    @relation("MatchAssignedCoach", fields: [assignedCoachId], references: [id], onDelete: SetNull)
+  assignedCoaches    MatchAssignedCoach[]
   player1            Player                   @relation("Player1", fields: [player1Id], references: [id])
   player2            Player                   @relation("Player2", fields: [player2Id], references: [id])
   player1Partner     Player?                  @relation("Player1Partner", fields: [player1PartnerId], references: [id])
@@ -842,4 +844,19 @@ model Notification {
 
   @@index([recipientId, readAt], name: "Notification_recipient_unread_idx")
   @@index([createdAt],           name: "Notification_createdAt_idx")
+}
+
+model MatchAssignedCoach {
+  id         String   @id @default(cuid())
+  matchId    String
+  coachId    String
+  assignedBy String?
+  createdAt  DateTime @default(now())
+
+  match      Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  coach      User     @relation(fields: [coachId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, coachId], name: "MatchAssignedCoach_matchId_coachId_key")
+  @@index([matchId], name: "MatchAssignedCoach_matchId_idx")
+  @@index([coachId], name: "MatchAssignedCoach_coachId_idx")
 }

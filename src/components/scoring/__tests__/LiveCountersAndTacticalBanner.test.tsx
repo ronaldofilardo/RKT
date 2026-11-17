@@ -54,20 +54,13 @@ describe('LiveCountersBar e TacticalInsightBanner', () => {
       expect(screen.getByText('Break Points')).toBeInTheDocument();
     });
 
-    it('permite colapsar e expandir com o botão', () => {
+    it('renderiza as métricas sem botão de ocultar', () => {
       render(
         <LiveCountersBar counters={mockCounters} player1Name="Nadal" player2Name="Alcaraz" />,
       );
 
-      const toggleBtn = screen.getByRole('button', { name: /Recolher estatísticas/i });
-      fireEvent.click(toggleBtn);
-
-      // Deve ter recolhido os detalhes
-      expect(screen.queryByText('Aces')).toBeNull();
-
-      // Clica para expandir novamente
-      const expandBtn = screen.getByRole('button', { name: /Expandir estatísticas/i });
-      fireEvent.click(expandBtn);
+      expect(screen.queryByRole('button', { name: /Recolher estatísticas/i })).toBeNull();
+      expect(screen.queryByRole('button', { name: /Expandir estatísticas/i })).toBeNull();
       expect(screen.getByText('Aces')).toBeInTheDocument();
     });
 

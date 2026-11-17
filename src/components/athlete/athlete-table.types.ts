@@ -12,6 +12,7 @@ export interface AthleteTableRowData {
   cpfLast2?: string | null;
   gender?: string | null;
   birthDate?: string | null;
+  createdAt?: string | null;
   age?: number | null;
   rankings?: Record<string, RankingEntryLike> | null;
   /** Procedência (A0.12 Fase 7): "Clube - UF" quando informados. */

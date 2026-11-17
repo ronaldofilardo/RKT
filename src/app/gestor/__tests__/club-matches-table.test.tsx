@@ -111,6 +111,18 @@ describe('ClubMatchesTable — Ver Partida', () => {
     expect(screen.getByText('Treinador Roberto')).toBeInTheDocument();
   });
 
+  it('exibe múltiplos anotadores designados quando presentes', () => {
+    const m = {
+      ...match('m-multi', 'SCHEDULED'),
+      assignedCoaches: [
+        { coach: { id: 'c1', name: 'Treinador Roberto' } },
+        { coach: { id: 'c2', name: 'Treinadora Maria' } },
+      ],
+    };
+    render(<ClubMatchesTable matches={[m]} />);
+    expect(screen.getByText('Treinador Roberto, Treinadora Maria')).toBeInTheDocument();
+  });
+
   it('exibe botão de exclusão apenas quando criada pelo próprio usuário', () => {
     const onDelete = jest.fn();
     const ownMatch = { ...match('m-own', 'SCHEDULED'), createdByUserId: 'gestor-1' };
@@ -139,5 +151,121 @@ describe('ClubMatchesTable — Ver Partida', () => {
     expect(btn).toBeInTheDocument();
     fireEvent.click(btn);
     expect(onAnnotate).toHaveBeenCalledWith(m);
+  });
+
+  it('partida de duplas: exibe badge Duplas e nomes dos parceiros nos dois lados', () => {
+    const open = jest.fn();
+    mockedHook.mockReturnValue({ open });
+
+    const doublesMatch = {
+      ...match('m-doubles', 'SCHEDULED'),
+      matchType: 'DOUBLES' as const,
+      player1: { id: 'p1', name: 'Cloe Grapeggia', club: 'Eco Tênis Clube' },
+      player1Partner: { id: 'p1p', name: 'Laura Silva', club: 'Eco Tênis Clube' },
+      player2: { id: 'p2', name: 'Valentina Moletta', club: 'Eco Tênis Clube' },
+      player2Partner: { id: 'p2p', name: 'Julia Santos', club: 'Clube Curitibano' },
+    };
+
+    render(<ClubMatchesTable matches={[doublesMatch]} />);
+
+    // Deve exibir badge de Duplas
+    expect(screen.getByText('Duplas')).toBeInTheDocument();
+
+    // Deve exibir ambos os jogadores do lado 1
+    expect(screen.getByText('Cloe Grapeggia')).toBeInTheDocument();
+    expect(screen.getByText('Laura Silva')).toBeInTheDocument();
+
+    // Deve exibir ambos os jogadores do lado 2
+    expect(screen.getByText('Valentina Moletta')).toBeInTheDocument();
+    expect(screen.getByText('Julia Santos')).toBeInTheDocument();
+
+    // Clubes/afiliações de cada atleta
+    expect(screen.getAllByText('Eco Tênis Clube').length).toBeGreaterThanOrEqual(3);
+    expect(screen.getByText('Clube Curitibano')).toBeInTheDocument();
+
+    // Abertura com título composto de duplas
+    fireEvent.click(screen.getByRole('button', { name: 'Ver Partida' }));
+    expect(open).toHaveBeenCalledWith('m-doubles', '[Duplas] Cloe Grapeggia / Laura Silva × Valentina Moletta / Julia Santos');
+  });
+
+  it('sub-abas internas: alterna entre "Meu clube" e "Outros" exibindo tabelas e badges corretos', () => {
+    const clubMatch = match('m-club', 'SCHEDULED');
+    const externalMatch = {
+      ...match('m-ext', 'SCHEDULED'),
+      player1: { id: 'p-ext1', name: 'Atleta Visitante', club: 'Outro CT' },
+      player2: { id: 'p-ext2', name: 'Atleta da Casa', club: 'Eco Tênis Clube' },
+    };
+
+    render(
+      <ClubMatchesTable
+        matches={[clubMatch]}
+        externalMatches={[externalMatch]}
+      />
+    );
+
+    // Inicialmente na sub-aba "Meu clube"
+    const myClubTab = screen.getByRole('tab', { name: /Meu clube/i });
+    const othersTab = screen.getByRole('tab', { name: /Outros/i });
+
+    expect(myClubTab).toHaveAttribute('aria-selected', 'true');
+    expect(othersTab).toHaveAttribute('aria-selected', 'false');
+
+    // Mostra partida do clube e oculta partida externa
+    expect(screen.getByText('Ana')).toBeInTheDocument();
+    expect(screen.queryByText('Atleta Visitante')).not.toBeInTheDocument();
+
+    // Alterna para "Outros"
+    fireEvent.click(othersTab);
+
+    expect(myClubTab).toHaveAttribute('aria-selected', 'false');
+    expect(othersTab).toHaveAttribute('aria-selected', 'true');
+
+    // Mostra partida externa e oculta tabela do clube
+    expect(screen.getByText('Atleta Visitante')).toBeInTheDocument();
+    expect(screen.queryByText('Ana')).not.toBeInTheDocument();
+
+    // Alterna de volta para "Meu clube"
+    fireEvent.click(myClubTab);
+    expect(myClubTab).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByText('Ana')).toBeInTheDocument();
+  });
+
+  it('sub-aba "Outros": exibe empty state amigável quando externalMatches for vazio', () => {
+    render(<ClubMatchesTable matches={[match('m-c1', 'SCHEDULED')]} externalMatches={[]} />);
+
+    const othersTab = screen.getByRole('tab', { name: /Outros/i });
+    fireEvent.click(othersTab);
+
+    expect(
+      screen.getByText(/Nenhuma partida agendada por outros clubes ou treinadores externos/i),
+    ).toBeInTheDocument();
+  });
+
+  it('renderiza o botão "Info." e aciona onEditMatchInfo ao clicar', () => {
+    const onEditMatchInfo = jest.fn();
+    const m = match('m-edit-info', 'SCHEDULED');
+    render(<ClubMatchesTable matches={[m]} onEditMatchInfo={onEditMatchInfo} />);
+
+    const btn = screen.getByRole('button', { name: /Editar informações da partida/i });
+    expect(btn).toBeInTheDocument();
+    expect(btn).toHaveTextContent('Info.');
+
+    fireEvent.click(btn);
+    expect(onEditMatchInfo).toHaveBeenCalledTimes(1);
+    expect(onEditMatchInfo).toHaveBeenCalledWith(expect.objectContaining({ id: 'm-edit-info' }));
+  });
+
+  it('renderiza o botão "Info." também na aba "Outros" e aciona onEditMatchInfo', () => {
+    const onEditMatchInfo = jest.fn();
+    const ext = match('m-ext-info', 'SCHEDULED');
+    render(<ClubMatchesTable matches={[]} externalMatches={[ext]} onEditMatchInfo={onEditMatchInfo} />);
+
+    const othersTab = screen.getByRole('tab', { name: /Outros/i });
+    fireEvent.click(othersTab);
+
+    const btn = screen.getByRole('button', { name: /Editar informações da partida/i });
+    expect(btn).toBeInTheDocument();
+    fireEvent.click(btn);
+    expect(onEditMatchInfo).toHaveBeenCalledWith(expect.objectContaining({ id: 'm-ext-info' }));
   });
 });

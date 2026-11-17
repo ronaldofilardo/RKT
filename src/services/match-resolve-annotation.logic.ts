@@ -43,6 +43,9 @@ export async function resolveOrCreateAnnotation(
 ) {
   const template = (await prisma.match.findFirst({
     where: { id: templateId, deletedAt: null },
+    include: {
+      assignedCoaches: { select: { coachId: true } },
+    },
   })) as TemplateRecord | null;
 
   if (!template) throw new NotFoundError('MatchTemplate', templateId);

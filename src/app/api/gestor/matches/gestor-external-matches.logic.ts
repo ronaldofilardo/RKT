@@ -15,6 +15,8 @@ export async function loadGestorExternalScheduledMatches(
       OR: [
         { player1Id: { in: clubPlayerIds } },
         { player2Id: { in: clubPlayerIds } },
+        { player1PartnerId: { in: clubPlayerIds } },
+        { player2PartnerId: { in: clubPlayerIds } },
       ],
       AND: [
         { OR: [{ ctId: null }, { ctId: { not: ctId } }] },
@@ -24,7 +26,16 @@ export async function loadGestorExternalScheduledMatches(
     select: {
       id: true, format: true, state: true, createdAt: true, startedAt: true, finishedAt: true,
       scheduledAt: true, scoreState: true, createdByUserId: true, assignedCoachId: true,
+      matchType: true, player1PartnerId: true, player2PartnerId: true,
+      category: true, round: true, bracketType: true, courtType: true,
+      visibility: true, temperature: true, humidity: true, details: true,
+      clubName: true, version: true, ctId: true,
       assignedCoach: { select: { id: true, name: true, email: true } },
+      assignedCoaches: {
+        select: {
+          coach: { select: { id: true, name: true, email: true } },
+        },
+      },
       isPublicTemplate: true, isTemplate: true, eventScope: true,
       isOfficialClubAnnotation: true, sourceMatchId: true, tournamentName: true,
       player1: {
@@ -38,6 +49,26 @@ export async function loadGestorExternalScheduledMatches(
         },
       },
       player2: {
+        select: {
+          id: true, name: true, club: true,
+          coachAthleteLinks: {
+            where: { status: 'ACTIVE' },
+            select: { coach: { select: { name: true } } },
+            take: 1,
+          },
+        },
+      },
+      player1Partner: {
+        select: {
+          id: true, name: true, club: true,
+          coachAthleteLinks: {
+            where: { status: 'ACTIVE' },
+            select: { coach: { select: { name: true } } },
+            take: 1,
+          },
+        },
+      },
+      player2Partner: {
         select: {
           id: true, name: true, club: true,
           coachAthleteLinks: {
@@ -70,5 +101,7 @@ export async function loadGestorExternalScheduledMatches(
     creatorRoleLabel: resolveCreatorRoleLabel(m.createdByUser),
     player1: m.player1 ? { ...m.player1, isClubAthlete: clubPlayerIds.includes(m.player1.id) } : m.player1,
     player2: m.player2 ? { ...m.player2, isClubAthlete: clubPlayerIds.includes(m.player2.id) } : m.player2,
+    player1Partner: m.player1Partner ? { ...m.player1Partner, isClubAthlete: clubPlayerIds.includes(m.player1Partner.id) } : (m.player1Partner ?? null),
+    player2Partner: m.player2Partner ? { ...m.player2Partner, isClubAthlete: clubPlayerIds.includes(m.player2Partner.id) } : (m.player2Partner ?? null),
   }));
 }

@@ -9,6 +9,7 @@ export const HOW_TO_TIPO: Partial<Record<HowPointEnded, RallyTipo>> = {
 
 export const WHERE_TO_SITUACAO: Record<WhereWinner, RallySituacao> = {
   devolvendo: 'devolucao',
+  sacando: 'saque',
   fundo: 'fundo',
   voleio: 'rede',
   passando: 'passada',

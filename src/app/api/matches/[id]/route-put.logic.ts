@@ -16,16 +16,51 @@ export async function handleMatchPut(
   try {
     const match = await prisma.match.findFirst({
       where: { id },
-      select: { createdByUserId: true, isPublicTemplate: true, isTemplate: true },
+      select: { createdByUserId: true, isPublicTemplate: true, isTemplate: true, ctId: true },
     });
 
     if (!match) {
       return NextResponse.json({ error: 'MATCH_NOT_FOUND' }, { status: 404 });
     }
 
-    if (match.createdByUserId !== currentUserId) {
+    const isCreator = match.createdByUserId === currentUserId;
+    let isClubGestor = false;
+    if (!isCreator) {
+      const gestorMemberships = await prisma.membership.findMany({
+        where: {
+          userId: currentUserId,
+          kind: 'GESTOR',
+          status: 'ACTIVE',
+        },
+        select: { ctId: true },
+      });
+      const gestorCtIds = gestorMemberships.map((m) => m.ctId).filter((cid): cid is string => Boolean(cid));
+      if (gestorCtIds.length > 0) {
+        if (match.ctId && gestorCtIds.includes(match.ctId)) {
+          isClubGestor = true;
+        } else {
+          const matchWithPlayers = await prisma.match.findFirst({
+            where: { id },
+            select: {
+              player1: { select: { playerCts: { where: { ctId: { in: gestorCtIds }, status: 'ACTIVE' }, select: { id: true } } } },
+              player2: { select: { playerCts: { where: { ctId: { in: gestorCtIds }, status: 'ACTIVE' }, select: { id: true } } } },
+            },
+          });
+          if (matchWithPlayers) {
+            const hasClubAthlete =
+              (matchWithPlayers.player1?.playerCts?.length ?? 0) > 0 ||
+              (matchWithPlayers.player2?.playerCts?.length ?? 0) > 0;
+            if (hasClubAthlete) {
+              isClubGestor = true;
+            }
+          }
+        }
+      }
+    }
+
+    if (!isCreator && !isClubGestor) {
       return NextResponse.json(
-        { error: 'FORBIDDEN', message: 'Apenas o anotador criador pode editar sua partida' },
+        { error: 'FORBIDDEN', message: 'Apenas o anotador criador ou o gestor do clube podem editar a partida' },
         { status: 403 }
       );
     }
