@@ -1288,5 +1288,17 @@ Leitura completa: `docs/TASKS.md` — **Anexo A** (dívida técnica, 50 entradas
   - 27 testes de `src/app/api/guardians/` passando (0 falhas).
   - `tsc --noEmit` 0 erros; `check-r03-line-limit` 0 violações.
 
+---
+
+## 2.50 Refatoração de timeline-rows, timeline-utils e playerService em suítes por contexto — 2026-11-16
+- **Contexto:** continuação da fila de testes grandes (LOC · categoria): **391** `components/scoring/__tests__/timeline-rows.test.tsx` (Componente), **755** `components/scoring/__tests__/timeline-utils.test.ts` (Unitário) e **545** `services/__tests__/playerService.test.ts` (Integração) — 1691L / 120 `it` / 252 `expect` no total.
+- **Commit `547fcae`** `test:` — substituição íntegra em um único commit (lote validado de uma vez):
+  - `timeline-rows.test.tsx` → **6 suites** (`initials`, `serve`, `serve-fault`, `cascade`, `colors`, `columns`) + kit `timelineRowsTestKit.tsx` (`makePoint`/`baseProps`/`renderRow`/`renderRowCells`/`renderRowWithColors`).
+  - `timeline-utils.test.ts` → **13 suites** (enrich ×3, filter, compact-score, format-ace/double-fault/details/summary, labels, validate-rally/fields-a/fields-b) + kit `timelineUtilsTestKit.ts` (`hist`/`FILTER_POINTS`/`COUNT_POINTS`/fixtures de rally).
+  - `playerService.test.ts` → **8 suites** (list, create-birthdate/birthyear/basic, find, update-basic/json, count-delete) + kit `playerServiceTestKit.ts` (`createPrismaMock`/`playerRow`/`callArgs`, factory `jest.mock` via `require` no padrão do repo).
+- **Método (idêntico à 2.47):** ≤80L raw por arquivo, AAA linear com Arrange delegado a `*TestKit` (fora da coleta do Jest), asserções 1:1 (120 `it`/252 `expect` preservados), **zero** `if/for/while/switch/try/do` nos `.test.*` (o único `if` do original virou ternário no `validate-rally`), `beforeEach(jest.clearAllMocks)` removido (cubra `clearMocks:true`/`restoreMocks:true`).
+- **Gates (todos PASSARAM):** paridade de statements/funções `coverage-final.json` antes × depois = **PARIDADE TOTAL** (1414 arquivos); ESLint **0 erros** (27 testes + 3 kits); `check:r03` 0 regressões; grep de controle de fluxo limpo; over80 = 0; suíte completa **705/705 suites · 4991/4991 testes** (681 + 27 − 3).
+- **Estado:** branch `master` **ahead 12** de `origin/master`, **sem push**; originais removidos no próprio commit.
+
 
 
