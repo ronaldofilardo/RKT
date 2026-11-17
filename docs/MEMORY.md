@@ -1322,5 +1322,14 @@ Leitura completa: `docs/TASKS.md` — **Anexo A** (dívida técnica, 50 entradas
 - **Gates (todos PASSARAM):** paridade de statements/funções `coverage-final.json` antes × depois = **PARIDADE TOTAL** (1414 arquivos de produção, driver `sc-parity.js` ignorando `__tests__`); ESLint **0 erros** (23 testes + 3 kits); `check:r03` exit 0; grep de controle de fluxo **0 hits**; over80 = 0; suíte completa **751/751 suites · 4991/4991 testes** (731 + 23 − 3).
 - **Estado:** branch `master` **ahead 20** de `origin/master`, **sem push**; originais removidos nos próprios commits.
 
+## 2.53 Refatoração de scoring-protections e set-completion em suítes por contexto — 2026-11-17
+- **Contexto:** fila de testes grandes (LOC · categoria): **477** `src/core/scoring/__tests__/scoring-protections.test.ts` (Unitário) e **383** `src/core/scoring/__tests__/set-completion.test.ts` (Unitário) — 860L / 57 `it` / 97 `expect` no total. Os 2 arquivos pré-existentes fora do escopo não foram tocados.
+- **Commits `test:`** (um por arquivo, cada um já verde):
+  - `b7eddbc` — scoring-protections → **7 suites** por proteção (`mt-validation`, `mt-normalize`, `mt-serialize`, `game-regression`, `tiebreak-regression`, `sets-won-floor`, `sequence-flush`) + kit `scoringProtectionsTestKit.ts` (`normalizeMatchTiebreakState`/`getProgress`/`isTiebreakRegressing`/`isMalPersistedRegressing`/`malformedMtState`).
+  - `6e1b85b` — set-completion → **7 suites** por contexto (`complete-set`, `complete-set-formats`, `complete-set-with-tiebreak`, `is-set-complete`, `is-set-complete-no-ad`, `is-set-complete-pro-set`, `encerramento-short-sets`) + kit `setCompletionTestKit.ts` (`createBaseState`/`createConfig`/`setScore`).
+- **Método (idêntico à 2.47/2.50/2.51/2.52):** ≤80L raw por arquivo, AAA linear com Arrange delegado a `*TestKit` (fora da coleta do Jest, não limitados a 80L), asserções 1:1 (40 + 57 preservadas), **zero** `if/for/while/switch/try/do` nos `.test.*`. Os **23 hits** de controle de fluxo do original (helpers `normalizeMatchTiebreakState` duplicado, `getProgress` ×3, `isTiebreakRegressing` ×3) migraram para o kit. Locais mortos do original (`format` não usado em 4 its, `offlinePoints`/`sentSequence` não usados) não reproduzidos; a variante mal persistida de regressão virou `isMalPersistedRegressing` distinta de `isTiebreakRegressing`.
+- **Gates (todos PASSARAM):** paridade de statements/funções `coverage-final.json` antes × depois = **PARIDADE TOTAL** (1414 arquivos de produção, driver `sp-parity.js` ignorando `__tests__`; padrões com âncora `[/\\]` para não casar `engine.flow.set-completion.test.ts`); ESLint **0 erros** (14 testes + 2 kits); `check:r03` exit 0; grep de controle de fluxo **0 hits** nos 14 novos (12 concentrados nos kits); over80 = 0; suíte completa **763/763 suites · 4991/4991 testes** (751 + 14 − 2).
+- **Estado:** branch `master` **ahead 23** de `origin/master`, **sem push**; originais removidos nos próprios commits.
+
 
 
