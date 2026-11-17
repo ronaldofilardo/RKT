@@ -1,51 +1,20 @@
-/**
- * CONTRATO PÓS-FASE 5 — GET /api/gestor/matches
- *
- * Valida o painel do gestor agrupado por partida-mãe:
- * - Inclui cartazes e anotações do CT, de membros/atletas do CT e derivadas de PRIVATE_CLUB do CT.
- * - Retorna pointCount e isDesignatedAnnotator para diferenciar o treinador designado.
- */
+jest.mock('@/lib/prisma', () => mockPrismaModule());
+jest.mock('../../_logic', () => mockLogicModule());
+jest.mock('@/lib/access-handler', () => mockAccessHandlerModule());
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import {
+  getPrismaMock,
+  mockAccessHandlerModule,
+  mockLogicModule,
+  mockPrismaModule,
+} from './routeGestorMatchesCharacterizationTestKit';
 
-const mockPrisma = {
-  membership: { findMany: jest.fn() },
-  playerCT: { findMany: jest.fn() },
-  match: { findMany: jest.fn() },
-};
-
-jest.mock('@/lib/prisma', () => ({
-  prisma: mockPrisma,
-}));
-
-jest.mock('../../_logic', () => ({
-  getGestorCtId: jest.fn(),
-  denyGestor: jest.fn(() => ({ status: 403 })),
-}));
-
-jest.mock('@/lib/access-handler', () => ({
-  withAccessHandler: jest.fn(async (_req, _action, _res, handler) => {
-    return handler({
-      user: { id: 'gestor-1', name: 'Gestor', role: 'GESTOR' },
-      actor: { userId: 'gestor-1', isActive: true, canOperate: true, memberships: [] },
-    });
-  }),
-}));
+const mockPrisma = getPrismaMock();
 
 describe('GET /api/gestor/matches (pós-Fase 5)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('nega quando gestor não encontrado', async () => {
-    const { getGestorCtId, denyGestor } = await import('../../_logic');
-    (getGestorCtId as jest.Mock).mockResolvedValue(null);
-
-    const { GET } = await import('../route');
-    const request = { nextUrl: { searchParams: new URLSearchParams() } } as any;
-
-    await GET(request);
-    expect(denyGestor).toHaveBeenCalledWith('Gestor não encontrado');
   });
 
   it('query WHERE e cálculo de isDesignatedAnnotator + pointCount', async () => {
