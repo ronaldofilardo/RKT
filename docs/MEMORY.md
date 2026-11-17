@@ -8,6 +8,19 @@
 
 ---
 
+## 2.41 Regularização de Banco de Dados — Governança de Menores e Responsáveis (ECA/LGPD) — 2026-11-17
+- **Contexto & Demanda:**
+  - Erro em produção `[API_ERROR] Error [PrismaClientKnownRequestError]: The column guardian_links.status does not exist in the current database` disparado na consulta de `/api/auth/me`.
+  - Investigação de drift revelou que as 128 linhas adicionadas em `prisma/schema.prisma` no commit `e81eca0` (governança de tutela, consentimentos ECA e ativação de menores) não possuíam migration SQL versionada em `prisma/migrations/`.
+- **Implementação & Conclusão:**
+  1. **Execução Direta no Neon (Produção):**
+     - O DDL completo e idempotente foi executado diretamente no editor de SQL do Neon pelo usuário, sanando a ausência das colunas e tabelas imediatamente.
+  2. **Estrutura de Migrations Oficializada:**
+     - Criada a migration `prisma/migrations/20261117210000_add_guardian_governance_and_status/migration.sql` com todos os enums (`InviteCreatorKind`, `GuardianInviteStatus`, `GuardianLinkStatus`, `ConsentAction`, `GuardianGateStatus`), inclusão de `'STATS'` em `ConsentPurpose`, campos em `Player` e `guardian_links`, e as tabelas `guardian_invites` e `consent_events` com chaves estrangeiras e índices.
+     - DDL construído de forma estritamente idempotente (`IF NOT EXISTS` / `DO $$ BEGIN ... EXCEPTION WHEN duplicate_object THEN NULL; END $$;`), garantindo total compatibilidade com execuções subsequentes de `prisma migrate deploy`.
+  3. **Validação & Integridade:**
+     - `npx prisma validate` executado e aprovado com sucesso.
+
 ## 2.40 Governança Canônica — Suíte Jurídica e de Privacidade Oficializada na Estrutura do Sistema — 2026-11-17
 - **Contexto & Demanda:**
   - Oficialização da Suíte Canônica de Governança e Privacidade (Termos de Uso, Política de Privacidade Geral, Política de Privacidade para Menores e Termo de Consentimento do Responsável Legal) como parte integrante da estrutura de documentação do sistema RKT.
