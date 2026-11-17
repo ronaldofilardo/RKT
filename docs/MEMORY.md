@@ -8,6 +8,26 @@
 
 ---
 
+## 2.43 Filtros de Afiliação, Localidade e Rankings na Aba Afiliados (/gestor) — 2026-11-17
+- **Contexto & Demanda:**
+  - Adição de controles de filtragem avançados na aba **Afiliados** do Painel do Gestor (`/gestor`), permitindo filtrar por afiliação, localidade e rankings esportivos.
+- **Implementação & Conclusão:**
+  1. **Lógica Pura de Extração e Filtragem (`affiliates-filter.logic.ts`):**
+     - Extração dinâmica de opções a partir dos atletas carregados: clubes (`extractUniqueClubs`), estados/UFs (`extractUniqueStates`) e entidades de ranking (`extractUniqueRankingOrgs`).
+     - Filtro de **Afiliação**: `ALL`, `WITH_CLUB`, `WITH_COACH`, `UNAFFILIATED` (avulso) e clubes específicos (`CLUB:Nome`).
+     - Filtro de **Localidade**: `ALL`, `NONE` (não informada) e estados federativos (`STATE:UF`).
+     - Filtro de **Rankings**: `ALL`, `WITH_RANKING`, `WITHOUT_RANKING` e entidades federativas (`ORG:CBT`, `ORG:ITF`, `ORG:WTA`, etc.).
+  2. **Componentes de UI Modularizados (`affiliates-filter-bar.tsx`, `affiliates-filter-select.tsx`, `affiliates-table.tsx`):**
+     - Criada a barra de filtros com input de busca integrado e selects estilizados com tokens do design system (`telemetry-elevated`, `telemetry-blue`, `[color-scheme:dark]`).
+     - Botão contextual "Limpar filtros" para reset imediato em 1 clique quando qualquer critério estiver ativo.
+     - Contador dinâmico: "Exibindo X de Y atletas".
+     - Todos os arquivos mantidos abaixo do teto de 100 linhas (Regra R-03).
+  3. **Qualidade & Testes:**
+     - Testes unitários puros criados em `src/app/gestor/__tests__/affiliates-filter.test.ts` (5/5 passando).
+     - Testes de renderização e interação atualizados em `src/app/gestor/__tests__/affiliates-table.test.tsx` (4/4 passando).
+     - Suíte completa do gestor verde (91/91 testes aprovados).
+     - Typecheck TypeScript (`tsc --noEmit`) 100% limpo.
+
 ## 2.42 Ordenação Interativa na Tabela de Atletas do Clube (/gestor) — 2026-11-17
 - **Contexto & Demanda:**
   - Regularização de produção confirmada: 60 atletas devidamente listados no CT.

@@ -1,8 +1,17 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import type { AffiliateAthleteItem } from './affiliates.types';
 import { AffiliatesRow } from './affiliates-row';
+import { AffiliatesFilterBar } from './affiliates-filter-bar';
+import {
+  INITIAL_AFFILIATES_FILTERS,
+  extractUniqueClubs,
+  extractUniqueStates,
+  extractUniqueRankingOrgs,
+  filterAffiliateAthletes,
+  type AffiliatesFilterState,
+} from './affiliates-filter.logic';
 
 interface AffiliatesTableProps {
   athletes: AffiliateAthleteItem[];
@@ -10,36 +19,40 @@ interface AffiliatesTableProps {
 }
 
 export function AffiliatesTable({ athletes, loading }: AffiliatesTableProps) {
-  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState<AffiliatesFilterState>(INITIAL_AFFILIATES_FILTERS);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return athletes;
-    return athletes.filter((a) => {
-      const matchName = a.name.toLowerCase().includes(q);
-      const matchNick = a.nickname?.toLowerCase().includes(q);
-      const matchClub = a.clubName?.toLowerCase().includes(q);
-      const matchCoach = a.coachName?.toLowerCase().includes(q);
-      return matchName || matchNick || matchClub || matchCoach;
-    });
-  }, [athletes, search]);
+  const clubs = useMemo(() => extractUniqueClubs(athletes), [athletes]);
+  const states = useMemo(() => extractUniqueStates(athletes), [athletes]);
+  const rankingOrgs = useMemo(() => extractUniqueRankingOrgs(athletes), [athletes]);
+
+  const filtered = useMemo(
+    () => filterAffiliateAthletes(athletes, filters),
+    [athletes, filters],
+  );
+
+  const handleFilterChange = useCallback(
+    <K extends keyof AffiliatesFilterState>(key: K, value: AffiliatesFilterState[K]) => {
+      setFilters((prev) => ({ ...prev, [key]: value }));
+    },
+    [],
+  );
+
+  const handleReset = useCallback(() => {
+    setFilters(INITIAL_AFFILIATES_FILTERS);
+  }, []);
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="relative flex-1 max-w-md">
-          <input
-            type="text"
-            placeholder="Buscar por nome, @nickname, clube ou treinador..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-telemetry-surface border border-telemetry-border/30 rounded-lg px-3 py-2 text-sm text-telemetry-text-primary placeholder:text-telemetry-text-muted focus:outline-none focus:border-telemetry-blue"
-          />
-        </div>
-        <div className="text-xs text-telemetry-text-muted">
-          Exibindo {filtered.length} de {athletes.length} atleta{athletes.length === 1 ? '' : 's'}
-        </div>
-      </div>
+      <AffiliatesFilterBar
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onReset={handleReset}
+        clubs={clubs}
+        states={states}
+        rankingOrgs={rankingOrgs}
+        filteredCount={filtered.length}
+        totalCount={athletes.length}
+      />
 
       <div className="bg-telemetry-surface/40 border border-telemetry-border/20 rounded-lg overflow-x-auto">
         <table className="w-full text-left border-collapse text-sm">
