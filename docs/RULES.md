@@ -84,10 +84,16 @@ Comando: `pnpm lint` (`next lint`). O build **não ignora** lint (`eslint.ignore
 | **E2E** | `playwright.config.ts` — 1 worker, retries 2 em CI, axe-core | `pnpm test:e2e` |
 | **Mutation** | `stryker.config.json` — `engine.ts`, `scoring-logic.ts`, `types.ts`; high 80 / low 60 / break 50 | `pnpm test:mutation` |
 | **Testes pulados proibidos** | `scripts/check-no-skipped-tests.mjs` | dentro de `test:strict` |
+| **Armadilhas de teste** | `scripts/check-test-mock-traps.mjs` | `pnpm check:mock-traps` (dentro de `test:strict`) |
 | **Spec drift** | `scripts/validate-spec-drift.mjs` | `pnpm spec:validate` |
 | **Setup de ambiente de teste** | cria/recria `racket_mvp_test` | `pnpm test:setup` |
 
-**Suíte estrita (validação obrigatória):** `pnpm test:strict` = `typecheck` + no-skip-check + Jest em modo CI e **serializado** (`--runInBand`).
+**Suíte estrita (validação obrigatória):** `pnpm test:strict` = `typecheck` + no-skip-check + **mock-traps-check** + Jest em modo CI e **serializado** (`--runInBand`).
+
+**Armadilhas de teste (validadas por `pnpm check:mock-traps`):**
+
+1. **`jest.mock` + `import { jest } from '@jest/globals'` proibido.** O binding importado **desativa o hoisting do `jest.mock`** pelo SWC (next/jest): os `require()` dos imports são emitidos antes da chamada `jest.mock(...)` e o módulo mockado é capturado **real** (sintoma: `TypeError: ...mockResolvedValue is not a function`). Correção: remover `jest` do import e usar o **`jest` global** (injetado em todo ambiente Jest; `@types/jest` cobre o tipo).
+2. **`@jest-environment` deve terminar no fim da linha.** Formas válidas: `/** @jest-environment jsdom */` ou linha própria dentro do docblock (` * @jest-environment jsdom`). Com texto sobrando na linha, o Jest captura o resto do parágrafo como nome do ambiente ("jsdom ... cannot be found"). O check falha em qualquer linha com a diretiva fora dessas formas (inclusive em comentário `//`, onde a diretiva não seria aplicada).
 
 **Ambientes de teste:** API/domínio rodam em ambiente **node**; componentes em **jsdom**. O banco de CI é PostgreSQL isolado por job; falhas de instalação, geração do Prisma, schema, typecheck, skips, testes ou cobertura **interrompem a pipeline**.
 
@@ -168,6 +174,8 @@ Characterization tests **não testam se o código está certo** — testam **o q
 **Anti-patterns proibidos:** God Class · Shotgun Surgery · Divergent Change · Spaghetti Code · Magic Numbers · Deep Nesting (>3 níveis → early returns/extrair métodos).
 
 **Critérios de PR com refatoração:** sem aumento de complexidade acidental · ≤ 500 linhas/arquivo · ≤ 30 linhas/função · nenhum novo code smell · cobertura mantida ou aumentada · revisão de 1 peer.
+
+**Armadilhas ao dividir/criar suítes de teste:** nunca combinar `jest.mock` com `import { jest } from '@jest/globals'` (desativa o hoist do SWC e captura o módulo real) e manter `@jest-environment` em docblock de linha única — validado por `pnpm check:mock-traps` (detalhes na seção 5).
 
 ---
 
@@ -269,6 +277,7 @@ pnpm start            # Produção
 pnpm lint             # ESLint
 pnpm typecheck        # TypeScript (tsc --noEmit)
 pnpm spec:validate    # Validação de spec drift
+pnpm check:mock-traps # Armadilhas de teste (jest.mock/@jest-environment)
 pnpm test             # Jest (CI serializado)
 pnpm test:strict      # typecheck + no-skips + Jest serializado
 pnpm test:watch       # Jest watch
