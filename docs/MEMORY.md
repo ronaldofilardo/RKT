@@ -8,6 +8,23 @@
 
 ---
 
+## 2.42 Ordenação Interativa na Tabela de Atletas do Clube (/gestor) — 2026-11-17
+- **Contexto & Demanda:**
+  - Regularização de produção confirmada: 60 atletas devidamente listados no CT.
+  - Solicitação para adicionar ordenação interativa pelas colunas **Nome** e **CPF** na tabela de Atletas do Clube em `/gestor`.
+- **Implementação & Conclusão:**
+  1. **Lógica de Ordenação Pura (`athlete-table-sort.logic.ts`):**
+     - Criadas funções puras `sortAthleteRows` e `nextSortState` com ciclo de 3 estados (`asc` -> `desc` -> `null`/ordem natural).
+     - Ordenação de Nome via `localeCompare(..., 'pt-BR')` sensível a acentuação.
+     - Ordenação de CPF normalizada (dígitos numéricos de `cpf` ou `cpfLast2`), preservando atletas sem CPF ao final.
+  2. **Componentes e Acessibilidade (`athlete-table.tsx`, `athlete-table-header.tsx`, `athlete-table-sort-icon.tsx`):**
+     - Cabeçalho modularizado em `AthleteTableHeader` mantendo todos os arquivos abaixo do teto de 100 linhas (Regra R-03).
+     - Botões de ordenação no `th` com atributos de acessibilidade `aria-sort="ascending|descending|none"`, `aria-label` e ícone SVG visual com destaque em `telemetry-volt`.
+  3. **Qualidade & Testes:**
+     - Testes unitários de ordenação e integração criados em `src/components/athlete/__tests__/athlete-table-sort.test.tsx` (5/5 passando).
+     - Suíte de atletas (18/18 testes verdes) e gestor (85/85 testes verdes).
+     - Typecheck TypeScript (`tsc --noEmit`) 100% aprovado.
+
 ## 2.41 Regularização de Banco de Dados — Governança de Menores e Responsáveis (ECA/LGPD) — 2026-11-17
 - **Contexto & Demanda:**
   - Erro em produção `[API_ERROR] Error [PrismaClientKnownRequestError]: The column guardian_links.status does not exist in the current database` disparado na consulta de `/api/auth/me`.
