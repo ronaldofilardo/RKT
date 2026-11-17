@@ -29,7 +29,7 @@ export function ScoreboardCard({ player1, player2, player1Partner, player2Partne
 
   const gameCell = (value: string | undefined) =>
     gamePoints ? (
-      <td className="text-center px-1 py-1 text-sm font-space-grotesk font-semibold border-l border-b border-telemetry-border/10 text-telemetry-score-accent font-bold bg-telemetry-elevated">
+      <td className="text-center px-1 py-1 text-sm font-sans font-bold tabular-nums border-l border-b border-telemetry-border/10 text-telemetry-score-accent bg-telemetry-elevated antialiased">
         {value}
       </td>
     ) : undefined;
@@ -38,7 +38,7 @@ export function ScoreboardCard({ player1, player2, player1Partner, player2Partne
     <div className={`rounded-xl border overflow-hidden ${className ?? 'mx-1 sm:mx-auto max-w-md'} ${isSuspended ? 'border-telemetry-alert' : 'border-telemetry-border/10 shadow-md bg-telemetry-card'}`}>
       <table className="w-full table-fixed border-collapse">
         <thead>
-          <tr className="text-[10px] font-space-grotesk">
+          <tr className="text-[10px] font-sans font-medium uppercase tracking-wider text-telemetry-text-muted">
             <th scope="col" aria-label="Jogador" className="text-left py-0.5 px-1.5 sm:px-2 w-[90px] sm:w-[120px] bg-telemetry-elevated border-b border-telemetry-border/10"></th>
             <th scope="col" aria-label="Vencedor" className="w-5 sm:w-6 bg-telemetry-elevated border-l border-b border-telemetry-border/10"></th>
             {Array.from({ length: numSets }).map((_, i) => {

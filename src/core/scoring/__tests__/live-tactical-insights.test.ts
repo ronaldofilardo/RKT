@@ -53,6 +53,18 @@ describe('live-tactical-insights', () => {
       expect(counters.totalPointsWon.p1).toBe(2);
       expect(counters.totalPointsWon.p2).toBe(2);
     });
+
+    it('ignora FAULT_FIRST no totalPointsWon das estatisticas ao vivo', () => {
+      const points: TimelinePoint[] = [
+        createMockPoint({ server: 'player1', winner: 'PLAYER_1', type: 'FAULT_FIRST' }),
+        createMockPoint({ server: 'player1', winner: 'PLAYER_1', type: 'ACE' }),
+      ];
+
+      const counters = computeLiveCounters(points);
+      expect(counters.aces.p1).toBe(1);
+      expect(counters.totalPointsWon.p1).toBe(1);
+      expect(counters.totalPointsWon.p2).toBe(0);
+    });
   });
 
   describe('detectTacticalTrends', () => {

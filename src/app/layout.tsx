@@ -4,8 +4,12 @@ import './globals.css';
 import { ToastProvider } from '@/components/Toast';
 import { Providers } from '@/contexts/Providers';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-geist' });
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space-grotesk' });
+const inter = Inter({ subsets: ['latin'], variable: '--font-geist-sans' });
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-space-grotesk',
+  weight: ['400', '500', '600', '700'],
+});
 
 export const metadata: Metadata = {
   title: 'RKT app',

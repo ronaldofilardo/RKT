@@ -64,7 +64,13 @@ export function processPointFlow(
   const isFaultFirst = Boolean(flow.type === 'FAULT_FIRST' || flow.firstFault);
   const winner = resolveWinner(flow, config, isFaultFirst);
   const isSecondServeState = Boolean(state.secondServe || state.currentGame?.secondServe);
-  const details = buildPointDetails(flow, state, config, isSecondServeState);
+  const details = buildPointDetails(
+    flow,
+    state,
+    config,
+    isSecondServeState,
+    isFaultFirst ? undefined : winner,
+  );
 
   if (flow.type === 'DOUBLE_FAULT') {
     saveToHistory(history, state, details);

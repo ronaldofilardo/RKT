@@ -112,9 +112,9 @@ export function IndicarAnotadorModal({
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold text-telemetry-text-muted block">
+            <span className="text-xs font-semibold text-telemetry-text-muted block">
               Membros anotadores ou treinadores ({selectedCoachIds.length} selecionado(s))
-            </label>
+            </span>
           </div>
 
           <div className="max-h-52 overflow-y-auto space-y-1.5 p-1 rounded-lg border border-white/10 bg-telemetry-elevated/40">
@@ -126,6 +126,7 @@ export function IndicarAnotadorModal({
                 return (
                   <label
                     key={c.user.id}
+                    htmlFor={`coach-${c.user.id}`}
                     className={`flex items-center gap-2.5 p-2 rounded-lg cursor-pointer transition-colors text-sm border ${
                       isChecked
                         ? 'bg-telemetry-blue/15 border-telemetry-blue-light/30 text-telemetry-text-primary'
@@ -133,16 +134,15 @@ export function IndicarAnotadorModal({
                     }`}
                   >
                     <input
+                      id={`coach-${c.user.id}`}
                       type="checkbox"
                       checked={isChecked}
                       onChange={() => toggleCoach(c.user.id)}
                       className="w-4 h-4 rounded border-white/20 bg-telemetry-card text-telemetry-blue focus:ring-0 cursor-pointer"
                     />
-                    <div className="flex-1 min-w-0">
-                      <span className="font-medium text-telemetry-text-primary block truncate">
-                        {c.user.name} ({c.user.email})
-                      </span>
-                    </div>
+                    <span className="flex-1 min-w-0 font-medium text-telemetry-text-primary block truncate">
+                      {c.user.name} ({c.user.email})
+                    </span>
                   </label>
                 );
               })

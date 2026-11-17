@@ -13,9 +13,9 @@ export function PlayerCardRow({ name, isServer, isReceiver, isPartner, onChangeS
   const sizeClass = isPartner ? 'text-xs sm:text-sm' : 'text-sm sm:text-lg';
   const colorClass = isPartner
     ? isServer
-      ? 'text-telemetry-volt font-black'
+      ? 'text-telemetry-volt font-bold'
       : 'text-telemetry-text-muted'
-    : `text-telemetry-text-primary ${isServer ? 'text-telemetry-volt font-black' : ''}`;
+    : `text-telemetry-text-primary ${isServer ? 'text-telemetry-volt font-bold' : ''}`;
 
   return (
     <div className="flex items-center gap-1.5 justify-center max-w-full">

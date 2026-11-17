@@ -76,7 +76,7 @@ export function PlayerCard({
         )}
       </div>
 
-      <span className="relative z-10 pointer-events-none text-4xl sm:text-5xl font-space-grotesk font-black text-telemetry-text-primary tabular-nums leading-none mb-1 tracking-tight drop-shadow-sm select-none">{score}</span>
+      <span className="relative z-10 pointer-events-none text-4xl sm:text-5xl font-sans font-bold text-telemetry-text-primary tabular-nums leading-none mb-1 tracking-tight select-none antialiased">{score}</span>
 
       <div className="relative z-10 pointer-events-none w-full h-1 sm:h-1.5 bg-telemetry-elevated rounded-full overflow-hidden mb-1.5">
         <div

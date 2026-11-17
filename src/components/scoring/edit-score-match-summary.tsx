@@ -17,7 +17,7 @@ export function MatchSummary({ playerNames, p1SetsWon, p2SetsWon, setsToWin }: M
         <span className="text-sm font-bold text-telemetry-text-primary text-center truncate" title={playerNames.p1}>
           {playerNames.p1}
         </span>
-        <span className="text-base font-space-grotesk font-bold text-telemetry-volt px-2">
+        <span className="text-base font-sans font-bold tabular-nums text-telemetry-volt px-2">
           {p1SetsWon} — {p2SetsWon}
         </span>
         <span className="text-sm font-bold text-telemetry-text-primary text-center truncate" title={playerNames.p2}>

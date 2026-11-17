@@ -43,11 +43,11 @@ export function SetsSummary({ title, sets, playerNames, startIndex = 0 }: SetsSu
             >
               <span className="text-telemetry-text-muted w-12 sm:w-14 font-medium text-xs">Set {startIndex + idx + 1}</span>
               <div className="flex-1 flex items-center justify-center gap-2">
-                <span className={`w-16 sm:w-20 text-center font-space-grotesk font-semibold px-2 py-1 rounded-lg ${p1CellClass}`}>
+                <span className={`w-16 sm:w-20 text-center font-sans font-semibold tabular-nums px-2 py-1 rounded-lg ${p1CellClass}`}>
                   {set.p1Games}
                 </span>
                 <span className="text-telemetry-text-muted text-xs w-3 text-center">×</span>
-                <span className={`w-16 sm:w-20 text-center font-space-grotesk font-semibold px-2 py-1 rounded-lg ${p2CellClass}`}>
+                <span className={`w-16 sm:w-20 text-center font-sans font-semibold tabular-nums px-2 py-1 rounded-lg ${p2CellClass}`}>
                   {set.p2Games}
                 </span>
               </div>

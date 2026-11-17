@@ -50,7 +50,7 @@ export function EditScoreGamePoints({
           onChange={onP1PointsChange}
         />
 
-        <span className="text-telemetry-text-muted text-sm font-space-grotesk opacity-40 self-end mb-2">
+        <span className="text-telemetry-text-muted text-sm font-sans opacity-40 self-end mb-2">
           ×
         </span>
 

@@ -83,8 +83,8 @@ export function ScoringHeader({
       )}
 
       {/* Abaixo dos cards: Formato / Torneio / Rodada centralizado */}
-      <div className="flex items-center justify-center gap-1.5 flex-wrap text-center px-1 text-[clamp(10px,1.3dvh,12px)] text-white/75 py-0.5 min-h-0">
-        <span className="font-semibold text-white/90 tracking-tight">{formatLabel}</span>
+      <div className="flex items-center justify-center gap-1.5 flex-wrap text-center px-1 text-xs text-white/75 py-0.5 min-h-0">
+        <span className="font-medium text-white/90 tracking-normal">{formatLabel}</span>
         {match.tournamentName && (
           <>
             <span className="text-white/30" aria-hidden="true">·</span>

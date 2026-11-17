@@ -47,7 +47,7 @@ export function PlayerGamesColumn({
       </div>
       <input
         type="number"
-        className={`w-20 text-center bg-telemetry-elevated border rounded-lg px-2 py-2 text-telemetry-text-primary text-base font-space-grotesk focus:outline-none focus:ring-2 focus:ring-telemetry-volt ${
+        className={`w-20 text-center bg-telemetry-elevated border rounded-lg px-2 py-2 text-telemetry-text-primary text-base font-sans font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-telemetry-volt ${
           isLeading ? 'border-telemetry-volt' : 'border-white/10'
         }`}
         value={value}

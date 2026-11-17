@@ -13,15 +13,16 @@ export function buildPlayerSummary(
   points: TimelinePoint[],
   isPlayer1: boolean,
 ): PlayerPointSummary {
+  const completedPoints = points.filter(p => p.type !== 'FAULT_FIRST');
   const winner = isPlayer1 ? 'PLAYER_1' : 'PLAYER_2';
-  const pointsWon = points.filter(p => p.winner === winner).length;
-  const aces = points.filter(p => isAcePoint(p) && p.server === (isPlayer1 ? 'player1' : 'player2')).length;
-  const doubleFaults = points.filter(p => isDoubleFaultPoint(p) && p.server === (isPlayer1 ? 'player1' : 'player2')).length;
+  const pointsWon = completedPoints.filter(p => p.winner === winner).length;
+  const aces = completedPoints.filter(p => isAcePoint(p) && p.server === (isPlayer1 ? 'player1' : 'player2')).length;
+  const doubleFaults = completedPoints.filter(p => isDoubleFaultPoint(p) && p.server === (isPlayer1 ? 'player1' : 'player2')).length;
 
   let winners = 0;
   let forcedErrors = 0;
   let unforcedErrors = 0;
-  for (const p of points) {
+  for (const p of completedPoints) {
     if (p.winner === winner) {
       if (isRallyWinnerPoint(p)) winners++;
     } else {
@@ -32,8 +33,8 @@ export function buildPlayerSummary(
 
   const isServer = (p: TimelinePoint) =>
     (isPlayer1 && p.server === 'player1') || (!isPlayer1 && p.server === 'player2');
-  const breakPoints = points.filter(p => p.isBreakPoint && !isServer(p)).length;
-  const breakPointsWon = points.filter(p => p.isBreakPoint && !isServer(p) && p.winner === winner).length;
+  const breakPoints = completedPoints.filter(p => p.isBreakPoint && !isServer(p)).length;
+  const breakPointsWon = completedPoints.filter(p => p.isBreakPoint && !isServer(p) && p.winner === winner).length;
 
   return { pointsWon, aces, winners, forcedErrors, unforcedErrors, doubleFaults, breakPoints, breakPointsWon };
 }
@@ -41,10 +42,11 @@ export function buildPlayerSummary(
 export function buildReportSummary(
   timelinePoints: TimelinePoint[],
 ): ReportSummary {
-  const completed = computeCompletedGames(timelinePoints);
+  const completedPoints = timelinePoints.filter(p => p.type !== 'FAULT_FIRST');
+  const completed = computeCompletedGames(completedPoints);
   const setGamesMap = new Map<number, { p1: number; p2: number; isTiebreak: boolean; p1Points: number; p2Points: number }>();
 
-  for (const p of timelinePoints) {
+  for (const p of completedPoints) {
     const s = p.setNumber;
     if (!setGamesMap.has(s)) setGamesMap.set(s, { p1: 0, p2: 0, isTiebreak: false, p1Points: 0, p2Points: 0 });
     const entry = setGamesMap.get(s)!;
@@ -75,9 +77,9 @@ export function buildReportSummary(
   }
 
   return {
-    totalPoints: timelinePoints.length,
-    player1: buildPlayerSummary(timelinePoints, true),
-    player2: buildPlayerSummary(timelinePoints, false),
+    totalPoints: completedPoints.length,
+    player1: buildPlayerSummary(completedPoints, true),
+    player2: buildPlayerSummary(completedPoints, false),
     sets,
   };
 }

@@ -253,6 +253,16 @@ body {
   color: var(--body-fg);
   background-color: var(--body-bg);
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Números tabulares esportivos ultra-clean para telas de anotação / scoring */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "cv01" 1;
 }
 
 /* ── Transição suave de tema (claro ↔ escuro) ──────────────

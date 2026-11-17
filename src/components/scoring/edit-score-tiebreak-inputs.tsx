@@ -44,7 +44,7 @@ export function EditScoreTiebreakInputs({
           </div>
           <input
             type="number"
-            className="w-20 text-center bg-telemetry-elevated border border-white/10 rounded-lg px-2 py-1.5 text-telemetry-text-primary text-base font-space-grotesk focus:outline-none focus:ring-2 focus:ring-telemetry-volt"
+            className="w-20 text-center bg-telemetry-elevated border border-white/10 rounded-lg px-2 py-1.5 text-telemetry-text-primary text-base font-sans font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-telemetry-volt"
             value={tiebreakP1}
             onChange={(e) => onTiebreakInputChange(e.target.value, 'p1')}
             min={floorTiebreak?.player1 ?? 0}
@@ -55,7 +55,7 @@ export function EditScoreTiebreakInputs({
         </div>
 
         {/* Separador */}
-        <span className="text-telemetry-text-muted text-sm font-space-grotesk opacity-40 self-end mb-2">×</span>
+        <span className="text-telemetry-text-muted text-sm font-sans opacity-40 self-end mb-2">×</span>
 
         {/* Jogador 2 (sempre à direita) */}
         <div className="flex flex-col items-center gap-1.5 min-w-0">
@@ -73,7 +73,7 @@ export function EditScoreTiebreakInputs({
           </div>
           <input
             type="number"
-            className="w-20 text-center bg-telemetry-elevated border border-white/10 rounded-lg px-2 py-1.5 text-telemetry-text-primary text-base font-space-grotesk focus:outline-none focus:ring-2 focus:ring-telemetry-volt"
+            className="w-20 text-center bg-telemetry-elevated border border-white/10 rounded-lg px-2 py-1.5 text-telemetry-text-primary text-base font-sans font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-telemetry-volt"
             value={tiebreakP2}
             onChange={(e) => onTiebreakInputChange(e.target.value, 'p2')}
             min={floorTiebreak?.player2 ?? 0}

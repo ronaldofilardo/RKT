@@ -36,9 +36,20 @@ export function enrichPointsFromHistory(
     const snapshot = derivePointSnapshot(stateBefore, format);
     const serve = deriveServeOutcomes(pt);
 
+    const resolvedWinner: 'PLAYER_1' | 'PLAYER_2' =
+      pt.winnerSide === 'player1'
+        ? 'PLAYER_1'
+        : pt.winnerSide === 'player2'
+          ? 'PLAYER_2'
+          : pt.winnerId === player1Id
+            ? 'PLAYER_1'
+            : pt.winnerId === _player2Id
+              ? 'PLAYER_2'
+              : 'PLAYER_1';
+
     points.push({
       pointNumber: i + 1,
-      winner: pt.winnerId === player1Id ? 'PLAYER_1' : 'PLAYER_2',
+      winner: resolvedWinner,
       type: pt.type,
       server: snapshot.server,
       isFirstServe: pt.isFirstServe,

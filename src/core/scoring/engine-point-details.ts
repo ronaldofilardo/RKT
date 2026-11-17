@@ -13,6 +13,7 @@ export function buildPointDetails(
   state: ScoringState,
   config: ScoringEngineConfig,
   isSecondServeState = false,
+  winnerSide?: 'player1' | 'player2',
 ): PointDetails {
   const hasFirstFaultDetail = Boolean(
     flow.firstFaultDetail &&
@@ -57,6 +58,7 @@ export function buildPointDetails(
 
   return {
     winnerId: flow.winnerId,
+    ...(winnerSide ? { winnerSide } : {}),
     type: (flow.type as PointDetails['type']) || 'WINNER',
     isFirstServe,
     isSecondServe,

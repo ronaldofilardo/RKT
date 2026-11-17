@@ -81,7 +81,7 @@ export function computeSetSummary(
       tiebreakScore,
     },
     winner,
-    totalPoints: setPoints.length,
+    totalPoints: setPoints.filter(p => p.type !== 'FAULT_FIRST').length,
     durationMinutes,
     player1: calculatePlayerStats(setPoints, 'player1', format),
     player2: calculatePlayerStats(setPoints, 'player2', format),

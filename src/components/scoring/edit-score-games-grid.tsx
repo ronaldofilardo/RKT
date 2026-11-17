@@ -50,7 +50,7 @@ export function EditScoreGamesGrid({
         onChange={onP1InputChange}
       />
 
-      <span className="text-telemetry-text-muted text-sm font-space-grotesk opacity-40 self-end mb-2.5">×</span>
+      <span className="text-telemetry-text-muted text-sm font-sans opacity-40 self-end mb-2.5">×</span>
 
       <PlayerGamesColumn
         name={playerNames.p2}

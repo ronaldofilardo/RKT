@@ -62,7 +62,7 @@ export function EditableSetsSummary({ title, sets, playerNames, startIndex = 0, 
                   type="number"
                   value={set.p1Games}
                   onChange={(e) => onEditSet(set.index, parseInt(e.target.value, 10) || 0, set.p2Games)}
-                  className={`w-16 sm:w-20 text-center rounded-lg px-2 py-1 text-sm font-space-grotesk font-semibold focus:outline-none focus:ring-2 focus:ring-telemetry-volt ${p1CellClass}`}
+                  className={`w-16 sm:w-20 text-center rounded-lg px-2 py-1 text-sm font-sans font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-telemetry-volt ${p1CellClass}`}
                   aria-label={`${playerNames.p1} Set ${startIndex + idx + 1}`}
                 />
                 <span className="text-telemetry-text-muted text-xs w-3 text-center">×</span>
@@ -70,7 +70,7 @@ export function EditableSetsSummary({ title, sets, playerNames, startIndex = 0, 
                   type="number"
                   value={set.p2Games}
                   onChange={(e) => onEditSet(set.index, set.p1Games, parseInt(e.target.value, 10) || 0)}
-                  className={`w-16 sm:w-20 text-center rounded-lg px-2 py-1 text-sm font-space-grotesk font-semibold focus:outline-none focus:ring-2 focus:ring-telemetry-volt ${p2CellClass}`}
+                  className={`w-16 sm:w-20 text-center rounded-lg px-2 py-1 text-sm font-sans font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-telemetry-volt ${p2CellClass}`}
                   aria-label={`${playerNames.p2} Set ${startIndex + idx + 1}`}
                 />
               </div>

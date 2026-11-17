@@ -39,7 +39,7 @@ export function calculatePlayerStats(
   const targetWinner = isP1 ? 'PLAYER_1' : 'PLAYER_2';
   const targetServer = isP1 ? 'player1' : 'player2';
 
-  const totalPointsWon = points.filter(p => p.winner === targetWinner).length;
+  const totalPointsWon = points.filter(p => p.type !== 'FAULT_FIRST' && p.winner === targetWinner).length;
   const serviceStats = calculateServiceStats(points, targetServer, targetWinner, format);
   const returnStats = calculateReturnBreakPoints(points, targetServer, targetWinner, format);
   const errorStats = calculatePlayerErrors(points, targetServer, targetWinner);

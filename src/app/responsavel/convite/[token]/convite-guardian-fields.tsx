@@ -42,10 +42,11 @@ export function ConviteGuardianFields({
 
       <div className="space-y-2.5">
         <div>
-          <label className="text-[11px] font-medium text-telemetry-text-muted block mb-1">
+          <label htmlFor="guardianName" className="text-[11px] font-medium text-telemetry-text-muted block mb-1">
             Nome Completo do Responsável <span className="text-rose-400">*</span>
           </label>
           <input
+            id="guardianName"
             type="text"
             required
             value={guardianName}
@@ -57,10 +58,11 @@ export function ConviteGuardianFields({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <div>
-            <label className="text-[11px] font-medium text-telemetry-text-muted block mb-1">
+            <label htmlFor="guardianCpf" className="text-[11px] font-medium text-telemetry-text-muted block mb-1">
               CPF do Responsável <span className="text-rose-400">*</span>
             </label>
             <input
+              id="guardianCpf"
               type="text"
               required
               value={guardianCpf}
@@ -72,10 +74,11 @@ export function ConviteGuardianFields({
           </div>
 
           <div>
-            <label className="text-[11px] font-medium text-telemetry-text-muted block mb-1">
+            <label htmlFor="relationship" className="text-[11px] font-medium text-telemetry-text-muted block mb-1">
               Grau de Parentesco <span className="text-rose-400">*</span>
             </label>
             <select
+              id="relationship"
               value={relationship}
               onChange={(e) => setRelationship(e.target.value)}
               className="w-full bg-telemetry-base border border-telemetry-border/30 rounded-lg p-2 text-xs text-telemetry-text-primary focus:border-telemetry-blue focus:outline-none"

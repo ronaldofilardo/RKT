@@ -46,7 +46,7 @@ export function LiveCountersBar({
   return (
     <div
       data-testid="live-counters-bar"
-      className="bg-telemetry-card border border-white/10 rounded-xl px-2 py-1 shadow-sm text-xs select-none transition-all relative z-10"
+      className="bg-telemetry-card border border-white/10 rounded-xl px-2 py-1 shadow-sm text-xs select-none transition-all relative z-10 antialiased"
     >
       <div className="flex items-center justify-between gap-1 mb-1">
         <div className="flex items-center gap-2">

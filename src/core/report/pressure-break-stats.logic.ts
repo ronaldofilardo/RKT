@@ -74,7 +74,7 @@ export function computePressureStats(
   const setPointsWonPct = calcPercentage(setPointsWon, setPointsTotal);
 
   const { played: tiebreaksPlayed, won: tiebreaksWon } = countTiebreaks(points, winner);
-  const totalPointsWon = points.filter(p => p.winner === winner).length;
+  const totalPointsWon = points.filter(p => p.type !== 'FAULT_FIRST' && p.winner === winner).length;
 
   return {
     breakPointsSaved: bp.saved,

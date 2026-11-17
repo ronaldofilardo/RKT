@@ -76,7 +76,7 @@ export function ScoreboardPlayerRow({
         return (
           <td
             key={i}
-            className={`text-center px-0.5 sm:px-1 py-0.5 text-sm font-space-grotesk font-semibold border-l border-b border-telemetry-border/10 ${style}`}
+            className={`text-center px-0.5 sm:px-1 py-0.5 text-sm font-sans font-semibold tabular-nums border-l border-b border-telemetry-border/10 antialiased ${style}`}
           >
             {renderSetScore(set, side)}
           </td>

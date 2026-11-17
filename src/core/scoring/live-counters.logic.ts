@@ -42,6 +42,7 @@ export function computeLiveCounters(points: TimelinePoint[], format?: TennisForm
   let p1Points = 0;
   let p2Points = 0;
   for (const pt of points) {
+    if (pt.type === 'FAULT_FIRST') continue;
     if (pt.winner === 'PLAYER_1') p1Points++;
     else if (pt.winner === 'PLAYER_2') p2Points++;
   }

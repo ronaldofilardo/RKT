@@ -43,6 +43,7 @@ export interface SetScore {
 
 export interface PointDetails {
   winnerId: string;
+  winnerSide?: 'player1' | 'player2';
   type: ContractPointType;
   isFirstServe: boolean;
   isSecondServe: boolean;
