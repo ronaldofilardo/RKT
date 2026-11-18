@@ -1,0 +1,83 @@
+/**
+ * Airtable Design System Tokens
+ * 56 tokens organizados em 10 grupos funcionais
+ * @see https://airtable.com/design
+ */
+
+:root {
+  /* 2.1 Superfície e Fundo */
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-warm: var(--surface);
+
+  /* 2.2 Texto */
+  --fg: #181d26;
+  --fg-2: #333333;
+  --muted: rgba(4, 14, 32, 0.69);
+  --meta: var(--muted);
+
+  /* 2.3 Borda */
+  --border: #e0e2e6;
+  --border-soft: #eef0f3;
+
+  /* 2.4 Acento / Interativo */
+  --accent: #1b61c9;
+  --accent-on: #ffffff;
+  --accent-hover: #254fad;
+  --accent-active: color-mix(in srgb, var(--accent) 86%, black);
+
+  /* 2.5 Semântico */
+  --success: #006400;
+  --warn: #eab308;
+  --danger: #dc2626;
+
+  /* 2.6 Tipografia */
+  --font-display: var(--font-geist-sans), 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: var(--font-geist-sans), 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: var(--font-geist-mono), 'GeistMono', ui-monospace, 'SF Mono', 'Cascadia Code', 'Segoe UI Mono', monospace;
+
+  /* 2.7 Escala Tipográfica */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-3xl: 40px;
+  --text-4xl: 48px;
+  --leading-body: 1.35;
+  --leading-tight: 1.2;
+  --tracking-display: 0;
+
+  /* 2.8 Espaçamento */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --section-y-desktop: 96px;
+  --section-y-tablet: 64px;
+  --section-y-phone: 48px;
+
+  /* 2.9 Raio e Elevação */
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 9999px;
+  --elev-flat: none;
+  --elev-ring: 0 0 0 1px var(--border);
+  --elev-raised: 0 0 1px rgba(0,0,0,0.32), 0 2px 4px rgba(0,0,0,0.08), 0 8px 16px rgba(0,0,0,0.08);
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+
+  /* 2.10 Movimento e Layout */
+  --motion-fast: 150ms;
+  --motion-base: 200ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --container-max: 1200px;
+  --container-gutter-desktop: 24px;
+  --container-gutter-tablet: 16px;
+  --container-gutter-phone: 12px;
+}

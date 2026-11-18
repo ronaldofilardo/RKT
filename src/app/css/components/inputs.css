@@ -1,0 +1,27 @@
+/* ============================================
+ * Component Specifications - Inputs
+ * ============================================ */
+
+/**
+ * Input
+ * Spec: Estilo Haas padrão, foco com --focus-ring (azul 30% transparente)
+ */
+.input {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+.input::placeholder {
+  color: var(--muted);
+}

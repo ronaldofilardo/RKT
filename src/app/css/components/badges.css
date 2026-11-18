@@ -1,0 +1,38 @@
+/* ============================================
+ * Component Specifications - Badges
+ * ============================================ */
+
+/**
+ * Badge / Tag
+ * Spec: Raio 9999px (pill), fundo semântico conforme contexto
+ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0.28px;
+}
+
+.badge-success {
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success);
+}
+
+.badge-warn {
+  background-color: color-mix(in srgb, var(--warn) 15%, transparent);
+  color: #854d0e;
+}
+
+.badge-danger {
+  background-color: color-mix(in srgb, var(--danger) 15%, transparent);
+  color: var(--danger);
+}
+
+.badge-accent {
+  background-color: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+}

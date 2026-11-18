@@ -1,0 +1,42 @@
+/* ==========================================================================
+   RESPONSIVE UTILITIES
+   ========================================================================== */
+
+@media (min-width: 768px) and (orientation: landscape) {
+  .modal-max-w-tablet {
+    max-width: 600px;
+  }
+}
+
+/* Improve touch targets on mobile */
+@media (max-width: 640px) {
+  button, a, [role="button"] {
+    min-height: 44px;
+  }
+}
+
+/* Hide scrollbar for set badges on mobile */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Prevent text overflow on very small screens */
+@media (max-width: 374px) {
+  .text-4xl {
+    font-size: 1.75rem;
+    line-height: 2rem;
+  }
+}
+
+/* /scoring — sem scroll interno: com o painel de detalhes do saque aberto,
+   blocos secundários recolhem em telas baixas para liberar altura. */
+@media (max-height: 900px) {
+  [data-serve-panel='open'] [data-serve-collapse='extras'] { display: none; }
+}
+@media (max-height: 740px) {
+  [data-serve-panel='open'] [data-serve-collapse='stats'] { display: none; }
+}

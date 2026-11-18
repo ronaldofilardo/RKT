@@ -1,0 +1,16 @@
+/* ============================================
+ * Utility Classes - Text
+ * ============================================ */
+
+/* Text utilities */
+.text-muted {
+  color: var(--muted);
+}
+
+.text-meta {
+  color: var(--meta);
+}
+
+.text-fg-2 {
+  color: var(--fg-2);
+}

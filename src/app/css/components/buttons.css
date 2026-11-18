@@ -1,0 +1,59 @@
+/* ============================================
+ * Component Specifications - Buttons
+ * ============================================ */
+
+/**
+ * Botão primário
+ * Spec: #1b61c9, texto branco, padding 16px 24px, raio 12px, fonte Haas 16px peso 500
+ */
+.btn-primary {
+  background-color: var(--accent);
+  color: var(--accent-on);
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: 0.08px;
+  transition: background-color var(--motion-fast) var(--ease-standard);
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-hover);
+}
+
+.btn-primary:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.btn-primary:active {
+  background-color: var(--accent-active);
+}
+
+/**
+ * Botão branco
+ * Spec: Fundo branco, texto #181d26, borda branca 1px, raio 12px
+ */
+.btn-white {
+  background-color: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--bg);
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 500;
+  transition: all var(--motion-fast) var(--ease-standard);
+}
+
+.btn-white:hover {
+  background-color: var(--surface-warm);
+  border-color: var(--border-soft);
+}
+
+.btn-white:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

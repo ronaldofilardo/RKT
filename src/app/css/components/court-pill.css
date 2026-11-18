@@ -1,0 +1,24 @@
+/* ==========================================================================
+   COURT PILL COMPONENT (Pilar 3.2)
+   ========================================================================== */
+
+/* Court pill (Pilar 3.2 — TD-066 resíduo 3): badge de tipo de piso com
+   acabamento tátil. Consome --court-badge-bg-opacity/--court-badge-text-opacity
+   (tokens antes órfãos) e os tokens --court-pill-*-text por tema. */
+.court-pill {
+  background-color: rgb(var(--court-pill-color) / var(--court-badge-bg-opacity));
+  color: rgb(var(--court-pill-text, var(--telemetry-text-primary)) / var(--court-badge-text-opacity));
+  border: 1px solid rgb(var(--court-pill-color, currentColor) / 0.35);
+}
+.court-pill[data-court='clay'] {
+  --court-pill-color: var(--telemetry-court-clay);
+  --court-pill-text: var(--court-pill-clay-text);
+}
+.court-pill[data-court='grass'] {
+  --court-pill-color: var(--telemetry-court-grass);
+  --court-pill-text: var(--court-pill-grass-text);
+}
+.court-pill[data-court='hard'] {
+  --court-pill-color: var(--telemetry-court-hard);
+  --court-pill-text: var(--court-pill-hard-text);
+}

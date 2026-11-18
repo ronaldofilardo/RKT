@@ -1,0 +1,36 @@
+/* ============================================
+ * Utility Classes - Spacing
+ * ============================================ */
+
+/* Responsive spacing utilities */
+.gutter-desktop {
+  padding-inline: var(--container-gutter-desktop);
+}
+
+.gutter-tablet {
+  padding-inline: var(--container-gutter-tablet);
+}
+
+.gutter-phone {
+  padding-inline: var(--container-gutter-phone);
+}
+
+/* Section padding */
+.section-y-desktop {
+  padding-block: var(--section-y-desktop);
+}
+
+.section-y-tablet {
+  padding-block: var(--section-y-tablet);
+}
+
+.section-y-phone {
+  padding-block: var(--section-y-phone);
+}
+
+/* Container */
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+}

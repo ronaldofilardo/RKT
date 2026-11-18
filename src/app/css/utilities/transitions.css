@@ -1,0 +1,11 @@
+/* ============================================
+ * Utility Classes - Transitions
+ * ============================================ */
+
+.transition-base {
+  transition: all var(--motion-base) var(--ease-standard);
+}
+
+.transition-fast {
+  transition: all var(--motion-fast) var(--ease-standard);
+}

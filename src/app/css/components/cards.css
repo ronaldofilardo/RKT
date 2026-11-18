@@ -1,0 +1,21 @@
+/* ============================================
+ * Component Specifications - Cards
+ * ============================================ */
+
+/**
+ * Card
+ * Spec: Borda 1px solid #e0e2e6, raio 16px–24px, sombra multicamada com tom azul
+ */
+.card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elev-raised);
+}
+
+.card-lg {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elev-raised);
+}

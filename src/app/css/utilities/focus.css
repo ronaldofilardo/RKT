@@ -1,0 +1,9 @@
+/* ============================================
+ * Utility Classes - Focus Ring
+ * ============================================ */
+
+/* Focus ring utility */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

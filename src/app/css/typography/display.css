@@ -1,0 +1,49 @@
+/* ============================================
+ * Display / Hero Typography
+ * ============================================ */
+
+.text-display {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+  font-weight: 400;
+}
+
+.text-display-bold {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  line-height: 1.5;
+  letter-spacing: var(--tracking-display);
+  font-weight: 900;
+}
+
+.text-section-title {
+  font-family: var(--font-body);
+  font-size: var(--text-3xl);
+  line-height: 1.25;
+  font-weight: 400;
+}
+
+.text-subtitle {
+  font-family: var(--font-body);
+  font-size: var(--text-2xl);
+  line-height: 1.15;
+  font-weight: 400;
+}
+
+.text-card-title {
+  font-family: var(--font-body);
+  font-size: var(--text-xl);
+  line-height: 1.25;
+  letter-spacing: 0.12px;
+  font-weight: 400;
+}
+
+.text-highlight {
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  line-height: 1.35;
+  letter-spacing: 0.1px;
+  font-weight: 400;
+}

@@ -1,0 +1,52 @@
+/* ==========================================================================
+   FORM INPUTS — Dark Mode (.dark, [data-theme="dark"], telemetry classes)
+   ========================================================================== */
+
+@layer base {
+  select.bg-telemetry-elevated,
+  select.bg-telemetry-card,
+  select.bg-telemetry-base,
+  .bg-telemetry-card select,
+  .bg-telemetry-elevated select,
+  .dark select,
+  .dark input,
+  [data-theme="dark"] select,
+  [data-theme="dark"] input,
+  input.bg-telemetry-elevated,
+  input.bg-telemetry-card,
+  .bg-telemetry-card input,
+  .bg-telemetry-elevated input {
+    color-scheme: dark;
+    background-color: #1E293B;
+    color: #F8FAFC;
+  }
+
+  select.bg-telemetry-elevated option,
+  select.bg-telemetry-card option,
+  select.bg-telemetry-base option,
+  .bg-telemetry-card select option,
+  .bg-telemetry-elevated select option,
+  .dark select option,
+  [data-theme="dark"] select option {
+    color-scheme: dark;
+    background-color: #1E293B;
+    color: #ffffff;
+  }
+
+  select.bg-telemetry-elevated:focus,
+  select.bg-telemetry-card:focus,
+  select.bg-telemetry-base:focus,
+  .bg-telemetry-card select:focus,
+  .bg-telemetry-elevated select:focus,
+  .dark select:focus,
+  .dark input:focus,
+  [data-theme="dark"] select:focus,
+  [data-theme="dark"] input:focus,
+  input.bg-telemetry-elevated:focus,
+  input.bg-telemetry-card:focus,
+  .bg-telemetry-card input:focus,
+  .bg-telemetry-elevated input:focus {
+    background-color: #1E293B;
+    color: #F8FAFC;
+  }
+}

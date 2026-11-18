@@ -1,0 +1,20 @@
+/* ==========================================================================
+   BASE RESET & BODY STYLES
+   ========================================================================== */
+
+body {
+  color: var(--body-fg);
+  background-color: var(--body-bg);
+  overflow-x: hidden;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: auto;
+  font-synthesis: none;
+  font-optical-sizing: auto;
+}
+
+/* Números tabulares esportivos ultra-clean para telas de anotação / scoring */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "cv01" 1;
+}

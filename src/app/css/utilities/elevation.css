@@ -1,0 +1,16 @@
+/* ============================================
+ * Utility Classes - Elevation
+ * ============================================ */
+
+/* Elevation utilities */
+.elev-flat {
+  box-shadow: var(--elev-flat);
+}
+
+.elev-ring {
+  box-shadow: var(--elev-ring);
+}
+
+.elev-raised {
+  box-shadow: var(--elev-raised);
+}

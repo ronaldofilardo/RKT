@@ -1,0 +1,28 @@
+/* ==========================================================================
+   OUTDOOR THEME TOKENS (alto contraste sob sol forte)
+   ========================================================================== */
+
+/* 5. Modo Outdoor (alto contraste sob sol forte — TD-066 resíduo 2).
+   <html> recebe a classe .light + data-theme="outdoor". O seletor tem a mesma
+   especificidade do bloco prefers-color-scheme (0,3,0) e vem depois — vence por
+   ordem na cascata. Tokens: branco puro, texto preto, bordas visíveis. */
+:root[data-theme='outdoor']:not(.dark) {
+  color-scheme: light;
+
+  --telemetry-base: 255 255 255;        /* Branco puro — reflexo máximo sob sol */
+  --telemetry-card: 255 255 255;
+  --telemetry-border: 100 116 139;      /* #64748B — borda visível com glare */
+  --telemetry-text-primary: 0 0 0;      /* Preto puro (21:1) */
+  --telemetry-text-muted: 51 65 85;     /* #334155 (10.3:1 em branco) */
+  --telemetry-score-main: 0 0 0;        /* AAA 21:1 */
+  --telemetry-score-secondary: 15 23 42; /* #0F172A AAA 17.8:1 */
+  --telemetry-score-accent: 0 77 0;     /* #004D00 AAA 10.2:1 */
+  --telemetry-volt: 0 77 0;
+
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255;
+
+  --body-bg: #FFFFFF;
+  --body-fg: #000000;
+}

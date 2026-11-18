@@ -1,0 +1,50 @@
+/* ==========================================================================
+   LIGHT THEME — Explicit Class Selectors (.light, [data-theme="light"])
+   ========================================================================== */
+
+.light, [data-theme="light"] {
+  color-scheme: light;
+
+  /* OKLCH-calibrated warm court ground (L:94% C:0.010 H:80) -> #F2EFE9 */
+  --telemetry-base: 242 239 233;          /* #F2EFE9 - Warm court ground */
+  --telemetry-card: 255 255 255;          /* #FFFFFF - Card surface (L:99%) */
+  --telemetry-elevated: 235 231 223;      /* #EBE7DF - Elevated surface (L:91%) for score cells/inputs */
+  --telemetry-active: 226 221 212;        /* #E2DDD4 - Active/hover state */
+  --telemetry-border: 226 221 212;        /* #E2DDD4 - Card border demarcation (L:88%) */
+  --telemetry-text-primary: 15 23 42;     /* #0F172A - Primary text (Navy Black) */
+  --telemetry-text-muted: 51 65 85;       /* #334155 - Muted text (Slate 700) - WCAG AAA on elevated */
+  --telemetry-volt: 15 80 3;              /* #0F5003 - Near-black green for WCAG AAA on light */
+  --telemetry-blue: 147 197 253;          /* #93C5FD - Very light blue for WCAG AAA with white text */
+  --telemetry-blue-light: 191 219 254;    /* #BFDBFE */
+  --telemetry-orange: 234 88 12;          /* #EA580C - Clay orange */
+  --telemetry-orange-light: 226 88 34;    /* #E25822 */
+  --telemetry-error: 220 38 38;           /* #DC2626 - Error red */
+  --telemetry-alert: 217 119 6;           /* #D97706 - Alert amber */
+  --telemetry-alert-light: 245 158 11;    /* #F59E0B */
+  --telemetry-court-clay: 196 98 58;      /* #C4623A - Clay */
+  --telemetry-court-grass: 45 138 62;     /* #2D8A3E - Grass */
+  --telemetry-court-hard: 30 77 123;      /* #1E4D7B - Hard */
+
+  /* Score-specific tokens for WCAG AAA (7:1) */
+  --telemetry-score-main: 15 23 42;       /* #0F172A - Main score digits (AAA on elevated) */
+  --telemetry-score-secondary: 51 65 85;  /* #334155 - Past sets (AAA on elevated) */
+  --telemetry-score-accent: 15 80 3;      /* #0F5003 - Current game/live accent (AAA on light) */
+
+  --foreground-rgb: 15, 23, 42;
+  --background-start-rgb: 242, 239, 233;
+  --background-end-rgb: 226, 221, 212;
+  --court-surface: #e2ddd4;
+  --clr-yellow: #d97706;
+  --clr-yellow-glow: rgba(217, 119, 6, 0.15);
+
+  /* Court badge opacity (Pilar 3: Micro-Toques de Piso) */
+  --court-badge-bg-opacity: 0.12;   /* Light: 12% background opacity */
+  --court-badge-text-opacity: 1;    /* Light: 100% text opacity */
+  /* Court pill text (Pilar 3.2): cor do piso escurecida (OKLCH L=0.35, >=4.5:1 no bg 12%) */
+  --court-pill-clay-text: #701100;
+  --court-pill-grass-text: #004C00;
+  --court-pill-hard-text: #0A3C68;
+
+  --body-bg: #F2EFE9;
+  --body-fg: #0F172A;
+}
