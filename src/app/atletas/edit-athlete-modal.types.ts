@@ -43,6 +43,7 @@ export interface EditAthleteModalProps {
   showCpf?: boolean;
   cpfRequired?: boolean;
   guardianImmutable?: boolean;
+  isParticularCoach?: boolean;
   onClose: () => void;
   onSave: (data: EditAthleteSavePayload) => Promise<void>;
 }

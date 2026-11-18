@@ -30,7 +30,7 @@ describe('PointDetailsModal - initial state', () => {
       situacaoContainer.querySelectorAll('button'),
     );
 
-    expect(situacaoButtons.length).toBe(4);
+    expect(situacaoButtons.length).toBe(5);
 
     situacaoButtons.forEach((btn) => {
       const label = btn.textContent?.trim() ?? '';
@@ -63,7 +63,7 @@ describe('PointDetailsModal - initial state', () => {
     });
 
     const buttons = screen.getAllByRole('button');
-    const situacaoLabels = ['Devolução de Saque', 'Fundo de Quadra', 'Passada', 'Rede'];
+    const situacaoLabels = ['Saque', 'Devolução de Saque', 'Fundo de Quadra', 'Passada', 'Rede'];
     buttons
       .filter((b) => situacaoLabels.includes((b.textContent ?? '').trim()))
       .forEach((b) => {

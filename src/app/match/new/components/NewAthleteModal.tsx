@@ -1,6 +1,7 @@
 'use client';
 
 import { NewAthleteModalForm } from './NewAthleteModalForm';
+import { NewAthleteCoachAlert } from './new-athlete-coach-alert';
 import { toggleRankingEntry, updateRankingField } from '@/app/atletas/rankingLogic';
 import { useNewAthleteModal } from './use-new-athlete-modal';
 import type { Athlete } from '../types';
@@ -19,6 +20,8 @@ export function NewAthleteModal({
   const {
     submitting, error, nameInputRef, form, setForm, nickname, setNickname, rankings, setRankings, age, submitNewAthleteForm,
   } = useNewAthleteModal({ isOpen, onClose, onCreated, myClub, ctId });
+  const isParticular = Boolean(myClub && !ctId);
+  const isMinorBlocked = isParticular && age !== null && age < 18;
 
   if (!isOpen) return null;
 
@@ -57,11 +60,12 @@ export function NewAthleteModal({
           {error && (
             <div role="alert" className="p-3 bg-telemetry-alert/10 border border-telemetry-alert/30 text-telemetry-alert text-sm rounded-lg">{error}</div>
           )}
-          {myClub && (
+          {myClub && !isParticular && (
             <div className="p-2.5 bg-telemetry-volt/10 border border-telemetry-volt/30 text-telemetry-volt text-xs rounded-lg">
-              {ctId ? 'Este atleta será vinculado ao seu clube.' : 'Este atleta será vinculado à sua carteira de atletas.'}
+              Este atleta será vinculado ao seu clube.
             </div>
           )}
+          <NewAthleteCoachAlert isParticular={isParticular} age={age} />
 
           <NewAthleteModalForm
             form={form} setForm={setForm} rankings={rankings} setRankings={setRankings}
@@ -80,7 +84,7 @@ export function NewAthleteModal({
               Cancelar
             </button>
             <button
-              type="submit" disabled={submitting || !form.name.trim()}
+              type="submit" disabled={submitting || !form.name.trim() || isMinorBlocked}
               className="flex-1 bg-telemetry-blue text-white font-semibold py-2.5 rounded-lg hover:opacity-90 disabled:opacity-50 transition-colors shadow-[0_0_12px_rgba(37,99,235,0.3)]"
             >
               {submitting ? 'Salvando...' : 'Salvar Atleta'}

@@ -10,6 +10,8 @@ export async function resolveLinkedPlayerId(input: {
   existingUser: { id: string; name: string; email?: string | null; cpf?: string | null };
   /** Player já existente a ser vinculado (ex.: atleta do clube sem conta de acesso). */
   playerId?: string;
+  /** Status do vínculo no CT ('ACTIVE' para adulto, 'PENDING' para menor tutelado) */
+  statusToApply?: 'ACTIVE' | 'PENDING';
   /** Dados do formulário, usados só quando for preciso criar o Player da conta. */
   athlete?: { birthDate: string; gender: string; laterality: string };
 }): Promise<string> {
@@ -46,12 +48,12 @@ export async function resolveLinkedPlayerId(input: {
       });
     }
 
-    // O atleta cadastrado pelo clube pertence ao clube: vínculo nasce/re-nasce ACTIVE.
+    const status = input.statusToApply ?? 'ACTIVE';
     const pct = await tx.playerCT.findFirst({ where: { playerId: pid, ctId }, select: { id: true } });
     if (pct) {
-      await tx.playerCT.update({ where: { id: pct.id }, data: { status: 'ACTIVE', endedAt: null } });
+      await tx.playerCT.update({ where: { id: pct.id }, data: { status, endedAt: null } });
     } else {
-      await tx.playerCT.create({ data: { playerId: pid, ctId, status: 'ACTIVE' } });
+      await tx.playerCT.create({ data: { playerId: pid, ctId, status } });
     }
 
     const coaches = await tx.membership.findMany({

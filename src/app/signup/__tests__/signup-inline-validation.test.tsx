@@ -3,6 +3,7 @@
  */
 import { fireEvent, render, screen } from '@testing-library/react';
 import SignupPage from '../page';
+import { acceptTermsInModal } from './signupTestHelper';
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn() }),
@@ -25,10 +26,8 @@ describe('SignupPage - validação inline', () => {
   it('valida o nome no blur sem usar o alerta global', () => {
     render(<SignupPage />);
     const { name } = getInputs();
-
     fireEvent.change(name, { target: { value: 'Ana' } });
     fireEvent.blur(name);
-
     expect(screen.getByText('Informe nome e sobrenome')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
@@ -36,16 +35,13 @@ describe('SignupPage - validação inline', () => {
   it('aplica máscara de CPF e valida o dígito verificador no blur', () => {
     render(<SignupPage />);
     const { identifier } = getInputs();
-
     fireEvent.change(identifier, { target: { value: '529982247' } });
     expect(identifier).toHaveValue('529.982.247');
     fireEvent.blur(identifier);
     expect(screen.getByText('CPF incompleto (faltam 2 dígitos)')).toBeInTheDocument();
-
     fireEvent.change(identifier, { target: { value: '11111111111' } });
     fireEvent.blur(identifier);
     expect(screen.getByText('CPF inválido. Confira os dígitos digitados.')).toBeInTheDocument();
-
     fireEvent.change(identifier, { target: { value: '52998224725' } });
     expect(identifier).toHaveValue('529.982.247-25');
     expect(screen.getByText('CPF válido')).toBeInTheDocument();
@@ -91,7 +87,7 @@ describe('SignupPage - validação inline', () => {
     fireEvent.change(name, { target: { value: 'Ana' } });
     fireEvent.change(identifier, { target: { value: 'ana@' } });
     fireEvent.change(password, { target: { value: '12345678' } });
-    fireEvent.click(screen.getByLabelText(/Li e aceito os/i));
+    acceptTermsInModal();
     fireEvent.click(screen.getByRole('button', { name: 'Criar conta' }));
 
     expect(screen.getByText('Informe nome e sobrenome')).toBeInTheDocument();

@@ -6,7 +6,7 @@ import { withAccessHandler } from '@/lib/access-handler';
 import { ApiError, NotFoundError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { getGestorCtId, denyGestor } from '../../../_logic';
-import { notifyCoachAssigned } from '@/services/notification-create.logic';
+import { executeMatchCoachAssignmentTx } from './match-assign.logic';
 
 const BodySchema = z.object({
   coachUserId: z.string().optional(),
@@ -59,77 +59,15 @@ export async function POST(
       }
 
       const primaryCoachId = targetCoachIds[0];
+      const targetId = match.sourceMatchId ?? matchId;
+      const actorName = (user as any)?.name || 'Gestor';
 
-      const updated = await prisma.$transaction(async (tx: any) => {
-        const targetId = match.sourceMatchId ?? matchId;
-        const res = await tx.match.update({
-          where: { id: targetId },
-          data: { assignedCoachId: primaryCoachId },
-        });
-
-        // Sincronizar MatchAssignedCoach (tabela associativa N:N)
-        if (tx.matchAssignedCoach) {
-          await tx.matchAssignedCoach.deleteMany({
-            where: {
-              matchId: targetId,
-              coachId: { notIn: targetCoachIds },
-            },
-          });
-          for (const coachId of targetCoachIds) {
-            await tx.matchAssignedCoach.upsert({
-              where: {
-                MatchAssignedCoach_matchId_coachId_key: {
-                  matchId: targetId,
-                  coachId,
-                },
-              },
-              update: {},
-              create: {
-                matchId: targetId,
-                coachId,
-                assignedBy: actor.userId,
-              },
-            });
-          }
-        }
-
-        if (typeof tx.match.updateMany === 'function') {
-          await tx.match.updateMany({
-            where: {
-              sourceMatchId: targetId,
-              createdByUserId: { notIn: targetCoachIds },
-              deletedAt: null,
-            },
-            data: { isOfficialClubAnnotation: false },
-          });
-          await tx.match.updateMany({
-            where: {
-              sourceMatchId: targetId,
-              createdByUserId: { in: targetCoachIds },
-              deletedAt: null,
-            },
-            data: { isOfficialClubAnnotation: true },
-          });
-        }
-
-        await tx.auditLog.create({
-          data: {
-            actorUserId: actor.userId,
-            action: 'MATCH_COACH_ASSIGNED',
-            resourceType: 'Match',
-            resourceId: targetId,
-            ctId,
-            meta: { coachUserId: primaryCoachId, coachUserIds: targetCoachIds },
-          },
-        });
-
-        const actorName = (user as any)?.name || 'Gestor';
-        for (const coachId of targetCoachIds) {
-          await notifyCoachAssigned({ ...match, id: targetId }, coachId, actorName, tx);
-        }
-
-        return res;
-      });
+      const updated = await prisma.$transaction(async (tx: any) =>
+        executeMatchCoachAssignmentTx(tx, {
+          match, targetId, primaryCoachId, targetCoachIds,
+          actorUserId: actor.userId, actorName, ctId,
+        }),
+      );
 
       return NextResponse.json({
         matchId: updated.id,
@@ -142,4 +80,3 @@ export async function POST(
     }
   });
 }
-

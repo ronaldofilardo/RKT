@@ -74,8 +74,8 @@ export function GestorOnboardingModal({ open, onOpenChange, onSuccess }: GestorO
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="gestor-modal-title">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 m-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="gestor-modal-title">
+      <div className="bg-telemetry-card text-telemetry-text-primary border border-telemetry-border/20 rounded-2xl shadow-2xl w-full max-w-lg p-6 m-4">
         <ModalHeader step={step} onClose={() => onOpenChange(false)} />
         <ModalError error={error} />
         <form onSubmit={handleSubmit} className="space-y-4">

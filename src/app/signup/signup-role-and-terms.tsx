@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import type { SignupRole } from './use-signup-form';
 
 interface SignupRoleAndTermsProps {
@@ -6,9 +5,30 @@ interface SignupRoleAndTermsProps {
   setRole: (role: SignupRole) => void;
   termsAccepted: boolean;
   setTermsAccepted: (accepted: boolean) => void;
+  onOpenTermsModal?: (tab: 'TERMOS' | 'PRIVACIDADE') => void;
 }
 
-export function SignupRoleAndTerms({ role, setRole, termsAccepted, setTermsAccepted }: SignupRoleAndTermsProps) {
+export function SignupRoleAndTerms({
+  role,
+  setRole,
+  termsAccepted,
+  setTermsAccepted,
+  onOpenTermsModal,
+}: SignupRoleAndTermsProps) {
+  const handleOpen = (tab: 'TERMOS' | 'PRIVACIDADE') => (e: React.MouseEvent) => {
+    if (onOpenTermsModal) {
+      e.preventDefault();
+      onOpenTermsModal(tab);
+    }
+  };
+
+  const handleContainerClick = (e: React.MouseEvent) => {
+    if (!termsAccepted && onOpenTermsModal) {
+      e.preventDefault();
+      onOpenTermsModal('TERMOS');
+    }
+  };
+
   return (
     <>
       <div className="flex flex-col gap-1 text-xs text-telemetry-text-muted">
@@ -23,27 +43,45 @@ export function SignupRoleAndTerms({ role, setRole, termsAccepted, setTermsAccep
         >
           <option value="ATLETA">Atleta</option>
           <option value="TREINADOR">Treinador</option>
-          <option value="ESPECTADOR">Responsável / Espectador</option>
+          <option value="ESPECTADOR">Espectador</option>
+          <option value="RESPONSAVEL">Responsável Legal (Menor de 18 anos)</option>
           <option value="GESTOR">Gestor de Clube / CT</option>
         </select>
       </div>
-      <div className="flex items-start gap-2 pt-1">
+      <div className="flex items-start gap-2 pt-1" onClick={!termsAccepted ? handleContainerClick : undefined}>
         <input
           id="signup-terms-checkbox"
           type="checkbox"
           checked={termsAccepted}
+          disabled={!termsAccepted}
           onChange={(e) => setTermsAccepted(e.target.checked)}
-          className="mt-0.5 w-4 h-4 cursor-pointer accent-telemetry-blue"
+          className="mt-0.5 w-4 h-4 cursor-pointer accent-telemetry-blue disabled:opacity-40 disabled:cursor-not-allowed"
         />
-        <label htmlFor="signup-terms-checkbox" className="text-sm font-medium text-telemetry-text-primary cursor-pointer leading-snug">
+        <label
+          htmlFor="signup-terms-checkbox"
+          className="text-sm font-medium text-telemetry-text-primary cursor-pointer leading-snug"
+        >
           Li e aceito os{' '}
-          <Link href="/termos" className="text-telemetry-blue hover:text-telemetry-blue-light hover:underline font-semibold">
+          <a
+            href="/termos"
+            onClick={handleOpen('TERMOS')}
+            className="text-telemetry-blue hover:text-telemetry-blue-light hover:underline font-semibold"
+          >
             Termos de Uso
-          </Link>{' '}
+          </a>{' '}
           e a{' '}
-          <Link href="/privacidade" className="text-telemetry-blue hover:text-telemetry-blue-light hover:underline font-semibold">
+          <a
+            href="/privacidade"
+            onClick={handleOpen('PRIVACIDADE')}
+            className="text-telemetry-blue hover:text-telemetry-blue-light hover:underline font-semibold"
+          >
             Política de Privacidade
-          </Link>
+          </a>
+          {!termsAccepted && (
+            <span className="block text-[11px] text-telemetry-text-muted mt-0.5 font-normal">
+              (Necessário ler ambos os documentos no modal para liberar)
+            </span>
+          )}
         </label>
       </div>
     </>

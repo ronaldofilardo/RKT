@@ -90,7 +90,7 @@ jest.mock("@/components/scoring/EditScoreModal", () => ({ EditScoreModal: () => 
 jest.mock("@/components/scoring/MatchTimelineView", () => ({ MatchTimelineView: () => React.createElement("div") }));
 jest.mock("@/components/scoring/CourtBackground", () => ({ __esModule: true, default: () => React.createElement("div") }));
 jest.mock("@/components/scoring/AnnotationSessionPanel", () => ({ AnnotationSessionPanel: () => React.createElement("div") }));
-jest.mock("@/components/scoring/LiveCountersBar", () => ({ LiveCountersBar: () => React.createElement("div") }));
+jest.mock("@/components/scoring/LiveCountersBar", () => ({ LiveCountersBar: () => React.createElement("div"), hasAnyLiveCounters: () => false }));
 jest.mock("@/components/scoring/TacticalInsightBanner", () => ({ TacticalInsightBanner: () => React.createElement("div") }));
 jest.mock("@/components/scoring/SetSummaryModal", () => ({ SetSummaryModal: () => React.createElement("div") }));
 jest.mock("@/components/scoring/CommentModal", () => ({ CommentModal: () => React.createElement("div") }));

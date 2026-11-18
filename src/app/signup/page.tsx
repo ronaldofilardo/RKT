@@ -1,13 +1,17 @@
 "use client";
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BrandLogo } from '@/components/ui/brand-logo';
 import { SignupFormFields } from './signup-form-fields';
 import { GestorOnboardingModal } from './gestor-onboarding-modal';
+import { ResponsavelOnboardingModal } from './responsavel-onboarding-modal';
+import { SignupMinorWarningModal } from './signup-minor-warning-modal';
+import { TermsPrivacyModal, type TermsTab } from './terms-privacy-modal';
 import { useSignupForm, type SignupRole } from './use-signup-form';
 
-const PERFIL_WHITELIST: SignupRole[] = ['ATLETA', 'TREINADOR', 'GESTOR', 'ESPECTADOR'];
+const PERFIL_WHITELIST: SignupRole[] = ['ATLETA', 'TREINADOR', 'GESTOR', 'ESPECTADOR', 'RESPONSAVEL'];
 
 function resolvePerfil(raw: string | null): SignupRole {
   if (raw && PERFIL_WHITELIST.includes(raw as SignupRole)) return raw as SignupRole;
@@ -18,6 +22,7 @@ export default function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const form = useSignupForm(resolvePerfil(searchParams.get('perfil')));
+  const [termsModalTab, setTermsModalTab] = useState<TermsTab | null>(null);
 
   const handleGestorSuccess = () => {
     form.setShowGestorModal(false);
@@ -26,6 +31,8 @@ export default function SignupPage() {
       window.location.href = '/login';
     }
   };
+
+  const handleResponsavelSuccess = () => form.setShowResponsavelModal(false);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-telemetry-base p-4">
@@ -39,9 +46,9 @@ export default function SignupPage() {
           </div>
         )}
         <form onSubmit={form.handleSubmit} className="flex flex-col gap-3">
-          <SignupFormFields form={form} />
+          <SignupFormFields form={form} onOpenTermsModal={(tab) => setTermsModalTab(tab)} />
           <button type="submit" disabled={form.loading} className="w-full bg-telemetry-blue hover:bg-telemetry-blue-light text-white font-semibold py-3 rounded-lg disabled:opacity-50 mt-2 transition-colors cursor-pointer shadow-sm">
-            {form.loading ? 'Criando conta...' : form.role === 'GESTOR' ? 'Avançar: cadastrar clube' : 'Criar conta'}
+            {form.loading ? 'Criando conta...' : form.role === 'GESTOR' ? 'Avançar: cadastrar clube' : form.role === 'RESPONSAVEL' ? 'Avançar: dados do menor' : 'Criar conta'}
           </button>
           <div className="text-center text-xs text-telemetry-text-muted mt-3 border-t border-telemetry-border/10 pt-3">
             Já tem conta? <Link href="/login" className="text-telemetry-blue hover:text-telemetry-blue-light font-semibold hover:underline">Entrar</Link>
@@ -51,6 +58,34 @@ export default function SignupPage() {
           open={form.showGestorModal}
           onOpenChange={form.setShowGestorModal}
           onSuccess={handleGestorSuccess}
+        />
+        <ResponsavelOnboardingModal
+          open={form.showResponsavelModal}
+          onOpenChange={form.setShowResponsavelModal}
+          onSuccess={handleResponsavelSuccess}
+          credentials={{
+            name: form.name,
+            identifier: form.identifier,
+            password: form.password,
+            origem: form.origem,
+          }}
+        />
+        <SignupMinorWarningModal
+          isOpen={form.showMinorModal}
+          onClose={() => form.setShowMinorModal(false)}
+          onSelectResponsavel={() => {
+            form.setShowMinorModal(false);
+            form.setRole('RESPONSAVEL');
+          }}
+        />
+        <TermsPrivacyModal
+          open={termsModalTab !== null}
+          initialTab={termsModalTab ?? 'TERMOS'}
+          onClose={() => setTermsModalTab(null)}
+          onAccept={() => {
+            form.setTermsAccepted(true);
+            setTermsModalTab(null);
+          }}
         />
       </div>
     </div>

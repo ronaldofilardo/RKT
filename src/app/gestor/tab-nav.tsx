@@ -9,6 +9,7 @@ interface TabNavProps {
   coachesCount?: number;
   athletesCount?: number;
   affiliatesCount?: number;
+  solicitacoesCount?: number;
 }
 
 export function TabNav({
@@ -18,6 +19,7 @@ export function TabNav({
   coachesCount,
   athletesCount,
   affiliatesCount,
+  solicitacoesCount,
 }: TabNavProps) {
   const tabs: Array<{ key: GestorTab; label: string; badge?: number }> = [
     { key: 'coaches', label: 'Treinadores', badge: coachesCount },
@@ -26,6 +28,10 @@ export function TabNav({
     { key: 'matches', label: 'Partidas', badge: matchesCount },
     { key: 'club', label: 'Clube' },
   ];
+
+  if (typeof solicitacoesCount === 'number' && solicitacoesCount > 0) {
+    tabs.splice(2, 0, { key: 'solicitacoes', label: 'Solicitações', badge: solicitacoesCount });
+  }
 
   return (
     <div className="flex gap-2 mb-4 border-b border-telemetry-border/20 pb-2 overflow-x-auto">

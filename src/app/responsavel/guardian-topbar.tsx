@@ -1,11 +1,16 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { performLogout } from '@/lib/auth-client';
 import { BrandLogo } from '@/components/ui/brand-logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
-export function GuardianTopBar() {
+interface GuardianTopBarProps {
+  canOperate?: boolean;
+}
+
+export function GuardianTopBar({ canOperate = false }: GuardianTopBarProps) {
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -30,13 +35,27 @@ export function GuardianTopBar() {
             <h1 className="text-base sm:text-lg font-bold text-telemetry-text-primary tracking-wide">
               Acompanhamento do Menor
             </h1>
-            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-telemetry-blue/15 text-telemetry-blue border border-telemetry-blue/30">
-              Acompanhante
+            <span
+              className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border ${
+                canOperate
+                  ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                  : 'bg-telemetry-blue/15 text-telemetry-blue border border-telemetry-blue/30'
+              }`}
+            >
+              {canOperate ? 'Espectador & Acompanhante' : 'Acompanhante'}
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          {canOperate && (
+            <Link
+              href="/dashboard"
+              className="hidden sm:inline-flex text-xs font-semibold px-2.5 py-1 rounded bg-telemetry-elevated text-telemetry-text-primary hover:bg-telemetry-border/30 border border-telemetry-border/40 transition-colors"
+            >
+              🎾 Minhas Partidas
+            </Link>
+          )}
           <ThemeToggle />
           <button
             type="button"

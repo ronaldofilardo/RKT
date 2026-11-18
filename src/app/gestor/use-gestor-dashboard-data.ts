@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { CoachItem, AthleteItem, ClubMatchItem } from './types';
+import type { CoachItem, AthleteItem, ClubMatchItem, PendingRequestItem } from './types';
 import type { AffiliateAthleteItem } from './affiliates.types';
 
 export function useGestorDashboardData() {
@@ -8,6 +8,7 @@ export function useGestorDashboardData() {
   const [matches, setMatches] = useState<ClubMatchItem[]>([]);
   const [externalMatches, setExternalMatches] = useState<ClubMatchItem[]>([]);
   const [affiliates, setAffiliates] = useState<AffiliateAthleteItem[]>([]);
+  const [requests, setRequests] = useState<PendingRequestItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchCoachesData = useCallback(async () => {
@@ -42,25 +43,25 @@ export function useGestorDashboardData() {
     } catch {}
   }, []);
 
+  const fetchRequestsData = useCallback(async () => {
+    try {
+      const res = await fetch('/api/gestor/requests', { cache: 'no-store' });
+      if (res.ok) { const d = await res.json(); setRequests(d.items || []); }
+    } catch {}
+  }, []);
+
   useEffect(() => {
     Promise.all([
       fetchCoachesData(),
       fetchAthletesData(),
       fetchMatchesData(),
       fetchAffiliatesData(),
+      fetchRequestsData(),
     ]).finally(() => setLoading(false));
-  }, [fetchCoachesData, fetchAthletesData, fetchMatchesData, fetchAffiliatesData]);
+  }, [fetchCoachesData, fetchAthletesData, fetchMatchesData, fetchAffiliatesData, fetchRequestsData]);
 
   return {
-    coaches,
-    athletes,
-    matches,
-    externalMatches,
-    affiliates,
-    loading,
-    fetchCoachesData,
-    fetchAthletesData,
-    fetchMatchesData,
-    fetchAffiliatesData,
+    coaches, athletes, matches, externalMatches, affiliates, requests, loading,
+    fetchCoachesData, fetchAthletesData, fetchMatchesData, fetchAffiliatesData, fetchRequestsData,
   };
 }

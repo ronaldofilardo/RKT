@@ -9,6 +9,7 @@ import { useAtletasPage } from './hooks/useAtletasPage';
 import { useAtletasContext } from './hooks/use-atletas-context';
 import { useAthleteLink } from './hooks/use-athlete-link';
 import { playersClient } from '@/services/playersClient';
+import { CoachEcaGuard } from '@/components/coach/coach-eca-guard';
 
 export default function AtletasPage() {
   const {
@@ -66,6 +67,7 @@ export default function AtletasPage() {
         isOpen={showNewAthleteModal}
         athlete={null}
         showCpf={true}
+        isParticularCoach={ctx.isParticular}
         onClose={() => setShowNewAthleteModal(false)}
         onSave={async (payload) => {
           const token = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
@@ -88,6 +90,7 @@ export default function AtletasPage() {
         />
       )}
       {linkData && <LinkCopyModal open={Boolean(linkData)} onOpenChange={(open) => { if (!open) closeLinkModal(); }} title="Link de Primeiro Acesso" recipientName={linkData.recipientName} token={linkData.token} expiresAt={linkData.expiresAt} />}
+      <CoachEcaGuard isParticular={ctx.isParticular} />
     </div>
   );
 }

@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { formatIdentifierInput, validateSignupField, type SignupField } from './signup-validation.logic';
+import { isMinor } from '@/core/access/age';
 
-export type SignupRole = 'ATLETA' | 'TREINADOR' | 'GESTOR' | 'ESPECTADOR';
+export type SignupRole = 'ATLETA' | 'TREINADOR' | 'GESTOR' | 'ESPECTADOR' | 'RESPONSAVEL';
 
 export function useSignupForm(initialRole: SignupRole) {
   const router = useRouter();
@@ -20,6 +21,9 @@ export function useSignupForm(initialRole: SignupRole) {
   const [touched, setTouched] = useState<Partial<Record<SignupField, boolean>>>({});
   const [loading, setLoading] = useState(false);
   const [showGestorModal, setShowGestorModal] = useState(false);
+  const [showResponsavelModal, setShowResponsavelModal] = useState(false);
+  const [showMinorModal, setShowMinorModal] = useState(false);
+  const [birthDate, setBirthDate] = useState('');
 
   const values: Record<SignupField, string> = { name, identifier, password };
   const setFieldError = (field: SignupField, msg: string | null) => setFieldErrors((p) => ({ ...p, [field]: msg ?? undefined }));
@@ -38,7 +42,6 @@ export function useSignupForm(initialRole: SignupRole) {
     setError(null);
     if (!termsAccepted) return setError('Aceite os Termos de Uso e a Política de Privacidade para continuar');
     if (role === 'GESTOR') return setShowGestorModal(true);
-
     const nextErrors: Partial<Record<SignupField, string>> = {};
     const nErr = validateSignupField('name', name);
     const iErr = validateSignupField('identifier', identifier);
@@ -50,13 +53,18 @@ export function useSignupForm(initialRole: SignupRole) {
     setTouched({ name: true, identifier: true, password: true });
     setFieldErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
+    if (role === 'ATLETA' && birthDate && isMinor(birthDate, new Date())) {
+      return setShowMinorModal(true);
+    }
+    // A0.21: responsável valida os campos aqui e segue para o modal de onboarding.
+    if (role === 'RESPONSAVEL') return setShowResponsavelModal(true);
 
     setLoading(true);
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, identifier, password, role, origem }),
+        body: JSON.stringify({ name, identifier, password, role, birthDate: role === 'ATLETA' ? birthDate : undefined, origem }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -73,8 +81,9 @@ export function useSignupForm(initialRole: SignupRole) {
   }
 
   return {
-    name, identifier, password, role, termsAccepted, error, fieldErrors, touched, loading, showGestorModal,
-    setRole, setTermsAccepted, setShowGestorModal,
+    name, identifier, password, role, termsAccepted, error, fieldErrors, touched, loading, origem,
+    showGestorModal, showResponsavelModal, showMinorModal, birthDate,
+    setRole, setTermsAccepted, setShowGestorModal, setShowResponsavelModal, setShowMinorModal, setBirthDate,
     handleNameChange, handleIdentifierChange, handlePasswordChange, handleBlur, handleSubmit,
   };
 }

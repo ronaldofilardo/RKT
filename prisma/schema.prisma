@@ -35,6 +35,7 @@ model User {
   supportAccessApprovals SupportAccessRequest[]   @relation("SupportAccessApprover")
   athleteProfile         Player?                  @relation("PlayerAccount")
   guardianLinks          GuardianLink[]           @relation("GuardianUser")
+  coachInvitationsIssued CoachInvitationToken[]   @relation("CoachInvitationsIssued")
   consentRecords         ConsentRecord[]          @relation("GuardianConsent")
   guardianConsentEvents  ConsentEvent[]           @relation("GuardianConsentEvents")
   guardianInvitesCreated GuardianInvite[]         @relation("GuardianInvitesCreated")
@@ -118,6 +119,7 @@ model Player {
   guardianGate      GuardianGateStatus @default(LIBERADO)
   athleteClaims     AthleteClaim[]
   coachAthleteLinks CoachAthleteLink[]
+  coachInvitations  CoachInvitationToken[]
 
   matchesAsPlayer1        Match[] @relation("Player1")
   matchesAsPlayer2        Match[] @relation("Player2")
@@ -654,6 +656,25 @@ model CoachAthleteLink {
   @@unique([coachUserId, playerId])
   @@index([playerId, status])
   @@map("coach_athlete_links")
+}
+
+/// Convite assinado pelo responsável para treinador/clube externo (só o hash é guardado).
+model CoachInvitationToken {
+  id             String    @id @default(cuid())
+  guardianUserId String
+  playerId       String
+  coachName      String?
+  coachPhone     String?
+  tokenHash      String    @unique
+  expiresAt      DateTime
+  usedAt         DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  guardian       User      @relation("CoachInvitationsIssued", fields: [guardianUserId], references: [id], onDelete: Cascade)
+  player         Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([playerId])
+  @@map("coach_invitation_tokens")
 }
 
 model SupportAccessRequest {

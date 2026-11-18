@@ -150,13 +150,11 @@ describe('Characterization & Security: POST /api/auth/signup', () => {
       });
 
       const res = await POST(req);
-      expect(res.status).toBe(201);
+      // ECA Digital (Lei 15.211/2025): autocadastro de menor é bloqueado na raiz
+      expect(res.status).toBe(403);
+      const json = await res.json();
+      expect(json.error).toBe('MINOR_REQUIRES_GUARDIAN');
       expect(prisma.player.update).not.toHaveBeenCalled();
-      expect(prisma.player.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ userId: 'u-4', identityStatus: 'CONFIRMED' }),
-        }),
-      );
       expect(prisma.auditLog.create).not.toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ action: 'PLAYER_CLAIMED' }),

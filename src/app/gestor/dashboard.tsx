@@ -9,16 +9,13 @@ import { CoachesTable } from './coaches-table';
 import { AthletesTable } from './athletes-table';
 import { AffiliatesTable } from './affiliates-table';
 import { ClubMatchesTable } from './club-matches-table';
+import { SolicitacoesTable } from './solicitacoes-table';
 import { ClubInfo } from './club-info';
-import { CadastrarMembroModal } from './cadastrar-membro-modal';
-import { EditAthleteModal } from '@/app/atletas/EditAthleteModal';
-import { playersClient } from '@/services/playersClient';
 import { DashboardHeader } from './dashboard-header';
-import { IndicarAnotadorModal } from './indicar-anotador-modal';
-import { EditMatchInfoModal } from '@/components/dashboard/EditMatchInfoModal';
 import { DashboardChrome } from '@/app/dashboard/components/DashboardChrome';
-import { requestDeleteMatch, requestAnnotateMatch, clubMatchToDashboardPayload } from './gestor-match-actions.logic';
+import { requestDeleteMatch, requestAnnotateMatch } from './gestor-match-actions.logic';
 import { useGestorDashboardData } from './use-gestor-dashboard-data';
+import { GestorDashboardModals } from './gestor-dashboard-modals';
 
 interface GestorDashboardProps {
   me: MeResponse;
@@ -30,8 +27,8 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
   const router = useRouter();
   const toAreaPath = useAreaPath();
   const {
-    coaches, athletes, matches, externalMatches, affiliates, loading,
-    fetchCoachesData, fetchAthletesData, fetchMatchesData,
+    coaches, athletes, matches, externalMatches, affiliates, requests, loading,
+    fetchCoachesData, fetchAthletesData, fetchMatchesData, fetchRequestsData,
   } = useGestorDashboardData();
 
   const [coachSelected, setCoachSelected] = useState<string[]>([]);
@@ -52,17 +49,11 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
       <DashboardChrome title="Painel do Gestor" showMenu={false} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <DashboardHeader me={me} />
-        <TabNav
-          tab={tab}
-          onTabChange={setTab}
-          coachesCount={coaches.length}
-          athletesCount={athletes.length}
-          affiliatesCount={affiliates.length}
-          matchesCount={matches.length + externalMatches.length}
-        />
+        <TabNav tab={tab} onTabChange={setTab} coachesCount={coaches.length} athletesCount={athletes.length} affiliatesCount={affiliates.length} matchesCount={matches.length + externalMatches.length} solicitacoesCount={requests.length} />
         <div className="space-y-6">
           {tab === 'coaches' && <CoachesTable coaches={coaches} selectedIds={coachSelected} onSelectChange={(id, chk) => setCoachSelected((p) => chk ? [...p, id] : p.filter((x) => x !== id))} onSelectAll={(chk) => setCoachSelected(chk ? coaches.map((c) => c.user.id) : [])} onCreateCoach={() => { setCadastroType('TREINADOR'); setCadastroOpen(true); }} onRefresh={fetchCoachesData} />}
           {tab === 'athletes' && <AthletesTable athletes={athletes} selectedIds={athleteSelected} onSelectChange={(id, chk) => setAthleteSelected((p) => chk ? [...p, id] : p.filter((x) => x !== id))} onSelectAll={(chk) => setAthleteSelected(chk ? athletes.map((a) => a.player.id) : [])} onCreateAthlete={() => setNewAthleteOpen(true)} onRefresh={fetchAthletesData} />}
+          {tab === 'solicitacoes' && <SolicitacoesTable requests={requests} onRefresh={() => { fetchRequestsData(); fetchAthletesData(); }} />}
           {tab === 'affiliates' && <AffiliatesTable athletes={affiliates} />}
           {tab === 'matches' && (
             <ClubMatchesTable
@@ -75,27 +66,13 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
           )}
           {tab === 'club' && <ClubInfo />}
         </div>
-        <CadastrarMembroModal open={cadastroOpen} onOpenChange={setCadastroOpen} initialType={cadastroType} fixedType={cadastroType} onSave={() => { fetchCoachesData(); fetchAthletesData(); }} />
-        <EditAthleteModal
-          isOpen={newAthleteOpen} athlete={null} showCpf={true} onClose={() => setNewAthleteOpen(false)}
-          onSave={async (payload) => {
-            const token = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
-            await playersClient.create({ ...payload, myClub: true, ctId: gestorCtId }, token);
-            setNewAthleteOpen(false);
-            await fetchAthletesData();
-          }}
+        <GestorDashboardModals
+          cadastroOpen={cadastroOpen} setCadastroOpen={setCadastroOpen} cadastroType={cadastroType}
+          newAthleteOpen={newAthleteOpen} setNewAthleteOpen={setNewAthleteOpen} gestorCtId={gestorCtId}
+          matchToAssign={matchToAssign} setMatchToAssign={setMatchToAssign}
+          matchToEdit={matchToEdit} setMatchToEdit={setMatchToEdit}
+          coaches={coaches} fetchCoachesData={fetchCoachesData} fetchAthletesData={fetchAthletesData} fetchMatchesData={fetchMatchesData}
         />
-        <IndicarAnotadorModal open={Boolean(matchToAssign)} onOpenChange={(op) => !op && setMatchToAssign(null)} match={matchToAssign} coaches={coaches} onSuccess={fetchMatchesData} />
-        {matchToEdit && (
-          <EditMatchInfoModal
-            match={clubMatchToDashboardPayload(matchToEdit)}
-            onClose={() => setMatchToEdit(null)}
-            onSuccess={() => {
-              setMatchToEdit(null);
-              fetchMatchesData();
-            }}
-          />
-        )}
       </div>
     </div>
   );

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import type { ClubMatchItem, CoachItem } from './types';
+import { IndicarAnotadorCoachList } from './indicar-anotador-coach-list';
+import { useIndicarAnotador } from './use-indicar-anotador';
 
 export interface IndicarAnotadorModalProps {
   open: boolean;
@@ -18,63 +19,10 @@ export function IndicarAnotadorModal({
   coaches,
   onSuccess,
 }: IndicarAnotadorModalProps) {
-  const [selectedCoachIds, setSelectedCoachIds] = useState<string[]>([]);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (match) {
-      const existing =
-        match.assignedCoaches && match.assignedCoaches.length > 0
-          ? match.assignedCoaches.map((ac) => ac.coach.id).filter(Boolean)
-          : match.assignedCoachId
-          ? [match.assignedCoachId]
-          : coaches[0]?.user.id
-          ? [coaches[0].user.id]
-          : [];
-      setSelectedCoachIds(existing);
-      setError(null);
-    }
-  }, [match, coaches]);
+  const { selectedCoachIds, submitting, error, toggleCoach, handleConfirm } =
+    useIndicarAnotador(match, coaches, onOpenChange, onSuccess);
 
   if (!open || !match) return null;
-
-  function toggleCoach(coachId: string) {
-    setSelectedCoachIds((prev) =>
-      prev.includes(coachId) ? prev.filter((id) => id !== coachId) : [...prev, coachId],
-    );
-  }
-
-  async function handleConfirm() {
-    if (selectedCoachIds.length === 0) {
-      setError('Selecione ao menos um treinador ou anotador.');
-      return;
-    }
-    setSubmitting(true);
-    setError(null);
-    try {
-      const payload =
-        selectedCoachIds.length === 1
-          ? { coachUserId: selectedCoachIds[0] }
-          : { coachUserId: selectedCoachIds[0], coachUserIds: selectedCoachIds };
-
-      const res = await fetch(`/api/gestor/matches/${match!.id}/assign`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || 'Falha ao indicar anotador');
-      }
-      onOpenChange(false);
-      onSuccess();
-    } catch (err: any) {
-      setError(err.message || 'Erro inesperado');
-    } finally {
-      setSubmitting(false);
-    }
-  }
 
   const isDoubles = match.matchType === 'DOUBLES' || Boolean(match.player1Partner || match.player2Partner);
   const p1Side = match.player1Partner
@@ -99,7 +47,6 @@ export function IndicarAnotadorModal({
           </div>
         )}
 
-        {/* Informação sobre independência soberana das anotações */}
         <div className="p-3 rounded-lg bg-telemetry-elevated/80 border border-white/5 space-y-1 text-xs">
           <div className="font-semibold text-telemetry-blue-light flex items-center gap-1.5">
             <span aria-hidden="true">ℹ️</span>
@@ -110,45 +57,11 @@ export function IndicarAnotadorModal({
           </p>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-telemetry-text-muted block">
-              Membros anotadores ou treinadores ({selectedCoachIds.length} selecionado(s))
-            </span>
-          </div>
-
-          <div className="max-h-52 overflow-y-auto space-y-1.5 p-1 rounded-lg border border-white/10 bg-telemetry-elevated/40">
-            {coaches.length === 0 ? (
-              <p className="text-xs text-telemetry-text-muted p-3 text-center">Nenhum treinador cadastrado no clube.</p>
-            ) : (
-              coaches.map((c) => {
-                const isChecked = selectedCoachIds.includes(c.user.id);
-                return (
-                  <label
-                    key={c.user.id}
-                    htmlFor={`coach-${c.user.id}`}
-                    className={`flex items-center gap-2.5 p-2 rounded-lg cursor-pointer transition-colors text-sm border ${
-                      isChecked
-                        ? 'bg-telemetry-blue/15 border-telemetry-blue-light/30 text-telemetry-text-primary'
-                        : 'border-transparent hover:bg-white/5 text-telemetry-text-muted'
-                    }`}
-                  >
-                    <input
-                      id={`coach-${c.user.id}`}
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={() => toggleCoach(c.user.id)}
-                      className="w-4 h-4 rounded border-white/20 bg-telemetry-card text-telemetry-blue focus:ring-0 cursor-pointer"
-                    />
-                    <span className="flex-1 min-w-0 font-medium text-telemetry-text-primary block truncate">
-                      {c.user.name} ({c.user.email})
-                    </span>
-                  </label>
-                );
-              })
-            )}
-          </div>
-        </div>
+        <IndicarAnotadorCoachList
+          coaches={coaches}
+          selectedCoachIds={selectedCoachIds}
+          onToggleCoach={toggleCoach}
+        />
 
         <div className="flex items-center justify-end gap-3 pt-2">
           <button

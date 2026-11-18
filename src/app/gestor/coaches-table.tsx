@@ -48,17 +48,17 @@ export function CoachesTable({
         <div className="bg-telemetry-card rounded-xl shadow border border-telemetry-border/20 overflow-x-auto">
           <table className="w-full min-w-[760px] text-left border-collapse">
             <thead>
-              <tr className="border-b border-telemetry-border/40 text-sm font-semibold text-telemetry-text-primary">
-                <th className="px-3 pb-4 pt-4 w-10">
+              <tr className="border-b border-telemetry-border/40 text-xs font-semibold uppercase tracking-wider text-telemetry-text-muted">
+                <th className="px-3 pb-3 pt-3 w-10">
                   <input id="treinadores-select-all" type="checkbox" aria-label="Selecionar todos" checked={allSelected} onChange={(e) => onSelectAll(e.target.checked)} className="w-4 h-4 text-telemetry-blue border-telemetry-border rounded" />
                 </th>
-                <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Nome</th>
-                <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">CPF</th>
-                <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">E-mail</th>
-                <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Ingresso</th>
-                <th className="px-3 pb-4 pt-4 text-sm font-medium text-telemetry-text-primary">Status</th>
-                <th className="px-3 pb-4 pt-4 text-center text-sm font-medium text-telemetry-text-primary">Inserir Atletas</th>
-                <th className="px-3 pb-4 pt-4 text-right text-sm font-medium text-telemetry-text-primary">Ações</th>
+                <th className="px-3 pb-3 pt-3">Nome</th>
+                <th className="px-3 pb-3 pt-3">CPF</th>
+                <th className="px-3 pb-3 pt-3">E-mail</th>
+                <th className="px-3 pb-3 pt-3">Ingresso</th>
+                <th className="px-3 pb-3 pt-3">Status</th>
+                <th className="px-3 pb-3 pt-3 text-center">Inserir Atletas</th>
+                <th className="px-3 pb-3 pt-3 text-right">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-telemetry-border/20">

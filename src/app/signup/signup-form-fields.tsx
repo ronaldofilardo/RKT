@@ -2,10 +2,16 @@ import { PasswordInput } from '@/components/ui/password-input';
 import { PasswordStrengthMeter } from '@/components/ui/password-strength-meter';
 import { SignupFieldFeedback } from './signup-field-feedback';
 import { SignupRoleAndTerms } from './signup-role-and-terms';
+import { SignupBirthdateField } from './signup-birthdate-field';
 import { isEmailIdentifier } from './signup-validation.logic';
 import type { SignupFormController } from './use-signup-form';
 
-export function SignupFormFields({ form }: { form: SignupFormController }) {
+interface SignupFormFieldsProps {
+  form: SignupFormController;
+  onOpenTermsModal?: (tab: 'TERMOS' | 'PRIVACIDADE') => void;
+}
+
+export function SignupFormFields({ form, onOpenTermsModal }: SignupFormFieldsProps) {
   const isGestor = form.role === 'GESTOR';
   const identifierIsEmail = isEmailIdentifier(form.identifier);
 
@@ -73,11 +79,16 @@ export function SignupFormFields({ form }: { form: SignupFormController }) {
         <SignupFieldFeedback id="signup-password-feedback" error={form.fieldErrors.password} />
       </div>
 
+      {form.role === 'ATLETA' && (
+        <SignupBirthdateField value={form.birthDate} onChange={form.setBirthDate} />
+      )}
+
       <SignupRoleAndTerms
         role={form.role}
         setRole={form.setRole}
         termsAccepted={form.termsAccepted}
         setTermsAccepted={form.setTermsAccepted}
+        onOpenTermsModal={onOpenTermsModal}
       />
     </>
   );

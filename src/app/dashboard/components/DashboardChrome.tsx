@@ -11,6 +11,7 @@ import { useActiveArea, useAreaPath } from '@/hooks/use-area-path';
 import { DashboardTopBar } from './DashboardTopBar';
 import { DashboardSidebar } from './DashboardSidebar';
 import { getDefaultMenuContext, mapMenuSectionsToSidebar } from './dashboard-menu.logic';
+import { CoachEcaGuard } from '@/components/coach/coach-eca-guard';
 import type { DashboardView } from '../dashboard.types';
 
 interface DashboardChromeProps {
@@ -81,6 +82,7 @@ export function DashboardChrome({
         onContextSwitched={refreshMe} onBack={onBack} showBackButton={showBackButton}
       />
       {showMenu && <DashboardSidebar menuOpen={menuOpen} setMenuOpen={setMenuOpen} sections={sections} />}
+      <CoachEcaGuard isParticular={activeArea === 'TREINADOR_AVULSO' || meData?.activeContextId === 'PARTICULAR'} />
       {!onLogout && (
         <ConfirmAlertDialog
           open={logoutConfirmOpen} title="Sair?" description="Deseja realmente sair?" confirmLabel="Sair"

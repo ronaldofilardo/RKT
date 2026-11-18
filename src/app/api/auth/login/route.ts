@@ -11,6 +11,7 @@ import { checkLoginRateLimit, recordLoginAttempt } from './login-ratelimit.logic
 import { applyLoginCookies, resolveLoginArea } from './login-response.logic';
 import type { ActorMembership } from '@/core/access';
 import { computeAvailableAreas } from './login-available-areas.logic';
+import { recordUserLoginAudit } from './login-audit.logic';
 
 export async function POST(request: NextRequest) {
   try {
@@ -86,6 +87,7 @@ export async function POST(request: NextRequest) {
     });
 
     applyLoginCookies(response, accessToken, user.mustChangePassword);
+    void recordUserLoginAudit(user.id, request);
     return response;
   } catch (error) {
     logger.error('[LOGIN POST]', error);

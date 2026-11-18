@@ -4,6 +4,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import SignupPage from '../page';
+import { acceptTermsInModal } from './signupTestHelper';
 
 const mockPush = jest.fn();
 const mockSearchParams = new URLSearchParams();
@@ -25,7 +26,7 @@ describe('SignupPage - Fluxo de redirecionamento pós-cadastro', () => {
     fireEvent.change(screen.getByPlaceholderText(/Nome completo/i), { target: { value: 'Atleta Teste' } });
     fireEvent.change(screen.getByPlaceholderText(/E-mail ou CPF/i), { target: { value: 'atleta@teste.com' } });
     fireEvent.change(screen.getByPlaceholderText(/Senha/i), { target: { value: 'senhaForte123' } });
-    fireEvent.click(screen.getByLabelText(/Li e aceito os/i));
+    acceptTermsInModal();
   }
 
   it('redireciona para /login após criação de conta bem-sucedida', async () => {

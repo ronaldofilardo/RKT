@@ -42,15 +42,15 @@ rkt/
 │   ├── flows/              # Ciclo completo, offline, undo/redo, conflito, sessão
 │   └── helpers/            # auth, factories, expectNoAxeViolations (a11y)
 ├── prisma/
-│   ├── schema.prisma       # 8 models + 6 enums (fonte da verdade do domínio)
+│   ├── schema.prisma       # 29 models + 24 enums (fonte da verdade do domínio)
 │   ├── seed.ts             # Seed do banco
-│   ├── migrations/         # 12 migrações (init → match_comments)
+│   ├── migrations/         # 37 migrações (init → coach_invitation_tokens)
 │   └── legacy_sql/         # SQL legado de migração anterior
 ├── public/                 # Assets estáticos
 ├── scripts/                # Infra de teste/build: run-tests, check-no-skipped-tests,
 │                           # validate-spec-drift, create-test-db, mutation runner
 ├── src/
-│   ├── app/                # App Router (14 pages + 25 API routes + error/not-found)
+│   ├── app/                # App Router (33 pages + 123 API routes + error/not-found)
 │   │   ├── api/            # Backend HTTP (auth, admin, players, matches/*)
 │   │   ├── admin/          # Gestão de usuários (somente ADMIN)
 │   │   ├── atletas/        # CRUD de atletas e rankings
@@ -111,7 +111,7 @@ rkt/
        │                        └───────────────┬──────────────────────────┘
        │                                        ▼
        │                        ┌──────────────────────────────────────────┐
-       │                        │ API Routes (25) — src/app/api/**         │
+       │                        │ API Routes (123) — src/app/api/**        │
        │                        │  · withRLSHandler (src/lib/auth.ts)      │
        │                        │  · handleApiError / ApiError             │
        │                        │  · validação Zod (src/schemas)           │
@@ -297,6 +297,18 @@ As decisões arquiteturais estruturantes do projeto foram consolidadas diretamen
   - **Nickname é identidade escolhida:** `Player.nickname` é único globalmente e normalizado (minúsculas). `poolVisible` é opt-in (`false` por padrão) e só pode ser ligado por menor com `ConsentRecord` `POOL_VISIBILITY` ativo. O nickname só é exposto no pool com opt-in e nunca para menores.
 - **Consequência:** nenhuma tabela nova; duas colunas em `Match`, três em `Player` e um valor de enum. Templates e derivadas compartilham os mesmos contratos de leitura, diferenciados por `isPublicTemplate`/`sourceMatchId`.
 - **Plano:** `docs/archive/PLANO_POOL_PARTIDAS_PUBLICAS_E_NICKNAME_ATLETA_2026-11-09.md`.
+
+### ADR-0013 — Cadastro de Responsável Legal atômico e indicação de equipe técnica (2026-11-18)
+- **Problema:** a opção única "Responsável / Espectador" no `/signup` misturava duas contas incompatíveis (espectador sem tutela × responsável legal de menor), não existia monotutela no cadastro e não havia como o responsável indicar CT/treinador sem expor dados do menor.
+- **Decisão:**
+  - **Duas contas separadas:** `SignupRole` inclui `'RESPONSAVEL'`; `ESPECTADOR` volta a ser apenas espectador.
+  - **Transação única:** `POST /api/auth/signup` com `role: RESPONSAVEL` grava `(User, Player, GuardianLink, ConsentRecord)` em uma única transação (`signup-guardian*.logic.ts`), com auto-login (`claim ax: 'RESPONSAVEL'`) e redirect para `/responsavel`.
+  - **Monotutela estrita:** existe no máximo um `GuardianLink ACTIVE` por `playerId`; violação responde `409 MONOTUTELA_CONFLICT`.
+  - **Tríade de consentimentos:** `DATA` obrigatório; `BROADCAST` e `STATS` opcionais; gravados como `ConsentRecord` no mesmo commit.
+  - **Busca autenticada, nunca pública:** `GET /api/entities/search` exige sessão (fora de `PUBLIC_ROUTES`) para impedir enumeração de nomes de menores (LGPD §13.4); `q ≥ 2`, `limit ≤ 10`, cursor estável `(name,id)` base64url.
+  - **Indicação sem acesso prematuro:** `POST /api/guardians/me/indicate-staff` (escopo `RESP`, permissão `guardian:link`) emite token opaco (`randomBytes(32)` + hash sha256, TTL 7 dias) em `coach_invitation_tokens`; vínculos de equipe nascem `PENDING` e audit `GUARDIAN_STAFF_INDICATED`. A URL do convite aponta para `/signup?perfil=TREINADOR&convite=<token>`.
+- **Consequência:** migration `20261118000000_add_coach_invitation_tokens`; **follow-up N12** em `TASKS.md` (página de resgate do convite ainda não existe); o onboarding do responsável é modal de 3 etapas desacoplado em `src/app/signup/responsavel-*.tsx`.
+- **Plano:** `docs/PLANO_CADASTRO_RESPONSAVEL_ESPECTADOR_E_INDICACAO_2026-11-18.md`.
 
 ---
 

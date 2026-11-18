@@ -15,16 +15,17 @@ export function ModalHeader({ step, onClose }: ModalHeaderProps) {
     <div className="mb-6">
       <div className="flex justify-between items-start">
         <div>
-          <h2 id="gestor-modal-title" className="text-xl font-bold text-gray-900">
+          <h2 id="gestor-modal-title" className="text-xl font-bold text-telemetry-text-primary">
             Cadastro de Clube / CT
           </h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-xs text-telemetry-text-muted mt-0.5">
             {step === 1 ? 'Dados da Pessoa Jurídica' : 'Conta do Responsável'}
           </p>
         </div>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-gray-600"
+          aria-label="Fechar"
+          className="text-telemetry-text-muted hover:text-telemetry-text-primary p-1 rounded-lg transition-colors cursor-pointer"
         >
           ✕
         </button>
@@ -36,11 +37,11 @@ export function ModalHeader({ step, onClose }: ModalHeaderProps) {
         aria-valuemax={100}
         aria-valuenow={progress}
         data-testid="gestor-onboarding-progress"
-        className="mt-3 h-1.5 w-full bg-gray-200 rounded-full overflow-hidden"
+        className="mt-3 h-1.5 w-full bg-telemetry-elevated border border-telemetry-border/20 rounded-full overflow-hidden"
       >
         <div
           data-testid="gestor-onboarding-progress-fill"
-          className="h-full bg-sky-600 rounded-full transition-all"
+          className="h-full bg-telemetry-blue rounded-full transition-all"
           style={{ width: `${progress}%` }}
         />
       </div>

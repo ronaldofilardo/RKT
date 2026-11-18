@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { randomBytes, createHash } from 'crypto';
 import { isMinor } from '@/core/access/age';
+import { checkAthleteExistingAccount } from './athletes-account-check.logic';
 import { linkExistingAthleteAccount } from './athletes-link.logic';
 import { createGestorAthleteTransaction } from './athletes-create-transaction.logic';
 
@@ -23,23 +24,30 @@ export async function createAthleteByGestor(data: {
   const { name, cpf, birthDate, email, gender, laterality, ctId, issuedByUserId = '', linkExisting } = data;
   const normalizedCpf = cpf.replace(/\D/g, '');
 
-  const existingUser = await prisma.user.findUnique({ where: { cpf: normalizedCpf } });
-  if (existingUser) {
-    if (!linkExisting) {
-      return {
-        conflict: true, canLinkExisting: true, existingUserName: existingUser.name,
-        message: 'Este atleta já possui cadastro no RKT. Deseja vincular a conta ao seu clube?',
-        inviteKind: 'ATLETA',
-      };
+  const check = await checkAthleteExistingAccount(normalizedCpf);
+  if (check.kind !== 'NONE') {
+    if (check.kind === 'GUARDIAN_USER') {
+      return { conflict: true, canLinkExisting: false, existingUserName: check.name, message: check.message, inviteKind: 'ATLETA', accountKind: check.kind };
     }
-
-    const linked = await linkExistingAthleteAccount({
-      ctId, issuedByUserId,
-      existingUser: { id: existingUser.id, name: existingUser.name, email: existingUser.email, cpf: existingUser.cpf },
-      athlete: { birthDate, gender, laterality },
-    });
-    if ('error' in linked) return { conflict: true, message: linked.message, inviteKind: 'ATLETA' };
-    return { conflict: false, isExistingUser: true, userId: linked.userId, playerId: linked.playerId };
+    if (!linkExisting) {
+      return { conflict: true, canLinkExisting: true, existingUserName: check.name, guardianName: check.guardianName, message: check.message, inviteKind: 'ATLETA', accountKind: check.kind, statusToApply: check.statusToApply };
+    }
+    if (check.kind === 'DEPENDENT_PLAYER_WITHOUT_USER' && check.existingPlayerId) {
+      const pid = check.existingPlayerId;
+      const pct = await prisma.playerCT.findFirst({ where: { playerId: pid, ctId } });
+      if (pct) await prisma.playerCT.update({ where: { id: pct.id }, data: { status: 'PENDING', endedAt: null } });
+      else await prisma.playerCT.create({ data: { playerId: pid, ctId, status: 'PENDING' } });
+      return { conflict: false, isExistingUser: false, playerId: pid, isMinor: true };
+    }
+    if (check.existingUserId) {
+      const linked = await linkExistingAthleteAccount({
+        ctId, issuedByUserId, statusToApply: check.statusToApply,
+        existingUser: { id: check.existingUserId, name: check.name, cpf: normalizedCpf },
+        athlete: { birthDate, gender, laterality },
+      });
+      if ('error' in linked) return { conflict: true, message: linked.message, inviteKind: 'ATLETA' };
+      return { conflict: false, isExistingUser: true, userId: linked.userId, playerId: linked.playerId, isMinor: check.statusToApply === 'PENDING' };
+    }
   }
 
   const tempPassword = birthDate.replace(/\D/g, '').slice(0, 8);

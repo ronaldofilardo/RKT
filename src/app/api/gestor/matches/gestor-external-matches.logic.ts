@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { resolveCreatorRoleLabel } from '@/app/gestor/gestor-match-display.logic';
+import { GESTOR_EXTERNAL_MATCH_SELECT } from './gestor-external-matches-select';
 
 export async function loadGestorExternalScheduledMatches(
   ctId: string,
@@ -23,77 +24,12 @@ export async function loadGestorExternalScheduledMatches(
         ...(clubUserIds.length > 0 ? [{ createdByUserId: { notIn: clubUserIds } }] : []),
       ],
     },
-    select: {
-      id: true, format: true, state: true, createdAt: true, startedAt: true, finishedAt: true,
-      scheduledAt: true, scoreState: true, createdByUserId: true, assignedCoachId: true,
-      matchType: true, player1PartnerId: true, player2PartnerId: true,
-      category: true, round: true, bracketType: true, courtType: true,
-      visibility: true, temperature: true, humidity: true, details: true,
-      clubName: true, version: true, ctId: true,
-      assignedCoach: { select: { id: true, name: true, email: true } },
-      assignedCoaches: {
-        select: {
-          coach: { select: { id: true, name: true, email: true } },
-        },
-      },
-      isPublicTemplate: true, isTemplate: true, eventScope: true,
-      isOfficialClubAnnotation: true, sourceMatchId: true, tournamentName: true,
-      player1: {
-        select: {
-          id: true, name: true, club: true,
-          coachAthleteLinks: {
-            where: { status: 'ACTIVE' },
-            select: { coach: { select: { name: true } } },
-            take: 1,
-          },
-        },
-      },
-      player2: {
-        select: {
-          id: true, name: true, club: true,
-          coachAthleteLinks: {
-            where: { status: 'ACTIVE' },
-            select: { coach: { select: { name: true } } },
-            take: 1,
-          },
-        },
-      },
-      player1Partner: {
-        select: {
-          id: true, name: true, club: true,
-          coachAthleteLinks: {
-            where: { status: 'ACTIVE' },
-            select: { coach: { select: { name: true } } },
-            take: 1,
-          },
-        },
-      },
-      player2Partner: {
-        select: {
-          id: true, name: true, club: true,
-          coachAthleteLinks: {
-            where: { status: 'ACTIVE' },
-            select: { coach: { select: { name: true } } },
-            take: 1,
-          },
-        },
-      },
-      createdByUser: {
-        select: {
-          id: true, name: true, email: true, role: true,
-          memberships: {
-            where: { status: 'ACTIVE' },
-            select: { kind: true, ct: { select: { name: true } } },
-          },
-          athleteProfile: { select: { id: true } },
-        },
-      },
-    },
+    select: GESTOR_EXTERNAL_MATCH_SELECT,
     orderBy: { createdAt: 'desc' },
     take: 50,
   });
 
-  return rows.map((m) => ({
+  return rows.map((m: any) => ({
     ...m,
     pointCount: 0,
     isDesignatedAnnotator: false,

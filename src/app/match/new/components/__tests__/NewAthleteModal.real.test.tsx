@@ -43,7 +43,7 @@ describe('NewAthleteModal — regressões reais', () => {
     fillAdultBirthDate();
 
     expect(screen.getByText('Adulto')).toBeInTheDocument();
-    expect(screen.getByText('19–34 anos')).toBeInTheDocument();
+    expect(screen.getByText('19 a 34 anos')).toBeInTheDocument();
     expect(screen.queryByText('Categoria de pertencimento')).not.toBeInTheDocument();
   });
 

@@ -166,12 +166,12 @@ const config: Config = {
        * Uso: font-display, font-body, text-airtable-base, etc.
        */
       fontFamily: {
-        sans: ['var(--font-geist-sans)', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        display: ['var(--font-geist-sans)', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
-        body: ['var(--font-geist-sans)', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
-        mono: ['ui-monospace', 'SF Mono', 'Cascadia Code', 'Segoe UI Mono', 'Roboto Mono', 'monospace'],
-        geist: ['var(--font-geist-sans)', 'var(--font-geist)', 'sans-serif'],
-        'space-grotesk': ['var(--font-geist-sans)', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['var(--font-geist-sans)', 'Geist', 'Segoe UI', '-apple-system', 'BlinkMacSystemFont', 'Roboto', 'sans-serif'],
+        display: ['var(--font-geist-sans)', 'Geist', 'Segoe UI', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        body: ['var(--font-geist-sans)', 'Geist', 'Segoe UI', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        mono: ['var(--font-geist-mono)', 'GeistMono', 'ui-monospace', 'SF Mono', 'Cascadia Code', 'Segoe UI Mono', 'Roboto Mono', 'monospace'],
+        geist: ['var(--font-geist-sans)', 'var(--font-geist)', 'Geist', 'Segoe UI', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        'space-grotesk': ['var(--font-geist-sans)', 'Geist', 'Segoe UI', '-apple-system', 'BlinkMacSystemFont', 'Roboto', 'sans-serif'],
       },
       fontSize: {
         /**

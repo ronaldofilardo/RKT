@@ -45,9 +45,9 @@
   /* ============================================
    * 2.6 Tipografia
    * ============================================ */
-  --font-display: 'Haas Groot Disp', Haas, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-body: Haas, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'Segoe UI Mono', 'Roboto Mono', monospace;
+  --font-display: var(--font-geist-sans), 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: var(--font-geist-sans), 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: var(--font-geist-mono), 'GeistMono', ui-monospace, 'SF Mono', 'Cascadia Code', 'Segoe UI Mono', monospace;
 
   /* ============================================
    * 2.7 Escala Tipográfica

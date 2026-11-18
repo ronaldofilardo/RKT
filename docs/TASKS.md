@@ -26,6 +26,33 @@
 
 ## 2. Funcionalidades Ausentes (MVP Incompleto)
 
+### A0.22. Proteção de Menores (ECA Digital), Onboarding do Treinador Particular e Detecção de Contas no Gestor ✅
+- **Prioridade:** Alta (Governança, ECA Digital, LGPD Art. 14 e UX)
+- **Status:** **Concluído** (2026-11-18, MEMORY §2.61)
+- **Documento:** [`docs/PLANO_PROTECAO_MENORES_TREINADOR_E_GESTOR_2026-11-18.md`](file:///c:/apps/RKT/docs/PLANO_PROTECAO_MENORES_TREINADOR_E_GESTOR_2026-11-18.md)
+- **Contexto:** Blindagem jurídica e de UX em 3 frentes: (1) bloqueio reativo de menores e termo de concordância formal no 1º acesso de Treinador Particular; (2) saneamento de autocadastro com exigência de data de nascimento para atletas em `/signup` e habilitação de login pelo responsável; (3) classificador inteligente de CPF no `/gestor` (diferenciando atletas adultos, menores sob tutela, responsáveis legais e dependentes sem login).
+- **DoD:**
+  1. [x] **Treinador Particular (Fatia 1):** Termo de concordância do ECA Digital no 1º acesso em `/treinador` com gravação em `AuditLog`; banner fixo no modal de novo atleta e bloqueio instantâneo do botão "Salvar" ao digitar data $< 18$ anos.
+  2. [x] **Saneamento em `/signup` (Fatia 2):** Coleta e validação etária de `birthDate` para `role: 'ATLETA'`; menores de 18 anos são impedidos de criar conta adulta autônoma e orientados para conta de Responsável Legal via modal reativo.
+  3. [x] **Gestor de CT (Fatia 3):** Classificador de conta existente em 4 perfis (`ADULT_ATHLETE`, `MINOR_WITH_GUARDIAN`, `GUARDIAN_USER`, `DEPENDENT_PLAYER_WITHOUT_USER`) com diálogo contextual e criação de vínculo `PENDING` com notificação ao responsável para menores.
+  4. [x] **Habilitação de Conta Familiar (Fatia 4):** Endpoint `POST /api/guardians/me/dependents/[id]/provision-account` e botão na Aba 4 (Acessos) de `/responsavel` permitindo ao pai gerar credencial e senha provisória do menor.
+  5. [x] **Qualidade (Fatia 5):** Conformidade estrita com R-03 ($\le 100$ linhas por arquivo), `pnpm typecheck` 0 erros e testes automatizados 100% aprovados.
+
+### A0.21. Desmembramento de Espectador/Responsável em /signup e Indicação de Equipe Técnica ✅
+- **Prioridade:** Alta (Governança, ECA Digital e UX)
+- **Status:** **Concluído** (2026-11-18, MEMORY §2.45)
+- **Documento:** [`docs/PLANO_CADASTRO_RESPONSAVEL_ESPECTADOR_E_INDICACAO_2026-11-18.md`](file:///c:/apps/RKT/docs/PLANO_CADASTRO_RESPONSAVEL_ESPECTADOR_E_INDICACAO_2026-11-18.md)
+- **Contexto:** Desmembrar a opção "Responsável / Espectador" em duas contas independentes: (1) Espectador comum (cria, anota e compartilha partidas sem tutela) e (2) Responsável Legal (tutela de menor, escolha entre Conta Básica e Espectador/Anotador, dados do dependente, consentimentos LGPD e indicação de clube/treinador via pool ou WhatsApp).
+- **DoD:**
+  1. [x] **Backend (Fase 1):** `SignupSchema` com suporte a `role: 'RESPONSAVEL'` e payload `guardianProfile` com transação atômica (`User`, `Player`, `GuardianLink`, `ConsentRecord`) e trava de monotutela estrita (`signup-guardian-tutela.logic.ts` → 409 `MONOTUTELA_CONFLICT`).
+  2. [x] **Backend (Fase 2):** Endpoints `GET /api/entities/search` (busca autenticada de CTs/Treinadores com cursor estável) e `POST /api/guardians/me/indicate-staff` (convite assinado `coach_invitation_tokens`, audit `GUARDIAN_STAFF_INDICATED`).
+  3. [x] **Frontend (Fase 3):** Desmembramento do select em `/signup` (opção `RESPONSAVEL` separada) e componente modal desacoplado `ResponsavelOnboardingModal` (3 etapas: modo de acesso, dados do menor + tríade, indicação de equipe técnica).
+  4. [x] **Frontend (Fase 4):** Seção de indicação de equipe técnica com busca `debounce` via `/api/entities/search`, externos por telefone/WhatsApp e retorno de `inviteUrl`.
+  5. [x] **Qualidade (Fase 5):** R-03 $\le 100$ linhas por arquivo (novos/alterados), `pnpm typecheck` 0 erros, suíte completa **817/817 suites · 5053/5053 testes** verdes.
+  6. [x] **Ajuste Fino de UX e Paridade Legal (Fase 6):** Adequação para suporte completo a temas claro e escuro no modal de onboarding do responsável legal (`Cadastro de Responsável Legal`), exibição de consentimento com links legais e declaração formal de tutela idêntica ao link de convite do gestor, e persistência atômica no banco de dados (`termsVersion: '2.0'`, `contentHash`, `verificationLevel: 'N1_CADASTRO_FAMILIAR'`, `ConsentRecord` + `ConsentEvent` com `GRANT`). (MEMORY §2.59)
+  7. [x] **Aba Solicitações no Gestor e 4 Abas do Responsável (Fase 7):** Aba condicional "Solicitações" no Gestor com aceite/recusa de vínculos pendentes (`PlayerCT`), unificação do papel de Espectador & Acompanhante, 4 abas no painel do responsável (`Autorizações`, `Partidas`, `Avisos`, `Acessos`) e auditoria parental de logins/logouts com verificação de conta habilitada do menor (MEMORY §2.60).
+- **Resíduos / Follow-ups:** (a) página de resgate do convite de treinador (`/signup?perfil=TREINADOR&convite=<token>`) ainda não existe — ver TASKS; (b) as 13 violações R-03 pré-existentes no baseline foram 100% resolvidas e verificadas em 2026-11-18 (MEMORY §2.58).
+
 ### A0.20. Governança, Tutela e Privacidade de Menores de Idade em Partidas — ECA Digital & LGPD ✅
 - **Status:** **Concluído** (2026-11-15, MEMORY §2.36)
 - **Documento:** [\docs/PLANO_PRIVACIDADE_VISIBILIDADE_MENORES_PARTIDAS_2026-11-15.md\](./PLANO_PRIVACIDADE_VISIBILIDADE_MENORES_PARTIDAS_2026-11-15.md)
@@ -913,6 +940,10 @@
 ### N11. Mobile app nativo (React Native) 🔴
 - **Escopo:** App iOS/Android
 - **Decisão:** PWA suficiente por enquanto
+
+### N12. Página de resgate do convite de treinador (A0.21 follow-up) 🔴
+- **Escopo:** Rota `/signup?perfil=TREINADOR&convite=<token>` (endpoint `POST /api/coach-invitations/[token]/redeem`) que valida o token emitido por `POST /api/guardians/me/indicate-staff`, pré-preenche o perfil TREINADOR e conclui o vínculo com o menor indicado. Sem ela, o `inviteUrl` gerado no onboarding do responsável aponta para uma rota inexistente.
+- **Dependência:** A0.21 (Fase 2 concluída — tabela `coach_invitation_tokens` + emissão do token já em produção).
 
 ---
 

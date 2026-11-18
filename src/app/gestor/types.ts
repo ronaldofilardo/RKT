@@ -55,5 +55,19 @@ export interface AthleteItem {
 
 export type { ClubMatchItem } from './types-matches';
 
-export type GestorTab = 'coaches' | 'athletes' | 'affiliates' | 'matches' | 'club';
+export interface PendingRequestItem {
+  id: string;
+  playerId: string;
+  playerName: string;
+  birthDate: string | null;
+  age?: number | null;
+  gender?: string | null;
+  relation: string;
+  guardianName: string;
+  guardianEmail?: string | null;
+  consents: { DATA: boolean; BROADCAST: boolean; STATS: boolean };
+  requestedAt: string;
+}
+
+export type GestorTab = 'coaches' | 'athletes' | 'affiliates' | 'matches' | 'club' | 'solicitacoes';
 export type MemberType = 'TREINADOR' | 'ATLETA';

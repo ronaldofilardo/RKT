@@ -7,11 +7,12 @@ import { EditAthleteModalFooter } from './edit-athlete-modal-footer';
 import { AthleteEditTabs, type AthleteEditTab } from './components/AthleteEditTabs';
 import { EditAthletePersonalTab } from './components/EditAthletePersonalTab';
 import { EditAthleteTechnicalTab } from './components/EditAthleteTechnicalTab';
+import { NewAthleteCoachAlert } from '@/app/match/new/components/new-athlete-coach-alert';
 
 export type { EditAthleteSavePayload } from './edit-athlete-modal.types';
 
 export function EditAthleteModal({
-  athlete, isOpen, title, saveLabel, readOnly, showCpf, cpfRequired, guardianImmutable, onClose, onSave,
+  athlete, isOpen, title, saveLabel, readOnly, showCpf, cpfRequired, guardianImmutable, isParticularCoach, onClose, onSave,
 }: EditAthleteModalProps) {
   const [activeTab, setActiveTab] = useState<AthleteEditTab>('pessoais');
   const {
@@ -20,6 +21,7 @@ export function EditAthleteModal({
   } = useEditAthleteModal({ athlete, isOpen, onSave });
 
   if (!isOpen) return null;
+  const isMinorBlocked = Boolean(isParticularCoach && !athlete && age !== null && age < 18);
   const isLocked = saving || Boolean(readOnly);
   const modalTitle = readOnly ? 'Ficha do Atleta' : (title ?? (athlete ? 'Editar Atleta' : 'Novo Atleta'));
   const modalSubtitle = athlete?.name || 'Preencha os dados pessoais e técnicos';
@@ -40,6 +42,9 @@ export function EditAthleteModal({
           </button>
         </div>
 
+        <div className="px-4 pt-3">
+          <NewAthleteCoachAlert isParticular={Boolean(isParticularCoach && !athlete)} age={age} />
+        </div>
         <AthleteEditTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
         <div className="p-4 space-y-3 overflow-y-auto flex-1">
@@ -57,7 +62,7 @@ export function EditAthleteModal({
           </div>
         </div>
 
-        <EditAthleteModalFooter saving={saving} canSave={Boolean(form.name.trim())} readOnly={readOnly} saveLabel={saveLabel ?? (athlete ? 'Salvar Alterações' : 'Salvar Atleta')} onClose={onClose} onSave={saveEditedAthlete} />
+        <EditAthleteModalFooter saving={saving} canSave={Boolean(form.name.trim()) && !isMinorBlocked} readOnly={readOnly} saveLabel={saveLabel ?? (athlete ? 'Salvar Alterações' : 'Salvar Atleta')} onClose={onClose} onSave={saveEditedAthlete} />
       </div>
     </div>
   );

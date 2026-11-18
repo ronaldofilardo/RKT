@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { CadastrarMembroConfirmModal, type MemberType, type CadastroResult } from './cadastrar-membro-confirm-modal';
-import { CadastrarMembroForm, type MembroFormData } from './cadastrar-membro-form';
+import { CadastrarMembroForm } from './cadastrar-membro-form';
 import { CadastrarMembroLinkPrompt } from './cadastrar-membro-link-prompt';
+import { useCadastrarMembroModal } from './use-cadastrar-membro-modal';
 
 interface CadastrarMembroModalProps {
   open: boolean;
@@ -13,61 +13,11 @@ interface CadastrarMembroModalProps {
   fixedType?: MemberType;
 }
 
-const initialForm: MembroFormData = { name: '', cpf: '', birthDate: '', email: '', gender: 'MASCULINO', dominance: 'DESTRO' };
-
 export function CadastrarMembroModal({ open, onOpenChange, onSave, initialType = 'TREINADOR', fixedType }: CadastrarMembroModalProps) {
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fieldError, setFieldError] = useState<string | null>(null);
-  const [confirmResult, setConfirmResult] = useState<CadastroResult | null>(null);
-  const [existingToLink, setExistingToLink] = useState<{ name: string } | null>(null);
-  const [type, setType] = useState<MemberType>(fixedType ?? initialType);
-  const [formData, setFormData] = useState<MembroFormData>(initialForm);
-
-  useEffect(() => {
-    if (fixedType) setType(fixedType);
-  }, [fixedType]);
-
-  async function submitMember(linkExisting = false) {
-    setError(null);
-    setFieldError(null);
-    if (!formData.name.trim() || !formData.cpf.trim() || !formData.birthDate) {
-      setError('Nome, CPF e data de nascimento são obrigatórios.');
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const endpoint = type === 'TREINADOR' ? '/api/gestor/coaches' : '/api/gestor/athletes';
-      const body: any = { name: formData.name.trim(), cpf: formData.cpf, birthDate: formData.birthDate };
-      if (type === 'TREINADOR') {
-        body.email = formData.email;
-      } else {
-        const { gender, dominance: laterality, guardianName, guardianCpf, guardianPhone, guardianContact } = formData;
-        Object.assign(body, { email: formData.email || undefined, gender, laterality, guardianName, guardianCpf, guardianPhone, guardianContact });
-      }
-      if (linkExisting) body.linkExisting = true;
-      const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      const data = await res.json();
-      if (!res.ok) {
-        if (data.canLinkExisting) { setExistingToLink({ name: data.existingUserName || formData.name }); return; }
-        throw new Error(data.message || 'Falha ao cadastrar membro');
-      }
-      const result = {
-        userId: data.userId, tempPassword: data.tempPassword, linkExpiresAt: data.linkExpiresAt,
-        type, isExistingUser: data.isExistingUser, isMinor: data.isMinor, guardianName: data.guardianName,
-      };
-      setConfirmResult(result);
-      onSave(result);
-      setFormData(initialForm);
-      setExistingToLink(null);
-      onOpenChange(false);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Não foi possível salvar. Tente novamente.';
-      const match = msg.match(/^([a-zA-Z]+):/);
-      setFieldError(match ? match[1] : null);
-      setError(msg);
-    } finally { setSubmitting(false); }
-  }
+  const {
+    submitting, error, fieldError, confirmResult, setConfirmResult,
+    existingToLink, setExistingToLink, type, setType, formData, setFormData, submitMember,
+  } = useCadastrarMembroModal(onSave, onOpenChange, initialType, fixedType);
 
   if (!open && !confirmResult) return null;
 
@@ -82,7 +32,12 @@ export function CadastrarMembroModal({ open, onOpenChange, onSave, initialType =
             </div>
             {error && <div className="mb-4 p-3 bg-telemetry-error/10 border border-telemetry-error/30 text-telemetry-error text-sm rounded-lg">{error}</div>}
             {existingToLink ? (
-              <CadastrarMembroLinkPrompt name={existingToLink.name} type={type} submitting={submitting} onCancel={() => setExistingToLink(null)} onConfirm={() => submitMember(true)} />
+              <CadastrarMembroLinkPrompt
+                name={existingToLink.name} type={type} submitting={submitting}
+                accountKind={existingToLink.accountKind} guardianName={existingToLink.guardianName}
+                message={existingToLink.message} canLink={existingToLink.canLink}
+                onCancel={() => setExistingToLink(null)} onConfirm={() => submitMember(true)}
+              />
             ) : (
               <CadastrarMembroForm
                 type={type} fixedType={fixedType} setType={setType} formData={formData} setFormData={setFormData}

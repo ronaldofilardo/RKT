@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 
 export async function getGestorAthletesList(ctId: string) {
   const playerCts = await prisma.playerCT.findMany({
-    where: { ctId },
+    where: { ctId, status: 'ACTIVE' },
     include: {
       player: {
         select: {

@@ -3,12 +3,14 @@
 export type MemberType = 'TREINADOR' | 'ATLETA';
 
 export interface CadastroResult {
-  userId: string;
+  userId?: string;
   tempPassword?: string;
   linkExpiresAt?: string;
   type: MemberType;
   isExistingUser?: boolean;
   userName?: string;
+  isMinor?: boolean;
+  guardianName?: string;
 }
 
 interface CadastrarMembroConfirmModalProps {

@@ -3,8 +3,79 @@
 > Diário de bordo técnico · Metodologia RE-DOC (Fase 4 — Auditoria de Qualidade e Histórico)
 > **Este é um dos 6 arquivos-canônico do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
 
-**Última Atualização:** 2026-11-17
+**Última Atualização:** 2026-11-18
 **Analisado por:** engenharia reversa e implementação sobre `main`
+
+---
+
+## 2.46 Proteção de Menores (ECA Digital), Onboarding do Treinador Particular e Detecção de Contas no Gestor (A0.22) — 2026-11-18
+- **Contexto & Demanda:**
+  - Aplicação rigorosa da Lei nº 15.211/2025 (ECA Digital) e LGPD (Art. 14) em três frentes:
+    1. **Treinador Particular:** termo formal de ciência jurídica e responsabilidade no 1º acesso à área de treinador avulso (`/treinador`); alerta proativo e bloqueio reativo imediato do botão "Salvar" ao digitar data de atleta $< 18$ anos em `NewAthleteModal` e `EditAthleteModal`.
+    2. **Autocadastro em `/signup`:** campo de data de nascimento para atletas; se a idade for $< 18$ anos, interceptação instantânea via `SignupMinorWarningModal` redirecionando para a criação de conta pelo Responsável Legal.
+    3. **Classificador no Gestor (`/gestor`):** detecção em 4 camadas de CPF (`ADULT_ATHLETE`, `MINOR_WITH_GUARDIAN`, `GUARDIAN_USER`, `DEPENDENT_PLAYER_WITHOUT_USER`). Bloqueio com aviso se CPF for de responsável; vínculo com status `PENDING` para menores tutelados e dependentes já registrados; vínculo `ACTIVE` para atletas adultos.
+    4. **Provisionamento pelo Responsável:** endpoint e modal na Aba 4 (Acessos) de `/responsavel` permitindo ao pai gerar credencial e senha provisória do menor dependente.
+- **Implementação & Conclusão:**
+  1. **Treinador Particular (`src/components/coach/`, `src/app/api/coach/particular/`):**
+     - Endpoints `GET /api/coach/particular/onboarding-status` e `POST /api/coach/particular/accept-terms` (gravação em `AuditLog` com `COACH_ECA_TERMS_ACCEPTED`, versão 2.0).
+     - Componentes `CoachEcaTermsModal`, `useCoachEcaOnboarding` e `CoachEcaGuard` acoplados no `DashboardChrome` e em `/atletas`.
+     - `NewAthleteCoachAlert` integrado em `NewAthleteModal` e `EditAthleteModal` com desabilitação de submissão para menores.
+  2. **Saneamento em `/signup` (`src/app/signup/`, `src/app/api/auth/signup/`):**
+     - `SignupBirthdateField` integrado quando `role === 'ATLETA'`.
+     - `SignupMinorWarningModal` acionado se menor tentar prosseguir, com transição suave para `setRole('RESPONSAVEL')`.
+     - `validateAthleteSignupAge` em `signup-athlete-validation.logic.ts` bloqueando menores no backend com 403 `MINOR_REQUIRES_GUARDIAN`.
+  3. **Classificador no Gestor (`src/app/api/gestor/`):**
+     - `athletes-account-check.logic.ts` categoriza em 4 perfis (`ADULT_ATHLETE`, `MINOR_WITH_GUARDIAN`, `GUARDIAN_USER`, `DEPENDENT_PLAYER_WITHOUT_USER`).
+     - `cadastrar-membro-link-prompt.tsx` adaptativo para alertas amarelo (menor tutelado), vermelho (CPF de responsável) ou azul (adulto).
+     - `athletes-link.logic.ts` e `athletes-link-player.logic.ts` atualizados para suportar `statusToApply: 'PENDING'`.
+  4. **Habilitação de Conta Familiar (`src/app/responsavel/`, `src/app/api/guardians/`):**
+     - Endpoint `POST /api/guardians/me/dependents/[id]/provision-account` (gera credencial segura, `mustChangePassword: true`, log `ACCOUNT_ACTIVATED_BY_GUARDIAN`).
+     - `GuardianAccountStatusCard` e `ProvisionAccountModal` integrados na Aba 4 de `/responsavel`.
+  5. **Qualidade & Testes:**
+     - 54/54 suítes de teste passando (233 testes verdes nos domínios afetados).
+     - Conformidade 100% com R-03: 1504 arquivos avaliados, 0 regressões.
+     - `pnpm typecheck` com 0 erros.
+
+---
+
+## 2.45 Cadastro de Responsável Legal, Espectador e Indicação de Equipe Técnica (A0.21) — 2026-11-18
+- **Contexto & Demanda:**
+  - Desmembrar a opção única "Responsável / Espectador" do `/signup` em duas contas independentes: **Espectador** comum (sem tutela) e **Responsável Legal** (tutela de menor de 18 anos).
+  - Onboarding do responsável em modal de 3 etapas: modo de acesso (Conta Básica × Espectador/Anotador), dados do menor + tríade de consentimentos (`DATA`/`BROADCAST`/`STATS`), indicação de equipe técnica (CT/treinador do pool ou contato externo).
+  - Backend atômico e endpoints de busca/indicação, em conformidade com ECA Digital (Lei 15.211/2025) e LGPD.
+- **Implementação & Conclusão:**
+  1. **Fase 1 — Backend do signup (`src/app/api/auth/signup/`):** `SignupRole` ganhou `'RESPONSAVEL'` (guarda 400 para valores fora do enum); `signup-post.logic.ts` ramifica para `signup-guardian.logic.ts` com transação atômica de `(User, Player, GuardianLink, ConsentRecord)`; `signup-guardian-tutela.logic.ts` impõe **monotutela estrita** (409 `MONOTUTELA_CONFLICT` se já houver `GuardianLink ACTIVE` para o menor); `signup-guardian-consent.logic.ts` grava a tríade com `DATA` obrigatório; `signup-session.logic.ts` faz auto-login (`claim ax: 'RESPONSAVEL'`, role DB `'ANNOTATOR'`) com redirect para `/responsavel`. Menor criado nasce com `identityStatus: 'CONFIRMED'`. Schemas em `src/schemas/guardian.ts` (`staff` **removido** do payload).
+  2. **Fase 2 — Endpoints:** `GET /api/entities/search` (autenticado via `withAccessHandler`, **fora** de `PUBLIC_ROUTES` — evita enumeração pública de nomes, LGPD §13.4; `q ≥ 2`, `limit ≤ 10`, cursor estável `(name,id)` em base64url, envelope `{data:{items,nextCursor}}`; COACH = membership `TREINADOR/ACTIVE/ctId:null`) e `POST /api/guardians/me/indicate-staff` (permissão `guardian:link` → escopo `RESP`, resource `{playerId}`; emite token `randomBytes(32).base64url` com hash sha256 e TTL 7 dias em `coach_invitation_tokens`; audit `GUARDIAN_STAFF_INDICATED`; retorna `inviteUrl` apontando para `/signup?perfil=TREINADOR&convite=<token>`).
+  3. **Fase 3/4 — Frontend (`src/app/signup/`):** select desmembrado (opção `RESPONSAVEL` separada de `ESPECTADOR`); modal desacoplado de 3 etapas (`responsavel-onboarding-modal.tsx` + `responsavel-step-mode/minor/staff.tsx`) orquestrado por `use-responsavel-onboarding.ts`; etapa 3 usa os endpoints autenticados (`responsavel-api.logic.ts` + `use-staff-search.ts` com debounce); externos por telefone/WhatsApp (`responsavel-staff-external.tsx`); `staff` removido de `GuardianProfileSchema`. Redirect final → `/responsavel`.
+  4. **Migrations:** `20261118000000_add_coach_invitation_tokens` (idempotente) + reaplicação de `20261117210000_add_guardian_governance_and_status` — ambas aplicadas via `pnpm db:migrate:deploy`.
+  5. **Qualidade & Testes:** `signup-guardian.test.ts` 6/6 (BASIC/SPECTATOR/monotutela/400/menor maior de idade) e `entities-search.test.ts` 5/5 (CT/COACH/limite/cursor); `responsavel-modal.test.tsx` 8/8 (fluxo completo + acessibilidade). Suíte completa **817/817 suites · 5053/5053 testes** verdes; `tsc --noEmit` 0 erros; `next lint` 0 erros (1 warning pré-existente em `signup-role-and-terms.tsx`); R-03 sem novas violações (arquivos novos todos ≤ 100 linhas).
+  6. **Reparos colaterais:** `terms-privacy-modal.tsx` reescrito para 100L preservando o teste; 3 suítes pré-existentes desatualizadas pelo commit `14600c1` corrigidas (`PointDetailsModal` 4→5 pills de situação + label `Saque`, `NewAthleteModal.real` label `19 a 34 anos`, mock de `LiveCountersBar` com `hasAnyLiveCounters`).
+- **Follow-ups registrados em TASKS:** (a) **N12** — página/endpoint de resgate do convite de treinador (`/signup?perfil=TREINADOR&convite=<token>`), sem a qual o `inviteUrl` gera rota inexistente; (b) 13 violações R-03 pré-existentes no baseline (desatualizado desde 2026-11-13).
+
+---
+
+## 2.44 Modal de Termos de Uso e Política de Privacidade em /signup — 2026-11-18
+- **Contexto & Demanda:**
+  - Na tela de cadastro (`/signup`), ao clicar em "Termos de Uso" ou "Política de Privacidade", em vez de redirecionar para outra página, abrir um modal interativo com o conteúdo de `/termos` e `/privacidade`.
+  - Exigir que o usuário role **ambos** os documentos (Termos de Uso E Política de Privacidade) até o final para que o botão "Concordo" seja liberado.
+  - Exibir instrução dinâmica e contextual ao lado do botão "Concordo" guiando o usuário sobre qual documento ainda falta ler.
+  - Impedir que a checkbox de aceite seja marcada diretamente antes que ambos os documentos tenham sido lidos e aceitos via modal (abertura automática do modal ao clicar na checkbox/label desabilitada).
+- **Implementação & Conclusão:**
+  1. **Componentes de Conteúdo Modularizados (`terms-content.tsx`, `privacy-content.tsx`):**
+     - Extraído o texto integral e estruturado de Termos de Uso (versão 2.0) e Política de Privacidade (versão 2.0) em componentes dedicados, estilizados com tokens do design system (`telemetry-*`).
+  2. **Modal Interativo com Validação Dupla de Rolagem (`terms-privacy-modal.tsx`):**
+     - Controle independente de leitura por aba (`scrolledTerms` e `scrolledPrivacy`).
+     - Indicador visual em cada aba com badge de confirmação (`✓`) quando lido até o fim.
+     - Instrução dinâmica ao lado do botão "Concordo": informa se faltam ambos os documentos ou qual aba específica ainda precisa ser rolada até o final.
+     - Botão "Concordo" permanece desabilitado até que `scrolledTerms && scrolledPrivacy` sejam verdadeiros.
+  3. **Trava de Aceite no Formulário (`signup-role-and-terms.tsx`):**
+     - Checkbox opera desabilitada enquanto os termos não forem aceitos via modal (`disabled={!termsAccepted}`).
+     - Tentativas de clique no checkbox ou no label disparam a abertura do modal guiando o usuário para a leitura.
+  4. **Qualidade & Testes:**
+     - Testes unitários e de integração criados e atualizados em `terms-privacy-modal.test.tsx`, `page.test.tsx` e `signup-inline-validation.test.tsx` (helper `signupTestHelper.ts`).
+     - Suíte de signup 100% verde (6/6 suítes, 31/31 testes aprovados).
+     - Todos os arquivos mantidos sob o teto da Regra R-03 ($\le 100$ linhas).
+     - Typecheck TypeScript (`tsc --noEmit`) 100% limpo.
 
 ---
 
@@ -1457,5 +1528,94 @@ Leitura completa: `docs/TASKS.md` — **Anexo A** (dívida técnica, 50 entradas
 - **Gates:** typecheck ok; ESLint **0 erros**; `pnpm check:mock-traps` exit 0 (809 arquivos); suíte completa **809/809 suites · 4991/4991 testes**.
 - **Estado:** branch `master` **ahead 39** de `origin/master`, **sem push**; alterações próprias restritas a testes/docs/scripts — `src/app/api/auth/signup/signup-post.logic.ts` e `src/app/privacidade/page.tsx` (alterações do usuário na working tree) ficaram **intocados e fora dos commits**.
 
+
+
+
+
+## 2.58 Resolução das 13 violações pré-existentes da Regra R-03 (Gestor, Scoring, Ranking) — 2026-11-18
+- **Contexto:** 13 arquivos de produção em `src/app/gestor/`, `src/components/scoring/`, `src/lib/ranking/` e `src/services/` ultrapassavam o limite de 100 linhas cruas da Regra R-03 (acusados como "NOVA violação" pelo ratchet `check-r03-line-limit.mjs`).
+- **Arquivos Refatorados (13 alvos → módulos divididos ≤ 100L):**
+  1. `src/app/gestor/dashboard.tsx` (102L → 78L): modais extraídos para `gestor-dashboard-modals.tsx` (55L).
+  2. `src/app/gestor/club-matches-table.tsx` (179L → 87L): sub-abas extraídas para `club-matches-sub-tabs.tsx` (75L) e painel principal para `club-matches-my-club-panel.tsx` (72L).
+  3. `src/app/gestor/club-match-row.tsx` (167L → 75L): células extraídas para `club-match-players-cell.tsx` (56L) e `club-match-actions-cell.tsx` (92L).
+  4. `src/app/gestor/external-scheduled-match-row.tsx` (122L → 81L): célula de confronto extraída para `external-match-confronto-cell.tsx` (70L).
+  5. `src/app/gestor/indicar-anotador-modal.tsx` (173L → 87L): lista de treinadores em `indicar-anotador-coach-list.tsx` (56L) e hook em `use-indicar-anotador.ts` (68L).
+  6. `src/app/api/gestor/matches/[id]/assign/route.ts` (145L → 83L): transação de atribuição em `match-assign.logic.ts` (73L).
+  7. `src/app/api/gestor/matches/gestor-external-matches.logic.ts` (107L → 44L): projeção Prisma em `gestor-external-matches-select.ts` (46L).
+  8. `src/components/scoring/ScoringHeader.tsx` (103L → 84L): metadados do cabeçalho em `scoring-header-meta.tsx` (26L).
+  9. `src/components/scoring/action-bar-footer.tsx` (108L → 79L): controles secundários em `action-bar-secondary-controls.tsx` (61L).
+  10. `src/components/scoring/live-counters-grid.tsx` (138L → 43L): célula em `live-counters-stat-cell.tsx` (32L) e builder em `live-counters-items.tsx` (91L).
+  11. `src/services/match-template-create.logic.ts` (104L → 57L): anotação derivada em `match-annotation-create.logic.ts` (56L), re-exportada.
+  12. `src/app/atletas/ranking-form-fields.tsx` (149L → 88L): data em `ranking-date-field.tsx` (25L) e linhas em `ranking-form-rows.tsx` (79L).
+  13. `src/lib/ranking/ranking-eligibility-logic.ts` (104L → 53L): categorias oficiais em `ranking-official-category.logic.ts` (52L), re-exportadas.
+- **Gates (todos PASSARAM):**
+  - `pnpm check:r03`: **0 novas violações, 0 regressões** (exit code 0).
+  - `pnpm typecheck` (`tsc --noEmit`): **0 erros** (exit code 0).
+  - Suítes de testes:
+    - `src/app/gestor`, `src/lib/ranking`, `src/services`: **100/100 suites · 516/516 testes verdes**.
+    - `src/components/scoring`: **139/139 suites · 956/956 testes verdes**.
+
+---
+
+## 2.59 Paridade Legal de Consentimento e Suporte a Tema Claro/Escuro no Modal do Responsável — 2026-11-18
+- **Contexto & Demanda:**
+  1. No modal de cadastro do responsável (`Cadastro de Responsável Legal` em `/signup`), as cores estavam desajustadas: contêiner com fundo branco forçado enquanto elementos filhos utilizavam tokens escuros de telemetria, tornando textos quase ilegíveis (baixo contraste), campos de input escuros sobre fundo claro e o botão "Voltar" com texto branco sobre fundo branco (invisível).
+  2. Apresentar formalmente a seção de consentimento do menor com paridade visual e jurídica ao fluxo de aceite de convite enviado pelo gestor (`/responsavel/convite/[token]`):
+     - Itens da tríade com descrição detalhada e links diretos para seções legais (`DATA` obrigatório, `BROADCAST` opcional, `STATS` opcional);
+     - Checkbox obrigatório de declaração legal de tutela com link para os termos completos de responsável (v2.0);
+     - Banner informativo de Monotutela Estrita.
+  3. Registrar no banco de dados exatamente da mesma forma como é gravado no aceite do convite pelo gestor (`POST /api/guardians/invites/[token]/accept`):
+     - Persistência com `termsVersion: '2.0'`, `contentHash: 'v2.0-initial-hash'`, `verificationLevel: 'N1_CADASTRO_FAMILIAR'`, `authMethod: 'SIGNUP'`, gerando registros em `ConsentRecord` e `ConsentEvent` com ação `GRANT`.
+- **Implementações:**
+  - **Tokens Semânticos Claro/Escuro:**
+    - `src/app/signup/responsavel-onboarding-modal.tsx`: Removido `bg-white` hardcoded em favor de `bg-telemetry-card text-telemetry-text-primary border border-telemetry-border/20 shadow-2xl`.
+    - `src/app/signup/responsavel-modal-header.tsx`, `modal-header.tsx`, `gestor-onboarding-modal.tsx`, `responsavel-step-mode.tsx`, `responsavel-step-minor.tsx`, `responsavel-minor-fields.tsx`, `responsavel-staff-actions.tsx`, `responsavel-staff-external.tsx`, `responsavel-staff-search.tsx`, `responsavel-staff-kind.tsx`: Atualizados para uso consistente de tokens semânticos (`text-telemetry-text-primary`, `text-telemetry-text-muted`, `bg-telemetry-elevated`, `bg-telemetry-base`, `border-telemetry-border`), garantindo contraste ótimo e fidelidade visual tanto em modo escuro quanto em modo claro.
+  - **Seção de Consentimento Formal e Paridade Visual:**
+    - `src/app/signup/responsavel-consent-items.ts`: Definição estruturada dos 3 itens da tríade de consentimento com links para as respectivas âncoras em `/termos/responsavel`.
+    - `src/app/signup/responsavel-consent-triad.tsx`: Componente padronizado com checkbox interativo para cada item, aviso de monotutela estrita e checkbox obrigatório de declaração formal de responsabilidade legal.
+    - `src/app/signup/responsavel-onboarding-logic.ts`: Adicionado campo `declaration: boolean`, validação bloqueante (`validateMinor`) e inclusão de `termsVersion` e `contentHash` no payload do perfil do guardião.
+  - **Persistência no Backend (`signup-guardian-consent.logic.ts`):**
+    - Gravação atômica em transação Prisma gerando `ConsentRecord` e `ConsentEvent` com `action: 'GRANT'`, `termsVersion: '2.0'`, `contentHash: 'v2.0-initial-hash'`, `verificationLevel: 'N1_CADASTRO_FAMILIAR'` e registro de auditoria, idêntico a `accept/route.ts`.
+- **Validação:**
+  - `pnpm check:r03`: **0 novas violações, 0 regressões** (1474 arquivos em conformidade).
+  - `pnpm typecheck`: **0 erros** (`tsc --noEmit`).
+  - Suíte de testes de signup: **10/10 suites · 56/56 testes verdes**.
+
+---
+
+## 2.60 Aba Solicitações no Gestor e Painel com 4 Abas do Responsável Legal — 2026-11-18
+- **Contexto & Demanda:**
+  1. Em `/clube/gestor` (rota interna `/gestor`): criar a aba "Solicitações", que surge dinamicamente apenas quando houver indicações de menores pendentes de aprovação pelo CT (`PlayerCT.status === 'PENDING'`), permitindo ao gestor dar o aceite ou recusa.
+  2. Em `/responsavel`:
+     - Unificar o duplo papel para quem possui conta "Espectador & Acompanhante" (`canOperate === true`): botão/atalho na topbar (`GuardianTopBar`) para `/dashboard` e atalho para anotação rápida na aba de partidas;
+     - Dividir o painel do responsável em 4 abas modulares:
+       - **Aba 1 (Autorizações):** Ficha do dependente (`DependentCard`), Tríade (`DATA`, `BROADCAST`, `STATS`), Monotutela Estrita e Termos v2.0;
+       - **Aba 2 (Partidas):** Lista de partidas do menor (`DependentMatchesList`) e atalhos de anotação;
+       - **Aba 3 (Avisos):** Ciclo de vida das indicações enviadas (status de aceite do CT, treinador particular e convites externos WhatsApp);
+       - **Aba 4 (Acessos):** Status de habilitação da conta do menor (`Player.userId !== null`) e log de acessos (logins/logouts) sob transparência parental do ECA Digital.
+- **Implementações:**
+  - **Auditoria de Acesso (Backend):**
+    - `src/app/api/auth/login/login-audit.logic.ts`: Grava evento `USER_LOGIN` em `AuditLog` com `actorUserId` e `userAgent`.
+    - `src/app/api/auth/logout/route.ts`: Grava evento `USER_LOGOUT` em `AuditLog` ao encerrar sessão.
+    - `src/app/api/guardians/me/dependents/[id]/access-logs/route.ts`: Endpoint seguro que valida tutela ativa e retorna dados de habilitação da conta e histórico de logins/logouts.
+    - `src/app/api/guardians/me/dependents/[id]/indications/route.ts`: Endpoint que lista vínculos de CT (`PlayerCT`), treinadores (`CoachAthleteLink`) e convites externos (`CoachInvitationToken`).
+  - **Solicitações do Gestor (Backend):**
+    - `src/app/api/gestor/requests/route.ts`: `GET` lista solicitações pendentes (`PlayerCT.status === 'PENDING'`) do CT.
+    - `src/app/api/gestor/requests/[id]/route.ts`: `PUT` processa `decision: 'ACCEPT'` (`status = 'ACTIVE'`, `AuditLog`) ou `'REJECT'` (`status = 'REJECTED'`, `endedAt`, `AuditLog`).
+    - `src/app/api/gestor/athletes/athletes-get.logic.ts`: Atualizado para filtrar estritamente `where: { ctId, status: 'ACTIVE' }`, garantindo que menores indicados pelo responsável com status `PENDING` fiquem visíveis exclusivamente na aba "Solicitações" e só entrem em "Atletas" após o clique em "Aceitar no Clube".
+  - **Frontend do Gestor (`/gestor`):**
+    - `src/app/gestor/tab-nav.tsx`: Aba "Solicitações" renderizada com badge apenas se `solicitacoesCount > 0`.
+    - `src/app/gestor/solicitacoes-table.tsx` e `solicitacao-card.tsx`: Listagem de solicitações com dados do responsável, consentimentos e ações Aceitar/Recusar.
+    - `src/app/gestor/use-gestor-dashboard-data.ts`: Carrega contagem e dados de solicitações.
+  - **Frontend do Responsável (`/responsavel`):**
+    - `src/app/responsavel/guardian-topbar.tsx`: Badge dinâmico e atalho "Minhas Partidas" quando `canOperate === true`.
+    - `src/app/responsavel/guardian-tabs-nav.tsx`: Componente de navegação das 4 abas com badges.
+    - `src/app/responsavel/guardian-tab-autorizacoes.tsx`, `guardian-tab-partidas.tsx`, `guardian-tab-avisos.tsx`, `guardian-tab-acessos.tsx`: Componentes isolados em conformidade com R-03.
+    - `src/app/responsavel/page.tsx`: Orquestração reativa das abas em 84 linhas.
+- **Validação:**
+  - `pnpm check:r03`: **0 novas violações, 0 regressões** (1488 arquivos em conformidade).
+  - `pnpm typecheck`: **0 erros** (`tsc --noEmit`).
+  - `pnpm check:mock-traps`: **0 armadilhas de teste**.
+  - Suíte de testes: 46 suítes / 184 testes verdes em gestor, guardians e responsavel.
 
 

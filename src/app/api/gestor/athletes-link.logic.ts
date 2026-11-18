@@ -19,6 +19,7 @@ export async function linkExistingAthleteAccount(input: {
   existingUser: { id: string; name: string; email?: string | null; cpf?: string | null };
   /** Player já existente a ser vinculado (ex.: atleta do clube sem conta de acesso). */
   playerId?: string;
+  statusToApply?: 'ACTIVE' | 'PENDING';
   /** Dados do formulário, usados só quando for preciso criar o Player da conta. */
   athlete?: { birthDate: string; gender: string; laterality: string };
 }): Promise<

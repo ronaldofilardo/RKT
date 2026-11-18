@@ -28,7 +28,7 @@ export default function GestorPage() {
     fetchMeData();
     if (typeof window !== 'undefined') {
       const q = new URLSearchParams(window.location.search).get('tab') as GestorTab;
-      if (q && ['coaches', 'athletes', 'matches', 'club'].includes(q)) setTab(q);
+      if (q && ['coaches', 'athletes', 'affiliates', 'matches', 'club', 'solicitacoes'].includes(q)) setTab(q);
     }
   }, [fetchMeData]);
 

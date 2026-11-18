@@ -31,9 +31,9 @@ export function CoachRow({ coach: c, selected, onSelect, onEdit, onGenerateLink,
         />
       </td>
       <td className="px-3 py-3 text-sm text-telemetry-text-primary font-medium">{c.user.name}</td>
-      <td className="px-3 py-3 text-sm text-telemetry-text-primary font-mono text-xs">{formattedCpf}</td>
-      <td className="px-3 py-3 text-sm text-telemetry-text-primary">{c.user.email}</td>
-      <td className="px-3 py-3 text-sm text-telemetry-text-primary">{new Date(c.user.createdAt).toLocaleDateString('pt-BR')}</td>
+      <td className="px-3 py-3 text-xs text-telemetry-text-muted/90 font-mono tabular-nums">{formattedCpf}</td>
+      <td className="px-3 py-3 text-sm text-telemetry-text-muted/90">{c.user.email}</td>
+      <td className="px-3 py-3 text-sm text-telemetry-text-muted/90 tabular-nums">{new Date(c.user.createdAt).toLocaleDateString('pt-BR')}</td>
       <td className="px-3 py-3 text-sm">
         <span className={`px-2 py-0.5 rounded text-xs font-semibold ${c.user.mustChangePassword ? 'bg-telemetry-alert/20 text-telemetry-alert' : 'bg-telemetry-volt/20 text-telemetry-volt'}`}>
           {c.user.mustChangePassword ? 'Senha pendente' : 'Ativo'}

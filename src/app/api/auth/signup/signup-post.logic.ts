@@ -4,6 +4,9 @@ import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { CURRENT_TERMS_VERSION } from '@/core/access';
 import { ensureAthletePlayer } from './signup-athlete.logic';
+import { handleGuardianSignup } from './signup-guardian.logic';
+import { validateAthleteSignupAge } from './signup-athlete-validation.logic';
+import type { GuardianProfileInput } from '@/schemas/guardian';
 
 export type SignupInput = {
   name: string;
@@ -13,9 +16,10 @@ export type SignupInput = {
   cpf?: string | null;
   birthDate?: string | null;
   origem?: string | null;
+  guardianProfile?: GuardianProfileInput | null;
 };
 
-export async function handleSignupPost(input: SignupInput): Promise<NextResponse> {
+export async function handleSignupPost(input: SignupInput, ipHash: string): Promise<NextResponse> {
   const { name, identifier, password, role, cpf: cpfRaw, birthDate: birthDateRaw, origem } = input;
   const trimmed = identifier.trim();
   const isEmail = trimmed.includes('@');
@@ -32,23 +36,23 @@ export async function handleSignupPost(input: SignupInput): Promise<NextResponse
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
+
+  // Validação etária obrigatória para autocadastro de atleta (ECA Digital)
+  const athleteAgeCheck = validateAthleteSignupAge(role, birthDateRaw);
+  if (athleteAgeCheck) return athleteAgeCheck;
+
+  // A0.21: cadastro de responsável é atômico (User + Player + GuardianLink + ConsentRecord).
+  if (role === 'RESPONSAVEL') {
+    return handleGuardianSignup({ input, email, cpfValue, passwordHash, ipHash });
+  }
+
   const user = await prisma.user.create({
-    data: {
-      name,
-      email: email ?? `${cpfValue}@local`,
-      cpf: cpfValue,
-      passwordHash,
-      canOperate: true,
-      role: 'ANNOTATOR',
-    },
+    data: { name, email: email ?? `${cpfValue}@local`, cpf: cpfValue, passwordHash, canOperate: true, role: 'ANNOTATOR' },
   });
 
   await prisma.auditLog.create({
     data: {
-      actorUserId: user.id,
-      action: 'TERMS_ACCEPTED',
-      resourceType: 'User',
-      resourceId: user.id,
+      actorUserId: user.id, action: 'TERMS_ACCEPTED', resourceType: 'User', resourceId: user.id,
       meta: { termsVersion: CURRENT_TERMS_VERSION, origem },
     },
   });
@@ -78,10 +82,10 @@ export async function handleSignupPost(input: SignupInput): Promise<NextResponse
   return NextResponse.json({ id: user.id, name: user.name, role }, { status: 201 });
 }
 
-export async function signupPost(request: Request): Promise<NextResponse> {
+export async function signupPost(request: Request, ipHash: string): Promise<NextResponse> {
   try {
     const body = (await request.json().catch(() => null)) as SignupInput;
-    return handleSignupPost(body);
+    return handleSignupPost(body, ipHash);
   } catch (error) {
     logger.error('[SIGNUP POST]', error);
     return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });
