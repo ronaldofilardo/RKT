@@ -64,10 +64,10 @@ export function PlayAreaPlayers({
 
   return (
     <div
-      className="flex flex-col flex-1 min-h-0 relative z-10 gap-1"
+      className="flex flex-col flex-1 min-h-0 min-w-0 relative z-10 gap-1"
       data-awaiting-winner={awaitingWinnerSelection ? 'true' : undefined}
     >
-      <div className={`flex items-stretch gap-1 sm:gap-2 flex-1 min-h-0 rounded-2xl transition-all ${awaitingWinnerSelection ? 'ring-2 ring-telemetry-volt/70 p-0.5' : ''}`}>
+      <div className={`flex items-stretch gap-1 sm:gap-2 flex-1 min-h-0 min-w-0 rounded-2xl transition-all ${awaitingWinnerSelection ? 'ring-2 ring-telemetry-volt/70 p-0.5' : ''}`}>
         <PlayerColumn controls={p1IsServing ? serverControls : null}>
           <PlayerCard {...shared} player={player1} partner={player1Partner} side="player1" isServing={p1IsServing} isWinner={winner === 'player1'} onPoint={() => onPoint('player1')} />
         </PlayerColumn>

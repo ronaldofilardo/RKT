@@ -18,9 +18,9 @@ export function PlayerCardRow({ name, isServer, isReceiver, isPartner, onChangeS
     : `text-telemetry-text-primary ${isServer ? 'text-telemetry-volt font-bold' : ''}`;
 
   return (
-    <div className="flex items-center gap-1.5 justify-center max-w-full">
+    <div className="flex items-center gap-1 justify-center max-w-full min-w-0 px-0.5">
       <span
-        className={`font-bold ${sizeClass} ${colorClass} truncate max-w-[80%]`}
+        className={`font-bold ${sizeClass} ${colorClass} truncate max-w-[85%]`}
       >
         {name}
       </span>

@@ -36,7 +36,7 @@ export function PlayerCard({
   return (
     <div
       data-testid="player-card"
-      className={`relative flex flex-col items-center justify-center p-2 sm:p-4 rounded-2xl border transition-all select-none touch-manipulation h-full w-full
+      className={`relative flex flex-col items-center justify-center p-1.5 sm:p-4 landscape:p-1 rounded-2xl border transition-all select-none touch-manipulation h-full w-full min-w-0
         bg-telemetry-card border-telemetry-border/30 dark:border-white/10 shadow-sm
         ${isWinner ? 'bg-telemetry-blue/20 border-telemetry-blue ring-2 ring-telemetry-blue' : ''}
         ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer active:scale-[0.98] hover:shadow-md hover:bg-telemetry-elevated hover:border-white/20'}`}
@@ -75,7 +75,7 @@ export function PlayerCard({
         )}
       </div>
 
-      <span className="relative z-10 pointer-events-none text-4xl sm:text-5xl font-sans font-bold text-telemetry-text-primary tabular-nums leading-none mb-1 tracking-tight select-none antialiased">{score}</span>
+      <span className="relative z-10 pointer-events-none text-3xl sm:text-5xl font-sans font-bold text-telemetry-text-primary tabular-nums leading-none mb-1 tracking-tight select-none antialiased">{score}</span>
 
       <div className="relative z-10 pointer-events-none w-full h-1 sm:h-1.5 bg-telemetry-elevated rounded-full overflow-hidden mb-1.5">
         <div
@@ -91,7 +91,7 @@ export function PlayerCard({
       </div>
 
       {!disabled && !isWinner && (
-        <span className="relative z-10 pointer-events-none text-[9px] sm:text-[10px] text-telemetry-text-muted font-medium [@media(max-height:680px)]:hidden">Toque para marcar ponto</span>
+        <span className="relative z-10 pointer-events-none text-[9px] sm:text-[10px] text-telemetry-text-muted font-medium [@media(max-height:680px)]:hidden landscape:hidden">Toque para marcar ponto</span>
       )}
     </div>
   );

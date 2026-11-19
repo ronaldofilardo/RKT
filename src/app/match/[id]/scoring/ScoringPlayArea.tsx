@@ -50,9 +50,9 @@ export function ScoringPlayArea(props: ScoringPlayAreaProps) {
         />
       </div>
 
-      {/* Grid adaptativo: em paisagem móvel divide ações na direita e jogadores na esquerda */}
-      <div className="flex-1 min-h-0 flex flex-col landscape:flex-row-reverse landscape:items-stretch gap-1 sm:gap-2">
-        <div className="landscape:w-[70%] landscape:flex landscape:flex-col landscape:justify-center flex-shrink-0">
+      {/* Grid adaptativo: em paisagem móvel divide ações na direita (2/3) e jogadores na esquerda (1/3) */}
+      <div className="flex-1 min-h-0 min-w-0 flex flex-col landscape:flex-row-reverse landscape:items-stretch gap-1 sm:gap-2">
+        <div className="landscape:w-2/3 landscape:min-w-0 landscape:flex landscape:flex-col landscape:justify-center flex-shrink-0">
           {isDecidingPoint && match.matchType === 'DOUBLES' && receivingTeam.length === 2 && (
             <div className="mb-0.5">
               <DecidingPointBanner
@@ -66,7 +66,7 @@ export function ScoringPlayArea(props: ScoringPlayAreaProps) {
           {annotationBars}
         </div>
 
-        <div className="flex-1 min-h-0 flex flex-col">
+        <div className="flex-1 min-h-0 min-w-0 flex flex-col">
           <PlayAreaPlayers
             player1={match.player1} player2={match.player2}
             player1Partner={match.player1Partner ?? undefined} player2Partner={match.player2Partner ?? undefined}
