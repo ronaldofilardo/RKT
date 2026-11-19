@@ -16,6 +16,9 @@ export function toggleRankingEntry(
       class: '',
       position: '',
       juvenilePosition: '',
+      rankingDate: '',
+      classPosition: '',
+      classRankingDate: '',
     },
   }));
 }
@@ -31,6 +34,11 @@ export function updateRankingField(
     if (field === 'category') {
       updated.class = '';
       updated.juvenilePosition = '';
+      updated.classPosition = '';
+      updated.classRankingDate = '';
+    }
+    if (field === 'classPosition') {
+      updated.juvenilePosition = value;
     }
     return { ...prev, [type]: updated };
   });

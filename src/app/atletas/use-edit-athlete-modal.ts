@@ -49,7 +49,10 @@ export function useEditAthleteModal({ athlete, isOpen, onSave }: UseEditAthleteM
   const toggleRankingEntry = (type: RankingType) => {
     setRankings((prev) => ({
       ...prev,
-      [type]: { ...prev[type], enabled: !prev[type].enabled, category: '', class: '', position: '', juvenilePosition: '', rankingDate: '' },
+      [type]: {
+        ...prev[type], enabled: !prev[type].enabled, category: '', class: '', position: '',
+        juvenilePosition: '', rankingDate: '', classPosition: '', classRankingDate: '',
+      },
     }));
   };
 
@@ -59,7 +62,10 @@ export function useEditAthleteModal({ athlete, isOpen, onSave }: UseEditAthleteM
       if (field === 'category') {
         updated.class = '';
         updated.juvenilePosition = '';
+        updated.classPosition = '';
+        updated.classRankingDate = '';
       }
+      if (field === 'classPosition') updated.juvenilePosition = value;
       return { ...prev, [type]: updated };
     });
   };

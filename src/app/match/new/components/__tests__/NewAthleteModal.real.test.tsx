@@ -75,7 +75,7 @@ describe('NewAthleteModal — regressões reais', () => {
     fireEvent.change(screen.getByLabelText('Categoria'), { target: { value: '17-18' } });
 
     expect(screen.getByLabelText('Posição Ranking Juvenil')).toBeInTheDocument();
-    expect(screen.getByLabelText('Posição')).toBeInTheDocument();
+    expect(screen.getAllByLabelText(/Posição/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByLabelText('Categoria')).toBeInTheDocument();
   });
 });

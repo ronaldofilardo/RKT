@@ -6,11 +6,12 @@ interface EditAthleteBirthDateFieldProps {
   setForm: React.Dispatch<React.SetStateAction<AthleteForm>>;
   saving: boolean;
   age?: number | null;
+  className?: string;
 }
 
-export function EditAthleteBirthDateField({ form, setForm, saving, age }: EditAthleteBirthDateFieldProps) {
+export function EditAthleteBirthDateField({ form, setForm, saving, age, className }: EditAthleteBirthDateFieldProps) {
   return (
-    <div className="col-span-3">
+    <div className={className}>
       <label htmlFor="edit-athlete-birthday" className="block text-xs font-medium text-telemetry-text-primary mb-1">
         Data de Nascimento
       </label>

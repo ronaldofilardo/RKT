@@ -24,7 +24,7 @@ describe('NewAthleteModal — toggle de ranking', () => {
     fireEvent.click(estadualCheckbox);
     expect(estadualCheckbox).toBeChecked();
     expect(screen.getByLabelText('Categoria')).toBeInTheDocument();
-    expect(screen.getByLabelText('Posição')).toBeInTheDocument();
+    expect(screen.getAllByLabelText(/Posição/)[0]).toBeInTheDocument();
   });
 
   it('disables ranking and clears all fields on uncheck', () => {
@@ -32,7 +32,7 @@ describe('NewAthleteModal — toggle de ranking', () => {
     fireEvent.click(estadualCheckbox);
     fireEvent.change(screen.getByLabelText('Categoria'), { target: { value: '13-14' } });
     fireEvent.change(screen.getByLabelText('Classe'), { target: { value: '1ªMA' } });
-    fireEvent.change(screen.getByLabelText('Posição'), { target: { value: '5' } });
+    fireEvent.change(screen.getAllByLabelText(/Posição/)[0], { target: { value: '5' } });
     fireEvent.click(estadualCheckbox);
     expect(screen.queryByLabelText('Categoria')).not.toBeInTheDocument();
     fireEvent.click(estadualCheckbox);

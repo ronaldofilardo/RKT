@@ -7,6 +7,8 @@ export interface RankingState {
   position: string;
   juvenilePosition: string;
   rankingDate?: string;
+  classPosition?: string;
+  classRankingDate?: string;
 }
 
 export interface RankingFormProps {

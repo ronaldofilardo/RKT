@@ -23,7 +23,7 @@ export function ThemeToggleButton({ className = '' }: ThemeToggleButtonProps) {
       aria-label={label}
       title={label}
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className={`bg-telemetry-elevated border border-white/10 p-2 rounded-lg hover:bg-telemetry-active ${className}`}
+      className={`min-h-[32px] min-w-[32px] sm:min-h-[34px] sm:min-w-[34px] flex items-center justify-center bg-telemetry-elevated border border-white/10 p-1 sm:p-1.5 rounded-md hover:bg-telemetry-active transition-all text-xs sm:text-sm ${className}`}
     >
       <span aria-hidden="true">{isDark ? '☀️' : '🌙'}</span>
     </button>

@@ -6,6 +6,8 @@ export interface RankingEntry {
   position: number;
   juvenilePosition?: number;
   rankingDate?: string;
+  classPosition?: number;
+  classRankingDate?: string;
 }
 
 export interface RankingState {
@@ -15,10 +17,15 @@ export interface RankingState {
   position: string;
   juvenilePosition: string;
   rankingDate?: string;
+  classPosition?: string;
+  classRankingDate?: string;
 }
 
 export function createEmptyRankingState(): RankingState {
-  return { enabled: false, category: '', class: '', position: '', juvenilePosition: '', rankingDate: '' };
+  return {
+    enabled: false, category: '', class: '', position: '',
+    juvenilePosition: '', rankingDate: '', classPosition: '', classRankingDate: '',
+  };
 }
 
 export function athleteToRankingsState(rankings: Record<string, RankingEntry> | null | undefined): Record<RankingType, RankingState> {
@@ -41,6 +48,8 @@ export function athleteToRankingsState(rankings: Record<string, RankingEntry> | 
         position: String(entry.position || ''),
         juvenilePosition: entry.juvenilePosition ? String(entry.juvenilePosition) : '',
         rankingDate: entry.rankingDate || '',
+        classPosition: entry.classPosition ? String(entry.classPosition) : (entry.class && entry.juvenilePosition ? String(entry.position || '') : ''),
+        classRankingDate: entry.classRankingDate || '',
       };
     }
   }
@@ -50,12 +59,19 @@ export function athleteToRankingsState(rankings: Record<string, RankingEntry> | 
 export function rankingsStateToPayload(state: Record<RankingType, RankingState>): Record<string, RankingEntry> {
   const payload: Record<string, RankingEntry> = {};
   for (const [type, s] of Object.entries(state) as [RankingType, RankingState][]) {
-    if (s.enabled && s.position) {
-      const entry: RankingEntry = { position: parseInt(s.position) };
+    const pos = s.position || s.classPosition || s.juvenilePosition;
+    if (s.enabled && pos) {
+      const entry: RankingEntry = { position: parseInt(s.position || s.classPosition || '1', 10) };
       if (s.category) entry.category = s.category;
       if (s.class) entry.class = s.class;
-      if (s.juvenilePosition) entry.juvenilePosition = parseInt(s.juvenilePosition);
       if (s.rankingDate) entry.rankingDate = s.rankingDate;
+      if (s.classPosition) entry.classPosition = parseInt(s.classPosition, 10);
+      if (s.classRankingDate) entry.classRankingDate = s.classRankingDate;
+      if (s.juvenilePosition) {
+        entry.juvenilePosition = parseInt(s.juvenilePosition, 10);
+      } else if (s.category && s.class && s.position) {
+        entry.juvenilePosition = parseInt(s.position, 10);
+      }
       payload[type] = entry;
     }
   }

@@ -18,6 +18,8 @@ export const RankingEntrySchema = z.object({
   position: z.number().int().min(1),
   juvenilePosition: z.number().int().min(1).optional(),
   rankingDate: z.string().optional(),
+  classPosition: z.number().int().min(1).optional(),
+  classRankingDate: z.string().optional(),
 });
 export type RankingEntry = z.infer<typeof RankingEntrySchema>;
 
@@ -46,7 +48,11 @@ export const CreatePlayerInputSchema = z.object({
   backhand: z.enum(['ONE_HANDED', 'TWO_HANDED']).optional(),
   rankings: z.record(
     z.enum(['ESTADUAL', 'CBT', 'COSAT', 'ITF', 'ITF_Juniors', 'ATP', 'WTA']),
-    z.object({ position: z.number().min(1), category: z.string().optional(), class: z.string().optional(), juvenilePosition: z.number().min(1).optional(), rankingDate: z.string().optional() }),
+    z.object({
+      position: z.number().min(1), category: z.string().optional(), class: z.string().optional(),
+      juvenilePosition: z.number().min(1).optional(), rankingDate: z.string().optional(),
+      classPosition: z.number().int().min(1).optional(), classRankingDate: z.string().optional(),
+    }),
   ).optional(),
   club: z.string().trim().max(100).optional(),
   city: z.string().trim().max(100).optional(),

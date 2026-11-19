@@ -18,13 +18,13 @@ export function ActionSecondaryControls({
   onStats,
 }: ActionSecondaryControlsProps) {
   return (
-    <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/10 flex-shrink-0">
+    <div className="flex items-center gap-1 sm:gap-1.5 p-0.5 sm:p-1 rounded-lg bg-white/[0.03] border border-white/10 flex-shrink-0">
       <ThemeToggleButton />
       {onComment && (
         <button
           onClick={onComment}
           disabled={commentDisabled}
-          className="min-h-[38px] min-w-[38px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center bg-telemetry-elevated border border-white/10 p-1.5 sm:p-2 rounded-lg hover:bg-telemetry-active active:scale-[0.97] disabled:opacity-40 transition-all text-sm"
+          className="min-h-[32px] min-w-[32px] sm:min-h-[34px] sm:min-w-[34px] flex items-center justify-center bg-telemetry-elevated border border-white/10 p-1 sm:p-1.5 rounded-md hover:bg-telemetry-active active:scale-[0.97] disabled:opacity-40 transition-all text-xs sm:text-sm"
           aria-label="Adicionar comentário"
         >
           💬
@@ -41,7 +41,7 @@ export function ActionSecondaryControls({
               ? 'Finalize a anotação do 2º saque antes de editar o placar'
               : 'Corrigir placar'
           }
-          className="min-h-[38px] min-w-[38px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center bg-telemetry-elevated border border-white/10 p-1.5 sm:p-2 rounded-lg hover:bg-telemetry-active active:scale-[0.97] disabled:opacity-40 transition-all text-sm"
+          className="min-h-[32px] min-w-[32px] sm:min-h-[34px] sm:min-w-[34px] flex items-center justify-center bg-telemetry-elevated border border-white/10 p-1 sm:p-1.5 rounded-md hover:bg-telemetry-active active:scale-[0.97] disabled:opacity-40 transition-all text-xs sm:text-sm"
         >
           ✏️<span className="sr-only">Corrigir</span>
         </button>
@@ -49,7 +49,7 @@ export function ActionSecondaryControls({
       {onStats && (
         <button
           onClick={onStats}
-          className="min-h-[38px] min-w-[38px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center bg-telemetry-elevated border border-white/10 p-1.5 sm:p-2 rounded-lg hover:bg-telemetry-active active:scale-[0.97] transition-all text-sm"
+          className="min-h-[32px] min-w-[32px] sm:min-h-[34px] sm:min-w-[34px] flex items-center justify-center bg-telemetry-elevated border border-white/10 p-1 sm:p-1.5 rounded-md hover:bg-telemetry-active active:scale-[0.97] transition-all text-xs sm:text-sm"
           aria-label="Ver estatísticas"
         >
           📊

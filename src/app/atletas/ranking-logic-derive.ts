@@ -3,17 +3,19 @@ import type { RankingEntry } from '@/schemas/contracts';
 import { RANKING_TYPES, getCategoriesForAge, getAllowedCategoriesForAge, getClassesForSelection, getCosatCategoryAge, hasCategories, hasClasses, isYouthCategory } from '@/lib/ranking/rankingConstants';
 import type { RankingState } from './ranking-logic.types';
 
-export function rankingsStateToPayload(
-  state: Record<RankingType, RankingState>
-): Record<string, RankingEntry> {
+export function rankingsStateToPayload(state: Record<RankingType, RankingState>): Record<string, RankingEntry> {
   const payload: Record<string, RankingEntry> = {};
   for (const [type, s] of Object.entries(state) as [RankingType, RankingState][]) {
-    if (s.enabled && s.position) {
-      const entry: RankingEntry = { position: parseInt(s.position) };
+    const pos = s.position || s.classPosition || s.juvenilePosition;
+    if (s.enabled && pos) {
+      const entry: RankingEntry = { position: parseInt(s.position || s.classPosition || '1', 10) };
       if (s.category) entry.category = s.category;
       if (s.class) entry.class = s.class;
-      if (s.juvenilePosition) entry.juvenilePosition = parseInt(s.juvenilePosition);
       if (s.rankingDate) entry.rankingDate = s.rankingDate;
+      if (s.classPosition) entry.classPosition = parseInt(s.classPosition, 10);
+      if (s.classRankingDate) entry.classRankingDate = s.classRankingDate;
+      if (s.juvenilePosition) entry.juvenilePosition = parseInt(s.juvenilePosition, 10);
+      else if (s.category && s.class && s.position) entry.juvenilePosition = parseInt(s.position, 10);
       payload[type] = entry;
     }
   }

@@ -6,6 +6,8 @@ export interface RankingEntryLike {
   class?: string | null;
   juvenilePosition?: number | null;
   rankingDate?: string | null;
+  classPosition?: number | null;
+  classRankingDate?: string | null;
 }
 
 /** Formata data YYYY-MM-DD em "DD mmm AA" (ex: "17 nov 26"). */

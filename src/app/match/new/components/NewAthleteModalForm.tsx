@@ -29,26 +29,9 @@ export function NewAthleteModalForm({
           submitting={submitting}
           nameInputRef={nameInputRef}
           age={age}
+          nickname={nickname}
+          onNicknameChange={onNicknameChange}
         />
-
-        <div>
-          <label htmlFor="new-athlete-nickname" className="block text-sm font-medium text-telemetry-text-primary mb-1">
-            Apelido (nickname) <span className="text-telemetry-text-muted font-normal">(opcional)</span>
-          </label>
-          <input
-            id="new-athlete-nickname"
-            type="text"
-            value={nickname}
-            onChange={(e) => onNicknameChange(e.target.value)}
-            disabled={submitting}
-            placeholder="Ex: joao.silva"
-            maxLength={30}
-            className="w-full px-3 py-2 border-2 border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-telemetry-volt focus:border-telemetry-volt bg-telemetry-elevated text-telemetry-text-primary placeholder-telemetry-text-muted/50"
-          />
-          <p className="mt-1 text-xs text-telemetry-text-muted">
-            Usado no pool público quando o atleta autoriza a visibilidade. Não é o nome oficial.
-          </p>
-        </div>
 
         <AthleteOriginSection
           uf={(form.uf || null) as import('@/core/athlete/brazilian-states').BrazilianUF | null}

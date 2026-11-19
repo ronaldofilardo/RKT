@@ -45,7 +45,7 @@ export function ActionFooter({
           data-testid="undo-button"
           onClick={() => onVoltar(serveStep)}
           disabled={!canUndo || disabled}
-          className="text-xs sm:text-sm font-semibold bg-telemetry-elevated border border-white/15 px-2.5 sm:px-3.5 py-2 rounded-xl hover:bg-telemetry-active active:scale-[0.97] disabled:opacity-40 min-h-[40px] sm:min-h-[44px] flex items-center gap-1 sm:gap-1.5 transition-all shadow-sm select-none whitespace-nowrap"
+          className="text-xs font-semibold bg-telemetry-elevated border border-white/15 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg hover:bg-telemetry-active active:scale-[0.97] disabled:opacity-40 min-h-[32px] sm:min-h-[34px] flex items-center gap-1 sm:gap-1.5 transition-all shadow-sm select-none whitespace-nowrap"
         >
           {processing ? '⏳' : '↩'} Voltar
         </button>

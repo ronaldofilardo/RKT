@@ -1,77 +1,32 @@
 import type { ReactNode } from 'react';
-import type { RankingType } from '@/lib/ranking/rankingConstants';
-import type { RankingState } from './ranking-form.types';
-import { RankingNumberField } from './ranking-number-field';
 
 interface RankingRowsProps {
-  type: RankingType;
-  state: RankingState;
-  saving: boolean;
+  hasOnlyPosition: boolean;
   showCategory: boolean;
   showClasses: boolean;
-  showJuvenilePosition: boolean;
-  hasOnlyPosition: boolean;
-  firstRow: ReactNode;
-  classField: ReactNode;
-  rankingDateField: ReactNode;
-  onJuvenilePositionChange: (value: string) => void;
+  categoryRow: ReactNode;
+  classRow: ReactNode;
+  onlyPositionRow: ReactNode;
 }
 
 export function RankingFormRows({
-  type,
-  state,
-  saving,
+  hasOnlyPosition,
   showCategory,
   showClasses,
-  showJuvenilePosition,
-  hasOnlyPosition,
-  firstRow,
-  classField,
-  rankingDateField,
-  onJuvenilePositionChange,
+  categoryRow,
+  classRow,
+  onlyPositionRow,
 }: RankingRowsProps) {
-  const showThirdRow = showCategory && showClasses && showJuvenilePosition;
-
   return (
     <div className="flex flex-col gap-2 flex-1 min-w-0">
-      <div className="grid grid-cols-2 gap-3">{firstRow}</div>
-      {!hasOnlyPosition && (
-        <div className="grid grid-cols-2 gap-3">
-          {showCategory && showClasses ? (
-            <>
-              {classField}
-              {rankingDateField}
-            </>
-          ) : showJuvenilePosition ? (
-            <>
-              <RankingNumberField
-                id={`ranking-${type}-juvenile-position`}
-                label="Posição Ranking Juvenil"
-                value={state.juvenilePosition}
-                disabled={saving}
-                onChange={onJuvenilePositionChange}
-              />
-              {rankingDateField}
-            </>
-          ) : (
-            <>
-              {rankingDateField}
-              <div />
-            </>
-          )}
-        </div>
+      {hasOnlyPosition && (
+        <div className="grid grid-cols-[68px_minmax(0,1.2fr)] gap-2 sm:gap-2.5 items-end">{onlyPositionRow}</div>
       )}
-      {showThirdRow && (
-        <div className="grid grid-cols-2 gap-3">
-          <RankingNumberField
-            id={`ranking-${type}-juvenile-position`}
-            label="Posição Ranking Juvenil"
-            value={state.juvenilePosition}
-            disabled={saving}
-            onChange={onJuvenilePositionChange}
-          />
-          <div />
-        </div>
+      {showCategory && (
+        <div className="grid grid-cols-[minmax(0,1.2fr)_68px_minmax(0,1.2fr)] gap-2 sm:gap-2.5 items-end">{categoryRow}</div>
+      )}
+      {showClasses && (
+        <div className="grid grid-cols-[minmax(0,1.2fr)_68px_minmax(0,1.2fr)] gap-2 sm:gap-2.5 items-end">{classRow}</div>
       )}
     </div>
   );

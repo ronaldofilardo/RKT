@@ -8,10 +8,15 @@ export interface RankingState {
   position: string;
   juvenilePosition: string;
   rankingDate?: string;
+  classPosition?: string;
+  classRankingDate?: string;
 }
 
 export function createEmptyRankingState(): RankingState {
-  return { enabled: false, category: '', class: '', position: '', juvenilePosition: '', rankingDate: '' };
+  return {
+    enabled: false, category: '', class: '', position: '',
+    juvenilePosition: '', rankingDate: '', classPosition: '', classRankingDate: '',
+  };
 }
 
 export function initialRankings(): Record<RankingType, RankingState> {

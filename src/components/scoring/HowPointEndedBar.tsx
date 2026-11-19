@@ -41,7 +41,7 @@ export function HowPointEndedBar({
       <h2 className="text-center text-[clamp(11px,1.5dvh,13px)] font-medium tracking-normal text-telemetry-text-muted mb-1">
         Como terminou o ponto?
       </h2>
-      <div className="grid grid-cols-5 gap-1 sm:gap-1.5 items-stretch">
+      <div className="grid grid-cols-[0.65fr_1.35fr_1fr_1fr_1fr] gap-1 sm:gap-1.5 items-stretch">
         <button
           type="button" disabled={disabled} aria-pressed={isAceSelected} onClick={() => onSelect('ACE')}
           className={`rounded-lg border px-1 py-0.5 text-[clamp(9px,1.3dvh,12px)] font-semibold tracking-wide transition-all disabled:opacity-40 flex items-center justify-center min-h-[30px] sm:min-h-[36px] ${
