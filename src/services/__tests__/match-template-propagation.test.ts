@@ -46,29 +46,72 @@ describe('pickPropagableFields', () => {
 describe('propagateTemplateUpdate', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('atualiza apenas derivadas SCHEDULED/IN_PROGRESS não excluídas', async () => {
-    mockUpdateMany.mockResolvedValue({ count: 2 });
+  it('propaga campos completos para SCHEDULED e apenas metadados para IN_PROGRESS', async () => {
+    mockUpdateMany
+      .mockResolvedValueOnce({ count: 1 }) // SCHEDULED
+      .mockResolvedValueOnce({ count: 1 }); // IN_PROGRESS
 
     const result = await propagateTemplateUpdate('tpl-1', {
-      tournamentName: 'Copa',
+      player1Id: 'new-player-1',
+      format: 'PRO_SET',
+      tournamentName: 'Copa Atualizada',
       state: 'FINISHED',
     });
 
-    expect(result).toEqual({ propagated: 2 });
-    expect(mockUpdateMany).toHaveBeenCalledWith({
+    expect(result.propagated).toBe(2);
+    expect(result.scheduledCount).toBe(1);
+    expect(result.inProgressCount).toBe(1);
+
+    // Primeira chamada: SCHEDULED recebe tudo (jogadores, formato e metadados)
+    expect(mockUpdateMany).toHaveBeenNthCalledWith(1, {
       where: {
         sourceMatchId: 'tpl-1',
-        state: { in: ['SCHEDULED', 'IN_PROGRESS'] },
+        state: 'SCHEDULED',
         deletedAt: null,
       },
-      data: { tournamentName: 'Copa' },
+      data: {
+        player1Id: 'new-player-1',
+        format: 'PRO_SET',
+        tournamentName: 'Copa Atualizada',
+      },
+    });
+
+    // Segunda chamada: IN_PROGRESS recebe APENAS metadados (congelando player1Id e format)
+    expect(mockUpdateMany).toHaveBeenNthCalledWith(2, {
+      where: {
+        sourceMatchId: 'tpl-1',
+        state: 'IN_PROGRESS',
+        deletedAt: null,
+      },
+      data: {
+        tournamentName: 'Copa Atualizada',
+      },
+    });
+  });
+
+  it('não atualiza IN_PROGRESS se apenas campos estruturais (jogadores/formato) mudaram', async () => {
+    mockUpdateMany.mockResolvedValueOnce({ count: 2 }); // SCHEDULED
+
+    const result = await propagateTemplateUpdate('tpl-1', {
+      player1Id: 'new-p1',
+      format: 'BEST_OF_3',
+    });
+
+    expect(result.propagated).toBe(2);
+    expect(result.scheduledCount).toBe(2);
+    expect(result.inProgressCount).toBe(0);
+
+    expect(mockUpdateMany).toHaveBeenCalledTimes(1);
+    expect(mockUpdateMany).toHaveBeenCalledWith({
+      where: { sourceMatchId: 'tpl-1', state: 'SCHEDULED', deletedAt: null },
+      data: { player1Id: 'new-p1', format: 'BEST_OF_3' },
     });
   });
 
   it('é no-op quando nenhum campo propagável mudou', async () => {
     const result = await propagateTemplateUpdate('tpl-1', { state: 'FINISHED' });
 
-    expect(result).toEqual({ propagated: 0 });
+    expect(result).toEqual({ propagated: 0, scheduledCount: 0, inProgressCount: 0 });
     expect(mockUpdateMany).not.toHaveBeenCalled();
   });
 });

@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { canDiscoverMatchTemplate } from '@/core/access/match-event-visibility';
+import { isDirectlyInvolvedInMatch } from '@/core/access/match-involvement';
+import { resolvePlayerDisplayName } from '@/core/access/minor-name-resolver';
 import type { Actor } from '@/core/access/types';
 import { toTemplateAccess, type TemplateRecord } from './match-resolve-payload.logic';
 
@@ -11,8 +13,8 @@ const TEMPLATE_SELECT = {
   scheduledAt: true, tournamentName: true, clubName: true, category: true, round: true,
   ctId: true, createdAt: true, createdByUserId: true, assignedCoachId: true,
   eventScope: true, player1Id: true, player2Id: true, player1PartnerId: true, player2PartnerId: true,
-  player1: { select: { id: true, name: true, nickname: true } },
-  player2: { select: { id: true, name: true, nickname: true } },
+  player1: { select: { id: true, name: true, nickname: true, birthDate: true } },
+  player2: { select: { id: true, name: true, nickname: true, birthDate: true } },
   _count: { select: { annotations: true } },
 } as const;
 
@@ -68,8 +70,23 @@ export async function listAvailableTemplates(
 
   return visible.map(({ _count, ...rest }) => {
     const mine = byTemplate.get(rest.id);
+    const participants = [rest.player1Id, rest.player2Id, rest.player1PartnerId, rest.player2PartnerId].filter((v): v is string => !!v);
+    const directlyInvolved = isDirectlyInvolvedInMatch(actor, {
+      createdByUserId: rest.createdByUserId, ctId: rest.ctId,
+      annotatorUserIds: rest.createdByUserId ? [rest.createdByUserId] : [],
+      participantPlayerIds: participants, participantCtIds: rest.ctId ? [rest.ctId] : [], isTemplate: true,
+    });
+    const formatPlayer = (p: typeof rest.player1) =>
+      !p ? null : {
+        id: p.id,
+        name: resolvePlayerDisplayName({ player: p, matchId: rest.id, isDirectlyInvolved: directlyInvolved }),
+        nickname: directlyInvolved ? p.nickname : null,
+      };
+
     return {
       ...rest,
+      player1: formatPlayer(rest.player1),
+      player2: formatPlayer(rest.player2),
       annotationCount: _count.annotations,
       myAnnotationId: mine?.id ?? null,
       myAnnotationState: mine?.state ?? null,

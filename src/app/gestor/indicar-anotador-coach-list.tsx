@@ -45,6 +45,11 @@ export function IndicarAnotadorCoachList({
                 <span className="flex-1 min-w-0 font-medium text-telemetry-text-primary block truncate">
                   {c.user.name} ({c.user.email})
                 </span>
+                {selectedCoachIds[0] === c.user.id && (
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-telemetry-volt/15 text-telemetry-volt border border-telemetry-volt/30 whitespace-nowrap">
+                    Principal
+                  </span>
+                )}
               </label>
             );
           })

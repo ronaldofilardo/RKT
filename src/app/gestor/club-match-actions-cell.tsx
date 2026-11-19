@@ -34,18 +34,18 @@ export function ClubMatchActionsCell({
         {onAssign && !m.sourceMatchId && (
           <button
             type="button" onClick={() => onAssign(m)}
-            title={hasDesignated ? 'Alterar treinadores designados' : 'Indicar treinador'}
+            title={hasDesignated ? 'Alterar treinadores designados' : 'Designar treinadores'}
             className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-telemetry-elevated border border-white/10 text-telemetry-text-primary text-xs sm:text-sm font-medium rounded-lg hover:bg-white/10 transition-colors shadow-sm cursor-pointer"
           >
             {hasDesignated ? 'Alterar' : 'Indicar'}
           </button>
         )}
-        {onAnnotate && (
+        {onAnnotate && isCreator && (
           <button
-            type="button" onClick={() => onAnnotate(m)} title="Anotar partida"
+            type="button" onClick={() => onAnnotate(m)} title={m.state === 'IN_PROGRESS' ? 'Continuar anotação' : 'Anotar partida'}
             className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-telemetry-volt/20 border border-telemetry-volt/40 text-telemetry-volt hover:bg-telemetry-volt/30 text-xs sm:text-sm font-semibold rounded-lg transition-colors shadow-sm cursor-pointer"
           >
-            Anotar
+            {m.state === 'IN_PROGRESS' ? 'Continuar' : 'Anotar'}
           </button>
         )}
         {onEditInfo && (

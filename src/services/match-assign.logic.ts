@@ -47,6 +47,16 @@ export async function assignCoachToTemplate(
       data: { assignedCoachId: coachUserId },
     });
 
+    if (tx.matchAssignedCoach) {
+      await tx.matchAssignedCoach.upsert({
+        where: {
+          MatchAssignedCoach_matchId_coachId_key: { matchId: templateId, coachId: coachUserId },
+        },
+        update: {},
+        create: { matchId: templateId, coachId: coachUserId, assignedBy: actor.userId },
+      });
+    }
+
     if (typeof tx.match.updateMany === 'function') {
       await tx.match.updateMany({
         where: { sourceMatchId: templateId, deletedAt: null },

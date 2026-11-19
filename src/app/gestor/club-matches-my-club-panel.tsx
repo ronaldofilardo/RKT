@@ -51,7 +51,15 @@ export function ClubMatchesMyClubPanel({
               const isCollapsed = collapsed.has(group.key);
               return (
                 <tbody key={group.key} className="divide-y divide-telemetry-border/20">
-                  <ClubMatchGroupHeader group={group} colSpan={headCells.length} collapsed={isCollapsed} onToggleCollapse={onToggleCollapse} onAssignCoach={onAssignCoach} />
+                  <ClubMatchGroupHeader
+                    group={group}
+                    colSpan={headCells.length}
+                    collapsed={isCollapsed}
+                    onToggleCollapse={onToggleCollapse}
+                    onAssignCoach={onAssignCoach}
+                    onAnnotateCoach={onAnnotateMatch}
+                    currentUserId={currentUserId}
+                  />
                   {!isCollapsed && group.matches.length === 0 && (
                     <tr><td colSpan={headCells.length} className="px-3 py-3 text-xs text-telemetry-text-muted italic">Nenhuma anotação iniciada ainda para esta partida.</td></tr>
                   )}

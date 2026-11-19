@@ -21,9 +21,11 @@ import { ApiError } from '@/lib/errors';
 import {
   createAnnotationFromTemplate,
   createPublicTemplate,
+  createEventTemplate,
 } from '../match-template-create.logic';
 
 const mockPlayerFindFirst = prisma.player.findFirst as jest.MockedFunction<any>;
+const mockPlayerFindMany = prisma.player.findMany as jest.MockedFunction<any>;
 const mockConsentFindFirst = prisma.consentRecord.findFirst as jest.MockedFunction<any>;
 const mockMatchFindFirst = prisma.match.findFirst as jest.MockedFunction<any>;
 const mockMatchCreate = prisma.match.create as jest.MockedFunction<any>;
@@ -104,6 +106,47 @@ describe('createPublicTemplate', () => {
     mockMatchCreate.mockResolvedValue({ id: 'tpl-2', format: 'BEST_OF_3', ctId: null });
 
     await expect(createPublicTemplate(baseInput, 'user-1')).resolves.toMatchObject({ id: 'tpl-2' });
+  });
+
+  it('bloqueia criador adulto se qualquer atleta da partida for menor sem consentimento ativo (403)', async () => {
+    mockPlayerFindFirst.mockResolvedValue(null);
+    mockPlayerFindMany.mockResolvedValue([
+      { id: 'p1', name: 'Atleta Menor', birthDate: new Date('2014-05-10'), guardianGate: 'AGUARDANDO_RESPONSAVEL' },
+    ]);
+    mockConsentFindFirst.mockResolvedValue(null);
+
+    await expect(createPublicTemplate(baseInput, 'adult-user')).rejects.toMatchObject({
+      code: 'CONSENT_REQUIRED',
+      status: 403,
+    });
+    expect(mockMatchCreate).not.toHaveBeenCalled();
+  });
+
+  it('permite criador adulto quando atleta menor da partida possui consentimento ativo', async () => {
+    mockPlayerFindFirst.mockResolvedValue(null);
+    mockPlayerFindMany.mockResolvedValue([
+      { id: 'p1', name: 'Atleta Menor', birthDate: new Date('2014-05-10'), guardianGate: 'AGUARDANDO_RESPONSAVEL' },
+    ]);
+    mockConsentFindFirst.mockResolvedValue({ id: 'consent-player-1' });
+    mockMatchCreate.mockResolvedValue({ id: 'tpl-approved', format: 'BEST_OF_3', ctId: null });
+
+    await expect(createPublicTemplate(baseInput, 'adult-user')).resolves.toMatchObject({ id: 'tpl-approved' });
+  });
+
+  it('permite partida com atleta menor sem consentimento quando em escopo privado (PRIVATE_CLUB)', async () => {
+    mockPlayerFindFirst.mockResolvedValue(null);
+    mockPlayerFindMany.mockResolvedValue([
+      { id: 'p1', name: 'Atleta Menor', birthDate: new Date('2014-05-10'), guardianGate: 'AGUARDANDO_RESPONSAVEL' },
+    ]);
+    mockMatchCreate.mockResolvedValue({ id: 'tpl-private', format: 'BEST_OF_3', ctId: 'ct-1' });
+
+    const result = await createEventTemplate(
+      { ...baseInput, isPublicTemplate: false, eventScope: 'PRIVATE_CLUB', ctId: 'ct-1' },
+      'adult-coach',
+    );
+
+    expect(result.id).toBe('tpl-private');
+    expect(mockMatchCreate).toHaveBeenCalled();
   });
 });
 

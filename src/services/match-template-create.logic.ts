@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import type { CreateMatchInput, MatchEventScope } from '@/schemas/contracts';
 import { buildCreateMatchData } from './match-create-build.logic';
-import { assertTemplateCreatorAllowed } from './match-template-guards.logic';
+import { assertPublicMatchGuards } from './match-template-guards.logic';
 import { notifyPoolMatchCreated } from './notification-create.logic';
 import { resolveMatchCtId, type MatchCtUser } from './match-ct-id.logic';
 
@@ -19,7 +19,12 @@ export async function createEventTemplate(
       ? data.eventScope
       : data.isPublicTemplate ? 'PUBLIC' : 'PRIVATE_PERSONAL';
   const isPublic = scope === 'PUBLIC';
-  if (isPublic) await assertTemplateCreatorAllowed(createdByUserId);
+  if (isPublic) {
+    await assertPublicMatchGuards({
+      createdByUserId,
+      playerIds: [data.player1Id, data.player2Id, data.player1PartnerId, data.player2PartnerId],
+    });
+  }
   // Contexto ativo do criador vence o `ctId` vindo do formulário (Fase C).
   const ctId = resolveMatchCtId(user, data.ctId);
 

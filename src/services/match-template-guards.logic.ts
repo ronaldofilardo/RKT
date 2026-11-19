@@ -31,3 +31,59 @@ export async function assertTemplateCreatorAllowed(
     );
   }
 }
+
+export interface AssertPublicMatchGuardsInput {
+  createdByUserId?: string | null;
+  playerIds?: (string | null | undefined)[];
+  now?: Date;
+}
+
+/**
+ * Validação ampla para partidas e templates em escopo público:
+ * 1. O criador (se for atleta menor) precisa de consentimento DATA.
+ * 2. Todos os atletas participantes (se menores ou com guardianGate pendente)
+ *    exigem consentimento ativo (DATA ou BROADCAST) para publicação em escopo PUBLIC.
+ */
+export async function assertPublicMatchGuards(
+  input: AssertPublicMatchGuardsInput,
+): Promise<void> {
+  const now = input.now ?? new Date();
+
+  if (input.createdByUserId) {
+    await assertTemplateCreatorAllowed(input.createdByUserId, now);
+  }
+
+  const validIds = (input.playerIds || []).filter(
+    (id): id is string => typeof id === 'string' && id.trim().length > 0,
+  );
+  if (validIds.length === 0) return;
+
+  const players = await prisma.player.findMany({
+    where: { id: { in: validIds } },
+    select: { id: true, name: true, birthDate: true, guardianGate: true },
+  });
+
+  for (const player of players) {
+    const under18 = isMinor(player.birthDate ?? null, now);
+    const gatePending = player.guardianGate === 'AGUARDANDO_RESPONSAVEL';
+    if (!under18 && !gatePending) continue;
+
+    const consent = await prisma.consentRecord.findFirst({
+      where: {
+        playerId: player.id,
+        purpose: { in: ['DATA', 'BROADCAST'] },
+        revokedAt: null,
+      },
+      select: { id: true },
+    });
+
+    if (!consent && player.guardianGate !== 'LIBERADO') {
+      throw new ApiError(
+        'CONSENT_REQUIRED',
+        { playerId: player.id, purpose: 'DATA' },
+        403,
+        `Atleta protegido (${player.name || 'Menor'}) exige consentimento ativo do responsável para publicação em escopo público`,
+      );
+    }
+  }
+}

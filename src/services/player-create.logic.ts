@@ -51,6 +51,8 @@ export async function createPlayer(data: CreatePlayerData) {
 
   const under18 = isMinor(data.birthDate, new Date()) || (age !== undefined && age < 18);
   const guardianGate = under18 ? 'AGUARDANDO_RESPONSAVEL' : 'LIBERADO_MAIOR';
+  const isProv = !data.createdByUserId || !cpfHash || guardianGate === 'AGUARDANDO_RESPONSAVEL';
+  const identityStatus = isProv ? 'PROVISIONAL' : 'CONFIRMED';
 
   const player = await createPlayerRow({
     data: {
@@ -68,7 +70,7 @@ export async function createPlayer(data: CreatePlayerData) {
       cpf: data.cpf ? data.cpf.replace(/\D/g, '') : null,
       cpfHash,
       cpfLast2,
-      identityStatus: data.createdByUserId ? 'CONFIRMED' : 'PROVISIONAL',
+      identityStatus,
       athleteCode,
       nickname,
       guardianGate,

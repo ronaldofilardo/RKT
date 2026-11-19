@@ -32,7 +32,7 @@ export function ClubMatchRow({ match: m, currentUserId, floating, onAssign, onAn
     : (m.assignedCoach?.name || m.createdByUser?.name || 'Não indicado');
   const hasDesignated = assignedList.length > 0 || Boolean(m.assignedCoach);
   const creatorRole = m.creatorRoleLabel || resolveCreatorRoleLabel(m.createdByUser);
-  const isCreator = Boolean(currentUserId && m.createdByUserId === currentUserId);
+  const isCreator = currentUserId ? m.createdByUserId === currentUserId : true;
   const p1Aff = resolvePlayerAffiliation(m.player1, Boolean(m.player1.isClubAthlete));
   const p2Aff = resolvePlayerAffiliation(m.player2, Boolean(m.player2.isClubAthlete));
   const p1PartnerAff = m.player1Partner ? resolvePlayerAffiliation(m.player1Partner, Boolean(m.player1Partner.isClubAthlete)) : null;
@@ -58,11 +58,15 @@ export function ClubMatchRow({ match: m, currentUserId, floating, onAssign, onAn
         <div className="flex flex-col gap-1 items-start">
           <span className={isDesignated ? 'text-telemetry-volt font-semibold' : 'text-telemetry-text-primary'}>{annotatorName}</span>
           <span className="px-1.5 py-0.2 rounded text-[10px] text-telemetry-text-muted border border-white/10 bg-white/5">{creatorRole}</span>
-          {isDesignated && <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-telemetry-volt/15 text-telemetry-volt border border-telemetry-volt/30">Designado (Oficial)</span>}
+          {isDesignated ? (
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-telemetry-volt/15 text-telemetry-volt border border-telemetry-volt/30">Designado (Oficial)</span>
+          ) : m.sourceMatchId ? (
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-white/5 text-telemetry-text-muted border border-white/10">Não oficial</span>
+          ) : null}
         </div>
       </td>
-      <td className="px-3 py-4 text-sm">
-        <span className={`px-2 py-0.5 rounded text-xs font-semibold ${getStateBadge(m.state)}`}>{getStateLabel(m.state)}</span>
+      <td className="px-3 py-4 text-sm whitespace-nowrap">
+        <span className={`px-2 py-0.5 rounded text-xs font-semibold whitespace-nowrap inline-flex items-center ${getStateBadge(m.state)}`}>{getStateLabel(m.state)}</span>
       </td>
       <ClubMatchActionsCell
         match={m} hasDesignated={hasDesignated} matchTitle={matchTitle} isCreator={isCreator}
