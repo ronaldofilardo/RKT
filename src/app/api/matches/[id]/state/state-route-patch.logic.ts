@@ -14,7 +14,7 @@ export async function patchMatchState(
 ) {
   try {
     const { id } = await params;
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
     const parsed = MatchStateInputSchema.safeParse(body);
 
     if (!parsed.success) {

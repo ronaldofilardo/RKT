@@ -16,7 +16,7 @@ export async function POST(
   return withAccessHandler(request, null, null, async ({ user }) => {
     try {
       const { id } = await params;
-      const body = await request.json();
+      const body = await request.json().catch(() => null);
       const parsed = FinishMatchInputSchema.safeParse(body);
 
       if (!parsed.success) {

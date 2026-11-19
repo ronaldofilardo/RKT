@@ -289,6 +289,21 @@ describe('PATCH /api/matches/[id]/state', () => {
     expect(res.status).toBe(400);
   });
 
+  it('deve retornar 400 quando o body for vazio ou inválido (sem lançar 500)', async () => {
+    const req = new NextRequest('http://localhost:3000/api/matches/match-1/state', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...ANNOTATOR_HEADERS },
+    });
+
+    const mod = await import('@/app/api/matches/[id]/state/route');
+    const PATCH = mod.PATCH;
+
+    const res = await PATCH(req, { params: Promise.resolve({ id: 'match-1' }) });
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe('VALIDATION_ERROR');
+  });
+
   it('deve retornar 500 quando ocorre erro inesperado', async () => {
     mockPrisma.match.findFirst.mockRejectedValue(new Error('Unexpected DB error'));
 

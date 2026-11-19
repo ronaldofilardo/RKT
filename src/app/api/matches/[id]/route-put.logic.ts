@@ -65,7 +65,7 @@ export async function handleMatchPut(
       );
     }
 
-    const body = await request.json();
+    const body = (await request.json().catch(() => null)) ?? {};
     const { version, ...data } = body;
     const expectedVersion = typeof version === 'number' ? version : undefined;
     const updated = await updateMatch(id, data, expectedVersion);
