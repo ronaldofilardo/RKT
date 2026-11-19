@@ -25,6 +25,7 @@ interface ScoringHeaderProps {
   p1IsServing: boolean;
   p2IsServing: boolean;
   onOpenSetSummary: () => void;
+  tacticalBanner?: React.ReactNode;
 }
 
 export function ScoringHeader({
@@ -36,6 +37,7 @@ export function ScoringHeader({
   p1IsServing,
   p2IsServing,
   onOpenSetSummary,
+  tacticalBanner,
 }: ScoringHeaderProps) {
   const formatLabel = getFormatLabel(match.format);
   const showLiveCounters = hasAnyLiveCounters(liveCounters);
@@ -77,6 +79,7 @@ export function ScoringHeader({
         formatLabel={formatLabel}
         tournamentName={match.tournamentName}
         round={match.round}
+        rightSlot={tacticalBanner}
       />
     </div>
   );

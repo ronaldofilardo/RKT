@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import type { TacticalInsight } from '@/core/scoring/live-tactical-insights';
 
 interface TacticalInsightBannerProps {
@@ -8,8 +8,6 @@ interface TacticalInsightBannerProps {
 }
 
 export function TacticalInsightBanner({ insights }: TacticalInsightBannerProps) {
-  const [collapsed, setCollapsed] = useState(false);
-
   if (!insights || insights.length === 0) {
     return null;
   }
@@ -34,36 +32,21 @@ export function TacticalInsightBanner({ insights }: TacticalInsightBannerProps) 
   return (
     <div
       data-testid="tactical-insight-banner"
-      className={`border rounded-lg px-2 py-1 my-0.5 shadow-sm text-xs relative z-10 transition-all ${getBorderAndBg(
+      className={`border rounded-lg px-2.5 py-0.5 my-0 shadow-sm text-xs relative z-10 transition-all flex items-center gap-2 overflow-hidden max-w-full ${getBorderAndBg(
         current.type,
       )}`}
       role="region"
       aria-label="Insight Tático"
     >
-      <div className="flex items-center justify-between gap-1 leading-none">
-        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-          <span className="text-xs select-none leading-none">{current.icon}</span>
-          <span className="font-bold text-[10px] uppercase tracking-wider opacity-90 truncate leading-none">
-            {current.title}
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={() => setCollapsed(!collapsed)}
-          className="text-[10px] text-slate-200 hover:text-white px-1 py-0 rounded hover:bg-white/10 transition-colors select-none font-medium ml-1 leading-none"
-          aria-label={collapsed ? 'Expandir insight tático' : 'Ocultar insight tático'}
-        >
-          {collapsed ? '▼ Ver' : '▲ Ocultar'}
-        </button>
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        <span className="text-xs select-none leading-none">{current.icon}</span>
+        <span className="font-bold text-[10px] uppercase tracking-wider opacity-90 whitespace-nowrap leading-none">
+          {current.title}
+        </span>
       </div>
-
-      {!collapsed && (
-        <div className="mt-0.5 pt-0.5 border-t border-white/10">
-          <p className="text-[11px] text-white/95 leading-tight font-medium">
-            {current.message}
-          </p>
-        </div>
-      )}
+      <p className="text-[11px] text-white/95 leading-none font-medium truncate flex-1 min-w-0">
+        {current.message}
+      </p>
     </div>
   );
 }

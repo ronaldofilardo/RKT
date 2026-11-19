@@ -46,18 +46,13 @@ export function ScoringPlayArea(props: ScoringPlayAreaProps) {
           p1IsServing={p1IsServing}
           p2IsServing={p2IsServing}
           onOpenSetSummary={onOpenSetSummary}
+          tacticalBanner={!isServePanelOpen ? <TacticalInsightBanner insights={tacticalInsights} /> : null}
         />
       </div>
 
       {/* Grid adaptativo: em paisagem móvel divide ações na direita e jogadores na esquerda */}
       <div className="flex-1 min-h-0 flex flex-col landscape:flex-row-reverse landscape:items-stretch gap-1 sm:gap-2">
-        <div className="landscape:w-1/2 landscape:flex landscape:flex-col landscape:justify-center flex-shrink-0">
-          {!isServePanelOpen && (
-            <div className="flex-shrink-0 mb-0.5" data-serve-collapse="stats">
-              <TacticalInsightBanner insights={tacticalInsights} />
-            </div>
-          )}
-
+        <div className="landscape:w-[70%] landscape:flex landscape:flex-col landscape:justify-center flex-shrink-0">
           {isDecidingPoint && match.matchType === 'DOUBLES' && receivingTeam.length === 2 && (
             <div className="mb-0.5">
               <DecidingPointBanner

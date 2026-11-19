@@ -120,7 +120,7 @@ describe('LiveCountersBar e TacticalInsightBanner', () => {
       expect(container.firstChild).toBeNull();
     });
 
-    it('renderiza banner de insight tático com ícone e mensagem', () => {
+    it('renderiza banner de insight tático em linha única com ícone, título e mensagem', () => {
       render(<TacticalInsightBanner insights={mockInsights} />);
 
       expect(screen.getByTestId('tactical-insight-banner')).toBeInTheDocument();
@@ -128,23 +128,7 @@ describe('LiveCountersBar e TacticalInsightBanner', () => {
       expect(
         screen.getByText('Alcaraz: 71% dos erros não-forçados no 2º set foram de Backhand.'),
       ).toBeInTheDocument();
-    });
-
-    it('permite ocultar e reabrir o insight ao clicar no botão ocultar/ver', () => {
-      render(<TacticalInsightBanner insights={mockInsights} />);
-
-      const toggleBtn = screen.getByRole('button', { name: /Ocultar insight tático/i });
-      expect(toggleBtn).toBeInTheDocument();
-      expect(screen.getByText('Alcaraz: 71% dos erros não-forçados no 2º set foram de Backhand.')).toBeInTheDocument();
-
-      // Clica em Ocultar
-      fireEvent.click(toggleBtn);
-      expect(screen.queryByText('Alcaraz: 71% dos erros não-forçados no 2º set foram de Backhand.')).toBeNull();
-      expect(screen.getByRole('button', { name: /Expandir insight tático/i })).toBeInTheDocument();
-
-      // Clica em Ver para reabrir
-      fireEvent.click(screen.getByRole('button', { name: /Expandir insight tático/i }));
-      expect(screen.getByText('Alcaraz: 71% dos erros não-forçados no 2º set foram de Backhand.')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Ocultar insight tático/i })).toBeNull();
     });
   });
 });
