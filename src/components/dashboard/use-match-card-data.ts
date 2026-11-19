@@ -24,7 +24,7 @@ export function useMatchCardData(match: DashboardMatchPayload) {
 
   const scoreState = useMemo(
     () => resolveScoreState(match),
-    [match.scoreSummary, match.scoreState, match.matchStateSnapshot, match.format],
+    [match],
   );
 
   const suspendedAnnotationScore = useMemo(
@@ -47,7 +47,7 @@ export function useMatchCardData(match: DashboardMatchPayload) {
   const serverCandidate = scoreState?.server || suspendedAnnotationScore?.server;
   const currentServer = useMemo(
     () => resolveCurrentServer(serverCandidate, match.initialServerId, match),
-    [serverCandidate, match.initialServerId, match],
+    [serverCandidate, match],
   );
 
   const showServer = !isFinished && !isScheduled && Boolean(currentServer);

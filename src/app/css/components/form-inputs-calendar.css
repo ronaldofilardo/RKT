@@ -2,35 +2,33 @@
    FORM INPUTS — Calendar Picker Indicators
    ========================================================================== */
 
-@layer base {
-  input[type="time"]::-webkit-calendar-picker-indicator,
-  input[type="date"]::-webkit-calendar-picker-indicator {
-    opacity: 1 !important;
-    cursor: pointer;
-    border-radius: 4px;
-    padding: 2px;
-  }
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 1 !important;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px;
+}
 
-  /* No dark mode: ícone claro/branco vibrante contrastando com o fundo escuro */
-  .dark input[type="time"]::-webkit-calendar-picker-indicator,
-  .dark input[type="date"]::-webkit-calendar-picker-indicator,
-  [data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator,
-  [data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
-  .bg-telemetry-card input[type="time"]::-webkit-calendar-picker-indicator,
-  .bg-telemetry-card input[type="date"]::-webkit-calendar-picker-indicator,
-  .bg-telemetry-elevated input[type="time"]::-webkit-calendar-picker-indicator,
-  .bg-telemetry-elevated input[type="date"]::-webkit-calendar-picker-indicator,
-  input.bg-telemetry-elevated::-webkit-calendar-picker-indicator {
-    filter: invert(1) brightness(1.2);
-    opacity: 1 !important;
-  }
+/* No dark mode: ícone claro/branco vibrante contrastando com o fundo escuro */
+.dark input[type="time"]::-webkit-calendar-picker-indicator,
+.dark input[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+.bg-telemetry-card input[type="time"]::-webkit-calendar-picker-indicator,
+.bg-telemetry-card input[type="date"]::-webkit-calendar-picker-indicator,
+.bg-telemetry-elevated input[type="time"]::-webkit-calendar-picker-indicator,
+.bg-telemetry-elevated input[type="date"]::-webkit-calendar-picker-indicator,
+input.bg-telemetry-elevated::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.2);
+  opacity: 1 !important;
+}
 
-  /* No light mode: ícone escuro/preto bem visível contrastando com o fundo claro */
-  .light input[type="time"]::-webkit-calendar-picker-indicator,
-  .light input[type="date"]::-webkit-calendar-picker-indicator,
-  [data-theme="light"] input[type="time"]::-webkit-calendar-picker-indicator,
-  [data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(0) brightness(0.2);
-    opacity: 1 !important;
-  }
+/* No light mode: ícone escuro/preto bem visível contrastando com o fundo claro */
+.light input[type="time"]::-webkit-calendar-picker-indicator,
+.light input[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme="light"] input[type="time"]::-webkit-calendar-picker-indicator,
+[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0) brightness(0.2);
+  opacity: 1 !important;
 }

@@ -2,21 +2,19 @@
    FORM INPUTS — Light Mode (.light, [data-theme="light"])
    ========================================================================== */
 
-@layer base {
-  .light select,
-  .light input,
-  [data-theme="light"] select,
-  [data-theme="light"] input {
-    color-scheme: light;
-    background-color: #ffffff;
-    color: #0F172A;
-  }
+.light select,
+.light input,
+[data-theme="light"] select,
+[data-theme="light"] input {
+  color-scheme: light;
+  background-color: #ffffff;
+  color: #0F172A;
+}
 
-  .light select:focus,
-  .light input:focus,
-  [data-theme="light"] select:focus,
-  [data-theme="light"] input:focus {
-    background-color: #ffffff;
-    color: #0F172A;
-  }
+.light select:focus,
+.light input:focus,
+[data-theme="light"] select:focus,
+[data-theme="light"] input:focus {
+  background-color: #ffffff;
+  color: #0F172A;
 }
