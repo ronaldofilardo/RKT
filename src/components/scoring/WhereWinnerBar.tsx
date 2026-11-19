@@ -38,7 +38,9 @@ export function WhereWinnerBar({ onSelect, selected, disabled = false, howEnded 
       <h2 className="text-center text-[clamp(10.5px,1.4dvh,12.5px)] font-medium text-telemetry-text-muted mb-1">
         Onde estava o <strong className="font-semibold text-telemetry-text-primary">VENCEDOR</strong> do ponto?
       </h2>
-      <div className={`grid gap-1 sm:gap-1.5 ${isError ? 'grid-cols-5' : 'grid-cols-4'}`}>
+      {/* Portrait e landscape ≥ 480px: 4 ou 5 colunas conforme o contexto.
+          Landscape < 480px: 2 colunas para os botões não ficarem espremidos/ilegíveis. */}
+      <div className={`grid gap-1 sm:gap-1.5 landscape:max-[479px]:grid-cols-2 ${isError ? 'grid-cols-5' : 'grid-cols-4'}`}>
         {options.map((opt) => {
           const isSelected = selected === opt.value;
           const isBtnDisabled = disabled || Boolean(opt.disabledOption);
@@ -49,7 +51,7 @@ export function WhereWinnerBar({ onSelect, selected, disabled = false, howEnded 
               disabled={isBtnDisabled}
               aria-pressed={isSelected}
               onClick={() => !isBtnDisabled && onSelect(opt.value)}
-              className={`rounded-lg border px-0.5 sm:px-1 py-1 text-[clamp(7.5px,1.1dvh,10.5px)] font-medium leading-tight transition-all flex items-center justify-center text-center min-h-[30px] sm:min-h-[36px] ${isBtnDisabled
+              className={`rounded-lg border px-0.5 sm:px-1 py-1 text-[clamp(7.5px,1.1dvh,10.5px)] font-medium leading-tight transition-all flex items-center justify-center text-center min-h-[30px] sm:min-h-[36px] landscape:max-[479px]:min-h-[28px] ${isBtnDisabled
                 ? 'opacity-35 cursor-not-allowed border-white/5 bg-white/[0.02] text-telemetry-text-muted select-none'
                 : isSelected
                   ? 'border-telemetry-alert bg-telemetry-alert/15 text-white shadow-[0_0_8px_rgba(var(--telemetry-alert)/0.3)]'

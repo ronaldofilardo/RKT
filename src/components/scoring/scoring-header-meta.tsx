@@ -24,7 +24,9 @@ export function ScoringHeaderMeta({ formatLabel, tournamentName, round, rightSlo
         )}
       </div>
       {rightSlot && (
-        <div className="min-w-0 flex-1 flex justify-end">
+        // landscape:hidden: em paisagem o banner migra para o bloco de anotação (ScoringPlayArea).
+        // Evita que a linha de metadados reserve espaço e comprima o formato/torneio.
+        <div className="min-w-0 flex-1 flex justify-end landscape:hidden">
           {rightSlot}
         </div>
       )}

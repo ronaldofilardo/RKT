@@ -58,10 +58,11 @@ export function ScoringHeader({
   return (
     <div className="flex flex-col gap-1 items-stretch flex-shrink-0">
       {showLiveCounters ? (
-        <div className="grid grid-cols-1 min-[420px]:grid-cols-[1fr_auto_1fr] gap-1.5 sm:gap-2.5 items-center justify-center max-w-3xl mx-auto w-full">
+        <div className="grid grid-cols-1 min-[420px]:grid-cols-[1fr_auto_1fr] landscape:grid-cols-[1fr_auto_1fr] gap-1.5 sm:gap-2.5 landscape:gap-1 items-center justify-center max-w-3xl mx-auto w-full">
           <div className="min-w-0">{scoreboard}</div>
-          <div className="hidden min-[420px]:flex items-center justify-center px-1 flex-shrink-0">
-            <BrandLogo size="md" className="h-12 w-auto max-h-[52px]" />
+          {/* Logo: visível a partir de 420px em portrait; em landscape usa tamanho sm para ceder altura. */}
+          <div className="hidden min-[420px]:flex landscape:flex items-center justify-center px-1 flex-shrink-0">
+            <BrandLogo size="md" className="h-12 w-auto max-h-[52px] landscape:h-8 landscape:max-h-[36px]" />
           </div>
           <div className="min-w-0">
             <LiveCountersBar
@@ -77,8 +78,9 @@ export function ScoringHeader({
         </div>
       ) : (
         <div className="flex items-center justify-center gap-2 max-w-md mx-auto w-full">
+          {/* landscape: logo compacta para não desperdiçar altura preciosa na tela pequena. */}
           <div className="hidden landscape:flex items-center justify-center flex-shrink-0">
-            <BrandLogo size="md" className="h-12 w-auto max-h-[52px]" />
+            <BrandLogo size="md" className="h-12 w-auto max-h-[52px] landscape:h-8 landscape:max-h-[36px]" />
           </div>
           <div className="min-w-0 flex-1">{scoreboard}</div>
         </div>

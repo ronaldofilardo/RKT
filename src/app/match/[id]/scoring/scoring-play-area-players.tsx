@@ -34,7 +34,9 @@ interface PlayAreaPlayersProps {
 function PlayerColumn({ controls, children }: { controls?: ReactNode; children: ReactNode }) {
   return (
     <div className="flex-1 min-w-0 min-h-0 flex flex-col gap-0.5 sm:gap-1">
-      <div className="flex-1 min-h-[64px] sm:min-h-[96px] max-h-[180px] flex">{children}</div>
+      {/* landscape: retira o teto rígido (max-h-none) para o card usar todo o espaço disponível;
+          min-h menor para não forçar overflow quando header + actionbar já ocupam muito da altura. */}
+      <div className="flex-1 min-h-[64px] sm:min-h-[96px] landscape:min-h-[48px] max-h-[180px] landscape:max-h-none flex">{children}</div>
       {controls}
     </div>
   );
