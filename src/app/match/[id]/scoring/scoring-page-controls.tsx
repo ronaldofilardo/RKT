@@ -11,9 +11,14 @@ interface ScoringPageControlsProps {
   derived: ScoringPageDerived;
   matchId: string;
   serveOptions: ServeInlineControlsState['options'];
+  onShare?: () => void;
+  onClose?: () => void;
+  canShare?: boolean;
 }
 
-export function ScoringPageControls({ state, handlers, derived, matchId, serveOptions }: ScoringPageControlsProps) {
+export function ScoringPageControls({
+  state, handlers, derived, matchId, serveOptions, onShare, onClose, canShare,
+}: ScoringPageControlsProps) {
   const { fontScale, serveErrorState, sessionIdRef, sessionActive, setFontScale } = state;
   const { returnToPreviousScreen, abandonCurrentSession } = handlers;
   const { canUndo, isFinished, isProcessingPoint } = derived;
@@ -30,6 +35,9 @@ export function ScoringPageControls({ state, handlers, derived, matchId, serveOp
         isProcessing={isProcessingPoint}
         {...serveOptions}
         onVoltar={returnToPreviousScreen}
+        onShare={onShare}
+        onClose={onClose}
+        canShare={canShare}
         onFontSmaller={() => setFontScale((f) => Math.max(0.6, f - 0.1))}
         onFontBigger={() => setFontScale((f) => Math.min(2, f + 0.1))}
         onEditScore={() => state.open('edit-score')}

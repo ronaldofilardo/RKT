@@ -1,4 +1,5 @@
 import { ThemeToggleButton } from '@/components/ThemeToggleButton';
+import { ShareIcon } from './share-spectate.icons';
 
 interface ActionSecondaryControlsProps {
   canEdit: boolean;
@@ -7,6 +8,9 @@ interface ActionSecondaryControlsProps {
   onComment?: () => void;
   onEditScore: () => void;
   onStats?: () => void;
+  onShare?: () => void;
+  onClose?: () => void;
+  canShare?: boolean;
 }
 
 export function ActionSecondaryControls({
@@ -16,6 +20,9 @@ export function ActionSecondaryControls({
   onComment,
   onEditScore,
   onStats,
+  onShare,
+  onClose,
+  canShare,
 }: ActionSecondaryControlsProps) {
   const btnClass = 'min-h-[25px] min-w-[25px] sm:min-h-[27px] sm:min-w-[27px] flex items-center justify-center bg-telemetry-elevated border border-white/10 p-0.5 rounded-md hover:bg-telemetry-active active:scale-[0.97] disabled:opacity-40 transition-all text-[11px] sm:text-xs';
 
@@ -55,6 +62,31 @@ export function ActionSecondaryControls({
           aria-label="Ver estatísticas"
         >
           📊
+        </button>
+      )}
+      {onShare && (
+        <button
+          type="button"
+          onClick={canShare !== false ? onShare : undefined}
+          disabled={canShare === false}
+          className={`${btnClass} ${canShare === false ? '!opacity-30 cursor-not-allowed hover:!bg-telemetry-elevated' : ''}`}
+          aria-label="Compartilhar partida"
+          title={canShare === false ? 'Apenas o criador ou anotador pode compartilhar transmissão' : 'Compartilhar partida'}
+        >
+          <ShareIcon className="w-3.5 h-3.5 text-telemetry-text-muted hover:text-white" />
+        </button>
+      )}
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          className={`${btnClass} text-red-400 hover:text-red-300 hover:bg-red-500/10`}
+          aria-label="Sair da partida"
+          title="Sair da partida"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
         </button>
       )}
     </div>

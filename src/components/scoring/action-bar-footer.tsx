@@ -18,6 +18,9 @@ export function ActionFooter({
   onAceDetailsToggle,
   dfDetailsEnabled,
   onDfDetailsToggle,
+  onShare,
+  onClose,
+  canShare,
 }: {
   canUndo: boolean;
   canEdit: boolean;
@@ -28,6 +31,9 @@ export function ActionFooter({
   onEditScore: () => void;
   onComment?: () => void;
   onStats?: () => void;
+  onShare?: () => void;
+  onClose?: () => void;
+  canShare?: boolean;
   fontScale?: number;
   disabled: boolean;
   processing?: boolean;
@@ -72,6 +78,9 @@ export function ActionFooter({
         onComment={onComment}
         onEditScore={onEditScore}
         onStats={onStats}
+        onShare={onShare}
+        onClose={onClose}
+        canShare={canShare}
       />
     </div>
   );

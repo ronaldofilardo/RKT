@@ -7,9 +7,10 @@ interface MatchActionsProps {
   onFinish?: (match: DashboardMatchPayload) => void;
   onDelete?: (match: DashboardMatchPayload) => void;
   onShare?: (match: DashboardMatchPayload) => void;
+  isCreator?: boolean;
 }
 
-export function MatchActions({ match, onReport, onFinish, onDelete, onShare }: MatchActionsProps) {
+export function MatchActions({ match, onReport, onFinish, onDelete, onShare, isCreator = true }: MatchActionsProps) {
   return (
     <div className="flex items-center gap-1.5 sm:gap-2">
       {onShare && (
@@ -18,10 +19,13 @@ export function MatchActions({ match, onReport, onFinish, onDelete, onShare }: M
           data-testid={`match-card-share-${match.id}`}
           onClick={(e) => {
             e.stopPropagation();
-            onShare(match);
+            if (isCreator) onShare(match);
           }}
-          className="inline-flex items-center justify-center transition-transform hover:scale-105 active:scale-95 focus:outline-none rounded cursor-pointer"
-          title="Compartilhar transmissão"
+          disabled={!isCreator}
+          className={`inline-flex items-center justify-center transition-transform hover:scale-105 active:scale-95 focus:outline-none rounded ${
+            !isCreator ? 'opacity-30 cursor-not-allowed hover:scale-100' : 'cursor-pointer'
+          }`}
+          title={!isCreator ? 'Apenas o criador ou anotador pode compartilhar transmissão' : 'Compartilhar transmissão'}
           aria-label="Compartilhar transmissão"
         >
           <Image

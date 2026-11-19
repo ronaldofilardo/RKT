@@ -1,5 +1,5 @@
 import { ActionFooter } from './ActionBar.sections';
-type Props={aceDetailsEnabled:boolean;onAceDetailsToggle:()=>void;dfDetailsEnabled:boolean;onDfDetailsToggle:()=>void;secondServe:boolean;serveStep:'none'|'second';canUndo:boolean;canEdit:boolean;fontScale:number;isFinished:boolean;isProcessing?:boolean;onVoltar:(serveStep:'none'|'second')=>void;onFontSmaller:()=>void;onFontBigger:()=>void;onEditScore:()=>void;onComment?:()=>void;onStats?:()=>void;};
+type Props={aceDetailsEnabled:boolean;onAceDetailsToggle:()=>void;dfDetailsEnabled:boolean;onDfDetailsToggle:()=>void;secondServe:boolean;serveStep:'none'|'second';canUndo:boolean;canEdit:boolean;fontScale:number;isFinished:boolean;isProcessing?:boolean;onVoltar:(serveStep:'none'|'second')=>void;onFontSmaller:()=>void;onFontBigger:()=>void;onEditScore:()=>void;onComment?:()=>void;onStats?:()=>void;onShare?:()=>void;onClose?:()=>void;canShare?:boolean;};
 export function ActionBarView(p:Props){
   const disabled=Boolean(p.isFinished||p.isProcessing);
   return (
@@ -15,6 +15,9 @@ export function ActionBarView(p:Props){
           onEditScore={p.onEditScore}
           onComment={p.onComment}
           onStats={p.onStats}
+          onShare={p.onShare}
+          onClose={p.onClose}
+          canShare={p.canShare}
           fontScale={p.fontScale}
           disabled={disabled}
           processing={p.isProcessing}

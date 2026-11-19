@@ -20,6 +20,8 @@ export function ShareSpectateCreateSection({
   onLabelChange,
   onSubmit,
 }: Props) {
+  const isForbidden = Boolean(error && error.toLowerCase().includes('apenas o criador'));
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-3">
       {error && (
@@ -44,7 +46,8 @@ export function ShareSpectateCreateSection({
           onChange={(e) => onLabelChange(e.target.value)}
           placeholder="Pai da Ana"
           maxLength={60}
-          className="w-full text-sm bg-telemetry-elevated border border-telemetry-border/15 rounded-lg px-3 py-2 text-telemetry-text-primary focus:outline-none focus:border-telemetry-volt/60"
+          disabled={isForbidden}
+          className="w-full text-sm bg-telemetry-elevated border border-telemetry-border/15 rounded-lg px-3 py-2 text-telemetry-text-primary focus:outline-none focus:border-telemetry-volt/60 disabled:opacity-40 disabled:cursor-not-allowed"
         />
       </div>
 
@@ -65,10 +68,10 @@ export function ShareSpectateCreateSection({
 
       <button
         type="submit"
-        disabled={loading}
-        className="w-full py-2.5 bg-white text-black font-medium text-sm rounded-lg hover:bg-white/90 disabled:opacity-50 transition-colors"
+        disabled={loading || isForbidden}
+        className="w-full py-2.5 bg-white text-black font-medium text-sm rounded-lg hover:bg-white/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
-        {loading ? 'Criando convite...' : error ? 'Tentar de novo' : 'Criar convite'}
+        {loading ? 'Criando convite...' : isForbidden ? 'Sem permissão para compartilhar' : error ? 'Tentar de novo' : 'Criar convite'}
       </button>
     </form>
   );

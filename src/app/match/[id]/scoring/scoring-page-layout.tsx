@@ -43,6 +43,10 @@ export function ScoringPageLayout({
   });
   const navigateReport = () => router.push(`/match/${matchId}/report`);
   const navigateDashboard = () => router.push(homeForProfileString(sessionStorage.getItem('user_role')) as any);
+  const handleClose = async () => { await abandonCurrentSession(); navigateDashboard(); };
+  const handleShare = () => chrome.setIsShareModalOpen(true);
+  const uid = typeof window !== 'undefined' ? sessionStorage.getItem('user_id') : null;
+  const canShare = match.canShare ?? (Boolean(uid && match.createdByUserId === uid) || (typeof window !== 'undefined' && sessionStorage.getItem('user_role') === 'ADMIN'));
 
   return (
     <div
@@ -53,13 +57,8 @@ export function ScoringPageLayout({
         <SyncStatusBanner syncStatus={state.syncStatus} />
 
         <MatchHeader
-          onClose={async () => {
-            await abandonCurrentSession();
-            navigateDashboard();
-          }}
-          onShare={() => chrome.setIsShareModalOpen(true)}
-          onTimeline={chrome.openTimelineView}
-          isFinished={isFinished}
+          onClose={handleClose} onShare={handleShare}
+          onTimeline={chrome.openTimelineView} isFinished={isFinished} canShare={canShare}
         />
 
         {chrome.isTimelineLoading && <TimelineLoadingOverlay />}
@@ -71,7 +70,11 @@ export function ScoringPageLayout({
           onNavigateReport={navigateReport} onNavigateDashboard={navigateDashboard}
         />
 
-        <ScoringPageControls state={state} handlers={handlers} derived={derived} matchId={matchId} serveOptions={serve.options} />
+        <ScoringPageControls
+          state={state} handlers={handlers} derived={derived} matchId={matchId}
+          serveOptions={serve.options} onShare={handleShare} onClose={handleClose}
+          canShare={canShare}
+        />
 
         <ScoringModals
           state={state} handlers={handlers} derived={derived} match={match} matchId={matchId}

@@ -23,4 +23,6 @@ export interface MatchData {
   tournamentName?: string | null;
   category?: string | null;
   round?: number | null;
+  createdByUserId?: string | null;
+  canShare?: boolean;
 }

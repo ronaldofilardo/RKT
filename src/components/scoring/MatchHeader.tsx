@@ -19,6 +19,7 @@ interface MatchHeaderProps {
   onTimeline?: () => void;
   canEdit?: boolean;
   isFinished?: boolean;
+  canShare?: boolean;
 }
 
 const APP_NAME = 'RKT app';
@@ -30,9 +31,10 @@ export function MatchHeader({
   onShare,
   canEdit,
   isFinished,
+  canShare,
 }: MatchHeaderProps) {
   return (
-    <div className="bg-telemetry-card border-b border-white/10 px-2 sm:px-4 py-0.5 flex-shrink-0">
+    <div className="bg-telemetry-card border-b border-white/10 px-2 sm:px-4 py-0.5 flex-shrink-0 landscape:hidden">
       <div className="flex items-center justify-between gap-1 sm:gap-2 min-h-[32px]">
         <div className="w-8 flex-shrink-0">
           {!isFinished && (
@@ -52,10 +54,15 @@ export function MatchHeader({
           {onShare && (
             <button
               type="button"
-              onClick={onShare}
-              className="p-1 text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/10 rounded-lg transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center"
+              onClick={canShare !== false ? onShare : undefined}
+              disabled={canShare === false}
+              className={`p-1 rounded-lg transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center ${
+                canShare === false
+                  ? 'text-telemetry-text-muted/30 cursor-not-allowed'
+                  : 'text-telemetry-text-muted hover:text-telemetry-text-primary hover:bg-white/10'
+              }`}
               aria-label="Compartilhar transmissão"
-              title="Compartilhar transmissão"
+              title={canShare === false ? 'Apenas o criador ou anotador pode compartilhar transmissão' : 'Compartilhar transmissão'}
             >
               <ShareIcon className="w-4 h-4" />
             </button>

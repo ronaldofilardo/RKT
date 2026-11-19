@@ -16,6 +16,11 @@ export function useShareSpectateModal(matchId: string, isOpen: boolean) {
   const loadData = useCallback(async () => {
     try {
       const res = await fetch(`/api/matches/${matchId}/share-links`);
+      if (res.status === 403) {
+        const d = await res.json().catch(() => ({}));
+        setCreateError(d?.message || 'Apenas o criador ou anotador ativo pode gerar convites');
+        return;
+      }
       if (!res.ok) return;
       const data = await res.json();
       if (Array.isArray(data.spectators)) {
@@ -48,7 +53,7 @@ export function useShareSpectateModal(matchId: string, isOpen: boolean) {
         setCreatedUrl(data.url);
         if (data.linkId) setCreatedLinkId(data.linkId);
       } else {
-        setCreateError('Não foi possível criar o convite. Tente de novo.');
+        setCreateError(data?.message || 'Não foi possível criar o convite. Tente de novo.');
       }
     } catch {
       setCreateError('Não foi possível criar o convite. Tente de novo.');

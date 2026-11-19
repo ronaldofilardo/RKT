@@ -6,6 +6,7 @@ import { fetchMatchPointExtras } from './route-get-extras.queries';
 import { handleMatchPut } from './route-put.logic';
 import { handleMatchDelete } from './route-delete.logic';
 import { resolveGetMatchAccess, type LoadedMatchForGet } from './route-get-access.logic';
+import { isCreatorOrActiveAnnotator } from '@/services/spectator-share.service';
 
 export async function GET(
   request: NextRequest,
@@ -34,7 +35,8 @@ export async function GET(
     }
 
     const extras = await fetchMatchPointExtras(id);
-    return NextResponse.json({ ...match, ...extras });
+    const canShare = await isCreatorOrActiveAnnotator(id, actor.userId).catch(() => false);
+    return NextResponse.json({ ...match, ...extras, canShare });
   });
 }
 

@@ -20,6 +20,9 @@ interface ActionBarProps {
   onEditScore: () => void;
   onComment?: () => void;
   onStats?: () => void;
+  onShare?: () => void;
+  onClose?: () => void;
+  canShare?: boolean;
 }
 
 /**
