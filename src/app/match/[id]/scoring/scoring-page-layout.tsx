@@ -46,7 +46,7 @@ export function ScoringPageLayout({
 
   return (
     <div
-      className="fixed inset-0 overflow-hidden bg-telemetry-base flex flex-col"
+      className="fixed inset-0 h-[100dvh] overflow-hidden bg-telemetry-base flex flex-col"
       style={{ fontSize: `${fontScale * 100}%` }}
     >
       <div className="flex-1 flex flex-col min-h-0 select-none touch-manipulation overscroll-none">

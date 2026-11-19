@@ -31,7 +31,7 @@ export function SectionRenderer({ form, vencedor, dispatch, refs, hitterCandidat
   const computed = computeSectionRenderer(form, vencedor);
 
   return (
-    <div ref={refs.containerRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-[18px]" data-testid="modal-content">
+    <div ref={refs.containerRef} className="flex-1 overflow-y-auto px-4 py-3 sm:px-5 sm:py-4 space-y-3 sm:space-y-4" data-testid="modal-content">
       {receiverCandidates && receiverCandidates.length > 0 && (
         <Section num="⚡" label="Lado de Devolução (Ponto Decisivo)">
           <Pills

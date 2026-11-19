@@ -3,7 +3,7 @@ type Props={aceDetailsEnabled:boolean;onAceDetailsToggle:()=>void;dfDetailsEnabl
 export function ActionBarView(p:Props){
   const disabled=Boolean(p.isFinished||p.isProcessing);
   return (
-    <div className="bg-telemetry-card border-t border-white/10 px-2 sm:px-4 py-1 sm:py-1.5 safe-bottom flex-shrink-0">
+    <div className="bg-telemetry-card border-t border-white/10 px-2 sm:px-4 py-0.5 sm:py-1 safe-bottom flex-shrink-0">
       <div className="max-w-xl mx-auto">
         <ActionFooter
           canUndo={p.canUndo}

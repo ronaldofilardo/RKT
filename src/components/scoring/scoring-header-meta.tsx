@@ -6,7 +6,7 @@ interface ScoringHeaderMetaProps {
 
 export function ScoringHeaderMeta({ formatLabel, tournamentName, round }: ScoringHeaderMetaProps) {
   return (
-    <div className="flex items-center justify-center gap-1.5 flex-wrap text-center px-1 text-xs text-white/75 py-0.5 min-h-0">
+    <div className="flex items-center justify-center gap-1.5 flex-wrap text-center px-1 text-xs text-white/75 py-0.5 min-h-0 landscape:hidden sm:landscape:flex">
       <span className="font-medium text-white/90 tracking-normal">{formatLabel}</span>
       {tournamentName && (
         <>

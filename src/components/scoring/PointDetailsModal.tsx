@@ -14,34 +14,20 @@ interface PointDetailsModalProps {
   player1Name: string;
   player2Name: string;
   fontScale: number;
-  onConfirm: (
-    details: RallyDetailsWithAttribution,
-    audio?: { blob: Blob; durationMs: number }
-  ) => void;
+  onConfirm: (details: RallyDetailsWithAttribution, audio?: { blob: Blob; durationMs: number }) => void;
   onCancel: () => void;
   doubles?: PointDetailsDoublesInfo;
   howEnded?: import('@/core/scoring/rally.types').RallyTipo;
   whereWinner?: import('@/core/scoring/rally.types').RallySituacao;
 }
 
-export function PointDetailsModal({
-  winnerPlayerSide,
-  currentServer,
-  player1Name,
-  player2Name,
-  fontScale: _fontScale,
-  onConfirm,
-  onCancel,
-  doubles,
-  howEnded,
-  whereWinner,
-}: PointDetailsModalProps) {
+export function PointDetailsModal(props: PointDetailsModalProps) {
+  const { fontScale: _fontScale, ...modalArgs } = props;
   const {
-    mounted, showNotesModal, setShowNotesModal,
-    noteText, hasNoteAudio, form, dispatch, refs, vencedor, winnerName,
-    hitterCandidates, receiverCandidates,
-    cancelCurrentAction, canConfirm, confirmPointDetails, persistNoteContent,
-  } = usePointDetailsModal({ winnerPlayerSide, currentServer, player1Name, player2Name, onConfirm, onCancel, doubles, howEnded, whereWinner });
+    mounted, showNotesModal, setShowNotesModal, noteText, hasNoteAudio, form, dispatch, refs,
+    vencedor, winnerName, hitterCandidates, receiverCandidates, cancelCurrentAction, canConfirm,
+    confirmPointDetails, persistNoteContent,
+  } = usePointDetailsModal(modalArgs);
 
   if (!mounted) return null;
 
@@ -55,7 +41,7 @@ export function PointDetailsModal({
       onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') cancelCurrentAction(); }}
     >
       <div
-        className="animate-[fadeInSlideUp_0.2s_ease-out] w-[clamp(260px,80vw,480px)] modal-max-w-tablet mx-4 rounded-[20px] shadow-2xl flex flex-col max-h-[90vh]"
+        className="animate-[fadeInSlideUp_0.2s_ease-out] w-[clamp(280px,90vw,560px)] landscape:w-[clamp(320px,85vw,580px)] modal-max-w-tablet mx-4 rounded-[20px] shadow-2xl flex flex-col max-h-[90vh] landscape:max-h-[96vh]"
         style={{
           backgroundColor: 'var(--court-surface)',
           border: '1px solid rgb(var(--telemetry-border) / 0.1)',
@@ -70,26 +56,18 @@ export function PointDetailsModal({
       >
         <WinnerInfo vencedor={vencedor} winnerName={winnerName} />
         <SectionRenderer
-          form={form}
-          vencedor={vencedor}
-          dispatch={dispatch}
-          refs={refs}
-          hitterCandidates={hitterCandidates}
-          receiverCandidates={receiverCandidates}
-          startSection={howEnded && whereWinner ? 3 : 1}
+          form={form} vencedor={vencedor} dispatch={dispatch} refs={refs}
+          hitterCandidates={hitterCandidates} receiverCandidates={receiverCandidates}
+          startSection={props.howEnded && props.whereWinner ? 3 : 1}
         />
         <ModalActions
-          canConfirm={canConfirm}
-          noteText={noteText}
-          hasNoteAudio={hasNoteAudio}
-          onConfirm={confirmPointDetails}
-          onCancel={cancelCurrentAction}
+          canConfirm={canConfirm} noteText={noteText} hasNoteAudio={hasNoteAudio}
+          onConfirm={confirmPointDetails} onCancel={cancelCurrentAction}
           onOpenNotes={() => setShowNotesModal(true)}
         />
       </div>
       <PointDetailsNotesModal
-        isOpen={showNotesModal}
-        onClose={() => setShowNotesModal(false)}
+        isOpen={showNotesModal} onClose={() => setShowNotesModal(false)}
         onSave={persistNoteContent}
       />
     </div>,

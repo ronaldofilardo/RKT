@@ -17,14 +17,16 @@ export function ActionSecondaryControls({
   onEditScore,
   onStats,
 }: ActionSecondaryControlsProps) {
+  const btnClass = 'min-h-[25px] min-w-[25px] sm:min-h-[27px] sm:min-w-[27px] flex items-center justify-center bg-telemetry-elevated border border-white/10 p-0.5 rounded-md hover:bg-telemetry-active active:scale-[0.97] disabled:opacity-40 transition-all text-[11px] sm:text-xs';
+
   return (
-    <div className="flex items-center gap-1 sm:gap-1.5 p-0.5 sm:p-1 rounded-lg bg-white/[0.03] border border-white/10 flex-shrink-0">
-      <ThemeToggleButton />
+    <div className="flex items-center gap-1 sm:gap-1.5 p-0.5 rounded-md bg-white/[0.03] border border-white/10 flex-shrink-0">
+      <ThemeToggleButton className="!min-h-[25px] !min-w-[25px] sm:!min-h-[27px] sm:!min-w-[27px] !p-0.5 !text-[11px] sm:!text-xs" />
       {onComment && (
         <button
           onClick={onComment}
           disabled={commentDisabled}
-          className="min-h-[32px] min-w-[32px] sm:min-h-[34px] sm:min-w-[34px] flex items-center justify-center bg-telemetry-elevated border border-white/10 p-1 sm:p-1.5 rounded-md hover:bg-telemetry-active active:scale-[0.97] disabled:opacity-40 transition-all text-xs sm:text-sm"
+          className={btnClass}
           aria-label="Adicionar comentário"
         >
           💬
@@ -41,7 +43,7 @@ export function ActionSecondaryControls({
               ? 'Finalize a anotação do 2º saque antes de editar o placar'
               : 'Corrigir placar'
           }
-          className="min-h-[32px] min-w-[32px] sm:min-h-[34px] sm:min-w-[34px] flex items-center justify-center bg-telemetry-elevated border border-white/10 p-1 sm:p-1.5 rounded-md hover:bg-telemetry-active active:scale-[0.97] disabled:opacity-40 transition-all text-xs sm:text-sm"
+          className={btnClass}
         >
           ✏️<span className="sr-only">Corrigir</span>
         </button>
@@ -49,7 +51,7 @@ export function ActionSecondaryControls({
       {onStats && (
         <button
           onClick={onStats}
-          className="min-h-[32px] min-w-[32px] sm:min-h-[34px] sm:min-w-[34px] flex items-center justify-center bg-telemetry-elevated border border-white/10 p-1 sm:p-1.5 rounded-md hover:bg-telemetry-active active:scale-[0.97] transition-all text-xs sm:text-sm"
+          className={btnClass}
           aria-label="Ver estatísticas"
         >
           📊

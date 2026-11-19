@@ -10,30 +10,22 @@ import { PlayAreaPlayers } from "./scoring-play-area-players";
 import { ScoringFinishedBanner } from "./scoring-finished-banner";
 import { DecidingPointBanner } from "./scoring-deciding-point-banner";
 
-export function ScoringPlayArea({
-  match,
-  effectiveScoreState,
-  suspendedSession,
-  liveCounters,
-  tacticalInsights,
-  completedSetsCount,
-  p1IsServing, p2IsServing, activeServerId, activeReceiverId, isSetPoint, isBreakPoint, isMatchPoint,
-  isTiebreak, isSuperTiebreak, winner, pointsHistory, scoreState, isFinished,
-  serverControls, isServePanelOpen = false,
-  annotationBars, awaitingWinnerSelection = false,
-  onOpenSetSummary, onPoint, onSwipeUndo, onNavigateReport, onRegisterAndExit,
-  onChangeServer,
-  onSelectReceiverOverride,
-  isDecidingPoint = false,
-  canChangeServer = true,
-}: ScoringPlayAreaProps) {
+export function ScoringPlayArea(props: ScoringPlayAreaProps) {
+  const {
+    match, effectiveScoreState, suspendedSession, liveCounters,
+    tacticalInsights, completedSetsCount, p1IsServing, p2IsServing,
+    activeServerId, activeReceiverId, isSetPoint, isBreakPoint, isMatchPoint,
+    isTiebreak, isSuperTiebreak, winner, pointsHistory, scoreState, isFinished,
+    serverControls, isServePanelOpen = false, annotationBars,
+    awaitingWinnerSelection = false, onOpenSetSummary, onPoint, onSwipeUndo,
+    onNavigateReport, onRegisterAndExit, onChangeServer, onSelectReceiverOverride,
+    isDecidingPoint = false, canChangeServer = true,
+  } = props;
+
   const receivingTeam = p1IsServing
     ? [match.player2, match.player2Partner].filter(Boolean)
     : [match.player1, match.player1Partner].filter(Boolean);
 
-  // flex-1 min-h-0: ocupa o espaço entre header e ActionBar; os cards dos jogadores
-  // absorvem a sobra/falta de altura. SEM scroll interno: com o painel de detalhes
-  // aberto, blocos secundários recolhem via [data-serve-collapse] (globals.css).
   return (
     <div
       data-serve-panel={isServePanelOpen ? 'open' : 'closed'}
@@ -44,7 +36,7 @@ export function ScoringPlayArea({
       </div>
 
       {/* Header de 3 colunas: Placar (esq), Formato/Torneio/Fase (centro), Stats (dir) */}
-      <div className="my-0.5 sm:my-2 flex-shrink-0">
+      <div className="my-0.5 sm:my-1 flex-shrink-0">
         <ScoringHeader
           match={match}
           effectiveScoreState={effectiveScoreState}
@@ -57,35 +49,43 @@ export function ScoringPlayArea({
         />
       </div>
 
-      {/* Insight Tático */}
-      {!isServePanelOpen && (
-        <div className="flex-shrink-0" data-serve-collapse="stats">
-          <TacticalInsightBanner insights={tacticalInsights} />
+      {/* Grid adaptativo: em paisagem móvel divide ações na direita e jogadores na esquerda */}
+      <div className="flex-1 min-h-0 flex flex-col landscape:flex-row-reverse landscape:items-stretch gap-1 sm:gap-2">
+        <div className="landscape:w-1/2 landscape:flex landscape:flex-col landscape:justify-center flex-shrink-0">
+          {!isServePanelOpen && (
+            <div className="flex-shrink-0 mb-0.5" data-serve-collapse="stats">
+              <TacticalInsightBanner insights={tacticalInsights} />
+            </div>
+          )}
+
+          {isDecidingPoint && match.matchType === 'DOUBLES' && receivingTeam.length === 2 && (
+            <div className="mb-0.5">
+              <DecidingPointBanner
+                receivingTeam={receivingTeam}
+                activeReceiverId={activeReceiverId}
+                onSelectReceiverOverride={onSelectReceiverOverride}
+              />
+            </div>
+          )}
+
+          {annotationBars}
         </div>
-      )}
 
-      {isDecidingPoint && match.matchType === 'DOUBLES' && receivingTeam.length === 2 && (
-        <DecidingPointBanner
-          receivingTeam={receivingTeam}
-          activeReceiverId={activeReceiverId}
-          onSelectReceiverOverride={onSelectReceiverOverride}
-        />
-      )}
+        <div className="flex-1 min-h-0 flex flex-col">
+          <PlayAreaPlayers
+            player1={match.player1} player2={match.player2}
+            player1Partner={match.player1Partner ?? undefined} player2Partner={match.player2Partner ?? undefined}
+            activeServerId={activeServerId} activeReceiverId={activeReceiverId}
+            scoreState={effectiveScoreState} p1IsServing={p1IsServing} p2IsServing={p2IsServing}
+            isSetPoint={isSetPoint} isBreakPoint={isBreakPoint} winner={winner} isFinished={isFinished}
+            serverControls={serverControls} onPoint={onPoint} onSwipeUndo={onSwipeUndo}
+            onChangeServer={onChangeServer} canChangeServer={canChangeServer}
+            awaitingWinnerSelection={awaitingWinnerSelection}
+          />
+        </div>
+      </div>
 
-      {annotationBars}
-
-      <PlayAreaPlayers
-        player1={match.player1} player2={match.player2}
-        player1Partner={match.player1Partner ?? undefined} player2Partner={match.player2Partner ?? undefined}
-        activeServerId={activeServerId} activeReceiverId={activeReceiverId}
-        scoreState={effectiveScoreState} p1IsServing={p1IsServing} p2IsServing={p2IsServing}
-        isSetPoint={isSetPoint} isBreakPoint={isBreakPoint} winner={winner} isFinished={isFinished}
-        serverControls={serverControls} onPoint={onPoint} onSwipeUndo={onSwipeUndo}
-        onChangeServer={onChangeServer} canChangeServer={canChangeServer}
-        awaitingWinnerSelection={awaitingWinnerSelection}
-      />
-
-      <div data-serve-collapse="extras" className="contents">
+      <div data-serve-collapse="extras" className="hidden" aria-hidden="true">
         <ContextBadges isMatchPoint={isMatchPoint} isSetPoint={isSetPoint} isBreakPoint={isBreakPoint}
           isTiebreak={isTiebreak} isSuperTiebreak={isSuperTiebreak} pointsHistory={pointsHistory} />
       </div>

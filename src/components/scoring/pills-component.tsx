@@ -18,7 +18,7 @@ export function toLabelMap<T extends string>(
   return Object.fromEntries(options.map((o) => [o.value, o.label])) as Record<T, string>;
 }
 
-const defaultBtnBase = 'px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border transition-all select-none min-h-[44px] active:scale-[0.97]';
+const defaultBtnBase = 'px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-xl border transition-all select-none min-h-[40px] sm:min-h-[44px] active:scale-[0.97] whitespace-nowrap flex-shrink-0';
 const defaultBtnNormal = 'bg-telemetry-elevated border-white/10 text-telemetry-text-muted hover:border-white/20 hover:text-telemetry-text-primary shadow-sm';
 const defaultBtnActive = 'bg-telemetry-blue/20 border-telemetry-blue text-telemetry-blue-light shadow-telemetry-blue ring-1 ring-telemetry-blue/50 font-bold';
 
@@ -32,7 +32,7 @@ export function Pills<T extends string>({
   btnActive = defaultBtnActive,
 }: PillsProps<T>) {
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-nowrap overflow-x-auto scrollbar-hide gap-1.5 pb-0.5 max-w-full">
       {options.map(opt => (
         <button
           key={opt}

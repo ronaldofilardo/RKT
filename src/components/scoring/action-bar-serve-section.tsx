@@ -8,8 +8,8 @@ interface ServeSectionProps {
 }
 
 const checkboxLabel =
-  'flex items-center gap-1 sm:gap-1.5 whitespace-nowrap text-[11px] sm:text-xs font-semibold text-telemetry-text-primary cursor-pointer select-none py-0.5';
-const checkboxInput = 'h-3.5 w-3.5 sm:h-4 sm:w-4 accent-telemetry-volt bg-telemetry-card cursor-pointer rounded';
+  'flex items-center gap-1 whitespace-nowrap text-[10px] sm:text-[11px] font-semibold text-telemetry-text-primary cursor-pointer select-none py-0';
+const checkboxInput = 'h-3 w-3 sm:h-3.5 sm:w-3.5 accent-telemetry-volt bg-telemetry-card cursor-pointer rounded';
 
 /**
  * Rodapé: opções de detalhe inline entre Voltar e ações secundárias.
@@ -19,7 +19,7 @@ export function ServeSection({
 }: ServeSectionProps) {
   return (
     <div className="flex items-center justify-center gap-x-2 sm:gap-x-3 flex-wrap">
-      <span className="text-[11px] sm:text-xs font-medium text-telemetry-text-muted select-none">
+      <span className="text-[10px] sm:text-[11px] font-medium text-telemetry-text-muted select-none">
         Detalhes
       </span>
       <label className={checkboxLabel}>
