@@ -38,7 +38,6 @@ export function PlayerCard({
       data-testid="player-card"
       className={`relative flex flex-col items-center justify-center p-2 sm:p-4 rounded-2xl border transition-all select-none touch-manipulation h-full w-full
         bg-telemetry-card border-telemetry-border/30 dark:border-white/10 shadow-sm
-        ${isServing ? 'ring-[3px] ring-telemetry-volt ring-offset-2 ring-offset-telemetry-base shadow-[0_0_12px_rgba(var(--telemetry-volt)/0.35)]' : ''}
         ${isWinner ? 'bg-telemetry-blue/20 border-telemetry-blue ring-2 ring-telemetry-blue' : ''}
         ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer active:scale-[0.98] hover:shadow-md hover:bg-telemetry-elevated hover:border-white/20'}`}
       onTouchStart={disabled ? undefined : onTouchStartGesture}
