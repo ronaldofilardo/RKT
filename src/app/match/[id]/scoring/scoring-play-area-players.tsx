@@ -56,7 +56,7 @@ export function PlayAreaPlayers({
     activeReceiverId,
     isSetPoint,
     isBreakPoint,
-    onSwipeDown: onSwipeUndo,
+    onSwipeDown: awaitingWinnerSelection ? undefined : onSwipeUndo,
     disabled: isFinished || !awaitingWinnerSelection,
     onChangeServer,
     canChangeServer,

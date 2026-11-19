@@ -1,5 +1,7 @@
 'use client';
 
+import { useRef } from 'react';
+
 function triggerHaptic(duration = 20) {
   if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
     try {
@@ -10,9 +12,9 @@ function triggerHaptic(duration = 20) {
   }
 }
 
-export function usePlayerCardTouch(onPoint: () => void, onSwipeDown: () => void) {
-  const touchStartY = { current: 0 };
-  const touchHandledRef = { current: false };
+export function usePlayerCardTouch(onPoint: () => void, onSwipeDown?: () => void) {
+  const touchStartY = useRef(0);
+  const touchHandledRef = useRef(false);
 
   const onTouchStartGesture = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
@@ -21,7 +23,7 @@ export function usePlayerCardTouch(onPoint: () => void, onSwipeDown: () => void)
 
   const onTouchEndGesture = (e: React.TouchEvent) => {
     const dy = e.changedTouches[0].clientY - touchStartY.current;
-    if (dy > 80) {
+    if (dy > 80 && onSwipeDown) {
       triggerHaptic(40);
       onSwipeDown();
       touchHandledRef.current = true;

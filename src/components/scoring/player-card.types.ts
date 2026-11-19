@@ -38,7 +38,7 @@ export interface PlayerCardProps {
   isBreakPoint: boolean;
   isWinner: boolean;
   onPoint: () => void;
-  onSwipeDown: () => void;
+  onSwipeDown?: () => void;
   disabled?: boolean;
   onChangeServer?: () => void;
   canChangeServer?: boolean;
