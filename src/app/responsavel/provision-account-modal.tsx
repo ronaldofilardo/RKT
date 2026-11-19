@@ -57,8 +57,9 @@ export function ProvisionAccountModal({ open, playerId, onClose, onSuccess }: Pr
               Você está gerando uma credencial individual para o menor utilizar o app RKT sob sua supervisão (ECA Digital).
             </p>
             <div>
-              <label className="block text-xs font-medium text-telemetry-text-muted mb-1">E-mail do menor (opcional)</label>
+              <label htmlFor="provision-minor-email" className="block text-xs font-medium text-telemetry-text-muted mb-1">E-mail do menor (opcional)</label>
               <input
+                id="provision-minor-email"
                 type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                 placeholder="deixe em branco para gerar login automático"
                 className="w-full border border-telemetry-border/30 rounded-lg p-2.5 text-xs bg-telemetry-base text-telemetry-text-primary"

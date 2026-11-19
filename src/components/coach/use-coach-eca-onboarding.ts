@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { logger } from '@/lib/logger';
 
 export function useCoachEcaOnboarding(isParticular: boolean) {
@@ -8,7 +8,7 @@ export function useCoachEcaOnboarding(isParticular: boolean) {
   const [submitting, setSubmitting] = useState(false);
 
   // Consulta status de aceite
-  const checkStatus = async () => {
+  const checkStatus = useCallback(async () => {
     if (!isParticular) return;
     try {
       const res = await fetch('/api/coach/particular/onboarding-status');
@@ -19,9 +19,9 @@ export function useCoachEcaOnboarding(isParticular: boolean) {
     } catch (err) {
       logger.warn('[COACH ECA] Falha ao verificar status:', err);
     }
-  };
+  }, [isParticular]);
 
-  const acceptTerms = async () => {
+  const acceptTerms = useCallback(async () => {
     setSubmitting(true);
     try {
       const res = await fetch('/api/coach/particular/accept-terms', { method: 'POST' });
@@ -35,7 +35,7 @@ export function useCoachEcaOnboarding(isParticular: boolean) {
       setSubmitting(false);
     }
     return false;
-  };
+  }, []);
 
   return {
     isOpen: Boolean(needsAcceptance),

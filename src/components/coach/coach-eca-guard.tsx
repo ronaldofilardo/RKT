@@ -15,7 +15,7 @@ export function CoachEcaGuard({ isParticular = false }: CoachEcaGuardProps) {
     if (isParticular) {
       checkStatus();
     }
-  }, [isParticular]);
+  }, [isParticular, checkStatus]);
 
   if (!isOpen) return null;
 

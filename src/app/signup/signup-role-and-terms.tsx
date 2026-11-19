@@ -16,14 +16,15 @@ export function SignupRoleAndTerms({
   onOpenTermsModal,
 }: SignupRoleAndTermsProps) {
   const handleOpen = (tab: 'TERMOS' | 'PRIVACIDADE') => (e: React.MouseEvent) => {
-    if (onOpenTermsModal) {
-      e.preventDefault();
-      onOpenTermsModal(tab);
-    }
+    if (onOpenTermsModal) { e.preventDefault(); onOpenTermsModal(tab); }
   };
 
   const handleContainerClick = (e: React.MouseEvent) => {
-    if (!termsAccepted && onOpenTermsModal) {
+    if (!termsAccepted && onOpenTermsModal) { e.preventDefault(); onOpenTermsModal('TERMOS'); }
+  };
+
+  const handleContainerKeyDown = (e: React.KeyboardEvent) => {
+    if (!termsAccepted && onOpenTermsModal && (e.key === 'Enter' || e.key === ' ')) {
       e.preventDefault();
       onOpenTermsModal('TERMOS');
     }
@@ -48,7 +49,11 @@ export function SignupRoleAndTerms({
           <option value="GESTOR">Gestor de Clube / CT</option>
         </select>
       </div>
-      <div className="flex items-start gap-2 pt-1" onClick={!termsAccepted ? handleContainerClick : undefined}>
+      <div
+        className="flex items-start gap-2 pt-1"
+        onClick={!termsAccepted ? handleContainerClick : undefined}
+        onKeyDown={!termsAccepted ? handleContainerKeyDown : undefined}
+      >
         <input
           id="signup-terms-checkbox"
           type="checkbox"

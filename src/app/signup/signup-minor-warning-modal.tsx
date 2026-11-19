@@ -15,7 +15,12 @@ export function SignupMinorWarningModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+      <button
+        type="button"
+        aria-label="Fechar aviso"
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm w-full h-full border-0 p-0 cursor-default"
+        onClick={onClose}
+      />
       <div className="relative bg-telemetry-card border border-white/10 rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-xl font-bold flex-shrink-0">
