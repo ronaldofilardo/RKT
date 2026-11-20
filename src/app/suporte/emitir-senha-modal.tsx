@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { UserSearchResult } from './types';
 import { searchUserByCpfOrEmail, issuePasswordReset } from './suporte-mutations';
 import { useToast } from '@/components/Toast';
@@ -31,7 +31,14 @@ export function EmitirSenhaModal({ open, onOpenChange }: EmitirSenhaModalProps) 
   const [token, setToken] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
   const [loading, setLoading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (open && step === 'search') {
+      inputRef.current?.focus();
+    }
+  }, [open, step]);
 
   const resetState = () => {
     setStep('search');
@@ -111,13 +118,13 @@ export function EmitirSenhaModal({ open, onOpenChange }: EmitirSenhaModalProps) 
             </p>
             <div className="flex gap-2">
               <input
+                ref={inputRef}
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 placeholder="CPF ou e-mail"
                 className="flex-1 bg-telemetry-base border border-telemetry-border/30 rounded-lg px-3 py-2 text-sm text-telemetry-text-primary placeholder:text-telemetry-text-muted focus:outline-none focus:border-telemetry-blue"
-                autoFocus
               />
               <button
                 onClick={handleSearch}
