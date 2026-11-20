@@ -1,11 +1,15 @@
 'use client';
 
+import type { TennisFormat } from '@/core/scoring/types';
+import { formatSetTabLabel, formatSetHeaderTitle } from './set-summary-mtb.logic';
+
 interface SetSummaryHeaderProps {
   selectedSet: number;
   durationMinutes?: number;
   availableSets: number[];
   onSelectSet: (setNumber: number) => void;
   onClose: () => void;
+  format?: TennisFormat;
 }
 
 /** Cabeçalho do modal (badge, duração, título) e abas de seleção de set. */
@@ -15,14 +19,19 @@ export function SetSummaryHeader({
   availableSets,
   onSelectSet,
   onClose,
+  format,
 }: SetSummaryHeaderProps) {
+  const isMTBFormat = format === 'MATCH_TB_10';
+  const badgeText = isMTBFormat ? 'Match Tie-Break' : 'Análise do Set';
+  const titleText = formatSetHeaderTitle(selectedSet, format);
+
   return (
     <>
       <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between bg-telemetry-elevated/70">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-telemetry-volt px-2 py-0.5 rounded bg-telemetry-volt/10 border border-telemetry-volt/20">
-              Análise do Set
+              {badgeText}
             </span>
             {durationMinutes && (
               <span className="text-xs text-telemetry-text-muted">
@@ -31,7 +40,7 @@ export function SetSummaryHeader({
             )}
           </div>
           <h2 id="set-summary-title" className="text-lg font-bold text-telemetry-text-primary mt-1">
-            Resumo do {selectedSet}º Set
+            {titleText}
           </h2>
         </div>
         <button
@@ -44,7 +53,7 @@ export function SetSummaryHeader({
         </button>
       </div>
 
-      {availableSets.length > 1 && (
+      {availableSets.length > 1 && !isMTBFormat && (
         <div className="flex border-b border-white/10 bg-telemetry-elevated/40 px-3 pt-2 gap-1">
           {availableSets.map((s) => (
             <button
@@ -57,7 +66,7 @@ export function SetSummaryHeader({
                   : 'text-telemetry-text-muted hover:text-telemetry-text-primary'
               }`}
             >
-              Set {s}
+              {formatSetTabLabel(s, format)}
             </button>
           ))}
         </div>

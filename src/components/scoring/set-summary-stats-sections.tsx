@@ -8,10 +8,11 @@ type PlayerSetStats = SetSummaryReport['player1'];
 interface SetSummaryStatsSectionsProps {
   p1: PlayerSetStats;
   p2: PlayerSetStats;
+  isMatchTiebreak?: boolean;
 }
 
 /** Seções de saque/eficiência (barras, aces, duplas faltas) e break points. */
-export function SetSummaryStatsSections({ p1, p2 }: SetSummaryStatsSectionsProps) {
+export function SetSummaryStatsSections({ p1, p2, isMatchTiebreak = false }: SetSummaryStatsSectionsProps) {
   const formatPct = (val: number) => `${Math.round(val || 0)}%`;
 
   return (
@@ -55,35 +56,37 @@ export function SetSummaryStatsSections({ p1, p2 }: SetSummaryStatsSectionsProps
         </div>
       </div>
 
-      <div className="bg-telemetry-elevated/40 border border-white/10 rounded-xl p-3.5 space-y-2">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-telemetry-text-muted">
-          Break Points
-        </h3>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="bg-telemetry-elevated/70 rounded-lg p-2 text-center">
-            <div className="text-[11px] text-telemetry-text-muted font-medium mb-1">Convertidos (Devolução)</div>
-            <div className="flex justify-around items-center font-mono text-xs">
-              <span className="font-bold text-telemetry-blue">
-                {p1.breakPointsConverted}/{p1.breakPointsOpportunities} ({formatPct(p1.breakPointsConvertedPct)})
-              </span>
-              <span className="font-bold text-telemetry-error">
-                {p2.breakPointsConverted}/{p2.breakPointsOpportunities} ({formatPct(p2.breakPointsConvertedPct)})
-              </span>
+      {!isMatchTiebreak && (
+        <div className="bg-telemetry-elevated/40 border border-white/10 rounded-xl p-3.5 space-y-2">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-telemetry-text-muted">
+            Break Points
+          </h3>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-telemetry-elevated/70 rounded-lg p-2 text-center">
+              <div className="text-[11px] text-telemetry-text-muted font-medium mb-1">Convertidos (Devolução)</div>
+              <div className="flex justify-around items-center font-mono text-xs">
+                <span className="font-bold text-telemetry-blue">
+                  {p1.breakPointsConverted}/{p1.breakPointsOpportunities} ({formatPct(p1.breakPointsConvertedPct)})
+                </span>
+                <span className="font-bold text-telemetry-error">
+                  {p2.breakPointsConverted}/{p2.breakPointsOpportunities} ({formatPct(p2.breakPointsConvertedPct)})
+                </span>
+              </div>
             </div>
-          </div>
-          <div className="bg-telemetry-elevated/70 rounded-lg p-2 text-center">
-            <div className="text-[11px] text-telemetry-text-muted font-medium mb-1">Salvos (Saque)</div>
-            <div className="flex justify-around items-center font-mono text-xs">
-              <span className="font-bold text-telemetry-blue">
-                {p1.breakPointsSaved}/{p1.breakPointsFaced} ({formatPct(p1.breakPointsSavedPct)})
-              </span>
-              <span className="font-bold text-telemetry-error">
-                {p2.breakPointsSaved}/{p2.breakPointsFaced} ({formatPct(p2.breakPointsSavedPct)})
-              </span>
+            <div className="bg-telemetry-elevated/70 rounded-lg p-2 text-center">
+              <div className="text-[11px] text-telemetry-text-muted font-medium mb-1">Salvos (Saque)</div>
+              <div className="flex justify-around items-center font-mono text-xs">
+                <span className="font-bold text-telemetry-blue">
+                  {p1.breakPointsSaved}/{p1.breakPointsFaced} ({formatPct(p1.breakPointsSavedPct)})
+                </span>
+                <span className="font-bold text-telemetry-error">
+                  {p2.breakPointsSaved}/{p2.breakPointsFaced} ({formatPct(p2.breakPointsSavedPct)})
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

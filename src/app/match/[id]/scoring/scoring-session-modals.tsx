@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { SetSummaryModal } from '@/components/scoring/SetSummaryModal';
 import { DoublesArrangementModal } from '@/components/scoring/DoublesArrangementModal';
 import { Game2ServerSelectionModal } from '@/components/scoring/Game2ServerSelectionModal';
+import { abbreviateDoublesName } from '@/components/scoring/doubles-name-abbreviation.logic';
 import type { ScoringPageState } from './useScoringPageState';
 import type { ScoringPageHandlers } from './useScoringPageEffects';
 import type { ScoringPageDerived } from './useScoringPageDerived';
@@ -30,9 +31,15 @@ export function ScoringSessionModals({ state, handlers, derived, match, setSumma
       <SessionActiveModals state={state} handlers={handlers} match={match} />
 
       <SetSummaryModal
-        isOpen={setSummaryModalState.isOpen} onClose={onCloseSetSummary}
+        isOpen={setSummaryModalState.isOpen}
+        onClose={onCloseSetSummary}
         timelinePoints={derived.timelinePoints}
-        player1Name={match.player1.name} player2Name={match.player2.name}
+        player1Name={match.matchType === 'DOUBLES'
+          ? abbreviateDoublesName(match.player1.name, match.player1Partner?.name)
+          : match.player1.name}
+        player2Name={match.matchType === 'DOUBLES'
+          ? abbreviateDoublesName(match.player2.name, match.player2Partner?.name)
+          : match.player2.name}
         initialSetNumber={setSummaryModalState.setNumber}
         completedSetsCount={derived.editScoreCompletedSets?.length ?? 0}
         completedSetsData={derived.editScoreCompletedSets}

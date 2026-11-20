@@ -8,6 +8,7 @@ interface SetSummaryFooterProps {
   nextSetNumber: number;
   onClose: () => void;
   onOpenDoublesArrangement?: () => void;
+  isMatchTiebreakFormat?: boolean;
 }
 
 /** Rodapé do modal: concluir/ver relatório quando finalizado, ou fechar/retomar. */
@@ -19,7 +20,16 @@ export function SetSummaryFooter({
   nextSetNumber,
   onClose,
   onOpenDoublesArrangement,
+  isMatchTiebreakFormat = false,
 }: SetSummaryFooterProps) {
+  const nextButtonText = onResumeMatch
+    ? 'Partida →'
+    : isMatchTiebreakFormat
+      ? 'Continuar Anotação'
+      : isLastCompletedSet
+        ? `Prosseguir para o Set ${nextSetNumber} →`
+        : 'Continuar Anotação';
+
   return (
     <div className="px-5 py-3.5 border-t border-white/10 bg-telemetry-elevated flex flex-col sm:flex-row items-center justify-between gap-2">
       {isMatchFinished ? (
@@ -65,7 +75,7 @@ export function SetSummaryFooter({
               onClick={onResumeMatch ?? onClose}
               className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-telemetry-volt text-black font-bold text-xs uppercase tracking-wide hover:opacity-90 shadow-lg shadow-telemetry-volt/20 transition-all flex items-center justify-center gap-1.5"
             >
-              {onResumeMatch ? 'Partida →' : (isLastCompletedSet ? `Prosseguir para o Set ${nextSetNumber} →` : 'Continuar Anotação')}
+              {nextButtonText}
             </button>
           </div>
         </>

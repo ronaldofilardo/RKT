@@ -7,6 +7,7 @@ import { SetSummaryHeader } from './set-summary-header';
 import { SetSummaryScoreCard } from './set-summary-score-card';
 import { SetSummaryFooter } from './set-summary-footer';
 import { useSetSummaryReport, type CompletedSetData } from './use-set-summary-report';
+import { isSetMatchTiebreak } from './set-summary-mtb.logic';
 
 interface Props {
   isOpen: boolean;
@@ -49,6 +50,9 @@ export function SetSummaryModal({
 
   if (!isOpen) return null;
 
+  const isMatchTiebreak = isSetMatchTiebreak(selectedSet, format);
+  const isMTBFormat = format === 'MATCH_TB_10';
+
   return (
     <div
       role="dialog"
@@ -63,13 +67,23 @@ export function SetSummaryModal({
           availableSets={availableSets}
           onSelectSet={setSelectedSet}
           onClose={onClose}
+          format={format}
         />
 
         {/* Conteúdo rolável */}
         <div className="p-4 sm:p-5 overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-white/10">
-          <SetSummaryScoreCard summary={summary} player1Name={player1Name} player2Name={player2Name} />
+          <SetSummaryScoreCard
+            summary={summary}
+            player1Name={player1Name}
+            player2Name={player2Name}
+            isMatchTiebreak={isMatchTiebreak}
+          />
 
-          <SetSummaryStatsSections p1={summary.player1} p2={summary.player2} />
+          <SetSummaryStatsSections
+            p1={summary.player1}
+            p2={summary.player2}
+            isMatchTiebreak={isMatchTiebreak}
+          />
 
           {/* Seção 3: Histograma de Erros por Game */}
           <div className="bg-telemetry-elevated/40 border border-white/10 rounded-xl p-3.5">
@@ -89,6 +103,7 @@ export function SetSummaryModal({
           nextSetNumber={selectedSet + 1}
           onClose={onClose}
           onOpenDoublesArrangement={onOpenDoublesArrangement}
+          isMatchTiebreakFormat={isMTBFormat}
         />
       </div>
     </div>
