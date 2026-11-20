@@ -6,6 +6,7 @@ import { SetSummaryModal } from '@/components/scoring/SetSummaryModal';
 import { EditMatchInfoModal } from '@/components/dashboard/EditMatchInfoModal';
 import { CommentModal } from '@/components/scoring/CommentModal';
 import { ConfirmDeleteMatchDialog } from './ConfirmDeleteMatchDialog';
+import { abbreviateDoublesName } from '@/components/scoring/doubles-name-abbreviation.logic';
 
 import type { DashboardMatchModalsProps } from './dashboard-match-modals.types';
 
@@ -76,7 +77,12 @@ export function DashboardMatchModals({
           onClose={onCloseSetSummary}
           onResumeMatch={onResumeSetSummary}
           timelinePoints={setSummaryTimelinePoints}
-          player1Name={setSummaryMatch.player1?.name ?? 'Jogador 1'} player2Name={setSummaryMatch.player2?.name ?? 'Jogador 2'}
+          player1Name={setSummaryMatch.matchType === 'DOUBLES'
+            ? abbreviateDoublesName(setSummaryMatch.player1?.name ?? 'Jogador 1', setSummaryMatch.player1Partner?.name)
+            : (setSummaryMatch.player1?.name ?? 'Jogador 1')}
+          player2Name={setSummaryMatch.matchType === 'DOUBLES'
+            ? abbreviateDoublesName(setSummaryMatch.player2?.name ?? 'Jogador 2', setSummaryMatch.player2Partner?.name)
+            : (setSummaryMatch.player2?.name ?? 'Jogador 2')}
           initialSetNumber={completedSetsCount || 1}
           completedSetsCount={completedSetsCount}
           isMatchFinished={setSummaryMatch.state === 'FINISHED'}

@@ -73,6 +73,8 @@ export function createFinalizeServices({
     engineRef,
     persistState,
     fetchMatch,
+    setScoreState: ctx.setScoreState,
+    setMatch: ctx.setMatch,
   });
 
   return { serveActionsService, arrangementService, serverChangeService };

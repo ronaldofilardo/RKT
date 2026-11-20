@@ -147,17 +147,17 @@ describe('SuportePageContent (página do Painel do Suporte)', () => {
     expect(screen.queryByText('Ana Avulsa')).not.toBeInTheDocument();
   });
 
-  it('a antiga ?module=externos abre a aba Contas Avulsas', () => {
+  it('a antiga ?module=externos abre a aba Contas Avulsas', async () => {
     window.history.replaceState({}, '', '/suporte?module=externos');
     renderPage();
-    expect(screen.getByText('Atletas Sem Conta (1)')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('Atletas Sem Conta (1)')).toBeInTheDocument());
     expect(screen.queryByText('Gestão de Clubes e CTs')).not.toBeInTheDocument();
   });
 
-  it('abre o módulo indicado no parâmetro ?module= da URL', () => {
+  it('abre o módulo indicado no parâmetro ?module= da URL', async () => {
     window.history.replaceState({}, '', '/suporte?module=gestores');
     renderPage();
-    expect(screen.getByText('Gestão de Gestores')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('Gestão de Gestores')).toBeInTheDocument());
     expect(screen.queryByText('Gestão de Clubes e CTs')).not.toBeInTheDocument();
   });
 

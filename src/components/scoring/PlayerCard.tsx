@@ -57,8 +57,8 @@ export function PlayerCard({
       <div className="relative z-10 flex flex-col items-center gap-0.5 mb-1 min-w-0 w-full justify-center pointer-events-none">
         <PlayerCardRow
           name={abbreviatePlayerName(player.name)}
-          isServer={Boolean(isServerPlayer1 || isServerPlayer2)}
-          isReceiver={Boolean(isReceiverPlayer1 || isReceiverPlayer2)}
+          isServer={Boolean(isServerPlayer1)}
+          isReceiver={Boolean(isReceiverPlayer1)}
           isPartner={Boolean(partner)}
           onChangeServer={onChangeServer}
           canChangeServer={canChangeServer}

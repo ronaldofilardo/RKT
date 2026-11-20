@@ -4,9 +4,9 @@ export const PERMISSIONS = [
   'platform:ct:manage',
   'platform:memberships:manage',
   'support:account:assist',
+  'support:access:approve',
   'platform:player:merge',
   'audit:read',
-  'support:access:approve',
   'ct:members:manage',
   'ct:tournament:manage',
   'athlete:create',
@@ -20,6 +20,10 @@ export const PERMISSIONS = [
   'coach:athlete:view',
   'coach:athlete:list',
   'report:view',
+  'finance:subscriptions:read',
+  'finance:subscriptions:manage',
+  'finance:invoices:manage',
+  'finance:plans:manage',
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

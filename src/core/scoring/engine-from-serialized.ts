@@ -1,11 +1,12 @@
 import type { ScoringEngineConfig, ScoringState, HistoryEntry } from './types';
 import { sideOfPlayer } from './doubles-members';
+import { applyGameServerChange } from './game-server-change.logic';
 
 /**
  * Lado do sacador inicial, cônscio de duplas (titular ou parceiro).
  * Fallback simples mantém o comportamento legado para partidas de simples.
  */
-function initialServerSide(config: ScoringEngineConfig): 'player1' | 'player2' {
+export function initialServerSide(config: ScoringEngineConfig): 'player1' | 'player2' {
   if (config.doubles) {
     const side = sideOfPlayer(config.doubles, config.initialServerId);
     if (side) return side;
@@ -41,12 +42,19 @@ function normalizeServer(state: ScoringState, config: ScoringEngineConfig): void
   // `state.server` é tipado como 'player1' | 'player2', mas dados legados
   // gravavam o userId cru. Alarga para string apenas para a comparação.
   const rawServer = state.server as string;
+  if (config.doubles) {
+    const side = sideOfPlayer(config.doubles, rawServer);
+    if (side) {
+      state.server = side;
+      return;
+    }
+  }
   if (rawServer === config.player2Id) {
     state.server = 'player2';
   } else if (rawServer === config.player1Id) {
     state.server = 'player1';
   } else if (rawServer !== 'player1' && rawServer !== 'player2') {
-    state.server = config.initialServerId === config.player2Id ? 'player2' : 'player1';
+    state.server = initialServerSide(config);
   }
 }
 
@@ -64,16 +72,21 @@ function correctInitialServer(state: ScoringState, config: ScoringEngineConfig, 
     )
   );
   const isGame1 = isInitialServerCorrectionWindow(state, config);
-  const isVirginState =
-    isGame1 &&
-    !hasCurrentGamePoints &&
-    history.length === 0 &&
-    state.startedAt == null;
+  const isZeroScore = isGame1 && !hasCurrentGamePoints && history.length === 0;
 
-  if (isGame1 && initialServerSide(config) === 'player2' && state.server === 'player1') {
-    state.server = 'player2';
-  } else if (isVirginState && config.initialServerId) {
+  if (isZeroScore && config.initialServerId) {
     state.server = initialServerSide(config);
+    if (config.doubles && state.doubles) {
+      try {
+        applyGameServerChange(state, config, config.initialServerId);
+      } catch {
+        // Fallback resiliente
+      }
+    }
+  } else if (isGame1 && initialServerSide(config) === 'player2' && state.server === 'player1') {
+    state.server = 'player2';
+  } else if (isGame1 && initialServerSide(config) === 'player1' && state.server === 'player2') {
+    state.server = 'player1';
   }
 }
 

@@ -43,6 +43,7 @@ export async function persistStateWithRetry(
           voidLastPoint: options.voidLastPoint,
           isUndo: options.isUndo ?? (label === "undo" || label === "undo-retry"),
           initialServerId: options.initialServerId,
+          ...(options.doublesSetup ? { doublesSetup: options.doublesSetup } : {}),
         }),
       });
 

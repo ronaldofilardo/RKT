@@ -1,7 +1,10 @@
 export interface Match {
   id: string;
+  matchType?: 'SINGLES' | 'DOUBLES' | string;
   player1: { name: string };
   player2: { name: string };
+  player1Partner?: { name: string } | null;
+  player2Partner?: { name: string } | null;
   tournamentName?: string;
   round?: string;
   scheduledAt?: string;
@@ -19,10 +22,14 @@ export function filterMatches(
   return matches.filter(match => {
     const player1Name = match.player1?.name || '';
     const player2Name = match.player2?.name || '';
+    const player1PartnerName = match.player1Partner?.name || '';
+    const player2PartnerName = match.player2Partner?.name || '';
     const tournament = match.tournamentName || '';
 
     const matchesSearch = player1Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           player2Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          player1PartnerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          player2PartnerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           tournament.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'ALL' || match.state === filterStatus;
     const matchesTournament = !filterTournament || tournament === filterTournament;

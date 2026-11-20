@@ -26,9 +26,17 @@ export function LocateMatchRow({ match, onNavigate }: LocateMatchRowProps) {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-gray-900">{match.player1.name}</span>
+            <span className="font-semibold text-gray-900">
+              {match.matchType === 'DOUBLES' && match.player1Partner
+                ? `${match.player1.name} / ${match.player1Partner.name}`
+                : match.player1.name}
+            </span>
             <span className="text-gray-400">vs</span>
-            <span className="font-semibold text-gray-900">{match.player2.name}</span>
+            <span className="font-semibold text-gray-900">
+              {match.matchType === 'DOUBLES' && match.player2Partner
+                ? `${match.player2.name} / ${match.player2Partner.name}`
+                : match.player2.name}
+            </span>
           </div>
           {match.scheduledAt && (
             <p className="text-sm text-gray-500 mt-1">

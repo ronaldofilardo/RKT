@@ -78,7 +78,7 @@ export function resolveDisplayState({
       !hasTiebreakPoints;
 
     if (isVirginState && match.initialServerId) {
-      resolvedServer = match.initialServerId === match.player2.id ? "player2" : "player1";
+      resolvedServer = resolveInitialServerSide(match);
     }
 
     const serverSide: "player1" | "player2" = resolvedServer === "player2" ? "player2" : "player1";

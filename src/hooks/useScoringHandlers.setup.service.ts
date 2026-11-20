@@ -1,4 +1,5 @@
 import { logger } from "@/lib/logger";
+import type { DoublesSetup } from "@/schemas/contracts";
 import type { ScoringHandlersContext } from "./useScoringHandlers.types";
 
 interface SetupConfirmServiceDeps {
@@ -10,11 +11,23 @@ export function createSetupConfirmService({
   ctx,
   fetchMatch,
 }: SetupConfirmServiceDeps) {
-  const { matchId, match, tokenRef, close, setSetupLoading, setError } = ctx;
-  const confirmMatchSetup = async (serverId: string): Promise<void> => {
+  const { matchId, match, tokenRef, close, setSetupLoading, setError, setMatch } = ctx;
+  const confirmMatchSetup = async (serverId: string, doublesSetup?: DoublesSetup): Promise<void> => {
     if (!match) return;
     setSetupLoading(true);
     try {
+      const effectiveDoublesSetup = doublesSetup ?? (match.doublesSetup as DoublesSetup | undefined);
+      setMatch((prev) =>
+        prev
+          ? {
+              ...prev,
+              state: "IN_PROGRESS",
+              initialServerId: serverId,
+              doublesSetup: effectiveDoublesSetup ?? prev.doublesSetup,
+            }
+          : prev,
+      );
+
       const res = await fetch(`/api/matches/${matchId}/state`, {
         method: "PATCH",
         headers: {
@@ -24,6 +37,7 @@ export function createSetupConfirmService({
         body: JSON.stringify({
           state: "IN_PROGRESS",
           initialServerId: serverId,
+          ...(effectiveDoublesSetup ? { doublesSetup: effectiveDoublesSetup } : {}),
         }),
       });
       if (!res.ok) throw new Error();

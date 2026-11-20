@@ -18,7 +18,6 @@ function makeCt(overrides: Partial<TrainingCenter> = {}): TrainingCenter {
 const active = makeCt({ id: 'ct-a', name: 'Clube Ativo', status: 'ACTIVE' });
 const suspended = makeCt({ id: 'ct-s', name: 'Clube Suspenso', status: 'SUSPENDED' });
 
-const onApprove = jest.fn();
 const onSuspend = jest.fn();
 const onReactivate = jest.fn();
 const onEditClub = jest.fn();
@@ -28,7 +27,7 @@ function renderSection(clubs: TrainingCenter[], filter: CtStatusFilter = 'ALL') 
   return render(
     <ClubesSection
       clubs={clubs} filter={filter} onFilterChange={onFilterChange}
-      onApprove={onApprove} onSuspend={onSuspend} onReactivate={onReactivate} onEditClub={onEditClub}
+      onSuspend={onSuspend} onReactivate={onReactivate} onEditClub={onEditClub}
     />
   );
 }
@@ -37,7 +36,7 @@ describe('ClubesSection (aba Clubes e CTs)', () => {
   it('exibe cabeçalho, subtítulo e colunas da tabela', () => {
     renderSection([]);
     expect(screen.getByText('Gestão de Clubes e CTs')).toBeInTheDocument();
-    expect(screen.getByText('Aprovação, bloqueio e edição cadastral de clubes')).toBeInTheDocument();
+    expect(screen.getByText('Bloqueio, reativação e edição cadastral de clubes')).toBeInTheDocument();
     for (const col of ['Clube / CT', 'CNPJ', 'Razão Social', 'Status', 'Ações']) {
       expect(screen.getByText(col)).toBeInTheDocument();
     }

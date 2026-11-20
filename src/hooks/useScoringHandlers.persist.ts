@@ -12,6 +12,7 @@ export interface PersistStateOptions {
   history?: HistoryEntry[];
   note?: string;
   initialServerId?: string;
+  doublesSetup?: unknown;
 }
 
 export interface PersistStateResult {
@@ -78,6 +79,7 @@ export function createPersistStateService({
       voidLastPoint: persistOptions?.voidLastPoint,
       isUndo: persistOptions?.isUndo ?? (label === "undo" || label === "undo-retry"),
       initialServerId: persistOptions?.initialServerId,
+      doublesSetup: persistOptions?.doublesSetup,
       history,
     });
 

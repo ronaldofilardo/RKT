@@ -10,6 +10,7 @@ import { ScoringTimelineView } from "./ScoringTimelineView";
 import { ScoringPageLayout } from "./scoring-page-layout";
 import { ErrorScreen, LoadingScreen } from "./scoring-page-screens";
 import { useAreaPath } from "@/hooks/use-area-path";
+import { abbreviateDoublesName } from "@/components/scoring/doubles-name-abbreviation.logic";
 
 function ScoringPageInner() {
   const params = useParams();
@@ -60,8 +61,8 @@ function ScoringPageInner() {
         onCloseTimeline={() => setViewMode("scoring")}
         matchId={matchId}
         timelinePoints={timelinePoints}
-        player1Name={match.player1.name}
-        player2Name={match.player2.name}
+        player1Name={match.matchType === 'DOUBLES' ? abbreviateDoublesName(match.player1.name, match.player1Partner?.name) : match.player1.name}
+        player2Name={match.matchType === 'DOUBLES' ? abbreviateDoublesName(match.player2.name, match.player2Partner?.name) : match.player2.name}
         comments={state.comments}
         onNavigateReport={() => router.push(toAreaPath(`/match/${matchId}/report`) as any)}
         onNavigateDashboard={() => router.push(toAreaPath('/dashboard') as any)}

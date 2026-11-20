@@ -1,4 +1,5 @@
 import type { ScoringEngineConfig, ScoringState, SetScore } from './types';
+import { initialServerSide } from './engine-from-serialized';
 
 /**
  * BUG FIX (2026-09-22): sacador do 1º game do set seguinte após um set
@@ -31,8 +32,7 @@ export function computeServerForNextSetAfterTiebreak(
   currentSet: SetScore,
   tiebreakWinner: 'player1' | 'player2',
 ): 'player1' | 'player2' {
-  const initialServer: 'player1' | 'player2' =
-    config.initialServerId === config.player1Id ? 'player1' : 'player2';
+  const initialServer: 'player1' | 'player2' = initialServerSide(config);
 
   const priorSetsGames = state.sets
     .slice(0, currentSetIndex)

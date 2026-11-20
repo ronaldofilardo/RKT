@@ -1,9 +1,11 @@
 import type { ScoringEngineConfig, ScoringState, GameScore, HistoryEntry } from './types';
 import { getInitialGames, createEmptySetForFormat } from './format-rules';
+import { initialServerSide } from './engine-from-serialized';
+import { applyGameServerChange } from './game-server-change.logic';
 
 export function createInitialState(config: ScoringEngineConfig): ScoringState {
-  const server = config.initialServerId === config.player1Id ? 'player1' : 'player2';
-  return {
+  const server = initialServerSide(config);
+  const state: ScoringState = {
     // Formatos com placar inicial (Sets Curtos 2/2) já nascem com o set 1 em 2-2,
     // igual ao scoreState criado em matchService (buildCreateDefaults).
     sets: getInitialGames(config.format) > 0 ? [createEmptySetForFormat(config.format)] : [],
@@ -33,6 +35,16 @@ export function createInitialState(config: ScoringEngineConfig): ScoringState {
         }
       : {}),
   };
+
+  if (config.doubles && config.initialServerId && state.doubles) {
+    try {
+      applyGameServerChange(state, config, config.initialServerId);
+    } catch {
+      // Ignora se initialServerId ainda não estiver no config
+    }
+  }
+
+  return state;
 }
 
 

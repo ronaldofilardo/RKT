@@ -34,7 +34,10 @@ function buildCreateMetadataFields(data: CreateMatchInput) {
 
 function buildCreateDefaults(data: CreateMatchInput) {
   const initGames = getInitialGames(data.format as MatchFormat);
-  const server = data.initialServerId === data.player2Id ? 'player2' : 'player1';
+  const isPlayer2 = data.initialServerId
+    ? (data.initialServerId === data.player2Id || (data.matchType === 'DOUBLES' && data.initialServerId === data.player2PartnerId))
+    : false;
+  const server = isPlayer2 ? 'player2' : 'player1';
   const initialScoreState = {
     sets: initGames > 0 ? [{ player1: initGames, player2: initGames, isTiebreak: false, tiebreakScore: null }] : [],
     currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },

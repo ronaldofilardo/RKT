@@ -6,14 +6,13 @@ interface ClubesSectionProps {
   clubs: TrainingCenter[];
   filter: CtStatusFilter;
   onFilterChange: (filter: CtStatusFilter) => void;
-  onApprove: (ctId: string) => void;
   onSuspend: (ctId: string) => void;
-  onReactivate?: (ctId: string) => void;
+  onReactivate: (ctId: string) => void;
   onEditClub: (ct: TrainingCenter) => void;
 }
 
 export function ClubesSection({
-  clubs, filter, onFilterChange, onApprove, onSuspend, onReactivate, onEditClub,
+  clubs, filter, onFilterChange, onSuspend, onReactivate, onEditClub,
 }: ClubesSectionProps) {
   const filtered = clubs.filter((c) => filter === 'ALL' || c.status === filter);
 
@@ -28,7 +27,7 @@ export function ClubesSection({
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-lg font-semibold text-telemetry-text-primary">Gestão de Clubes e CTs</h2>
-          <p className="text-xs text-telemetry-text-muted">Aprovação, bloqueio e edição cadastral de clubes</p>
+          <p className="text-xs text-telemetry-text-muted">Bloqueio, reativação e edição cadastral de clubes</p>
         </div>
       </div>
       <div className="flex gap-2">
@@ -73,7 +72,7 @@ export function ClubesSection({
                 </td>
                 <td className="px-3 py-3 text-sm text-right whitespace-nowrap">
                   {ct.status === 'ACTIVE' && <button onClick={() => onSuspend(ct.id)} className="text-xs text-telemetry-error hover:underline mr-3 font-medium">Bloquear</button>}
-                  {ct.status === 'SUSPENDED' && <button onClick={() => onReactivate ? onReactivate(ct.id) : onApprove(ct.id)} className="text-xs text-telemetry-volt hover:underline mr-3 font-semibold">Desbloquear</button>}
+                  {ct.status === 'SUSPENDED' && <button onClick={() => onReactivate(ct.id)} className="text-xs text-telemetry-volt hover:underline mr-3 font-semibold">Desbloquear</button>}
                   <button onClick={() => onEditClub(ct)} className="text-xs text-telemetry-blue hover:underline font-medium">Editar</button>
                 </td>
               </tr>

@@ -20,6 +20,21 @@ export function resolveActivePlayers(
       const engineConfig = buildEngineConfig(match);
       if (engineConfig.doubles) {
         activeServerId = getServingMemberId(effectiveScoreState, engineConfig.doubles);
+
+        // Se estiver no início do jogo (sem pontos jogados no game 1) e houver initialServerId definido,
+        // garante que o atleta indicado como sacador ativo seja o initialServerId
+        const isVirgin =
+          (effectiveScoreState.sets ?? []).every(
+            (s) => (s.player1 || 0) === 0 && (s.player2 || 0) === 0
+          ) &&
+          !effectiveScoreState.currentGame?.player1 &&
+          !effectiveScoreState.currentGame?.player2 &&
+          !effectiveScoreState.currentGame?.advantage &&
+          !effectiveScoreState.currentGame?.secondServe;
+        if (isVirgin && match.initialServerId) {
+          activeServerId = match.initialServerId;
+        }
+
         activeReceiverId = getReceiverMemberId(
           effectiveScoreState,
           engineConfig.doubles,

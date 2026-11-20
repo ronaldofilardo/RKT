@@ -1,17 +1,19 @@
 'use client';
 
-import type { SuporteModule } from './types';
+import type { SuporteTab } from './types';
 
 interface ModuleNavProps {
-  module: SuporteModule;
-  onModuleChange: (module: SuporteModule) => void;
+  module: SuporteTab;
+  onModuleChange: (module: SuporteTab) => void;
 }
 
+/** @deprecated Use SuporteTabNav */
 export function ModuleNav({ module, onModuleChange }: ModuleNavProps) {
-  const modules: Array<{ key: SuporteModule; label: string }> = [
+  const modules: Array<{ key: SuporteTab; label: string }> = [
     { key: 'clubes', label: 'Clubes e CTs' },
     { key: 'gestores', label: 'Gestores' },
     { key: 'avulsos', label: 'Contas Avulsas' },
+    { key: 'financeiro', label: 'Financeiro' },
   ];
 
   return (

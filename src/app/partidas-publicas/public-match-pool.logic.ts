@@ -22,6 +22,8 @@ export interface PublicPoolMatch {
   myAnnotationState?: string | null;
   player1: PoolPlayerRef;
   player2: PoolPlayerRef;
+  player1Partner?: PoolPlayerRef | null;
+  player2Partner?: PoolPlayerRef | null;
 }
 
 /** Busca local por atletas, torneio, clube, categoria ou rodada. */
@@ -36,8 +38,12 @@ export function filterPoolMatches(
     [
       match.player1?.name,
       match.player1?.nickname,
+      match.player1Partner?.name,
+      match.player1Partner?.nickname,
       match.player2?.name,
       match.player2?.nickname,
+      match.player2Partner?.name,
+      match.player2Partner?.nickname,
       match.tournamentName,
       match.clubName,
       match.category,

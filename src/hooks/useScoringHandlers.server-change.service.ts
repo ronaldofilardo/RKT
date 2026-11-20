@@ -3,6 +3,7 @@ import { buildEngineConfig } from "@/core/scoring/engine-config";
 import { isInitialServerCorrectionWindow } from "@/core/scoring/engine-from-serialized";
 import type { ScoringEngine } from "@/core/scoring/engine";
 import type { ScoringState } from "@/core/scoring/types";
+import type { ScoreAction } from "@/hooks/useScoreReducer";
 import type { MatchData } from "./useScoringHandlers.types";
 import type { PersistStateFn } from "./useScoringHandlers.persist";
 
@@ -11,6 +12,8 @@ interface ServerChangeServiceDeps {
   engineRef: React.MutableRefObject<ScoringEngine | null>;
   persistState: PersistStateFn;
   fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
+  setScoreState?: React.Dispatch<ScoreAction>;
+  setMatch?: React.Dispatch<React.SetStateAction<MatchData | null>>;
 }
 
 export interface ServerChangeResult {
@@ -27,6 +30,8 @@ export function createServerChangeService({
   engineRef,
   persistState,
   fetchMatch,
+  setScoreState,
+  setMatch,
 }: ServerChangeServiceDeps) {
   const changeGameServer = async (serverId: string): Promise<ServerChangeResult> => {
     const engine = engineRef.current;
@@ -54,10 +59,30 @@ export function createServerChangeService({
       logger.warn("[changeGameServer] Falha ao derivar config do engine:", err);
     }
 
+    // Atualização otimista imediata na UI local
+    setScoreState?.({ type: "EDIT_CONFIRMED", payload: state });
+    if (initialServerId && setMatch) {
+      setMatch((prev) => (prev ? { ...prev, initialServerId } : prev));
+    }
+
+    let doublesSetupPayload: import("@/schemas/contracts").DoublesSetup | undefined;
+    if (match.matchType === 'DOUBLES' && state.doubles) {
+      const existingSetup = (typeof match.doublesSetup === 'object' && match.doublesSetup !== null
+        ? match.doublesSetup
+        : {}) as Record<string, unknown>;
+      doublesSetupPayload = {
+        ...existingSetup,
+        serveOrder: state.doubles.serveOrder,
+        receiveDeuce: state.doubles.receiveDeuce,
+        changes: Array.isArray(existingSetup.changes) ? existingSetup.changes : [],
+      } as import("@/schemas/contracts").DoublesSetup;
+    }
+
     const result = await persistState(state, "server-change", {
       isManualScoreEdit: true,
       note: "Correção de sacador",
       initialServerId,
+      doublesSetup: doublesSetupPayload,
     });
 
     if (result.success) {

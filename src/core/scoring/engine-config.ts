@@ -48,12 +48,12 @@ export function buildEngineConfig(match: MatchLikeForEngine): ScoringEngineConfi
       receiveDeuce?: Record<Side, string>;
     } | undefined;
 
-    const serveOrder = rawSetup?.serveOrder ?? scoreStateDoubles?.serveOrder ?? {
+    const serveOrder = scoreStateDoubles?.serveOrder ?? rawSetup?.serveOrder ?? {
       player1: [p1Id, p1PartnerId] as [string, string],
       player2: [p2Id, p2PartnerId] as [string, string],
     };
 
-    const receiveDeuce = rawSetup?.receiveDeuce ?? scoreStateDoubles?.receiveDeuce ?? {
+    const receiveDeuce = scoreStateDoubles?.receiveDeuce ?? rawSetup?.receiveDeuce ?? {
       player1: p1Id,
       player2: p2Id,
     };

@@ -36,6 +36,7 @@ export interface PersistStateOptions {
    * deriva `state.server` a partir do `initialServerId`.
    */
   initialServerId?: string;
+  doublesSetup?: unknown;
 }
 
 export interface VersionConflictPayload {

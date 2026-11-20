@@ -9,7 +9,7 @@ export interface ScoringHandlersReturn {
   getWinnerId: (isServer: boolean) => string;
   applyPoint: (flow: PointFlow) => Promise<void>;
   fetchMatch: (forceEngineReset?: boolean) => Promise<void>;
-  confirmMatchSetup: (serverId: string) => Promise<void>;
+  confirmMatchSetup: (serverId: string, doublesSetup?: import('@/schemas/contracts').DoublesSetup) => Promise<void>;
   undoLastPoint: () => void;
   returnToPreviousScreen: (serveStep: 'none' | 'second') => void;
     openAceModal: () => void;

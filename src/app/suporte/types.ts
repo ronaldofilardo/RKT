@@ -42,9 +42,23 @@ export interface MembershipItem {
   createdAt: string;
 }
 
-export type SuporteModule = 'clubes' | 'gestores' | 'avulsos';
+export type SuporteTab = 'clubes' | 'gestores' | 'avulsos' | 'financeiro';
 
+/** @deprecated Use SuporteTab */
+export type SuporteModule = SuporteTab;
+
+/** Filtros de status do CT — apenas estados operacionais (aprovação removida). */
 export type CtStatusFilter = 'ACTIVE' | 'SUSPENDED' | 'ALL';
+
+/** Resultado da busca de usuário para emissão de senha provisória (F4). */
+export interface UserSearchResult {
+  id: string;
+  name: string;
+  email: string;
+  cpf: string;
+  role: string;
+  isActive: boolean;
+}
 
 export interface ExternalAthlete {
   id: string;

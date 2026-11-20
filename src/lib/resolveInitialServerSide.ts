@@ -6,6 +6,8 @@ export interface MatchServerSidesInput {
   player2PartnerId?: string | null;
   player1?: { id: string } | null;
   player2?: { id: string } | null;
+  player1Partner?: { id: string } | null;
+  player2Partner?: { id: string } | null;
 }
 
 /**
@@ -20,8 +22,8 @@ export function resolveServerSideFromId(
 
   const p1Id = match.player1Id ?? match.player1?.id;
   const p2Id = match.player2Id ?? match.player2?.id;
-  const p1PartnerId = match.player1PartnerId;
-  const p2PartnerId = match.player2PartnerId;
+  const p1PartnerId = match.player1PartnerId ?? match.player1Partner?.id;
+  const p2PartnerId = match.player2PartnerId ?? match.player2Partner?.id;
 
   if (serverId === p2Id || (p2PartnerId && serverId === p2PartnerId)) {
     return "player2";

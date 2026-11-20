@@ -31,6 +31,8 @@ export async function listPublicPool({
       createdAt: true,
       player1: { select: { id: true, name: true, nickname: true } },
       player2: { select: { id: true, name: true, nickname: true } },
+      player1Partner: { select: { id: true, name: true, nickname: true } },
+      player2Partner: { select: { id: true, name: true, nickname: true } },
       _count: { select: { annotations: true } },
     },
   });

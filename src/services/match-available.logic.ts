@@ -15,6 +15,8 @@ const TEMPLATE_SELECT = {
   eventScope: true, player1Id: true, player2Id: true, player1PartnerId: true, player2PartnerId: true,
   player1: { select: { id: true, name: true, nickname: true, birthDate: true } },
   player2: { select: { id: true, name: true, nickname: true, birthDate: true } },
+  player1Partner: { select: { id: true, name: true, nickname: true, birthDate: true } },
+  player2Partner: { select: { id: true, name: true, nickname: true, birthDate: true } },
   _count: { select: { annotations: true } },
 } as const;
 
@@ -87,6 +89,8 @@ export async function listAvailableTemplates(
       ...rest,
       player1: formatPlayer(rest.player1),
       player2: formatPlayer(rest.player2),
+      player1Partner: formatPlayer(rest.player1Partner),
+      player2Partner: formatPlayer(rest.player2Partner),
       annotationCount: _count.annotations,
       myAnnotationId: mine?.id ?? null,
       myAnnotationState: mine?.state ?? null,

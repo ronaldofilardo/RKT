@@ -59,11 +59,21 @@ export function applyDoublesStartUpdates(
 
   updateData.doublesSetup = setup;
 
-  if (!scoreState && existingMatch.scoreState) {
+  if (!scoreState) {
     try {
-      const parsed = typeof existingMatch.scoreState === 'string'
-        ? JSON.parse(existingMatch.scoreState)
-        : JSON.parse(JSON.stringify(existingMatch.scoreState));
+      const parsed = existingMatch.scoreState
+        ? (typeof existingMatch.scoreState === 'string'
+          ? JSON.parse(existingMatch.scoreState)
+          : JSON.parse(JSON.stringify(existingMatch.scoreState)))
+        : {
+          sets: [],
+          currentGame: { player1: 0, player2: 0, isDeuce: false, advantage: null, secondServe: false },
+          isFinished: false,
+          winner: null,
+          setsWon: { player1: 0, player2: 0 },
+          startedAt: null,
+          secondServe: false,
+        };
       const target = parsed.state ?? parsed;
       target.doubles = initialArrangement;
       if (initialServerId) {
