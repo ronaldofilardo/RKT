@@ -59,7 +59,7 @@ export async function handlePlayersPost(
     }
     const cts = actorCtIds(actor);
     const isAvulsoCoach = creatingProfile === 'TREINADOR' && cts.length === 0;
-    const shouldLink = Boolean(myClub);
+    const shouldLink = Boolean(myClub || ctId);
 
     let resolvedCtId: string | null = null;
     if (shouldLink) {
@@ -76,6 +76,20 @@ export async function handlePlayersPost(
         );
       }
       resolvedCtId = ctId ?? cts[0] ?? null;
+    }
+
+    if (resolvedCtId && !playerData.club) {
+      try {
+        const ct = await prisma.trainingCenter.findUnique({
+          where: { id: resolvedCtId },
+          select: { name: true },
+        });
+        if (ct?.name) {
+          playerData.club = ct.name;
+        }
+      } catch {
+        // Fallback silencioso
+      }
     }
 
     const player = await createPlayer({

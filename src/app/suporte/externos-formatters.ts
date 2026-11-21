@@ -34,6 +34,13 @@ export function formatDate(iso: string | null): string {
 }
 
 export function formatAthleteRow(athlete: ExternalAthlete) {
+  const creatorIdentifier = athlete.createdByName || athlete.createdByEmail;
+  const createdBy = creatorIdentifier
+    ? athlete.createdByClub
+      ? `${creatorIdentifier} (${athlete.createdByClub})`
+      : creatorIdentifier
+    : '-';
+
   return {
     name: athlete.name,
     club: athlete.club || '-',
@@ -43,6 +50,6 @@ export function formatAthleteRow(athlete: ExternalAthlete) {
     age: athlete.age ?? '-',
     rankings: formatRankings(athlete.rankings),
     createdAt: formatDate(athlete.createdAt),
-    createdBy: athlete.createdByName || athlete.createdByEmail || '-',
+    createdBy,
   };
 }

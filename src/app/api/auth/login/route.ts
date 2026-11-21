@@ -46,8 +46,15 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    if (!chosenContextId && availableContexts.length === 1) {
-      chosenContextId = availableContexts[0].id;
+    if (!chosenContextId) {
+      if (availableContexts.length === 1) {
+        chosenContextId = availableContexts[0].id;
+      } else {
+        const ctContexts = availableContexts.filter((c) => c.type === 'CT');
+        if (ctContexts.length === 1) {
+          chosenContextId = ctContexts[0].id;
+        }
+      }
     }
     if (chosenContextId && !availableContexts.some((c) => c.id === chosenContextId)) {
       chosenContextId = null;

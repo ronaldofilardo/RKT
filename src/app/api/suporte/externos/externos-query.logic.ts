@@ -1,10 +1,50 @@
 import { prisma } from '@/lib/prisma';
 
 export type PlayerExternal = {
-  id: string; name: string; club: string | null; city: string | null; state: string | null;
-  gender: string | null; age: number | null; rankings: unknown; createdAt: Date;
-  createdByUserId: string | null; createdByName: string | null; createdByEmail: string | null;
+  id: string;
+  name: string;
+  club: string | null;
+  city: string | null;
+  state: string | null;
+  gender: string | null;
+  age: number | null;
+  rankings: unknown;
+  createdAt: Date;
+  createdByUserId: string | null;
+  createdByName?: string | null;
+  createdByEmail?: string | null;
+  createdByUser?: {
+    name?: string | null;
+    email?: string | null;
+    club?: string | null;
+    memberships?: Array<{
+      kind: string;
+      ct?: { id: string; name: string } | null;
+    }>;
+  } | null;
+  playerCts?: Array<{
+    ct?: { id: string; name: string } | null;
+  }>;
+  clubRef?: { id: string; name: string } | null;
 };
+
+export function resolveAthleteClub(p: PlayerExternal): string | null {
+  const activeCt = p.playerCts?.[0]?.ct?.name;
+  if (activeCt) return activeCt;
+  if (p.club) return p.club;
+  if (p.clubRef?.name) return p.clubRef.name;
+  const creatorCt = p.createdByUser?.memberships?.find((m) => m.ct?.name)?.ct?.name;
+  if (creatorCt) return creatorCt;
+  if (p.createdByUser?.club) return p.createdByUser.club;
+  return null;
+}
+
+export function resolveCreatorClub(p: PlayerExternal): string | null {
+  const creatorCt = p.createdByUser?.memberships?.find((m) => m.ct?.name)?.ct?.name;
+  if (creatorCt) return creatorCt;
+  if (p.createdByUser?.club) return p.createdByUser.club;
+  return null;
+}
 
 // Atletas sem conta no sistema (sem userId vinculado, null ou vazio)
 export async function fetchExternalPlayers(): Promise<PlayerExternal[]> {
@@ -13,9 +53,39 @@ export async function fetchExternalPlayers(): Promise<PlayerExternal[]> {
       OR: [{ userId: null }, { userId: '' }],
     },
     select: {
-      id: true, name: true, club: true, city: true, state: true, gender: true, age: true,
-      rankings: true, createdAt: true, createdByUserId: true,
-      createdByUser: { select: { name: true, email: true } },
+      id: true,
+      name: true,
+      club: true,
+      city: true,
+      state: true,
+      gender: true,
+      age: true,
+      rankings: true,
+      createdAt: true,
+      createdByUserId: true,
+      createdByUser: {
+        select: {
+          name: true,
+          email: true,
+          club: true,
+          memberships: {
+            where: { status: 'ACTIVE' },
+            select: {
+              kind: true,
+              ct: { select: { id: true, name: true } },
+            },
+          },
+        },
+      },
+      playerCts: {
+        where: { status: 'ACTIVE' },
+        select: {
+          ct: { select: { id: true, name: true } },
+        },
+      },
+      clubRef: {
+        select: { id: true, name: true },
+      },
     } as any,
     orderBy: { name: 'asc' },
     take: 200,
@@ -27,7 +97,8 @@ export async function fetchExternalPlayers(): Promise<PlayerExternal[]> {
 export function collectExternalClubs(players: PlayerExternal[]): Set<string> {
   const clubsSet = new Set<string>();
   for (const p of players) {
-    if (p.club) clubsSet.add(p.club);
+    const club = resolveAthleteClub(p);
+    if (club) clubsSet.add(club);
   }
   return clubsSet;
 }
@@ -76,7 +147,7 @@ export function mapExternalAthlete(p: PlayerExternal) {
   return {
     id: p.id,
     name: p.name,
-    club: p.club ?? null,
+    club: resolveAthleteClub(p),
     city: p.city ?? null,
     state: p.state ?? null,
     gender: p.gender ?? null,
@@ -86,5 +157,6 @@ export function mapExternalAthlete(p: PlayerExternal) {
     createdByUserId: p.createdByUserId ?? null,
     createdByName: (p as any).createdByUser?.name ?? null,
     createdByEmail: (p as any).createdByUser?.email ?? null,
+    createdByClub: resolveCreatorClub(p),
   };
 }

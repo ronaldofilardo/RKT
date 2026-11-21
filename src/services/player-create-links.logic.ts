@@ -64,7 +64,8 @@ export async function handlePlayerPostCreate(input: HandlePlayerPostCreateInput)
         create: { playerId: player.id, ctId, status },
         update: {},
       });
-    } else if (actorProfile === 'TREINADOR' && createdByUserId) {
+    }
+    if (actorProfile === 'TREINADOR' && createdByUserId) {
       await prisma.coachAthleteLink.upsert({
         where: { coachUserId_playerId: { coachUserId: createdByUserId, playerId: player.id } },
         create: { coachUserId: createdByUserId, playerId: player.id, status: 'ACTIVE' },

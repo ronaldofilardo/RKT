@@ -72,6 +72,7 @@ export interface ExternalAthlete {
   createdAt: string;
   createdByName: string | null;
   createdByEmail: string | null;
+  createdByClub?: string | null;
 }
 
 export interface ExternalClub {
