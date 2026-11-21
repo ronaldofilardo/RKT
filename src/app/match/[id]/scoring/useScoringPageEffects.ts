@@ -49,9 +49,13 @@ export function useScoringPageEffects(state: ScoringPageState): ScoringPageHandl
 
   const onPointSelectFromCard = useCallback(
     (winnerSide: "player1" | "player2") => {
+      if (!state.match?.initialServerId || state.match?.state === 'SCHEDULED') {
+        open("setup");
+        return;
+      }
       open("point-details", { winner: winnerSide });
     },
-    [open],
+    [open, state.match],
   );
 
   /** Painel inline: apenas registra o erro pendente; o clique em Confirmar decide o ponto. */

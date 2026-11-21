@@ -44,7 +44,9 @@ export function useScoringPageDerived(
   const canUndo =
     (state.engineRef.current ? state.engineRef.current.getHistoryLength() > 0 : false) ||
     state.serveErrorState?.serveStep === 'second';
-  const isSetupNeeded = activeModal === "setup" && !match?.initialServerId;
+  const isSetupNeeded = Boolean(
+    activeModal === "setup" || !match?.initialServerId || match?.state === "SCHEDULED"
+  );
   const isProcessingPoint = handlers.isProcessing === true;
 
   const editScoreCurrentSets = deriveEditScoreCurrentSets(effectiveScoreState, match?.format);

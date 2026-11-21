@@ -23,6 +23,8 @@
     "db:check:access": "tsx scripts/db/preflight.ts --mode=development -- node scripts/check-access-consistency.mjs",
     "db:link:gestor-players": "tsx scripts/db/preflight.ts --mode=development -- tsx scripts/link-gestor-created-players.ts",
     "db:inject:annotators:prod": "tsx scripts/db/preflight.ts --mode=production -- tsx scripts/inject-annotators-prod.ts",
+    "db:check:duplicates:prod": "tsx scripts/db/preflight.ts --mode=production -- tsx scripts/check-ct-duplicate-athletes.ts",
+    "db:execute:merges:prod": "tsx scripts/db/preflight.ts --mode=production -- tsx scripts/execute-ct-merges.ts",
     "test:mutation": "tsx scripts/db/preflight.ts --mode=test && node scripts/run-mutation-diff.js",
     "db:where": "tsx scripts/db/preflight.ts --mode=development",
     "db:push": "tsx scripts/db/preflight.ts --mode=development -- prisma db push",

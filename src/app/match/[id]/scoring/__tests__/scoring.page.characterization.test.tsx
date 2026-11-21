@@ -446,6 +446,25 @@ describe("ScoringPage - Characterization Tests", () => {
       });
     });
 
+    it("deve abrir activeModal='setup' automaticamente quando a partida carrega sem initialServerId", async () => {
+      mockFetchMatchNoInitialServer();
+      const openMock = jest.fn();
+      mockModalStack = {
+        activeModal: null,
+        modalParams: {},
+        open: openMock,
+        close: jest.fn(),
+        closeAll: jest.fn(),
+        replace: jest.fn(),
+      };
+
+      render(<ScoringPage />);
+
+      await waitFor(() => {
+        expect(openMock).toHaveBeenCalledWith("setup");
+      });
+    });
+
     it("deve exibir UndoConfirmModal quando activeModal='undo'", async () => {
       mockModalStack = {
         activeModal: "undo",

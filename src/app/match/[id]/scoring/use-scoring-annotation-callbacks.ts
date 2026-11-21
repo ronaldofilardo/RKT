@@ -28,6 +28,10 @@ export function useScoringAnnotationCallbacks(
 
   const selectHowEnded = useCallback(
     (option: HowPointEnded) => {
+      if (!state.match?.initialServerId || state.match?.state === 'SCHEDULED') {
+        state.open('setup');
+        return;
+      }
       if (disabled) return;
       if (option === 'ACE') {
         setHowEnded('ACE');
@@ -45,7 +49,7 @@ export function useScoringAnnotationCallbacks(
       setHowEnded(option);
       setStep('where-winner');
     },
-    [disabled, setHowEnded, setStep, onServeAction, handlers, serveStep],
+    [disabled, setHowEnded, setStep, onServeAction, handlers, serveStep, state],
   );
 
   const confirmAce = useCallback((effect?: string, direction?: string) => {
@@ -54,8 +58,12 @@ export function useScoringAnnotationCallbacks(
   }, [handlers, reset]);
 
   const startServeFault = useCallback((errorType: 'out' | 'net') => {
+    if (!state.match?.initialServerId || state.match?.state === 'SCHEDULED') {
+      state.open('setup');
+      return;
+    }
     handlers.startServeErrorDetails(errorType, serveStep);
-  }, [handlers, serveStep]);
+  }, [handlers, serveStep, state]);
 
   const confirmServeFault = useCallback((effect?: string, direction?: string) => {
     handlers.confirmServeError(effect, direction);

@@ -20,7 +20,8 @@ export function useScoringAnnotationFlow(
   const annotation = usePointAnnotationFlow('player1');
   const { flow, backToHowEnded, reset } = annotation;
 
-  const disabled = Boolean(derived.isFinished || derived.isProcessingPoint);
+  const isServerMissing = !state.match?.initialServerId || state.match?.state === 'SCHEDULED';
+  const disabled = Boolean(derived.isFinished || derived.isProcessingPoint || isServerMissing);
   const isActive = !derived.isFinished;
   const serveStep = state.serveErrorState?.serveStep === 'second' ? 'second' : 'first';
   const hasFirstServeError = Boolean(state.serveErrorState?.firstServeError);

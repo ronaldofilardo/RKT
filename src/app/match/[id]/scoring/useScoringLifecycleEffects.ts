@@ -65,8 +65,15 @@ export function useScoringLifecycleEffects({
 
     if (state.match.state === "FINISHED" && !isEditScoreModal) {
       state.router.replace(`/match/${state.match.id}/report`);
+      return;
     }
-  }, [state.match, state.router]);
+
+    // Se a partida não possui sacador inicial definido ou está agendada (SCHEDULED),
+    // abre obrigatoriamente o modal de escolha de sacador / formação inicial de duplas
+    if (!state.match.initialServerId || state.match.state === "SCHEDULED") {
+      open("setup");
+    }
+  }, [state.match, state.router, open]);
 
   useViewModeFetch({ matchId, viewMode, fetchTimelinePoints, fetchPointLogAudioMeta, fetchComments });
 

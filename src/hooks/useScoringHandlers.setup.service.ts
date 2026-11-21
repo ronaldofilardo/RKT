@@ -32,7 +32,7 @@ export function createSetupConfirmService({
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          authorization: `Bearer ${tokenRef.current}`,
+          ...(tokenRef.current ? { authorization: `Bearer ${tokenRef.current}` } : {}),
         },
         body: JSON.stringify({
           state: "IN_PROGRESS",

@@ -18,7 +18,7 @@ export function useServeInlineControls(
   const [dfDetails, setDfDetails] = useState(false);
   const [openAction, setOpenAction] = useState<ServeAction | null>(null);
   const step = state.serveErrorState?.serveStep === 'second' ? 'second' : 'first';
-  const disabled = Boolean(derived.isFinished || derived.isProcessingPoint);
+  const disabled = Boolean(derived.isFinished || derived.isProcessingPoint || !state.match?.initialServerId || state.match?.state === 'SCHEDULED');
   const { dismissServeErrorDetails, startServeErrorDetails } = handlers;
 
   const openRef = useRef(openAction);
@@ -30,6 +30,10 @@ export function useServeInlineControls(
   }, [dismissServeErrorDetails]);
 
   const onAction = (action: ServeAction) => {
+    if (!state.match?.initialServerId || state.match?.state === 'SCHEDULED') {
+      state.open('setup');
+      return;
+    }
     if (disabled) return;
     if (openAction === action) return close();
     if (action === 'ace') return aceDetails ? (close(), setOpenAction('ace')) : (close(), handlers.recordAceDirectly());
