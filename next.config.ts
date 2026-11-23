@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type { NextConfig } from 'next';
 
 const isProd = process.env.NODE_ENV === 'production';
@@ -41,6 +42,7 @@ const noindexSources = [
 ];
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: path.join(__dirname),
   reactStrictMode: process.env.NODE_ENV === 'production',
   allowedDevOrigins: [
     'localhost',
