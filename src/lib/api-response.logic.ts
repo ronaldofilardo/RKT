@@ -78,10 +78,14 @@ export function reportApiError(error: unknown): NextResponse {
       details: error.details,
       fields: Object.keys(fieldMap).length > 0 ? fieldMap : undefined,
     };
-    return NextResponse.json(
+    const response = NextResponse.json(
       { ...payload, data: payload },
       { status: error.status }
     );
+    if (error.status === 429 && 'retryAfterSeconds' in error && (error as any).retryAfterSeconds) {
+      response.headers.set('Retry-After', String((error as any).retryAfterSeconds));
+    }
+    return response;
   }
 
   // Erro inesperado — não expor detalhes

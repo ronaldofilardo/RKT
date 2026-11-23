@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAccessHandler } from '@/lib/access-handler';
 import { prisma } from '@/lib/prisma';
+import { SessionPathParamsSchema } from '@/schemas/comment';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; sessionId: string }> }
 ) {
   return withAccessHandler(request, null, null, async ({ user }) => {
-    const { id: matchId, sessionId } = await params;
+    const parsedParams = SessionPathParamsSchema.safeParse(await params);
+    if (!parsedParams.success) return NextResponse.json({ error: 'INVALID_PARAMS' }, { status: 400 });
+    const { id: matchId, sessionId } = parsedParams.data;
 
     const session = await prisma.matchAnnotationSession.findFirst({
       where: { id: sessionId, matchId, annotatorUserId: user.id, isActive: true },

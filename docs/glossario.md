@@ -213,3 +213,21 @@ Regras canônicas e conceitos jurídicos-técnicos implementados para conformida
 | **Cruzamento Cadastral de Tutela** | Validação de segurança em que os dados informados pelo gestor (`preGuardianCpfHash` via HMAC-SHA256) são confrontados com o CPF digitado pelo responsável no momento do aceite do convite de tutela. |
 | **Anonimização de Titular (LGPD Art. 18)** | Rotina de direito ao esquecimento (`user-anonymize.logic.ts`) que desassocia e ofusca dados pessoais de `User` e `Player` (`Atleta Anonimizado`, remoção de CPF e data de nascimento), preservando a integridade estatística das partidas para os adversários. |
 | **Sanitização de Logs de Auditoria** | Higienização de `AuditLog.meta`, substituindo dados pessoais e CPFs em texto puro por referências opacas (`resourceId`), garantindo imutabilidade sem violar a minimização de dados. |
+
+---
+
+## 10. Classificação de Dados Pessoais e Prazos de Retenção (LGPD Arts. 15 e 16 / CF-06)
+
+Tabela canônica de classificação de dados, finalidade e política de retenção e expurgo da plataforma RKT:
+
+| Entidade / Dado | Classificação | Finalidade Legal | Prazo de Retenção | Rotina de Expurgo / Anonimização |
+|---|---|---|---|---|
+| **User (Conta de Acesso)** | Dado Pessoal Comum | Execução de contrato (Art. 7º, V) e autenticação segura | Duração do vínculo contratual ativo + 5 anos após encerramento (prescrição civil, CC Art. 206) | Expurgo cadastral a pedido do titular ou anonimização de credencial e dados identificadores (`user-anonymize.logic.ts`) |
+| **Player (Atleta Adulto)** | Dado Pessoal Comum | Execução de contrato desportivo e organização de partidas no CT | Enquanto perdurar o cadastro no CT ou na plataforma | Anonimização a pedido do titular via `POST /api/users/[id]/anonymize`; substituição por pseudônimo irreversível (`Atleta Anonimizado`) mantendo telemetria histórica |
+| **Player (Atleta Menor de 18 Anos)** | Dado Pessoal de Menor (Art. 14 LGPD / ECA Digital) | Operação desportiva sob consentimento do responsável legal (`DATA`) | Até atingir a maioridade (18 anos) com transição para emancipação (`EMANCIPATED`) + prazo legal de guarda | Bloqueio imediato da operação em caso de revogação de consentimento; randomização pública automática (`Atleta #XXXX`); anonimização integral dos cadastros ao fim do vínculo |
+| **GuardianLink / GuardianInvite** | Dado Pessoal de Responsável Legal | Cumprimento de obrigação legal e validação de tutela parental | Vigência da tutela (até 18 anos do menor) + 5 anos para fins probatórios perante ANPD e Judiciário | Invalidação atômica de convites expirados (72h); retenção de metadados de auditoria do aceite |
+| **ConsentRecord / ConsentEvent** | Registro de Conformidade Regulatória (Prova Jurídica) | Cumprimento de obrigação legal (Art. 16, I da LGPD) | 5 anos após a cessação do tratamento de dados ou revogação do consentimento | Registros com `onDelete: Restrict` no Prisma; arquivo morto auditável imutável com `ipHash` e `contentHash` |
+| **Match / PointLog (Telemetria Desportiva)** | Dados Desportivos Técnicos (Estatísticas de Jogo) | Legítimo interesse desportivo e execução de contrato | Permanente (histórico de torneios e rankings) | Em caso de exclusão de conta de um atleta, o placar e histórico dos pontos são desvinculados do CPF/nome civil e mantidos anonimizados para preservar o histórico do adversário |
+| **MatchComment / Notas de Áudio** | Comunicação Tática / Anotações de Áudio | Acompanhamento técnico da partida pelo anotador/CT | Enquanto durar a partida ativa no CT ou até solicitação de exclusão | Exclusão pontual sob demanda de qualquer nota de áudio ou comentário (sem afetar o placar esportivo); exclusão após arquivamento da partida |
+| **LoginAttempt / Registros de Conexão** | Logs de Conexão e Segurança | Cumprimento de obrigação legal (Marco Civil da Internet, Art. 15) e prevenção a fraudes (Art. 7º, IX) | Mínimo de 6 meses (exigência legal do Marco Civil) a 1 ano (detecção de intrusão) | Rotina periódica de expurgo automatizado para registros com mais de 12 meses |
+| **AuditLog** | Trilha de Auditoria de Segurança | Segurança da informação e prestação de contas (Art. 37 da LGPD) | 5 anos a partir do registro | Higienização nativa (sem PII pura no `meta`); guarda protegida para investigação forense |

@@ -16,7 +16,7 @@
  * - logger.persist - State persistence (undo/redo)
  */
 
-import { devLog, devDebug } from "./logger-dev.helpers";
+import { devLog, devDebug } from "./logger-dev-env";
 import { pointLogger } from "./logger-point";
 import { matchLogger, sessionLogger, syncLogger, persistLogger } from "./logger-domain";
 

@@ -1,16 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { flexibleIdValidator } from '@/schemas/common';
 import { withRLSHandler } from '@/lib/auth';
 import { EndSessionInputSchema } from '@/schemas/contracts';
 import { getSessionWithMatch, getMatchScoreState, updateSession } from '@/services/sessionService';
 import { logger } from '@/lib/logger';
 
+const ParamsSchema = z.object({
+  id: flexibleIdValidator,
+  sessionId: flexibleIdValidator,
+});
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; sessionId: string }> }
 ) {
+  const parsedParams = ParamsSchema.safeParse(await params);
+  if (!parsedParams.success) {
+    return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Parâmetros inválidos', details: parsedParams.error.flatten() }, { status: 400 });
+  }
+  const { id: matchId, sessionId } = parsedParams.data;
+
   return withRLSHandler(request, 'ANNOTATOR', async (user) => {
     try {
-      const { id: matchId, sessionId } = await params;
       if (!user) {
         return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
       }

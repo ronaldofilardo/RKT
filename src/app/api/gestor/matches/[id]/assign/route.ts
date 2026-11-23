@@ -4,9 +4,12 @@ import { prisma } from '@/lib/prisma';
 import { reportApiError, validatedRequest } from '@/lib/api.logic';
 import { withAccessHandler } from '@/lib/access-handler';
 import { ApiError, NotFoundError } from '@/lib/errors';
+import { flexibleIdValidator } from '@/schemas/common';
 import { logger } from '@/lib/logger';
 import { getGestorCtId, denyGestor } from '../../../_logic';
 import { executeMatchCoachAssignmentTx } from './match-assign.logic';
+
+const ParamsSchema = z.object({ id: flexibleIdValidator });
 
 const BodySchema = z.object({
   coachUserId: z.string().optional(),
@@ -19,12 +22,16 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const parsedParams = ParamsSchema.safeParse(await params);
+  if (!parsedParams.success) {
+    return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'ID de partida inválido', details: parsedParams.error.flatten() }, { status: 400 });
+  }
   const ctId = await getGestorCtId(request);
   if (!ctId) return denyGestor('Gestor não encontrado');
 
   return withAccessHandler(request, 'platform:memberships:manage', () => ({ ctId }), async ({ user, actor }) => {
     try {
-      const { id: matchId } = await params;
+      const { id: matchId } = parsedParams.data;
       const body = await validatedRequest(request, BodySchema);
       const targetCoachIds = body.coachUserIds && body.coachUserIds.length > 0
         ? Array.from(new Set(body.coachUserIds.filter(Boolean)))

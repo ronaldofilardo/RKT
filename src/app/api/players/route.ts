@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAccessHandler } from '@/lib/access-handler';
 import { listPlayers } from '@/services/playerService';
-import { handlePlayersPost } from './players-post.logic';
+import { createPlayerFromPost } from './players-post.logic';
 
 export async function GET(request: NextRequest) {
   return withAccessHandler(request, 'athlete:search', null, async ({ actor, user }) => {
@@ -30,6 +30,6 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   return withAccessHandler(request, 'athlete:create', null, async ({ user }) => {
     const body = await request.json().catch(() => null);
-    return handlePlayersPost(body, user.id);
+    return createPlayerFromPost(body, user.id);
   });
 }

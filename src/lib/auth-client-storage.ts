@@ -24,11 +24,8 @@ export function writeToSessionOnly(data: {
   sessionStorage.setItem(USER_ID_KEY, data.userId);
   sessionStorage.setItem(USER_ROLE_KEY, data.userRole);
   if (data.userName) sessionStorage.setItem(USER_NAME_KEY, data.userName);
-  if (data.accessToken) {
-    sessionStorage.setItem('access_token', data.accessToken);
-  } else {
-    sessionStorage.removeItem('access_token');
-  }
+  // SB-04: Token JWT não é gravado em sessionStorage; mantido exclusivamente em cookie HttpOnly.
+  sessionStorage.removeItem('access_token');
   clearRedirectingFlag();
 }
 

@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { canReadMatch } from '@/core/access';
 import { withAccessHandler } from '@/lib/access-handler';
 import { getMatchAccess } from '@/services/match-access-service';
 import { listSessions } from '@/services/sessionService';
 import { logger } from '@/lib/logger';
 import { postSessionResponse } from './session-post.logic';
+import { flexibleIdValidator } from '@/schemas/common';
+
+const ParamsSchema = z.object({ id: flexibleIdValidator });
 
 export async function GET(
   request: NextRequest,
@@ -12,7 +16,9 @@ export async function GET(
 ) {
   return withAccessHandler(request, null, null, async ({ actor }) => {
     try {
-      const { id: matchId } = await params;
+      const parsedParams = ParamsSchema.safeParse(await params);
+      if (!parsedParams.success) return NextResponse.json({ error: 'INVALID_PARAMS' }, { status: 400 });
+      const { id: matchId } = parsedParams.data;
       const matchAccess = await getMatchAccess(matchId);
       if (matchAccess && !canReadMatch(actor, matchAccess)) {
         return NextResponse.json(

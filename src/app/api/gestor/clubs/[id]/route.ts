@@ -1,28 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { flexibleIdValidator } from '@/schemas/common';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { reportApiError } from '@/lib/api.logic';
 import { withAccessHandler } from '@/lib/access-handler';
 import { getGestorCtId, denyGestor } from '../../_logic';
 
+const ParamsSchema = z.object({ id: flexibleIdValidator });
+const ClubStatusSchema = z.object({ status: z.enum(['ACTIVE', 'SUSPENDED']) });
+
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const parsedParams = ParamsSchema.safeParse(await context.params);
+  if (!parsedParams.success) {
+    return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'ID de clube inválido.', details: parsedParams.error.flatten() }, { status: 400 });
+  }
+  const { id } = parsedParams.data;
+
   const ctId = await getGestorCtId(request);
   if (!ctId) return denyGestor('Gestor não encontrado');
-
-  const { id } = await context.params;
 
   return withAccessHandler(request, 'platform:memberships:manage', () => ({ ctId }), async ({ user }) => {
     try {
       const body = await request.json().catch(() => null);
-      if (!body) {
-        return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Corpo inválido' }, { status: 400 });
+      const parsedBody = ClubStatusSchema.safeParse(body);
+      if (!parsedBody.success) {
+        return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Status inválido.', details: parsedBody.error.flatten() }, { status: 400 });
       }
-
-      const { status } = body;
-
-      if (!['ACTIVE', 'SUSPENDED'].includes(status)) {
-        return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
-      }
+      const { status } = parsedBody.data;
 
       const club = await prisma.trainingCenter.findUnique({
         where: { id },

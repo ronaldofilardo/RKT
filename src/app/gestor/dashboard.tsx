@@ -13,7 +13,7 @@ import { SolicitacoesTable } from './solicitacoes-table';
 import { ClubInfo } from './club-info';
 import { DashboardHeader } from './dashboard-header';
 import { DashboardChrome } from '@/app/dashboard/components/DashboardChrome';
-import { requestDeleteMatch, requestAnnotateMatch } from './gestor-match-actions.logic';
+import { requestAnnotateMatch } from './gestor-match-actions.logic';
 import { useGestorDashboardData } from './use-gestor-dashboard-data';
 import { GestorDashboardModals } from './gestor-dashboard-modals';
 
@@ -38,6 +38,7 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
   const [newAthleteOpen, setNewAthleteOpen] = useState(false);
   const [matchToAssign, setMatchToAssign] = useState<ClubMatchItem | null>(null);
   const [matchToEdit, setMatchToEdit] = useState<ClubMatchItem | null>(null);
+  const [matchToDelete, setMatchToDelete] = useState<ClubMatchItem | null>(null);
 
   const gestorCtId = me.memberships.find((m) => m.kind === 'GESTOR' && m.status === 'ACTIVE')?.ctId
     ?? me.memberships.find((m) => m.kind === 'GESTOR')?.ctId ?? null;
@@ -59,7 +60,7 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
             <ClubMatchesTable
               matches={matches} externalMatches={externalMatches} currentUserId={me.user.id}
               onCreateMatch={() => router.push(toAreaPath('/match/new?from=gestor') as any)} onAssignCoach={setMatchToAssign}
-              onDeleteMatch={async (m) => { const ok = await requestDeleteMatch(m); if (ok) fetchMatchesData(); }}
+              onDeleteMatch={setMatchToDelete}
               onAnnotateMatch={(m) => requestAnnotateMatch(m, (path) => router.push(toAreaPath(path) as any))}
               onEditMatchInfo={setMatchToEdit}
             />
@@ -71,6 +72,7 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
           newAthleteOpen={newAthleteOpen} setNewAthleteOpen={setNewAthleteOpen} gestorCtId={gestorCtId}
           matchToAssign={matchToAssign} setMatchToAssign={setMatchToAssign}
           matchToEdit={matchToEdit} setMatchToEdit={setMatchToEdit}
+          matchToDelete={matchToDelete} setMatchToDelete={setMatchToDelete}
           coaches={coaches} fetchCoachesData={fetchCoachesData} fetchAthletesData={fetchAthletesData} fetchMatchesData={fetchMatchesData}
         />
       </div>

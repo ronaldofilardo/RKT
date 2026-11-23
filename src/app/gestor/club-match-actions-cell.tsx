@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { ClubMatchItem } from './types';
 import { TimelineIcon } from './timeline-icon';
-import { opensLiveView } from './club-match-helpers';
+import { opensLiveView } from './club-match-formatters';
 
 interface ActionsCellProps {
   match: ClubMatchItem;

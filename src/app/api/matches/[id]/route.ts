@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { flexibleIdValidator } from '@/schemas/common';
 import { prisma } from '@/lib/prisma';
 import { withAccessHandler } from '@/lib/access-handler';
 import { MATCH_SELECT } from './route-match-select';
@@ -8,12 +10,19 @@ import { handleMatchDelete } from './route-delete.logic';
 import { resolveGetMatchAccess, type LoadedMatchForGet } from './route-get-access.logic';
 import { isCreatorOrActiveAnnotator } from '@/services/spectator-share.service';
 
+const ParamsSchema = z.object({ id: flexibleIdValidator });
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const parsedParams = ParamsSchema.safeParse(await params);
+  if (!parsedParams.success) {
+    return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'ID de partida inválido', details: parsedParams.error.flatten() }, { status: 400 });
+  }
+  const { id } = parsedParams.data;
+
   return withAccessHandler(request, null, null, async ({ actor }) => {
-    const { id } = await params;
     const match = await prisma.match.findFirst({
       where: { id, deletedAt: null },
       select: {
@@ -44,8 +53,13 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const parsedParams = ParamsSchema.safeParse(await params);
+  if (!parsedParams.success) {
+    return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'ID de partida inválido', details: parsedParams.error.flatten() }, { status: 400 });
+  }
+  const { id } = parsedParams.data;
+
   return withAccessHandler(request, 'match:annotate', null, async ({ user }) => {
-    const { id } = await params;
     return handleMatchPut(request, user.id, id);
   });
 }
@@ -56,8 +70,13 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const parsedParams = ParamsSchema.safeParse(await params);
+  if (!parsedParams.success) {
+    return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'ID de partida inválido', details: parsedParams.error.flatten() }, { status: 400 });
+  }
+  const { id } = parsedParams.data;
+
   return withAccessHandler(request, 'match:annotate', null, async ({ user }) => {
-    const { id } = await params;
     return handleMatchDelete(request, user.id, id);
   });
 }

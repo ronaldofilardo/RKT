@@ -35,11 +35,21 @@ export class MethodNotAllowedError extends ApiError {
  * Erro de rate limit
  * 
  * @example
- * throw new RateLimitError('login', 10, '1h');
+ * throw new RateLimitError('login', 10, '1h', 60);
  */
 export class RateLimitError extends ApiError {
-  constructor(endpoint: string, limit: number, window: string) {
-    super('RATE_LIMIT_EXCEEDED', { endpoint, limit, window }, 429);
+  constructor(
+    endpoint: string,
+    limit: number,
+    window: string,
+    public readonly retryAfterSeconds?: number,
+  ) {
+    super(
+      'RATE_LIMIT_EXCEEDED',
+      { endpoint, limit, window, retryAfterSeconds },
+      429,
+      `Muitas tentativas. Tente novamente em ${window}.`,
+    );
     this.name = 'RateLimitError';
   }
 }

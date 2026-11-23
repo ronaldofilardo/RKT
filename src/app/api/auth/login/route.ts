@@ -47,18 +47,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (!chosenContextId) {
-      if (availableContexts.length === 1) {
-        chosenContextId = availableContexts[0].id;
-      } else {
-        const ctContexts = availableContexts.filter((c) => c.type === 'CT');
-        if (ctContexts.length === 1) {
-          chosenContextId = ctContexts[0].id;
-        }
-      }
+      const ctContexts = availableContexts.filter((c) => c.type === 'CT');
+      chosenContextId = availableContexts.length === 1 ? availableContexts[0].id : (ctContexts.length === 1 ? ctContexts[0].id : null);
     }
-    if (chosenContextId && !availableContexts.some((c) => c.id === chosenContextId)) {
-      chosenContextId = null;
-    }
+    if (chosenContextId && !availableContexts.some((c) => c.id === chosenContextId)) chosenContextId = null;
 
     const actor = await getActor(user.id, chosenContextId).catch(() => null);
     const isGuardian = Boolean(actor?.guardianOfPlayerIds?.length);

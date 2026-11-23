@@ -18,7 +18,7 @@ export interface GuardianSignupDeps {
  * A0.21 (Fase 1): cadastro atômico do responsável legal — `User` + `Player` +
  * `GuardianLink` + `ConsentRecord` numa única transação, com monotutela estrita.
  */
-export async function handleGuardianSignup(deps: GuardianSignupDeps): Promise<NextResponse> {
+export async function registerGuardianSignup(deps: GuardianSignupDeps): Promise<NextResponse> {
   const { input, email, cpfValue, passwordHash, ipHash } = deps;
   const profile = input.guardianProfile;
   if (!profile) {

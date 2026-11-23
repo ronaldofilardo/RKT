@@ -38,9 +38,6 @@ export function ContextSwitcher({
       });
       if (res.ok) {
         const data = await res.json().catch(() => null);
-        if (data?.accessToken && typeof window !== 'undefined') {
-          sessionStorage.setItem('access_token', data.accessToken);
-        }
         setIsOpen(false);
         await purgeOfflineCaches();
         if (data?.targetUrl && typeof window !== 'undefined') {

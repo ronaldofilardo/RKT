@@ -1,5 +1,5 @@
 import type { AffiliateAthleteItem } from './affiliates.types';
-import { formatTechnicalSummary, formatLocation, formatRankings } from './affiliates-helpers';
+import { formatTechnicalSummary, formatLocation, formatRankings } from './affiliates-formatters';
 
 interface AffiliatesRowProps {
   athlete: AffiliateAthleteItem;

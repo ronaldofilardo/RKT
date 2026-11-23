@@ -9,9 +9,7 @@ export function useCoachesTableHandlers({
   onRefresh?: () => void;
 }) {
   const [editing, setEditing] = useState<CoachItem | null>(null);
-  const [linkData, setLinkData] = useState<{ open: boolean; name: string; token: string; expiresAt?: string }>({
-    open: false, name: '', token: '',
-  });
+  const [linkData, setLinkData] = useState<{ open: boolean; name: string; token: string; expiresAt?: string }>({ open: false, name: '', token: '' });
   const { toast } = useToast();
 
   const handleGenerateLink = async (c: CoachItem) => {
@@ -57,19 +55,30 @@ export function useCoachesTableHandlers({
     }
   };
 
-  const handleDelete = async (c: CoachItem) => {
-    if (!window.confirm(`Excluir o treinador "${c.user.name}"? Esta ação é irreversível para a listagem ativa.`)) return;
+  const [coachToDelete, setCoachToDelete] = useState<CoachItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const confirmDelete = async () => {
+    if (!coachToDelete) return;
+    setDeleting(true);
     try {
-      const res = await fetch(`/api/gestor/coaches/${c.user.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/gestor/coaches/${coachToDelete.user.id}`, { method: 'DELETE' });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.message || 'Erro ao excluir treinador');
       }
+      setCoachToDelete(null);
       onRefresh?.();
       toast({ type: 'success', message: 'Treinador excluído com sucesso!' });
     } catch (err) {
       toast({ type: 'error', message: err instanceof Error ? err.message : 'Erro ao excluir treinador' });
+    } finally {
+      setDeleting(false);
     }
+  };
+
+  const handleDelete = (c: CoachItem) => {
+    setCoachToDelete(c);
   };
 
   return {
@@ -77,6 +86,10 @@ export function useCoachesTableHandlers({
     setEditing,
     linkData,
     setLinkData,
+    coachToDelete,
+    setCoachToDelete,
+    deleting,
+    confirmDelete,
     handleGenerateLink,
     handleSave,
     handleToggleCanInsertAthletes,

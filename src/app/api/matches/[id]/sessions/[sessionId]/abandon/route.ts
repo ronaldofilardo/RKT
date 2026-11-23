@@ -3,6 +3,7 @@ import { logger } from '@/lib/logger';
 import { withAccessHandler } from '@/lib/access-handler';
 import { MarkSessionAbandonedInputSchema } from '@/schemas/contracts';
 import { getSessionWithMatch, getMatchScoreState, updateSession } from '@/services/sessionService';
+import { SessionPathParamsSchema } from '@/schemas/comment';
 
 export async function POST(
   request: NextRequest,
@@ -10,7 +11,9 @@ export async function POST(
 ) {
   return withAccessHandler(request, null, null, async ({ user }) => {
     try {
-      const { id: matchId, sessionId } = await params;
+      const parsedParams = SessionPathParamsSchema.safeParse(await params);
+      if (!parsedParams.success) return NextResponse.json({ error: 'INVALID_PARAMS' }, { status: 400 });
+      const { id: matchId, sessionId } = parsedParams.data;
       if (!user) {
         return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
       }

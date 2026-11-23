@@ -69,7 +69,7 @@ describe('POST /api/auth/context', () => {
     expect(json.accessToken).toBe('jwt-new-token');
     expect(json.targetUrl).toBe('/clube/treinador');
     expect(res.cookies.get('rkt_access_token')?.value).toBe('jwt-new-token');
-    expect(res.cookies.get('access_token')?.value).toBe('jwt-new-token');
+    expect(res.cookies.get('access_token')).toBeUndefined();
   });
 });
 

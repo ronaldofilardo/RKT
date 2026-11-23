@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { flexibleIdValidator } from '@/schemas/common';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { reportApiError } from '@/lib/api.logic';
@@ -6,10 +8,16 @@ import { withAccessHandler } from '@/lib/access-handler';
 import { getGestorCtId, denyGestor } from '../../../_logic';
 import { simulateGuardianConsent } from './simulate-consent.logic';
 
+const ParamsSchema = z.object({ id: flexibleIdValidator });
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const parsedParams = ParamsSchema.safeParse(await params);
+  if (!parsedParams.success) {
+    return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'ID de atleta inválido', details: parsedParams.error.flatten() }, { status: 400 });
+  }
   const ctId = await getGestorCtId(request);
   if (!ctId) return denyGestor('Gestor não encontrado');
 

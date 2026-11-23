@@ -19,8 +19,6 @@ export function useAdminPage() {
   const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
 
-  const token = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
-
   useEffect(() => {
     let active = true;
     void (async () => {
@@ -46,18 +44,18 @@ export function useAdminPage() {
   const loadUsers = useCallback(async () => {
     setError(null);
     try {
-      const data = await adminClient.listUsers(token);
+      const data = await adminClient.listUsers(null);
       setUsers(data.data?.users ?? data.users ?? []);
     } catch {
       setError('Erro ao carregar usuários');
     }
-  }, [token]);
+  }, []);
 
   const updateUserRole = async (userId: string) => {
     if (!newRole) return;
     setError(null);
     try {
-      await adminClient.updateUserRole(userId, newRole, token);
+      await adminClient.updateUserRole(userId, newRole, null);
       setEditingUser(null);
       setNewRole('');
       await loadUsers();
@@ -73,7 +71,7 @@ export function useAdminPage() {
     setError(null);
     setDeletingUser(true);
     try {
-      await adminClient.deleteUser(userToDelete.id, token);
+      await adminClient.deleteUser(userToDelete.id, null);
       await loadUsers();
     } catch {
       setError('Erro ao excluir usuário');

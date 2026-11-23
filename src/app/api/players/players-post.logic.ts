@@ -22,7 +22,7 @@ function actorCreatingProfile(actor: Actor): CreatingProfile | null {
   return null;
 }
 
-export async function handlePlayersPost(
+export async function createPlayerFromPost(
   body: unknown,
   userId: string,
 ): Promise<NextResponse> {

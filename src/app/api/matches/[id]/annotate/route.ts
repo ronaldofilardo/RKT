@@ -5,6 +5,9 @@ import { reportApiError } from '@/lib/api.logic';
 import { logger } from '@/lib/logger';
 import { resolveOrCreateAnnotation } from '@/services/match-resolve-annotation.logic';
 import { resolveAnnotationCtId } from '@/services/match-ct-id.logic';
+import { flexibleIdValidator } from '@/schemas/common';
+
+const ParamsSchema = z.object({ id: flexibleIdValidator });
 
 const AnnotateBodySchema = z.object({
   mode: z.enum(['resolve', 'create']).optional().default('resolve'),
@@ -20,7 +23,11 @@ export async function POST(
 ) {
   return withAccessHandler(request, 'match:create', null, async ({ user, actor }) => {
     try {
-      const { id } = await params;
+      const parsedParams = ParamsSchema.safeParse(await params);
+      if (!parsedParams.success) {
+        return NextResponse.json({ error: 'INVALID_PARAMS' }, { status: 400 });
+      }
+      const { id } = parsedParams.data;
       const rawBody = await request.json().catch(() => ({}));
       const parsed = AnnotateBodySchema.safeParse(rawBody);
       const mode = parsed.success ? parsed.data.mode : 'resolve';

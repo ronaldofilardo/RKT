@@ -18,8 +18,8 @@ export function resolveLoginArea(
   return undefined;
 }
 
-// Cookies de sessão: `rkt_access_token` httpOnly e `access_token` legível pelo
-// front; sem maxAge quando o usuário ainda precisa trocar a senha.
+// Cookies de sessão: exclusivamente `rkt_access_token` httpOnly (SB-04);
+// sem maxAge quando o usuário ainda precisa trocar a senha.
 export function applyLoginCookies(
   response: NextResponse,
   accessToken: string,
@@ -33,8 +33,4 @@ export function applyLoginCookies(
     ...(mustChangePassword ? {} : { maxAge: 60 * 60 * 2 }),
   };
   response.cookies.set('rkt_access_token', accessToken, cookieOpts);
-  response.cookies.set('access_token', accessToken, {
-    ...cookieOpts,
-    httpOnly: false,
-  });
 }

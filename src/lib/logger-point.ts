@@ -1,4 +1,4 @@
-import { isDevelopment, devLog } from "./logger-dev.helpers";
+import { isDevelopment, devLog } from "./logger-dev-env";
 
 export const pointLogger = {
   request: (payload: unknown) => {

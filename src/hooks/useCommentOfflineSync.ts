@@ -27,8 +27,7 @@ export function useCommentOfflineSync() {
 
   useEffect(() => {
     const onNetworkOnline = () => {
-      const token = sessionStorage.getItem('access_token');
-      if (token) flushComments(token);
+      flushComments('');
     };
     window.addEventListener('online', onNetworkOnline);
     return () => window.removeEventListener('online', onNetworkOnline);

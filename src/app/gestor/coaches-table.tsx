@@ -6,6 +6,7 @@ import { EditarTreinadorModal } from './editar-treinador-modal';
 import { LinkCopyModal } from './link-copy-modal';
 import { CoachRow } from './coach-row';
 import { useCoachesTableHandlers } from './use-coaches-table';
+import { ConfirmAlertDialog } from '@/components/ConfirmAlertDialog';
 
 interface CoachesTableProps {
   coaches: CoachItem[];
@@ -21,6 +22,7 @@ export function CoachesTable({
 }: CoachesTableProps) {
   const {
     editing, setEditing, linkData, setLinkData,
+    coachToDelete, setCoachToDelete, deleting, confirmDelete,
     handleGenerateLink, handleSave, handleToggleCanInsertAthletes, handleDelete,
   } = useCoachesTableHandlers({ onRefresh });
 
@@ -78,6 +80,16 @@ export function CoachesTable({
         />
       )}
       <LinkCopyModal open={linkData.open} onOpenChange={(op) => setLinkData((prev) => ({ ...prev, open: op }))} title="Link de Redefinição de Senha" recipientName={linkData.name} token={linkData.token} expiresAt={linkData.expiresAt} />
+      <ConfirmAlertDialog
+        open={Boolean(coachToDelete)}
+        title="Excluir treinador?"
+        description={coachToDelete ? `Excluir o treinador "${coachToDelete.user.name}"? Esta ação é irreversível para a listagem ativa.` : ''}
+        confirmLabel="Excluir"
+        variant="danger"
+        loading={deleting}
+        onConfirm={confirmDelete}
+        onCancel={() => setCoachToDelete(null)}
+      />
     </div>
   );
 }

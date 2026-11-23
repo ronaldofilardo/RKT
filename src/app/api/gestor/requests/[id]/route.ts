@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { flexibleIdValidator } from '@/schemas/common';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { getGestorCtId, denyGestor } from '../../_logic';
@@ -8,19 +10,27 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
+const ParamsSchema = z.object({ id: flexibleIdValidator });
+const RequestDecisionSchema = z.object({ decision: z.enum(['ACCEPT', 'REJECT']) });
+
 export async function PUT(request: NextRequest, { params }: RouteParams) {
+  const parsedParams = ParamsSchema.safeParse(await params);
+  if (!parsedParams.success) {
+    return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'ID de solicitação inválido.', details: parsedParams.error.flatten() }, { status: 400 });
+  }
+  const { id } = parsedParams.data;
+
   const ctId = await getGestorCtId(request);
   if (!ctId) return denyGestor('Gestor não encontrado.');
-
-  const { id } = await params;
 
   return withAccessHandler(request, 'platform:memberships:manage', () => ({ ctId }), async ({ user }) => {
     try {
       const body = await request.json().catch(() => ({}));
-      const decision = body?.decision;
-      if (decision !== 'ACCEPT' && decision !== 'REJECT') {
-        return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Decisão inválida.' }, { status: 400 });
+      const parsedBody = RequestDecisionSchema.safeParse(body);
+      if (!parsedBody.success) {
+        return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Decisão inválida.', details: parsedBody.error.flatten() }, { status: 400 });
       }
+      const { decision } = parsedBody.data;
 
       const existing = await prisma.playerCT.findFirst({
         where: { id, ctId, status: 'PENDING' },

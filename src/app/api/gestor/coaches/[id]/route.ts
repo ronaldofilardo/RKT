@@ -6,9 +6,12 @@ import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { reportApiError } from '@/lib/api.logic';
 import { formatZodMessage } from '@/lib/api-response.logic';
+import { flexibleIdValidator } from '@/schemas/common';
 import { isValidCpf } from '@/lib/validators/cpf.validator';
 import { getGestorCtId, denyGestor } from '../../_logic';
 import { updateCoachPermissions } from '../../coaches-logic';
+
+const ParamsSchema = z.object({ id: flexibleIdValidator });
 
 const CoachUpdateSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres').max(120),
@@ -22,10 +25,14 @@ const CoachPermissionSchema = z.object({
 });
 
 export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const parsedParams = ParamsSchema.safeParse(await context.params);
+  if (!parsedParams.success) {
+    return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'ID de treinador inválido', details: parsedParams.error.flatten() }, { status: 400 });
+  }
   const ctId = await getGestorCtId(request);
   if (!ctId) return denyGestor('Gestor não encontrado');
 
-  const { id } = await context.params;
+  const { id } = parsedParams.data;
 
   return withAccessHandler(request, 'platform:memberships:manage', () => ({ ctId }), async ({ user }) => {
     try {
@@ -78,10 +85,14 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
 }
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const parsedParams = ParamsSchema.safeParse(await context.params);
+  if (!parsedParams.success) {
+    return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'ID de treinador inválido', details: parsedParams.error.flatten() }, { status: 400 });
+  }
   const ctId = await getGestorCtId(request);
   if (!ctId) return denyGestor('Gestor não encontrado');
 
-  const { id } = await context.params;
+  const { id } = parsedParams.data;
 
   return withAccessHandler(request, 'platform:memberships:manage', () => ({ ctId }), async ({ user }) => {
     try {

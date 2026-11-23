@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { withAccessHandler } from '@/lib/access-handler';
 import { createShareLink, listShareLinks } from '@/services/spectator-share.service';
 import { CreateShareLinkInputSchema } from '@/schemas/spectate';
+import { flexibleIdValidator } from '@/schemas/common';
+
+const ParamsSchema = z.object({ id: flexibleIdValidator });
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   return withAccessHandler(request, null, null, async ({ user }) => {
-    const { id } = await params;
+    const parsedParams = ParamsSchema.safeParse(await params);
+    if (!parsedParams.success) return NextResponse.json({ error: 'INVALID_PARAMS' }, { status: 400 });
+    const { id } = parsedParams.data;
     const body = await request.json().catch(() => ({}));
     const parsed = CreateShareLinkInputSchema.safeParse(body);
     if (!parsed.success) {
@@ -35,7 +41,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   return withAccessHandler(request, null, null, async ({ user }) => {
-    const { id } = await params;
+    const parsedParams = ParamsSchema.safeParse(await params);
+    if (!parsedParams.success) return NextResponse.json({ error: 'INVALID_PARAMS' }, { status: 400 });
+    const { id } = parsedParams.data;
     const result = await listShareLinks(id, user.id);
     if (!result.ok) {
       return NextResponse.json({ error: 'FORBIDDEN', message: 'Acesso negado' }, { status: 403 });

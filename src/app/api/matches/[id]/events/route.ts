@@ -1,12 +1,18 @@
 import { NextRequest } from 'next/server';
+import { z } from 'zod';
 import { subscribeMatch, getMissedEvents } from '@/lib/match-events';
 import { withMatchCommentAccess } from '@/lib/match-comment-access';
+import { flexibleIdValidator } from '@/schemas/common';
+
+const ParamsSchema = z.object({ id: flexibleIdValidator });
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
+  const parsedParams = ParamsSchema.safeParse(await params);
+  if (!parsedParams.success) return new Response('Invalid params', { status: 400 }) as unknown as import('next/server').NextResponse;
+  const { id } = parsedParams.data;
   return withMatchCommentAccess(request, id, 'report:view', async () => {
     const lastEventId =
       request.headers.get('last-event-id') ??

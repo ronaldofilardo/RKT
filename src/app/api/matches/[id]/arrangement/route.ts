@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { flexibleIdValidator } from '@/schemas/common';
 import { prisma } from '@/lib/prisma';
 import { withRLSHandler } from '@/lib/auth';
 import { ArrangementInputSchema } from '@/schemas/contracts';
@@ -7,13 +9,20 @@ import type { DoublesConfig, DoublesArrangement } from '@/core/scoring/types';
 import { logger } from '@/lib/logger';
 import { updateArrangementTransaction } from './arrangement-transaction.logic';
 
+const ParamsSchema = z.object({ id: flexibleIdValidator });
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const parsedParams = ParamsSchema.safeParse(await params);
+  if (!parsedParams.success) {
+    return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'ID de partida inválido', details: parsedParams.error.flatten() }, { status: 400 });
+  }
+  const { id } = parsedParams.data;
+
   return withRLSHandler(request, 'ANNOTATOR', async () => {
     try {
-      const { id } = await params;
       const body = await request.json();
       const parsed = ArrangementInputSchema.safeParse(body);
 

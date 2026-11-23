@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { CURRENT_TERMS_VERSION } from '@/core/access';
 import { ensureAthletePlayer } from './signup-athlete.logic';
-import { handleGuardianSignup } from './signup-guardian.logic';
+import { registerGuardianSignup } from './signup-guardian.logic';
 import { validateAthleteSignupAge } from './signup-athlete-validation.logic';
 import type { GuardianProfileInput } from '@/schemas/guardian';
 
@@ -19,7 +19,7 @@ export type SignupInput = {
   guardianProfile?: GuardianProfileInput | null;
 };
 
-export async function handleSignupPost(input: SignupInput, ipHash: string): Promise<NextResponse> {
+export async function registerUserSignup(input: SignupInput, ipHash: string): Promise<NextResponse> {
   const { name, identifier, password, role, cpf: cpfRaw, birthDate: birthDateRaw, origem } = input;
   const trimmed = identifier.trim();
   const isEmail = trimmed.includes('@');
@@ -43,7 +43,7 @@ export async function handleSignupPost(input: SignupInput, ipHash: string): Prom
 
   // A0.21: cadastro de responsável é atômico (User + Player + GuardianLink + ConsentRecord).
   if (role === 'RESPONSAVEL') {
-    return handleGuardianSignup({ input, email, cpfValue, passwordHash, ipHash });
+    return registerGuardianSignup({ input, email, cpfValue, passwordHash, ipHash });
   }
 
   const user = await prisma.user.create({
@@ -85,7 +85,7 @@ export async function handleSignupPost(input: SignupInput, ipHash: string): Prom
 export async function signupPost(request: Request, ipHash: string): Promise<NextResponse> {
   try {
     const body = (await request.json().catch(() => null)) as SignupInput;
-    return handleSignupPost(body, ipHash);
+    return registerUserSignup(body, ipHash);
   } catch (error) {
     logger.error('[SIGNUP POST]', error);
     return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });

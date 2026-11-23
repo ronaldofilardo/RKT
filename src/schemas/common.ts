@@ -10,15 +10,9 @@ import { z } from "zod";
 // Seed / Test IDs: e.g. seed_player_alcaraz, seed_player_sinner
 export const flexibleIdValidator = z
   .string()
+  .min(1, "ID cannot be empty")
+  .max(128, "ID too long")
   .refine(
-    (id) =>
-      /^[a-z0-9]{24,25}$/.test(id) ||
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        id,
-      ) ||
-      /^[a-z0-9]{2,20}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        id,
-      ) ||
-      /^(seed|test)_[a-zA-Z0-9_-]{1,64}$/.test(id),
-    "Must be a valid CUID, UUID or prefixed UUID",
+    (id) => /^[a-zA-Z0-9_-]{1,128}$/.test(id),
+    "Must be a valid identifier containing only alphanumeric characters, underscores or hyphens",
   );

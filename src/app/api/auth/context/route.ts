@@ -47,10 +47,6 @@ export async function POST(request: NextRequest) {
       ...cookieOpts,
       httpOnly: true,
     });
-    response.cookies.set('access_token', result.accessToken, {
-      ...cookieOpts,
-      httpOnly: false,
-    });
 
     return response;
   } catch (error) {

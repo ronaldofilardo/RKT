@@ -53,16 +53,17 @@ export function clubMatchToDashboardPayload(m: ClubMatchItem): DashboardMatchPay
   };
 }
 
-export async function requestDeleteMatch(match: ClubMatchItem): Promise<boolean> {
-  const confirmed = window.confirm('Deseja realmente excluir esta partida?');
-  if (!confirmed) return false;
-
+export async function executeDeleteMatch(match: ClubMatchItem): Promise<boolean> {
   const url = match.isTemplate || match.isPublicTemplate
     ? `/api/matches/${match.id}/template`
     : `/api/matches/${match.id}`;
 
   const res = await fetch(url, { method: 'DELETE' });
   return res.ok;
+}
+
+export async function requestDeleteMatch(match: ClubMatchItem): Promise<boolean> {
+  return executeDeleteMatch(match);
 }
 
 export async function requestAnnotateMatch(

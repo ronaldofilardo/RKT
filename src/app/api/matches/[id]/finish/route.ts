@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { withAccessHandler } from '@/lib/access-handler';
 import { prisma } from '@/lib/prisma';
@@ -8,6 +9,9 @@ import { FinishMatchInputSchema } from '@/schemas/contracts';
 import { emitMatchEvent } from '@/lib/match-events';
 import { checkCanModifyMatchState } from '../state/state-route-guards.logic';
 import { markAssignedNotificationsRead } from './finish-notify.logic';
+import { flexibleIdValidator } from '@/schemas/common';
+
+const ParamsSchema = z.object({ id: flexibleIdValidator });
 
 export async function POST(
   request: NextRequest,
@@ -15,7 +19,9 @@ export async function POST(
 ) {
   return withAccessHandler(request, null, null, async ({ user }) => {
     try {
-      const { id } = await params;
+      const parsedParams = ParamsSchema.safeParse(await params);
+      if (!parsedParams.success) return NextResponse.json({ error: 'INVALID_PARAMS' }, { status: 400 });
+      const { id } = parsedParams.data;
       const body = await request.json().catch(() => null);
       const parsed = FinishMatchInputSchema.safeParse(body);
 

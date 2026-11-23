@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { flexibleIdValidator } from '@/schemas/common';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { reportApiError } from '@/lib/api.logic';
 import { withAccessHandler } from '@/lib/access-handler';
+
+const ParamsSchema = z.object({ id: flexibleIdValidator });
 
 const UserDataSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres').max(120),
@@ -17,7 +20,11 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await params;
+  const parsedParams = ParamsSchema.safeParse(await params);
+  if (!parsedParams.success) {
+    return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'ID de usuário inválido', details: parsedParams.error.flatten() }, { status: 400 });
+  }
+  const { id } = parsedParams.data;
   return withAccessHandler(
     request,
     'platform:users:manage',

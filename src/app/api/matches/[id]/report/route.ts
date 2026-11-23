@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { withAccessHandler } from '@/lib/access-handler';
-
 import { getMatch, findAbandonedSessionSnapshot } from '@/services/matchService';
 import { canReadMatchComments } from '@/core/access';
 import { getMatchAccess } from '@/services/match-access-service';
@@ -13,6 +13,9 @@ import { buildReportSummary } from './report-summary.logic';
 import { buildReportResponse } from './report-payload.logic';
 import { checkReportAccess } from './report-access.logic';
 import { loadReportTimeline } from './report-timeline-build.logic';
+import { flexibleIdValidator } from '@/schemas/common';
+
+const ParamsSchema = z.object({ id: flexibleIdValidator });
 
 export async function GET(
   request: NextRequest,
@@ -20,26 +23,22 @@ export async function GET(
 ) {
   return withAccessHandler(request, 'report:view', null, async ({ actor }) => {
     try {
-      const { id } = await params;
+      const parsedParams = ParamsSchema.safeParse(await params);
+      if (!parsedParams.success) return NextResponse.json({ error: 'INVALID_PARAMS' }, { status: 400 });
+      const { id } = parsedParams.data;
       const match = await getMatch(id);
       const matchAccess = match ? await getMatchAccess(id, match) : null;
 
       const accessError = checkReportAccess(actor, match, matchAccess);
-      if (accessError) {
-        return accessError;
-      }
-      if (!match) {
-        return NextResponse.json({ error: 'MATCH_NOT_FOUND' }, { status: 404 });
-      }
-      if (!matchAccess) {
+      if (accessError) return accessError;
+      if (!match || !matchAccess) {
         return NextResponse.json({ error: 'MATCH_NOT_FOUND' }, { status: 404 });
       }
 
       const engineConfig = buildEngineConfig(match);
       const { pointLogs, scoreEdits, timelinePoints } = await loadReportTimeline(id, engineConfig);
 
-      // Snapshot "atual" devolvido no payload (usado pelo cliente para
-      // continuar a anotação, se a partida ainda não tiver terminado).
+      // Snapshot "atual" devolvido no payload
       let responseScoreState: unknown = match.scoreState ?? null;
       if (!responseScoreState) {
         const abandonedSession = await findAbandonedSessionSnapshot(id);

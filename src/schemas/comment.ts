@@ -37,7 +37,7 @@ export const UpdateCommentInputSchema = z
 export type UpdateCommentInput = z.infer<typeof UpdateCommentInputSchema>;
 
 export const SessionPathParamsSchema = z.object({
-  id: z.string().trim().min(1),
-  sessionId: z.string().trim().min(1),
+  id: flexibleIdValidator,
+  sessionId: flexibleIdValidator,
 });
 export type SessionPathParams = z.infer<typeof SessionPathParamsSchema>;

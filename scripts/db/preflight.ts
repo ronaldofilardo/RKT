@@ -107,6 +107,7 @@ function run(): void {
     ...process.env,
     NODE_ENV: mode === 'production' ? 'production' : 'development',
     DATABASE_URL: target.url,
+    DIRECT_URL: process.env.DIRECT_URL || target.url,
   };
   if (mode === 'production') delete childEnv.DB_TARGET;
   else childEnv.DB_TARGET = mode;

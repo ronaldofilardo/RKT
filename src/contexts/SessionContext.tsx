@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react';
+import { createContext, useContext, useReducer, useCallback } from 'react';
 import type { ScoringState } from '@/core/scoring/types';
 import type { SnapshotStatus } from '@/lib/snapshot.logic';
 import type { SessionData, SessionContextValue, AbandonPayload } from './session-context.types';
@@ -12,11 +12,6 @@ export type { SessionData } from './session-context.types';
 const SessionContext = createContext<SessionContextValue | null>(null);
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [session, dispatch] = useReducer(sessionReducer, initialState);
-  const tokenRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    tokenRef.current = sessionStorage.getItem('access_token');
-  }, []);
 
   const setSession = useCallback((data: Omit<SessionData, 'pendingEditScore'>) => dispatch({ type: 'SET_SESSION', payload: data }), []);
   const setPendingEdit = useCallback((scoreState: ScoringState, floorSets: { player1: number; player2: number } | null) => dispatch({ type: 'SET_PENDING_EDIT', payload: { scoreState, floorSets } }), []);

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { flexibleIdValidator } from '@/schemas/common';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { reportApiError } from '@/lib/api.logic';
@@ -6,16 +8,18 @@ import { withAccessHandler } from '@/lib/access-handler';
 import { getGestorCtId, denyGestor } from '../../../_logic';
 import { provisionAthleteAccount } from '../../../athletes-provision.logic';
 import { isMinor } from '@/core/access/age';
-import {
-  issueAthleteLink,
-  issueGuardianNoticeForMinor,
-  checkMinorConsentStatus,
-} from './regenerate-link-issue.logic';
+import { issueAthleteLink, issueGuardianNoticeForMinor, checkMinorConsentStatus } from './regenerate-link-issue.logic';
+
+const ParamsSchema = z.object({ id: flexibleIdValidator });
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const parsedParams = ParamsSchema.safeParse(await params);
+  if (!parsedParams.success) {
+    return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'ID de atleta inválido', details: parsedParams.error.flatten() }, { status: 400 });
+  }
   const ctId = await getGestorCtId(request);
   if (!ctId) return denyGestor('Gestor não encontrado');
 
@@ -25,16 +29,13 @@ export async function POST(
     () => ({ ctId }),
     async ({ user }) => {
       try {
-        const { id } = await params;
+        const { id } = parsedParams.data;
         const playerCt = await prisma.playerCT.findFirst({
           where: { OR: [{ id }, { playerId: id }, { player: { userId: id } }], ctId },
           include: { player: { include: { user: true } } },
         });
         if (!playerCt) {
-          return NextResponse.json(
-            { error: 'NOT_FOUND', message: 'Vínculo de atleta não encontrado' },
-            { status: 404 },
-          );
+          return NextResponse.json({ error: 'NOT_FOUND', message: 'Vínculo de atleta não encontrado' }, { status: 404 });
         }
 
         let userId = playerCt.player.userId;

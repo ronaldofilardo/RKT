@@ -2,7 +2,7 @@
 
 import type { ClubMatchItem } from './types';
 import { formatClubMatchScore, getMatchFormatDisplayLabel, getMatchFormatShortLabel } from './club-matches.logic';
-import { getStateBadge, getStateLabel, opensLiveView } from './club-match-helpers';
+import { getStateBadge, getStateLabel, opensLiveView } from './club-match-formatters';
 import { resolveCreatorRoleLabel, resolvePlayerAffiliation } from './gestor-match-display.logic';
 import { ClubMatchPlayersCell } from './club-match-players-cell';
 import { ClubMatchActionsCell } from './club-match-actions-cell';

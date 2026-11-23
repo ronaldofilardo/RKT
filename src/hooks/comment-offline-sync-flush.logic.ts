@@ -14,7 +14,7 @@ async function markRetry(
   });
 }
 
-async function processOneComment(
+async function flushPendingComment(
   db: NonNullable<Awaited<ReturnType<typeof getOfflineDb>>>,
   action: QueuedCommentAction,
   accessToken: string,
@@ -71,7 +71,7 @@ export async function flushCommentsQueue(accessToken: string): Promise<void> {
 
   for (const action of pending) {
     try {
-      await processOneComment(db, action, accessToken);
+      await flushPendingComment(db, action, accessToken);
     } catch {
       await markRetry(db, action);
     }

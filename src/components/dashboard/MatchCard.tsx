@@ -6,7 +6,7 @@ import { abbreviateDoublesName } from '@/components/scoring/doubles-name-abbrevi
 import { MatchCardHeader } from './match-card-header';
 import { MatchCardScoreTable } from './match-card-score-grid';
 import { useMatchCardData } from './use-match-card-data';
-import { checkPlayerOwnClub, checkPlayerOwnCoach, determineWinner } from './match-card-helpers';
+import { checkPlayerOwnClub, checkPlayerOwnCoach, determineWinner } from './match-card-ownership';
 import { resolveCreatorBadges } from './match-card-creator-badge.logic';
 import { MatchCardFinishedFooter } from './match-card-finished-footer';
 import { MatchCardScheduledFooter } from './match-card-scheduled-footer';

@@ -48,7 +48,7 @@ export function useSessionLifecycleEffects({
       abandoned = true;
       const snapshot = engineRef.current?.serialize() ?? JSON.stringify(state);
       sessionStorage.setItem("last_abandon_timestamp", Date.now().toString());
-      const token = tokenRef.current ?? sessionStorage.getItem("access_token");
+      const token = tokenRef.current;
       abandonSession(
         { sessionId: sid, matchId, engine: engineRef.current!, token, matchVersion: matchVersionRef.current },
         { enqueuePendingAbandon, toast },

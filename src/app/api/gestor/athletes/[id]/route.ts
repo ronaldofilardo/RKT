@@ -1,13 +1,21 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { flexibleIdValidator } from '@/schemas/common';
 import { withAccessHandler } from '@/lib/access-handler';
 import { getGestorCtId, denyGestor } from '../../_logic';
 import { handleAthletePatch } from './patch-handler.logic';
 import { removeAthleteFromClub } from './remove-from-club.logic';
 
+const ParamsSchema = z.object({ id: flexibleIdValidator });
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const parsedParams = ParamsSchema.safeParse(await params);
+  if (!parsedParams.success) {
+    return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'ID de atleta inválido', details: parsedParams.error.flatten() }, { status: 400 });
+  }
   const ctId = await getGestorCtId(request);
   if (!ctId) return denyGestor('Gestor não encontrado');
 
@@ -23,6 +31,10 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const parsedParams = ParamsSchema.safeParse(await params);
+  if (!parsedParams.success) {
+    return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'ID de atleta inválido', details: parsedParams.error.flatten() }, { status: 400 });
+  }
   const ctId = await getGestorCtId(request);
   if (!ctId) return denyGestor('Gestor não encontrado');
 

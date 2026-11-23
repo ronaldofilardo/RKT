@@ -55,7 +55,7 @@ describe('CONTRACT: POST /api/auth/login — Snapshot do contrato atual (Fase 1 
     });
   });
 
-  it('define cookies rkt_access_token (httpOnly) e access_token (não httpOnly) com maxAge 2h', async () => {
+  it('define exclusivamente o cookie seguro rkt_access_token (httpOnly) com maxAge 2h (SB-04)', async () => {
     const user = {
       id: 'user-1',
       name: 'Anotador Teste',
@@ -76,9 +76,8 @@ describe('CONTRACT: POST /api/auth/login — Snapshot do contrato atual (Fase 1 
     const res = await POST(req);
     const setCookie = res.headers.get('set-cookie');
 
-    expect(setCookie).toContain('rkt_access_token=');
-    expect(setCookie).toContain('HttpOnly');
-    expect(setCookie).toContain('access_token=');
+    expect(res.cookies.get('rkt_access_token')?.value).toBeTruthy();
+    expect(res.cookies.get('access_token')).toBeUndefined();
     expect(setCookie).toContain('Max-Age=7200');
     expect(setCookie).toContain('Path=/');
     expect(setCookie).toContain('SameSite=lax');
