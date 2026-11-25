@@ -50,7 +50,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         matchId, clientRev, broadcastConsentPlayerIds: [], isViewerDirectlyInvolved: false,
       });
       if (!feed.ok) return NextResponse.json({ error: feed.error }, { status: feed.status });
-      return NextResponse.json(feed, { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } });
+      return NextResponse.json(feed, {
+        headers: {
+          'Cache-Control': 'public, max-age=1, stale-while-revalidate=2',
+          ETag: `"${feed.rev}"`,
+        },
+      });
     }
   }
 
@@ -76,7 +81,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const isDirectlyInvolved = actor ? isDirectlyInvolvedInMatch(actor, matchAccess) : false;
   const feed = await getSpectatorFeed({
     matchId, clientRev,
-    broadcastConsentPlayerIds: actor ? [...broadcastConsentPlayerIds] : [],
+    broadcastConsentPlayerIds: isDirectlyInvolved ? [...broadcastConsentPlayerIds] : [],
     isViewerDirectlyInvolved: isDirectlyInvolved,
   });
   if (!feed.ok) return NextResponse.json({ error: feed.error }, { status: feed.status });

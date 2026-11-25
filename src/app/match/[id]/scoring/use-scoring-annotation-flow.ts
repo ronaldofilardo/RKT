@@ -21,6 +21,7 @@ export function useScoringAnnotationFlow(
   const { flow, backToHowEnded, reset } = annotation;
 
   const isServerMissing = !state.match?.initialServerId || state.match?.state === 'SCHEDULED';
+  const isDoubles = state.match?.matchType === 'DOUBLES';
   const disabled = Boolean(derived.isFinished || derived.isProcessingPoint || isServerMissing);
   const isActive = !derived.isFinished;
   const serveStep = state.serveErrorState?.serveStep === 'second' ? 'second' : 'first';
@@ -47,6 +48,7 @@ export function useScoringAnnotationFlow(
 
   return {
     flow,
+    isDoubles,
     isActive,
     hasFirstServeError,
     serveStep: state.serveErrorState?.serveStep ?? 'none',
@@ -57,6 +59,7 @@ export function useScoringAnnotationFlow(
     isAceDetails: isActive && annotation.isAceDetails,
     isServeFault: isActive && annotation.isServeFault,
     isWhereWinner: isActive && annotation.isWhereWinner,
+    isDoublesFormation: isActive && annotation.isDoublesFormation,
     isSelectWinner: isActive && annotation.isSelectWinner,
     isDetails: isActive && annotation.isDetails,
     backToHowEnded,

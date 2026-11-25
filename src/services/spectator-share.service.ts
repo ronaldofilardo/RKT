@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { generateSpectateToken } from '@/lib/spectate-token';
 import { resolveShareOrigin } from './spectator-origin.logic';
 import { canShareMatchWithMinors } from './spectator-share-minor-gate.logic';
+import { canCreateShareLinkForVisibility } from './spectator-visibility.logic';
 
 export const MAX_SPECTATORS_PER_MATCH = 5;
 
@@ -41,6 +42,14 @@ export async function createShareLink(params: {
   const { matchId, userId, label, origin } = params;
   const authorized = await isCreatorOrActiveAnnotator(matchId, userId);
   if (!authorized) return { ok: false as const, error: 'FORBIDDEN' };
+
+  const match = await prisma.match.findUnique({
+    where: { id: matchId },
+    select: { visibility: true },
+  });
+  if (!canCreateShareLinkForVisibility(match?.visibility)) {
+    return { ok: false as const, error: 'MATCH_PRIVATE' };
+  }
 
   const canShare = await canShareMatchWithMinors(matchId);
   if (!canShare) return { ok: false as const, error: 'MINOR_BROADCAST_NOT_CONSENTED' };

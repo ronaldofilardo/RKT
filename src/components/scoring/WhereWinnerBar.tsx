@@ -8,6 +8,7 @@ interface WhereWinnerBarProps {
   onBack?: () => void;
   disabled?: boolean;
   howEnded?: HowPointEnded | null;
+  isDoubles?: boolean;
 }
 
 const DEFAULT_OPTIONS: Array<{ value: WhereWinner; label: string; disabledOption?: boolean }> = [
@@ -25,18 +26,30 @@ const ERROR_OPTIONS: Array<{ value: WhereWinner; label: string; disabledOption?:
   { value: 'passando', label: 'Passando o jogador da rede', disabledOption: false },
 ];
 
-export function WhereWinnerBar({ onSelect, selected, disabled = false, howEnded }: WhereWinnerBarProps) {
+export function WhereWinnerBar({ onSelect, selected, disabled = false, howEnded, isDoubles = false }: WhereWinnerBarProps) {
   const isError = howEnded === 'ERRO_FORCADO' || howEnded === 'ERRO_NAO_FORCADO';
-  const options = isError ? ERROR_OPTIONS : DEFAULT_OPTIONS;
+  const options = isError
+    ? ERROR_OPTIONS.map((opt) =>
+      isDoubles && opt.value === 'devolvendo' ? { ...opt, disabledOption: false } : opt,
+    )
+    : DEFAULT_OPTIONS;
 
   return (
     <section
-      aria-label="Onde estava o vencedor do ponto"
+      aria-label={isDoubles ? 'Onde estava a dupla vencedora' : 'Onde estava o vencedor do ponto'}
       className={`rounded-xl bg-telemetry-card border border-white/10 px-1.5 sm:px-3 py-1 sm:py-1.5 transition-all ${disabled ? 'opacity-40 pointer-events-none cursor-not-allowed select-none' : 'opacity-100 ring-1 ring-white/10'
         }`}
     >
       <h2 className="text-center text-[clamp(10.5px,1.4dvh,12.5px)] font-medium text-telemetry-text-muted mb-1">
-        Onde estava o <strong className="font-semibold text-telemetry-text-primary">VENCEDOR</strong> do ponto?
+        {isDoubles ? (
+          <>
+            Onde estava a <strong className="font-semibold text-telemetry-text-primary">DUPLA VENCEDORA</strong>?
+          </>
+        ) : (
+          <>
+            Onde estava o <strong className="font-semibold text-telemetry-text-primary">VENCEDOR</strong> do ponto?
+          </>
+        )}
       </h2>
       {/* Portrait e landscape ≥ 480px: 4 ou 5 colunas conforme o contexto.
           Landscape < 480px: 2 colunas para os botões não ficarem espremidos/ilegíveis. */}

@@ -10,6 +10,7 @@ import {
   RallyDirecaoSchema,
   RallyGolpeEspSchema,
   RallyDurationSchema,
+  DoublesFormationSchema,
 } from "./rally-enums";
 
 export const RallyDetailsSchema = z.object({
@@ -23,6 +24,7 @@ export const RallyDetailsSchema = z.object({
   subtipo1: RallySubtipo1Schema.optional(),
   subtipo2: RallySubtipo2Schema.optional(),
   duracao: RallyDurationSchema.optional(),
+  doublesFormation: DoublesFormationSchema.optional(),
   previewBalls: z.number().int().min(0),
   rallyLength: z.number().int().min(0).optional(),
   note: z.string().max(500).optional(),

@@ -26,6 +26,7 @@ export const RallyGolpeSchema = z.enum([
   "vfh",
   "vbh",
   "smash",
+  "sw",
   "saque",
   "approach_fh",
   "approach_bh",
@@ -62,3 +63,10 @@ export type RallyGolpeEsp = z.infer<typeof RallyGolpeEspSchema>;
 
 export const RallyDurationSchema = z.enum(["opcao_1", "opcao_2", "opcao_3"]);
 export type RallyDuration = z.infer<typeof RallyDurationSchema>;
+
+export const DoublesFormationSchema = z.enum([
+  "1_fundo_1_rede",
+  "2_fundo",
+  "2_rede",
+]);
+export type DoublesFormation = z.infer<typeof DoublesFormationSchema>;

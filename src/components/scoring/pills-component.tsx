@@ -32,7 +32,7 @@ export function Pills<T extends string>({
   btnActive = defaultBtnActive,
 }: PillsProps<T>) {
   return (
-    <div className="flex flex-nowrap overflow-x-auto scrollbar-hide gap-1.5 pb-0.5 max-w-full">
+    <div className="flex flex-wrap gap-1.5 pb-0.5 max-w-full">
       {options.map(opt => (
         <button
           key={opt}

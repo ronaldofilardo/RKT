@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
+import type { DoublesFormation } from '@/core/scoring/types';
 import type { usePointAnnotationFlow, HowPointEnded, WhereWinner } from '@/components/scoring/usePointAnnotationFlow';
 import type { ScoringPageEffects, ScoringPageState } from './use-scoring-page-chrome';
 
@@ -15,7 +16,7 @@ export function useScoringAnnotationCallbacks(
   onServeAction?: (action: 'ace' | 'out' | 'net') => void,
   currentServer: 'player1' | 'player2' = 'player1',
 ) {
-  const { flow, setStep, setHowEnded, setWhereWinner, setWinner, reset } = flowControls;
+  const { flow, setStep, setHowEnded, setWhereWinner, setDoublesFormation, setWinner, reset } = flowControls;
 
   const cancelAnnotation = useCallback(() => {
     reset('player1');
@@ -70,8 +71,7 @@ export function useScoringAnnotationCallbacks(
     reset('player1');
   }, [handlers, reset]);
 
-  const selectWhereWinner = useCallback((where: WhereWinner) => {
-    setWhereWinner(where);
+  const proceedAfterWhereWinner = useCallback((where: WhereWinner) => {
     if (where === 'devolvendo') {
       const receiver = currentServer === 'player1' ? 'player2' : 'player1';
       setWinner(receiver);
@@ -87,7 +87,24 @@ export function useScoringAnnotationCallbacks(
       return;
     }
     setStep('select-winner');
-  }, [currentServer, setStep, setWhereWinner, setWinner, state]);
+  }, [currentServer, setStep, setWinner, state]);
+
+  const selectWhereWinner = useCallback((where: WhereWinner) => {
+    setWhereWinner(where);
+    const isDoubles = state.match?.matchType === 'DOUBLES';
+    const isError = flow.howEnded === 'ERRO_FORCADO' || flow.howEnded === 'ERRO_NAO_FORCADO';
+    if (isDoubles && !(isError && where === 'devolvendo')) {
+      setStep('doubles-formation');
+      return;
+    }
+    setDoublesFormation(null);
+    proceedAfterWhereWinner(where);
+  }, [flow.howEnded, proceedAfterWhereWinner, setDoublesFormation, setStep, setWhereWinner, state.match?.matchType]);
+
+  const selectDoublesFormation = useCallback((formation: DoublesFormation) => {
+    setDoublesFormation(formation);
+    if (flow.whereWinner) proceedAfterWhereWinner(flow.whereWinner);
+  }, [flow.whereWinner, proceedAfterWhereWinner, setDoublesFormation]);
 
   const selectWinnerFromCard = useCallback((side: 'player1' | 'player2') => {
     if (disabled || flow.step !== 'select-winner') return;
@@ -98,6 +115,6 @@ export function useScoringAnnotationCallbacks(
 
   return {
     cancelAnnotation, selectHowEnded, cancelServe, confirmAce, startServeFault,
-    confirmServeFault, selectWhereWinner, selectWinnerFromCard,
+    confirmServeFault, selectWhereWinner, selectDoublesFormation, selectWinnerFromCard,
   };
 }

@@ -15,6 +15,7 @@ export function golpeLabel(s?: string): string {
     vfh: 'VFH',
     vbh: 'VBH',
     smash: 'Sm',
+    sw: 'SW',
     approach_fh: 'Ap FH',
     approach_bh: 'Ap BH',
   };
@@ -42,6 +43,16 @@ export function golpeEspLabel(s?: string): string {
 export function subtipo1Label(s?: string): string {
   if (!s) return '–';
   const map: Record<string, string> = { passing_shot: 'Pass', devolucao_saque: 'DEV' };
+  return map[s] ?? s;
+}
+
+export function doublesFormationLabel(s?: string): string {
+  if (!s) return '–';
+  const map: Record<string, string> = {
+    '1_fundo_1_rede': '1F/1R',
+    '2_fundo': '2F',
+    '2_rede': '2R',
+  };
   return map[s] ?? s;
 }
 

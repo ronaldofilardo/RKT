@@ -68,7 +68,10 @@ export function SectionRenderer({ form, vencedor, dispatch, refs, hitterCandidat
         </Section>
       )}
 
-      {hitterCandidates && hitterCandidates.length > 0 && form.tipo && (
+      {hitterCandidates &&
+        hitterCandidates.length > 0 &&
+        form.tipo &&
+        !(form.situacao === 'saque' && (form.tipo === 'erro_forcado' || form.tipo === 'erro_nao_forcado')) && (
         <Section num="" label={form.tipo === 'winner' ? 'Quem fez o Winner?' : 'Quem errou?'}>
           <Pills
             options={hitterCandidates.map(c => c.id)}

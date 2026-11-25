@@ -22,6 +22,7 @@ export type {
   RallyDirecao,
   RallyGolpeEsp,
   RallyDuration,
+  DoublesFormation,
   RallyDetails,
   RallyDetailsWithAttribution,
 } from './rally.types';

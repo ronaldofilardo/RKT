@@ -14,12 +14,12 @@ export function getTipoOptions(vencedor: Vencedor, situacao: RallySituacao): Ral
 export function getGolpeOptions(_vencedor: Vencedor, situacao: RallySituacao, tipo: RallyTipo): RallyGolpe[] {
   if (situacao === 'fundo' || situacao === 'devolucao' || situacao === 'saque') return ['fh', 'bh'];
   if (situacao === 'passada') {
-    if (tipo === 'winner') return ['fh', 'bh'];
+    if (tipo === 'winner') return ['fh', 'bh', 'vfh', 'vbh', 'smash'];
     return ['vfh', 'vbh', 'smash', 'approach_fh', 'approach_bh'];
   }
   if (situacao === 'rede') {
     if (tipo === 'winner') return ['vfh', 'vbh', 'smash', 'approach_fh', 'approach_bh'];
-    return ['fh', 'bh'];
+    return ['fh', 'bh', 'vfh', 'vbh', 'smash'];
   }
   return ['fh', 'bh'];
 }

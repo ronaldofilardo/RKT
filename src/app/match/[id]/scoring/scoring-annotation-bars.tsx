@@ -36,6 +36,10 @@ export function ScoringAnnotationBarsBlock({
 
   return (
     <PointAnnotationBars
+      isDoubles={annotation.isDoubles}
+      isDoublesFormation={annotation.isDoublesFormation}
+      doublesFormation={annotation.flow.doublesFormation}
+      onSelectDoublesFormation={annotation.selectDoublesFormation}
       isSelectWinner={annotation.isSelectWinner}
       howEnded={annotation.flow.howEnded}
       whereWinner={annotation.flow.whereWinner}

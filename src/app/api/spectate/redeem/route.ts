@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAccessUserFromRequest } from '@/lib/auth-credentials.logic';
 import { redeemShareLink } from '@/services/spectator-concession.service';
+import { checkRedeemRateLimit } from '@/services/spectator-rate-limit.logic';
 import { RedeemInviteInputSchema } from '@/schemas/spectate';
 
 export async function POST(request: NextRequest) {
@@ -8,6 +9,14 @@ export async function POST(request: NextRequest) {
   const parsed = RedeemInviteInputSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: 'VALIDATION_ERROR', message: 'Token de convite inválido' }, { status: 400 });
+  }
+
+  const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  if (!checkRedeemRateLimit(`${clientIp}:${parsed.data.token}`)) {
+    return NextResponse.json(
+      { error: 'RATE_LIMITED', message: 'Muitas tentativas em sequência. Aguarde alguns segundos.' },
+      { status: 429 }
+    );
   }
 
   const user = await getAccessUserFromRequest(request);

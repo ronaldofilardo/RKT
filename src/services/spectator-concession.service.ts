@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { hashSpectateToken } from '@/lib/spectate-token';
 import { MAX_SPECTATORS_PER_MATCH, isCreatorOrActiveAnnotator } from './spectator-share.service';
+import { canUserAccessCircleMatch, normalizeMatchVisibility } from './spectator-visibility.logic';
 
 const ACCESS_WINDOW_DAYS = 7;
 
@@ -33,11 +34,26 @@ export async function redeemShareLink(params: { token: string; userId?: string }
 
   const link = await prisma.matchShareLink.findUnique({
     where: { tokenHash },
-    include: { match: { select: { id: true, state: true, finishedAt: true, deletedAt: true } } },
+    include: { match: { select: { id: true, state: true, finishedAt: true, deletedAt: true, visibility: true } } },
   });
 
   if (!link || link.revokedAt || link.match.deletedAt || link.match.state === 'CANCELLED') {
     return { ok: false as const, error: 'INVITE_INVALID', status: 404 };
+  }
+
+  const visibility = normalizeMatchVisibility(link.match.visibility);
+  if (visibility === 'PRIVATE') {
+    return { ok: false as const, error: 'MATCH_PRIVATE', status: 403 };
+  }
+
+  if (visibility === 'CIRCLE') {
+    if (!userId) {
+      return { ok: false as const, error: 'CIRCLE_ACCOUNT_REQUIRED', status: 401 };
+    }
+    const inCircle = await canUserAccessCircleMatch(link.matchId, userId);
+    if (!inCircle) {
+      return { ok: false as const, error: 'NOT_IN_CIRCLE', status: 403 };
+    }
   }
 
   if (link.match.state === 'FINISHED' && link.match.finishedAt) {
@@ -45,11 +61,13 @@ export async function redeemShareLink(params: { token: string; userId?: string }
     if (Date.now() > expiresAt) return { ok: false as const, error: 'ACCESS_EXPIRED', status: 410 };
   }
 
-  const activeCount = await prisma.matchSpectator.count({
-    where: { matchId: link.matchId, revokedAt: null },
-  });
-  if (activeCount >= MAX_SPECTATORS_PER_MATCH) {
-    return { ok: false as const, error: 'SPECTATOR_LIMIT', status: 403 };
+  if (visibility === 'CIRCLE') {
+    const activeCount = await prisma.matchSpectator.count({
+      where: { matchId: link.matchId, revokedAt: null },
+    });
+    if (activeCount >= MAX_SPECTATORS_PER_MATCH) {
+      return { ok: false as const, error: 'SPECTATOR_LIMIT', status: 403 };
+    }
   }
 
   const now = new Date();

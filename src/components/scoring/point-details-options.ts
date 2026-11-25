@@ -37,6 +37,7 @@ export const GOLPE_LABELS: Record<RallyGolpe, string> = {
   vfh: 'Voleio FH',
   vbh: 'Voleio BH',
   smash: 'Smash',
+  sw: 'Swing Volley (SW)',
   saque: 'Saque',
   approach_fh: 'Aproach FH',
   approach_bh: 'Aproach BH',

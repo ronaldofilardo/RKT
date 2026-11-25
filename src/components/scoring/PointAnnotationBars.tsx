@@ -3,9 +3,15 @@
 import { HowPointEndedBar } from './HowPointEndedBar';
 import { WhereWinnerBar } from './WhereWinnerBar';
 import { ServeInlinePanel } from './ServeInlinePanel';
+import { DoublesFormationModal } from './DoublesFormationModal';
+import type { DoublesFormation } from '@/core/scoring/types';
 import type { HowPointEnded, WhereWinner } from './usePointAnnotationFlow';
 
 export interface PointAnnotationBarsProps {
+  isDoubles?: boolean;
+  isDoublesFormation?: boolean;
+  doublesFormation?: DoublesFormation | null;
+  onSelectDoublesFormation?: (formation: DoublesFormation) => void;
   isSelectWinner: boolean;
   howEnded: HowPointEnded | null;
   whereWinner: WhereWinner | null;
@@ -22,6 +28,7 @@ export interface PointAnnotationBarsProps {
 }
 
 export function PointAnnotationBars({
+  isDoubles = false, isDoublesFormation = false, doublesFormation = null, onSelectDoublesFormation,
   isSelectWinner, howEnded, whereWinner, hasFirstServeError, disabled = false,
   openServeAction, onSelectHowEnded, onSelectFault, onConfirmServe, onCancelServe,
   onSelectWhereWinner, onBack, onCancel,
@@ -63,9 +70,19 @@ export function PointAnnotationBars({
         selected={whereWinner}
         disabled={whereWinnerDisabled}
         howEnded={howEnded}
+        isDoubles={isDoubles}
         onSelect={onSelectWhereWinner}
         onBack={onBack}
       />
+
+      {isDoublesFormation && onSelectDoublesFormation && (
+        <DoublesFormationModal
+          isOpen={true}
+          selected={doublesFormation}
+          onSelect={onSelectDoublesFormation}
+          onCancel={onBack ?? onCancel}
+        />
+      )}
 
       {howEnded && !openServeAction && (
         <div className={`flex items-center gap-2 px-1 ${isSelectWinner ? 'justify-between' : 'justify-center'}`}>

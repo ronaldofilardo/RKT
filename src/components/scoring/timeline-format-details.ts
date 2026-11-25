@@ -1,5 +1,5 @@
 import type { RallyDetails } from '@/schemas/contracts';
-import { tipoLabel, situacaoLabel, golpeLabel, direcaoLabel, efeitoLabel, golpeEspLabel, subtipo1Label, subtipo2Label, vencedorLabel } from './timeline-format-labels';
+import { tipoLabel, situacaoLabel, golpeLabel, direcaoLabel, efeitoLabel, golpeEspLabel, subtipo1Label, subtipo2Label, vencedorLabel, doublesFormationLabel } from './timeline-format-labels';
 
 const DASH = '–';
 const emptyDetails = (): FormattedPointDetails => ({
@@ -42,6 +42,7 @@ export function formatPointDetails(rd?: RallyDetails | null): FormattedPointDeta
   if (rd.efeito) parts.push(efeito);
   if (rd.direcao) parts.push(direcao);
   if (rd.golpe_esp) parts.push(golpeEsp);
+  if (rd.doublesFormation) parts.push(doublesFormationLabel(rd.doublesFormation));
 
   return {
     short: `${situacao} • ${golpe}`,

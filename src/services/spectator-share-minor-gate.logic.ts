@@ -11,11 +11,15 @@ export async function canShareMatchWithMinors(matchId: string, now = new Date())
     select: {
       player1: { select: { id: true, birthDate: true } },
       player2: { select: { id: true, birthDate: true } },
+      player1Partner: { select: { id: true, birthDate: true } },
+      player2Partner: { select: { id: true, birthDate: true } },
     },
   });
   if (!match) return true;
 
-  const players = [match.player1, match.player2].filter(Boolean);
+  const players = [match.player1, match.player2, match.player1Partner, match.player2Partner].filter(
+    (p): p is NonNullable<typeof p> => Boolean(p),
+  );
   const minorIds = players
     .filter((p) => isMinor(p.birthDate ? new Date(p.birthDate) : null, now))
     .map((p) => p.id);
