@@ -56,6 +56,7 @@ export function buildScoreEditMarkers(
     }
     const from = describeScoreSnapshot(edit.previousScoreState, format);
     const to = describeScoreSnapshot(edit.newScoreState, format);
+    if (from && to && from === to) return null;
     return {
       kind: 'SCORE_EDIT' as const,
       at: edit.editedAt.toISOString(),
@@ -64,5 +65,5 @@ export function buildScoreEditMarkers(
       from,
       to,
     };
-  });
+  }).filter((m): m is NonNullable<typeof m> => m !== null);
 }

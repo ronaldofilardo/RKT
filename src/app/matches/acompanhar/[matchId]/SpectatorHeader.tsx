@@ -20,11 +20,19 @@ export function SpectatorHeader({ match, status, updateText, hideBack = false }:
   return (
     <div className="space-y-2 border-b border-telemetry-border/10 pb-3">
       <div className="text-center">
-        <p className="truncate font-mono text-base font-semibold">
-          <span className="text-telemetry-text-primary">{side1.label}</span>
-          <span className="text-telemetry-text-muted"> × </span>
-          <span className="text-telemetry-volt">{side2.label}</span>
-        </p>
+        {side1.label.includes(' / ') || side2.label.includes(' / ') ? (
+          <div className="space-y-0.5 font-mono text-sm font-semibold leading-snug">
+            <p className="break-words text-telemetry-text-primary">{side1.label}</p>
+            <p className="text-xs text-telemetry-text-muted">×</p>
+            <p className="break-words text-telemetry-volt">{side2.label}</p>
+          </div>
+        ) : (
+          <p className="truncate font-mono text-base font-semibold">
+            <span className="text-telemetry-text-primary">{side1.label}</span>
+            <span className="text-telemetry-text-muted"> × </span>
+            <span className="text-telemetry-volt">{side2.label}</span>
+          </p>
+        )}
         <p className="font-mono text-xs text-telemetry-text-muted">{formatLabel}</p>
       </div>
 

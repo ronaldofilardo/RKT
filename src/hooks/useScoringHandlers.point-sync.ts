@@ -36,12 +36,16 @@ export function createPointSyncService(config: PointSyncConfig) {
     }
 
     try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (tokenRef.current) {
+        headers.authorization = `Bearer ${tokenRef.current}`;
+      }
+
       const res = await fetch(`/api/matches/${matchId}/point`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `Bearer ${tokenRef.current}`,
-        },
+        headers,
         body: JSON.stringify(payload),
         signal: controller.signal,
       }).catch(() => null);

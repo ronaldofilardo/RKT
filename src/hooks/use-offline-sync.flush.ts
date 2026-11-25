@@ -9,6 +9,7 @@ import {
   markActionPending,
   markActionPausedForAuth,
 } from "./use-offline-sync.logic";
+import { OfflineSyncUnauthorizedError } from "./offline-sync-sequence.logic";
 
 export async function flushOfflineQueue(db: IDBPDatabase): Promise<boolean> {
   let syncedAnything = false;
@@ -77,7 +78,17 @@ export async function flushOfflineQueue(db: IDBPDatabase): Promise<boolean> {
       } else {
         syncedAnything = true;
       }
-    } catch {
+    } catch (err) {
+      if (err instanceof OfflineSyncUnauthorizedError) {
+        await markActionPausedForAuth(db, action);
+        authPausedMatches.add(action.matchId);
+        window.dispatchEvent(
+          new CustomEvent("offline-sync-auth-required", {
+            detail: { matchId: action.matchId },
+          }),
+        );
+        continue;
+      }
       await markActionPending(db, action);
       failedMatches.add(action.matchId);
     }

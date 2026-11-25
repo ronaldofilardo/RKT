@@ -5,19 +5,29 @@ import { markActionSynced } from './offline-sync-marks.logic';
 
 type SequenceMap = Map<string, number>;
 
+export class OfflineSyncUnauthorizedError extends Error {
+  constructor() {
+    super('UNAUTHORIZED');
+    this.name = 'OfflineSyncUnauthorizedError';
+  }
+}
+
 export async function fetchMatchSequence(matchId: string): Promise<number> {
   try {
     const response = await fetch(`/api/matches/${matchId}`, {
       headers: {
         'Content-Type': 'application/json',
-        
       },
     });
+    if (response.status === 401) {
+      throw new OfflineSyncUnauthorizedError();
+    }
     if (!response.ok) return 0;
     const matchData = await response.json();
     const pointSequence = matchData.lastPointSequence;
     return typeof pointSequence === 'number' ? pointSequence : (matchData.version || 0);
   } catch (err) {
+    if (err instanceof OfflineSyncUnauthorizedError) throw err;
     logger.error('[flush] Failed to fetch match sequence:', err);
     return 0;
   }
