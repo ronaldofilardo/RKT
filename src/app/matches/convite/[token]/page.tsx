@@ -16,7 +16,7 @@ type InviteErrorCode =
 
 const ERROR_STATES: Record<
   Exclude<InviteErrorCode, 'SPECTATOR_LIMIT'>,
-  { icon: 'link-off' | 'users' | 'shield' | 'lock'; title: string; description: string; actionText: string; actionHref: string }
+  { icon: 'link-off' | 'users' | 'lock'; title: string; description: string; actionText: string; actionHref: string }
 > = {
   ACCESS_EXPIRED: {
     icon: 'link-off',
@@ -26,7 +26,7 @@ const ERROR_STATES: Record<
     actionHref: '/',
   },
   MINOR_BROADCAST_NOT_CONSENTED: {
-    icon: 'shield',
+    icon: 'lock',
     title: 'Compartilhamento aguardando consentimento',
     description: 'Esta partida envolve menor de idade e exige autorização do responsável legal (ECA Digital / LGPD).',
     actionText: 'Voltar ao início',
@@ -47,7 +47,7 @@ const ERROR_STATES: Record<
     actionHref: '/login',
   },
   NOT_IN_CIRCLE: {
-    icon: 'shield',
+    icon: 'lock',
     title: 'Acesso restrito ao círculo',
     description: 'Apenas atletas, responsáveis, treinadores e gestor vinculados a esta partida podem acompanhá-la.',
     actionText: 'Voltar ao início',
