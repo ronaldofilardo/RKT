@@ -1,7 +1,8 @@
 import {
-  ADMIN, DADOS_PESSOAIS, ESPECTADOR, FINANCEIRO, GESTAO, OPERACAO, RESPONSAVEL_ITEMS, SAIR, SUPORTE, TORNEIOS, TREINADOR,
+  ADMIN, AJUDA, DADOS_PESSOAIS, ESPECTADOR, FINANCEIRO, GESTAO, OPERACAO, RESPONSAVEL_ITEMS, SAIR, SUPORTE, TORNEIOS, TREINADOR,
   atletaItems,
 } from './menu-items';
+import { hasHelpContent } from '@/core/help/help-perfil.logic';
 import type { MenuContext, MenuItem, MenuSection, MenuSectionKey } from './menu-types';
 
 function section(key: MenuSectionKey, title: string, items: readonly MenuItem[]): MenuSection {
@@ -23,9 +24,16 @@ function canSeePersonalData(ctx: MenuContext, area?: string | null): boolean {
   return !(ctx.coach && ctx.coach.ctIds.length > 0);
 }
 
+/** Ajuda cobre as áreas com conteúdo; sem área no contexto, oculta apenas ADMIN/SUPORTE. */
+function canSeeHelp(ctx: MenuContext, area?: string | null): boolean {
+  if (area) return hasHelpContent(area);
+  return !ctx.isAdmin && !ctx.isSuporte;
+}
+
 function footerItems(ctx: MenuContext, area?: string | null): MenuItem[] {
   const items: MenuItem[] = [];
   if (canSeePersonalData(ctx, area)) items.push(DADOS_PESSOAIS);
+  if (canSeeHelp(ctx, area)) items.push(AJUDA);
   items.push(SAIR);
   return items;
 }

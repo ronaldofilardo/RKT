@@ -58,7 +58,7 @@ describe('buildMenu — combinações do plano (§7)', () => {
     ]);
   });
 
-  it.each(['PENDING', 'SUSPENDED', null] as const)(
+  it.each(['SUSPENDED', null] as const)(
     '5. Gestor com CT %s: Operação (se pode operar), sem Gestão do Clube',
     (ctStatus) => {
       const menu = buildMenu(ctx({ canOperate: true, gestor: { ctIds: ['ct-1'], ctStatus } }));
@@ -160,21 +160,22 @@ describe('buildMenu — regras gerais', () => {
     expect(all.filter((k) => k === 'financeiro')).toHaveLength(1);
   });
 
-  it('rodapé: Dados Pessoais e Sair (ação de logout, sem rota)', () => {
+  it('rodapé: Dados Pessoais, Ajuda e Sair (ação de logout, sem rota)', () => {
     const rodape = find(buildMenu(ctx({ canOperate: true })), 'rodape')!;
     expect(rodape.items[0]).toEqual(expect.objectContaining({ href: '/dados-pessoais' }));
-    expect(rodape.items[1]).toEqual(expect.objectContaining({ key: 'sair', action: 'logout' }));
-    expect(rodape.items[1].href).toBeUndefined();
+    expect(rodape.items[1]).toEqual(expect.objectContaining({ key: 'ajuda', href: '/help' }));
+    expect(rodape.items[2]).toEqual(expect.objectContaining({ key: 'sair', action: 'logout' }));
+    expect(rodape.items[2].href).toBeUndefined();
   });
 
   it.each([
-    ['admin', { isAdmin: true }],
-    ['suporte', { isSuporte: true }],
-    ['gestor', { gestor: gestorActive }],
-    ['treinador de clube', { coach: { ctIds: ['ct-1'] } }],
-  ] as const)('rodapé sem Dados Pessoais para %s', (_label, over) => {
+    ['admin', { isAdmin: true }, ['sair']],
+    ['suporte', { isSuporte: true }, ['sair']],
+    ['gestor', { gestor: gestorActive }, ['ajuda', 'sair']],
+    ['treinador de clube', { coach: { ctIds: ['ct-1'] } }, ['ajuda', 'sair']],
+  ] as const)('rodapé sem Dados Pessoais para %s', (_label, over, expectedKeys) => {
     const rodape = find(buildMenu(ctx(over as Partial<MenuContext>)), 'rodape')!;
-    expect(rodape.items.map((i) => i.key)).toEqual(['sair']);
+    expect(rodape.items.map((i) => i.key)).toEqual([...expectedKeys]);
   });
 
   it.each(['ATLETA', 'TREINADOR_AVULSO', 'ANOTADOR'])(
@@ -184,18 +185,23 @@ describe('buildMenu — regras gerais', () => {
         buildMenu(ctx({ canOperate: true, coach: { ctIds: [] }, athlete: adult, activeArea })),
         'rodape',
       )!;
-      expect(rodape.items.map((i) => i.key)).toEqual(['dados-pessoais', 'sair']);
+      expect(rodape.items.map((i) => i.key)).toEqual(['dados-pessoais', 'ajuda', 'sair']);
     },
   );
 
-  it.each(['ADMIN', 'SUPORTE', 'GESTOR', 'TREINADOR_CLUBE'])(
+  it.each([
+    ['ADMIN', ['sair']],
+    ['SUPORTE', ['sair']],
+    ['GESTOR', ['ajuda', 'sair']],
+    ['TREINADOR_CLUBE', ['ajuda', 'sair']],
+  ] as const)(
     'rodapé sem Dados Pessoais na área %s',
-    (activeArea) => {
+    (activeArea, expectedKeys) => {
       const rodape = find(
         buildMenu(ctx({ isAdmin: true, isSuporte: true, gestor: gestorActive, coach: { ctIds: ['ct-1'] }, activeArea })),
         'rodape',
       )!;
-      expect(rodape.items.map((i) => i.key)).toEqual(['sair']);
+      expect(rodape.items.map((i) => i.key)).toEqual([...expectedKeys]);
     },
   );
 

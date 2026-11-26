@@ -54,6 +54,7 @@ export const RESPONSAVEL_ITEMS: readonly MenuItem[] = [
 
 export const ADMIN: MenuItem = link('admin', 'Admin', '/admin', '⚙️');
 export const DADOS_PESSOAIS: MenuItem = link('dados-pessoais', 'Dados Pessoais', '/dados-pessoais', '👤');
+export const AJUDA: MenuItem = link('ajuda', 'Ajuda', '/help', '❓');
 export const SAIR: MenuItem = { key: 'sair', label: 'Sair', icon: '🚪', action: 'logout' };
 
 export function atletaItems(athlete: AthleteContext): MenuItem[] {

@@ -8,6 +8,8 @@ describe('appPath.logic.ts', () => {
     expect(isNeutralRoute('/privacidade')).toBe(true);
     expect(isNeutralRoute('/api/auth/me')).toBe(true);
     expect(isNeutralRoute('/matches/acompanhar/123')).toBe(true);
+    expect(isNeutralRoute('/help')).toBe(true);
+    expect(isNeutralRoute('/help/atleta')).toBe(true);
     expect(isNeutralRoute('/partidasaovivo')).toBe(false);
   });
 
@@ -16,6 +18,8 @@ describe('appPath.logic.ts', () => {
     expect(appPath('ATLETA', '/dados-pessoais')).toBe('/dados-pessoais');
     expect(appPath('GESTOR', '/termos')).toBe('/termos');
     expect(appPath('ADMIN', '/matches/convite/token123')).toBe('/matches/convite/token123');
+    expect(appPath('ATLETA', '/help')).toBe('/help');
+    expect(appPath('GESTOR', '/help/atleta')).toBe('/help/atleta');
   });
 
   it('constrói home e subpáginas com o prefixo da área', () => {

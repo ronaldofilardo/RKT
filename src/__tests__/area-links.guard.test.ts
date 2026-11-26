@@ -45,7 +45,7 @@ describe('area-links.guard.test.ts - Teste-Guarda de Integridade de Links', () =
   });
 
   it('garante imunidade de rotas neutras e públicas contra prefixação indevida', () => {
-    const neutralRoutes = ['/login', '/signup', '/forgot', '/trocar-senha', '/dados-pessoais', '/termos', '/privacidade'];
+    const neutralRoutes = ['/login', '/signup', '/forgot', '/trocar-senha', '/dados-pessoais', '/termos', '/privacidade', '/help', '/help/atleta'];
     for (const area of ALL_AREAS) {
       for (const route of neutralRoutes) {
         expect(isNeutralRoute(route)).toBe(true);

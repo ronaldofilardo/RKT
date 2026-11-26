@@ -9,9 +9,10 @@ const NEUTRAL_EXACT_ROUTES = new Set([
   '/termos',
   '/privacidade',
   '/escolher-area',
+  '/help',
 ]);
 
-const NEUTRAL_PREFIX_ROUTES = ['/api/', '/matches/', '/_next/', '/favicon', '/admin', '/suporte'];
+const NEUTRAL_PREFIX_ROUTES = ['/api/', '/matches/', '/_next/', '/favicon', '/admin', '/suporte', '/help/'];
 
 export function isNeutralRoute(pathname: string): boolean {
   if (NEUTRAL_EXACT_ROUTES.has(pathname)) return true;

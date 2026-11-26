@@ -1,5 +1,6 @@
 import path from 'node:path';
 import type { NextConfig } from 'next';
+import createMDX from '@next/mdx';
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -38,7 +39,7 @@ const noindexSources = [
   '/historico', '/dados-pessoais', '/partidasanotadas', '/partidasaovivo',
   '/aguardandoanotador', '/atletas', '/gestor', '/suporte', '/clube',
   '/treinador', '/atleta', '/anotador', '/espectador', '/escolher-area',
-  '/forgot', '/trocar-senha',
+  '/forgot', '/trocar-senha', '/help',
 ];
 
 const nextConfig: NextConfig = {
@@ -90,4 +91,13 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const withMDX = createMDX({
+  options: {
+    // O App Router roda no React vendorizado do Next (19); o react do projeto é 18.x
+    // e seu jsx-runtime quebra ao ler internals renomeados. Aponta o MDX para o
+    // mesmo runtime usado pelo resto da aplicação.
+    jsxImportSource: 'next/dist/compiled/react',
+  },
+});
+
+export default withMDX(nextConfig);

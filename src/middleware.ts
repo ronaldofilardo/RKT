@@ -89,5 +89,6 @@ export const config = {
     '/responsavel/:path*',
     '/aguardando-responsavel/:path*',
     '/escolher-area',
+    '/help/:path*',
   ],
 };
