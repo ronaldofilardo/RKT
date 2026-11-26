@@ -201,3 +201,19 @@ Procedimento operacional para cumprimento do art. 48 da LGPD e Resolução CD/AN
   - **Production:** Banco na nuvem gerenciado no Neon (`*.neon.tech`), provisionado com TLS obrigatório (`sslmode=require`).
   - **Guarda Ativa:** Validada deterministicamente pela função `assertDbTarget()` em `src/lib/db/db-target.ts` em toda inicialização do Prisma; tentativa de apontar processo de desenvolvimento para a nuvem falha imediatamente com exceção `DbTargetError`.
 
+## Central de Ajuda (`/help`) — 2026-11-26
+
+Decisões registradas no plano aprovado `docs/PLANO_CENTRAL_DE_AJUDA_2026-11-26.md`:
+
+- **Formato do conteúdo:** MDX versionado no repo (`@next/mdx@15.5.19` + peer `@mdx-js/loader@3`), manifesto em `content/help/index.ts` (fora de `src/`, logo fora do guard R-03 que varre apenas `src/`). Estilos dos elementos MDX em `src/mdx-components.tsx` (padrão oficial `providerImportSource`).
+- **Acesso:** `/help` somente logado — `'/help/:path*'` no matcher de `src/middleware.ts`, fora de `PUBLIC_ROUTES`. Perfil resolvido no servidor via header `x-active-area` (sem client-fetch).
+- **Escopo de perfis:** Atleta, Treinador, Gestor, Responsável, Espectador e Anotador. **ADMIN e SUPORTE ficam de fora** — item `AJUDA` do rodapé é condicional (`hasHelpContent(area)`; no fallback sem área, oculta apenas ADMIN/SUPORTE).
+- **Neutralidade de rota:** `/help` (exato) e prefixo `/help/` em `app-path.logic.ts` — sem isso, `appPath`/`DashboardChrome` navegariam para `/atleta/help` etc.
+- **Texto legal nunca duplicado:** artigos do Responsável linkam para `/termos/responsavel` e `/privacidade`.
+- **Busca full-text:** fase 2 (Fuse.js/Pagefind), fora da Fundação.
+- **`jsxImportSource` do MDX:** o projeto usa `react@18.3.1` mas o App Router do Next 15.5 roda no React vendorizado (19). O MDX compilado importa `react/jsx-runtime` (React 18) e quebra lendo internals renomeados (`ReactCurrentOwner`) — corrigido com `createMDX({ options: { jsxImportSource: 'next/dist/compiled/react' } })` em `next.config.ts`, alinhando o MDX ao runtime do resto do app sem trocar a versão de `react` do projeto (fora do escopo da fatia).
+- **Débito R-03 corrigido (decisão do usuário):** 17 arquivos >100L pré-existentes no HEAD divididos em módulos coesos (re-export preservando contratos públicos); `pnpm check:r03` verde sem `--update` da baseline.
+- **Drift código×teste corrigido (decisão do usuário):** 11 suítes / 60 testes atualizados ao comportamento dos commits recentes (só testes). Semântica do engine (`b933089`): o canônico vence no game 1 — os2 testes de 17/10 foram atualizados à semântica nova (arquivo de regressão dedicado de 20/11 permanece como cobertura).
+- **Fade global do tema restaurado (decisão do usuário):** o split `d1806c9` perdeu os blocos "Transição suave de tema (0.3s, desde `6ff3f9d`)" e "Overrides de interação"; restaurados em `src/app/css/utilities/transitions.css` — mudança de produção mínima, com `theme-fade-transition.test.ts` atualizado para congelar o 0.3s nos módulos pós-split.
+- **Guard de lint (divergência deliberada da config canônica STE-DEV):** o projeto mantém ESLint 8 + `.eslintrc.json` (`next/core-web-vitals` + `jsx-a11y`) executado via `pnpm lint` (`next lint`), em vez do `assets/eslint.config.mjs` (flat config / typescript-eslint com `complexity`, `max-lines`, `no-explicit-any`) da skill STE-DEV 3.4.1. R-03 segue garantido por `pnpm check:r03` (script próprio com baseline ratchet) e os testes continuam sob `pnpm test:strict`. Motivo: adotar a flat config exigiria migração de todo o lint em uma fatia sem relação com o objetivo — risco/benefício desfavorável, mantido o guard atual conforme decisão do usuário (D4 do plano).
+

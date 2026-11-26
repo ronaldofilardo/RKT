@@ -5,17 +5,25 @@ import path from 'path';
 /**
  * Fade global de tema (claro ↔ escuro).
  *
- * Caracterização estática do globals.css: garante que a transição de 2s
- * continua global (cobre componentes futuros), que as interações mantêm
- * timings rápidos e que prefers-reduced-motion desliga tudo.
+ * Caracterização dos módulos CSS pós-split (d1806c9): garante que a
+ * transição de tema de 0.3s (desde 6ff3f9d) continua cobrindo os containers,
+ * que as interações mantêm timings rápidos e que prefers-reduced-motion
+ * desliga tudo.
  */
-describe('Theme fade transition (globals.css)', () => {
+describe('Theme fade transition (css modular)', () => {
   let css: string;
+  let tokens: string;
+
+  const read = (rel: string) =>
+    fs.readFileSync(path.resolve(process.cwd(), rel), 'utf-8').replace(/\/\*[\s\S]*?\*\//g, '');
 
   beforeAll(() => {
-    const raw = fs.readFileSync(path.resolve(process.cwd(), 'src/app/globals.css'), 'utf-8');
-    // remove comentários para não gerar falsos positivos
-    css = raw.replace(/\/\*[\s\S]*?\*\//g, '');
+    css = [
+      'src/app/css/utilities/transitions.css',
+      'src/app/css/utilities/motion.css',
+      'src/app/css/base/reset.css',
+    ].map(read).join('\n');
+    tokens = read('src/app/css/tokens/airtable-tokens.css');
   });
 
   /** Retorna o corpo do primeiro bloco cujo seletor (normalizado) é igual ao informado. */
@@ -29,32 +37,28 @@ describe('Theme fade transition (globals.css)', () => {
     return null;
   }
 
-  describe('bloco global', () => {
-    const selector = '*, *::before, *::after';
+  describe('bloco de tema', () => {
+    const selector = 'body, header, nav, main, footer, section, article';
 
-    it('existe e cobre *, ::before e ::after', () => {
+    it('existe e cobre os containers principais', () => {
       expect(getBlock(selector)).not.toBeNull();
     });
 
-    it.each([
-      'background-color',
-      'color',
-      'border-color',
-      'fill',
-      'stroke',
-      'box-shadow',
-    ])('transiciona %s em 2s ease', (prop) => {
+    it('transiciona background-color e border-color em 0.3s ease', () => {
       const block = getBlock(selector) as string;
-      expect(block).toMatch(new RegExp(`${prop}\\s+2s\\s+ease`));
+      expect(block).toMatch(/background-color\s+0\.3s\s+ease/);
+      expect(block).toMatch(/border-color\s+0\.3s\s+ease/);
     });
 
-    it('não usa "transition: all" (evitaria animar layout/transform)', () => {
-      expect(getBlock(selector)).not.toMatch(/\ball\b/);
+    it('não usa "transition: all" nem o timing antigo de 2s', () => {
+      const block = getBlock(selector) as string;
+      expect(block).not.toMatch(/\ball\b/);
+      expect(block).not.toMatch(/\b2s\b/);
     });
   });
 
   describe('body', () => {
-    it('não mantém a transition antiga de 0.2s', () => {
+    it('não mantém transition herdada de tema', () => {
       const body = getBlock('body') as string;
       expect(body).not.toBeNull();
       expect(body).not.toMatch(/transition/);
@@ -77,11 +81,12 @@ describe('Theme fade transition (globals.css)', () => {
       expect(getBlock('.transition-fast')).toMatch(/all\s+var\(--motion-fast\)\s+var\(--ease-standard\)/);
     });
 
-    it('os overrides vêm depois do bloco global (cascata)', () => {
-      const globalIdx = css.indexOf('*::after {');
-      const overrideIdx = css.indexOf('button,');
-      expect(globalIdx).toBeGreaterThan(-1);
-      expect(overrideIdx).toBeGreaterThan(globalIdx);
+    it('os overrides vêm depois do bloco de tema (cascata)', () => {
+      const normalized = css.replace(/\s+/g, ' ');
+      const themeIdx = normalized.indexOf('body, header');
+      const overrideIdx = normalized.indexOf('button,');
+      expect(themeIdx).toBeGreaterThan(-1);
+      expect(overrideIdx).toBeGreaterThan(themeIdx);
     });
   });
 
@@ -98,11 +103,10 @@ describe('Theme fade transition (globals.css)', () => {
   });
 
   describe('variáveis de motion referenciadas existem', () => {
-    it('--motion-fast, --motion-base e --ease-standard estão em design-system.css', () => {
-      const ds = fs.readFileSync(path.resolve(process.cwd(), 'src/app/design-system.css'), 'utf-8');
-      expect(ds).toMatch(/--motion-fast:/);
-      expect(ds).toMatch(/--motion-base:/);
-      expect(ds).toMatch(/--ease-standard:/);
+    it('--motion-fast, --motion-base e --ease-standard estão em airtable-tokens.css', () => {
+      expect(tokens).toMatch(/--motion-fast:/);
+      expect(tokens).toMatch(/--motion-base:/);
+      expect(tokens).toMatch(/--ease-standard:/);
     });
   });
 });

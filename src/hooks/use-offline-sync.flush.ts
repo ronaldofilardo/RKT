@@ -1,4 +1,5 @@
 import type { IDBPDatabase } from "idb";
+import type { QueuedAction } from "@/schemas/contracts";
 import { STORE_NAME } from "./use-offline-sync.db";
 import {
   ensureMatchSequence,
@@ -10,6 +11,15 @@ import {
   markActionPausedForAuth,
 } from "./use-offline-sync.logic";
 import { OfflineSyncUnauthorizedError } from "./offline-sync-sequence.logic";
+
+export { dispatchStuckEventIfNeeded } from "./use-offline-sync.stuck";
+
+/** Pausa a ação sem incrementar retries e notifica a UI para novo login. */
+async function pauseActionForAuth(db: IDBPDatabase, action: QueuedAction, paused: Set<string>): Promise<void> {
+  await markActionPausedForAuth(db, action);
+  paused.add(action.matchId);
+  window.dispatchEvent(new CustomEvent("offline-sync-auth-required", { detail: { matchId: action.matchId } }));
+}
 
 export async function flushOfflineQueue(db: IDBPDatabase): Promise<boolean> {
   let syncedAnything = false;
@@ -53,16 +63,8 @@ export async function flushOfflineQueue(db: IDBPDatabase): Promise<boolean> {
       }
 
       if (response.status === 401) {
-        // Token expirado: pausa a sincronização desta partida
-        // mantém como PENDING sem incrementar retries
-        await markActionPausedForAuth(db, action);
-        authPausedMatches.add(action.matchId);
-        // Notifica a UI que precisa fazer login
-        window.dispatchEvent(
-          new CustomEvent("offline-sync-auth-required", {
-            detail: { matchId: action.matchId },
-          }),
-        );
+        // Token expirado: pausa sem incrementar retries e notifica a UI
+        await pauseActionForAuth(db, action, authPausedMatches);
         continue;
       }
 
@@ -80,13 +82,7 @@ export async function flushOfflineQueue(db: IDBPDatabase): Promise<boolean> {
       }
     } catch (err) {
       if (err instanceof OfflineSyncUnauthorizedError) {
-        await markActionPausedForAuth(db, action);
-        authPausedMatches.add(action.matchId);
-        window.dispatchEvent(
-          new CustomEvent("offline-sync-auth-required", {
-            detail: { matchId: action.matchId },
-          }),
-        );
+        await pauseActionForAuth(db, action, authPausedMatches);
         continue;
       }
       await markActionPending(db, action);
@@ -95,17 +91,4 @@ export async function flushOfflineQueue(db: IDBPDatabase): Promise<boolean> {
   }
 
   return syncedAnything;
-}
-
-export async function dispatchStuckEventIfNeeded(
-  db: IDBPDatabase,
-): Promise<void> {
-  const stillFailed = await db.getAllFromIndex(STORE_NAME, "status", "FAILED");
-  if (stillFailed.length > 0) {
-    window.dispatchEvent(
-      new CustomEvent("offline-sync-stuck", {
-        detail: { count: stillFailed.length },
-      }),
-    );
-  }
 }

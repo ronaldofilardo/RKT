@@ -61,7 +61,7 @@ describe("PointFlowInputSchema — flexibleIdValidator and payload validation", 
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.flatten().fieldErrors.winnerId).toContain(
-        "Must be a valid CUID, UUID or prefixed UUID"
+        "Must be a valid identifier containing only alphanumeric characters, underscores or hyphens"
       );
     }
   });

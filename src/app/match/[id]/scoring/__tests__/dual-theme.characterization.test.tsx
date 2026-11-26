@@ -22,7 +22,18 @@ describe('Dual Theme Design System (Light & Dark)', () => {
   let layoutTsx: string;
 
   beforeAll(() => {
-    globalsCss = fs.readFileSync(globalsCssPath, 'utf-8');
+    // Pós-split (d1806c9): tokens/bordas vivem nos módulos importados pelo globals.css
+    const cssModules = [
+      'src/app/css/tokens/dark-theme.css',
+      'src/app/css/tokens/light-theme-media.css',
+      'src/app/css/tokens/light-theme-class.css',
+      'src/app/css/tokens/outdoor-theme.css',
+      'src/app/css/utilities/borders.css',
+    ];
+    globalsCss = [
+      fs.readFileSync(globalsCssPath, 'utf-8'),
+      ...cssModules.map((rel) => fs.readFileSync(path.resolve(process.cwd(), rel), 'utf-8')),
+    ].join('\n');
     tailwindConfig = fs.readFileSync(tailwindConfigPath, 'utf-8');
     layoutTsx = fs.readFileSync(layoutPath, 'utf-8');
   });
@@ -90,13 +101,13 @@ describe('Dual Theme Design System (Light & Dark)', () => {
       const scoringPage = ['page.tsx', 'scoring-page-layout.tsx']
         .map((file) => fs.readFileSync(path.join(dir, file), 'utf-8'))
         .join('\n');
-      expect(scoringPage).toContain('className="fixed inset-0 overflow-hidden bg-telemetry-base flex flex-col"');
+      expect(scoringPage).toContain('className="fixed inset-0 h-[100dvh] overflow-hidden bg-telemetry-base flex flex-col"');
       expect(scoringPage).not.toContain('className="dark min-h-screen');
     });
 
     it('inclui o botao unico de tema (ThemeToggleButton) no rodape ActionFooter para alternar tema diretamente no scoring', () => {
       const controls = fs.readFileSync(path.resolve(process.cwd(), 'src/components/scoring/action-bar-secondary-controls.tsx'), 'utf-8');
-      expect(controls).toContain('<ThemeToggleButton />');
+      expect(controls).toContain('<ThemeToggleButton');
       const matchHeader = fs.readFileSync(path.resolve(process.cwd(), 'src/components/scoring/MatchHeader.tsx'), 'utf-8');
       expect(matchHeader).not.toContain('<ThemeToggle');
     });

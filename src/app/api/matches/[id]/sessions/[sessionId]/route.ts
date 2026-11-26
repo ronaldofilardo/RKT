@@ -5,6 +5,7 @@ import { withRLSHandler } from '@/lib/auth';
 import { EndSessionInputSchema } from '@/schemas/contracts';
 import { getSessionWithMatch, getMatchScoreState, updateSession } from '@/services/sessionService';
 import { logger } from '@/lib/logger';
+import { buildEndSessionUpdate } from './session-end-update.logic';
 
 const ParamsSchema = z.object({
   id: flexibleIdValidator,
@@ -71,32 +72,7 @@ export async function PATCH(
       }
 
       const match = await getMatchScoreState(matchId);
-
-      const serializeState = (state: unknown): string | null => {
-        if (!state) return null;
-        return typeof state === 'string' ? state : JSON.stringify(state);
-      };
-
-      const updateData: Parameters<typeof updateSession>[1] = {
-        status: newStatus,
-      };
-
-      if (newStatus === 'IN_PROGRESS') {
-        updateData.isActive = true;
-        updateData.updatedAt = new Date();
-      }
-
-      if (newStatus === 'ABANDONED') {
-        updateData.isActive = false;
-        updateData.matchStateSnapshot = serializeState(parsed.data.finalState || match?.scoreState);
-      }
-
-      if (newStatus === 'COMPLETED') {
-        updateData.isActive = false;
-        updateData.endedAt = new Date();
-        updateData.finalStateSnapshot = serializeState(parsed.data.finalState || match?.scoreState);
-      }
-
+      const updateData = buildEndSessionUpdate(newStatus, parsed.data.finalState, match?.scoreState);
       const updated = await updateSession(sessionId, updateData);
       return NextResponse.json(updated);
     } catch (error) {

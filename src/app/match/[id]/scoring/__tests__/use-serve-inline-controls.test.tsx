@@ -21,7 +21,15 @@ function makeHandlers() {
 function setup(initial: { step?: 'none' | 'second'; points?: number; modal?: string | null; finished?: boolean; processing?: boolean } = {}) {
   const handlers = makeHandlers();
   const build = (o: typeof initial) => [
-    { serveErrorState: { serveStep: o.step ?? 'none' }, pointsHistory: new Array(o.points ?? 0).fill('p'), activeModal: o.modal ?? null },
+    {
+      serveErrorState: { serveStep: o.step ?? 'none' },
+      pointsHistory: new Array(o.points ?? 0).fill('p'),
+      activeModal: o.modal ?? null,
+      // Fixture alinhada a cadfda2: guardas de setup exigem match com sacador
+      // definido e state.open para não interceptar o fluxo testado aqui.
+      match: { initialServerId: 'server-1', state: 'IN_PROGRESS' },
+      open: jest.fn(),
+    },
     handlers,
     { isFinished: o.finished ?? false, isProcessingPoint: o.processing ?? false, p1IsServing: true },
   ] as unknown as Hook;

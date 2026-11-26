@@ -71,7 +71,7 @@ describe('ScoringEngine.fromSerialized - serverId preservation and normalization
   });
 
   describe('Manual score edits & virgin state handling', () => {
-    it('preserves server if score was edited at 0x0 with player2 as server and startedAt set', () => {
+    it('força initialServerId em 0x0 mesmo com startedAt set (canônico vence no game 1)', () => {
       const editedState: ScoringState = {
         sets: [{ player1: 0, player2: 0, isTiebreak: false, tiebreakScore: null }],
         currentGame: {
@@ -91,7 +91,7 @@ describe('ScoringEngine.fromSerialized - serverId preservation and normalization
 
       const serialized = JSON.stringify({ state: editedState, history: [] });
       const restored = ScoringEngine.fromSerialized(configStandard, serialized);
-      expect(restored.getServer()).toBe('player2');
+      expect(restored.getServer()).toBe('player1');
     });
 
     it('forces initialServerId only when the match state is strictly virgin', () => {
@@ -118,7 +118,7 @@ describe('ScoringEngine.fromSerialized - serverId preservation and normalization
       expect(restored.getServer()).toBe('player1');
     });
 
-    it('does not force initialServerId if currentGame has points', () => {
+    it('corrige state.server para o canônico no game 1 mesmo com pontos no jogo', () => {
       const activeGameState: ScoringState = {
         sets: [{ player1: 0, player2: 0, isTiebreak: false, tiebreakScore: null }],
         currentGame: {
@@ -138,7 +138,7 @@ describe('ScoringEngine.fromSerialized - serverId preservation and normalization
 
       const serialized = JSON.stringify({ state: activeGameState, history: [] });
       const restored = ScoringEngine.fromSerialized(configStandard, serialized);
-      expect(restored.getServer()).toBe('player2');
+      expect(restored.getServer()).toBe('player1');
     });
   });
 

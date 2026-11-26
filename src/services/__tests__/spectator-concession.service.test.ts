@@ -10,6 +10,12 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 
+// Círculo: acesso validado sem tocar em prisma.match (não mockado neste arquivo)
+jest.mock('@/services/spectator-visibility.logic', () => ({
+  ...jest.requireActual('@/services/spectator-visibility.logic'),
+  canUserAccessCircleMatch: jest.fn().mockResolvedValue(true),
+}));
+
 describe('spectator-concession.service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -55,7 +61,8 @@ describe('spectator-concession.service', () => {
       id: 'l1',
       matchId: 'm1',
       revokedAt: null,
-      match: { id: 'm1', state: 'IN_PROGRESS', finishedAt: null, deletedAt: null },
+      // Lotação passou a valer apenas para partidas CIRCLE (929b9ea)
+      match: { id: 'm1', state: 'IN_PROGRESS', finishedAt: null, deletedAt: null, visibility: 'CIRCLE' },
     });
     (prisma.matchSpectator.findUnique as jest.Mock).mockResolvedValue(null);
     (prisma.matchSpectator.count as jest.Mock).mockResolvedValue(5); // Lotação atingida!

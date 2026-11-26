@@ -2,6 +2,35 @@
  * Utility Classes - Transitions
  * ============================================ */
 
+/* — Transição suave de tema (claro ↔ escuro) —
+   Aplicada nos containers e superfícies macro sem forçar transição
+   universal de texto (evita desligar o subpixel ClearType no Windows).
+   Restaurada após o split d1806c9 (bloco perdido; timing 0.3s desde 6ff3f9d). */
+body,
+header,
+nav,
+main,
+footer,
+section,
+article {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* — Overrides: interações não herdam o timing de tema — */
+button,
+a,
+.btn-primary,
+.btn-white {
+  transition:
+    color var(--motion-fast) var(--ease-standard),
+    background-color var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard),
+    opacity var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard);
+}
+
 .transition-base {
   transition: all var(--motion-base) var(--ease-standard);
 }

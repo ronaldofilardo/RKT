@@ -1,11 +1,10 @@
 'use client';
 
-import { ServerSelectionModal } from '@/app/match/new/components/ServerSelectionModal';
-import { DoublesServerSelectionModal } from '@/app/match/new/components/DoublesServerSelectionModal';
 import { SetSummaryModal } from '@/components/scoring/SetSummaryModal';
 import { EditMatchInfoModal } from '@/components/dashboard/EditMatchInfoModal';
 import { CommentModal } from '@/components/scoring/CommentModal';
 import { ConfirmDeleteMatchDialog } from './ConfirmDeleteMatchDialog';
+import { ServerSelectionBlock } from './dashboard-server-modal';
 import { abbreviateDoublesName } from '@/components/scoring/doubles-name-abbreviation.logic';
 
 import type { DashboardMatchModalsProps } from './dashboard-match-modals.types';
@@ -49,27 +48,12 @@ export function DashboardMatchModals({
         />
       )}
 
-      {serverMatch && serverMatch.matchType === 'DOUBLES' ? (
-        <DoublesServerSelectionModal
-          isOpen={Boolean(serverMatch)}
-          selectedP1={serverMatch.player1}
-          selectedP1Partner={serverMatch.player1Partner ?? null}
-          selectedP2={serverMatch.player2}
-          selectedP2Partner={serverMatch.player2Partner ?? null}
-          startingMatch={startingMatch}
-          onConfirmDoublesSetup={(initialServerId, setup) => onSelectServer(initialServerId, setup)}
-          onClose={onCloseServer}
-        />
-      ) : serverMatch ? (
-        <ServerSelectionModal
-          isOpen={Boolean(serverMatch)}
-          selectedP1={serverMatch.player1}
-          selectedP2={serverMatch.player2}
-          startingMatch={startingMatch}
-          onSelectServer={(serverId) => onSelectServer(serverId)}
-          onClose={onCloseServer}
-        />
-      ) : null}
+      <ServerSelectionBlock
+        serverMatch={serverMatch}
+        startingMatch={startingMatch}
+        onSelectServer={onSelectServer}
+        onCloseServer={onCloseServer}
+      />
 
       {setSummaryMatch && (
         <SetSummaryModal

@@ -8,7 +8,7 @@ import { GestoresSection } from './gestores-section';
 import { AvulsosSection } from './avulsos-section';
 import { FinanceiroSection } from './financeiro-section';
 import { EditarClubeModal } from './editar-clube-modal';
-import { patchUser, patchTrainingCenter } from './suporte-mutations';
+import { createSuporteActions } from './create-suporte-actions';
 import { DashboardChrome } from '@/app/dashboard/components/DashboardChrome';
 
 interface SuportePageContentProps {
@@ -44,29 +44,12 @@ function SuportePageContent({ data, loading, error, setError, onRetry }: Suporte
   const avulsosCount = users.filter((u) => !userIdsWithMemberships.has(u.id)).length;
   const externosCount = data?.externos?.totalAthletes ?? 0;
 
-  const handleSuspend = async (ctId: string) => {
-    try { await patchTrainingCenter(ctId, { status: 'SUSPENDED' }); onRetry(); }
-    catch (err) { setError(err instanceof Error ? err.message : 'Erro ao bloquear clube'); }
+  const closeEditClub = () => {
+    setEditClubOpen(false);
+    setSelectedClub(null);
   };
-
-  const handleReactivate = async (ctId: string) => {
-    try { await patchTrainingCenter(ctId, { status: 'ACTIVE' }); onRetry(); }
-    catch (err) { setError(err instanceof Error ? err.message : 'Erro ao reativar clube'); }
-  };
-
-  const handleEditUser = async (userId: string, val: any) => {
-    try { await patchUser(userId, val); onRetry(); }
-    catch (err) { setError(err instanceof Error ? err.message : 'Erro ao editar usuário'); }
-  };
-
-  const handleEditClub = async (ctId: string, val: any) => {
-    try {
-      await patchTrainingCenter(ctId, val);
-      setEditClubOpen(false);
-      setSelectedClub(null);
-      onRetry();
-    } catch (err) { setError(err instanceof Error ? err.message : 'Erro ao editar clube'); }
-  };
+  const { handleSuspend, handleReactivate, handleEditUser, handleEditClub } =
+    createSuporteActions({ onRetry, setError, closeEditClub });
 
   return (
     <div className="min-h-screen bg-telemetry-base">

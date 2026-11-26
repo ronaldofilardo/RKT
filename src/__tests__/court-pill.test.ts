@@ -13,7 +13,13 @@ import path from 'node:path';
 const read = (rel: string) =>
   fs.readFileSync(path.resolve(process.cwd(), rel), 'utf-8').replace(/\/\*[\s\S]*?\*\//g, '');
 
-const css = read('src/app/globals.css');
+// Pós-split (d1806c9): classe em components/court-pill.css; tokens nos módulos de tema
+const css = [
+  'src/app/css/components/court-pill.css',
+  'src/app/css/tokens/dark-theme.css',
+  'src/app/css/tokens/light-theme-media.css',
+  'src/app/css/tokens/light-theme-class.css',
+].map(read).join('\n');
 const formatLabel = read('src/components/dashboard/format-label.tsx');
 
 function block(selector: string): string | null {

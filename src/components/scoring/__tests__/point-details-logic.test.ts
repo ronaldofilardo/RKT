@@ -124,8 +124,8 @@ describe('point-details-logic', () => {
       expect(getGolpeOptions('sacador', 'devolucao', 'erro_forcado')).toEqual(['fh', 'bh']);
     });
 
-    it('sacador em passada winner retorna FH/BH', () => {
-      expect(getGolpeOptions('sacador', 'passada', 'winner')).toEqual(['fh', 'bh']);
+    it('sacador em passada winner retorna FH/BH/voleios/smash', () => {
+      expect(getGolpeOptions('sacador', 'passada', 'winner')).toEqual(['fh', 'bh', 'vfh', 'vbh', 'smash']);
     });
 
     it('passada erro_forcado retorna voleios, smash e aproachs', () => {
@@ -148,8 +148,8 @@ describe('point-details-logic', () => {
       expect(getGolpeOptions('devolvedor', 'devolucao', 'erro_forcado')).toEqual(['fh', 'bh']);
     });
 
-    it('padrao retorna FH/BH', () => {
-      expect(getGolpeOptions('sacador', 'rede', 'erro_forcado')).toEqual(['fh', 'bh']);
+    it('padrao em rede com erro retorna FH/BH/voleios/smash', () => {
+      expect(getGolpeOptions('sacador', 'rede', 'erro_forcado')).toEqual(['fh', 'bh', 'vfh', 'vbh', 'smash']);
     });
   });
 

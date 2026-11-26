@@ -1,6 +1,6 @@
 'use client';
 
-import { abbreviatePlayerName } from './doubles-name-abbreviation.logic';
+import { SetupModalDoubles } from './setup-modal-doubles';
 
 interface Player {
   id: string;
@@ -36,51 +36,14 @@ export function SetupModal({
         </p>
 
         {isDoubles ? (
-          <div className="grid grid-cols-2 gap-3 text-left">
-            <div className="p-3 rounded-xl border border-sky-500/20 bg-telemetry-elevated/40 space-y-2">
-              <span className="text-[11px] font-bold text-sky-400 uppercase tracking-wider block">Dupla 1</span>
-              <div className="flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => onSelectServer(player1.id)}
-                  disabled={loading}
-                  className="w-full py-2.5 px-3 bg-telemetry-elevated hover:bg-telemetry-active hover:border-telemetry-volt hover:text-telemetry-volt border border-white/10 disabled:opacity-50 text-telemetry-text-primary font-bold rounded-lg text-sm transition-all"
-                >
-                  {abbreviatePlayerName(player1.name)}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onSelectServer(player1Partner!.id)}
-                  disabled={loading}
-                  className="w-full py-2.5 px-3 bg-telemetry-elevated hover:bg-telemetry-active hover:border-telemetry-volt hover:text-telemetry-volt border border-white/10 disabled:opacity-50 text-telemetry-text-primary font-bold rounded-lg text-sm transition-all"
-                >
-                  {abbreviatePlayerName(player1Partner!.name)}
-                </button>
-              </div>
-            </div>
-
-            <div className="p-3 rounded-xl border border-emerald-500/20 bg-telemetry-elevated/40 space-y-2">
-              <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider block">Dupla 2</span>
-              <div className="flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => onSelectServer(player2.id)}
-                  disabled={loading}
-                  className="w-full py-2.5 px-3 bg-telemetry-elevated hover:bg-telemetry-active hover:border-telemetry-volt hover:text-telemetry-volt border border-white/10 disabled:opacity-50 text-telemetry-text-primary font-bold rounded-lg text-sm transition-all"
-                >
-                  {abbreviatePlayerName(player2.name)}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onSelectServer(player2Partner!.id)}
-                  disabled={loading}
-                  className="w-full py-2.5 px-3 bg-telemetry-elevated hover:bg-telemetry-active hover:border-telemetry-volt hover:text-telemetry-volt border border-white/10 disabled:opacity-50 text-telemetry-text-primary font-bold rounded-lg text-sm transition-all"
-                >
-                  {abbreviatePlayerName(player2Partner!.name)}
-                </button>
-              </div>
-            </div>
-          </div>
+          <SetupModalDoubles
+            player1={player1}
+            player2={player2}
+            player1Partner={player1Partner!}
+            player2Partner={player2Partner!}
+            onSelectServer={onSelectServer}
+            loading={loading}
+          />
         ) : (
           <div className="flex flex-col gap-3">
             <button

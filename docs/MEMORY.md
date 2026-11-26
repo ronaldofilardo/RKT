@@ -1618,4 +1618,25 @@ Leitura completa: `docs/TASKS.md` — **Anexo A** (dívida técnica, 50 entradas
   - `pnpm check:mock-traps`: **0 armadilhas de teste**.
   - Suíte de testes: 46 suítes / 184 testes verdes em gestor, guardians e responsavel.
 
+## 2.61 Central de Ajuda (/help) — Fatia 1 + saneamento de débitos — 2026-11-26
+
+- **Contexto & Demanda:**
+  1. **Central de Ajuda** em `/help` (spec Elephant→Goldfish **PASS**, aprovada pelo usuário; plano completo em `docs/PLANO_CENTRAL_DE_AJUDA_2026-11-26.md`): conteúdo MDX versionado por perfil (Atleta, Treinador, Gestor, Responsável, Espectador, Anotador — **ADMIN/SUPORTE ficam de fora**), entrada `AJUDA` no rodapé do drawer condicionada à área, acesso somente logado, busca full-text adiada para a fase 2.
+  2. **Débitos pré-existentes no HEAD decididos pelo usuário:** corrigir os **17 arquivos >100L** (R-03) e as **11 suítes / 60 testes** em drift código×teste dos commits recentes.
+
+- **Implementações:**
+  - **Fundação (Fatia 1):** `@next/mdx@15.5.19` + `@mdx-js/loader@3` com `jsxImportSource: 'next/dist/compiled/react'` — o projeto declara `react@18.3.1`, mas o App Router do Next 15.5 roda no React vendorizado (19); o MDX compilado quebrava lendo `__SECRET_INTERNALS...ReactCurrentOwner` (renomeado no 19). Conteúdo em `content/help/**` (manifesto `index.ts` + artigo esqueleto `atleta/por-onde-comecar.mdx`, fora do guard R-03); rotas `src/app/help/{layout,page,[perfil]/page,[perfil]/[slug]/page}` — landing dinâmica lê `x-active-area` do middleware e redireciona; SSG via `generateStaticParams`; estilização via `src/mdx-components.tsx` + `src/types/mdx.d.ts`.
+  - **Integração de menu/rotas:** const `AJUDA` em `menu-items.ts`; `canSeeHelp` condicional no rodapé de `menu.ts` (`hasHelpContent(area)`; sem área no contexto, oculta só ADMIN/SUPORTE — ressalva do Goldfish); `/help` (exato) + prefixo `/help/` em `app-path.logic.ts` como **rotas neutras** (senão `appPath`/`DashboardChrome` navegavam para `/atleta/help`); `'/help/:path*'` no matcher do middleware **fora** de `PUBLIC_ROUTES`; `/help` em `noindexSources`.
+  - **Lógica pura:** `src/core/help/help-perfil.logic.ts` (AreaCode→slug) + `help-perfil.test.ts`.
+  - **R-03 (17 arquivos → todos ≤100L):** extrações pontuais com **re-export preservando os contratos públicos** (coaches `regenerate-link-issue`, `session-end-update`, `players-post-preflight`, `externos-fetch`, `dashboard-server-modal`, `use-scoring-serve-callbacks`, `scoring-lifecycle-route`, `SpectatorStatusBadge`, `invite-error-*`, `use-emitir-senha`+steps, `create-suporte-actions`, `point-annotation-cancel-row`, `set-summary-body`, `setup-modal-doubles`, `engine-server-fix`, `use-offline-sync.stuck`, `spectator-redeem`) — `check:r03` verde **sem** `--update` da baseline.
+  - **Drift de testes (11 suítes):** fixtures/expectations atualizados aos commits mais recentes (detalhe no plano §11); semântica do engine `b933089` (**canônico vence no game 1**) adotada nos2 testes antigos de 17/10 (arquivo de regressão de 20/11 permanece); autenticação do admin testada sem header Bearer (cookie httpOnly).
+  - **Restauração do fade do tema (decisão do usuário):** o split `d1806c9` perdeu os blocos "Transição suave de tema" e "Overrides de interação" — restaurados em `src/app/css/utilities/transitions.css` com o timing **0.3s** do `6ff3f9d` (o teste congelava ainda o `2s` antigo).
+
+- **Validação (gates STE-DEV 3.4.1):**
+  - `next build` verde: rotas `ƒ /help` (dinâmica), `● /help/atleta` e `● /help/atleta/por-onde-comecar` (SSG).
+  - `pnpm typecheck`: **0 erros** · `pnpm lint`: **0 erros** (2 warnings pré-existentes em `billing/plan-card-item.tsx` do WIP em curso).
+  - `pnpm check:r03`: **verde** — 2 violações congeladas na baseline, 5 isentas, 0 regressões.
+  - `check-no-skipped-tests` + `check:mock-traps`: OK.
+  - **Suíte completa: 840/840 suítes · 5170/5170 testes verdes** (baseline anterior: 11 suítes / 60 testes falhando por drift).
+
 

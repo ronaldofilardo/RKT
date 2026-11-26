@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { reportApiError } from '@/lib/api.logic';
 import { CreatePlayerInputSchema } from '@/schemas/player';
@@ -7,20 +6,7 @@ import { createPlayer } from '@/services/playerService';
 import { getActor } from '@/services/accessService';
 import { actorCtIds } from '@/core/access/pool';
 import { isMinor } from '@/core/access/age';
-import type { Actor } from '@/core/access';
-
-type CreatingProfile = 'ATLETA' | 'GESTOR' | 'TREINADOR';
-
-function actorCreatingProfile(actor: Actor): CreatingProfile | null {
-  const isGestor = actor.memberships.some((m) => m.kind === 'GESTOR' && m.status === 'ACTIVE' && !!m.ctId);
-  if (isGestor) return 'GESTOR';
-  const isTreinador = actor.memberships.some((m) => m.kind === 'TREINADOR' && m.status === 'ACTIVE');
-  if (isTreinador) return 'TREINADOR';
-  const isPlatformAdmin = actor.memberships.some((m) => m.kind === 'PLATAFORMA' && m.preset === 'ADMIN');
-  if (isPlatformAdmin) return 'GESTOR';
-  if (actor.athletePlayerId) return 'ATLETA';
-  return null;
-}
+import { actorCreatingProfile, fetchClubNameForCt } from './players-post-preflight.logic';
 
 export async function createPlayerFromPost(
   body: unknown,
@@ -80,17 +66,8 @@ export async function createPlayerFromPost(
     }
 
     if (resolvedCtId && !playerData.club) {
-      try {
-        const ct = await prisma.trainingCenter.findUnique({
-          where: { id: resolvedCtId },
-          select: { name: true },
-        });
-        if (ct?.name) {
-          playerData.club = ct.name;
-        }
-      } catch {
-        // Fallback silencioso
-      }
+      const ctName = await fetchClubNameForCt(resolvedCtId);
+      if (ctName) playerData.club = ctName;
     }
 
     const player = await createPlayer({

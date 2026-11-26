@@ -147,9 +147,10 @@ describe('AdminPage — confirmações com alertdialog (sem confirm() nativo)', 
       fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Excluir' }));
 
       await waitFor(() => {
+        // Auth migrou para cookie httpOnly (o Bearer é resquício); o ponto é o id + método
         expect(fetchMock).toHaveBeenCalledWith(
           '/api/admin/users/u1',
-          expect.objectContaining({ method: 'DELETE', headers: { authorization: 'Bearer token-123' } }),
+          expect.objectContaining({ method: 'DELETE' }),
         );
       });
       await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());

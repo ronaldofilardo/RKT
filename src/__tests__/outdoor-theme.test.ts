@@ -12,7 +12,7 @@ import path from 'node:path';
 const read = (rel: string) =>
   fs.readFileSync(path.resolve(process.cwd(), rel), 'utf-8').replace(/\/\*[\s\S]*?\*\//g, '');
 
-const css = read('src/app/globals.css');
+const css = read('src/app/css/tokens/outdoor-theme.css');
 const provider = read('src/contexts/use-theme-provider-state.ts');
 const layout = read('src/app/layout.tsx');
 const toggle = read('src/components/theme-toggle-options.tsx');
@@ -30,7 +30,7 @@ function block(selector: string): string | null {
 describe('modo outdoor (alto contraste)', () => {
   const selector = ":root[data-theme='outdoor']:not(.dark)";
 
-  it('tem bloco de tokens no globals.css', () => {
+  it('tem bloco de tokens no módulo outdoor', () => {
     const body = block(selector);
     expect(body).not.toBeNull();
     expect(body).toMatch(/--telemetry-base:\s*255 255 255/);

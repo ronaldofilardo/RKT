@@ -13,7 +13,7 @@ const CT_OUT: Resource = { ctId: OTHER_CT };
 const OWN: Resource = { ownerUserId: 'u-1' };
 const OTHERS: Resource = { ownerUserId: 'u-9' };
 
-/** Tabela esperada, escrita à mão a partir da matriz §5 do plano. */
+/** Tabela esperada, espelhando `profile-matrix.ts` (matriz §5 como dados). */
 const EXPECTED: Record<Profile, Partial<Record<Permission, Allowed>>> = {
   ADMIN: {
     'platform:users:manage': { ok: undefined },
@@ -22,14 +22,19 @@ const EXPECTED: Record<Profile, Partial<Record<Permission, Allowed>>> = {
     'support:account:assist': { ok: undefined },
     'platform:player:merge': { ok: undefined },
     'audit:read': { ok: undefined },
-    'support:access:approve': { ok: undefined },
+    'finance:subscriptions:read': { ok: undefined },
+    'finance:subscriptions:manage': { ok: undefined },
+    'finance:invoices:manage': { ok: undefined },
+    'finance:plans:manage': { ok: undefined },
   },
   SUPORTE: {
     'platform:users:manage': { ok: undefined },
     'platform:memberships:manage': { ok: { targetsPlatform: false }, ko: { targetsPlatform: true } },
     'support:account:assist': { ok: undefined },
     'platform:player:merge': { ok: undefined },
-    'audit:read': { ok: undefined },
+    'finance:subscriptions:read': { ok: undefined },
+    'finance:subscriptions:manage': { ok: undefined },
+    'finance:invoices:manage': { ok: undefined },
   },
   GESTOR: {
     'report:view': { ok: undefined },

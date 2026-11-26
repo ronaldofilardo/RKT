@@ -2,8 +2,9 @@
 
 import { useCallback } from 'react';
 import type { DoublesFormation } from '@/core/scoring/types';
-import type { usePointAnnotationFlow, HowPointEnded, WhereWinner } from '@/components/scoring/usePointAnnotationFlow';
+import type { usePointAnnotationFlow, WhereWinner } from '@/components/scoring/usePointAnnotationFlow';
 import type { ScoringPageEffects, ScoringPageState } from './use-scoring-page-chrome';
+import { useScoringServeCallbacks } from './use-scoring-serve-callbacks';
 
 type FlowControls = ReturnType<typeof usePointAnnotationFlow>;
 
@@ -16,60 +17,14 @@ export function useScoringAnnotationCallbacks(
   onServeAction?: (action: 'ace' | 'out' | 'net') => void,
   currentServer: 'player1' | 'player2' = 'player1',
 ) {
-  const { flow, setStep, setHowEnded, setWhereWinner, setDoublesFormation, setWinner, reset } = flowControls;
+  const { flow, setStep, setWhereWinner, setDoublesFormation, setWinner, reset } = flowControls;
 
   const cancelAnnotation = useCallback(() => {
     reset('player1');
     state.close();
   }, [reset, state]);
 
-  const cancelServe = useCallback(() => {
-    setHowEnded(null);
-  }, [setHowEnded]);
-
-  const selectHowEnded = useCallback(
-    (option: HowPointEnded) => {
-      if (!state.match?.initialServerId || state.match?.state === 'SCHEDULED') {
-        state.open('setup');
-        return;
-      }
-      if (disabled) return;
-      if (option === 'ACE') {
-        setHowEnded('ACE');
-        if (onServeAction) onServeAction('ace');
-        else handlers.recordAceDirectly();
-        return;
-      }
-      if (option === 'SERVE_FAULT') {
-        const isFirst = serveStep === 'first';
-        setHowEnded(isFirst ? null : 'SERVE_FAULT');
-        if (onServeAction) onServeAction('out');
-        else handlers.recordDirectServeError('out', isFirst ? 'first' : 'second');
-        return;
-      }
-      setHowEnded(option);
-      setStep('where-winner');
-    },
-    [disabled, setHowEnded, setStep, onServeAction, handlers, serveStep, state],
-  );
-
-  const confirmAce = useCallback((effect?: string, direction?: string) => {
-    handlers.confirmServerEffect(effect, direction);
-    reset('player1');
-  }, [handlers, reset]);
-
-  const startServeFault = useCallback((errorType: 'out' | 'net') => {
-    if (!state.match?.initialServerId || state.match?.state === 'SCHEDULED') {
-      state.open('setup');
-      return;
-    }
-    handlers.startServeErrorDetails(errorType, serveStep);
-  }, [handlers, serveStep, state]);
-
-  const confirmServeFault = useCallback((effect?: string, direction?: string) => {
-    handlers.confirmServeError(effect, direction);
-    reset('player1');
-  }, [handlers, reset]);
+  const serve = useScoringServeCallbacks({ state, handlers, flowControls, disabled, serveStep, onServeAction });
 
   const proceedAfterWhereWinner = useCallback((where: WhereWinner) => {
     if (where === 'devolvendo') {
@@ -114,7 +69,6 @@ export function useScoringAnnotationCallbacks(
   }, [disabled, flow.step, setStep, setWinner, state]);
 
   return {
-    cancelAnnotation, selectHowEnded, cancelServe, confirmAce, startServeFault,
-    confirmServeFault, selectWhereWinner, selectDoublesFormation, selectWinnerFromCard,
+    cancelAnnotation, ...serve, selectWhereWinner, selectDoublesFormation, selectWinnerFromCard,
   };
 }
