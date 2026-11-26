@@ -6,6 +6,7 @@ import { useConviteInvite } from './use-convite-invite';
 import { ConviteMinorCard } from './convite-minor-card';
 import { ConviteGuardianFields } from './convite-guardian-fields';
 import { ConviteConsentBoxes } from './convite-consent-boxes';
+import { ConviteSuccessCard } from './convite-success-card';
 
 export default function ResponsavelConvitePage({ params: paramsPromise }: { params: Promise<{ token: string }> }) {
   const { token } = use(paramsPromise);
@@ -47,21 +48,7 @@ export default function ResponsavelConvitePage({ params: paramsPromise }: { para
 
   if (loading) return <main className="min-h-screen bg-telemetry-base text-telemetry-text-primary flex items-center justify-center p-4"><div className="text-xs text-telemetry-text-muted">Carregando dados do convite...</div></main>;
   if (fetchError || !inviteData) return <main className="min-h-screen bg-telemetry-base text-telemetry-text-primary flex items-center justify-center p-4"><div className="bg-telemetry-card border border-telemetry-border/30 rounded-2xl max-w-md w-full p-6 text-center space-y-3"><div className="text-3xl">⚠️</div><h1 className="text-base font-bold">Convite Indisponível</h1><p className="text-xs text-telemetry-text-muted">{fetchError || 'Convite não encontrado.'}</p></div></main>;
-  if (success) {
-    return (
-      <main className="min-h-screen bg-telemetry-base text-telemetry-text-primary flex items-center justify-center p-4 sm:p-6">
-        <div className="bg-telemetry-card border border-telemetry-border/30 rounded-2xl max-w-md w-full p-6 sm:p-8 text-center space-y-4 shadow-2xl">
-          <div className="text-5xl">✅</div>
-          <h1 className="text-xl font-bold text-telemetry-text-primary">Autorização Confirmada com Sucesso!</h1>
-          <p className="text-xs text-telemetry-text-muted">Os dados e autorizações do atleta menor <strong>{inviteData.minorName}</strong> foram registrados conforme o ECA Digital e a LGPD.</p>
-          <div className="bg-telemetry-elevated/40 border border-telemetry-border/30 rounded-xl p-3.5 text-xs text-telemetry-text-muted space-y-1.5 text-left">
-            <span className="font-semibold text-telemetry-text-primary block flex items-center gap-1.5"><span>📩</span> Próximos Passos:</span>
-            <p className="text-[11px] leading-relaxed">O gestor do clube logo enviará o link para o seu primeiro acesso e login no sistema. Você já pode fechar esta página com segurança.</p>
-          </div>
-        </div>
-      </main>
-    );
-  }
+  if (success) return <ConviteSuccessCard minorName={inviteData.minorName} token={token} />;
 
   return (
     <main className="min-h-screen bg-telemetry-base text-telemetry-text-primary flex items-center justify-center p-4 sm:p-6">

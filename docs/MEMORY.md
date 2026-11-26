@@ -8,6 +8,23 @@
 
 ---
 
+## 2.55 Correção da Tela Pós-Autorização do Responsável (`/responsavel/convite/[token]`) — 2026-11-26
+- **Contexto & Demanda:**
+  - Após confirmar a autorização em `/responsavel/convite/[token]`, a tela de sucesso informava incorretamente que o gestor enviaria o link de acesso ao responsável.
+  - Na prática, o gestor envia o link ao **atleta menor** para habilitar a própria conta, enquanto o responsável já pode criar/ativar sua conta (escolhendo entre **Conta Básica** ou **Espectador & Anotador**) ou fazer login imediatamente.
+- **Implementação & Conclusão:**
+  1. **Componente `ConviteSuccessCard` (`src/app/responsavel/convite/[token]/convite-success-card.tsx`):**
+     - Texto de "Próximos Passos" corrigido para esclarecer que o gestor enviará o link ao atleta menor.
+     - Adicionado botão primário **"Criar / Ativar Conta de Responsável"** apontando para `/responsavel/aviso-ativacao/${token}` (reutilizando o fluxo já existente de seleção entre os 2 modos de conta + criação de senha via `POST /api/guardians/invites/[token]/activate`).
+     - Adicionado botão secundário **"Já tenho conta • Fazer Login"** apontando para `/login`.
+  2. **Limpeza em `convite/[token]/page.tsx`:**
+     - Extraído o card de sucesso mantendo a página abaixo do limite STE-DEV R-03 ($\le 100$ linhas).
+  3. **Testes e Qualidade:**
+     - Criado `src/app/responsavel/__tests__/convite-success-card.test.tsx`: **3/3 suítes e 5/5 testes aprovados** em `/responsavel/__tests__/`.
+     - `pnpm typecheck` e `pnpm check:r03`: código 0 e 0 regressões.
+
+---
+
 ## 2.54 Aba 'Ajuda' no Painel do Responsável (/responsavel) — 2026-11-26
 - **Contexto & Demanda:**
   - O painel `/responsavel` utiliza cabeçalho próprio (`GuardianTopBar`) sem menu hambúrguer, deixando o responsável legal sem acesso direto à Central de Ajuda.
