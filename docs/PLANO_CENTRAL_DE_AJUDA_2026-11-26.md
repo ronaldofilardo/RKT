@@ -51,9 +51,11 @@ Fluxo de dados:
 | Fatia | Escopo | Status |
 |-------|--------|--------|
 | **1 — Fundação** | Pipeline MDX + rota `/help` autenticada + 1 artigo esqueleto (Atleta) + item de menu condicional + neutralidade de rota + testes | **Concluída** — `next build` verde (rotas `/help` SSG), `typecheck` ✓, `lint` ✓, `check:r03` ✓, testes-alvo ✓ |
-| 2 — Conteúdo por perfil | Artigos dos 6 perfis, glosário e FAQ (MDX por seção) | Pendente |
-| 3 — Descoberta | Busca full-text (Fuse.js ou Pagefind) | Pendente |
-| 4 — Integração scoring | Botão flutuante "Ajuda" em `/scoring` (montado em `scoring-page-layout.tsx`) | Pendente |
+| **2 — Conteúdo por perfil** | Artigos dos 6 perfis, glosário e FAQ (MDX por seção) | **Concluída** — 18 artigos + glosário/FAQ; rotas `/help/glosario` e `/help/faq` estáticas (SSG); bloco Referência na listagem |
+| **3 — Descoberta** | Busca full-text (Fuse.js ou Pagefind) | **Concluída** — Fuse.js 7.5.0 + índice em build-time (`pnpm help:index` no `build`); `HelpSearch` no layout de `/help`; teste de frescor do índice |
+| **4 — Integração scoring** | Botão flutuante "Ajuda" em `/scoring` (montado em `scoring-page-layout.tsx`) | **Concluída** — `HelpFloatButton` (canto superior direito, visibilidade via `showHelpEntry`) montado no layout (93L) + testes |
+
+**Gates das Fatias 2-4 (2026-11-26):** `next build` 117/117 páginas (`● /help/[perfil]` com 6 perfis, `● /help/[perfil]/[slug]` com 18 artigos, `○ /help/faq` e `○ /help/glosario`) · `typecheck` 0 · `lint` 0 erros · `check:r03` verde (0 regressões) · **suíte completa 843/843 suítes · 5182/5182 testes**.
 
 ## 5. Mapa de arquivos da Fatia 1
 

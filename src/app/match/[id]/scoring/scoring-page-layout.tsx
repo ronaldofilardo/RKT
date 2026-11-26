@@ -15,6 +15,7 @@ import {
   type ScoringPageState,
 } from './use-scoring-page-chrome';
 import { homeForProfileString } from '@/core/access/home';
+import { HelpFloatButton } from '@/components/help/help-float-button';
 
 type AppRouter = ReturnType<typeof useRouter>;
 
@@ -60,6 +61,8 @@ export function ScoringPageLayout({
           onClose={handleClose} onShare={handleShare}
           onTimeline={chrome.openTimelineView} isFinished={isFinished} canShare={canShare}
         />
+
+        <HelpFloatButton />
 
         {chrome.isTimelineLoading && <TimelineLoadingOverlay />}
 

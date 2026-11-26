@@ -1,0 +1,34 @@
+# Anotação e correções
+
+Como registrar pontos, ler a timeline e corrigir erros durante e depois da partida.
+
+## Registrar um ponto
+
+O fluxo de anotação segue o **cascade do rally** — você responde na ordem:
+
+1. **Vencedor do ponto** — sacador ou devolvedor.
+2. **Situação** — devolução, fundo, passada, rede ou saque.
+3. **Tipo** — erro não forçado (ENF), erro forçado (EF), winner (W) ou dupla falta (DF).
+4. **Golpe e detalhes** — forehand (FH), backhand (BH), voleio, smash, saque; efeito, direção e duração do rally.
+
+Os campos táticos são opcionais conforme a configuração da partida — o essencial é vencedor e tipo, que já alimentam a timeline e o placar.
+
+## Ler a timeline
+
+Cada ponto anotado aparece na timeline com sua sigla (**ENF**, **EF**, **W**, **DF**, **FH**, **BH**, **Sm**, **Pass**, **FQ**, **Sq**...) e o placar recalculado. Destaques: break point, game ball, set ball e match ball. O glosário completo está em [Glosário](/help/glosario).
+
+## Desfazer (undo)
+
+Erros de toque podem ser desfeitos ponto a ponto: o motor guarda o par *(estado anterior, ponto)* de cada registro, então **desfazer restaura exatamente o placar anterior**, inclusive o saque.
+
+## Corrigir o placar
+
+Para corrigir um ponto já confirmado, use o botão ✏️ **Corrigir placar** (ou abra a partida com `?modal=edit-score`):
+
+- A correção abre o **modal de edição** com validação de set/tiebreak — o sistema rejeita placares impossíveis.
+- O botão fica **bloqueado durante a anotação do 2º saque** — finalize o ponto antes de editar.
+- A correção gera um **registro de auditoria** com o placar anterior, e os espectadores veem o diff sem perder a transmissão.
+
+## Resumo de set e fim de partida
+
+Ao fechar um set, o **resumo de set** confirma o placar antes de seguir. Ao fim da partida, revise o placar final em Histórico — ele alimenta o relatório.

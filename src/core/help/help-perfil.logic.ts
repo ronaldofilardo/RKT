@@ -23,3 +23,13 @@ export function perfilSlugForArea(area?: string | null): string | null {
   if (!area) return null;
   return HELP_PERFIL_SLUGS[area] ?? null;
 }
+
+/**
+ * Exibe a entrada de ajuda (rodapé do menu ou botão flutuante) para o usuário.
+ * Espelha `canSeeHelp` do rodapé: com área, o conteúdo precisa existir para ela;
+ * sem área (contexto ainda não hidratado), oculta apenas ADMIN/SUPORTE.
+ */
+export function showHelpEntry(area?: string | null, role?: string | null): boolean {
+  if (area) return hasHelpContent(area);
+  return role !== 'ADMIN' && role !== 'SUPORTE';
+}

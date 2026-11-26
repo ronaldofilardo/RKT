@@ -1667,4 +1667,19 @@ Leitura completa: `docs/TASKS.md` — **Anexo A** (dívida técnica, 50 entradas
   - `check-no-skipped-tests` + `check:mock-traps`: OK.
   - **Suíte completa: 840/840 suítes · 5170/5170 testes verdes** (baseline anterior: 11 suítes / 60 testes falhando por drift).
 
+## 2.62 Central de Ajuda (/help) — Fatias 2, 3 e 4 (conteúdo, busca e botão flutuante) — 2026-11-26
+
+- **Contexto & Demanda:** execução das 3 fatias restantes da Central de Ajuda aprovada no §2.61 (plano `docs/PLANO_CENTRAL_DE_AJUDA_2026-11-26.md` §4): **Fatia 2** conteúdo dos 6 perfis + glosário/FAQ, **Fatia 3** busca full-text, **Fatia 4** botão flutuante em `/scoring`.
+
+- **Implementações:**
+  - **Fatia 2 — conteúdo:** 18 artigos MDX novos + revisão do esqueleto `por-onde-comecar` do Atleta (removida a imprecisão "tela Ao Vivo" — `atletaItems` não tem Ao Vivo; acompanhamento via link público + Relatórios). Estrutura: `content/help/types.ts` (HelpArticle/HelpPerfilContent/HelpReferencia), manifestos por perfil `content/help/<perfil>/index.ts` (atleta 4, treinador 3, gestor 3, responsável 4, espectador 2, anotador 2), `content/help/referencia/{glosario,faq}.mdx` e `content/help/index.ts` reescrito como agregador (`HELP_PERFIL_CONTENT`, `HELP_REFERENCIA`, `findHelpPerfil`, `findHelpReferencia` — contratos usados pelas rotas preservados). Rotas estáticas `src/app/help/{glosario,faq}/page.tsx` sobre `referencia-page.tsx` (segmento estático vence `/help/[perfil]`); bloco **Referência** na listagem por perfil. Conteúdo ancorado em `docs/glossario.md` e fatos reais de menu/UI (siglas da timeline, tooltip "Finalize a anotação do 2º saque antes de editar o placar", tríade DATA/BROADCAST/STATS, DPO `suporte@omni-sistemas.com`, billing A0.23 no FAQ); **texto legal nunca duplicado** — links para `/termos/responsavel` e `/privacidade`.
+  - **Fatia 3 — busca:** `fuse.js@7.5.0`; gerador `scripts/generate-help-search-index.mjs` (strip de Markdown → `content/help/search-index.json`, 20 artigos, saída determinística sem timestamp) com script `help:index` acoplado ao `build`; `src/components/help/help-search.tsx` (`use client`, Fuse com `ignoreLocation`, top 8 resultados, estado vazio) montado no `src/app/help/layout.tsx`; alias `@content/*` no `moduleNameMapper` do Jest. Testes: **frescor** (índice cobre exatamente os `.mdx`, sem órfãos) + comportamento da busca.
+  - **Fatia 4 — botão flutuante:** `src/components/help/help-float-button.tsx` montado em `scoring-page-layout.tsx` (93L). Posição **superior direita** (`top-10`, `landscape:top-2`): todos os outros cantos da tela densa de scoring são alvos de toque (cartões dos jogadores com `onPoint`, barras de anotação, ActionBar); o canto superior cai sobre placar/margem não interativa. Visibilidade via nova função pura **`showHelpEntry(area, role)`** em `help-perfil.logic.ts` (espelha `canSeeHelp` do rodapé: com área exige conteúdo; sem área oculta só ADMIN/SUPORTE), resolvida em `useEffect` (sem divergência de SSR).
+
+- **Validação (gates STE-DEV 3.4.1):**
+  - `next build` verde: **117/117 páginas** — `ƒ /help`, `● /help/[perfil]` (6 perfis), `● /help/[perfil]/[slug]` (18 artigos), `○ /help/faq` e `○ /help/glosario` estáticas; `/match/[id]/scoring` 74,7 kB (+0,4 kB do botão).
+  - `pnpm typecheck`: **0 erros** · `pnpm lint`: **0 erros** (2 warnings pré-existentes em `billing/plan-card-item.tsx`).
+  - `pnpm check:r03`: **verde** — 0 regressões (novos arquivos ≤93L).
+  - **Suíte completa: 843/843 suítes · 5182/5182 testes** (+3 suítes e +12 testes novos: frescor do índice, HelpSearch, HelpFloatButton, `showHelpEntry`).
+
 

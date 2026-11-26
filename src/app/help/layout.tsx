@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { BrandLogo } from '@/components/ui/brand-logo';
+import { HelpSearch } from '@/components/help/help-search';
 
 export const metadata: Metadata = {
   title: { default: 'Central de Ajuda | RKT', template: '%s | Central de Ajuda | RKT' },
@@ -17,6 +18,8 @@ export default function HelpLayout({ children }: { children: ReactNode }) {
         <div className="flex justify-start mb-8">
           <BrandLogo size="md" priority />
         </div>
+
+        <HelpSearch />
 
         {children}
 

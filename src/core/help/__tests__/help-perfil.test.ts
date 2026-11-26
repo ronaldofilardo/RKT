@@ -1,4 +1,4 @@
-import { hasHelpContent, perfilSlugForArea } from '../help-perfil.logic';
+import { hasHelpContent, perfilSlugForArea, showHelpEntry } from '../help-perfil.logic';
 
 describe('help-perfil.logic.ts', () => {
   it('mapeia cada área com conteúdo para o slug canônico', () => {
@@ -25,5 +25,20 @@ describe('help-perfil.logic.ts', () => {
     expect(perfilSlugForArea('INEXISTENTE')).toBeNull();
     expect(hasHelpContent(null)).toBe(false);
     expect(hasHelpContent('INEXISTENTE')).toBe(false);
+  });
+
+  it('showHelpEntry: com área, depende de haver conteúdo para ela', () => {
+    expect(showHelpEntry('ATLETA', 'ADMIN')).toBe(true);
+    expect(showHelpEntry('GESTOR', null)).toBe(true);
+    expect(showHelpEntry('ADMIN', 'ADMIN')).toBe(false);
+    expect(showHelpEntry('SUPORTE', 'ADMIN')).toBe(false);
+    expect(showHelpEntry('INEXISTENTE', null)).toBe(false);
+  });
+
+  it('showHelpEntry: sem área, oculta apenas ADMIN/SUPORTE (fallback do rodapé)', () => {
+    expect(showHelpEntry(null, 'ANNOTATOR')).toBe(true);
+    expect(showHelpEntry(null, null)).toBe(true);
+    expect(showHelpEntry(undefined, 'ADMIN')).toBe(false);
+    expect(showHelpEntry(null, 'SUPORTE')).toBe(false);
   });
 });
