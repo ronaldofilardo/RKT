@@ -1,6 +1,6 @@
 'use client';
 
-export type GuardianTab = 'autorizacoes' | 'partidas' | 'avisos' | 'acessos';
+export type GuardianTab = 'autorizacoes' | 'partidas' | 'avisos' | 'acessos' | 'ajuda';
 
 interface GuardianTabsNavProps {
   currentTab: GuardianTab;
@@ -20,6 +20,7 @@ export function GuardianTabsNav({
     { key: 'partidas', label: '🎾 Partidas', badge: matchesCount },
     { key: 'avisos', label: '🔔 Avisos', badge: avisosCount },
     { key: 'acessos', label: '👤 Acessos' },
+    { key: 'ajuda', label: '❓ Ajuda' },
   ];
 
   return (

@@ -31,7 +31,7 @@ export function CoachRow({ coach: c, selected, onSelect, onEdit, onGenerateLink,
         />
       </td>
       <td className="px-3 py-3 text-sm text-telemetry-text-primary font-medium">{c.user.name}</td>
-      <td className="px-3 py-3 text-xs text-telemetry-text-muted/90 font-mono tabular-nums">{formattedCpf}</td>
+      <td className="px-3 py-3 text-xs text-telemetry-text-muted/90 font-sans tabular-nums">{formattedCpf}</td>
       <td className="px-3 py-3 text-sm text-telemetry-text-muted/90">{c.user.email}</td>
       <td className="px-3 py-3 text-sm text-telemetry-text-muted/90 tabular-nums">{new Date(c.user.createdAt).toLocaleDateString('pt-BR')}</td>
       <td className="px-3 py-3 text-sm">

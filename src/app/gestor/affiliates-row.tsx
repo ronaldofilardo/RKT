@@ -15,7 +15,7 @@ export function AffiliatesRow({ athlete }: AffiliatesRowProps) {
       <td className="py-3 px-4">
         <div className="font-medium text-telemetry-text-primary">{athlete.name}</div>
         {athlete.nickname ? (
-          <div className="text-xs text-telemetry-blue font-mono font-medium">@{athlete.nickname}</div>
+          <div className="text-xs text-telemetry-blue font-sans font-medium">@{athlete.nickname}</div>
         ) : (
           <div className="text-xs text-telemetry-text-muted">Sem nickname</div>
         )}

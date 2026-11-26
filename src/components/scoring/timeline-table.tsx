@@ -165,7 +165,7 @@ function FinalResultRow({
       </td>
       <td
         colSpan={2}
-        className="px-1.5 py-2 text-[10px] border-r border-white/10 font-mono"
+        className="px-1.5 py-2 text-[10px] border-r border-white/10 font-sans tabular-nums"
         aria-label={`Vencedor: ${winnerLabel}. Placar: ${placar}`}
       >
         <div className="flex flex-col leading-tight">

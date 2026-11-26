@@ -50,42 +50,42 @@ export function SpectatorScoreboard({
       <div className="border-b border-telemetry-border/10 px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="text-left">
-            <p className="font-mono text-sm text-telemetry-text-muted">{p1DisplayName}</p>
-            <p className={`font-mono text-2xl font-bold tabular-nums ${isFinished && winner === 'player1' ? 'text-telemetry-volt' : 'text-telemetry-text-primary'}`}>
+            <p className="font-sans tabular-nums text-sm text-telemetry-text-muted">{p1DisplayName}</p>
+            <p className={`font-sans tabular-nums text-2xl font-bold tabular-nums ${isFinished && winner === 'player1' ? 'text-telemetry-volt' : 'text-telemetry-text-primary'}`}>
               {p1Score}
             </p>
           </div>
 
           <div className="text-center">
-            <p className="font-mono text-sm text-telemetry-text-muted">
+            <p className="font-sans tabular-nums text-sm text-telemetry-text-muted">
               {isFinished ? 'Final' : 'Atualizado há poucos segundos'}
             </p>
-            <p className="font-mono text-lg text-telemetry-text-muted">–</p>
+            <p className="font-sans tabular-nums text-lg text-telemetry-text-muted">–</p>
           </div>
 
           <div className="text-right">
-            <p className="font-mono text-sm text-telemetry-volt">{p2DisplayName}</p>
-            <p className="font-mono text-2xl font-bold tabular-nums text-telemetry-volt">
+            <p className="font-sans tabular-nums text-sm text-telemetry-volt">{p2DisplayName}</p>
+            <p className="font-sans tabular-nums text-2xl font-bold tabular-nums text-telemetry-volt">
               {p2Score}
             </p>
           </div>
         </div>
 
         {isFinished && winner && (
-          <p className="mt-2 text-center font-mono text-xs text-telemetry-volt">
+          <p className="mt-2 text-center font-sans tabular-nums text-xs text-telemetry-volt">
             {winner === 'player1' ? p1DisplayName : p2DisplayName} venceu
           </p>
         )}
 
         {!isFinished && gamePoints && (
           <div className="mt-2 flex items-center justify-center gap-2">
-            <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-medium ${
+            <span className={`px-2 py-0.5 rounded text-[10px] font-sans tabular-nums font-medium ${
               serverSide === 'player1' ? 'bg-telemetry-text-primary text-telemetry-base' : 'bg-telemetry-volt/20 text-telemetry-volt'
             }`}>
               {gamePoints.player1}
             </span>
-            <span className="font-mono text-xs text-telemetry-text-muted">{gamePoints.title ?? 'Pts'}</span>
-            <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-medium ${
+            <span className="font-sans tabular-nums text-xs text-telemetry-text-muted">{gamePoints.title ?? 'Pts'}</span>
+            <span className={`px-2 py-0.5 rounded text-[10px] font-sans tabular-nums font-medium ${
               serverSide === 'player2' ? 'bg-telemetry-volt text-telemetry-base' : 'bg-telemetry-volt/20 text-telemetry-volt'
             }`}>
               {gamePoints.player2}

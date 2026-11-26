@@ -22,9 +22,9 @@ export function ScoreBar({
   return (
     <div className="mb-2">
       <div className="flex justify-between text-[10px] mb-0.5">
-        <span className="font-mono font-bold" style={{ color: p1Hex }}>{fmt(p1Value)}</span>
+        <span className="font-sans tabular-nums font-bold" style={{ color: p1Hex }}>{fmt(p1Value)}</span>
         <span className="text-[9px] text-center px-1 truncate text-telemetry-text-muted">{label}</span>
-        <span className="font-mono font-bold" style={{ color: p2Hex }}>{fmt(p2Value)}</span>
+        <span className="font-sans tabular-nums font-bold" style={{ color: p2Hex }}>{fmt(p2Value)}</span>
       </div>
       <div className="flex h-1.5 rounded-full overflow-hidden bg-white/5">
         <div className="transition-all duration-500" style={{ width: `${p1Pct}%`, background: p1Hex }} />

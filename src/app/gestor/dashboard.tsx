@@ -11,6 +11,7 @@ import { AffiliatesTable } from './affiliates-table';
 import { ClubMatchesTable } from './club-matches-table';
 import { SolicitacoesTable } from './solicitacoes-table';
 import { ClubInfo } from './club-info';
+import { GestorHelpTab } from './gestor-help-tab';
 import { DashboardHeader } from './dashboard-header';
 import { DashboardChrome } from '@/app/dashboard/components/DashboardChrome';
 import { BillingOverlayOrchestrator } from '@/components/billing/billing-overlay-orchestrator';
@@ -68,6 +69,7 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
             />
           )}
           {tab === 'club' && <ClubInfo />}
+          {tab === 'help' && <GestorHelpTab />}
         </div>
         <GestorDashboardModals
           cadastroOpen={cadastroOpen} setCadastroOpen={setCadastroOpen} cadastroType={cadastroType}

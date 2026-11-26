@@ -37,7 +37,7 @@ export function NoteVoiceControls({ recorder: voiceRecorder }: NoteVoiceControls
             <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
             <span className="font-bold text-sm">Gravando...</span>
           </div>
-          <p className="text-telemetry-text-muted text-lg font-mono">
+          <p className="text-telemetry-text-muted text-lg font-sans tabular-nums">
             {formatDuration(voiceRecorder.durationMs)} / 0:15
           </p>
           <button

@@ -54,6 +54,7 @@ model User {
   assignedMatches        Match[]                  @relation("MatchAssignedCoach")
   matchDesignations      MatchAssignedCoach[]
   notifications          Notification[]
+  subscriptions          Subscription[]
 
   @@map("users")
 }
@@ -460,6 +461,7 @@ model TrainingCenter {
   matches         Match[]      @relation("CtMatches")
   tournaments     Tournament[]
   clubs           Club[]       @relation("ClubCt")
+  subscriptions   Subscription[]
 
   @@map("training_centers")
 }
@@ -881,4 +883,73 @@ model MatchAssignedCoach {
   @@unique([matchId, coachId], name: "MatchAssignedCoach_matchId_coachId_key")
   @@index([matchId], name: "MatchAssignedCoach_matchId_idx")
   @@index([coachId], name: "MatchAssignedCoach_coachId_idx")
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+}
+
+model Subscription {
+  id                    String             @id @default(cuid())
+  userId                String?            @map("user_id")
+  ctId                  String?            @map("ct_id")
+  planTier              String             @map("plan_tier")
+  cycle                 BillingCycle       @default(MONTHLY)
+  status                SubscriptionStatus @default(TRIAL)
+  asaasCustomerId       String?            @map("asaas_customer_id")
+  asaasSubscriptionId   String?            @unique @map("asaas_subscription_id")
+  currentPeriodStart    DateTime           @default(now()) @map("current_period_start")
+  currentPeriodEnd      DateTime?          @map("current_period_end")
+  pastDueSince          DateTime?          @map("past_due_since")
+  createdAt             DateTime           @default(now()) @map("created_at")
+  updatedAt             DateTime           @updatedAt @map("updated_at")
+
+  user                  User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ct                    TrainingCenter?    @relation(fields: [ctId], references: [id], onDelete: Cascade)
+  invoices              Invoice[]
+
+  @@index([userId, status])
+  @@index([ctId, status])
+  @@map("subscriptions")
+}
+
+model Invoice {
+  id                    String             @id @default(cuid())
+  subscriptionId        String             @map("subscription_id")
+  asaasPaymentId        String?            @unique @map("asaas_payment_id")
+  value                 Decimal            @db.Decimal(10, 2)
+  dueDate               DateTime           @db.Date @map("due_date")
+  status                String             @default("PENDING")
+  billingType           String?            @map("billing_type")
+  invoiceUrl            String?            @map("invoice_url")
+  bankSlipUrl           String?            @map("bank_slip_url")
+  pixCopiaECola         String?            @map("pix_copia_e_cola")
+  pixQrCodeBase64       String?            @map("pix_qrcode_base64")
+  paidAt                DateTime?          @map("paid_at")
+  createdAt             DateTime           @default(now()) @map("created_at")
+
+  subscription          Subscription       @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId, status])
+  @@map("invoices")
+}
+
+model AsaasWebhookEvent {
+  id                    String             @id @default(cuid())
+  asaasEventId          String             @unique @map("asaas_event_id")
+  eventType             String             @map("event_type")
+  payloadJson           Json               @map("payload_json")
+  processedAt           DateTime?          @map("processed_at")
+  error                 String?
+  createdAt             DateTime           @default(now()) @map("created_at")
+
+  @@map("asaas_webhook_events")
 }

@@ -20,7 +20,7 @@ export function FioDoJogoCards({ metrics, p1Hex, p2Hex }: {
         <div className="text-[10px] uppercase font-bold text-telemetry-text-muted mb-1">
           Domínio em Sequências
         </div>
-        <div className="flex justify-center items-center gap-2 font-mono font-black text-lg">
+        <div className="flex justify-center items-center gap-2 font-sans tabular-nums font-black text-lg">
           <span style={{ color: p1Hex }}>{metrics.p1Pct}%</span>
           <span className="text-white/20 text-xs">vs</span>
           <span style={{ color: p2Hex }}>{metrics.p2Pct}%</span>
@@ -34,7 +34,7 @@ export function FioDoJogoCards({ metrics, p1Hex, p2Hex }: {
         <div className="text-[10px] uppercase font-bold text-telemetry-text-muted mb-1">
           Maior Sequência
         </div>
-        <div className="flex justify-center items-center gap-2 font-mono font-black text-lg">
+        <div className="flex justify-center items-center gap-2 font-sans tabular-nums font-black text-lg">
           <span style={{ color: p1Hex }}>{metrics.maxStreakP1} pts</span>
           <span className="text-white/20 text-xs">/</span>
           <span style={{ color: p2Hex }}>{metrics.maxStreakP2} pts</span>
@@ -48,7 +48,7 @@ export function FioDoJogoCards({ metrics, p1Hex, p2Hex }: {
         <div className="text-[10px] uppercase font-bold text-telemetry-text-muted mb-1">
           Super Runs (4+ Pts)
         </div>
-        <div className="flex justify-center items-center gap-2 font-mono font-black text-lg">
+        <div className="flex justify-center items-center gap-2 font-sans tabular-nums font-black text-lg">
           <span style={{ color: p1Hex }}>{metrics.p1SuperRuns}</span>
           <span className="text-white/20 text-xs">/</span>
           <span style={{ color: p2Hex }}>{metrics.p2SuperRuns}</span>
@@ -62,7 +62,7 @@ export function FioDoJogoCards({ metrics, p1Hex, p2Hex }: {
         <div className="text-[10px] uppercase font-bold text-telemetry-text-muted mb-1">
           Total de Séries
         </div>
-        <div className="font-mono font-black text-lg text-telemetry-text-primary">
+        <div className="font-sans tabular-nums font-black text-lg text-telemetry-text-primary">
           {metrics.totalRuns}
         </div>
         <div className="text-[10px] text-telemetry-text-muted mt-0.5">

@@ -42,9 +42,9 @@ export function ShotSection({ stats, player1Name, player2Name }: Props) {
         </div>
         <div className="text-center text-xs text-telemetry-text-muted mt-2">
           Duração média do rally:{' '}
-          <span className={`font-mono ${colors.p1}`}>{shots.player1.rallyAvgLength.toFixed(1)}</span>
+          <span className={`font-sans tabular-nums ${colors.p1}`}>{shots.player1.rallyAvgLength.toFixed(1)}</span>
           <span className="text-white/30 mx-2">&bull;</span>
-          <span className={`font-mono ${colors.p2}`}>{shots.player2.rallyAvgLength.toFixed(1)}</span>
+          <span className={`font-sans tabular-nums ${colors.p2}`}>{shots.player2.rallyAvgLength.toFixed(1)}</span>
         </div>
       </div>
 
@@ -65,10 +65,10 @@ export function ShotSection({ stats, player1Name, player2Name }: Props) {
         <div className="mt-3 pt-3 border-t border-white/10">
           <div className="text-xs font-semibold text-telemetry-text-primary mb-2">Balanço de Backhand (Winners / ENF / EF)</div>
           <div className="grid grid-cols-2 gap-2 text-xs text-center">
-            <div className={`bg-white/5 rounded px-2 py-1 font-mono ${colors.p1}`}>
+            <div className={`bg-white/5 rounded px-2 py-1 font-sans tabular-nums ${colors.p1}`}>
               {shots.player1.backhandStats.winners}W / {shots.player1.backhandStats.unforcedErrors}ENF / {shots.player1.backhandStats.forcedErrors}EF
             </div>
-            <div className={`bg-white/5 rounded px-2 py-1 font-mono ${colors.p2}`}>
+            <div className={`bg-white/5 rounded px-2 py-1 font-sans tabular-nums ${colors.p2}`}>
               {shots.player2.backhandStats.winners}W / {shots.player2.backhandStats.unforcedErrors}ENF / {shots.player2.backhandStats.forcedErrors}EF
             </div>
           </div>

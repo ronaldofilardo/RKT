@@ -5,6 +5,7 @@ import type { BillingAccountState, PlanTier, BillingCycle } from '@/types/billin
 import { TrialCounterBar } from './trial-counter-bar';
 import { LastFreeAccessModal } from './last-free-access-modal';
 import { PaywallModal } from './paywall-modal';
+import { CheckoutModal } from './checkout-modal';
 
 interface BillingOverlayOrchestratorProps {
   billing: BillingAccountState | null;
@@ -13,9 +14,11 @@ interface BillingOverlayOrchestratorProps {
 
 export function BillingOverlayOrchestrator({
   billing,
+  onRefreshBilling,
 }: BillingOverlayOrchestratorProps) {
   const [showLastFreeModal, setShowLastFreeModal] = useState(false);
   const [showPaywallModal, setShowPaywallModal] = useState(false);
+  const [checkoutTarget, setCheckoutTarget] = useState<{ planId: PlanTier; cycle: BillingCycle } | null>(null);
 
   useEffect(() => {
     if (billing?.status === 'LAST_FREE') {
@@ -34,11 +37,9 @@ export function BillingOverlayOrchestrator({
   };
 
   const handleSubscribe = (planId: PlanTier, cycle: BillingCycle) => {
-    // Redireciona para o fluxo de checkout com os parâmetros selecionados
-    if (typeof window !== 'undefined') {
-      const url = `/checkout?plan=${encodeURIComponent(planId)}&cycle=${encodeURIComponent(cycle)}`;
-      window.location.href = url;
-    }
+    setShowLastFreeModal(false);
+    setShowPaywallModal(false);
+    setCheckoutTarget({ planId, cycle });
   };
 
   return (
@@ -61,6 +62,20 @@ export function BillingOverlayOrchestrator({
         onClose={() => setShowPaywallModal(false)}
         onSubscribe={handleSubscribe}
       />
+
+      {checkoutTarget && (
+        <CheckoutModal
+          isOpen={Boolean(checkoutTarget)}
+          planId={checkoutTarget.planId}
+          cycle={checkoutTarget.cycle}
+          onClose={() => setCheckoutTarget(null)}
+          onSuccess={() => {
+            setCheckoutTarget(null);
+            if (onRefreshBilling) onRefreshBilling();
+            else if (typeof window !== 'undefined') window.location.reload();
+          }}
+        />
+      )}
     </>
   );
 }

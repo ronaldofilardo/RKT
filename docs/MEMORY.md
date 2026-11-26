@@ -3,8 +3,151 @@
 > Diário de bordo técnico · Metodologia RE-DOC (Fase 4 — Auditoria de Qualidade e Histórico)
 > **Este é um dos 6 arquivos-canônico do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
 
-**Última Atualização:** 2026-11-25
+**Última Atualização:** 2026-11-26
 **Analisado por:** engenharia reversa e implementação sobre `main`
+
+---
+
+## 2.54 Aba 'Ajuda' no Painel do Responsável (/responsavel) — 2026-11-26
+- **Contexto & Demanda:**
+  - O painel `/responsavel` utiliza cabeçalho próprio (`GuardianTopBar`) sem menu hambúrguer, deixando o responsável legal sem acesso direto à Central de Ajuda.
+  - Conduzido via Elephant-Goldfish Model (EGM) com aprovação prévia da especificação e auditoria.
+- **Implementação & Conclusão:**
+  1. **Navegação e Resiliência (`guardian-tabs-nav.tsx`, `page.tsx`):**
+     - Adicionada aba `'ajuda'` (`❓ Ajuda`) em `GuardianTabsNav`.
+     - `ResponsavelPage` mantém a barra de abas visível mesmo quando `dependents.length === 0`, garantindo acesso à documentação para responsáveis recém-cadastrados.
+  2. **Conteúdo Detalhado e Destaque de Proteção (`guardian-tab-ajuda.tsx`, `guardian-privacy-highlight.tsx`):**
+     - Busca integrada (`<HelpSearch />`), guias do responsável (`/help/responsavel/*`) e referências normativas (`/termos/responsavel`, `/privacidade`, `/help/glosario`, `/help/faq`).
+     - Seção dedicada ao **ECA Digital (Lei nº 15.211/2025)** e **LGPD Art. 14** (monotutela estrita, tríade `DATA`/`BROADCAST`/`STATS` com $N \ge 10$, pseudonimização `Atleta #XXXXXX` e emancipação aos 18 anos).
+     - Card em destaque explicando a proteção em **Partidas Compartilhadas** (bloqueio automático sem `BROADCAST`, tokens SHA-256 revogáveis, círculo fechado vs. aberto, zero exposição cadastral e trilha na aba Acessos).
+  3. **Testes e Qualidade STE-DEV:**
+     - Atualizado `guardian-tabs.test.tsx` e criado `guardian-tab-ajuda.test.tsx`: **2/2 suítes, 4/4 testes aprovados**.
+     - `pnpm typecheck` e `pnpm check:r03`: código 0 e 0 regressões.
+
+---
+
+## 2.53 Responsividade Mobile por Perfil (Fatia 2 — Cards Mobile & Hook useIsMobile) — 2026-11-26
+- **Contexto & Demanda:**
+  - Tabelas largas de Atletas (`min-w-[1000px]`), Treinadores (`min-w-[760px]`) e Afiliados exigiam rolagem horizontal excessiva em dispositivos móveis (360px–390px) para alcançar ações na coluna final.
+- **Implementação & Conclusão:**
+  1. **Hook Responsivo SSR-Safe (`src/hooks/use-is-mobile.ts`):**
+     - Criado `useIsMobile(768)` baseado em `window.matchMedia`, evitando duplicação de nós no DOM e mantendo compatibilidade com SSR/jsdom.
+  2. **Cards Mobile Dedicados (`<= 100` linhas):**
+     - `src/components/athlete/athlete-mobile-card.tsx`: visão em cartão para `/atletas` (Treinador) e `/gestor` (Atletas).
+     - `src/app/gestor/coach-mobile-card.tsx`: visão em cartão para Treinadores do Clube no Painel do Gestor.
+     - `src/app/gestor/affiliates-mobile-card.tsx`: visão em cartão para Afiliados no Painel do Gestor.
+     - `src/app/matches/acompanhar/[matchId]/SpectatorHeader.tsx`: adicionado `flex-wrap` na linha de status e botão voltar para telas ultracompactas.
+  3. **Testes e Qualidade STE-DEV:**
+     - Criados `athlete-mobile-card.test.tsx` e `mobile-cards.test.tsx`; validado em conjunto com `affiliates-table.test.tsx` (**3/3 suítes, 8/8 testes aprovados**).
+     - `pnpm typecheck` e `pnpm check:r03`: código 0 e 0 regressões.
+
+---
+
+## 2.52 Tipografia Clean Global (Fatia 1 — Anti-aliasing & Substituição de font-mono) — 2026-11-26
+- **Contexto & Demanda:**
+  - Campos de interface comum (CPF, CNPJ, datas, `@nickname`, placares e métricas de relatórios/espectador) utilizavam `font-mono` (`GeistMono`), gerando estética retrô/terminal e aparência menos nítida quando combinada com `subpixel-antialiased` no fundo escuro.
+- **Implementação & Conclusão:**
+  1. **Rendering Global (`layout.tsx`, `reset.css`):**
+     - Trocado `subpixel-antialiased` por `antialiased` no `<body>` e configurado `-webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility;` no reset base.
+  2. **Substituição Sistemática (`font-sans tabular-nums`):**
+     - Migrados dados cadastrais, tabelas (`athlete-table-row.tsx`, `coach-row.tsx`, `affiliates-row.tsx`, `clubs-table.tsx`, `club-match-row.tsx`, `personal-data-section.tsx`, `suporte/*`, `responsavel/*`), Espectador (`Spectator*.tsx`), Relatórios (`advanced-stats-*.tsx`) e Scoring (`set-summary-*.tsx`, `timeline-table.tsx`, etc.) para `font-sans tabular-nums` (ou `font-sans` em `@nickname`).
+     - Preservado `font-mono` apenas em tokens/URLs copiáveis, senhas temporárias e blocos `<code>` de documentação.
+  3. **Validação:**
+     - `pnpm test:design`: **4/4 suítes e 29/29 testes aprovados**.
+     - `pnpm typecheck` e `pnpm check:r03`: código 0 e 0 regressões.
+
+---
+
+## 2.51 Movimentação do Seletor de Contexto para o Menu Lateral (Correção de Overflow no Mobile) — 2026-11-26
+- **Contexto & Demanda:**
+  - Em telas pequenas (mobile), o `ContextSwitcher` no `DashboardTopBar` empurrava o botão do menu hambúrguer para fora da viewport horizontal devido à soma das larguras do título, botão voltar, alternador de contexto, tema e botão Sair.
+  - Conduzido via Elephant-Goldfish Model (EGM) com aprovação da Opção B: remover o seletor do cabeçalho superior e movê-lo para dentro do menu lateral (`DashboardSidebar`).
+- **Implementação & Conclusão:**
+  1. **TopBar Responsivo (`DashboardTopBar.tsx`, 75L):**
+     - Removido `<ContextSwitcher />` do cabeçalho.
+     - Adicionado `min-w-0` e `truncate` ao título `<h1>` e `shrink-0` aos controles à direita; botão "Sair" ocultado em mobile quando o menu hambúrguer está ativo (`hidden sm:inline-block`), garantindo visibilidade total do botão hambúrguer em qualquer largura de tela.
+  2. **Seletor no Menu Lateral (`DashboardSidebar.tsx`, 89L & `DashboardChrome.tsx`, 89L):**
+     - `DashboardChrome` repassa `activeContextId`, `availableContexts` e `onContextSwitched` ao `DashboardSidebar`, que renderiza o `<ContextSwitcher />` na seção "Contexto ativo" dentro do drawer.
+  3. **Testes e Qualidade STE-DEV:**
+     - Criado `DashboardSidebar.test.tsx` e atualizado `DashboardTopBar.test.tsx`: **6/6 suítes e 18/18 testes aprovados** em `src/app/dashboard/components/__tests__/`.
+     - Todos os arquivos modificados mantidos abaixo do limite de 100 linhas (R-03).
+
+---
+
+## 2.50 Aba 'Ajuda' no Painel do Gestor (/clube/gestor) — 2026-11-26
+- **Contexto & Demanda:**
+  - O perfil Gestor opera sem menu hambúrguer (`DashboardChrome showMenu={false}`) para manter foco operacional nas abas do clube.
+  - Para garantir acesso à Central de Ajuda, FAQ e Glosário sem menu lateral, foi criada a nova aba "Ajuda" diretamente no painel `/clube/gestor`.
+  - Processo conduzido sob Elephant-Goldfish Model (EGM) com aprovação prévia de especificação e auditoria sem regressões.
+- **Implementação & Conclusão:**
+  1. **Tipos e Navegação (`types.ts`, `tab-nav.tsx`, `page.tsx`):**
+     - Adicionado `'help'` ao union `GestorTab`.
+     - Inserida aba "Ajuda" no `TabNav` e suporte ao query param `?tab=help`.
+  2. **Componente Apresentacional (`gestor-help-tab.tsx`):**
+     - Criado `GestorHelpTab` (62L) contendo barra de busca `<HelpSearch />`, tópicos operacionais de gestão de clube (`/help/gestor/*`) e links rápidos para Glosário (`/help/glosario`), FAQ (`/help/faq`) e Central Completa (`/help`).
+  3. **Integração no Dashboard (`dashboard.tsx`):**
+     - Renderização condicional `{tab === 'help' && <GestorHelpTab />}` mantendo `dashboard.tsx` em 78 linhas ($\le 100$ linhas).
+  4. **Testes e Qualidade STE-DEV:**
+     - Teste unitário em `gestor-help-tab.test.tsx` (32L) e teste de navegação em `tab-nav.test.tsx` 100% verdes.
+     - `pnpm typecheck` e `pnpm check:r03` aprovados com código 0 e zero regressões.
+
+---
+
+## 2.49 Correção de Renderização de Tabelas no Glosário da Central de Ajuda — 2026-11-26
+- **Contexto & Demanda:**
+  - Na rota `/help/glosario` (e `/help/glossario`), as tabelas em Markdown eram renderizadas como parágrafos de texto plano corrido em uma só linha (`| Termo | Significado | |--|--| | Atleta | ...`).
+  - Metodologia Elephant-Goldfish Model (EGM) executada com sucesso: Spec prévia na Fase 1, auditoria independente com veredito `PASS` na Fase 2, e implementação cirúrgica na Fase 3.
+- **Implementação & Conclusão:**
+  1. **Compilador MDX e Plugins (`next.config.ts`):**
+     - Adicionado pacote `remark-gfm` ao projeto.
+     - Configurado `options.remarkPlugins: [remarkGfm]` no `createMDX` para habilitar parsing GFM de tabelas.
+     - Adicionado redirecionamento permanente de `/help/glossario` para `/help/glosario` (tratamento de grafia alternativa).
+  2. **Estilização Semântica de Tabelas (`src/mdx-components.tsx`):**
+     - Mapeados elementos `table`, `thead`, `tbody`, `tr`, `th`, `td` com tokens do Design System (`telemetry-border`, `telemetry-surface`, `telemetry-text`).
+     - Contêiner responsivo com `overflow-x-auto` para visualização mobile fluida sem quebra de viewport.
+  3. **Qualidade e Conformidade STE-DEV:**
+     - `src/mdx-components.tsx` mantido em 57 linhas ($\le 100$ linhas, R-03).
+     - Teste unitário e de renderização criado em `src/components/help/__tests__/mdx-components.test.tsx` (43 linhas, linear, R-15).
+     - 4 suítes de testes da Central de Ajuda executadas e 100% verdes (12/12 testes).
+     - `pnpm typecheck` e `pnpm check:r03` executados com código 0 e zero regressões.
+
+---
+
+## 2.48 Integração com Gateway Asaas para Cobrança Recorrente (A0.24) — 2026-11-26
+- **Contexto & Demanda:**
+  - Automatização de faturamento recorrente com o gateway Asaas v3, utilizando a base de conhecimento de `C:\apps\mundoas`.
+  - Suporte a Pix dinâmico (QR Code base64 e Copia e Cola) e Cartão de Crédito com polling de ativação em tempo real.
+  - Conformidade estrita com ECA Digital (Lei nº 15.211/2025): menor de 18 anos não pode ser devedor financeiro; o checkout exige e vincula o Responsável Legal (`GuardianLink`) como titular do pagamento.
+  - Webhooks Asaas particionados com prevenção contra timing attacks (`crypto.timingSafeEqual` + SHA-256) e deduplicação estrita via banco (`AsaasWebhookEvent`).
+  - Respeito integral ao limite STE-DEV R-03 ($\le 100$ linhas por arquivo) e testes lineares sem condicionais.
+- **Implementação & Conclusão:**
+  1. **Modelagem de Dados e Migrations (`prisma/schema.prisma`):**
+     - Novos modelos `Subscription`, `Invoice` e `AsaasWebhookEvent`, enums `SubscriptionStatus` e `BillingCycle`.
+     - Script de migração idempotente criado em `prisma/migrations/20261126000000_add_asaas_subscriptions_and_invoices/migration.sql`.
+  2. **Camada de Cliente Asaas v3 (`src/lib/asaas/`):**
+     - `asaas-config.ts` (18L): URLs dinâmicas para Sandbox e Produção, chaves de API e webhook token.
+     - `asaas-fetch.ts` (27L): wrapper de fetch com tratamento de erros Asaas.
+     - `asaas-webhook-auth.ts` (12L): autenticação de token anti-timing attack via `crypto.timingSafeEqual`.
+     - `asaas-customer.service.ts` (57L): `buscarOuCriarCustomer` com deduplicação por `externalReference` (`CT:<id>` ou `USER:<id>`), depois por CPF/CNPJ limpo, e fallback de criação.
+     - `asaas-subscription.service.ts` (50L): `criarAssinaturaAsaas`, `obterQrCodePixAsaas`, `obterPrimeiraCobrancaAssinatura`.
+  3. **Endpoints de Checkout (`src/app/api/checkout/`):**
+     - `src/schemas/checkout.ts` (18L): validação Zod de payload.
+     - `checkout-payer.logic.ts` (66L): resolução de pagador (CT para Gestor, Adulto para si, Responsável Legal para menor tutelado).
+     - `checkout-session.logic.ts` (85L): orquestração de customer Asaas, assinatura, fatura, Pix QR Code e persistência no banco.
+     - `create-session/route.ts` (26L): endpoint POST de criação de sessão.
+     - `pix-status/pix-status.logic.ts` (30L) e `pix-status/route.ts` (25L): endpoint de polling para verificação de liquidação do Pix.
+  4. **Processamento de Webhooks (`src/app/api/webhooks/asaas/`):**
+     - `route.ts` (43L): validação de cabeçalho `asaas-access-token` e roteamento de eventos.
+     - `webhook-dedup.logic.ts` (55L): persistência de evento e idempotência.
+     - `webhook-payment.logic.ts` (75L): liquidação (`PAYMENT_CONFIRMED`, `PAYMENT_RECEIVED`) ativando assinatura, tratamento de atraso (`PAYMENT_OVERDUE`) e não-regressão de faturas pagas.
+     - `webhook-subscription.logic.ts` (26L): cancelamento (`SUBSCRIPTION_DELETED`).
+  5. **Componentes e Experiência do Usuário (`src/components/billing/`):**
+     - `CheckoutModal` (100L): modal in-app com renderização de QR Code Pix, botão de cópia e cola, e polling automático ativando a conta sem recarregar a página.
+     - Integração fluida com `BillingOverlayOrchestrator`, `LastFreeAccessModal`, `PaywallModal` e `TrialCounterBar`.
+  6. **Qualidade e Validação:**
+     - 100% de conformidade com STE-DEV R-03: todos os arquivos novos/modificados $\le 100$ linhas.
+     - 12 suítes de testes executadas: 59/59 testes verdes, cobrindo motor de quotas, cliente Asaas, resolução de menores, webhooks, checkout e componentes React.
+     - Typecheck sem erros (`tsc --noEmit` código 0).
 
 ---
 

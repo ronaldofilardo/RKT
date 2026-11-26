@@ -24,6 +24,7 @@ describe('TabNav - Painel do Gestor', () => {
     expect(screen.getByRole('button', { name: /Afiliados 10/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Partidas 6/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Clube/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Ajuda/i })).toBeInTheDocument();
   });
 
   it('chama onTabChange quando uma aba é clicada', () => {

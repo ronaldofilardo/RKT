@@ -27,6 +27,28 @@ const mdxElements: MdxComponents = {
       {children}
     </blockquote>
   ),
+  table: ({ children }) => (
+    <div className="overflow-x-auto my-6 rounded-lg border border-telemetry-border/30">
+      <table className="w-full text-left border-collapse text-sm">{children}</table>
+    </div>
+  ),
+  thead: ({ children }) => (
+    <thead className="bg-telemetry-surface/60 border-b border-telemetry-border/30 text-telemetry-text-muted">
+      {children}
+    </thead>
+  ),
+  tbody: ({ children }) => (
+    <tbody className="divide-y divide-telemetry-border/10">{children}</tbody>
+  ),
+  tr: ({ children }) => (
+    <tr className="hover:bg-telemetry-surface/20 transition-colors">{children}</tr>
+  ),
+  th: ({ children }) => (
+    <th className="py-2.5 px-3.5 font-semibold text-telemetry-text">{children}</th>
+  ),
+  td: ({ children }) => (
+    <td className="py-2.5 px-3.5 text-telemetry-text/90 align-top">{children}</td>
+  ),
 };
 
 /** Fornece os componentes padrão do MDX (resolvido via providerImportSource do @next/mdx). */

@@ -22,7 +22,7 @@ export function SpectatorTimeline({
 }) {
   if (points.length === 0 && markers.length === 0) {
     return (
-      <div className="py-6 text-center font-mono text-xs text-telemetry-text-muted">
+      <div className="py-6 text-center font-sans tabular-nums text-xs text-telemetry-text-muted">
         Nenhum ponto registrado até o momento.
       </div>
     );
@@ -51,13 +51,13 @@ export function SpectatorTimeline({
             key={p.id}
             className="tab-pane-enter flex items-start gap-3 py-2"
           >
-            <span className="w-10 shrink-0 font-mono text-xs tabular-nums text-telemetry-text-muted">
+            <span className="w-10 shrink-0 font-sans tabular-nums text-xs tabular-nums text-telemetry-text-muted">
               {`G${p.gameNumber}${p.scoreAfter ? ` · ${p.scoreAfter}` : ''}`}
             </span>
             <div
               className={`min-w-0 flex-1 space-y-1.5 ${isPlayer1 ? 'text-left' : 'text-right'}`}
             >
-              <p className="truncate font-mono text-sm text-telemetry-text-primary">
+              <p className="truncate font-sans tabular-nums text-sm text-telemetry-text-primary">
                 <span
                   className={`font-semibold ${
                     isPlayer1 ? 'text-telemetry-text-primary' : 'text-telemetry-volt'
@@ -77,7 +77,7 @@ export function SpectatorTimeline({
                   {chips.map((c, i) => (
                     <span
                       key={`${c.text}-${i}`}
-                      className={`inline-flex items-center rounded border px-1.5 py-0.5 font-mono text-[10px] font-medium leading-none ${badgeClass(c.tone)}`}
+                      className={`inline-flex items-center rounded border px-1.5 py-0.5 font-sans tabular-nums text-[10px] font-medium leading-none ${badgeClass(c.tone)}`}
                     >
                       {c.text}
                     </span>

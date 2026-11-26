@@ -9,12 +9,14 @@ interface ContextSwitcherProps {
   activeContextId?: string | null;
   availableContexts?: SessionContextOption[];
   onContextSwitched?: () => void;
+  fullWidth?: boolean;
 }
 
 export function ContextSwitcher({
   activeContextId,
   availableContexts = [],
   onContextSwitched,
+  fullWidth = false,
 }: ContextSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSwitching, setIsSwitching] = useState(false);
@@ -64,18 +66,20 @@ export function ContextSwitcher({
   }
 
   return (
-    <div className="relative inline-block text-left">
+    <div className={fullWidth ? 'relative block w-full text-left' : 'relative inline-block text-left'}>
       <button
         type="button"
         disabled={isSwitching}
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
         aria-label="Trocar clube ou contexto"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border border-telemetry-border/20 bg-telemetry-elevated/60 text-telemetry-text-primary hover:border-telemetry-blue/40 transition-colors cursor-pointer"
+        className={`${fullWidth ? 'w-full justify-between py-2 ' : 'py-1 '}flex items-center gap-1.5 px-2.5 rounded-lg text-xs font-medium border border-telemetry-border/20 bg-telemetry-elevated/60 text-telemetry-text-primary hover:border-telemetry-blue/40 transition-colors cursor-pointer`}
       >
-        <span className="w-2 h-2 rounded-full bg-emerald-400" />
-        <span className="max-w-[130px] truncate">{current?.label ?? 'Contexto'}</span>
-        <svg className="w-3.5 h-3.5 text-telemetry-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <span className="flex items-center gap-1.5 min-w-0">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+          <span className={`${fullWidth ? '' : 'max-w-[130px] '}truncate`}>{current?.label ?? 'Contexto'}</span>
+        </span>
+        <svg className="w-3.5 h-3.5 text-telemetry-text-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
@@ -88,6 +92,7 @@ export function ContextSwitcher({
           hasParticular={hasParticular}
           onSwitch={handleSwitch}
           onActivateParticular={handleActivateParticular}
+          fullWidth={fullWidth}
         />
       )}
     </div>

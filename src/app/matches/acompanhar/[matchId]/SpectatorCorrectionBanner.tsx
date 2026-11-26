@@ -22,8 +22,8 @@ export function SpectatorCorrectionBanner({
           <span className="font-medium">{alert.message}</span>
           {alert.from && alert.to && (
             <>
-              <span className="font-mono text-[11px]">Antes: {alert.from}</span>
-              <span className="font-mono text-[11px]">Agora: {alert.to}</span>
+              <span className="font-sans tabular-nums text-[11px]">Antes: {alert.from}</span>
+              <span className="font-sans tabular-nums text-[11px]">Agora: {alert.to}</span>
               <span className="text-[11px] text-amber-300/80">Os pontos entre esses placares não foram anotados.</span>
             </>
           )}

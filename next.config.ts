@@ -1,6 +1,7 @@
 import path from 'node:path';
 import type { NextConfig } from 'next';
 import createMDX from '@next/mdx';
+import remarkGfm from 'remark-gfm';
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -76,7 +77,13 @@ const nextConfig: NextConfig = {
     ];
   },
   async redirects() {
-    return [];
+    return [
+      {
+        source: '/help/glossario',
+        destination: '/help/glosario',
+        permanent: true,
+      },
+    ];
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
@@ -97,6 +104,7 @@ const withMDX = createMDX({
     // e seu jsx-runtime quebra ao ler internals renomeados. Aponta o MDX para o
     // mesmo runtime usado pelo resto da aplicação.
     jsxImportSource: 'next/dist/compiled/react',
+    remarkPlugins: [remarkGfm],
   },
 });
 

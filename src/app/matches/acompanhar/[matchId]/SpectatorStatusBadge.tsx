@@ -6,7 +6,7 @@ import type { SpectatorFeedStatus } from '@/core/spectate';
 export function SpectatorStatusBadge({ status }: { status: SpectatorFeedStatus }) {
   return (
     <span
-      className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-xs font-semibold ${
+      className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 font-sans tabular-nums text-xs font-semibold ${
         status === 'NO_SIGNAL'
           ? 'bg-telemetry-alert/10 text-telemetry-alert border border-telemetry-alert/20'
           : status === 'FINISHED' || status === 'NOT_STARTED'

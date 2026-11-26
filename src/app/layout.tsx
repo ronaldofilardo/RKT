@@ -58,7 +58,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="font-geist subpixel-antialiased bg-telemetry-base text-telemetry-text-primary">
+      <body className="font-geist antialiased bg-telemetry-base text-telemetry-text-primary">
         <ToastProvider>
           <Providers>{children}</Providers>
         </ToastProvider>

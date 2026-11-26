@@ -34,7 +34,7 @@ export function FlowRunNode({ run, isLast, player1Name, player2Name, p1Hex, p2He
             {pName}
           </span>
           <span
-            className={`text-xs font-mono font-black px-1.5 py-0.5 rounded ${
+            className={`text-xs font-sans tabular-nums font-black px-1.5 py-0.5 rounded ${
               isSuperRun
                 ? 'bg-telemetry-volt text-black font-extrabold shadow-[0_0_8px_#CCFF00]'
                 : 'bg-black/40 text-telemetry-text-primary'

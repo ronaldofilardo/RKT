@@ -16,10 +16,10 @@ export function SpectatorLastPointBanner({
   if (!lastPoint) {
     return (
       <div className="flex items-center justify-between gap-3 border-b border-telemetry-border/10 px-4 py-2">
-        <span className="shrink-0 font-mono text-sm text-telemetry-text-muted">
+        <span className="shrink-0 font-sans tabular-nums text-sm text-telemetry-text-muted">
           Último ponto
         </span>
-        <p className="truncate font-mono text-xs text-telemetry-text-muted">Aguardando pontos…</p>
+        <p className="truncate font-sans tabular-nums text-xs text-telemetry-text-muted">Aguardando pontos…</p>
       </div>
     );
   }
@@ -29,10 +29,10 @@ export function SpectatorLastPointBanner({
 
   return (
     <div className="flex items-center justify-between gap-3 border-b border-telemetry-border/10 px-4 py-2">
-      <span className="shrink-0 font-mono text-sm text-telemetry-text-muted">
+      <span className="shrink-0 font-sans tabular-nums text-sm text-telemetry-text-muted">
         Último ponto
       </span>
-      <p className="flex min-w-0 items-center justify-end gap-1.5 font-mono text-sm text-telemetry-text-primary">
+      <p className="flex min-w-0 items-center justify-end gap-1.5 font-sans tabular-nums text-sm text-telemetry-text-primary">
         <span className="truncate">
           {winnerName || 'Atleta'} · {desc}{rhythmNotice}
         </span>

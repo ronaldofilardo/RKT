@@ -33,7 +33,7 @@ export function GamePointsSelect({
         </span>
       </div>
       <select
-        className="w-20 text-center bg-telemetry-elevated border border-white/10 rounded-lg px-2 py-1.5 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-telemetry-volt"
+        className="w-20 text-center bg-telemetry-elevated border border-white/10 rounded-lg px-2 py-1.5 text-white text-sm font-sans tabular-nums focus:outline-none focus:ring-2 focus:ring-telemetry-volt"
         value={points}
         onChange={(e) => onChange(e.target.value)}
         aria-label={`Pontos ${playerName}`}

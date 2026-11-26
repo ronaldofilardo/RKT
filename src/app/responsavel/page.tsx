@@ -10,6 +10,7 @@ import { GuardianTabAutorizacoes } from './guardian-tab-autorizacoes';
 import { GuardianTabPartidas } from './guardian-tab-partidas';
 import { GuardianTabAvisos } from './guardian-tab-avisos';
 import { GuardianTabAcessos } from './guardian-tab-acessos';
+import { GuardianTabAjuda } from './guardian-tab-ajuda';
 
 export default function ResponsavelPage() {
   const [tab, setTab] = useState<GuardianTab>('autorizacoes');
@@ -36,50 +37,35 @@ export default function ResponsavelPage() {
 
         {loading ? (
           <div className="text-center py-12 text-telemetry-text-muted text-sm">Carregando dados do responsável...</div>
-        ) : dependents.length === 0 ? (
-          <div className="text-center py-12 bg-telemetry-card border border-telemetry-border/30 rounded-2xl p-8 space-y-4 shadow-md">
-            <div className="text-4xl">🎾</div>
-            <h2 className="text-base font-semibold">Nenhum dependente vinculado ativo</h2>
-            <p className="text-xs text-telemetry-text-muted max-w-md mx-auto">
-              Quando você for cadastrado como responsável legal por um CT ou cadastrar um dependente, ele aparecerá aqui.
-            </p>
-            <Link href="/responsavel" className="inline-block text-xs font-semibold bg-telemetry-blue text-white py-2 px-5 rounded-lg hover:bg-telemetry-blue/90">
-              Atualizar
-            </Link>
-          </div>
         ) : (
           <div className="space-y-6">
-            <GuardianTabsNav
-              currentTab={tab}
-              onSelectTab={setTab}
-              matchesCount={matches.length}
-            />
+            <GuardianTabsNav currentTab={tab} onSelectTab={setTab} matchesCount={matches.length} />
 
-            {tab === 'autorizacoes' && (
-              <GuardianTabAutorizacoes
-                dependents={dependents}
-                canOperate={canOperate}
-                upgrading={upgrading}
-                mutatingId={mutatingId}
-                onUpgrade={upgradeAccount}
-                onToggleConsent={toggleConsent}
-              />
-            )}
-
-            {tab === 'partidas' && (
-              <GuardianTabPartidas
-                matches={matches}
-                loading={matchesLoading}
-                canOperate={canOperate}
-              />
-            )}
-
-            {tab === 'avisos' && (
-              <GuardianTabAvisos playerId={primaryPlayerId} />
-            )}
-
-            {tab === 'acessos' && (
-              <GuardianTabAcessos playerId={primaryPlayerId} />
+            {tab === 'ajuda' ? (
+              <GuardianTabAjuda />
+            ) : dependents.length === 0 ? (
+              <div className="text-center py-12 bg-telemetry-card border border-telemetry-border/30 rounded-2xl p-8 space-y-4 shadow-md">
+                <div className="text-4xl">🎾</div>
+                <h2 className="text-base font-semibold">Nenhum dependente vinculado ativo</h2>
+                <p className="text-xs text-telemetry-text-muted max-w-md mx-auto">
+                  Quando você for cadastrado como responsável legal por um CT ou cadastrar um dependente, ele aparecerá aqui.
+                </p>
+                <Link href="/responsavel" className="inline-block text-xs font-semibold bg-telemetry-blue text-white py-2 px-5 rounded-lg hover:bg-telemetry-blue/90">
+                  Atualizar
+                </Link>
+              </div>
+            ) : (
+              <>
+                {tab === 'autorizacoes' && (
+                  <GuardianTabAutorizacoes
+                    dependents={dependents} canOperate={canOperate} upgrading={upgrading}
+                    mutatingId={mutatingId} onUpgrade={upgradeAccount} onToggleConsent={toggleConsent}
+                  />
+                )}
+                {tab === 'partidas' && <GuardianTabPartidas matches={matches} loading={matchesLoading} canOperate={canOperate} />}
+                {tab === 'avisos' && <GuardianTabAvisos playerId={primaryPlayerId} />}
+                {tab === 'acessos' && <GuardianTabAcessos playerId={primaryPlayerId} />}
+              </>
             )}
           </div>
         )}

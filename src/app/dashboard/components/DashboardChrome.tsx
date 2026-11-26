@@ -78,10 +78,15 @@ export function DashboardChrome({
       <DashboardTopBar
         menuOpen={menuOpen} setMenuOpen={setMenuOpen} user={currentUser} title={title}
         onLogout={endSession} showMenuButton={showMenu} showLogout={showLogout}
-        activeContextId={meData?.activeContextId} availableContexts={meData?.availableContexts}
-        onContextSwitched={refreshMe} onBack={onBack} showBackButton={showBackButton}
+        onBack={onBack} showBackButton={showBackButton}
       />
-      {showMenu && <DashboardSidebar menuOpen={menuOpen} setMenuOpen={setMenuOpen} sections={sections} />}
+      {showMenu && (
+        <DashboardSidebar
+          menuOpen={menuOpen} setMenuOpen={setMenuOpen} sections={sections}
+          activeContextId={meData?.activeContextId} availableContexts={meData?.availableContexts}
+          onContextSwitched={refreshMe}
+        />
+      )}
       <CoachEcaGuard isParticular={activeArea === 'TREINADOR_AVULSO' || meData?.activeContextId === 'PARTICULAR'} />
       {!onLogout && (
         <ConfirmAlertDialog

@@ -47,7 +47,7 @@ export function FioDoJogoRibbon({ ribbonPoints, inspectedPoint, onInspect, playe
                 data-testid="point-bead"
                 data-point-number={pt.pointNumber}
                 onClick={() => onInspect(pt)}
-                className={`relative flex items-center justify-center rounded-md font-mono font-bold transition-all ${
+                className={`relative flex items-center justify-center rounded-md font-sans tabular-nums font-bold transition-all ${
                   badgeChar.length > 1 ? 'w-6 h-6 text-[8px]' : 'w-5 h-5 text-[9px]'
                 } ${
                   isP1
@@ -77,7 +77,7 @@ export function FioDoJogoRibbon({ ribbonPoints, inspectedPoint, onInspect, playe
             <span className="text-white/30">•</span>
             <span className="text-telemetry-text-muted">Tipo: {inspectedPoint.type}</span>
           </div>
-          <div className="text-[11px] text-telemetry-text-muted font-mono">
+          <div className="text-[11px] text-telemetry-text-muted font-sans tabular-nums">
             Placar: {inspectedPoint.gameScore?.player1 ?? 0}-{inspectedPoint.gameScore?.player2 ?? 0}
           </div>
         </div>

@@ -36,7 +36,7 @@ export function DoublesPlayerBreakdownSection({ report }: { report?: ReportData 
                   {m.team === 'PLAYER_1' ? 'Dupla 1' : 'Dupla 2'}
                 </span>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-telemetry-text-muted font-mono">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-telemetry-text-muted font-sans tabular-nums">
                 <div>
                   <span className="text-[10px] block uppercase text-white/40">Saque (Aces/DF)</span>
                   <span className={`font-bold ${playerClass}`}>{m.aces}</span> aces /{' '}

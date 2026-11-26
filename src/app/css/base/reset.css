@@ -6,9 +6,9 @@ body {
   color: var(--body-fg);
   background-color: var(--body-bg);
   overflow-x: hidden;
-  -webkit-font-smoothing: auto;
-  -moz-osx-font-smoothing: auto;
-  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   font-synthesis: none;
   font-optical-sizing: auto;
 }

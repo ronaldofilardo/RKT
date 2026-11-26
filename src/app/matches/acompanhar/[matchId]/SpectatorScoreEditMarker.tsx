@@ -21,7 +21,7 @@ export function SpectatorScoreEditMarker({ marker }: { marker: SpectatorMarker }
         {time ? ` · ${time}` : ''}
       </p>
       {isScoreEdit && marker.from && marker.to ? (
-        <div className="mt-1 space-y-0.5 font-mono text-[11px]">
+        <div className="mt-1 space-y-0.5 font-sans tabular-nums text-[11px]">
           <p className="m-0"><span className="text-amber-300/70">Antes:</span> {marker.from}</p>
           <p className="m-0"><span className="text-amber-300/70">Agora:</span> {marker.to}</p>
         </div>

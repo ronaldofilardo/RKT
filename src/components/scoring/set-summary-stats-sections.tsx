@@ -39,7 +39,7 @@ export function SetSummaryStatsSections({ p1, p2, isMatchTiebreak = false }: Set
         <div className="grid grid-cols-2 gap-2 pt-2 mt-2 border-t border-white/5">
           <div className="bg-telemetry-elevated/70 rounded-lg p-2 text-center">
             <div className="text-[11px] text-telemetry-text-muted uppercase font-semibold mb-1">Aces</div>
-            <div className="flex justify-around items-center font-mono font-bold text-sm">
+            <div className="flex justify-around items-center font-sans tabular-nums font-bold text-sm">
               <span className="text-telemetry-blue">{p1.aces}</span>
               <span className="text-telemetry-text-muted text-xs">vs</span>
               <span className="text-telemetry-error">{p2.aces}</span>
@@ -47,7 +47,7 @@ export function SetSummaryStatsSections({ p1, p2, isMatchTiebreak = false }: Set
           </div>
           <div className="bg-telemetry-elevated/70 rounded-lg p-2 text-center">
             <div className="text-[11px] text-telemetry-text-muted uppercase font-semibold mb-1">Duplas Faltas</div>
-            <div className="flex justify-around items-center font-mono font-bold text-sm">
+            <div className="flex justify-around items-center font-sans tabular-nums font-bold text-sm">
               <span className="text-telemetry-blue">{p1.doubleFaults}</span>
               <span className="text-telemetry-text-muted text-xs">vs</span>
               <span className="text-telemetry-error">{p2.doubleFaults}</span>
@@ -64,7 +64,7 @@ export function SetSummaryStatsSections({ p1, p2, isMatchTiebreak = false }: Set
           <div className="grid grid-cols-2 gap-2">
             <div className="bg-telemetry-elevated/70 rounded-lg p-2 text-center">
               <div className="text-[11px] text-telemetry-text-muted font-medium mb-1">Convertidos (Devolução)</div>
-              <div className="flex justify-around items-center font-mono text-xs">
+              <div className="flex justify-around items-center font-sans tabular-nums text-xs">
                 <span className="font-bold text-telemetry-blue">
                   {p1.breakPointsConverted}/{p1.breakPointsOpportunities} ({formatPct(p1.breakPointsConvertedPct)})
                 </span>
@@ -75,7 +75,7 @@ export function SetSummaryStatsSections({ p1, p2, isMatchTiebreak = false }: Set
             </div>
             <div className="bg-telemetry-elevated/70 rounded-lg p-2 text-center">
               <div className="text-[11px] text-telemetry-text-muted font-medium mb-1">Salvos (Saque)</div>
-              <div className="flex justify-around items-center font-mono text-xs">
+              <div className="flex justify-around items-center font-sans tabular-nums text-xs">
                 <span className="font-bold text-telemetry-blue">
                   {p1.breakPointsSaved}/{p1.breakPointsFaced} ({formatPct(p1.breakPointsSavedPct)})
                 </span>

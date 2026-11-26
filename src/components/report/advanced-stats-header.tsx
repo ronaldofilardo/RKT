@@ -63,15 +63,15 @@ export function AdvancedStatsHeader({ report, stats, player1Name, player2Name }:
         </div>
         <div>
           <div className="text-[10px] uppercase font-bold text-white/50">Tempo Total</div>
-          <div className="text-white font-mono font-bold text-sm">{totalMin > 0 ? `${totalMin} min` : '-'}</div>
+          <div className="text-white font-sans tabular-nums font-bold text-sm">{totalMin > 0 ? `${totalMin} min` : '-'}</div>
         </div>
         <div>
           <div className="text-[10px] uppercase font-bold text-white/50">Tempo Efetivo (est.)</div>
-          <div className="text-white font-mono font-bold text-sm">
+          <div className="text-white font-sans tabular-nums font-bold text-sm">
             {effectiveMin > 0 ? `${effectiveMin} min` : '-'}
           </div>
           {secPerPoint > 0 && (
-            <div className="text-[11px] text-white/70 font-mono">{secPerPoint}s / ponto</div>
+            <div className="text-[11px] text-white/70 font-sans tabular-nums">{secPerPoint}s / ponto</div>
           )}
         </div>
       </div>

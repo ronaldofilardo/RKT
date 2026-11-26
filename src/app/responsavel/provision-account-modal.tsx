@@ -75,7 +75,7 @@ export function ProvisionAccountModal({ open, playerId, onClose, onSuccess }: Pr
         ) : (
           <div className="space-y-3">
             <div className="p-3 bg-telemetry-elevated rounded-xl border border-white/5 space-y-1.5 text-xs">
-              <p>Login: <strong className="text-telemetry-text-primary font-mono">{created.identifier}</strong></p>
+              <p>Login: <strong className="text-telemetry-text-primary font-sans tabular-nums">{created.identifier}</strong></p>
               <p>Senha temporária: <strong className="text-telemetry-text-primary font-mono">{created.tempPassword}</strong></p>
             </div>
             <p className="text-[11px] text-telemetry-text-muted">No primeiro login, o sistema exigirá a troca da senha inicial.</p>

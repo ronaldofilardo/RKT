@@ -47,11 +47,11 @@ export function SetLensWinnerHighlight({
       </div>
 
       <div className="text-right">
-        <div className="text-xl sm:text-2xl font-black font-mono tracking-tight text-telemetry-volt animate-pulse">
+        <div className="text-xl sm:text-2xl font-black font-sans tabular-nums tracking-tight text-telemetry-volt animate-pulse">
           {scoreText}
         </div>
         {duration != null && (
-          <div className="text-[10px] text-telemetry-text-muted font-mono">
+          <div className="text-[10px] text-telemetry-text-muted font-sans tabular-nums">
             ⏱️ {duration} min
           </div>
         )}

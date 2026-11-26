@@ -1,10 +1,12 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import type { CoachItem } from './types';
 import { EditarTreinadorModal } from './editar-treinador-modal';
 import { LinkCopyModal } from './link-copy-modal';
 import { CoachRow } from './coach-row';
+import { CoachMobileCard } from './coach-mobile-card';
 import { useCoachesTableHandlers } from './use-coaches-table';
 import { ConfirmAlertDialog } from '@/components/ConfirmAlertDialog';
 
@@ -20,6 +22,7 @@ interface CoachesTableProps {
 export function CoachesTable({
   coaches, selectedIds, onSelectChange, onSelectAll, onCreateCoach, onRefresh,
 }: CoachesTableProps) {
+  const isMobile = useIsMobile();
   const {
     editing, setEditing, linkData, setLinkData,
     coachToDelete, setCoachToDelete, deleting, confirmDelete,
@@ -35,16 +38,18 @@ export function CoachesTable({
     <div className="p-0 sm:p-6 space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-lg font-semibold text-telemetry-text-primary">Treinadores do Clube</h2>
-        <div className="flex gap-2">
-          <button onClick={onCreateCoach} className="bg-telemetry-blue text-white font-semibold py-2 px-4 rounded-lg hover:bg-telemetry-blue/90 text-sm">
-            Novo Treinador
-          </button>
-        </div>
+        <button onClick={onCreateCoach} className="bg-telemetry-blue text-white font-semibold py-2 px-4 rounded-lg hover:bg-telemetry-blue/90 text-sm self-start sm:self-auto">
+          Novo Treinador
+        </button>
       </div>
 
       {coaches.length === 0 ? (
         <div className="bg-telemetry-card rounded-xl shadow border border-telemetry-border/20 p-8 text-center">
           <p className="text-telemetry-text-muted text-sm">Nenhum treinador cadastrado no clube.</p>
+        </div>
+      ) : isMobile ? (
+        <div className="space-y-3">
+          {coaches.map((c) => <CoachMobileCard key={c.user.id} coach={c} selected={selectedIds.includes(c.user.id)} onSelect={(chk) => onSelectChange(c.user.id, chk)} onEdit={() => setEditing(c)} onGenerateLink={() => handleGenerateLink(c)} onToggleCanInsertAthletes={(chk) => handleToggleCanInsertAthletes(c, chk)} onDelete={() => handleDelete(c)} />)}
         </div>
       ) : (
         <div className="bg-telemetry-card rounded-xl shadow border border-telemetry-border/20 overflow-x-auto">

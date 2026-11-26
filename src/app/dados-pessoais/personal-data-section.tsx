@@ -43,7 +43,7 @@ export function PersonalDataSection({
       {minor ? (
         <dl className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
           <div><dt className="text-xs font-medium text-telemetry-text-muted uppercase tracking-wider">Nome</dt><dd className="mt-1 text-telemetry-text-primary font-medium">{name || '—'}</dd></div>
-          <div><dt className="text-xs font-medium text-telemetry-text-muted uppercase tracking-wider">CPF</dt><dd className="mt-1 text-telemetry-text-primary font-mono">{cpfLabel}</dd></div>
+          <div><dt className="text-xs font-medium text-telemetry-text-muted uppercase tracking-wider">CPF</dt><dd className="mt-1 text-telemetry-text-primary font-sans tabular-nums">{cpfLabel}</dd></div>
           <div><dt className="text-xs font-medium text-telemetry-text-muted uppercase tracking-wider">Data de nascimento</dt><dd className="mt-1 text-telemetry-text-primary">{birthDateLabel}</dd></div>
         </dl>
       ) : (
@@ -55,7 +55,7 @@ export function PersonalDataSection({
             </div>
             <div>
               <label htmlFor="user-cpf" className="block text-xs font-medium text-telemetry-text-muted uppercase tracking-wider mb-1">CPF (não editável)</label>
-              <input id="user-cpf" type="text" value={cpfLabel} disabled className="w-full rounded-lg border border-white/5 bg-white/5 px-3 py-1.5 text-sm text-telemetry-text-muted font-mono cursor-not-allowed" />
+              <input id="user-cpf" type="text" value={cpfLabel} disabled className="w-full rounded-lg border border-white/5 bg-white/5 px-3 py-1.5 text-sm text-telemetry-text-muted font-sans tabular-nums cursor-not-allowed" />
             </div>
             <div>
               <span className="block text-xs font-medium text-telemetry-text-muted uppercase tracking-wider mb-1">Data de nascimento</span>

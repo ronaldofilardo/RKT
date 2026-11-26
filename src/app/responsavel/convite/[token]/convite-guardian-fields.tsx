@@ -34,7 +34,7 @@ export function ConviteGuardianFields({
           Insira seu nome completo e CPF para cruzamento e validação de segurança com o cadastro do clube.
         </p>
         {preGuardianCpfMasked && (
-          <span className="inline-block mt-1 text-[11px] text-telemetry-blue bg-telemetry-blue/10 px-2 py-0.5 rounded font-mono">
+          <span className="inline-block mt-1 text-[11px] text-telemetry-blue bg-telemetry-blue/10 px-2 py-0.5 rounded font-sans tabular-nums">
             ℹ️ CPF cadastrado pelo clube: {preGuardianCpfMasked}
           </span>
         )}
@@ -69,7 +69,7 @@ export function ConviteGuardianFields({
               onChange={handleCpfChange}
               placeholder="000.000.000-00"
               maxLength={14}
-              className="w-full bg-telemetry-base border border-telemetry-border/30 rounded-lg p-2 text-xs font-mono text-telemetry-text-primary focus:border-telemetry-blue focus:outline-none"
+              className="w-full bg-telemetry-base border border-telemetry-border/30 rounded-lg p-2 text-xs font-sans tabular-nums text-telemetry-text-primary focus:border-telemetry-blue focus:outline-none"
             />
           </div>
 

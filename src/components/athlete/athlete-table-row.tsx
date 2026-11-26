@@ -47,16 +47,16 @@ export function AthleteTableRow({
         )}
       </td>
       {showOrigin && <td className="px-3 py-3 text-sm text-telemetry-text-muted">{a.origin ?? '-'}</td>}
-      <td className="px-3 py-3 text-sm font-mono text-xs">
+      <td className="px-3 py-3 text-sm font-sans text-xs">
         {a.nickname ? <span className="text-telemetry-volt font-medium">@{a.nickname}</span> : <span className="text-telemetry-text-muted">-</span>}
       </td>
-      <td className="px-3 py-3 text-sm text-telemetry-text-primary font-mono text-xs">{formatAthleteCpf(a.cpf, a.cpfLast2)}</td>
+      <td className="px-3 py-3 text-sm text-telemetry-text-primary font-sans tabular-nums text-xs">{formatAthleteCpf(a.cpf, a.cpfLast2)}</td>
       <td className="px-3 py-3 text-sm text-telemetry-text-primary">{genderLabel(a.gender)}</td>
       <td className="px-3 py-3 text-xs">
         <div className="grid grid-cols-[auto_auto] gap-x-2.5 gap-y-1 text-xs items-center whitespace-nowrap">
           <span className="text-[11px] text-telemetry-text-muted">nascimento</span>
           {birthDateLabel ? (
-            <span className="text-telemetry-text-primary font-mono">{birthDateLabel}</span>
+            <span className="text-telemetry-text-primary font-sans tabular-nums">{birthDateLabel}</span>
           ) : (
             <span
               title="Data de nascimento não informada"
@@ -66,7 +66,7 @@ export function AthleteTableRow({
             </span>
           )}
           <span className="text-[11px] text-telemetry-text-muted">cadastro</span>
-          <span className="text-telemetry-text-primary font-mono">{createdDateLabel || '-'}</span>
+          <span className="text-telemetry-text-primary font-sans tabular-nums">{createdDateLabel || '-'}</span>
         </div>
       </td>
       <td className="px-3 py-3 text-sm">

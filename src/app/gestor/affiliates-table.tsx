@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import type { AffiliateAthleteItem } from './affiliates.types';
 import { AffiliatesRow } from './affiliates-row';
+import { AffiliatesMobileCard } from './affiliates-mobile-card';
 import { AffiliatesFilterBar } from './affiliates-filter-bar';
 import {
   INITIAL_AFFILIATES_FILTERS,
@@ -19,6 +21,7 @@ interface AffiliatesTableProps {
 }
 
 export function AffiliatesTable({ athletes, loading }: AffiliatesTableProps) {
+  const isMobile = useIsMobile();
   const [filters, setFilters] = useState<AffiliatesFilterState>(INITIAL_AFFILIATES_FILTERS);
 
   const clubs = useMemo(() => extractUniqueClubs(athletes), [athletes]);
@@ -54,35 +57,31 @@ export function AffiliatesTable({ athletes, loading }: AffiliatesTableProps) {
         totalCount={athletes.length}
       />
 
-      <div className="bg-telemetry-surface/40 border border-telemetry-border/20 rounded-lg overflow-x-auto">
-        <table className="w-full text-left border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-telemetry-border/20 bg-telemetry-surface/60 text-xs text-telemetry-text-muted uppercase">
-              <th className="py-2.5 px-4 font-semibold">Atleta</th>
-              <th className="py-2.5 px-4 font-semibold">Afiliação (Clube / Treinador)</th>
-              <th className="py-2.5 px-4 font-semibold">Dados Técnicos</th>
-              <th className="py-2.5 px-4 font-semibold">Localidade / Ranking</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={4} className="py-8 text-center text-telemetry-text-muted">
-                  Carregando atletas...
-                </td>
+      {loading ? (
+        <p className="py-8 text-center text-sm text-telemetry-text-muted">Carregando atletas...</p>
+      ) : filtered.length === 0 ? (
+        <p className="py-8 text-center text-sm text-telemetry-text-muted">Nenhum atleta encontrado.</p>
+      ) : isMobile ? (
+        <div className="space-y-3">
+          {filtered.map((athlete) => <AffiliatesMobileCard key={athlete.id} athlete={athlete} />)}
+        </div>
+      ) : (
+        <div className="bg-telemetry-surface/40 border border-telemetry-border/20 rounded-lg overflow-x-auto">
+          <table className="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-telemetry-border/20 bg-telemetry-surface/60 text-xs text-telemetry-text-muted uppercase">
+                <th className="py-2.5 px-4 font-semibold">Atleta</th>
+                <th className="py-2.5 px-4 font-semibold">Afiliação (Clube / Treinador)</th>
+                <th className="py-2.5 px-4 font-semibold">Dados Técnicos</th>
+                <th className="py-2.5 px-4 font-semibold">Localidade / Ranking</th>
               </tr>
-            ) : filtered.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="py-8 text-center text-telemetry-text-muted">
-                  Nenhum atleta encontrado.
-                </td>
-              </tr>
-            ) : (
-              filtered.map((athlete) => <AffiliatesRow key={athlete.id} athlete={athlete} />)
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filtered.map((athlete) => <AffiliatesRow key={athlete.id} athlete={athlete} />)}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

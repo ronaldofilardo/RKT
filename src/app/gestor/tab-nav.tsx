@@ -27,6 +27,7 @@ export function TabNav({
     { key: 'affiliates', label: 'Afiliados', badge: affiliatesCount },
     { key: 'matches', label: 'Partidas', badge: matchesCount },
     { key: 'club', label: 'Clube' },
+    { key: 'help', label: 'Ajuda' },
   ];
 
   if (typeof solicitacoesCount === 'number' && solicitacoesCount > 0) {

@@ -9,6 +9,7 @@ interface ContextSwitcherMenuProps {
   hasParticular: boolean;
   onSwitch: (id: string) => void;
   onActivateParticular: () => void;
+  fullWidth?: boolean;
 }
 
 export function ContextSwitcherMenu({
@@ -18,11 +19,12 @@ export function ContextSwitcherMenu({
   hasParticular,
   onSwitch,
   onActivateParticular,
+  fullWidth = false,
 }: ContextSwitcherMenuProps) {
   return (
     <div
       role="menu"
-      className="absolute right-0 mt-2 w-64 rounded-xl shadow-2xl bg-telemetry-card border border-telemetry-border/20 py-1.5 z-50 text-xs"
+      className={`absolute ${fullWidth ? 'left-0 w-full' : 'right-0 w-64'} mt-2 rounded-xl shadow-2xl bg-telemetry-card border border-telemetry-border/20 py-1.5 z-50 text-xs`}
     >
       <div className="px-3 py-1.5 text-telemetry-text-muted font-semibold uppercase tracking-wider text-[10px] border-b border-telemetry-border/10">
         Alternar contexto
@@ -39,7 +41,7 @@ export function ContextSwitcherMenu({
               isSelected ? 'font-semibold text-telemetry-blue' : 'text-telemetry-text-primary'
             }`}
           >
-            <div>
+            <div className="min-w-0 flex-1 pr-2">
               <p className="truncate">{ctx.label}</p>
               <span className="text-[10px] text-telemetry-text-muted">
                 {ctx.type === 'PARTICULAR' ? 'Avulso' : ctx.role}

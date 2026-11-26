@@ -26,7 +26,7 @@ export function GestorRow({
   return (
     <tr className="border-b border-telemetry-border/10 hover:bg-telemetry-elevated/30 transition-colors">
       <td className="px-3 py-3 text-sm text-telemetry-text-primary font-medium">{user?.name || '-'}</td>
-      <td className="px-3 py-3 text-sm text-telemetry-text-muted font-mono text-xs">{formattedCpf}</td>
+      <td className="px-3 py-3 text-sm text-telemetry-text-muted font-sans tabular-nums text-xs">{formattedCpf}</td>
       <td className="px-3 py-3 text-sm text-telemetry-text-muted">{user?.email || '-'}</td>
       <td className="px-3 py-3 text-sm text-telemetry-text-primary">{club?.name || 'Clube não vinculado'}</td>
       <td className="px-3 py-3 text-sm">

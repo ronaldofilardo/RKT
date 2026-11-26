@@ -18,8 +18,11 @@ describe('GuardianTabsNav', () => {
     expect(screen.getByText(/Partidas/i)).toBeInTheDocument();
     expect(screen.getByText(/Avisos/i)).toBeInTheDocument();
     expect(screen.getByText(/Acessos/i)).toBeInTheDocument();
+    expect(screen.getByText(/Ajuda/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByText(/Avisos/i));
     expect(handleSelect).toHaveBeenCalledWith('avisos');
+    fireEvent.click(screen.getByText(/Ajuda/i));
+    expect(handleSelect).toHaveBeenCalledWith('ajuda');
   });
 });

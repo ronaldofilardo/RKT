@@ -31,7 +31,7 @@ export function SetSummaryScoreCard({
           {player1Name}
         </span>
       </div>
-      <div className="flex items-center gap-2 text-xl font-mono font-black flex-shrink-0">
+      <div className="flex items-center gap-2 text-xl font-sans tabular-nums font-black flex-shrink-0">
         <span className={summary.winner === 'player1' ? 'text-telemetry-volt' : 'text-telemetry-text-primary'}>
           {p1Score}
         </span>

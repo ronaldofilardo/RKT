@@ -7,7 +7,7 @@ import { SpectatorTimeline } from './SpectatorTimeline';
 
 function StatRow({ left, label, right }: { left: React.ReactNode; label: string; right: React.ReactNode }) {
   return (
-    <div className="flex justify-between font-mono">
+    <div className="flex justify-between font-sans tabular-nums">
       <span>{left}</span>
       <span className="font-sans text-telemetry-text-muted">{label}</span>
       <span>{right}</span>
@@ -32,7 +32,7 @@ export function SpectatorTabs({ view }: { view: SpectatorView }) {
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab)}
-              className={`px-3 py-2 text-[13px] font-medium font-mono transition-colors border-b-2 -mb-[1px] ${
+              className={`px-3 py-2 text-[13px] font-medium font-sans tabular-nums transition-colors border-b-2 -mb-[1px] ${
                 isActive
                   ? 'text-telemetry-volt border-telemetry-volt'
                   : 'text-telemetry-text-muted border-transparent hover:text-telemetry-text-primary'

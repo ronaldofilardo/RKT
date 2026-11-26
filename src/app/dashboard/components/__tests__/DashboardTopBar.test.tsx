@@ -59,4 +59,12 @@ describe('DashboardTopBar', () => {
     rerender(<DashboardTopBar {...base} user={{ name: 'Suporte', role: 'SUPORTE' }} title="Relatórios" />);
     expect(screen.queryByTestId('header-back-button')).toBeNull();
   });
+
+  it('trunca o título para preservar o botão hambúrguer em telas pequenas sem seletor de contexto', () => {
+    render(<DashboardTopBar {...base} title="Minhas Partidas" />);
+    const heading = screen.getByRole('heading', { name: 'Minhas Partidas' });
+    expect(heading.className).toContain('truncate');
+    expect(screen.queryByLabelText('Trocar clube ou contexto')).toBeNull();
+    expect(screen.getByTestId('hamburger-menu-button')).toBeInTheDocument();
+  });
 });

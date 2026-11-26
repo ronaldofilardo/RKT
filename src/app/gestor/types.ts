@@ -70,5 +70,5 @@ export interface PendingRequestItem {
   requestedAt: string;
 }
 
-export type GestorTab = 'coaches' | 'athletes' | 'affiliates' | 'matches' | 'club' | 'solicitacoes';
+export type GestorTab = 'coaches' | 'athletes' | 'affiliates' | 'matches' | 'club' | 'solicitacoes' | 'help';
 export type MemberType = 'TREINADOR' | 'ATLETA';

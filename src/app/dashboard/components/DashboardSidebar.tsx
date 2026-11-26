@@ -1,5 +1,7 @@
 import { logger } from "@/lib/logger";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { ContextSwitcher } from "@/components/ui/context-switcher";
+import type { SessionContextOption } from "@/lib/auth-client-login";
 
 export interface SidebarItem {
   key?: string;
@@ -21,9 +23,14 @@ interface DashboardSidebarProps {
   setMenuOpen: (open: boolean) => void;
   menuItems?: SidebarItem[];
   sections?: SidebarSection[];
+  activeContextId?: string | null;
+  availableContexts?: SessionContextOption[];
+  onContextSwitched?: () => void;
 }
 
-export function DashboardSidebar({ menuOpen, setMenuOpen, menuItems, sections }: DashboardSidebarProps) {
+export function DashboardSidebar({
+  menuOpen, setMenuOpen, menuItems, sections, activeContextId, availableContexts, onContextSwitched,
+}: DashboardSidebarProps) {
   if (!menuOpen) return null;
 
   const contentSections: SidebarSection[] = sections || [
@@ -47,6 +54,13 @@ export function DashboardSidebar({ menuOpen, setMenuOpen, menuItems, sections }:
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
+
+        {availableContexts && availableContexts.length > 0 && (
+          <div className="mb-3 pb-3 border-b border-telemetry-border/10">
+            <span className="block text-[10px] font-bold tracking-wider text-telemetry-text-muted uppercase mb-1.5 px-1">Contexto ativo</span>
+            <ContextSwitcher activeContextId={activeContextId} availableContexts={availableContexts} onContextSwitched={onContextSwitched} fullWidth />
+          </div>
+        )}
 
         <div className="flex-1 space-y-4">
           {contentSections.map((sec) => (

@@ -42,18 +42,18 @@ export function MomentumSection({ stats, player1Name = 'J1', player2Name = 'J2' 
           <tbody>
             <tr className="border-b border-white/5">
               <td className="py-2 px-2 text-telemetry-text-muted">2 pontos ganhos seguidos</td>
-              <td className={`text-center py-2 px-2 font-mono font-bold ${colors.p1}`}>{momentum.streakCountP1.len2}</td>
-              <td className={`text-center py-2 px-2 font-mono font-bold ${colors.p2}`}>{momentum.streakCountP2.len2}</td>
+              <td className={`text-center py-2 px-2 font-sans tabular-nums font-bold ${colors.p1}`}>{momentum.streakCountP1.len2}</td>
+              <td className={`text-center py-2 px-2 font-sans tabular-nums font-bold ${colors.p2}`}>{momentum.streakCountP2.len2}</td>
             </tr>
             <tr className="border-b border-white/5">
               <td className="py-2 px-2 text-telemetry-text-muted">3 pontos ganhos seguidos</td>
-              <td className={`text-center py-2 px-2 font-mono font-bold ${colors.p1}`}>{momentum.streakCountP1.len3}</td>
-              <td className={`text-center py-2 px-2 font-mono font-bold ${colors.p2}`}>{momentum.streakCountP2.len3}</td>
+              <td className={`text-center py-2 px-2 font-sans tabular-nums font-bold ${colors.p1}`}>{momentum.streakCountP1.len3}</td>
+              <td className={`text-center py-2 px-2 font-sans tabular-nums font-bold ${colors.p2}`}>{momentum.streakCountP2.len3}</td>
             </tr>
             <tr>
               <td className="py-2 px-2 text-telemetry-text-muted">4+ pontos ganhos seguidos</td>
-              <td className={`text-center py-2 px-2 font-mono font-bold ${colors.p1}`}>{momentum.streakCountP1.len4Plus}</td>
-              <td className={`text-center py-2 px-2 font-mono font-bold ${colors.p2}`}>{momentum.streakCountP2.len4Plus}</td>
+              <td className={`text-center py-2 px-2 font-sans tabular-nums font-bold ${colors.p1}`}>{momentum.streakCountP1.len4Plus}</td>
+              <td className={`text-center py-2 px-2 font-sans tabular-nums font-bold ${colors.p2}`}>{momentum.streakCountP2.len4Plus}</td>
             </tr>
           </tbody>
         </table>

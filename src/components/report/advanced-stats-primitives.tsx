@@ -24,9 +24,9 @@ export function StatRow({ label, p1, p2, format = 'number', tone = 'default' }: 
   const p2Class = tone === 'error' ? 'text-telemetry-error' : colors.p2;
   return (
     <div className="grid grid-cols-[1fr_minmax(180px,280px)_1fr] sm:grid-cols-[1fr_280px_1fr] gap-3 sm:gap-4 items-center py-1.5 border-b border-white/5 last:border-0">
-      <span className={`text-right font-mono text-sm ${p1Class}`}>{fmt(p1)}</span>
+      <span className={`text-right font-sans tabular-nums text-sm ${p1Class}`}>{fmt(p1)}</span>
       <span className="text-xs text-telemetry-text-muted text-center px-1 leading-snug">{label}</span>
-      <span className={`font-mono text-sm ${p2Class}`}>{fmt(p2)}</span>
+      <span className={`font-sans tabular-nums text-sm ${p2Class}`}>{fmt(p2)}</span>
     </div>
   );
 }

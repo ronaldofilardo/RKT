@@ -47,7 +47,7 @@ export function ClubMatchRow({ match: m, currentUserId, floating, onAssign, onAn
         match={m} isDoubles={isDoubles} p1Aff={p1Aff} p2Aff={p2Aff}
         p1PartnerAff={p1PartnerAff} p2PartnerAff={p2PartnerAff}
       />
-      <td className="px-3 py-4 text-xs font-mono font-semibold text-telemetry-text-primary whitespace-nowrap">
+      <td className="px-3 py-4 text-xs font-sans tabular-nums font-semibold text-telemetry-text-primary whitespace-nowrap">
         <div>{formatClubMatchScore(m.scoreState, m.format, m.state)}</div>
         {typeof m.pointCount === 'number' && <div className="text-[10px] font-sans font-normal text-telemetry-text-muted mt-0.5">{m.pointCount} {m.pointCount === 1 ? 'ponto' : 'pontos'}</div>}
       </td>

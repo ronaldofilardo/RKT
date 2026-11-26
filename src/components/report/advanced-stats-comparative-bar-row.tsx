@@ -35,7 +35,7 @@ export function ComparativeBarRow({
     <div className="py-2 border-b border-white/5 last:border-0">
       <div className="flex justify-between items-center text-xs mb-1">
         <span
-          className={`font-mono font-bold text-sm ${p1Wins ? 'scale-105' : 'text-telemetry-text-muted'}`}
+          className={`font-sans tabular-nums font-bold text-sm ${p1Wins ? 'scale-105' : 'text-telemetry-text-muted'}`}
           style={{ color: p1Wins ? p1ColorHex : undefined }}
         >
           {p1Value}
@@ -44,7 +44,7 @@ export function ComparativeBarRow({
           {label}
         </span>
         <span
-          className={`font-mono font-bold text-sm ${p2Wins ? 'scale-105' : 'text-telemetry-text-muted'}`}
+          className={`font-sans tabular-nums font-bold text-sm ${p2Wins ? 'scale-105' : 'text-telemetry-text-muted'}`}
           style={{ color: p2Wins ? p2ColorHex : undefined }}
         >
           {p2Value}

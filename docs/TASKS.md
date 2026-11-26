@@ -26,17 +26,17 @@
 
 ## 2. Funcionalidades Ausentes (MVP Incompleto)
 
-### A0.24. Integração com Gateway Asaas para Cobrança Recorrente ⏳
+### A0.24. Integração com Gateway Asaas para Cobrança Recorrente ✅
 - **Prioridade:** Alta (SaaS, Pagamentos, Webhooks e Automatização)
-- **Status:** **Planejado / Especificado** (2026-11-25)
+- **Status:** **Concluído** (2026-11-26, MEMORY §2.48)
 - **Documento:** [`docs/PLANO_INTEGRACAO_GATEWAY_ASAAS_COBRANCA_2026-11-25.md`](file:///c:/apps/RKT/docs/PLANO_INTEGRACAO_GATEWAY_ASAAS_COBRANCA_2026-11-25.md)
 - **Contexto:** Automação de faturamento recorrente com o gateway Asaas v3 (base de conhecimento `C:\apps\mundoas`). Suporte a Pix e Cartão de Crédito, resolução de pagador menor via Responsável Legal (ECA Digital), webhooks com prevenção contra timing attacks e idempotência, e transição instantânea de degustação para assinatura ativa.
 - **DoD:**
-  1. [ ] **Infraestrutura e Cliente Asaas (Fatia 1):** Migrations (`subscriptions`, `invoices`, `asaas_webhook_events`), cliente HTTP nativo em `src/lib/asaas/` e deduplicação de customer por CPF/CNPJ.
-  2. [ ] **Endpoint de Checkout (Fatia 2):** `POST /api/checkout/create-session` com validação de titularidade de menores e geração de Pix copia-e-cola / QR code.
-  3. [ ] **Webhook Idempotente (Fatia 3):** `POST /api/webhooks/asaas` particionado ($\le 80$L) tratando eventos de pagamento e assinaturas com `safeCompareTokens`.
-  4. [ ] **Frontend e Polling (Fatia 4):** Integração com `LastFreeAccessModal` e `PaywallModal` para checkout dinâmico e feedback em tempo real.
-  5. [ ] **Qualidade e R-03 (Fatia 5):** Arquivos $\le 100$ linhas, testes unitários com mock do Asaas e typecheck 100% verde.
+  1. [x] **Infraestrutura e Cliente Asaas (Fatia 1):** Migrations (`subscriptions`, `invoices`, `asaas_webhook_events`), cliente HTTP nativo em `src/lib/asaas/` e deduplicação de customer por CPF/CNPJ.
+  2. [x] **Endpoint de Checkout (Fatia 2):** `POST /api/checkout/create-session` com validação de titularidade de menores e geração de Pix copia-e-cola / QR code.
+  3. [x] **Webhook Idempotente (Fatia 3):** `POST /api/webhooks/asaas` particionado ($\le 80$L) tratando eventos de pagamento e assinaturas com `safeCompareTokens`.
+  4. [x] **Frontend e Polling (Fatia 4):** Integração com `LastFreeAccessModal` e `PaywallModal` para checkout dinâmico e feedback em tempo real.
+  5. [x] **Qualidade e R-03 (Fatia 5):** Arquivos $\le 100$ linhas, testes unitários com mock do Asaas e typecheck 100% verde.
 
 ### A0.23. Monetização, Degustação Free Única, Banner de Telemetria e Alerta de Último Acesso ✅
 - **Prioridade:** Alta (SaaS, Monetização, UX e Governança)

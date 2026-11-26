@@ -29,7 +29,7 @@ export function SetBreakdownSection({ stats, player1Name, player2Name }: Advance
                   Set {set.setNumber}
                   {set.isTiebreak && <span className="text-telemetry-alert ml-1 font-bold">TB</span>}
                 </td>
-                <td className={`text-center py-2 px-2 font-mono font-bold text-sm ${colors.p1}`}>
+                <td className={`text-center py-2 px-2 font-sans tabular-nums font-bold text-sm ${colors.p1}`}>
                   {set.p1Games}x{set.p2Games}
                   {set.isTiebreak && set.tiebreakP1 != null && set.tiebreakP2 != null && (
                     <span className="text-[10px] text-telemetry-text-muted ml-1 font-normal">
@@ -37,7 +37,7 @@ export function SetBreakdownSection({ stats, player1Name, player2Name }: Advance
                     </span>
                   )}
                 </td>
-                <td className={`text-center py-2 px-2 font-mono font-bold text-sm ${colors.p2}`}>
+                <td className={`text-center py-2 px-2 font-sans tabular-nums font-bold text-sm ${colors.p2}`}>
                   {set.p2Games}x{set.p1Games}
                   {set.isTiebreak && set.tiebreakP1 != null && set.tiebreakP2 != null && (
                     <span className="text-[10px] text-telemetry-text-muted ml-1 font-normal">
@@ -65,7 +65,7 @@ export function SetBreakdownSection({ stats, player1Name, player2Name }: Advance
                   <span className="text-telemetry-text-muted/50 mx-1">/</span>
                   <span className="text-telemetry-error font-bold">{set.p2Errors}</span>
                 </td>
-                <td className="text-center py-2 px-2 text-telemetry-text-primary font-mono font-bold">
+                <td className="text-center py-2 px-2 text-telemetry-text-primary font-sans tabular-nums font-bold">
                   {set.duration != null ? `${set.duration}min` : '–'}
                 </td>
               </tr>
@@ -74,7 +74,7 @@ export function SetBreakdownSection({ stats, player1Name, player2Name }: Advance
               <tr className="bg-telemetry-elevated font-bold border-t border-white/10">
                 <td className="py-2 px-2 text-telemetry-text-primary">Total</td>
                 <td className="text-center py-2 px-2" colSpan={6} aria-hidden="true" />
-                <td className="text-center py-2 px-2 text-telemetry-text-primary font-mono">
+                <td className="text-center py-2 px-2 text-telemetry-text-primary font-sans tabular-nums">
                   {totalDuration} min
                 </td>
               </tr>

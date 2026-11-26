@@ -30,7 +30,7 @@ export function ClubsTable({ clubs, onStatusChange }: ClubsTableProps) {
           {clubs.map((club) => (
             <tr key={club.id} className="border-b border-telemetry-border/10 hover:bg-telemetry-elevated/20">
               <td className="py-3 px-4 text-telemetry-text-primary">{club.name}</td>
-              <td className="py-3 px-4 text-telemetry-text-muted font-mono">{club.cnpj}</td>
+              <td className="py-3 px-4 text-telemetry-text-muted font-sans tabular-nums">{club.cnpj}</td>
               <td className="py-3 px-4 text-telemetry-text-muted">{club.email}</td>
               <td className="py-3 px-4">
                 <span

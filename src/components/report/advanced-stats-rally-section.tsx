@@ -28,9 +28,9 @@ export function RallySection({ stats, player1Name, player2Name }: AdvancedStatsS
       </div>
       <div className="text-center text-xs text-telemetry-text-muted mt-3 pt-2 border-t border-white/10">
         Duração média por ponto:{' '}
-        <span className={`font-mono font-semibold ${colors.p1}`}>{player1Name}: {avgP1}</span>
+        <span className={`font-sans tabular-nums font-semibold ${colors.p1}`}>{player1Name}: {avgP1}</span>
         <span className="text-white/30 mx-2">&bull;</span>
-        <span className={`font-mono font-semibold ${colors.p2}`}>{player2Name}: {avgP2}</span>
+        <span className={`font-sans tabular-nums font-semibold ${colors.p2}`}>{player2Name}: {avgP2}</span>
       </div>
     </Section>
   );

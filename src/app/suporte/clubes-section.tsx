@@ -60,7 +60,7 @@ export function ClubesSection({
             {filtered.map((ct) => (
               <tr key={ct.id} className="border-b border-telemetry-border/10 hover:bg-telemetry-elevated/30 transition-colors">
                 <td className="px-3 py-3 text-sm text-telemetry-text-primary font-medium">{ct.name}</td>
-                <td className="px-3 py-3 text-sm text-telemetry-text-muted font-mono text-xs">{ct.cnpj || '-'}</td>
+                <td className="px-3 py-3 text-sm text-telemetry-text-muted font-sans tabular-nums text-xs">{ct.cnpj || '-'}</td>
                 <td className="px-3 py-3 text-sm text-telemetry-text-muted">{ct.legalName || '-'}</td>
                 <td className="px-3 py-3 text-sm">
                   <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
