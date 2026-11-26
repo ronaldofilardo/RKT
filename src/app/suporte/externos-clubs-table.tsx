@@ -14,13 +14,11 @@ function clubStatusBadge(status: string | null, inSystem: boolean): React.ReactN
   }
   const s = (status || '').toUpperCase();
   const variants: Record<string, string> = {
-    PENDING: 'bg-telemetry-alert/20 text-telemetry-alert',
     ACTIVE: 'bg-telemetry-volt/20 text-telemetry-volt',
     SUSPENDED: 'bg-telemetry-error/20 text-telemetry-error',
   };
   const base = variants[s] ?? 'bg-telemetry-text-muted/20 text-telemetry-text-muted';
   const labels: Record<string, string> = {
-    PENDING: 'Pendente',
     ACTIVE: 'Ativo',
     SUSPENDED: 'Suspenso',
   };

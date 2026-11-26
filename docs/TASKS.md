@@ -26,6 +26,30 @@
 
 ## 2. Funcionalidades Ausentes (MVP Incompleto)
 
+### A0.24. Integração com Gateway Asaas para Cobrança Recorrente ⏳
+- **Prioridade:** Alta (SaaS, Pagamentos, Webhooks e Automatização)
+- **Status:** **Planejado / Especificado** (2026-11-25)
+- **Documento:** [`docs/PLANO_INTEGRACAO_GATEWAY_ASAAS_COBRANCA_2026-11-25.md`](file:///c:/apps/RKT/docs/PLANO_INTEGRACAO_GATEWAY_ASAAS_COBRANCA_2026-11-25.md)
+- **Contexto:** Automação de faturamento recorrente com o gateway Asaas v3 (base de conhecimento `C:\apps\mundoas`). Suporte a Pix e Cartão de Crédito, resolução de pagador menor via Responsável Legal (ECA Digital), webhooks com prevenção contra timing attacks e idempotência, e transição instantânea de degustação para assinatura ativa.
+- **DoD:**
+  1. [ ] **Infraestrutura e Cliente Asaas (Fatia 1):** Migrations (`subscriptions`, `invoices`, `asaas_webhook_events`), cliente HTTP nativo em `src/lib/asaas/` e deduplicação de customer por CPF/CNPJ.
+  2. [ ] **Endpoint de Checkout (Fatia 2):** `POST /api/checkout/create-session` com validação de titularidade de menores e geração de Pix copia-e-cola / QR code.
+  3. [ ] **Webhook Idempotente (Fatia 3):** `POST /api/webhooks/asaas` particionado ($\le 80$L) tratando eventos de pagamento e assinaturas com `safeCompareTokens`.
+  4. [ ] **Frontend e Polling (Fatia 4):** Integração com `LastFreeAccessModal` e `PaywallModal` para checkout dinâmico e feedback em tempo real.
+  5. [ ] **Qualidade e R-03 (Fatia 5):** Arquivos $\le 100$ linhas, testes unitários com mock do Asaas e typecheck 100% verde.
+
+### A0.23. Monetização, Degustação Free Única, Banner de Telemetria e Alerta de Último Acesso ✅
+- **Prioridade:** Alta (SaaS, Monetização, UX e Governança)
+- **Status:** **Concluído** (2026-11-25, MEMORY §2.47)
+- **Contexto:** Estrutura de cobrança híbrida (B2B/B2C): Atleta Independente e Treinador Particular com degustação única de 3 partidas; Gestor de CT com degustação de 30 dias (CT Performance); banner de contador posicionado abaixo do `<DashboardChrome />`; modal de aviso de "Último Acesso Livre" no pós-login com vitrine de planos, radio buttons, tooltips informativos por plano e seletor mensal/anual ("Pague 10, leve 12"); transição pós-degustação para "Modo Consulta" com preservação total de histórico, placares e relatórios e paywall modal para novas partidas.
+- **DoD:**
+  1. [x] **Motor de Quotas (Fatia 1):** Tipos em `src/types/billing.ts`, catálogo em `src/core/billing/billing-plans.ts` e motor puro determinístico em `quota-engine.logic.ts`.
+  2. [x] **Enriquecimento no Backend (Fatia 2):** Resolução de billing no `GET /api/auth/me` (`me-billing.logic.ts`) e guard `checkMatchCreationQuota` em `match-billing-quota.logic.ts` integrado ao `POST /api/matches`.
+  3. [x] **Componentes de UI (Fatia 3):** `TrialCounterBar` abaixo do header com estados visual progressivo (Normal, Última Partida e Modo Consulta).
+  4. [x] **Modal de Último Acesso (Fatia 4):** `LastFreeAccessModal` disparado no 3º jogo com aviso de transição, vitrine de planos, tooltips explicativos e toggle de ciclo.
+  5. [x] **Modo Consulta & Paywall (Fatia 5):** `PaywallModal` e `BillingOverlayOrchestrator` integrados a `/dashboard` e `/gestor`, com preservação total de leitura.
+  6. [x] **Qualidade & R-03 (Fatia 6):** 23 arquivos avaliados $\le 100$ linhas, 21/21 testes unitários aprovados e `pnpm typecheck` limpo.
+
 ### A0.22. Proteção de Menores (ECA Digital), Onboarding do Treinador Particular e Detecção de Contas no Gestor ✅
 - **Prioridade:** Alta (Governança, ECA Digital, LGPD Art. 14 e UX)
 - **Status:** **Concluído** (2026-11-18, MEMORY §2.61)

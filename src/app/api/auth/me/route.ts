@@ -8,6 +8,7 @@ import { resolveAvailableContexts } from '../login/login-contexts.logic';
 import { listAreas } from '@/core/access/areas';
 import { ME_USER_SELECT } from './me-select.logic';
 import { filterFollowedPlayers } from '@/services/access-actor.logic';
+import { resolveUserBillingState } from './me-billing.logic';
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,14 +32,14 @@ export async function GET(request: NextRequest) {
     const followedPlayerIds = filterFollowedPlayers(dbUser as any, user.contextId, user.activeArea);
     const guardianOfPlayerIds = ((dbUser as any).guardianLinks ?? []).map((l: any) => l.playerId);
 
-    let ctStatus: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | null = null;
+    let ctStatus: 'ACTIVE' | 'SUSPENDED' | null = null;
     const gestorMembership = memberships.find((m) => m.kind === 'GESTOR' && m.ctId);
     if (gestorMembership?.ctId) {
       const ct = await prisma.trainingCenter.findUnique({
         where: { id: gestorMembership.ctId },
         select: { status: true },
       });
-      ctStatus = (ct?.status as 'PENDING' | 'ACTIVE' | 'SUSPENDED') ?? null;
+      ctStatus = (ct?.status as 'ACTIVE' | 'SUSPENDED') ?? null;
     }
 
     const availableContexts = await resolveAvailableContexts(dbUser.id);
@@ -48,6 +49,15 @@ export async function GET(request: NextRequest) {
       memberships: dbUser.memberships,
       athlete: dbUser.athleteProfile ? { playerId: dbUser.athleteProfile.id } : null,
       isGuardian: guardianOfPlayerIds.length > 0,
+    });
+
+    const billing = await resolveUserBillingState({
+      userId: dbUser.id,
+      role: dbUser.role,
+      createdAt: dbUser.createdAt,
+      activeContextId: user.contextId ?? null,
+      activeArea: user.activeArea ?? null,
+      memberships,
     });
 
     return NextResponse.json({
@@ -68,6 +78,7 @@ export async function GET(request: NextRequest) {
       isGuardian: guardianOfPlayerIds.length > 0,
       availableContexts,
       availableAreas,
+      billing,
       ...buildMeAccess(dbUser, new Date(), user.contextId),
     });
   } catch (error) {

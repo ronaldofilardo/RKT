@@ -260,7 +260,7 @@ As decisões arquiteturais estruturantes do projeto foram consolidadas diretamen
 - **Decisão:**
   - O menu é calculado por uma **função pura** `buildMenu(ctx)` em `src/core/access/menu.ts`, que recebe o contexto de vínculos e devolve **seções** na ordem fixa: Operação → Atleta → Treinador → Gestão do Clube → Suporte → Admin, mais rodapé (Dados Pessoais, Tema, Sair).
   - Cada conta recebe a **soma** das seções dos seus vínculos; item repetido aparece uma única vez.
-  - Gestor com CT `PENDING`/`SUSPENDED` perde apenas a seção Gestão do Clube.
+  - Gestor com CT `SUSPENDED` perde apenas a seção Gestão do Clube.
   - Itens ainda não desenvolvidos (Financeiro, Torneios) aparecem **desabilitados** com selo "Em breve".
   - `mustChangePassword` oculta o menu (só `/trocar-senha`). O item "Aguardando" sai do menu.
   - **O menu orienta, a API protege:** esconder um item nunca substitui `can()`/`withAccessHandler` na rota.

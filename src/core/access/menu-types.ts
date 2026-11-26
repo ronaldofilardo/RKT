@@ -1,4 +1,4 @@
-export type CtStatus = 'PENDING' | 'ACTIVE' | 'SUSPENDED';
+export type CtStatus = 'ACTIVE' | 'SUSPENDED';
 
 export type MenuSectionKey =
   | 'operacao'

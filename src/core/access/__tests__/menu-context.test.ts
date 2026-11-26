@@ -44,13 +44,13 @@ describe('menuContextFromMe', () => {
   it('gestor: usa vínculos GESTOR ativos com CT e o ctStatus do /me', () => {
     const ctx = menuContextFromMe({
       ...base,
-      ctStatus: 'PENDING',
+      ctStatus: 'SUSPENDED',
       memberships: [
         { kind: 'GESTOR', ctId: 'ct-1', status: 'ACTIVE' },
         { kind: 'TREINADOR', ctId: 'ct-9', status: 'ACTIVE' },
       ],
     });
-    expect(ctx.gestor).toEqual({ ctIds: ['ct-1'], ctStatus: 'PENDING' });
+    expect(ctx.gestor).toEqual({ ctIds: ['ct-1'], ctStatus: 'SUSPENDED' });
   });
 
   it('GESTOR sem CT ou não ativo não gera contexto de gestor', () => {

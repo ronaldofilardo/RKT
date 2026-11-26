@@ -3,8 +3,36 @@
 > Diário de bordo técnico · Metodologia RE-DOC (Fase 4 — Auditoria de Qualidade e Histórico)
 > **Este é um dos 6 arquivos-canônico do sistema** (ver `AGENTS.md`): `PRD` · `ARCHITECTURE` · `RULES` · `DESIGN` · `TASKS` · `MEMORY`.
 
-**Última Atualização:** 2026-11-18
+**Última Atualização:** 2026-11-25
 **Analisado por:** engenharia reversa e implementação sobre `main`
+
+---
+
+## 2.47 Monetização, Degustação Free Única, Banner de Telemetria e Alerta de Último Acesso (A0.23) — 2026-11-25
+- **Contexto & Demanda:**
+  - Estratégia de cobrança híbrida (B2B/B2C): Clubes e Treinadores pagam pelo volume de atletas ativos; Responsáveis e Espectadores têm contas gratuitas; Atletas Independentes operam em Free Único (3 partidas no total) e plano Pro.
+  - Degustação Free:
+    - Atleta Independente e Treinador Particular: franquia única de 3 partidas (sem renovação mensal automática).
+    - Clube / CT: período de 30 dias de degustação do plano CT Performance (até 5 treinadores e 25 atletas).
+  - Alerta do "Último Acesso Livre": logo após o login no 3º jogo (ou 30º dia do CT), aviso de que este é o último acesso livre e que a conta passará para modo consulta, apresentando a vitrine de planos com tooltips informativos de cada plano e seletor Mensal / Anual ("Pague 10, leve 12").
+  - Banner de Contador: posicionado logo abaixo do `<DashboardChrome />` com a contagem de partidas/dias e o que acontece depois da degustação.
+  - Modo Somente Consulta (Pós-Degustação): bloqueio de escrita (novas partidas e cadastros) com paywall modal; preservação integral de dados, histórico, placares e relatórios para visualização.
+- **Implementação & Conclusão:**
+  1. **Motor Puro de Quotas (`src/core/billing/`, `src/types/billing.ts`):**
+     - Módulo determinístico `quota-engine.logic.ts` com cálculo de estados `FREE_TRIAL`, `LAST_FREE`, `EXPIRED`, `ACTIVE` e `EXEMPT`.
+     - Catálogo canônico de planos `billing-plans.ts` (Atleta Pro R$ 19,99/mês, Coach Start R$ 49,99/mês, Coach Pro R$ 79,99/mês, CT Performance R$ 299,99/mês, CT Full R$ 499,99/mês) com regras de add-ons e tooltips.
+  2. **Backend & Guards (`src/app/api/auth/me/`, `src/app/api/matches/`):**
+     - Endpoint `GET /api/auth/me` enriquecido com nó `billing` via `me-billing.logic.ts`.
+     - Guard `checkMatchCreationQuota` em `match-billing-quota.logic.ts` acoplado ao `POST /api/matches` bloqueando com 402 `TRIAL_EXPIRED` contas expiradas, sem impactar partidas offline ou usuários com planos ativos/vinculados.
+  3. **Interface e Modais (`src/components/billing/`, `/dashboard`, `/gestor`):**
+     - `TrialCounterBar`: banner responsivo com estados visual progressivo (Normal, Alerta de Última Partida e Modo Consulta).
+     - `LastFreeAccessModal`: modal disparado no 3º jogo com aviso de transição para modo consulta, vitrine de planos, radio buttons, tooltips explicativos e toggle mensal/anual.
+     - `PaywallModal`: modal de intercepção quando o usuário em modo consulta clica em "Nova Partida" ou "Assinar Agora".
+     - `BillingOverlayOrchestrator`: orquestrador de ciclo de vida integrado a `/dashboard` e `/gestor`.
+  4. **Qualidade & Regra R-03:**
+     - 23 arquivos avaliados: todos $\le 100$ linhas (R-03 100% cumprida).
+     - 21/21 testes unitários e de integração verdes.
+     - `pnpm typecheck` aprovado com 0 erros.
 
 ---
 

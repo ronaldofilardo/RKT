@@ -118,7 +118,7 @@ describe('GET /api/auth/me — characterization', () => {
     expect(data.ctStatus).toBeNull();
   });
 
-  it.each(['PENDING', 'ACTIVE', 'SUSPENDED'])(
+  it.each(['ACTIVE', 'SUSPENDED'])(
     'GESTOR com CT %s → ctStatus reflete o status do CT',
     async (status) => {
       prisma.user.findUnique.mockResolvedValueOnce({

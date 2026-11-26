@@ -12,6 +12,7 @@ import {
 import { resolveOrCreateAnnotation } from '@/services/match-resolve-annotation.logic';
 import { resolveMatchCtId } from '@/services/match-ct-id.logic';
 import { getActor } from '@/services/accessService';
+import { checkMatchCreationQuota } from './match-billing-quota.logic';
 import type { RLSUser } from '@/lib/rls-context';
 
 export async function postMatchResponse(
@@ -32,6 +33,14 @@ export async function postMatchResponse(
       return NextResponse.json(
         { error: 'UNAUTHORIZED', message: 'Token de acesso requerido' },
         { status: 401 }
+      );
+    }
+
+    const quota = await checkMatchCreationQuota(currentUserId, user);
+    if (!quota.allowed) {
+      return NextResponse.json(
+        { error: 'PAYMENT_REQUIRED', code: 'TRIAL_EXPIRED', message: quota.message },
+        { status: 402 }
       );
     }
 

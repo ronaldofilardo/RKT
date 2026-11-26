@@ -13,6 +13,7 @@ import { SolicitacoesTable } from './solicitacoes-table';
 import { ClubInfo } from './club-info';
 import { DashboardHeader } from './dashboard-header';
 import { DashboardChrome } from '@/app/dashboard/components/DashboardChrome';
+import { BillingOverlayOrchestrator } from '@/components/billing/billing-overlay-orchestrator';
 import { requestAnnotateMatch } from './gestor-match-actions.logic';
 import { useGestorDashboardData } from './use-gestor-dashboard-data';
 import { GestorDashboardModals } from './gestor-dashboard-modals';
@@ -48,6 +49,7 @@ export function GestorDashboard({ me, tab, setTab }: GestorDashboardProps) {
   return (
     <div className="min-h-screen bg-telemetry-base">
       <DashboardChrome title="Painel do Gestor" showMenu={false} />
+      <BillingOverlayOrchestrator billing={me.billing ?? null} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <DashboardHeader me={me} />
         <TabNav tab={tab} onTabChange={setTab} coachesCount={coaches.length} athletesCount={athletes.length} affiliatesCount={affiliates.length} matchesCount={matches.length + externalMatches.length} solicitacoesCount={requests.length} />

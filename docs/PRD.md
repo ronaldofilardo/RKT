@@ -39,8 +39,8 @@ O `enum Role` acima é apenas o **claim legado** de sessão. O perfil real de um
 
 | Perfil | Como nasce | Regras de negócio |
 |---|---|---|
-| **Suporte** | `Membership PLATAFORMA/SUPORTE` | Aprova/suspende clubes (CTs), gerencia gestores e contas avulsas, atende solicitações. Sem permissões de partida |
-| **Gestor** | Auto cadastro de clube (CT `PENDING` até o Suporte aprovar) | Cadastra treinadores e atletas do clube (com login), gerencia logins, **vê e anota** as partidas do clube, desvincula atletas. Financeiro e Torneios: em breve |
+| **Suporte** | `Membership PLATAFORMA/SUPORTE` | Suspende/reativa clubes (CTs), gerencia gestores e contas avulsas, atende solicitações. Sem permissões de partida |
+| **Gestor** | Auto cadastro de clube (CT ativo imediatamente) | Cadastra treinadores e atletas do clube (com login), gerencia logins, **vê e anota** as partidas do clube, desvincula atletas. Financeiro e Torneios: em breve |
 | **Treinador de clube** | Criado pelo gestor | Acompanha atletas do clube e os seus; vê relatórios |
 | **Treinador avulso** | Auto cadastro | Pode criar atletas com login, acompanhar atletas e **anotar partidas e ver relatórios** dos atletas que acompanha |
 | **Atleta criando atleta** | Cadastro rápido em nova partida | Cria atleta provisório no pool (`PROVISIONAL`, sem conta). Se marcado "Meu clube", vínculo nasce `PENDING` para confirmação do gestor |

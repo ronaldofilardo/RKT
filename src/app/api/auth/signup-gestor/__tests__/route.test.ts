@@ -33,7 +33,7 @@ describe('createGestorClub', () => {
       id: 'ct-1',
       name: 'CT Teste',
       slug: 'ct-teste',
-      status: 'PENDING',
+      status: 'ACTIVE',
     });
     mockPrisma.user.create.mockResolvedValue({
       id: 'u-1',

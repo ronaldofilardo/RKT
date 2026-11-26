@@ -11,6 +11,7 @@ export const ME_USER_SELECT = {
   email: true,
   role: true,
   cpf: true,
+  createdAt: true,
   mustChangePassword: true,
   canOperate: true,
   memberships: {

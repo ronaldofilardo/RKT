@@ -12,7 +12,8 @@ export interface MeResponse {
     mustChangePassword: boolean;
   };
   memberships: Array<{ kind: string; ctId: string | null; status: string }>;
-  ctStatus: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | null;
+  ctStatus: 'ACTIVE' | 'SUSPENDED' | null;
+  billing?: import('@/types/billing').BillingAccountState;
 }
 
 export interface CoachItem {
