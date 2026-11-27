@@ -8,6 +8,78 @@
 
 ---
 
+## 2.58 Checkout Seguro Hospedado no Asaas (Zero Responsabilidade de Cartão / PCI-DSS Level 1) — 2026-11-26
+- **Contexto & Decisão Arquitetural:**
+  - O usuário solicitou que o RKT não colete, processe nem retenha dados de cartão de crédito no frontend ou backend da aplicação (isenção total de responsabilidade/escopo PCI-DSS).
+  - Ao optar por Cartão Recorrente, a aplicação cria a assinatura no Asaas v3 e redireciona o cliente para a URL hospedada e segura da fatura oficial do Asaas (`invoiceUrl`, ex.: `https://www.asaas.com/i/...`).
+  - O preenchimento do cartão, validações de 3DS / OTP bancário e gestão do token de recorrência ficam 100% a cargo da infraestrutura certificada do Asaas.
+  - A confirmação do pagamento e liberação da assinatura no RKT acontecem em tempo real via webhook `PAYMENT_CONFIRMED` e polling de status da assinatura.
+- **Implementação & Conclusão:**
+  1. **Remoção de Código de Captura Local de Cartão:**
+     - Deletados `checkout-credit-card-view.tsx`, `checkout-credit-card.logic.ts` e `checkout-card-fields.logic.ts`.
+     - Zero formulários de cartão de crédito dentro do bundle do app.
+  2. **Schema Simplificado (`src/schemas/checkout.ts` - 15L):**
+     - O schema de checkout agora recebe apenas `{ planTier, cycle, billingType, dependentPlayerId }`.
+  3. **Orquestração de Sessão (`src/app/api/checkout/create-session/checkout-session.logic.ts` - 75L):**
+     - Cria a assinatura no Asaas com `billingType: 'CREDIT_CARD'`, busca a primeira fatura gerada com `obterPrimeiraCobrancaAssinatura` e retorna `invoiceUrl: cobranca?.invoiceUrl ?? null`.
+  4. **Componente de UI Hospedada (`src/components/billing/checkout-card-hosted-view.tsx` - 64L):**
+     - Apresenta resumo transparente do valor e ciclo, selo de segurança com esclarecimento sobre a proteção PCI-DSS do Asaas e botão `"Ir para Pagamento Seguro no Asaas ➔"`.
+     - Ao gerar a sessão, abre a tela do Asaas em nova aba (`window.open(invoiceUrl, '_blank')`) e mantém a tela do modal aguardando confirmação automática, com botão de contingência `"Reabrir Página do Asaas ↗"`.
+  5. **Modal com Polling Unificado (`src/components/billing/checkout-modal.tsx` - 88L):**
+     - Polling de `/api/checkout/pix-status?subscriptionId=...` unificado tanto para Pix quanto para Cartão Asaas. Assim que o webhook do Asaas confirma o pagamento, o modal fecha com sucesso e libera a conta.
+  6. **Qualidade & Validação:**
+     - 100% de conformidade com STE-DEV R-03 ($\le 100$ linhas por arquivo).
+     - 8 suítes de testes executadas: **34/34 testes passando**.
+     - `pnpm typecheck` aprovado com 0 erros.
+
+---
+
+## 2.57 Suporte a Cobrança Recorrente Automática com Cartão de Crédito via Asaas — 2026-11-26
+- **Contexto & Demanda:**
+  - O sistema necessitava de suporte a cobranças recorrentes automáticas tanto no Pix (manual com QR code) quanto no **Cartão de Crédito** (débito automático a cada mês/ano gerenciado pelo gateway Asaas v3).
+  - Seguiu a metodologia **Elephant & Goldfish Model (EGM)** com separação rigorosa de auditoria prévia e limites de complexidade por arquivo (STE-DEV R-03 $\le 100$ linhas).
+- **Implementação & Conclusão:**
+  1. **Tipos e Validação Zod (`src/schemas/checkout.ts`):**
+     - Schemas `CreditCardDataSchema` e `CreditCardHolderInfoSchema` integrados ao `CheckoutSessionSchema` (validação de número, validade, CVV, titular, CEP e telefone).
+  2. **Serviço de Assinatura Asaas (`src/lib/asaas/asaas-subscription.service.ts`):**
+     - Interface `CriarAssinaturaParams` expandida para enviar `creditCard` e `creditCardHolderInfo` diretamente ao endpoint `/subscriptions` do Asaas v3.
+  3. **Orquestração de Sessão de Checkout (`src/app/api/checkout/create-session/`):**
+     - Criado `checkout-credit-card.logic.ts` (43L) para higienização de dígitos e resolução de titular financeiro sob o **ECA Digital (Lei nº 15.211/2025)**: para atletas menores de 18 anos, os dados do titular são compulsoriamente vinculados ao Responsável Legal (`GuardianLink`).
+     - `checkout-session.logic.ts` (92L): se o cartão for autorizado pelo Asaas (`asaasSub.status === 'ACTIVE'`), a assinatura local é imediatamente persistida como `ACTIVE` e a fatura como `CONFIRMED`, liberando a conta do usuário na hora sem necessidade de polling.
+  4. **Componentes de UI e Modularização STE-DEV R-03 (`src/components/billing/`):**
+     - `checkout-card-fields.logic.ts` (29L): máscaras para número de cartão, validade (`MM/AA`), CVV, CEP e telefone.
+     - `checkout-pix-view.tsx` (62L): extração da visualização Pix (QR Code, copia e cola, aguardando banco).
+     - `checkout-credit-card-view.tsx` (88L): formulário com feedback de erro amigável caso a operadora recuse.
+     - `checkout-modal.tsx` (95L): shell com alternador de abas (`[⚡ Pix Instantâneo]` e `[💳 Cartão Recorrente]`).
+  5. **Qualidade & Validação:**
+     - 100% de conformidade com STE-DEV R-03: todos os arquivos novos e modificados $\le 100$ linhas.
+     - 8 suítes de testes executadas: **35/35 testes verdes**, incluindo autorização imediata de cartão, rejeição de campos inválidos e renderização dos componentes.
+     - `pnpm typecheck` (`tsc --noEmit`) aprovado com 0 erros.
+
+---
+
+## 2.56 Webhooks Asaas: Isenção de CSRF, Resolução de Ambiente e Tratamento Robusto de Erros — 2026-11-26
+- **Contexto & Demanda:**
+  - Validação real de entrega de webhooks Asaas (`POST /api/webhooks/asaas`).
+  - Diagnóstico de bloqueios de segurança: o middleware do Next.js bloqueava chamadas externas de gateways por violação de CSRF de navegador (`enforceOriginCheck` retornando 403) e ausência de sessão JWT de usuário.
+  - Necessidade de tratamento estruturado de erros e resolução de ambientes `ASAAS_ENV="production"` / `"sandbox"`.
+- **Implementação & Conclusão:**
+  1. **Segurança de Borda e Middleware (`src/middleware-csrf.logic.ts`, `src/middleware.ts`):**
+     - Isenção explícita de `/api/webhooks/` da verificação de CSRF de navegador (requisições server-to-server utilizam autenticação por token `asaas-access-token` via HMAC seguro).
+     - Inclusão de `/api/webhooks` nas `PUBLIC_ROUTES` do middleware, dispensando cookies de sessão de usuário.
+  2. **Tratamento de Exceções (`src/app/api/webhooks/asaas/route.ts`):**
+     - Envolvimento do processamento em bloco `try/catch` estruturado, retornando 500 com `{ error: 'INTERNAL_ERROR', message: ... }` em vez de quebra não capturada.
+  3. **Resolução de Ambientes Asaas (`src/lib/asaas/asaas-config.ts`):**
+     - Suporte transparente a `process.env.ASAAS_ENV === 'sandbox'` e `process.env.ASAAS_SANDBOX === 'true'`.
+  4. **Componente de Checkout (`src/components/billing/checkout-modal.tsx`):**
+     - Otimização do QR Code Pix utilizando o componente oficial `next/image` (`<Image />`) com dimensões explícitas e sem warnings de compilação ou atributos inválidos no DOM.
+  5. **Bateria de Testes:**
+     - Criados `src/lib/asaas/__tests__/asaas-config.test.ts` e `src/middleware/__tests__/middleware-webhook-csrf.test.ts`.
+     - 8 suítes executadas e 100% aprovadas (33/33 testes verdes).
+     - `pnpm typecheck` código 0 e conformidade integral com STE-DEV R-03 ($\le 100$ linhas).
+
+---
+
 ## 2.55 Correção da Tela Pós-Autorização do Responsável (`/responsavel/convite/[token]`) — 2026-11-26
 - **Contexto & Demanda:**
   - Após confirmar a autorização em `/responsavel/convite/[token]`, a tela de sucesso informava incorretamente que o gestor enviaria o link de acesso ao responsável.

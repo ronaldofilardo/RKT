@@ -82,4 +82,18 @@ describe('Asaas Webhook Handler', () => {
       expect.objectContaining({ where: { id: 'sub_local_1' }, data: { status: 'CANCELED' } }),
     );
   });
+
+  it('retorna 500 com mensagem estruturada quando ocorre erro interno de banco', async () => {
+    (mockPrisma.asaasWebhookEvent.findUnique as jest.Mock).mockRejectedValueOnce(new Error('Erro de conexão com o banco'));
+    const req = new NextRequest('http://localhost:3000/api/webhooks/asaas', {
+      method: 'POST',
+      headers: { 'asaas-access-token': 'valid_token_secret' },
+      body: JSON.stringify({ id: 'evt_err', event: 'PAYMENT_RECEIVED' }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(500);
+    const json = await res.json();
+    expect(json.error).toBe('INTERNAL_ERROR');
+    expect(json.message).toContain('Erro de conexão com o banco');
+  });
 });

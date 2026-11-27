@@ -68,4 +68,31 @@ describe('CheckoutModal', () => {
       expect(screen.getByText(/Copiar Código Pix/i)).toBeInTheDocument();
     });
   });
+
+  it('permite alternar para aba de Cartão Recorrente e direcionar para checkout Asaas', async () => {
+    const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+    global.fetch = jest.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        data: { subscriptionId: 'sub_card_ok', invoiceUrl: 'https://asaas.com/i/test-card' },
+      }),
+    } as any);
+
+    render(
+      <CheckoutModal isOpen={true} planId="ATLETA_PRO" cycle="MONTHLY" onClose={jest.fn()} onSuccess={jest.fn()} />
+    );
+
+    fireEvent.click(screen.getByText(/Cartão Recorrente/i));
+    expect(screen.getByText(/Checkout Seguro Direto no Asaas/i)).toBeInTheDocument();
+    
+    fireEvent.click(screen.getByText(/Ir para Pagamento Seguro no Asaas ➔/i));
+
+    await waitFor(() => {
+      expect(windowOpenSpy).toHaveBeenCalledWith('https://asaas.com/i/test-card', '_blank', 'noopener,noreferrer');
+      expect(screen.getByText(/Página de pagamento aberta no Asaas/i)).toBeInTheDocument();
+      expect(screen.getByText(/Reabrir Página do Asaas ↗/i)).toBeInTheDocument();
+    });
+
+    windowOpenSpy.mockRestore();
+  });
 });

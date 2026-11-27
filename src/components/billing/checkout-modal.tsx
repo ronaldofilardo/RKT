@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
 import type { PlanTier, BillingCycle } from '@/types/billing';
 import { BILLING_PLANS } from '@/core/billing/billing-plans';
+import { CheckoutPixView } from './checkout-pix-view';
+import { CheckoutCardHostedView } from './checkout-card-hosted-view';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -14,19 +15,21 @@ interface CheckoutModalProps {
 }
 
 export function CheckoutModal({ isOpen, planId, cycle, onClose, onSuccess }: CheckoutModalProps) {
+  const [tab, setTab] = useState<'PIX' | 'CARD'>('PIX');
   const [loading, setLoading] = useState(false);
   const [pixData, setPixData] = useState<{ qrCode: string; copiaECola: string; subId: string } | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [cardData, setCardData] = useState<{ invoiceUrl: string; subId: string } | null>(null);
   const [paid, setPaid] = useState(false);
 
   const plan = BILLING_PLANS.find((p) => p.id === planId);
   const value = plan ? (cycle === 'MONTHLY' ? plan.monthlyPrice : plan.yearlyPrice) : 0;
+  const activeSubId = pixData?.subId || cardData?.subId;
 
   useEffect(() => {
-    if (!pixData?.subId || paid) return;
+    if (!activeSubId || paid) return;
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`/api/checkout/pix-status?subscriptionId=${pixData.subId}`);
+        const res = await fetch(`/api/checkout/pix-status?subscriptionId=${activeSubId}`);
         if (res.ok && (await res.json()).isPaid) {
           setPaid(true);
           clearInterval(interval);
@@ -35,21 +38,24 @@ export function CheckoutModal({ isOpen, planId, cycle, onClose, onSuccess }: Che
       } catch {}
     }, 3000);
     return () => clearInterval(interval);
-  }, [pixData, paid, onSuccess]);
+  }, [activeSubId, paid, onSuccess]);
 
-  const handleGeneratePix = async () => {
+  const handleCreateSession = async (billingType: 'PIX' | 'CREDIT_CARD') => {
     setLoading(true);
     try {
       const res = await fetch('/api/checkout/create-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planTier: planId, cycle, billingType: 'PIX' }),
+        body: JSON.stringify({ planTier: planId, cycle, billingType }),
       });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.data?.pix) {
-          setPixData({ qrCode: json.data.pix.qrCodeBase64, copiaECola: json.data.pix.copiaECola, subId: json.data.subscriptionId });
-        }
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Falha na requisição.');
+      if (json.data?.pix) {
+        setPixData({ qrCode: json.data.pix.qrCodeBase64, copiaECola: json.data.pix.copiaECola, subId: json.data.subscriptionId });
+      }
+      if (billingType === 'CREDIT_CARD' && json.data?.invoiceUrl) {
+        setCardData({ invoiceUrl: json.data.invoiceUrl, subId: json.data.subscriptionId });
+        window.open(json.data.invoiceUrl, '_blank', 'noopener,noreferrer');
       }
     } finally {
       setLoading(false);
@@ -68,27 +74,20 @@ export function CheckoutModal({ isOpen, planId, cycle, onClose, onSuccess }: Che
         {paid ? (
           <div className="text-center py-6 space-y-2">
             <span className="text-4xl text-telemetry-volt">✓</span>
-            <p className="font-semibold text-telemetry-text-primary">Pagamento confirmado!</p>
-            <p className="text-xs text-telemetry-text-secondary">Sua assinatura está ativa. Liberando acesso ilimitado...</p>
-          </div>
-        ) : !pixData ? (
-          <div className="space-y-4 py-2">
-            <div className="p-3 bg-telemetry-base rounded border border-telemetry-border text-xs space-y-1">
-              <p className="text-telemetry-text-secondary">Total a pagar ({cycle === 'MONTHLY' ? 'Mensal' : 'Anual'}):</p>
-              <p className="text-xl font-bold text-telemetry-text-primary">R$ {value.toFixed(2).replace('.', ',')}</p>
-            </div>
-            <button type="button" onClick={handleGeneratePix} disabled={loading} className="w-full py-2.5 rounded text-xs font-semibold bg-telemetry-blue hover:bg-telemetry-blue/80 text-white transition-colors">
-              {loading ? 'Gerando Pix...' : 'Pagar com Pix Instantâneo'}
-            </button>
+            <p className="font-semibold text-telemetry-text-primary">Assinatura confirmada!</p>
+            <p className="text-xs text-telemetry-text-secondary">Seu plano está ativo. Liberando acesso ilimitado...</p>
           </div>
         ) : (
-          <div className="space-y-3 text-center">
-            <p className="text-xs text-telemetry-text-secondary">Escaneie o QR Code abaixo no app do seu banco:</p>
-            <Image src={`data:image/png;base64,${pixData.qrCode}`} alt="QR Code Pix" width={176} height={176} className="mx-auto rounded border border-telemetry-border p-1 bg-white" />
-            <button type="button" onClick={() => { navigator.clipboard.writeText(pixData.copiaECola); setCopied(true); }} className="w-full py-2 rounded text-xs border border-telemetry-border bg-telemetry-base hover:bg-telemetry-border text-telemetry-text-primary transition-colors">
-              {copied ? '✓ Código Pix Copiado!' : 'Copiar Código Pix (Copia e Cola)'}
-            </button>
-            <p className="text-[11px] text-telemetry-text-secondary flex items-center justify-center gap-1.5"><span className="animate-spin text-xs">⟳</span> Aguardando confirmação do banco...</p>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-1 p-1 bg-telemetry-base rounded border border-telemetry-border text-xs">
+              <button type="button" onClick={() => setTab('PIX')} className={`py-1.5 rounded font-medium transition-colors ${tab === 'PIX' ? 'bg-telemetry-surface text-telemetry-text-primary shadow-sm' : 'text-telemetry-text-secondary hover:text-telemetry-text-primary'}`}>⚡ Pix Instantâneo</button>
+              <button type="button" onClick={() => setTab('CARD')} className={`py-1.5 rounded font-medium transition-colors ${tab === 'CARD' ? 'bg-telemetry-surface text-telemetry-text-primary shadow-sm' : 'text-telemetry-text-secondary hover:text-telemetry-text-primary'}`}>💳 Cartão Recorrente</button>
+            </div>
+            {tab === 'PIX' ? (
+              <CheckoutPixView pixData={pixData} loading={loading} value={value} cycle={cycle} onGeneratePix={() => handleCreateSession('PIX')} />
+            ) : (
+              <CheckoutCardHostedView invoiceUrl={cardData?.invoiceUrl ?? null} loading={loading} value={value} cycle={cycle} onStartCheckout={() => handleCreateSession('CREDIT_CARD')} />
+            )}
           </div>
         )}
       </div>

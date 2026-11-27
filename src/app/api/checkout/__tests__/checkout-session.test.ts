@@ -63,4 +63,21 @@ describe('Checkout Session & Payer Resolution', () => {
     expect(res.value).toBe(49.99);
     expect(res.pix?.copiaECola).toBe('copia_cola_code');
   });
+
+  it('processCheckoutSession gera sessão de Cartão com invoiceUrl Asaas sem dados locais', async () => {
+    (mockPrisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
+      id: 'u-user', name: 'Atleta Pro', email: 'atleta@pro.com', cpf: '12345678909',
+      memberships: [], guardianLinks: [],
+    });
+    mockBuscar.mockResolvedValueOnce({ id: 'cus_card', name: 'Atleta Pro' } as any);
+    mockAssinatura.mockResolvedValueOnce({ id: 'sub_card_1', status: 'ACTIVE', value: 19.99 } as any);
+    mockCobranca.mockResolvedValueOnce({ id: 'pay_card_1', invoiceUrl: 'https://asaas.com/i/card' } as any);
+    (mockPrisma.subscription.create as jest.Mock).mockResolvedValueOnce({ id: 'sub_db_card' });
+
+    const res = await processCheckoutSession('u-user', {
+      planTier: 'ATLETA_PRO', cycle: 'MONTHLY', billingType: 'CREDIT_CARD',
+    });
+    expect(res.subscriptionId).toBe('sub_db_card');
+    expect(res.invoiceUrl).toBe('https://asaas.com/i/card');
+  });
 });

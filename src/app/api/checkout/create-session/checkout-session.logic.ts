@@ -40,9 +40,7 @@ export async function processCheckoutSession(userId: string, input: CheckoutSess
   if (input.billingType === 'PIX' && cobranca?.id) {
     try {
       pixData = await obterQrCodePixAsaas(cobranca.id);
-    } catch {
-      // Ignora erro se pix já gerado ou não disponível de imediato
-    }
+    } catch {}
   }
 
   const subscription = await prisma.subscription.create({
