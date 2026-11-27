@@ -8,11 +8,14 @@ export const RETRY_AFTER_SECONDS = 300;
 export function isLoginRateLimitEnabled(): boolean {
   if (process.env.DISABLE_LOGIN_RATELIMIT === 'true') return false;
   if (process.env.NODE_ENV === 'test' && process.env.ENABLE_LOGIN_RATELIMIT !== 'true') return false;
+  if (process.env.NODE_ENV === 'development' && process.env.ENABLE_LOGIN_RATELIMIT !== 'true') return false;
   return true;
 }
 
 export async function checkLoginRateLimit(ip: string): Promise<void> {
   if (!isLoginRateLimitEnabled()) return;
+  const isLoopback = ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1' || ip === 'localhost';
+  if (isLoopback && process.env.ENABLE_LOGIN_RATELIMIT !== 'true') return;
 
   const windowStart = new Date(Date.now() - LOGIN_WINDOW_MINUTES * 60 * 1000);
   const recentFails = await import('@/lib/prisma')

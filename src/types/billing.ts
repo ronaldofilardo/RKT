@@ -8,7 +8,8 @@ export type PlanTier =
   | 'COACH_PRO'
   | 'CT_PERFORMANCE'
   | 'CT_FULL'
-  | 'CT_ENTERPRISE';
+  | 'CT_ENTERPRISE'
+  | (string & {});
 
 export type BillingCycle = 'MONTHLY' | 'YEARLY';
 
@@ -30,6 +31,7 @@ export interface PlanDefinition {
   features: PlanFeature[];
   extraAthletePrice?: number;
   extraCoachPrice?: number;
+  isActive?: boolean;
 }
 
 export interface BillingAccountState {

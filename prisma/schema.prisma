@@ -953,3 +953,25 @@ model AsaasWebhookEvent {
 
   @@map("asaas_webhook_events")
 }
+
+model Plan {
+  id                    String             @id @default(cuid())
+  tierCode              String             @unique @map("tier_code")
+  name                  String
+  target                String
+  monthlyPrice          Decimal            @db.Decimal(10, 2) @map("monthly_price")
+  yearlyPrice           Decimal            @db.Decimal(10, 2) @map("yearly_price")
+  quotaAthletes         Int?               @map("quota_athletes")
+  quotaCoaches          Int?               @map("quota_coaches")
+  quotaMatches          Int?               @map("quota_matches")
+  extraAthletePrice     Decimal?           @db.Decimal(10, 2) @map("extra_athlete_price")
+  extraCoachPrice       Decimal?           @db.Decimal(10, 2) @map("extra_coach_price")
+  tooltip               String             @default("")
+  features              Json               @default("[]")
+  isActive              Boolean            @default(true) @map("is_active")
+  createdAt             DateTime           @default(now()) @map("created_at")
+  updatedAt             DateTime           @updatedAt @map("updated_at")
+
+  @@map("plans")
+}
+

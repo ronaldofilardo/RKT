@@ -43,6 +43,7 @@ export interface MembershipItem {
 }
 
 export type SuporteTab = 'clubes' | 'gestores' | 'avulsos' | 'financeiro';
+export type { FinanceiroSubtab } from './financeiro/financeiro-types';
 
 /** @deprecated Use SuporteTab */
 export type SuporteModule = SuporteTab;
