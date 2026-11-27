@@ -15,9 +15,14 @@ export function getAuthToken(request: Pick<NextRequest, 'headers' | 'cookies'>) 
   );
 }
 
-// Fase 5: Verificação de Origem contra CSRF em Mutações de API
+// Fase 5: Verificação de Origem contra CSRF em Mutações de API (ignora webhooks externos)
 export function enforceOriginCheck(request: NextRequest): NextResponse | null {
-  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method) || !request.nextUrl.pathname.startsWith('/api/')) {
+  const { pathname } = request.nextUrl;
+  if (
+    !['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method) ||
+    !pathname.startsWith('/api/') ||
+    pathname.startsWith('/api/webhooks/')
+  ) {
     return null;
   }
   const origin = request.headers.get('origin');

@@ -1,5 +1,7 @@
 export function getAsaasBaseUrl(): string {
-  return process.env.ASAAS_SANDBOX === 'true'
+  const isSandbox =
+    process.env.ASAAS_ENV === 'sandbox' || process.env.ASAAS_SANDBOX === 'true';
+  return isSandbox
     ? 'https://sandbox.asaas.com/api/v3'
     : 'https://api.asaas.com/v3';
 }

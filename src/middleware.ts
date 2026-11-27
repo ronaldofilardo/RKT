@@ -12,6 +12,7 @@ const PUBLIC_ROUTES = [
   '/api/auth/reset-password',
   '/api/guardians/invites',
   '/api/spectate',
+  '/api/webhooks',
   '/login',
   '/matches/locate',
   '/matches/convite',
