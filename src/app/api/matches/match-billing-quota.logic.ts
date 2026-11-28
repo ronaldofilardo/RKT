@@ -21,7 +21,7 @@ export async function checkMatchCreationQuota(
     if (!dbUser) return { allowed: true };
 
     const activeContextId = user?.contextId ?? null;
-    const isGestor = activeContextId?.startsWith('ct_');
+    const isGestor = user?.activeArea === 'GESTOR' || activeContextId?.startsWith('ct_') === true;
     const ctId = isGestor
       ? dbUser.memberships?.find((m) => m.kind === 'GESTOR' && m.ctId)?.ctId ?? null
       : null;
@@ -40,7 +40,7 @@ export async function checkMatchCreationQuota(
     const billing = calculateBillingState({
       role: user?.role,
       activeContextId,
-      activeArea: null,
+      activeArea: user?.activeArea ?? null,
       isLinkedToPayingEntity,
       hasActivePaidPlan: false,
       matchesCount,

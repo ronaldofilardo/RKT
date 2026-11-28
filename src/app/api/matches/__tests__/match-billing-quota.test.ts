@@ -53,4 +53,24 @@ describe('checkMatchCreationQuota', () => {
     const res = await checkMatchCreationQuota('u1', { id: 'u1', role: 'ANNOTATOR' } as any);
     expect(res.allowed).toBe(true);
   });
+
+  it('mantém gestor de CT no trial mesmo quando o ID do contexto não tem prefixo ct_', async () => {
+    (mockPrisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
+      createdAt: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000),
+      memberships: [{ kind: 'GESTOR', ctId: 'cmgr-context-1', status: 'ACTIVE' }],
+    });
+    (mockPrisma.match.count as jest.Mock).mockResolvedValueOnce(3);
+
+    const res = await checkMatchCreationQuota('u1', {
+      id: 'u1',
+      role: 'ANNOTATOR',
+      contextId: 'cmgr-context-1',
+      activeArea: 'GESTOR',
+    });
+
+    expect(res.allowed).toBe(true);
+    expect(mockPrisma.match.count).toHaveBeenCalledWith({
+      where: { ctId: 'cmgr-context-1', deletedAt: null },
+    });
+  });
 });
